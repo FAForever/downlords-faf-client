@@ -1,7 +1,7 @@
 package com.faforever.client.game;
 
 
-import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.player.Player;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.util.RatingUtil;
@@ -36,7 +36,7 @@ public class TeamCardController {
   public void setPlayersInTeam(String team, List<String> playerList) {
     int totalRating = 0;
     for (String player : playerList) {
-      PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(player);
+      Player playerInfoBean = playerService.getPlayerForUsername(player);
       if (playerInfoBean == null) {
         logger.warn("{} is not returned by playerService", player);
         continue;

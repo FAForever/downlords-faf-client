@@ -4,6 +4,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapBuilder;
 import com.faforever.client.map.MapService;
+import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
@@ -52,8 +53,6 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private MapService mapService;
   @Mock
-  private GameService gameService;
-  @Mock
   private ModService modService;
   @Mock
   private Preferences preferences;
@@ -74,7 +73,6 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     instance = loadController("create_game.fxml");
     instance.preferencesService = preferencesService;
     instance.mapService = mapService;
-    instance.gameService = gameService;
     instance.modService = modService;
     instance.environment = environment;
     instance.i18n = i18n;
@@ -86,7 +84,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPath()).thenReturn(Paths.get(""));
     when(mapService.getInstalledMaps()).thenReturn(mapList);
-    when(gameService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(emptyList()));
+    when(modService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(emptyList()));
 
     doAnswer(invocation -> getThemeFile(invocation.getArgumentAt(0, String.class)))
         .when(themeService).getThemeFile(any());
@@ -193,7 +191,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testInitGameTypeComboBoxPostPopulated() throws Exception {
     FeaturedModBean featuredModBean = FeaturedModBeanBuilder.create().defaultValues().get();
-    when(gameService.getFeaturedMods()).thenReturn(completedFuture(singletonList(featuredModBean)));
+    when(modService.getFeaturedMods()).thenReturn(completedFuture(singletonList(featuredModBean)));
 
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.postConstruct());
 
@@ -207,7 +205,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     FeaturedModBean featuredModBean2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getString()).get();
 
     when(preferences.getLastGameType()).thenReturn(null);
-    when(gameService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
+    when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
 
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.postConstruct());
 
@@ -220,7 +218,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     FeaturedModBean featuredModBean2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getString()).get();
 
     when(preferences.getLastGameType()).thenReturn("last");
-    when(gameService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
+    when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
 
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.postConstruct());
 

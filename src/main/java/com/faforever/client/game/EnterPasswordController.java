@@ -36,7 +36,7 @@ public class EnterPasswordController {
   @FXML
   Button cancelButton;
   private OnPasswordEnteredListener listener;
-  private GameInfoBean gameInfoBean;
+  private Game game;
   private boolean ignoreRating;
 
   @FXML
@@ -58,7 +58,7 @@ public class EnterPasswordController {
     if (listener == null) {
       throw new IllegalStateException("No listener has been set");
     }
-    listener.onPasswordEntered(gameInfoBean, passwordField.getText(), ignoreRating);
+    listener.onPasswordEntered(game, passwordField.getText(), ignoreRating);
     getRoot().getScene().getWindow().hide();
   }
 
@@ -71,8 +71,8 @@ public class EnterPasswordController {
     getRoot().getScene().getWindow().hide();
   }
 
-  public void setGameInfoBean(GameInfoBean gameInfoBean) {
-    this.gameInfoBean = gameInfoBean;
+  public void setGame(Game game) {
+    this.game = game;
   }
 
   public void setIgnoreRating(boolean ignoreRating) {
@@ -92,6 +92,6 @@ public class EnterPasswordController {
 
   interface OnPasswordEnteredListener {
 
-    void onPasswordEntered(GameInfoBean gameInfoBean, String password, boolean ignoreRating);
+    void onPasswordEntered(Game game, String password, boolean ignoreRating);
   }
 }

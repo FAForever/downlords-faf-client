@@ -1,18 +1,22 @@
 package com.faforever.client.remote;
 
+import com.faforever.client.api.CoopLeaderboardEntry;
+import com.faforever.client.api.FeaturedModFile;
 import com.faforever.client.api.Ranked1v1Stats;
 import com.faforever.client.api.RatingType;
-import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.chat.avatar.AvatarBean;
+import com.faforever.client.config.CacheNames;
+import com.faforever.client.coop.CoopMission;
 import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.game.Faction;
-import com.faforever.client.game.FeaturedModBean;
+import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.fa.relay.GpgGameMessage;
+import com.faforever.client.player.Player;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
@@ -48,13 +52,13 @@ public interface FafService {
 
   void disconnect();
 
-  void addFriend(PlayerInfoBean friendId);
+  void addFriend(Player friendId);
 
-  void addFoe(PlayerInfoBean foeId);
+  void addFoe(Player foeId);
 
-  void removeFriend(PlayerInfoBean friendId);
+  void removeFriend(Player friendId);
 
-  void removeFoe(PlayerInfoBean foeId);
+  void removeFoe(Player foeId);
 
   Long getSessionId();
 
@@ -84,11 +88,15 @@ public interface FafService {
 
   CompletionStage<List<MapBean>> getNewestMaps(int count);
 
+  CompletableFuture<List<CoopMission>> getCoopMaps();
+
   CompletionStage<List<AvatarBean>> getAvailableAvatars();
 
   void selectAvatar(AvatarBean avatar);
 
   void evictModsCache();
+
+  CompletableFuture<List<CoopLeaderboardEntry>> getCoopLeaderboard(CoopMission mission, int numberOfPlayers);
 
   CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(RatingType ratingType, int playerId);
 
@@ -97,4 +105,6 @@ public interface FafService {
   CompletableFuture<List<FeaturedModBean>> getFeaturedMods();
 
   CompletionStage<List<ReplayInfoBean>> getOnlineReplays();
+
+  CompletableFuture<List<FeaturedModFile>> getFeaturedModFiles(FeaturedModBean featuredMod, Integer version);
 }

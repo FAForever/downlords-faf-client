@@ -26,10 +26,8 @@ public class ReplayDownloadTask extends CompletableTask<Path> {
 
   @Resource
   I18n i18n;
-
   @Resource
   Environment environment;
-
   @Resource
   PreferencesService preferencesService;
 

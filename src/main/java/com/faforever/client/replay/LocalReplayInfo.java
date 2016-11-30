@@ -1,6 +1,6 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.game.GameInfoBean;
+import com.faforever.client.game.Game;
 import com.faforever.client.remote.domain.GameState;
 import com.faforever.client.remote.domain.VictoryCondition;
 
@@ -33,20 +33,20 @@ public class LocalReplayInfo {
   private double gameTime;
   private double launchedAt;
 
-  public void updateFromGameInfoBean(GameInfoBean gameInfoBean) {
-    host = gameInfoBean.getHost();
-    uid = gameInfoBean.getUid();
-    title = gameInfoBean.getTitle();
-    mapname = gameInfoBean.getMapFolderName();
-    state = gameInfoBean.getStatus();
-    gameType = gameInfoBean.getVictoryCondition();
-    featuredMod = gameInfoBean.getFeaturedMod();
-    maxPlayers = gameInfoBean.getMaxPlayers();
-    numPlayers = gameInfoBean.getNumPlayers();
-    simMods = gameInfoBean.getSimMods();
+  public void updateFromGameInfoBean(Game game) {
+    host = game.getHost();
+    uid = game.getId();
+    title = game.getTitle();
+    mapname = game.getMapFolderName();
+    state = game.getStatus();
+    gameType = game.getVictoryCondition();
+    featuredMod = game.getFeaturedMod();
+    maxPlayers = game.getMaxPlayers();
+    numPlayers = game.getNumPlayers();
+    simMods = game.getSimMods();
     // FIXME this (and all others here) should do a deep copy
-    teams = gameInfoBean.getTeams();
-    featuredModVersions = gameInfoBean.getFeaturedModVersions();
+    teams = game.getTeams();
+    featuredModVersions = game.getFeaturedModVersions();
   }
 
   public String getHost() {

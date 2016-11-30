@@ -18,8 +18,11 @@ import static com.faforever.client.config.CacheNames.ACHIEVEMENTS;
 import static com.faforever.client.config.CacheNames.ACHIEVEMENT_IMAGES;
 import static com.faforever.client.config.CacheNames.AVAILABLE_AVATARS;
 import static com.faforever.client.config.CacheNames.AVATARS;
+import static com.faforever.client.config.CacheNames.COOP_LEADERBOARD;
+import static com.faforever.client.config.CacheNames.COOP_MAPS;
 import static com.faforever.client.config.CacheNames.COUNTRY_FLAGS;
 import static com.faforever.client.config.CacheNames.FEATURED_MODS;
+import static com.faforever.client.config.CacheNames.FEATURED_MOD_FILES;
 import static com.faforever.client.config.CacheNames.MAP_PREVIEW;
 import static com.faforever.client.config.CacheNames.LEADERBOARD;
 import static com.faforever.client.config.CacheNames.MAPS;
@@ -49,9 +52,12 @@ public class CacheConfig implements CachingConfigurer {
         new GuavaCache(MAPS, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new GuavaCache(LEADERBOARD, newBuilder().maximumSize(1).expireAfterAccess(1, MINUTES).build()),
         new GuavaCache(AVAILABLE_AVATARS, newBuilder().expireAfterAccess(30, SECONDS).build()),
+        new GuavaCache(COOP_MAPS, newBuilder().expireAfterAccess(10, SECONDS).build()),
         new GuavaCache(NEWS, newBuilder().expireAfterWrite(1, MINUTES).build()),
         new GuavaCache(RATING_HISTORY, newBuilder().expireAfterWrite(1, MINUTES).build()),
+        new GuavaCache(COOP_LEADERBOARD, newBuilder().expireAfterWrite(1, MINUTES).build()),
         new GuavaCache(FEATURED_MODS, newBuilder().build()),
+        new GuavaCache(FEATURED_MOD_FILES, newBuilder().expireAfterWrite(10, MINUTES).build()),
 
         // Images should only be cached as long as they are in use. This avoids loading an image multiple times, while
         // at the same time it doesn't prevent unused images from being garbage collected.

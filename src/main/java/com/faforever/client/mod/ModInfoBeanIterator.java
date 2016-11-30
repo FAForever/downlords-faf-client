@@ -6,6 +6,8 @@ import com.google.gson.GsonBuilder;
 import javafx.beans.property.Property;
 import org.apache.lucene.search.suggest.InputIterator;
 import org.apache.lucene.util.BytesRef;
+import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.apache.maven.artifact.versioning.ComparableVersionDeserializer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -28,6 +30,7 @@ public class ModInfoBeanIterator implements InputIterator {
     this.modIterator = modIterator;
     this.gson = new GsonBuilder()
         .registerTypeHierarchyAdapter(Property.class, PropertyTypeAdapter.INSTANCE)
+        .registerTypeAdapter(ComparableVersion.class, ComparableVersionDeserializer.INSTANCE)
         .create();
   }
 

@@ -6,10 +6,10 @@ import javafx.collections.FXCollections;
 
 public class GameInfoBeanBuilder {
 
-  private final GameInfoBean gameInfoBean;
+  private final Game game;
 
   public GameInfoBeanBuilder() {
-    gameInfoBean = new GameInfoBean();
+    game = new Game();
   }
 
   public static GameInfoBeanBuilder create() {
@@ -17,27 +17,32 @@ public class GameInfoBeanBuilder {
   }
 
   public GameInfoBeanBuilder defaultValues() {
-    gameInfoBean.setFeaturedMod("faf");
-    gameInfoBean.setFeaturedModVersions(FXCollections.emptyObservableMap());
-    gameInfoBean.setVictoryCondition(VictoryCondition.DEMORALIZATION);
-    gameInfoBean.setHost("Host");
-    gameInfoBean.setMapFolderName("mapName");
-    gameInfoBean.setNumPlayers(1);
-    gameInfoBean.setNumPlayers(2);
-    gameInfoBean.setSimMods(FXCollections.emptyObservableMap());
-    gameInfoBean.setStatus(GameState.OPEN);
-    gameInfoBean.setTitle("Title");
-    gameInfoBean.setTeams(FXCollections.emptyObservableMap());
-    gameInfoBean.setUid(1);
+    game.setFeaturedMod(KnownFeaturedMod.DEFAULT.getString());
+    game.setFeaturedModVersions(FXCollections.emptyObservableMap());
+    game.setVictoryCondition(VictoryCondition.DEMORALIZATION);
+    game.setHost("Host");
+    game.setMapFolderName("mapName");
+    game.setNumPlayers(1);
+    game.setNumPlayers(2);
+    game.setSimMods(FXCollections.emptyObservableMap());
+    game.setStatus(GameState.OPEN);
+    game.setTitle("Title");
+    game.setTeams(FXCollections.emptyObservableMap());
+    game.setId(1);
     return this;
   }
 
-  public GameInfoBean get() {
-    return gameInfoBean;
+  public Game get() {
+    return game;
   }
 
   public GameInfoBeanBuilder title(String title) {
-    gameInfoBean.setTitle(title);
+    game.setTitle(title);
+    return this;
+  }
+
+  public GameInfoBeanBuilder featuredMod(String featuredMod) {
+    game.setFeaturedMod(featuredMod);
     return this;
   }
 }

@@ -151,7 +151,7 @@
                            <children>
                                <ToggleButton fx:id="topLeftToastButton" focusTraversable="false" mnemonicParsing="false"
                                              prefWidth="100.0" text="%settings.notifications.toastPosition.topLeft"
-                                             GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+                                             GridPane.halignment="CENTER" GridPane.valignment="CENTER" disable="true">
                                  <toggleGroup>
                                      <ToggleGroup fx:id="toastPosition"/>
                                  </toggleGroup>
@@ -160,12 +160,12 @@
                                              mnemonicParsing="false" prefWidth="100.0"
                                              text="%settings.notifications.toastPosition.bottomLeft"
                                              toggleGroup="$toastPosition" wrapText="true" GridPane.halignment="CENTER"
-                                             GridPane.rowIndex="1" GridPane.valignment="CENTER"/>
+                                             GridPane.rowIndex="1" GridPane.valignment="CENTER" disable="true"/>
                                <ToggleButton fx:id="topRightToastButton" focusTraversable="false"
                                              mnemonicParsing="false" prefWidth="100.0"
                                              text="%settings.notifications.toastPosition.topRight"
                                              toggleGroup="$toastPosition" wrapText="true" GridPane.columnIndex="1"
-                                             GridPane.halignment="CENTER" GridPane.valignment="CENTER"/>
+                                             GridPane.halignment="CENTER" GridPane.valignment="CENTER" disable="true"/>
                                <ToggleButton fx:id="bottomRightToastButton" focusTraversable="false"
                                              mnemonicParsing="false" prefWidth="100.0" selected="true"
                                              text="%settings.notifications.toastPosition.bottomRight"

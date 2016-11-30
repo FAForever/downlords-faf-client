@@ -1,6 +1,6 @@
 package com.faforever.client.game;
 
-import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.player.Player;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.Action;
@@ -60,37 +60,37 @@ public class JoinGameHelper {
     enterPasswordController.setOnPasswordEnteredListener(this::join);
   }
 
-  public void join(GameInfoBean gameInfoBean) {
-    this.join(gameInfoBean, null, false);
+  public void join(Game game) {
+    this.join(game, null, false);
   }
 
-  public void join(GameInfoBean gameInfoBean, String password, boolean ignoreRating) {
+  public void join(Game game, String password, boolean ignoreRating) {
     Objects.requireNonNull(parentNode, "parentNode has not been set");
 
-    PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
+    Player currentPlayer = playerService.getCurrentPlayer();
     int playerRating = RatingUtil.getRoundedGlobalRating(currentPlayer);
 
     if (!preferencesService.isGamePathValid()) {
       preferencesService.letUserChooseGameDirectory()
           .thenAccept(path -> {
             if (path != null) {
-              join(gameInfoBean, password, ignoreRating);
+              join(game, password, ignoreRating);
             }
           });
       return;
     }
 
-    if (!ignoreRating && (playerRating < gameInfoBean.getMinRating() || playerRating > gameInfoBean.getMaxRating())) {
-      showRatingOutOfBoundsConfirmation(playerRating, gameInfoBean, password);
+    if (!ignoreRating && (playerRating < game.getMinRating() || playerRating > game.getMaxRating())) {
+      showRatingOutOfBoundsConfirmation(playerRating, game, password);
       return;
     }
 
-    if (gameInfoBean.getPasswordProtected() && password == null) {
-      enterPasswordController.setGameInfoBean(gameInfoBean);
+    if (game.getPasswordProtected() && password == null) {
+      enterPasswordController.setGame(game);
       enterPasswordController.setIgnoreRating(ignoreRating);
       enterPasswordController.showPasswordDialog(parentNode.getScene().getWindow());
     } else {
-      gameService.joinGame(gameInfoBean, password)
+      gameService.joinGame(game, password)
           .exceptionally(throwable -> {
             logger.warn("Game could not be joined", throwable);
             notificationService.addNotification(
@@ -105,13 +105,13 @@ public class JoinGameHelper {
     }
   }
 
-  private void showRatingOutOfBoundsConfirmation(int playerRating, GameInfoBean gameInfoBean, String password) {
+  private void showRatingOutOfBoundsConfirmation(int playerRating, Game game, String password) {
     notificationService.addNotification(new ImmediateNotification(
         i18n.get("game.joinGameRatingConfirmation.title"),
-        i18n.get("game.joinGameRatingConfirmation.text", gameInfoBean.getMinRating(), gameInfoBean.getMaxRating(), playerRating),
+        i18n.get("game.joinGameRatingConfirmation.text", game.getMinRating(), game.getMaxRating(), playerRating),
         Severity.INFO,
         asList(
-            new Action(i18n.get("game.join"), event -> this.join(gameInfoBean, password, true)),
+            new Action(i18n.get("game.join"), event -> this.join(game, password, true)),
             new Action(i18n.get("game.cancel"))
         )
     ));

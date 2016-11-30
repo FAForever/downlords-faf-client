@@ -1,9 +1,7 @@
 package com.faforever.client.player;
 
 import com.faforever.client.audio.AudioController;
-import com.faforever.client.chat.PlayerInfoBean;
-import com.faforever.client.game.GameInfoBean;
-import com.faforever.client.game.GameService;
+import com.faforever.client.game.Game;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -32,8 +30,6 @@ public class FriendJoinedGameNotifier {
   @Resource
   JoinGameHelper joinGameHelper;
   @Resource
-  GameService gameService;
-  @Resource
   PreferencesService preferencesService;
   @Resource
   AudioController audioController;
@@ -45,8 +41,8 @@ public class FriendJoinedGameNotifier {
 
   @Subscribe
   public void onFriendJoinedGame(FriendJoinedGameEvent event) {
-    PlayerInfoBean player = event.getPlayerInfoBean();
-    GameInfoBean game = gameService.getByUid(player.getGameUid());
+    Player player = event.getPlayer();
+    Game game = player.getGame();
 
     audioController.playFriendJoinsGameSound();
 
@@ -57,7 +53,7 @@ public class FriendJoinedGameNotifier {
           IdenticonUtil.createIdenticon(player.getId()),
           event1 -> {
             joinGameHelper.setParentNode((Node) event1.getTarget());
-            joinGameHelper.join(player.getGameUid());
+            joinGameHelper.join(player.getGame());
           }
       ));
     }

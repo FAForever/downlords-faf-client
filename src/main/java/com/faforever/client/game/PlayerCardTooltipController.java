@@ -1,7 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.chat.CountryFlagService;
-import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.player.Player;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.RatingUtil;
 import javafx.fxml.FXML;
@@ -24,10 +24,10 @@ public class PlayerCardTooltipController {
   @Resource
   I18n i18n;
 
-  public void setPlayer(PlayerInfoBean playerInfoBean) {
-    playerFlag.setImage(countryFlagService.loadCountryFlag(playerInfoBean.getCountry()));
+  public void setPlayer(Player player) {
+    playerFlag.setImage(countryFlagService.loadCountryFlag(player.getCountry()));
 
-    String playerInfoLocalized = i18n.get("userInfo.tooltipFormat", playerInfoBean.getUsername(), RatingUtil.getRoundedGlobalRating(playerInfoBean));
+    String playerInfoLocalized = i18n.get("userInfo.tooltipFormat", player.getUsername(), RatingUtil.getRoundedGlobalRating(player));
     playerInfo.setText(playerInfoLocalized);
   }
 

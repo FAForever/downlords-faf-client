@@ -1,7 +1,7 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.GameInfoBean;
+import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
@@ -174,8 +174,8 @@ public class ReplayServiceImpl implements ReplayService {
 
   @Override
   public void runLiveReplay(int gameId, int playerId) throws IOException {
-    GameInfoBean gameInfoBean = gameService.getByUid(gameId);
-    if (gameInfoBean == null) {
+    Game game = gameService.getByUid(gameId);
+    if (game == null) {
       throw new RuntimeException("There's no game with ID: " + gameId);
     }
 
@@ -183,8 +183,8 @@ public class ReplayServiceImpl implements ReplayService {
     uriBuilder.setScheme(FAF_LIFE_PROTOCOL);
     uriBuilder.setHost(environment.getProperty("lobby.host"));
     uriBuilder.setPath("/" + gameId + "/" + playerId + SUP_COM_REPLAY_FILE_ENDING);
-    uriBuilder.addParameter("map", UrlEscapers.urlFragmentEscaper().escape(gameInfoBean.getMapFolderName()));
-    uriBuilder.addParameter("mod", gameInfoBean.getFeaturedMod());
+    uriBuilder.addParameter("map", UrlEscapers.urlFragmentEscaper().escape(game.getMapFolderName()));
+    uriBuilder.addParameter("mod", game.getFeaturedMod());
 
     try {
       runLiveReplay(uriBuilder.build());
@@ -231,6 +231,11 @@ public class ReplayServiceImpl implements ReplayService {
   @Override
   public void stopReplayServer() {
     replayServer.stop();
+  }
+
+  @Override
+  public void runReplay(Integer replayId) {
+    runOnlineReplay(replayId);
   }
 
   private void runReplayFile(Path path) {

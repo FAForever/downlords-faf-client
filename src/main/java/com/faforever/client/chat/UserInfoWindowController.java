@@ -10,6 +10,7 @@ import com.faforever.client.api.RatingType;
 import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.events.EventService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.player.Player;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.util.IdenticonUtil;
@@ -155,7 +156,7 @@ public class UserInfoWindowController {
   @Resource
   TimeService timeService;
 
-  private PlayerInfoBean playerInfoBean;
+  private Player player;
   private Map<String, AchievementItemController> achievementItemById;
   private Map<String, AchievementDefinition> achievementDefinitionById;
   private int earnedExperiencePoints;
@@ -223,29 +224,29 @@ public class UserInfoWindowController {
     });
   }
 
-  public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {
-    this.playerInfoBean = playerInfoBean;
+  public void setPlayer(Player player) {
+    this.player = player;
 
-    usernameLabel.setText(playerInfoBean.getUsername());
-    countryImageView.setImage(countryFlagService.loadCountryFlag(playerInfoBean.getCountry()));
-    avatarImageView.setImage(IdenticonUtil.createIdenticon(playerInfoBean.getId()));
-    gamesPlayedLabel.setText(String.format(locale, "%d", playerInfoBean.getNumberOfGames()));
-    ratingLabelGlobal.setText(String.format(locale, "%d", RatingUtil.getRoundedGlobalRating(playerInfoBean)));
-    ratingLabel1v1.setText(String.format(locale, "%d", RatingUtil.getLeaderboardRating(playerInfoBean)));
+    usernameLabel.setText(player.getUsername());
+    countryImageView.setImage(countryFlagService.loadCountryFlag(player.getCountry()));
+    avatarImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
+    gamesPlayedLabel.setText(String.format(locale, "%d", player.getNumberOfGames()));
+    ratingLabelGlobal.setText(String.format(locale, "%d", RatingUtil.getGlobalRating(player)));
+    ratingLabel1v1.setText(String.format(locale, "%d", RatingUtil.getLeaderboardRating(player)));
 
-    CountryCode countryCode = CountryCode.getByCode(playerInfoBean.getCountry());
+    CountryCode countryCode = CountryCode.getByCode(player.getCountry());
     if (countryCode != null) {
       // Country code is unknown to CountryCode, like A1 or A2 (from GeoIP)
       countryLabel.setText(countryCode.getName());
     } else {
-      countryLabel.setText(playerInfoBean.getCountry());
+      countryLabel.setText(player.getCountry());
     }
 
     globalButton.fire();
     globalButton.setSelected(true);
 
     loadAchievements();
-    eventService.getPlayerEvents(playerInfoBean.getUsername()).thenAccept(events -> {
+    eventService.getPlayerEvents(player.getUsername()).thenAccept(events -> {
       plotFactionsChart(events);
       plotUnitsByCategoriesChart(events);
       plotTechBuiltChart(events);
@@ -262,7 +263,7 @@ public class UserInfoWindowController {
           return Collections.emptyList();
         })
         .thenAccept(this::displayAvailableAchievements)
-        .thenCompose(aVoid -> achievementService.getPlayerAchievements(playerInfoBean.getUsername()))
+        .thenCompose(aVoid -> achievementService.getPlayerAchievements(player.getUsername()))
         .thenAccept(playerAchievements -> {
           updatePlayerAchievements(playerAchievements);
           enterAchievementsLoadedState();
@@ -394,7 +395,7 @@ public class UserInfoWindowController {
   }
 
   private CompletionStage<Void> loadStatistics(RatingType type) {
-    return statisticsService.getRatingHistory(type, playerInfoBean.getId())
+    return statisticsService.getRatingHistory(type, player.getId())
         .thenAccept(ratingHistory -> Platform.runLater(() -> plotPlayerRatingGraph(ratingHistory)))
         .exceptionally(throwable -> {
           // FIXME display to user

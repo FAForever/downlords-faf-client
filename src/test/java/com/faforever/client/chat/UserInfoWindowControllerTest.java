@@ -94,7 +94,7 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
     ));
     when(eventService.getPlayerEvents(PLAYER_NAME)).thenReturn(CompletableFuture.completedFuture(new HashMap<>()));
 
-    instance.setPlayerInfoBean(PlayerInfoBeanBuilder.create(PLAYER_NAME).id(PLAYER_ID).get());
+    instance.setPlayer(PlayerInfoBeanBuilder.create(PLAYER_NAME).id(PLAYER_ID).get());
 
     verify(achievementService).getAchievementDefinitions();
     verify(achievementService).getPlayerAchievements(PLAYER_NAME);
@@ -122,7 +122,7 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
     )));
     when(eventService.getPlayerEvents(PLAYER_NAME)).thenReturn(CompletableFuture.completedFuture(new HashMap<>()));
 
-    instance.setPlayerInfoBean(PlayerInfoBeanBuilder.create(PLAYER_NAME).id(PLAYER_ID).get());
+    instance.setPlayer(PlayerInfoBeanBuilder.create(PLAYER_NAME).id(PLAYER_ID).get());
 
     verify(achievementService).getAchievementDefinitions();
     verify(achievementService).getPlayerAchievements(PLAYER_NAME);

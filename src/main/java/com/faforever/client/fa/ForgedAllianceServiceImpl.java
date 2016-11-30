@@ -1,6 +1,6 @@
 package com.faforever.client.fa;
 
-import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.player.Player;
 import com.faforever.client.game.Faction;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -16,6 +16,8 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
 
+import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANCE_EXE;
+
 public class ForgedAllianceServiceImpl implements ForgedAllianceService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -29,7 +31,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   public Process startGame(int uid, @Nullable Faction faction, @Nullable List<String> additionalArgs, RatingMode ratingMode, int gpgPort, boolean rehost) throws IOException {
     Path executable = getExecutable();
 
-    PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
+    Player currentPlayer = playerService.getCurrentPlayer();
 
     float deviation;
     float mean;
@@ -81,7 +83,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   public Process startReplay(URI replayUri, Integer replayId) throws IOException {
     Path executable = getExecutable();
 
-    PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
+    Player currentPlayer = playerService.getCurrentPlayer();
     List<String> launchCommand = LaunchCommandBuilder.create()
         .executable(executable)
         .replayUri(replayUri)
@@ -94,7 +96,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   }
 
   private Path getExecutable() {
-    return preferencesService.getFafBinDirectory().resolve("ForgedAlliance.exe");
+    return preferencesService.getFafBinDirectory().resolve(FORGED_ALLIANCE_EXE);
   }
 
   @NotNull

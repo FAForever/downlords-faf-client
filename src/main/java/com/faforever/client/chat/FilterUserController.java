@@ -82,7 +82,7 @@ public class FilterUserController {
       return true;
     }
 
-    String clan = chatUserItemController.getPlayerInfoBean().getClan();
+    String clan = chatUserItemController.getPlayer().getClan();
     if (clan == null) {
       return false;
     } else {
@@ -97,7 +97,7 @@ public class FilterUserController {
       return true;
     }
 
-    int globalRating = RatingUtil.getGlobalRating(chatUserItemController.getPlayerInfoBean());
+    int globalRating = RatingUtil.getGlobalRating(chatUserItemController.getPlayer());
     int minRating;
     int maxRating;
 
@@ -121,7 +121,7 @@ public class FilterUserController {
       return true;
     }
 
-    GameStatus gameStatus = chatUserItemController.getPlayerInfoBean().getGameStatus();
+    GameStatus gameStatus = chatUserItemController.getPlayer().getGameStatus();
     if (gameStatusFilter == LOBBY) {
       return LOBBY == gameStatus || HOST == gameStatus;
     } else {

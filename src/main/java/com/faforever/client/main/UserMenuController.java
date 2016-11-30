@@ -77,7 +77,7 @@ public class UserMenuController {
 
   public void onShowProfileButtonClicked() {
     UserInfoWindowController userInfoWindowController = applicationContext.getBean(UserInfoWindowController.class);
-    userInfoWindowController.setPlayerInfoBean(playerService.getCurrentPlayer());
+    userInfoWindowController.setPlayer(playerService.getCurrentPlayer());
 
     Stage userInfoWindow = new Stage(StageStyle.TRANSPARENT);
     userInfoWindow.initModality(Modality.NONE);

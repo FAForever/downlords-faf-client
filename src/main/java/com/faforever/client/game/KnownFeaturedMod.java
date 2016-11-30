@@ -6,6 +6,7 @@ import java.util.Map;
 public enum KnownFeaturedMod {
   FAF("faf"),
   FAF_BETA("fafbeta"),
+  FAF_DEVELOP("fafdevelop"),
   BALANCE_TESTING("balancetesting"),
   LADDER_1V1("ladder1v1"),
   COOP("coop"),

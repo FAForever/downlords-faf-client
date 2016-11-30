@@ -1,7 +1,7 @@
 package com.faforever.client.rankedmatch;
 
 import com.faforever.client.api.Ranked1v1Stats;
-import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.player.Player;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -66,7 +66,7 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ForgedAlliancePrefs forgedAlliancePrefs;
 
-  private ObjectProperty<PlayerInfoBean> currentPlayerProperty;
+  private ObjectProperty<Player> currentPlayerProperty;
   private ObservableList<Faction> factionList;
 
   @Before
@@ -79,9 +79,9 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
     instance.leaderboardService = leaderboardService;
     instance.i18n = i18n;
 
-    PlayerInfoBean playerInfoBean = new PlayerInfoBean(USERNAME);
-    playerInfoBean.setId(PLAYER_ID);
-    currentPlayerProperty = new SimpleObjectProperty<>(playerInfoBean);
+    Player player = new Player(USERNAME);
+    player.setId(PLAYER_ID);
+    currentPlayerProperty = new SimpleObjectProperty<>(player);
     factionList = FXCollections.observableArrayList();
     Ranked1v1EntryBean ranked1v1EntryBean = new Ranked1v1EntryBean();
     ranked1v1EntryBean.setRating(500);
@@ -189,7 +189,7 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
   private void testUpdateRating(int leaderboardRatingMean, String key) {
     reset(i18n);
 
-    PlayerInfoBean currentPlayer = currentPlayerProperty.get();
+    Player currentPlayer = currentPlayerProperty.get();
     currentPlayer.setLeaderboardRatingDeviation(1);
     currentPlayer.setLeaderboardRatingMean(leaderboardRatingMean);
 
@@ -224,7 +224,7 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
     when(environment.getProperty("rating.beta", int.class)).thenReturn(10);
     when(environment.getProperty("rating.initialStandardDeviation", int.class)).thenReturn(50);
 
-    PlayerInfoBean currentPlayer = currentPlayerProperty.get();
+    Player currentPlayer = currentPlayerProperty.get();
     currentPlayer.setLeaderboardRatingDeviation(45);
     currentPlayer.setLeaderboardRatingMean(100);
 

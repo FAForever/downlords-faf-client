@@ -202,7 +202,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testSubscribeAnnotations() {
     assertThat(ReflectionUtils.findMethod(
-        ChatController.class, "onInitiatePrivateChatEvent", InitiatePrivateChatEvent.class),
+        instance.getClass(), "onInitiatePrivateChatEvent", InitiatePrivateChatEvent.class),
         hasAnnotation(Subscribe.class));
   }
 }

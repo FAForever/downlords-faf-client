@@ -3,7 +3,8 @@ package com.faforever.client.main;
 import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatService;
-import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.player.Player;
+import com.faforever.client.coop.CoopController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.Faction;
@@ -25,7 +26,6 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.os.OperatingSystem;
-import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.OnChooseGameDirectoryListener;
 import com.faforever.client.preferences.PreferencesService;
@@ -204,8 +204,6 @@ public class MainController implements OnChooseGameDirectoryListener {
   @Resource
   CastsController castsController;
   @Resource
-  GameUpdateService gameUpdateService;
-  @Resource
   GameService gameService;
   @Resource
   ClientUpdateService clientUpdateService;
@@ -227,6 +225,8 @@ public class MainController implements OnChooseGameDirectoryListener {
   WindowController windowController;
   @Resource
   ThemeService themeService;
+  @Resource
+  CoopController coopController;
   @Resource
   EventBus eventBus;
 
@@ -544,7 +544,7 @@ public class MainController implements OnChooseGameDirectoryListener {
       return;
     }
 
-    PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
+    Player currentPlayer = playerService.getCurrentPlayer();
 
     int deviationFor80PercentQuality = (int) (ratingBeta / 2.5f);
     int deviationFor75PercentQuality = (int) (ratingBeta / 1.25f);
@@ -833,6 +833,13 @@ public class MainController implements OnChooseGameDirectoryListener {
   void onChatSelected(ActionEvent event) {
     setActiveNavigationButton((ButtonBase) event.getSource());
     setContent(chatController.getRoot());
+  }
+
+  @FXML
+  void onPlayCoopSelected(ActionEvent event) {
+    setContent(coopController.getRoot());
+    coopController.setUpIfNecessary();
+    setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }
 
   @FXML

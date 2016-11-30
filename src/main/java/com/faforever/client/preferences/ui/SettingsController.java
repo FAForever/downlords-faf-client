@@ -250,9 +250,9 @@ public class SettingsController {
   }
 
   private void configureToastScreen(Preferences preferences) {
+    toastScreenComboBox.getSelectionModel().select(preferences.getNotification().getToastScreen());
     preferences.getNotification().toastScreenProperty().bind(Bindings.createIntegerBinding(()
         -> Screen.getScreens().indexOf(toastScreenComboBox.getValue()), toastScreenComboBox.valueProperty()));
-    toastScreenComboBox.getSelectionModel().select(preferences.getNotification().getToastScreen());
   }
 
   public Region getRoot() {

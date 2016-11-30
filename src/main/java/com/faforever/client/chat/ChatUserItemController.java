@@ -2,17 +2,17 @@ package com.faforever.client.chat;
 
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.game.GameInfoBean;
+import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameStatus;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.game.JoinGameHelper;
-import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.player.Player;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
@@ -96,14 +96,13 @@ public class ChatUserItemController {
   @Resource
   EventBus eventBus;
 
-  private PlayerInfoBean playerInfoBean;
+  private Player player;
   private boolean colorsAllowedInPane;
   private ChangeListener<ChatColorMode> colorModeChangeListener;
   private MapChangeListener<? super String, ? super Color> colorPerUserMapChangeListener;
   private ChangeListener<String> avatarChangeListener;
   private ChangeListener<String> clanChangeListener;
   private ChangeListener<GameStatus> gameStatusChangeListener;
-  private PlayerCardTooltipController playerCardTooltipController;
 
   @FXML
   void initialize() {
@@ -113,14 +112,14 @@ public class ChatUserItemController {
   @FXML
   void onContextMenuRequested(ContextMenuEvent event) {
     ChatUserContextMenuController contextMenuController = applicationContext.getBean(ChatUserContextMenuController.class);
-    contextMenuController.setPlayerInfoBean(playerInfoBean);
+    contextMenuController.setPlayer(player);
     contextMenuController.getContextMenu().show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
   }
 
   @FXML
   void onUsernameClicked(MouseEvent mouseEvent) {
     if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
-      eventBus.post(new InitiatePrivateChatEvent(playerInfoBean.getUsername()));
+      eventBus.post(new InitiatePrivateChatEvent(player.getUsername()));
     }
   }
 
@@ -130,7 +129,7 @@ public class ChatUserItemController {
 
     colorModeChangeListener = (observable, oldValue, newValue) -> configureColor();
     colorPerUserMapChangeListener = change -> {
-      String lowerUsername = playerInfoBean.getUsername().toLowerCase(US);
+      String lowerUsername = player.getUsername().toLowerCase(US);
       if (lowerUsername.equalsIgnoreCase(change.getKey())) {
         Color newColor = chatPrefs.getUserToColor().get(lowerUsername);
         assignColor(newColor);
@@ -145,14 +144,14 @@ public class ChatUserItemController {
   private void configureColor() {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
-    if (playerInfoBean.getSocialStatus() == SELF) {
+    if (player.getSocialStatus() == SELF) {
       usernameLabel.getStyleClass().add(SELF.getCssClass());
       clanLabel.getStyleClass().add(SELF.getCssClass());
       return;
     }
 
     Color color = null;
-    String lowerUsername = playerInfoBean.getUsername().toLowerCase(US);
+    String lowerUsername = player.getUsername().toLowerCase(US);
     ChatUser chatUser = chatService.getOrCreateChatUser(lowerUsername);
 
     if (chatPrefs.getChatColorMode() == CUSTOM) {
@@ -222,12 +221,12 @@ public class ChatUserItemController {
     return chatUserItemRoot;
   }
 
-  public PlayerInfoBean getPlayerInfoBean() {
-    return playerInfoBean;
+  public Player getPlayer() {
+    return player;
   }
 
-  public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {
-    this.playerInfoBean = playerInfoBean;
+  public void setPlayer(Player player) {
+    this.player = player;
 
     configureColor();
     addChatColorModeListener();
@@ -235,9 +234,8 @@ public class ChatUserItemController {
     configureAvatarImageView();
     configureClanLabel();
     configureGameStatusView();
-    configureTooltip();
 
-    usernameLabel.setText(playerInfoBean.getUsername());
+    usernameLabel.setText(player.getUsername());
   }
 
   private void addChatColorModeListener() {
@@ -246,50 +244,33 @@ public class ChatUserItemController {
   }
 
   private void configureCountryImageView() {
-    setCountry(playerInfoBean.getCountry());
+    setCountry(player.getCountry());
 
-    Tooltip countryTooltip = new Tooltip(playerInfoBean.getCountry());
-    countryTooltip.textProperty().bind(playerInfoBean.countryProperty());
+    Tooltip countryTooltip = new Tooltip(player.getCountry());
+    countryTooltip.textProperty().bind(player.countryProperty());
 
     Tooltip.install(countryImageView, countryTooltip);
   }
 
   private void configureAvatarImageView() {
-    playerInfoBean.avatarUrlProperty().addListener(new WeakChangeListener<>(avatarChangeListener));
-    setAvatarUrl(playerInfoBean.getAvatarUrl());
+    player.avatarUrlProperty().addListener(new WeakChangeListener<>(avatarChangeListener));
+    setAvatarUrl(player.getAvatarUrl());
 
-    Tooltip avatarTooltip = new Tooltip(playerInfoBean.getAvatarTooltip());
-    avatarTooltip.textProperty().bind(playerInfoBean.avatarTooltipProperty());
+    Tooltip avatarTooltip = new Tooltip(player.getAvatarTooltip());
+    avatarTooltip.textProperty().bind(player.avatarTooltipProperty());
     avatarTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
 
     Tooltip.install(avatarImageView, avatarTooltip);
   }
 
   private void configureClanLabel() {
-    setClanTag(playerInfoBean.getClan());
-    playerInfoBean.clanProperty().addListener(new WeakChangeListener<>(clanChangeListener));
+    setClanTag(player.getClan());
+    player.clanProperty().addListener(new WeakChangeListener<>(clanChangeListener));
   }
 
   private void configureGameStatusView() {
-    setGameStatus(playerInfoBean.getGameStatus());
-    playerInfoBean.gameStatusProperty().addListener(new WeakChangeListener<>(gameStatusChangeListener));
-  }
-
-  private void configureTooltip() {
-    if (playerInfoBean.getChatOnly()) {
-      return;
-    }
-
-    // FIXME #294
-    Tooltip tooltip = new Tooltip();
-    Tooltip.install(clanLabel, tooltip);
-    Tooltip.install(usernameLabel, tooltip);
-
-    Bindings.createStringBinding(
-        () -> i18n.get("userInfo.ratingFormat", getGlobalRating(playerInfoBean), getLeaderboardRating(playerInfoBean)),
-        playerInfoBean.leaderboardRatingMeanProperty(), playerInfoBean.leaderboardRatingDeviationProperty(),
-        playerInfoBean.globalRatingMeanProperty(), playerInfoBean.globalRatingDeviationProperty()
-    );
+    setGameStatus(player.getGameStatus());
+    player.gameStatusProperty().addListener(new WeakChangeListener<>(gameStatusChangeListener));
   }
 
   private void setCountry(String country) {
@@ -303,12 +284,12 @@ public class ChatUserItemController {
 
   @FXML
   void onMouseEnterGameStatus() {
-    if (playerInfoBean.getGameStatus() == GameStatus.NONE) {
+    if (player.getGameStatus() == GameStatus.NONE) {
       return;
     }
 
     GameStatusTooltipController gameStatusTooltipController = applicationContext.getBean(GameStatusTooltipController.class);
-    gameStatusTooltipController.setGameInfoBean(gameService.getByUid(playerInfoBean.getGameUid()));
+    gameStatusTooltipController.setGameInfoBean(player.getGame());
 
     Tooltip statusTooltip = new Tooltip();
     statusTooltip.setGraphic(gameStatusTooltipController.getRoot());
@@ -317,36 +298,37 @@ public class ChatUserItemController {
 
   @FXML
   void onMouseEnterUsername() {
-    if (playerInfoBean.getChatOnly()) {
+    if (player.getChatOnly() || usernameLabel.getTooltip() != null) {
       return;
     }
 
-    if (playerCardTooltipController != null) {
-      return;
-    }
+    Tooltip tooltip = new Tooltip();
+    Label label = new Label();
+    tooltip.setGraphic(label);
+    Tooltip.install(usernameLabel, tooltip);
+    Tooltip.install(clanLabel, tooltip);
 
-    playerCardTooltipController = applicationContext.getBean(PlayerCardTooltipController.class);
-    playerCardTooltipController.setPlayer(playerInfoBean);
-
-    Tooltip statusTooltip = new Tooltip();
-    statusTooltip.setGraphic(playerCardTooltipController.getRoot());
-    Tooltip.install(usernameLabel, statusTooltip);
+    label.textProperty().bind(Bindings.createStringBinding(
+        () -> i18n.get("userInfo.ratingFormat", getGlobalRating(player), getLeaderboardRating(player)),
+        player.leaderboardRatingMeanProperty(), player.leaderboardRatingDeviationProperty(),
+        player.globalRatingMeanProperty(), player.globalRatingDeviationProperty()
+    ));
   }
 
   @FXML
   void onMouseClickGameStatus(MouseEvent mouseEvent) {
-    GameStatus gameStatus = playerInfoBean.getGameStatus();
+    GameStatus gameStatus = player.getGameStatus();
     if (gameStatus == GameStatus.NONE) {
       return;
     }
     if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
-      int uid = playerInfoBean.getGameUid();
+      int uid = player.getGame().getId();
       if (gameStatus == GameStatus.LOBBY || gameStatus == GameStatus.HOST) {
-        GameInfoBean gameInfoBean = gameService.getByUid(uid);
-        joinGameHelper.join(gameInfoBean);
+        Game game = gameService.getByUid(uid);
+        joinGameHelper.join(game);
       } else if (gameStatus == GameStatus.PLAYING) {
         try {
-          replayService.runLiveReplay(uid, playerInfoBean.getId());
+          replayService.runLiveReplay(uid, player.getId());
         } catch (IOException e) {
           notificationService.addNotification(new ImmediateNotification(
               i18n.get("errorTitle"), i18n.get("replayCouldNotBeStarted"),

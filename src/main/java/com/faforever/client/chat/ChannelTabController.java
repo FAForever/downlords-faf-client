@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.player.Player;
 import com.faforever.client.preferences.ChatPrefs;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.Gson;
@@ -209,7 +210,7 @@ public class ChannelTabController extends AbstractChatTabController {
 
   //TODO: I don't like how this is public
   public boolean isUsernameMatch(ChatUserItemController chatUserItemController) {
-    String lowerCaseSearchString = chatUserItemController.getPlayerInfoBean().getUsername().toLowerCase();
+    String lowerCaseSearchString = chatUserItemController.getPlayer().getUsername().toLowerCase();
     return lowerCaseSearchString.contains(userSearchTextField.getText().toLowerCase());
   }
 
@@ -220,14 +221,14 @@ public class ChannelTabController extends AbstractChatTabController {
     ObservableList<Node> children = pane.getChildren();
 
     Pane chatUserItemRoot = chatUserItemController.getRoot();
-    if (chatUserItemController.getPlayerInfoBean().getSocialStatus() == SELF) {
+    if (chatUserItemController.getPlayer().getSocialStatus() == SELF) {
       children.add(0, chatUserItemRoot);
       return;
     }
 
-    String thisUsername = chatUserItemController.getPlayerInfoBean().getUsername();
+    String thisUsername = chatUserItemController.getPlayer().getUsername();
     for (Node child : children) {
-      String otherUsername = ((ChatUserItemController) child.getUserData()).getPlayerInfoBean().getUsername();
+      String otherUsername = ((ChatUserItemController) child.getUserData()).getPlayer().getUsername();
 
       if (otherUsername.equalsIgnoreCase(userService.getUsername())) {
         continue;
@@ -295,10 +296,10 @@ public class ChannelTabController extends AbstractChatTabController {
 
   @Override
   protected String getMessageCssClass(String login) {
-    PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(login);
-    if (playerInfoBean != null
-        && !playerInfoBean.equals(playerService.getCurrentPlayer())
-        && playerInfoBean.getModeratorForChannels().contains(channel.getName())) {
+    Player player = playerService.getPlayerForUsername(login);
+    if (player != null
+        && !player.equals(playerService.getCurrentPlayer())
+        && player.getModeratorForChannels().contains(channel.getName())) {
       return CSS_CLASS_MODERATOR;
     }
 
@@ -326,21 +327,21 @@ public class ChannelTabController extends AbstractChatTabController {
     getJsObject().call("updateUserMessageColor", chatUser.getUsername(), color);
   }
 
-  private void removeUserMessageClass(PlayerInfoBean playerInfoBean, String cssClass) {
+  private void removeUserMessageClass(Player player, String cssClass) {
     //TODO: DOM Exception 12 when cssClass string is empty string, not sure why cause .remove in the js should be able to handle it
     if (cssClass.isEmpty()) {
       return;
     }
-    Platform.runLater(() -> getJsObject().call("removeUserMessageClass", String.format(USER_CSS_CLASS_FORMAT, playerInfoBean.getUsername()), cssClass));
+    Platform.runLater(() -> getJsObject().call("removeUserMessageClass", String.format(USER_CSS_CLASS_FORMAT, player.getUsername()), cssClass));
 
   }
 
-  private void setUserMessageClass(PlayerInfoBean playerInfoBean, String cssClass) {
-    Platform.runLater(() -> getJsObject().call("setUserMessageClass", String.format(USER_CSS_CLASS_FORMAT, playerInfoBean.getUsername()), cssClass));
+  private void setUserMessageClass(Player player, String cssClass) {
+    Platform.runLater(() -> getJsObject().call("setUserMessageClass", String.format(USER_CSS_CLASS_FORMAT, player.getUsername()), cssClass));
   }
 
-  private void updateUserMessageDisplay(PlayerInfoBean playerInfoBean, String display) {
-    Platform.runLater(() -> getJsObject().call("updateUserMessageDisplay", String.format(USER_CSS_CLASS_FORMAT, playerInfoBean.getUsername()), display));
+  private void updateUserMessageDisplay(Player player, String display) {
+    Platform.runLater(() -> getJsObject().call("updateUserMessageDisplay", String.format(USER_CSS_CLASS_FORMAT, player.getUsername()), display));
   }
 
   private void onUserJoinedChannel(ChatUser chatUser) {
@@ -349,7 +350,7 @@ public class ChannelTabController extends AbstractChatTabController {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
     String username = chatUser.getUsername();
-    PlayerInfoBean player = playerService.createAndGetPlayerForUsername(username);
+    Player player = playerService.createAndGetPlayerForUsername(username);
 
     player.moderatorForChannelsProperty().bind(chatUser.moderatorInChannelsProperty());
     player.usernameProperty().addListener((observable, oldValue, newValue) -> {
@@ -479,12 +480,12 @@ public class ChannelTabController extends AbstractChatTabController {
     userToChatUserControls.remove(username);
   }
 
-  private ChatUserItemController addToPane(PlayerInfoBean playerInfoBean, Pane pane) {
-    return createChatUserControlForPlayerIfNecessary(pane, playerInfoBean);
+  private ChatUserItemController addToPane(Player player, Pane pane) {
+    return createChatUserControlForPlayerIfNecessary(pane, player);
   }
 
-  private void removeFromPane(PlayerInfoBean playerInfoBean, Pane pane) {
-    Map<Pane, ChatUserItemController> paneChatUserControlMap = userToChatUserControls.get(playerInfoBean.getUsername());
+  private void removeFromPane(Player player, Pane pane) {
+    Map<Pane, ChatUserItemController> paneChatUserControlMap = userToChatUserControls.get(player.getUsername());
     if (paneChatUserControlMap == null) {
       // User has not yet been added to this pane; no need to remove him
       return;
@@ -505,8 +506,8 @@ public class ChannelTabController extends AbstractChatTabController {
    * Creates a {@link ChatUserItemController} for the given playerInfoBean and adds it to the given pane if there isn't
    * already such a control in this pane. After the control has been added, the user search filter is applied.
    */
-  private ChatUserItemController createChatUserControlForPlayerIfNecessary(Pane pane, PlayerInfoBean playerInfoBean) {
-    String username = playerInfoBean.getUsername();
+  private ChatUserItemController createChatUserControlForPlayerIfNecessary(Pane pane, Player player) {
+    String username = player.getUsername();
     synchronized (userToChatUserControls) {
       if (!userToChatUserControls.containsKey(username)) {
         userToChatUserControls.put(username, new HashMap<>(1, 1));
@@ -521,13 +522,13 @@ public class ChannelTabController extends AbstractChatTabController {
     }
 
     if (!applicationContext.isActive()) {
-      logger.warn("Application context has been closed, not creating control for player {}", playerInfoBean.getUsername());
+      logger.warn("Application context has been closed, not creating control for player {}", player.getUsername());
     }
     ChatUserItemController chatUserItemController = applicationContext.getBean(ChatUserItemController.class);
-    chatUserItemController.setPlayerInfoBean(playerInfoBean);
+    chatUserItemController.setPlayer(player);
     paneToChatUserControlMap.put(pane, chatUserItemController);
 
-    chatUserItemController.setColorsAllowedInPane((pane == othersPane || pane == chatOnlyPane) && playerInfoBean.getSocialStatus() != SELF);
+    chatUserItemController.setColorsAllowedInPane((pane == othersPane || pane == chatOnlyPane) && player.getSocialStatus() != SELF);
 
     Platform.runLater(() -> {
       addChatUserItemSorted(pane, chatUserItemController);
@@ -537,15 +538,15 @@ public class ChannelTabController extends AbstractChatTabController {
     return chatUserItemController;
   }
 
-  private Collection<Pane> getTargetPanesForUser(PlayerInfoBean playerInfoBean) {
+  private Collection<Pane> getTargetPanesForUser(Player player) {
     ArrayList<Pane> panes = new ArrayList<>(3);
 
-    if (playerInfoBean.getModeratorForChannels().contains(channel.getName())) {
+    if (player.getModeratorForChannels().contains(channel.getName())) {
       panes.add(moderatorsPane);
     }
 
-    Pane pane = getPaneForSocialStatus(playerInfoBean.getSocialStatus());
-    if (pane == othersPane && playerInfoBean.isChatOnly()) {
+    Pane pane = getPaneForSocialStatus(player.getSocialStatus());
+    if (pane == othersPane && player.isChatOnly()) {
       panes.add(chatOnlyPane);
     } else {
       panes.add(pane);

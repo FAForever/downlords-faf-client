@@ -2,12 +2,13 @@ package com.faforever.client.chat;
 
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
-import com.faforever.client.game.GameInfoBean;
+import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerInfoBeanBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
@@ -51,32 +52,34 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   public static final String TEST_USER_NAME = "junit";
 
   @Mock
-  UserService userService;
+  private UserService userService;
   @Mock
-  ChatService chatService;
+  private ChatService chatService;
   @Mock
-  PreferencesService preferencesService;
+  private PreferencesService preferencesService;
   @Mock
-  ApplicationContext applicationContext;
+  private ApplicationContext applicationContext;
   @Mock
-  PlayerService playerService;
+  private PlayerService playerService;
   @Mock
-  GameService gameService;
+  private GameService gameService;
   @Mock
-  ReplayService replayService;
+  private ReplayService replayService;
   @Mock
-  NotificationService notificationService;
+  private NotificationService notificationService;
   @Mock
-  I18n i18n;
+  private I18n i18n;
   @Mock
-  EventBus eventBus;
+  private EventBus eventBus;
   @Mock
-  JoinGameHelper joinGameHelper;
+  private JoinGameHelper joinGameHelper;
   @Mock
-  AvatarService avatarService;
+  private AvatarService avatarService;
+  @Mock
+  private Game game;
 
   private ChatUserContextMenuController instance;
-  private PlayerInfoBean playerInfoBean;
+  private Player player;
 
   @Before
   public void setUp() throws Exception {
@@ -109,8 +112,8 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
         new AvatarBean(new URL("http://www.example.com/avatar3.png"), "Avatar Number #3")
     )));
 
-    playerInfoBean = PlayerInfoBeanBuilder.create(TEST_USER_NAME).socialStatus(SELF).avatar(null).get();
-    instance.setPlayerInfoBean(playerInfoBean);
+    player = PlayerInfoBeanBuilder.create(TEST_USER_NAME).socialStatus(SELF).avatar(null).game(game).get();
+    instance.setPlayer(player);
   }
 
   @Test
@@ -122,63 +125,63 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnAddFriendWithFoe() {
-    playerInfoBean.setSocialStatus(FOE);
+    player.setSocialStatus(FOE);
 
     instance.onAddFriend();
 
-    verify(playerService).removeFoe(playerInfoBean);
-    verify(playerService).addFriend(playerInfoBean);
+    verify(playerService).removeFoe(player);
+    verify(playerService).addFriend(player);
   }
 
   @Test
   public void testOnAddFriendWithNeutral() {
-    playerInfoBean.setSocialStatus(OTHER);
+    player.setSocialStatus(OTHER);
 
     instance.onAddFriend();
 
-    verify(playerService, never()).removeFoe(playerInfoBean);
-    verify(playerService).addFriend(playerInfoBean);
+    verify(playerService, never()).removeFoe(player);
+    verify(playerService).addFriend(player);
   }
 
   @Test
   public void testOnRemoveFriend() {
     instance.onRemoveFriend();
 
-    verify(playerService).removeFriend(playerInfoBean);
+    verify(playerService).removeFriend(player);
   }
 
   @Test
   public void testOnAddFoeWithFriend() {
-    playerInfoBean.setSocialStatus(FRIEND);
+    player.setSocialStatus(FRIEND);
 
     instance.onAddFoe();
 
-    verify(playerService).removeFriend(playerInfoBean);
-    verify(playerService).addFoe(playerInfoBean);
+    verify(playerService).removeFriend(player);
+    verify(playerService).addFoe(player);
   }
 
   @Test
   public void testOnAddFoeWithNeutral() {
-    playerInfoBean.setSocialStatus(OTHER);
+    player.setSocialStatus(OTHER);
 
     instance.onAddFoe();
 
-    verify(playerService, never()).removeFriend(playerInfoBean);
-    verify(playerService).addFoe(playerInfoBean);
+    verify(playerService, never()).removeFriend(player);
+    verify(playerService).addFoe(player);
   }
 
   @Test
   public void testOnRemoveFoe() {
     instance.onRemoveFoe();
 
-    verify(playerService).removeFoe(playerInfoBean);
+    verify(playerService).removeFoe(player);
   }
 
   @Test
   public void testOnWatchGame() throws Exception {
     instance.onWatchGame();
 
-    verify(replayService).runLiveReplay(playerInfoBean.getGameUid(), playerInfoBean.getId());
+    verify(replayService).runLiveReplay(player.getGame().getId(), player.getId());
   }
 
   @Test
@@ -193,12 +196,9 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnJoinGame() {
-    GameInfoBean gameInfoBean = mock(GameInfoBean.class);
-    when(gameService.getByUid(anyInt())).thenReturn(gameInfoBean);
-
     instance.onJoinGame();
 
-    verify(joinGameHelper).join(gameInfoBean);
+    verify(joinGameHelper).join(game);
   }
 
   @Test

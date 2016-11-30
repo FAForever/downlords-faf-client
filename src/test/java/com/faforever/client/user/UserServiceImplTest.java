@@ -12,10 +12,13 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationContext;
 
+import java.util.concurrent.CompletableFuture;
+
 import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -92,7 +95,17 @@ public class UserServiceImplTest {
   }
 
   @Test
-  public void testCancelLogin() throws Exception {
+  public void testCancelLoginDoesntDisconnectIfLoginNotInProgress() throws Exception {
+    instance.cancelLogin();
+
+    verify(fafService, never()).disconnect();
+  }
+
+  @Test
+  public void testCancelLoginDisconnectsIfLoginInProgress() throws Exception {
+    when(fafService.connectAndLogIn(any(), any())).thenReturn(new CompletableFuture<>());
+
+    instance.login("username", "password", false);
     instance.cancelLogin();
 
     verify(fafService).disconnect();

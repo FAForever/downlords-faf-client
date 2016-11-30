@@ -19,7 +19,7 @@
     <HBox alignment="BASELINE_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0">
       <children>
         <Button fx:id="createGameButton" mnemonicParsing="false" onAction="#onCreateGameButtonClicked"
-                text="%games.create"/>
+                text="%games.create" defaultButton="true"/>
         <CheckBox mnemonicParsing="false" onAction="#onShowPrivateGames" selected="true"
                   text="%games.showPasswordProtectedGames"/>
         <Pane HBox.hgrow="ALWAYS"/>

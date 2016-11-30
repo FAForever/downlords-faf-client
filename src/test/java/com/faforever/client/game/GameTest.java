@@ -5,51 +5,51 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class GameInfoBeanTest {
+public class GameTest {
 
-  private GameInfoBean one;
-  private GameInfoBean two;
+  private Game one;
+  private Game two;
 
   @Before
   public void setUp() throws Exception {
-    one = new GameInfoBean();
-    two = new GameInfoBean();
+    one = new Game();
+    two = new Game();
   }
 
   @Test
   public void testEqualsNotEquals() {
-    GameInfoBean one = new GameInfoBean();
-    GameInfoBean two = new GameInfoBean();
+    Game one = new Game();
+    Game two = new Game();
 
-    one.setUid(1);
-    two.setUid(2);
+    one.setId(1);
+    two.setId(2);
 
     assertNotEquals(one, two);
   }
 
   @Test
   public void testEqualsIsEquals() {
-    GameInfoBean one = new GameInfoBean();
-    GameInfoBean two = new GameInfoBean();
+    Game one = new Game();
+    Game two = new Game();
 
-    one.setUid(1);
-    two.setUid(1);
+    one.setId(1);
+    two.setId(1);
 
     assertEquals(one, two);
   }
 
   @Test
   public void testHashCodeEquals() {
-    one.setUid(1);
-    two.setUid(1);
+    one.setId(1);
+    two.setId(1);
 
     assertEquals(one.hashCode(), two.hashCode());
   }
 
   @Test
   public void testHashCodeNotEquals() {
-    one.setUid(1);
-    two.setUid(2);
+    one.setId(1);
+    two.setId(2);
 
     assertNotEquals(one.hashCode(), two.hashCode());
   }

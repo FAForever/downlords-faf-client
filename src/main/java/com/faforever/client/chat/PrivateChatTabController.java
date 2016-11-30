@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioController;
+import com.faforever.client.player.Player;
 import com.faforever.client.preferences.ChatPrefs;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Platform;
@@ -82,10 +83,10 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   @Override
   public void onChatMessage(ChatMessage chatMessage) {
-    PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(chatMessage.getUsername());
+    Player player = playerService.getPlayerForUsername(chatMessage.getUsername());
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
-    if (playerInfoBean != null && playerInfoBean.getSocialStatus() == FOE && chatPrefs.getHideFoeMessages()) {
+    if (player != null && player.getSocialStatus() == FOE && chatPrefs.getHideFoeMessages()) {
       return;
     }
 

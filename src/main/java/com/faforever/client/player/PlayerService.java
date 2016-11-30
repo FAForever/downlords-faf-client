@@ -1,6 +1,5 @@
 package com.faforever.client.player;
 
-import com.faforever.client.chat.PlayerInfoBean;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,25 +12,25 @@ public interface PlayerService {
    * Returns the PlayerInfoBean for the specified username. Returns null if no such player is known.
    */
   @Nullable
-  PlayerInfoBean getPlayerForUsername(@Nullable String username);
+  Player getPlayerForUsername(@Nullable String username);
 
   /**
    * Gets a player for the given username. A new user is created and registered if it does not yet exist.
    */
-  PlayerInfoBean createAndGetPlayerForUsername(@NotNull String username);
+  Player createAndGetPlayerForUsername(@NotNull String username);
 
   Set<String> getPlayerNames();
 
-  void addFriend(PlayerInfoBean player);
+  void addFriend(Player player);
 
-  void removeFriend(PlayerInfoBean user);
+  void removeFriend(Player user);
 
-  void addFoe(PlayerInfoBean username);
+  void addFoe(Player username);
 
-  void removeFoe(PlayerInfoBean player);
+  void removeFoe(Player player);
 
-  PlayerInfoBean getCurrentPlayer();
+  Player getCurrentPlayer();
 
-  ReadOnlyObjectProperty<PlayerInfoBean> currentPlayerProperty();
+  ReadOnlyObjectProperty<Player> currentPlayerProperty();
 
 }

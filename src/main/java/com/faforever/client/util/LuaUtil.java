@@ -20,12 +20,15 @@ public final class LuaUtil {
   }
 
   public static LuaValue loadFile(Path file) throws IOException {
+    try (InputStream inputStream = Files.newInputStream(file)) {
+      return load(inputStream);
+    }
+  }
+
+  public static LuaValue load(InputStream inputStream) throws IOException {
     Globals globals = JsePlatform.standardGlobals();
     globals.baselib.load(globals.load(CharStreams.toString(new InputStreamReader(LuaUtil.class.getResourceAsStream("/lua/faf.lua"), UTF_8))));
-
-    try (InputStream inputStream = Files.newInputStream(file)) {
-      globals.load(inputStream, "@" + file.toAbsolutePath().toString(), "bt", globals).invoke();
-    }
+    globals.load(inputStream, "@" + inputStream.hashCode(), "bt", globals).invoke();
     return globals;
   }
 }

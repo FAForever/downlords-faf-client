@@ -40,7 +40,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testCreateTiledFlowPaneWithEmptyList() throws Exception {
     when(gameTileController.getRoot()).thenReturn(new Pane());
-    ObservableList<GameInfoBean> observableList = FXCollections.observableArrayList();
+    ObservableList<Game> observableList = FXCollections.observableArrayList();
 
     instance.createTiledFlowPane(observableList);
 
@@ -50,8 +50,8 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testCreateTiledFlowPaneWithPopulatedList() throws Exception {
     when(gameTileController.getRoot()).thenReturn(new Pane());
-    ObservableList<GameInfoBean> observableList = FXCollections.observableArrayList();
-    observableList.add(new GameInfoBean());
+    ObservableList<Game> observableList = FXCollections.observableArrayList();
+    observableList.add(new Game());
 
     instance.createTiledFlowPane(observableList);
 
@@ -67,10 +67,10 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
 
     doAnswer(invocation -> new Pane()).when(gameTileController).getRoot();
 
-    ObservableList<GameInfoBean> observableList = FXCollections.observableArrayList();
+    ObservableList<Game> observableList = FXCollections.observableArrayList();
 
     instance.createTiledFlowPane(observableList);
-    observableList.add(new GameInfoBean());
+    observableList.add(new Game());
 
     latch.await();
     assertThat(instance.tiledFlowPane.getChildren(), hasSize(1));
@@ -86,7 +86,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
 
     doAnswer(invocation -> new Pane()).when(gameTileController).getRoot();
 
-    ObservableList<GameInfoBean> observableList = FXCollections.observableArrayList();
+    ObservableList<Game> observableList = FXCollections.observableArrayList();
 
     observableList.add(GameInfoBeanBuilder.create().defaultValues().get());
     instance.createTiledFlowPane(observableList);

@@ -45,6 +45,8 @@
                   <items>
                     <MenuItem fx:id="playCustomButton" mnemonicParsing="false" onAction="#onPlayCustomSelected"
                               text="%main.play.custom"/>
+                      <MenuItem fx:id="playCoopButton" mnemonicParsing="false" onAction="#onPlayCoopSelected"
+                                text="%main.play.coop"/>
                     <MenuItem fx:id="playRanked1v1Button" mnemonicParsing="false" onAction="#onPlayRanked1v1Selected"
                               text="%main.play.ranked1v1"/>
                   </items>

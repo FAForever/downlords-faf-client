@@ -1,8 +1,9 @@
-package com.faforever.client.chat;
+package com.faforever.client.player;
 
+import com.faforever.client.chat.SocialStatus;
+import com.faforever.client.game.Game;
 import com.faforever.client.game.GameStatus;
 import com.faforever.client.remote.domain.GameState;
-import com.faforever.client.remote.domain.Player;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.FloatProperty;
 import javafx.beans.property.IntegerProperty;
@@ -24,8 +25,7 @@ import static com.faforever.client.chat.SocialStatus.OTHER;
  * Represents a player with username, clan, country, friend/foe flag and so on. Can also be a chat-only user. This
  * represents the combination of a PlayersInfo (from the FAF server) and a ChatUser (from IRC).
  */
-// TODO rename to Player
-public class PlayerInfoBean {
+public class Player {
 
   private final IntegerProperty id;
   private final StringProperty username;
@@ -40,11 +40,11 @@ public class PlayerInfoBean {
   private final FloatProperty globalRatingMean;
   private final FloatProperty leaderboardRatingDeviation;
   private final FloatProperty leaderboardRatingMean;
-  private final IntegerProperty gameUid;
+  private final ObjectProperty<Game> game;
   private final SimpleObjectProperty<GameStatus> gameStatus;
   private final IntegerProperty numberOfGames;
 
-  public PlayerInfoBean(Player player) {
+  public Player(com.faforever.client.remote.domain.Player player) {
     this();
 
     username.set(player.getLogin());
@@ -57,7 +57,7 @@ public class PlayerInfoBean {
     }
   }
 
-  private PlayerInfoBean() {
+  private Player() {
     id = new SimpleIntegerProperty();
     username = new SimpleStringProperty();
     clan = new SimpleStringProperty();
@@ -71,12 +71,12 @@ public class PlayerInfoBean {
     leaderboardRatingDeviation = new SimpleFloatProperty();
     leaderboardRatingMean = new SimpleFloatProperty();
     gameStatus = new SimpleObjectProperty<>();
-    gameUid = new SimpleIntegerProperty();
+    game = new SimpleObjectProperty<>();
     numberOfGames = new SimpleIntegerProperty();
     socialStatus = new SimpleObjectProperty<>(OTHER);
   }
 
-  public PlayerInfoBean(String username) {
+  public Player(String username) {
     this();
     this.gameStatus.set(GameStatus.NONE);
     this.username.set(username);
@@ -126,8 +126,8 @@ public class PlayerInfoBean {
   @Override
   public boolean equals(Object obj) {
     return obj != null
-        && (obj.getClass() == PlayerInfoBean.class)
-        && getUsername().equalsIgnoreCase(((PlayerInfoBean) obj).getUsername());
+        && (obj.getClass() == Player.class)
+        && getUsername().equalsIgnoreCase(((Player) obj).getUsername());
   }
 
   public String getUsername() {
@@ -254,16 +254,16 @@ public class PlayerInfoBean {
     gameStatus.set(GameStatus.fromGameState(gameState));
   }
 
-  public int getGameUid() {
-    return gameUid.get();
+  public Game getGame() {
+    return game.get();
   }
 
-  public void setGameUid(int gameUid) {
-    this.gameUid.set(gameUid);
+  public void setGame(Game game) {
+    this.game.set(game);
   }
 
-  public IntegerProperty gameUidProperty() {
-    return gameUid;
+  public ObjectProperty<Game> gameProperty() {
+    return game;
   }
 
   public float getLeaderboardRatingMean() {
@@ -290,7 +290,7 @@ public class PlayerInfoBean {
     return leaderboardRatingDeviation;
   }
 
-  public void updateFromPlayerInfo(Player player) {
+  public void updateFromPlayerInfo(com.faforever.client.remote.domain.Player player) {
     setId(player.getId());
     setChatOnly(false);
     setClan(player.getClan());
