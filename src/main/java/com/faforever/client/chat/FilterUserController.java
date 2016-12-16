@@ -153,8 +153,10 @@ public class FilterUserController {
   @FXML
   void onClearGameStatus(ActionEvent actionEvent) {
     gameStatusFilter = null;
+
     gameStatusMenu.setText(i18n.get("chat.filter.gameStatus"));
     filterUsers();
+
   }
 
   public Node getRoot() {

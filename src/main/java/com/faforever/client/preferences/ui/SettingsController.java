@@ -15,6 +15,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -26,10 +27,14 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.Region;
 import javafx.stage.Screen;
 import javafx.util.converter.NumberStringConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.lang.invoke.MethodHandles;
 import java.text.NumberFormat;
+import java.util.HashMap;
 
 import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
 import static com.faforever.client.theme.ThemeService.DEFAULT_THEME;
@@ -65,6 +70,7 @@ public class SettingsController {
   public ComboBox<String> languageComboBox;
   public ComboBox<Theme> themeComboBox;
   public CheckBox rememberLastTabCheckBox;
+  public ComboBox<String> timeComboBox;
   public ToggleGroup toastPosition;
   public ComboBox<Screen> toastScreenComboBox;
   public ToggleButton bottomLeftToastButton;
@@ -77,7 +83,7 @@ public class SettingsController {
   public PasswordField confirmPasswordField;
   public Label passwordChangeErrorLabel;
   public Label passwordChangeSuccessLabel;
-
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @Resource
   UserService userService;
   @Resource
@@ -88,6 +94,9 @@ public class SettingsController {
   I18n i18n;
 
   private ChangeListener<Theme> themeChangeListener;
+  public static String [] languagesAvailable;
+  public static final String [] languageCodes={null,"en","de"};
+  private String[] options;
 
   @PostConstruct
   void postConstruct() {
@@ -140,8 +149,8 @@ public class SettingsController {
         preferences.getNotification().setToastPosition(ToastPosition.BOTTOM_RIGHT);
       }
     });
-
-    configureLanguageSelection();
+    configureTimeSelection(preferences);
+    configureLanguageSelection(preferences);
     configureThemeSelection(preferences);
     configureRememberLastTab(preferences);
     configureToastScreen(preferences);
@@ -168,6 +177,7 @@ public class SettingsController {
 
     usernameField.textProperty().bind(userService.currentUserProperty());
     passwordChangeErrorLabel.setVisible(false);
+
   }
 
   /**
@@ -229,6 +239,54 @@ public class SettingsController {
   private void configureRememberLastTab(Preferences preferences) {
     rememberLastTabCheckBox.selectedProperty().bindBidirectional(preferences.rememberLastTabProperty());
   }
+  private void configureTimeSelection(Preferences preferences) {
+    options=i18n.get("settings.chat.optionsForTime").split(" ");
+    timeComboBox.setItems(FXCollections.observableArrayList(options));
+    timeComboBox.setOnAction(new EventHandler<ActionEvent>() {
+                                   @Override
+                                   public void handle(ActionEvent event) {
+                                     newTimneFormatSelected(event);
+                                   }
+                                 }
+    );
+    timeComboBox.setDisable(false);
+    timeComboBox.setFocusTraversable(true);
+    int index;
+
+
+    index= getIndexNumberOfFormat(preferences.getChat().getMilitaryTime());
+
+
+    timeComboBox.getSelectionModel().select(index);
+
+  }
+
+  private int getIndexNumberOfFormat(String militaryTime) {
+    switch (militaryTime) {
+      case ("system"):
+        return 0;
+      case("yes"):
+        return 1;
+      case("no"):
+        return 2;
+    }
+    return 0;
+
+  }
+
+  private void newTimneFormatSelected(ActionEvent event) {
+    HashMap<String,String> saveCodes= new HashMap<>();
+    saveCodes.put(options[0],"system");
+    saveCodes.put(options[1],"yes");
+    saveCodes.put(options[2],"no");
+    logger.info("newTimeFormat is "+timeComboBox.getValue().toString()+" at index "+getIndexNumberOfFormat(timeComboBox.getValue()));
+    Preferences preferences= preferencesService.getPreferences();
+
+    String selectedFormat= saveCodes.get(timeComboBox.getValue().toString());
+    preferences.getChat().setMilitaryTime(selectedFormat);
+    preferencesService.storeInBackground();
+    logger.info("saving.....Time Format");
+  }
 
   private void configureThemeSelection(Preferences preferences) {
     themeComboBox.setItems(FXCollections.observableArrayList(themeService.getAvailableThemes()));
@@ -244,11 +302,62 @@ public class SettingsController {
     );
   }
 
-  private void configureLanguageSelection() {
-    languageComboBox.setItems(FXCollections.singletonObservableList("English"));
-    languageComboBox.getSelectionModel().select(0);
-  }
+  private void configureLanguageSelection(Preferences preferences) {
+    languagesAvailable=i18n.get("settings.languages").split(" ");
 
+    languageComboBox.setItems(FXCollections.observableArrayList(languagesAvailable));
+
+    languageComboBox.setOnAction(new EventHandler<ActionEvent>() {
+      @Override
+      public void handle(ActionEvent event) {
+        newLanguageSelected(event);
+      }
+    }
+  );
+    languageComboBox.setDisable(false);
+    languageComboBox.setFocusTraversable(true);
+    int index;
+
+
+    index= getIndexNumberOfCountryCode(preferences.getLanguagePrefs().getLanguage());
+
+
+    languageComboBox.getSelectionModel().select(index);
+
+
+  }
+  public int getIndexNumberOfCountryCode(String languageCode)
+  {
+    if (languageCode!=null) {
+
+      for (int i = 1; i != languageCodes.length; i++) {
+        if (languageCodes[i].equals(languageCode)) return i;
+      }
+    }
+    return 0;
+  }
+  public int getIndexNumberOfCountry(String language)
+  {
+    for (int i=0; i!= languagesAvailable.length;i++)
+    {
+      if  (languagesAvailable[i].equals(language)) return i;
+    }
+
+    return 0;
+  }
+  public void newLanguageSelected(ActionEvent actionEvent)
+  {
+    logger.info("newLanguage is "+languageComboBox.getValue().toString()+" at index "+getIndexNumberOfCountry(languageComboBox.getValue())+" language code is "+languageCodes[getIndexNumberOfCountry(languageComboBox.getValue())]);
+    Preferences preferences= preferencesService.getPreferences();
+
+    String selectedLanguage=languageCodes[getIndexNumberOfCountry(languageComboBox.getValue())];
+    preferences.getLanguagePrefs().setLanguage(selectedLanguage);
+    preferencesService.storeInBackground();
+    logger.info("saving.....Language");
+    //languageCodes[getIndexNumberOfCountry(languageComboBox.getValue())]
+    //TODO: advise the user to restart programm and delete System.out.print
+
+  }
   private void configureToastScreen(Preferences preferences) {
     preferences.getNotification().toastScreenProperty().bind(Bindings.createIntegerBinding(()
         -> Screen.getScreens().indexOf(toastScreenComboBox.getValue()), toastScreenComboBox.valueProperty()));
