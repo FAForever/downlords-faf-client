@@ -82,16 +82,16 @@ public class TimeServiceImpl implements TimeService {
 
   @Override
   public String asShortTime(Instant instant) {
-    Locale militaryTime= new Locale("en","UK");
-    Locale amPM= new Locale("de","DE");
+    Locale uk= new Locale("en","UK");
+    Locale normal= new Locale("de","DE");
     ChatPrefs chatPref= preferencesService.getPreferences().getChat();
     Locale choosen=locale;
-    switch (chatPref.getMilitaryTime()) {
+    switch (chatPref.getUkTime()) {
       case("yes"):
-        choosen= militaryTime;
+        choosen= uk;
         break;
       case("no"):
-        choosen= amPM;
+        choosen= normal;
         break;
     }
 

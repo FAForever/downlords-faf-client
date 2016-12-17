@@ -22,7 +22,7 @@ import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 public class ChatPrefs {
 
   private final DoubleProperty zoom;
-  private StringProperty militaryTime;
+  private StringProperty ukTime;
   private final BooleanProperty learnedAutoComplete;
   private final BooleanProperty previewImageUrls;
   private final IntegerProperty maxMessages;
@@ -31,7 +31,7 @@ public class ChatPrefs {
   private final MapProperty<String, Color> userToColor;
   private final BooleanProperty hideFoeMessages;
   public ChatPrefs() {
-    militaryTime = new SimpleStringProperty("system");
+    ukTime = new SimpleStringProperty("system");
     maxMessages = new SimpleIntegerProperty(500);
     zoom = new SimpleDoubleProperty(1);
     learnedAutoComplete = new SimpleBooleanProperty(false);
@@ -41,12 +41,12 @@ public class ChatPrefs {
     userToColor = new SimpleMapProperty<>(FXCollections.observableHashMap());
     chatColorMode = new SimpleObjectProperty<>(CUSTOM);
   }
-  public String getMilitaryTime() {
-    return militaryTime.get();
+  public String getUkTime() {
+    return ukTime.get();
   }
 
-  public void setMilitaryTime(String value) {
-    this.militaryTime.set(value);
+  public void setUkTime(String value) {
+    this.ukTime.set(value);
   }
 
   public ChatColorMode getChatColorMode() {

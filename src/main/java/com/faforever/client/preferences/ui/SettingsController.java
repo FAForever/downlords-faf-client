@@ -254,7 +254,7 @@ public class SettingsController {
     int index;
 
 
-    index= getIndexNumberOfFormat(preferences.getChat().getMilitaryTime());
+    index= getIndexNumberOfFormat(preferences.getChat().getUkTime());
 
 
     timeComboBox.getSelectionModel().select(index);
@@ -283,7 +283,7 @@ public class SettingsController {
     Preferences preferences= preferencesService.getPreferences();
 
     String selectedFormat= saveCodes.get(timeComboBox.getValue().toString());
-    preferences.getChat().setMilitaryTime(selectedFormat);
+    preferences.getChat().setUkTime(selectedFormat);
     preferencesService.storeInBackground();
     logger.info("saving.....Time Format");
   }
