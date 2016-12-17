@@ -1,8 +1,16 @@
 package com.faforever.client.preferences.ui;
 
 import com.faforever.client.chat.ChatColorMode;
+import com.faforever.client.config.ServiceConfig;
 import com.faforever.client.fx.StringListCell;
+import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.Action.ActionCallback;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -10,11 +18,13 @@ import com.faforever.client.preferences.ToastPosition;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.user.UserService;
+import com.sun.xml.internal.ws.developer.MemberSubmissionEndpointReference.ServiceNameType;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -24,8 +34,10 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Region;
 import javafx.stage.Screen;
+import javafx.stage.Stage;
 import javafx.util.converter.NumberStringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +50,7 @@ import java.util.HashMap;
 
 import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
 import static com.faforever.client.theme.ThemeService.DEFAULT_THEME;
+import static java.util.Collections.singletonList;
 
 public class SettingsController {
 
@@ -92,6 +105,8 @@ public class SettingsController {
   ThemeService themeService;
   @Resource
   I18n i18n;
+  @Resource
+  NotificationService notificationService;
 
   private ChangeListener<Theme> themeChangeListener;
   public static String [] languagesAvailable;
@@ -245,7 +260,7 @@ public class SettingsController {
     timeComboBox.setOnAction(new EventHandler<ActionEvent>() {
                                    @Override
                                    public void handle(ActionEvent event) {
-                                     newTimneFormatSelected(event);
+                                     newTimeFormatSelected(event);
                                    }
                                  }
     );
@@ -274,7 +289,7 @@ public class SettingsController {
 
   }
 
-  private void newTimneFormatSelected(ActionEvent event) {
+  private void newTimeFormatSelected(ActionEvent event) {
     HashMap<String,String> saveCodes= new HashMap<>();
     saveCodes.put(options[0],"system");
     saveCodes.put(options[1],"yes");
@@ -351,11 +366,26 @@ public class SettingsController {
     Preferences preferences= preferencesService.getPreferences();
 
     String selectedLanguage=languageCodes[getIndexNumberOfCountry(languageComboBox.getValue())];
+
+    if(selectedLanguage!=preferences.getLanguagePrefs().getLanguage())notificationService.addNotification(new PersistentNotification(i18n.get("settings.languages.restart.title")+". " +i18n.get("settings.languages.restart.message"), Severity.WARN,singletonList(
+        new Action(i18n.get("settings.language.restart"), event -> {
+          Stage stage= (Stage) languageComboBox.getScene().getWindow();
+          Stage mainStage= (Stage) stage.getOwner();
+          mainStage.close();
+        })
+    )));
+    /*if(selectedLanguage!=preferences.getLanguagePrefs().getLanguage())notificationService.addNotification(new TransientNotification(i18n.get("settings.languages.restart.title"), i18n.get("settings.languages.restart.message"), new Image("theme/images/warn.png"), new ActionCallback() {
+      @Override
+      public void call(Event event) {
+        Stage stage= (Stage) languageComboBox.getScene().getWindow();
+        Stage mainStage= (Stage) stage.getOwner();
+        mainStage.close();
+      }
+    }));*/
     preferences.getLanguagePrefs().setLanguage(selectedLanguage);
     preferencesService.storeInBackground();
     logger.info("saving.....Language");
-    //languageCodes[getIndexNumberOfCountry(languageComboBox.getValue())]
-    //TODO: advise the user to restart programm and delete System.out.print
+
 
   }
   private void configureToastScreen(Preferences preferences) {
