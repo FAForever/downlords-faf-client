@@ -14,8 +14,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 
 public class WindowPrefs {
-  private final int minHeightValue=100;
-  private final int minWidthValue=100;
+  private final int minHeightValue=500;
+  private final int minWidthValue=500;
   private final IntegerProperty width;
   private final IntegerProperty height;
   private final BooleanProperty maximized;

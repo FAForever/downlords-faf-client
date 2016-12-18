@@ -1,7 +1,7 @@
 package com.faforever.client.preferences;
 
 import com.faforever.client.game.Faction;
-
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -95,7 +95,8 @@ public class PreferencesService {
    */
   private final Timer timer;
   private final Collection<PreferenceUpdateListener> updateListeners;
-
+  @Resource
+  I18n i18n;
   @Resource
   NotificationService notificationService;
   private Preferences preferences;
@@ -165,10 +166,10 @@ public class PreferencesService {
 
   private void notifyMissingGamePath() {
     List<Action> actions = Collections.singletonList(
-        new Action("Please select a valid gamepath", event -> letUserChooseGameDirectory())
+        new Action(i18n.get("missingGamePath.locate"), event -> letUserChooseGameDirectory())
     );
 
-    notificationService.addNotification(new PersistentNotification("Please select a valid gamepath", Severity.WARN, actions));
+    notificationService.addNotification(new PersistentNotification(i18n.get("missingGamePath.notification"), Severity.WARN, actions));
   }
 
   /**
