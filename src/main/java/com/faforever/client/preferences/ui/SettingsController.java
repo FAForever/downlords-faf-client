@@ -1,16 +1,16 @@
 package com.faforever.client.preferences.ui;
 
 import com.faforever.client.chat.ChatColorMode;
-import com.faforever.client.config.ServiceConfig;
+
 import com.faforever.client.fx.StringListCell;
-import com.faforever.client.fx.WindowController;
+
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.Action.ActionCallback;
+
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.notification.TransientNotification;
+
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -18,13 +18,13 @@ import com.faforever.client.preferences.ToastPosition;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.user.UserService;
-import com.sun.xml.internal.ws.developer.MemberSubmissionEndpointReference.ServiceNameType;
+
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
+
 import javafx.event.EventHandler;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -34,7 +34,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.image.Image;
+
 import javafx.scene.layout.Region;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
