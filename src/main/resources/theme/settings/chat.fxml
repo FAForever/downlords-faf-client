@@ -8,6 +8,8 @@
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ComboBox?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" styleClass="settings-content" xmlns="http://javafx.com/javafx/8.0.60">
     <children>
         <TitledPane collapsible="false" text="%settings.chat">
@@ -38,6 +40,8 @@
                         </VBox>
                         <Label text="%settings.chat.miscellaneous"/>
                         <CheckBox fx:id="hideFoeCheckBox" mnemonicParsing="false" text="%settings.chat.hideFoe"/>
+                        <ComboBox fx:id="timeComboBox" disable="false" />
+
                     </children>
                 </VBox>
             </content>

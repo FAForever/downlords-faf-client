@@ -1,8 +1,16 @@
 package com.faforever.client.preferences.ui;
 
 import com.faforever.client.chat.ChatColorMode;
+import com.faforever.client.config.ServiceConfig;
 import com.faforever.client.fx.StringListCell;
+import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.Action.ActionCallback;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -10,11 +18,14 @@ import com.faforever.client.preferences.ToastPosition;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.user.UserService;
+import com.sun.xml.internal.ws.developer.MemberSubmissionEndpointReference.ServiceNameType;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -23,16 +34,23 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Region;
 import javafx.stage.Screen;
+import javafx.stage.Stage;
 import javafx.util.converter.NumberStringConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.lang.invoke.MethodHandles;
 import java.text.NumberFormat;
+import java.util.HashMap;
 
 import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
 import static com.faforever.client.theme.ThemeService.DEFAULT_THEME;
+import static java.util.Collections.singletonList;
 
 public class SettingsController {
 
@@ -65,6 +83,7 @@ public class SettingsController {
   public ComboBox<String> languageComboBox;
   public ComboBox<Theme> themeComboBox;
   public CheckBox rememberLastTabCheckBox;
+  public ComboBox<String> timeComboBox;
   public ToggleGroup toastPosition;
   public ComboBox<Screen> toastScreenComboBox;
   public ToggleButton bottomLeftToastButton;
@@ -77,7 +96,7 @@ public class SettingsController {
   public PasswordField confirmPasswordField;
   public Label passwordChangeErrorLabel;
   public Label passwordChangeSuccessLabel;
-
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @Resource
   UserService userService;
   @Resource
@@ -86,8 +105,16 @@ public class SettingsController {
   ThemeService themeService;
   @Resource
   I18n i18n;
+  @Resource
+  NotificationService notificationService;
+  @Resource
+  String [] languageCodes;
 
   private ChangeListener<Theme> themeChangeListener;
+  public static String [] languagesAvailable;
+
+
+  private String[] options;
 
   @PostConstruct
   void postConstruct() {
@@ -140,8 +167,8 @@ public class SettingsController {
         preferences.getNotification().setToastPosition(ToastPosition.BOTTOM_RIGHT);
       }
     });
-
-    configureLanguageSelection();
+    configureTimeSelection(preferences);
+    configureLanguageSelection(preferences);
     configureThemeSelection(preferences);
     configureRememberLastTab(preferences);
     configureToastScreen(preferences);
@@ -168,6 +195,7 @@ public class SettingsController {
 
     usernameField.textProperty().bind(userService.currentUserProperty());
     passwordChangeErrorLabel.setVisible(false);
+
   }
 
   /**
@@ -229,26 +257,119 @@ public class SettingsController {
   private void configureRememberLastTab(Preferences preferences) {
     rememberLastTabCheckBox.selectedProperty().bindBidirectional(preferences.rememberLastTabProperty());
   }
+  private void configureTimeSelection(Preferences preferences) {
+    options=i18n.get("settings.chat.optionsForTime").split(" ");
+    timeComboBox.setItems(FXCollections.observableArrayList(options));
+    timeComboBox.setOnAction(new EventHandler<ActionEvent>() {
+                                   @Override
+                                   public void handle(ActionEvent event) {
+                                     newTimeFormatSelected(event);
+                                   }
+                                 }
+    );
+    timeComboBox.setDisable(false);
+    timeComboBox.setFocusTraversable(true);
+    int index;
+
+
+    index= getIndexNumberOfFormat(preferences.getChat().getUkTime());
+
+
+    timeComboBox.getSelectionModel().select(index);
+
+  }
+
+  private int getIndexNumberOfFormat(String militaryTime) {
+    switch (militaryTime) {
+      case ("system"):
+        return 0;
+      case("yes"):
+        return 1;
+      case("no"):
+        return 2;
+    }
+    return 0;
+
+  }
+
+  private void newTimeFormatSelected(ActionEvent event) {
+    HashMap<String,String> saveCodes= new HashMap<>();
+    saveCodes.put(options[0],"system");
+    saveCodes.put(options[1],"yes");
+    saveCodes.put(options[2],"no");
+    logger.info("newTimeFormat is "+timeComboBox.getValue().toString()+" at index "+getIndexNumberOfFormat(timeComboBox.getValue()));
+    Preferences preferences= preferencesService.getPreferences();
+
+    String selectedFormat= saveCodes.get(timeComboBox.getValue().toString());
+    preferences.getChat().setUkTime(selectedFormat);
+    preferencesService.storeInBackground();
+    logger.info("saving.....Time Format");
+  }
 
   private void configureThemeSelection(Preferences preferences) {
     themeComboBox.setItems(FXCollections.observableArrayList(themeService.getAvailableThemes()));
     themeComboBox.getSelectionModel().selectedItemProperty().addListener(new WeakChangeListener<>(themeChangeListener));
-
     Theme currentTheme = themeComboBox.getItems().stream()
         .filter(theme -> theme.getDisplayName().equals(preferences.getThemeName()))
         .findFirst().orElse(DEFAULT_THEME);
     themeComboBox.getSelectionModel().select(currentTheme);
-
     themeService.currentThemeProperty().addListener(
         (observable, oldValue, newValue) -> themeComboBox.getSelectionModel().select(newValue)
     );
   }
 
-  private void configureLanguageSelection() {
-    languageComboBox.setItems(FXCollections.singletonObservableList("English"));
-    languageComboBox.getSelectionModel().select(0);
+  private void configureLanguageSelection(Preferences preferences) {
+    languagesAvailable=i18n.get("settings.languages").split(" ");
+    languageComboBox.setItems(FXCollections.observableArrayList(languagesAvailable));
+    languageComboBox.setOnAction(new EventHandler<ActionEvent>() {
+      @Override
+      public void handle(ActionEvent event) {
+        newLanguageSelected(event);
+      }
+    }
+  );
+    languageComboBox.setDisable(false);
+    languageComboBox.setFocusTraversable(true);
+    int index;
+    index= getIndexNumberOfCountryCode(preferences.getLanguagePrefs().getLanguage());
+    languageComboBox.getSelectionModel().select(index);
   }
+  public int getIndexNumberOfCountryCode(String languageCode)
+  {
+    if (languageCode!=null) {
 
+      for (int i = 1; i != languageCodes.length; i++) {
+        if (languageCodes[i].equals(languageCode)) return i;
+      }
+    }
+    return 0;
+  }
+  public int getIndexNumberOfCountry(String language)
+  {
+    for (int i=0; i!= languagesAvailable.length;i++)
+    {
+      if  (languagesAvailable[i].equals(language)) return i;
+    }
+    return 0;
+  }
+  public void newLanguageSelected(ActionEvent actionEvent)
+  {
+    logger.info("newLanguage is "+languageComboBox.getValue().toString()+" at index "+getIndexNumberOfCountry(languageComboBox.getValue())+" language code is "+languageCodes[getIndexNumberOfCountry(languageComboBox.getValue())]);
+    Preferences preferences= preferencesService.getPreferences();
+    String selectedLanguage=languageCodes[getIndexNumberOfCountry(languageComboBox.getValue())];
+    if(selectedLanguage!=preferences.getLanguagePrefs().getLanguage())notificationService.addNotification(new PersistentNotification(i18n.get("settings.languages.restart.title")+". " +i18n.get("settings.languages.restart.message"), Severity.WARN,singletonList(
+        new Action(i18n.get("settings.language.restart"), event -> {
+          Stage stage= (Stage) languageComboBox.getScene().getWindow();
+          Stage mainStage= (Stage) stage.getOwner();
+          mainStage.close();
+        })
+    )));
+    preferences.getLanguagePrefs().setLanguage(selectedLanguage);
+    preferencesService.storeInBackground();
+    logger.info("saving.....Language");
+
+
+  }
   private void configureToastScreen(Preferences preferences) {
     preferences.getNotification().toastScreenProperty().bind(Bindings.createIntegerBinding(()
         -> Screen.getScreens().indexOf(toastScreenComboBox.getValue()), toastScreenComboBox.valueProperty()));
