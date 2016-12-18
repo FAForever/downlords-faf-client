@@ -4,6 +4,8 @@ import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.clan.ClanController;
+
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.Faction;
@@ -169,6 +171,8 @@ public class MainController implements OnChooseGameDirectoryListener {
   ChatController chatController;
   @Resource
   UnitsController unitsController;
+  @Resource
+  ClanController clanController;
   @Resource
   GamesController gamesController;
   @Resource
@@ -953,5 +957,11 @@ public class MainController implements OnChooseGameDirectoryListener {
 
   public void selectChatTab() {
     chatButton.fire();
+  }
+
+  public void onClanButtonClicked(ActionEvent actionEvent) {
+    setActiveNavigationButton((ButtonBase) actionEvent.getSource());
+    clanController.setUpIfNecessary();
+    setContent(clanController.getRoot());
   }
 }

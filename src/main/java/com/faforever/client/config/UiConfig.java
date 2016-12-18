@@ -22,6 +22,7 @@ import com.faforever.client.chat.UrlPreviewResolverImpl;
 import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.chat.avatar.AvatarServiceImpl;
+import com.faforever.client.clan.ClanController;
 import com.faforever.client.fa.OnGameFullNotifier;
 import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.fx.FxmlLoaderImpl;
@@ -148,6 +149,10 @@ public class UiConfig {
   @Bean
   UnitsController unitsController() {
     return loadController("units.fxml");
+  }
+  @Bean
+  ClanController clanController() {
+    return loadController("clan.fxml");
   }
 
   @Bean

@@ -70,6 +70,9 @@
                 <SplitMenuButton fx:id="unitsButton" focusTraversable="false" mnemonicParsing="false"
                                  onAction="#onUnitsSelected" text="%main.units">
                 </SplitMenuButton>
+                <SplitMenuButton fx:id="clansButton" focusTraversable="false" mnemonicParsing="false"
+                                 onAction="#onClanButtonClicked" text="%main.clan">
+                </SplitMenuButton>
               </children>
             </HBox>
             <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS"/>
