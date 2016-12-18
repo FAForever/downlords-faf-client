@@ -11,6 +11,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 
+
 import static javafx.collections.FXCollections.observableArrayList;
 
 public class Preferences {
@@ -34,6 +35,7 @@ public class Preferences {
   private final Ranked1v1Prefs ranked1v1;
   private final NewsPrefs newsPrefs;
   private final DeveloperPrefs developerPrefs;
+  private final LanguagePrefs languagePrefs;
 
   public Preferences() {
     chat = new ChatPrefs();
@@ -53,6 +55,7 @@ public class Preferences {
     gamesViewMode = new SimpleStringProperty();
     newsPrefs = new NewsPrefs();
     developerPrefs = new DeveloperPrefs();
+    languagePrefs= new LanguagePrefs();
   }
 
   public String getGamesViewMode() {
@@ -193,5 +196,8 @@ public class Preferences {
 
   public DeveloperPrefs getDeveloperPrefs() {
     return developerPrefs;
+  }
+  public LanguagePrefs getLanguagePrefs() {
+    return languagePrefs;
   }
 }

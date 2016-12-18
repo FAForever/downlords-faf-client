@@ -1,14 +1,22 @@
 package com.faforever.client.util;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesService;
 
 import javax.annotation.Resource;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DecimalStyle;
 import java.time.format.FormatStyle;
+import java.time.format.ResolverStyle;
+import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalField;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -17,6 +25,8 @@ public class TimeServiceImpl implements TimeService {
   @Resource
   I18n i18n;
 
+  @Resource
+  PreferencesService preferencesService;
   @Resource
   Locale locale;
 
@@ -72,7 +82,20 @@ public class TimeServiceImpl implements TimeService {
 
   @Override
   public String asShortTime(Instant instant) {
-    return DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale).format(
+    Locale uk= new Locale("en","UK");
+    Locale normal= new Locale("de","DE");
+    ChatPrefs chatPref= preferencesService.getPreferences().getChat();
+    Locale choosen=locale;
+    switch (chatPref.getUkTime()) {
+      case("yes"):
+        choosen= uk;
+        break;
+      case("no"):
+        choosen= normal;
+        break;
+    }
+
+    return DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(choosen).format(
         ZonedDateTime.ofInstant(instant, TimeZone.getDefault().toZoneId())
     );
   }
