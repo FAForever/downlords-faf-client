@@ -107,10 +107,13 @@ public class SettingsController {
   I18n i18n;
   @Resource
   NotificationService notificationService;
+  @Resource
+  String [] languageCodes;
 
   private ChangeListener<Theme> themeChangeListener;
   public static String [] languagesAvailable;
-  public static final String [] languageCodes={null,"en","de"};
+
+
   private String[] options;
 
   @PostConstruct
@@ -306,12 +309,10 @@ public class SettingsController {
   private void configureThemeSelection(Preferences preferences) {
     themeComboBox.setItems(FXCollections.observableArrayList(themeService.getAvailableThemes()));
     themeComboBox.getSelectionModel().selectedItemProperty().addListener(new WeakChangeListener<>(themeChangeListener));
-
     Theme currentTheme = themeComboBox.getItems().stream()
         .filter(theme -> theme.getDisplayName().equals(preferences.getThemeName()))
         .findFirst().orElse(DEFAULT_THEME);
     themeComboBox.getSelectionModel().select(currentTheme);
-
     themeService.currentThemeProperty().addListener(
         (observable, oldValue, newValue) -> themeComboBox.getSelectionModel().select(newValue)
     );
@@ -319,9 +320,7 @@ public class SettingsController {
 
   private void configureLanguageSelection(Preferences preferences) {
     languagesAvailable=i18n.get("settings.languages").split(" ");
-
     languageComboBox.setItems(FXCollections.observableArrayList(languagesAvailable));
-
     languageComboBox.setOnAction(new EventHandler<ActionEvent>() {
       @Override
       public void handle(ActionEvent event) {
@@ -332,14 +331,8 @@ public class SettingsController {
     languageComboBox.setDisable(false);
     languageComboBox.setFocusTraversable(true);
     int index;
-
-
     index= getIndexNumberOfCountryCode(preferences.getLanguagePrefs().getLanguage());
-
-
     languageComboBox.getSelectionModel().select(index);
-
-
   }
   public int getIndexNumberOfCountryCode(String languageCode)
   {
@@ -357,16 +350,13 @@ public class SettingsController {
     {
       if  (languagesAvailable[i].equals(language)) return i;
     }
-
     return 0;
   }
   public void newLanguageSelected(ActionEvent actionEvent)
   {
     logger.info("newLanguage is "+languageComboBox.getValue().toString()+" at index "+getIndexNumberOfCountry(languageComboBox.getValue())+" language code is "+languageCodes[getIndexNumberOfCountry(languageComboBox.getValue())]);
     Preferences preferences= preferencesService.getPreferences();
-
     String selectedLanguage=languageCodes[getIndexNumberOfCountry(languageComboBox.getValue())];
-
     if(selectedLanguage!=preferences.getLanguagePrefs().getLanguage())notificationService.addNotification(new PersistentNotification(i18n.get("settings.languages.restart.title")+". " +i18n.get("settings.languages.restart.message"), Severity.WARN,singletonList(
         new Action(i18n.get("settings.language.restart"), event -> {
           Stage stage= (Stage) languageComboBox.getScene().getWindow();
@@ -374,14 +364,6 @@ public class SettingsController {
           mainStage.close();
         })
     )));
-    /*if(selectedLanguage!=preferences.getLanguagePrefs().getLanguage())notificationService.addNotification(new TransientNotification(i18n.get("settings.languages.restart.title"), i18n.get("settings.languages.restart.message"), new Image("theme/images/warn.png"), new ActionCallback() {
-      @Override
-      public void call(Event event) {
-        Stage stage= (Stage) languageComboBox.getScene().getWindow();
-        Stage mainStage= (Stage) stage.getOwner();
-        mainStage.close();
-      }
-    }));*/
     preferences.getLanguagePrefs().setLanguage(selectedLanguage);
     preferencesService.storeInBackground();
     logger.info("saving.....Language");

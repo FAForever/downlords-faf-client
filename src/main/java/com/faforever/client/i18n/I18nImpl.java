@@ -31,6 +31,11 @@ public class I18nImpl implements I18n {
     userSpecificLocal=new Locale(languagecode,countryCodes.get(languagecode));
   }
   @Override
+  public Locale getUserSpecificLocale()
+  {return this.userSpecificLocal;
+
+  }
+  @Override
   public String get(String key, Object... args) {
 
     return messageSource.getMessage(key, args, userSpecificLocal);

@@ -1,5 +1,6 @@
 package com.faforever.client.fx;
 
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.theme.ThemeService;
 import javafx.fxml.FXMLLoader;
 import org.springframework.context.MessageSource;
@@ -18,12 +19,14 @@ public class FxmlLoaderImpl implements FxmlLoader {
   Locale locale;
   @Resource
   ThemeService themeService;
+  @Resource
+  I18n i18n;
 
   private MessageSourceResourceBundle resources;
 
   @PostConstruct
   void postConstruct() {
-    resources = new MessageSourceResourceBundle(messageSource, locale);
+    resources = new MessageSourceResourceBundle(messageSource, i18n.getUserSpecificLocale());
   }
 
   @Override

@@ -55,9 +55,16 @@ public class BaseConfig {
     HashMap<String,String> countries =  new HashMap<String,String>();
     countries.put("de","DE");
     countries.put("en","UK");
-
+    countries.put("ru","RU");
     return countries;
   }
+  @Bean
+  String[] languageCodes()
+  {
+    String[] template= {null,"en","de","ru"};
+    return template;
+  }
+
   @Bean
   MessageSource messageSource() {
 
