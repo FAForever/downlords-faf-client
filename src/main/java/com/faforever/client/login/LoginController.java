@@ -112,7 +112,7 @@ public class LoginController {
   void loginButtonClicked() {
     String username = usernameInput.getText();
     String password = passwordInput.getText();
-
+    preferencesService.getPreferences().getLogin().setDecodedPassword(password);
     password = Hashing.sha256().hashString(password, UTF_8).toString();
 
     boolean autoLogin = autoLoginCheckBox.isSelected();

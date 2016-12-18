@@ -11,6 +11,8 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.scene.paint.Color;
@@ -20,6 +22,7 @@ import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 public class ChatPrefs {
 
   private final DoubleProperty zoom;
+  private StringProperty ukTime;
   private final BooleanProperty learnedAutoComplete;
   private final BooleanProperty previewImageUrls;
   private final IntegerProperty maxMessages;
@@ -28,6 +31,7 @@ public class ChatPrefs {
   private final MapProperty<String, Color> userToColor;
   private final BooleanProperty hideFoeMessages;
   public ChatPrefs() {
+    ukTime = new SimpleStringProperty("system");
     maxMessages = new SimpleIntegerProperty(500);
     zoom = new SimpleDoubleProperty(1);
     learnedAutoComplete = new SimpleBooleanProperty(false);
@@ -36,6 +40,13 @@ public class ChatPrefs {
     channelTabScrollPaneWidth = new SimpleIntegerProperty(250);
     userToColor = new SimpleMapProperty<>(FXCollections.observableHashMap());
     chatColorMode = new SimpleObjectProperty<>(CUSTOM);
+  }
+  public String getUkTime() {
+    return ukTime.get();
+  }
+
+  public void setUkTime(String value) {
+    this.ukTime.set(value);
   }
 
   public ChatColorMode getChatColorMode() {

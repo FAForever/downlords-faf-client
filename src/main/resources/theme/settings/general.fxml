@@ -28,7 +28,7 @@
                     </rowConstraints>
                     <children>
                         <Label text="%settings.general.language"/>
-                        <ComboBox fx:id="languageComboBox" disable="true" GridPane.columnIndex="1"/>
+                        <ComboBox fx:id="languageComboBox" disable="false" GridPane.columnIndex="1"/>
                         <Label text="%settings.general.theme" GridPane.rowIndex="1"/>
                         <ComboBox fx:id="themeComboBox" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
                         <CheckBox fx:id="rememberLastTabCheckBox" mnemonicParsing="false"

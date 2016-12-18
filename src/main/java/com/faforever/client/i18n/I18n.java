@@ -7,4 +7,5 @@ public interface I18n {
   String get(String key, Object... args);
 
   Locale getLocale();
+  public Locale getUserSpecificLocale();
 }

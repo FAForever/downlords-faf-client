@@ -32,7 +32,7 @@
                         <VBox spacing="5.0">
                            <children>
                                <Label styleClass="h3" text="%settings.general.language"/>
-                               <ComboBox fx:id="languageComboBox" disable="true"/>
+                               <ComboBox fx:id="languageComboBox" disable="false"/>
                                <Label styleClass="h3" text="%settings.general.theme"/>
                                <ComboBox fx:id="themeComboBox" disable="true"/>
                                <CheckBox fx:id="rememberLastTabCheckBox" mnemonicParsing="false"
@@ -85,6 +85,10 @@
                               </VBox>
                                <Label styleClass="h3" text="%settings.chat.foes"/>
                                <CheckBox fx:id="hideFoeCheckBox" mnemonicParsing="false" text="%settings.chat.hideFoe"/>
+                               <Label styleClass="h3" text="%settings.chat.timeFormat"/>
+                               <ComboBox fx:id="timeComboBox" disable="false">
+
+                               </ComboBox>
                            </children>
                         </VBox>
                      </children>

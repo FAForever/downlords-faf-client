@@ -14,7 +14,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 
 public class WindowPrefs {
-
+  private final int minHeightValue=500;
+  private final int minWidthValue=500;
   private final IntegerProperty width;
   private final IntegerProperty height;
   private final BooleanProperty maximized;
@@ -34,10 +35,13 @@ public class WindowPrefs {
   }
 
   public int getWidth() {
-    return width.get();
+    if(this.width.get()<minWidthValue)return minWidthValue;
+    return this.width.get();
+    //fixes #444
   }
 
   public void setWidth(int width) {
+
     this.width.set(width);
   }
 
@@ -46,7 +50,9 @@ public class WindowPrefs {
   }
 
   public int getHeight() {
-    return height.get();
+    if(this.height.get()<minHeightValue)return minHeightValue;
+    return this.height.get();
+    //fixes #444
   }
 
   public void setHeight(int height) {
