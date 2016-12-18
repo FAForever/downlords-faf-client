@@ -4,6 +4,8 @@ import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.google.common.base.Strings;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
@@ -41,6 +43,8 @@ public class ClanController {
 
   @Value("${clanWebsite.url}")
   private String clanWebsiteUrl;
+  @Value("${clanWebsite.clans.url}")
+  private String clanWebsiteClansUrl;
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @Resource
   PreferencesService preferencesService;
@@ -72,7 +76,6 @@ public class ClanController {
 
   public void onSiteLoaded()
   {
-    //paste in username and password
     if(login.getAutoLoginForClan()) {
       try {
         org.w3c.dom.Document site = clanRoot.getEngine().getDocument();
@@ -81,10 +84,16 @@ public class ClanController {
         username.setAttribute("value", login.getUsername());
         NodeList elemtenList = site.getElementsByTagName("input");
         org.w3c.dom.Element passwordElement = (org.w3c.dom.Element) elemtenList.item(1);
-        passwordElement.setAttribute("value", login.getPassword());
+
+
+        passwordElement.setAttribute("value",login.getDecodedPassword() );
         HTMLButtonElement button = (HTMLButtonElement) site.getElementsByTagName("button").item(0);
-        //TODO: have Button be clicked automatically
-        //TODO: encode password before applying it
+        HashCode.fromString(login.getPassword());
+        button.getForm().submit();
+
+
+
+
       } catch (Exception e) {
         logger.warn(e.toString()+" consider this might be triggered also if another page then the front page is loaded");
       }
