@@ -56,7 +56,7 @@ public class Game {
 
   public Game(GameInfoMessage gameInfoMessage) {
     this();
-    updateFromGameInfo(gameInfoMessage);
+    internalUpdateFromGameInfo(gameInfoMessage);
   }
 
   public Game() {
@@ -82,7 +82,10 @@ public class Game {
   public void updateFromGameInfo(GameInfoMessage gameInfoMessage) {
     // Because properties may be bound to UI elements, updates need to happen in the application thread.
     JavaFxUtil.assertApplicationThread();
+    internalUpdateFromGameInfo(gameInfoMessage);
+  }
 
+  private void internalUpdateFromGameInfo(GameInfoMessage gameInfoMessage) {
     id.set(gameInfoMessage.getUid());
     host.set(gameInfoMessage.getHost());
     title.set(StringEscapeUtils.unescapeHtml4(gameInfoMessage.getTitle()));

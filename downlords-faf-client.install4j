@@ -55,8 +55,8 @@
       <vmOptionsFile mode="content" overwriteMode="0" fileMode="644">
         <content># Enter one VM parameter per line
 
-# Adjust maximum memory usage to 512MiB
--Xmx512m</content>
+# Adjust maximum memory usage to 300MiB
+-Xmx300m</content>
       </vmOptionsFile>
       <customScript mode="1" file="">
         <content />
