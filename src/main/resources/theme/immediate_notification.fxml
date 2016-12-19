@@ -7,14 +7,16 @@
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.web.WebView?>
-
-<VBox fx:id="notificationRoot" styleClass="immediate-notification" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.notification.ImmediateNotificationController">
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="notificationRoot" styleClass="immediate-notification"
+      xmlns="http://javafx.com/javafx/8.0.60"
+      fx:controller="com.faforever.client.notification.ImmediateNotificationController">
   <children>
     <Label fx:id="titleLabel" styleClass="header" text="&lt;Title&gt;" />
     <Separator />
     <VBox maxHeight="1.7976931348623157E308" spacing="20.0" styleClass="content" VBox.vgrow="ALWAYS">
       <children>
-            <WebView fx:id="errorMessageView" minHeight="20.0" minWidth="100.0" prefHeight="100.0" prefWidth="300.0" VBox.vgrow="ALWAYS" />
+          <WebView fx:id="errorMessageView" minHeight="20.0" minWidth="100.0" prefHeight="200.0" prefWidth="300.0"
+                   VBox.vgrow="ALWAYS"/>
         <TitledPane fx:id="exceptionPane" maxHeight="1.7976931348623157E308" text="%errorDetails" VBox.vgrow="ALWAYS">
           <content>
             <TextArea fx:id="exceptionTextArea" maxWidth="1.7976931348623157E308" />

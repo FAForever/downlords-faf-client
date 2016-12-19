@@ -28,7 +28,7 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
-public class GameCardController implements Controller<Node> {
+public class GameTileController implements Controller<Node> {
 
   private final MapService mapService;
   private final I18n i18n;
@@ -48,7 +48,7 @@ public class GameCardController implements Controller<Node> {
   private Game game;
 
   @Inject
-  public GameCardController(MapService mapService, I18n i18n, JoinGameHelper joinGameHelper, ModService modService, UiService uiService) {
+  public GameTileController(MapService mapService, I18n i18n, JoinGameHelper joinGameHelper, ModService modService, UiService uiService) {
     this.mapService = mapService;
     this.i18n = i18n;
     this.joinGameHelper = joinGameHelper;

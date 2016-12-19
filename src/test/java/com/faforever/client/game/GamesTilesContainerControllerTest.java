@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
 
   @Mock
-  private GameCardController gameCardController;
+  private GameTileController gameTileController;
   @Mock
   private UiService uiService;
 
@@ -33,15 +33,15 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     instance = new GamesTilesContainerController(uiService);
 
-    when(uiService.loadFxml("theme/play/game_card.fxml")).thenReturn(gameCardController);
-    when(gameCardController.getRoot()).thenReturn(new Pane());
+    when(uiService.loadFxml("theme/play/game_card.fxml")).thenReturn(gameTileController);
+    when(gameTileController.getRoot()).thenReturn(new Pane());
 
     loadFxml("theme/play/games_tiles_container.fxml", clazz -> instance);
   }
 
   @Test
   public void testCreateTiledFlowPaneWithEmptyList() throws Exception {
-    when(gameCardController.getRoot()).thenReturn(new Pane());
+    when(gameTileController.getRoot()).thenReturn(new Pane());
     ObservableList<Game> observableList = FXCollections.observableArrayList();
 
     instance.createTiledFlowPane(observableList);
@@ -51,7 +51,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCreateTiledFlowPaneWithPopulatedList() throws Exception {
-    when(gameCardController.getRoot()).thenReturn(new Pane());
+    when(gameTileController.getRoot()).thenReturn(new Pane());
     ObservableList<Game> observableList = FXCollections.observableArrayList();
     observableList.add(new Game());
 
@@ -67,7 +67,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
       latch.countDown();
     });
 
-    doAnswer(invocation -> new Pane()).when(gameCardController).getRoot();
+    doAnswer(invocation -> new Pane()).when(gameTileController).getRoot();
 
     ObservableList<Game> observableList = FXCollections.observableArrayList();
 
@@ -86,7 +86,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
       latch.countDown();
     });
 
-    doAnswer(invocation -> new Pane()).when(gameCardController).getRoot();
+    doAnswer(invocation -> new Pane()).when(gameTileController).getRoot();
 
     ObservableList<Game> observableList = FXCollections.observableArrayList();
 

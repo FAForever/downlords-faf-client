@@ -56,14 +56,11 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws IOException {
-    instance = new PrivateChatTabController();
+    instance = new PrivateChatTabController(audioService, chatService, webViewConfigurer);
     instance.preferencesService = preferencesService;
     instance.playerService = playerService;
-    instance.audioService = audioService;
     instance.notificationService = notificationService;
     instance.i18n = i18n;
-    instance.webViewConfigurer = webViewConfigurer;
-    instance.chatService = chatService;
 
     WaitForAsyncUtils.asyncFx(() -> instance.stage = new Stage());
     WaitForAsyncUtils.waitForFxEvents();

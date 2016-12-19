@@ -52,7 +52,6 @@ import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static javafx.scene.layout.BackgroundPosition.CENTER;
@@ -215,17 +214,15 @@ public class CreateGameController implements Controller<Pane> {
     preferencesService.getPreferences().setLastMap(newValue.getFolderName());
     preferencesService.storeInBackground();
 
-
-    MapSize mapSize = newValue.getSize();
-
-    CompletableFuture.runAsync(() -> {
+    Platform.runLater(() -> {
       Image largePreview = mapService.loadPreview(newValue.getFolderName(), PreviewSize.LARGE);
       mapPreviewPane.setBackground(new Background(new BackgroundImage(largePreview, NO_REPEAT, NO_REPEAT, CENTER,
           new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false))));
     });
 
-    mapNameLabel.setText(newValue.getDisplayName());
+    MapSize mapSize = newValue.getSize();
     mapSizeLabel.setText(i18n.get("mapPreview.size", mapSize.getWidth(), mapSize.getHeight()));
+    mapNameLabel.setText(newValue.getDisplayName());
     mapPlayersLabel.setText(i18n.number(newValue.getPlayers()));
     mapDescriptionLabel.setText(newValue.getDescription());
     versionLabel.setText(i18n.number(newValue.getVersion()));

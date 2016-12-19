@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.StackPane?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="gameCardRoot" styleClass="game-card,card,hoverable"
           onMouseClicked="#onClick" hgap="10.0" maxWidth="360.0" minWidth="360.0" prefWidth="360.0"
-          xmlns="http://javafx.com/javafx/8.0.60" fx:controller="com.faforever.client.game.GameCardController">
+          xmlns="http://javafx.com/javafx/8.0.60" fx:controller="com.faforever.client.game.GameTileController">
     <columnConstraints>
         <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
         <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>

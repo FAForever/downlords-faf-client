@@ -293,12 +293,10 @@ public class ChatUserItemController implements Controller<Node> {
     }
 
     Tooltip tooltip = new Tooltip();
-    Label label = new Label();
-    tooltip.setGraphic(label);
     usernameLabel.setTooltip(tooltip);
     clanLabel.setTooltip(tooltip);
 
-    label.textProperty().bind(Bindings.createStringBinding(
+    tooltip.textProperty().bind(Bindings.createStringBinding(
         () -> i18n.get("userInfo.ratingFormat", getGlobalRating(player), getLeaderboardRating(player)),
         player.leaderboardRatingMeanProperty(), player.leaderboardRatingDeviationProperty(),
         player.globalRatingMeanProperty(), player.globalRatingDeviationProperty()

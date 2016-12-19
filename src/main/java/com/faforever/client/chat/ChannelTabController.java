@@ -414,7 +414,6 @@ public class ChannelTabController extends AbstractChatTabController {
         userFilterController.filterUser(chatUserItemController);
       }
     }
-
   }
 
   private Pane getPaneForSocialStatus(SocialStatus socialStatus) {
