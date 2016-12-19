@@ -103,7 +103,7 @@ public class ChatController extends AbstractViewController<Node> {
   private void addTab(String playerOrChannelName, AbstractChatTabController tabController) {
     JavaFxUtil.assertApplicationThread();
     nameToChatTabController.put(playerOrChannelName, tabController);
-    Platform.runLater(() -> tabPane.getTabs().add(tabController.getRoot()));
+    tabPane.getTabs().add(tabController.getRoot());
   }
 
   @Override

@@ -66,11 +66,11 @@ public class GamesTilesContainerController implements Controller<Node> {
   }
 
   private void addGameCard(Game game) {
-    GameCardController gameCardController = uiService.loadFxml("theme/play/game_card.fxml");
-    gameCardController.setGame(game);
-    gameCardController.setOnSelectedListener(selection -> selectedGame.set(selection));
+    GameTileController gameTileController = uiService.loadFxml("theme/play/game_card.fxml");
+    gameTileController.setGame(game);
+    gameTileController.setOnSelectedListener(selection -> selectedGame.set(selection));
 
-    Node root = gameCardController.getRoot();
+    Node root = gameTileController.getRoot();
     root.setUserData(game);
     tiledFlowPane.getChildren().add(root);
     uidToGameCard.put(game.getId(), root);

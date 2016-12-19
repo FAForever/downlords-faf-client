@@ -64,7 +64,7 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
       long contentLength = connection.getContentLengthLong();
       String contentType = connection.getContentType();
 
-      Node root = fxmlLoader.loadAndGetRoot("image_preview.fxml");
+      Node root = fxmlLoader.loadAndGetRoot("theme/image_preview.fxml");
       ImageView imageView = (ImageView) root.lookup("#imageView");
 
       if (MediaType.JPEG.toString().equals(contentType)

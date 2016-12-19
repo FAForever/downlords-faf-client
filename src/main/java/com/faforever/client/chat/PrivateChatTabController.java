@@ -22,18 +22,20 @@ import static com.faforever.client.chat.SocialStatus.FOE;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class PrivateChatTabController extends AbstractChatTabController {
 
+  private final AudioService audioService;
+  private final ChatService chatService;
+  private final WebViewConfigurer webViewConfigurer;
   public Tab privateChatTabRoot;
   public WebView messagesWebView;
   public TextInputControl messageTextField;
-
-  @Inject
-  AudioService audioService;
-  @Inject
-  ChatService chatService;
-  @Inject
-  WebViewConfigurer webViewConfigurer;
-
   private boolean userOffline;
+
+  @Inject
+  public PrivateChatTabController(AudioService audioService, ChatService chatService, WebViewConfigurer webViewConfigurer) {
+    this.audioService = audioService;
+    this.chatService = chatService;
+    this.webViewConfigurer = webViewConfigurer;
+  }
 
   public boolean isUserOffline() {
     return userOffline;

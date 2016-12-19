@@ -101,7 +101,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   public static final String CHAT_USER_NAME = "junit";
   public static final String CHAT_PASSWORD = "123";
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
-  private static final long TIMEOUT = 30_000;
+  private static final long TIMEOUT = 300000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
   private static final String DEFAULT_CHANNEL_NAME = "#defaultChannel";
   private static final String OTHER_CHANNEL_NAME = "#otherChannel";
@@ -567,7 +567,6 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testAddOnModeratorSetListener() throws Exception {
     connect();
-    botStartedFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
     joinChannel(defaultChannel, user1);
 

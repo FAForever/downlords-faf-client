@@ -2,15 +2,28 @@
 
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.web.WebView?>
 <Tab xmlns:fx="http://javafx.com/fxml/1" fx:id="privateChatTabRoot" xmlns="http://javafx.com/javafx/8.0.60"
      fx:controller="com.faforever.client.chat.PrivateChatTabController">
-  <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
-    <children>
-      <WebView fx:id="messagesWebView" minHeight="100.0" minWidth="100.0" prefHeight="-1.0" prefWidth="-1.0"
-               VBox.vgrow="ALWAYS"/>
-      <TextField fx:id="messageTextField" onAction="#onSendMessage" promptText="%chat.messagePrompt"/>
-    </children>
-  </VBox>
+   <GridPane fx:id="gridPane">
+      <columnConstraints>
+         <ColumnConstraints hgrow="SOMETIMES" minWidth="0.0"/>
+         <ColumnConstraints hgrow="SOMETIMES" minWidth="0.0"/>
+      </columnConstraints>
+      <rowConstraints>
+         <RowConstraints minHeight="0.0" vgrow="SOMETIMES"/>
+         <RowConstraints minHeight="0.0" vgrow="SOMETIMES"/>
+      </rowConstraints>
+      <children>
+         <WebView fx:id="messagesWebView" minHeight="100.0" minWidth="100.0" prefHeight="-1.0" prefWidth="-1.0"
+                  GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS"/>
+         <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage"
+                    promptText="%chat.messagePrompt" GridPane.rowIndex="1"/>
+         <VBox maxHeight="1.7976931348623157E308" prefWidth="160.0" GridPane.columnIndex="1" GridPane.vgrow="ALWAYS"/>
+      </children>
+   </GridPane>
 </Tab>

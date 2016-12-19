@@ -898,19 +898,6 @@
   -fx-font-size: 20;
 }
 
-/***************** Tooltip *****************/
-
-.tooltip {
-  -fx-background: rgba(30, 30, 30);
-  -fx-text-fill: red;
-  -fx-background-color: rgba(30, 30, 30, 0.8);
-  -fx-background-radius: 6px;
-  -fx-background-insets: 0;
-  -fx-padding: 0.667em 0.75em 0.667em 0.75em; /* 10px */
-  -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.5), 10, 0.0, 0, 3);
-  -fx-font-size: 0.85em;
-}
-
 /***************** Popup *****************/
 
 .popup {
@@ -918,6 +905,17 @@
   -fx-background: -fx-base;
   -fx-background-color: -fx-background;
   -fx-border-color: -fx-box-border;
+}
+
+/***************** Tooltip *****************/
+
+.tooltip {
+  -fx-background-color: transparent;
+  -fx-text-fill: -secondary-text-color;
+  -fx-background-radius: 0;
+  -fx-padding: 1em;
+  -fx-effect: null;
+  -fx-font-size: 1em;
 }
 
 /***************** Dimmer *****************/
@@ -1150,6 +1148,10 @@
 .titled-pane > .title > .arrow-button > .arrow {
   -fx-background-insets: 0;
   -fx-effect: null;
+}
+
+.titled-pane > *.content {
+  -fx-background-color: transparent;
 }
 
 /***************** Chat User List *****************/
