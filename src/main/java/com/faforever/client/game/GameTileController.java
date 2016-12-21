@@ -78,7 +78,7 @@ public class GameTileController implements Controller<Node> {
     modService.getFeaturedMod(game.getFeaturedMod())
         .thenAccept(featuredModBean -> Platform.runLater(() -> gameTypeLabel.setText(StringUtils.defaultString(featuredModBean.getDisplayName()))));
 
-    gameTitleLabel.setText(game.getTitle());
+    gameTitleLabel.textProperty().bind(game.titleProperty());
     hostLabel.setText(game.getHost());
 
     gameMapLabel.textProperty().bind(game.mapFolderNameProperty());
