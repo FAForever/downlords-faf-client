@@ -29,7 +29,7 @@ import com.faforever.client.remote.domain.ClientMessageType;
 import com.faforever.client.remote.domain.FafServerMessageType;
 import com.faforever.client.remote.domain.GameAccess;
 import com.faforever.client.remote.domain.GameLaunchMessage;
-import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.HostGameMessage;
 import com.faforever.client.remote.domain.InitSessionMessage;
 import com.faforever.client.remote.domain.JoinGameMessage;
@@ -143,7 +143,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .registerTypeAdapter(VictoryCondition.class, VictoryConditionTypeAdapter.INSTANCE)
-        .registerTypeAdapter(GameState.class, GameStateTypeAdapter.INSTANCE)
+        .registerTypeAdapter(GameStatus.class, GameStateTypeAdapter.INSTANCE)
         .registerTypeAdapter(GameAccess.class, GameAccessTypeAdapter.INSTANCE)
         .registerTypeAdapter(ClientMessageType.class, ClientMessageTypeTypeAdapter.INSTANCE)
         .registerTypeAdapter(FafServerMessageType.class, ServerMessageTypeTypeAdapter.INSTANCE)

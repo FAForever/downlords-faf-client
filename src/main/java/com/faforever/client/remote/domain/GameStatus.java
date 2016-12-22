@@ -7,7 +7,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum GameState {
+public enum GameStatus {
 
   UNKNOWN("unknown"),
   PLAYING("playing"),
@@ -15,28 +15,28 @@ public enum GameState {
   CLOSED("closed");
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final Map<String, GameState> fromString;
+  private static final Map<String, GameStatus> fromString;
 
   static {
     fromString = new HashMap<>();
-    for (GameState gameState : values()) {
-      fromString.put(gameState.string, gameState);
+    for (GameStatus gameStatus : values()) {
+      fromString.put(gameStatus.string, gameStatus);
     }
   }
 
   private final String string;
 
-  GameState(String string) {
+  GameStatus(String string) {
     this.string = string;
   }
 
-  public static GameState fromString(String string) {
-    GameState gameState = fromString.get(string);
-    if (gameState == null) {
+  public static GameStatus fromString(String string) {
+    GameStatus gameStatus = fromString.get(string);
+    if (gameStatus == null) {
       logger.warn("Unknown game state: {}", string);
       return UNKNOWN;
     }
-    return gameState;
+    return gameStatus;
   }
 
   public String getString() {

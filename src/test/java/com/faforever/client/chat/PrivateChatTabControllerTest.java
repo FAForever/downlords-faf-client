@@ -3,7 +3,9 @@ package com.faforever.client.chat;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
+import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.Player;
@@ -12,6 +14,7 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.replay.ReplayService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
@@ -79,13 +82,26 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   private EventBus eventBus;
   @Mock
   private ThreadPoolExecutor threadPoolExecutor;
+  @Mock
+  private CountryFlagService countryFlagService;
+  @Mock
+  private MapService mapService;
+  @Mock
+  private JoinGameHelper joinGameHelper;
+  @Mock
+  private ReplayService replayService;
+
+  private PrivateChatTabController instance;
+  private String playerName;
 
   @Before
   public void setUp() throws IOException {
-    instance = new PrivateChatTabController(userService, chatService, platformService, preferencesService, playerService,
-        audioService, timeService, i18n, imageUploadService, urlPreviewResolver, notificationService, reportingService,
-        uiService, autoCompletionHelper, eventBus, webViewConfigurer, threadPoolExecutor
-    );
+    instance = new PrivateChatTabController(
+        userService, platformService, preferencesService, playerService,
+        timeService, i18n, imageUploadService, urlPreviewResolver, notificationService,
+        reportingService, uiService, autoCompletionHelper, eventBus, audioService,
+        chatService, countryFlagService, mapService, webViewConfigurer, joinGameHelper,
+        replayService);
 
     playerName = "testUser";
     Player player = new Player(playerName);

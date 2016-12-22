@@ -8,13 +8,14 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.transformation.FilteredList;
@@ -44,7 +45,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
-import static javafx.beans.binding.Bindings.createObjectBinding;
 import static javafx.beans.binding.Bindings.createStringBinding;
 
 @Component
@@ -59,7 +59,7 @@ public class CustomGamesController implements Controller<Node> {
   );
 
   private static final Predicate<Game> OPEN_CUSTOM_GAMES_PREDICATE = gameInfoBean ->
-      gameInfoBean.getStatus() == GameState.OPEN
+      gameInfoBean.getStatus() == GameStatus.OPEN
           && !HIDDEN_FEATURED_MODS.contains(gameInfoBean.getFeaturedMod());
   private final UiService uiService;
   private final I18n i18n;
@@ -209,10 +209,11 @@ public class CustomGamesController implements Controller<Node> {
 
     gameTitleLabel.textProperty().bind(game.titleProperty());
 
-    mapImageView.imageProperty().bind(createObjectBinding(
-        () -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE),
-        game.mapFolderNameProperty()
-    ));
+    ChangeListener<String> mapFolderNameChangeListener = (observable, oldValue, newValue) -> {
+      CompletableFuture.supplyAsync(() -> mapService.loadPreview(newValue, PreviewSize.LARGE)).thenAccept(image -> mapImageView.setImage(image));
+    };
+    mapFolderNameChangeListener.changed(game.mapFolderNameProperty(), null, game.mapFolderNameProperty().getValue());
+    game.mapFolderNameProperty().addListener(mapFolderNameChangeListener);
 
     numberOfPlayersLabel.textProperty().bind(createStringBinding(
         () -> i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers()),

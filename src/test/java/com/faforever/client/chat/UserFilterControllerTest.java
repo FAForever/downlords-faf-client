@@ -34,6 +34,7 @@ public class UserFilterControllerTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     instance = new UserFilterController(i18n);
+    // TODO convert to constructor parameter
     instance.channelTabController = channelTabController;
 
     when(chatUserItemController.getPlayer()).thenReturn(player);
@@ -100,30 +101,30 @@ public class UserFilterControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnGameStatusPlaying() throws Exception {
     when(channelTabController.getUserToChatUserControls()).thenReturn(new HashMap<>());
-    when(i18n.get("chat.filter.gameStatus.playing")).thenReturn("playing");
+    when(i18n.get("game.gameStatus.playing")).thenReturn("playing");
 
     instance.onGameStatusPlaying(null);
     assertEquals(PLAYING, instance.playerStatusFilter);
-    assertEquals(i18n.get("chat.filter.gameStatus.playing"), instance.gameStatusMenu.getText());
+    assertEquals(i18n.get("game.gameStatus.playing"), instance.gameStatusMenu.getText());
   }
 
   @Test
   public void testOnGameStatusLobby() throws Exception {
     when(channelTabController.getUserToChatUserControls()).thenReturn(new HashMap<>());
-    when(i18n.get("chat.filter.gameStatus.lobby")).thenReturn("lobby");
+    when(i18n.get("game.gameStatus.lobby")).thenReturn("lobby");
 
     instance.onGameStatusLobby(null);
     assertEquals(LOBBYING, instance.playerStatusFilter);
-    assertEquals(i18n.get("chat.filter.gameStatus.lobby"), instance.gameStatusMenu.getText());
+    assertEquals(i18n.get("game.gameStatus.lobby"), instance.gameStatusMenu.getText());
   }
 
   @Test
   public void testOnGameStatusNone() throws Exception {
     when(channelTabController.getUserToChatUserControls()).thenReturn(new HashMap<>());
-    when(i18n.get("chat.filter.gameStatus.none")).thenReturn("none");
+    when(i18n.get("game.gameStatus.none")).thenReturn("none");
 
     instance.onGameStatusNone(null);
     assertEquals(IDLE, instance.playerStatusFilter);
-    assertEquals(i18n.get("chat.filter.gameStatus.none"), instance.gameStatusMenu.getText());
+    assertEquals(i18n.get("game.gameStatus.none"), instance.gameStatusMenu.getText());
   }
 }

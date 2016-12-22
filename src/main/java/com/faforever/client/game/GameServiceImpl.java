@@ -25,7 +25,7 @@ import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
-import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.google.common.annotations.VisibleForTesting;
@@ -483,11 +483,11 @@ public class GameServiceImpl implements GameService {
       game = uidToGameInfoBean.get(gameId);
       Platform.runLater(() -> game.updateFromGameInfo(gameInfoMessage));
 
-      if (GameState.CLOSED == gameInfoMessage.getState()) {
+      if (GameStatus.CLOSED == gameInfoMessage.getState()) {
         if (currentPlayer.getGame() == game) {
           // Don't remove the game until the current player closed it
           currentPlayer.gameProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue == null && oldValue.getStatus() == GameState.CLOSED) {
+            if (newValue == null && oldValue.getStatus() == GameStatus.CLOSED) {
               removeGame(gameInfoMessage);
             }
           });
@@ -501,7 +501,7 @@ public class GameServiceImpl implements GameService {
     boolean currentPlayerInGame = gameInfoMessage.getTeams().values().stream()
         .anyMatch(team -> team.contains(currentPlayer.getUsername()));
 
-    if (currentPlayerInGame && GameState.OPEN == gameInfoMessage.getState()) {
+    if (currentPlayerInGame && GameStatus.OPEN == gameInfoMessage.getState()) {
       synchronized (currentGame) {
         currentGame.set(game);
       }

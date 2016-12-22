@@ -2,7 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
-import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import javafx.application.Platform;
@@ -38,7 +38,7 @@ public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
   public void test() throws Exception {
     instance.initializeGameTable(FXCollections.observableArrayList(
         GameBuilder.create().defaultValues().get(),
-        GameBuilder.create().defaultValues().state(GameState.CLOSED).get()
+        GameBuilder.create().defaultValues().state(GameStatus.CLOSED).get()
     ));
   }
 }

@@ -125,19 +125,19 @@ public class UserFilterController implements Controller<Node> {
 
   public void onGameStatusPlaying(ActionEvent actionEvent) {
     playerStatusFilter = PLAYING;
-    gameStatusMenu.setText(i18n.get("chat.filter.gameStatus.playing"));
+    gameStatusMenu.setText(i18n.get("game.gameStatus.playing"));
     filterUsers();
   }
 
   public void onGameStatusLobby(ActionEvent actionEvent) {
     playerStatusFilter = LOBBYING;
-    gameStatusMenu.setText(i18n.get("chat.filter.gameStatus.lobby"));
+    gameStatusMenu.setText(i18n.get("game.gameStatus.lobby"));
     filterUsers();
   }
 
   public void onGameStatusNone(ActionEvent actionEvent) {
     playerStatusFilter = IDLE;
-    gameStatusMenu.setText(i18n.get("chat.filter.gameStatus.none"));
+    gameStatusMenu.setText(i18n.get("game.gameStatus.none"));
     filterUsers();
   }
 

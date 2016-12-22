@@ -17,7 +17,7 @@ import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.GameAccess;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
-import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.Player;
 import com.faforever.client.remote.domain.PlayersMessage;
@@ -295,7 +295,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
     gameInfoMessage.setNumPlayers(numPlayers);
     gameInfoMessage.setMaxPlayers(maxPlayers);
     gameInfoMessage.setHost(host);
-    gameInfoMessage.setState(GameState.OPEN);
+    gameInfoMessage.setState(GameStatus.OPEN);
     gameInfoMessage.setSimMods(Collections.emptyMap());
     gameInfoMessage.setTeams(Collections.emptyMap());
     gameInfoMessage.setFeaturedModVersions(Collections.emptyMap());

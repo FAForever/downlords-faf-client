@@ -8,7 +8,7 @@ import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import com.google.common.primitives.Bytes;
@@ -185,7 +185,7 @@ public class ReplayServerImpl implements ReplayServer {
     replayInfo.updateFromGameInfoBean(game);
     replayInfo.setGameEnd(pythonTime());
     replayInfo.setRecorder(userService.getUsername());
-    replayInfo.setState(GameState.CLOSED);
+    replayInfo.setState(GameStatus.CLOSED);
     replayInfo.setComplete(true);
   }
 }

@@ -8,7 +8,7 @@ import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
 import com.faforever.client.player.event.FriendJoinedGameEvent;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.PlayersMessage;
 import com.faforever.client.remote.domain.SocialMessage;
 import com.faforever.client.user.UserService;
@@ -31,6 +31,7 @@ import javax.inject.Inject;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,6 +49,7 @@ public class PlayerServiceImpl implements PlayerService {
 
   private final ObservableMap<String, Player> playersByName;
   private final ObservableMap<Integer, Player> playersById;
+  private final ObservableMap<Player, Game> gamesByPlayers;
   private final List<Integer> foeList;
   private final List<Integer> friendList;
   private final ObjectProperty<Player> currentPlayer;
@@ -68,6 +70,7 @@ public class PlayerServiceImpl implements PlayerService {
 
     playersByName = FXCollections.observableHashMap();
     playersById = FXCollections.observableHashMap();
+    gamesByPlayers = FXCollections.observableHashMap();
     friendList = new ArrayList<>();
     foeList = new ArrayList<>();
     currentPlayer = new SimpleObjectProperty<>();
@@ -129,6 +132,19 @@ public class PlayerServiceImpl implements PlayerService {
     ObservableMap<String, List<String>> teams = game.getTeams();
     synchronized (teams) {
       teams.forEach((team, players) -> updateGamePlayers(players, game));
+
+      List<Player> leftGame = new LinkedList<>();
+      gamesByPlayers.forEach((player, g) -> {
+        if (g == game
+            && game.getTeams().entrySet().stream()
+            .flatMap(team -> team.getValue().stream())
+            .filter(Objects::nonNull)
+            .noneMatch(s -> s.equals(player.getUsername()))) {
+          player.setGame(null);
+          leftGame.add(player);
+        }
+      });
+      leftGame.forEach(gamesByPlayers::remove);
     }
   }
 
@@ -139,14 +155,17 @@ public class PlayerServiceImpl implements PlayerService {
         .forEach(player -> {
           resetIdleTime(player);
           player.setGame(game);
-          if (game == null) {
-            return;
+          if (gamesByPlayers.containsKey(player) && gamesByPlayers.get(player) != game) {
+            gamesByPlayers.remove(player);
           }
-          GameState gameState = game.getStatus();
+          if (!gamesByPlayers.containsKey(player)) {
+            gamesByPlayers.put(player, game);
+          }
+          GameStatus gameStatus = game.getStatus();
           if (player.getSocialStatus() == FRIEND) {
-            if (gameState == GameState.OPEN) {
+            if (gameStatus == GameStatus.OPEN) {
               eventBus.post(new FriendJoinedGameEvent(player));
-            } else if (gameState == GameState.PLAYING) {
+            } else if (gameStatus == GameStatus.PLAYING) {
 //              eventBus.post(new FriendPlaysGameEvent(player));
             }
           }
@@ -156,6 +175,11 @@ public class PlayerServiceImpl implements PlayerService {
   @Override
   public Player getPlayerForUsername(String username) {
     return playersByName.get(username);
+  }
+
+  @Override
+  public Optional<Player> getPlayerForId(int id) {
+    return Optional.ofNullable(playersById.get(id));
   }
 
   @Override

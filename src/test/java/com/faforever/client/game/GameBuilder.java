@@ -1,6 +1,6 @@
 package com.faforever.client.game;
 
-import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.VictoryCondition;
 import javafx.collections.FXCollections;
 
@@ -27,7 +27,7 @@ public class GameBuilder {
     game.setNumPlayers(1);
     game.setNumPlayers(2);
     game.setSimMods(FXCollections.emptyObservableMap());
-    game.setStatus(GameState.OPEN);
+    game.setStatus(GameStatus.OPEN);
     game.setTitle("Title");
     game.setTeams(FXCollections.emptyObservableMap());
     game.setId(1);
@@ -51,7 +51,7 @@ public class GameBuilder {
     return this;
   }
 
-  public GameBuilder state(GameState state) {
+  public GameBuilder state(GameStatus state) {
     game.setStatus(state);
     return this;
   }

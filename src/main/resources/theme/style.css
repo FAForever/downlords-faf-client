@@ -1277,6 +1277,20 @@
   -fx-fill: #FFA500;
 }
 
+/***************** Privat Chat User Info *****************/
+
+.private-chat-user-info-username {
+  -fx-font-size: 14px;
+}
+
+.private-chat-user-info-title {
+  -fx-font-size: 10px;
+}
+
+.private-chat-user-info-data {
+  -fx-font-size: 14px;
+}
+
 /***************** Window *****************/
 
 .decorated-window {

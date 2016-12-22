@@ -267,7 +267,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    * Registers listeners necessary to focus the message input field when changing to another message tab, changing from
    * another tab to the "chat" tab or re-focusing the window.
    */
-  private void addFocusListeners() {
+  protected void addFocusListeners() {
     getRoot().selectedProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue) {
         // Since a tab is marked as "selected" before it's rendered, the text field can't be selected yet.

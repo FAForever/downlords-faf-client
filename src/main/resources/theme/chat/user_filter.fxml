@@ -22,11 +22,11 @@
     <TextField fx:id="clanFilterField" promptText="%chat.filter.clan" GridPane.columnSpan="2147483647" />
     <TextField fx:id="minRatingFilterField" promptText="%chat.filter.minRating" GridPane.columnSpan="2147483647" GridPane.rowIndex="2" />
     <TextField fx:id="maxRatingFilterField" promptText="%chat.filter.maxRating" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
-  <MenuButton fx:id="gameStatusMenu" mnemonicParsing="false" text="%chat.filter.gameStatus" GridPane.rowIndex="3">
+  <MenuButton fx:id="gameStatusMenu" mnemonicParsing="false" text="%game.gameStatus" GridPane.rowIndex="3">
     <items>
-      <MenuItem mnemonicParsing="false" onAction="#onGameStatusNone" text="%chat.filter.gameStatus.none" />
-      <MenuItem mnemonicParsing="false" onAction="#onGameStatusPlaying" text="%chat.filter.gameStatus.playing" />
-      <MenuItem mnemonicParsing="false" onAction="#onGameStatusLobby" text="%chat.filter.gameStatus.lobby" />
+      <MenuItem mnemonicParsing="false" onAction="#onGameStatusNone" text="%game.gameStatus.none" />
+      <MenuItem mnemonicParsing="false" onAction="#onGameStatusPlaying" text="%game.gameStatus.playing" />
+      <MenuItem mnemonicParsing="false" onAction="#onGameStatusLobby" text="%game.gameStatus.lobby" />
     </items>
   </MenuButton>
   </children>

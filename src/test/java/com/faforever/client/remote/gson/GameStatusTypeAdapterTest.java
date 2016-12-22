@@ -1,6 +1,6 @@
 package com.faforever.client.remote.gson;
 
-import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.GameStatus;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import org.junit.Before;
@@ -11,7 +11,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class GameStateTypeAdapterTest {
+public class GameStatusTypeAdapterTest {
 
   private GameStateTypeAdapter instance;
 
@@ -23,9 +23,9 @@ public class GameStateTypeAdapterTest {
   @Test
   public void testWrite() throws Exception {
     JsonWriter out = mock(JsonWriter.class);
-    instance.write(out, GameState.OPEN);
+    instance.write(out, GameStatus.OPEN);
 
-    verify(out).value(GameState.OPEN.getString());
+    verify(out).value(GameStatus.OPEN.getString());
   }
 
   @Test
@@ -33,17 +33,17 @@ public class GameStateTypeAdapterTest {
     JsonWriter out = mock(JsonWriter.class);
     instance.write(out, null);
 
-    verify(out).value(GameState.UNKNOWN.getString());
+    verify(out).value(GameStatus.UNKNOWN.getString());
   }
 
   @Test
   public void testRead() throws Exception {
     JsonReader in = mock(JsonReader.class);
-    when(in.nextString()).thenReturn(GameState.OPEN.getString());
+    when(in.nextString()).thenReturn(GameStatus.OPEN.getString());
 
-    GameState gameState = instance.read(in);
+    GameStatus gameStatus = instance.read(in);
 
-    assertEquals(GameState.OPEN, gameState);
+    assertEquals(GameStatus.OPEN, gameStatus);
   }
 
   @Test
@@ -51,9 +51,9 @@ public class GameStateTypeAdapterTest {
     JsonReader in = mock(JsonReader.class);
     when(in.nextString()).thenReturn(null);
 
-    GameState gameState = instance.read(in);
+    GameStatus gameStatus = instance.read(in);
 
-    assertEquals(GameState.UNKNOWN, gameState);
+    assertEquals(GameStatus.UNKNOWN, gameStatus);
   }
 
   @Test
@@ -61,8 +61,8 @@ public class GameStateTypeAdapterTest {
     JsonReader in = mock(JsonReader.class);
     when(in.nextString()).thenReturn("gibberish");
 
-    GameState gameState = instance.read(in);
+    GameStatus gameStatus = instance.read(in);
 
-    assertEquals(GameState.UNKNOWN, gameState);
+    assertEquals(GameStatus.UNKNOWN, gameStatus);
   }
 }

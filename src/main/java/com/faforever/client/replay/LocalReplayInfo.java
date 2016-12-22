@@ -1,7 +1,7 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.game.Game;
-import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.VictoryCondition;
 
 import java.util.List;
@@ -16,7 +16,7 @@ public class LocalReplayInfo {
   private Integer uid;
   private String title;
   private String mapname;
-  private GameState state;
+  private GameStatus state;
   private Boolean[] options;
   // FAF calls this "game_type" but it's actually the victory condition.
   private VictoryCondition gameType;
@@ -81,11 +81,11 @@ public class LocalReplayInfo {
     this.mapname = mapname;
   }
 
-  public GameState getState() {
+  public GameStatus getState() {
     return state;
   }
 
-  public void setState(GameState state) {
+  public void setState(GameStatus state) {
     this.state = state;
   }
 

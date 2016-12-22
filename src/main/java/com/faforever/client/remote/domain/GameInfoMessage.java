@@ -14,7 +14,7 @@ public class GameInfoMessage extends FafServerMessage {
   private Boolean passwordProtected;
   // TODO use enum
   private String visibility;
-  private GameState state;
+  private GameStatus state;
   private Integer numPlayers;
   private Map<String, List<String>> teams;
   private Map<String, Integer> featuredModVersions;

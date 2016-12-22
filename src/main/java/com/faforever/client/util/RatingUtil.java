@@ -1,6 +1,7 @@
 package com.faforever.client.util;
 
 import com.faforever.client.domain.RatingHistoryDataPoint;
+
 import com.faforever.client.player.Player;
 
 public final class RatingUtil {
@@ -22,7 +23,7 @@ public final class RatingUtil {
   }
 
   public static int getRating(double ratingMean, double ratingDeviation) {
-    return (int) (ratingMean - 3 * ratingDeviation);
+    return (int) (ratingMean - 3f * ratingDeviation);
   }
 
   public static int getLeaderboardRating(Player player) {

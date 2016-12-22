@@ -1,7 +1,7 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.remote.domain.GameAccess;
-import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.VictoryCondition;
 import com.faforever.client.remote.gson.GameAccessTypeAdapter;
 import com.faforever.client.remote.gson.GameStateTypeAdapter;
@@ -16,7 +16,7 @@ public final class ReplayFiles {
       .disableHtmlEscaping()
       .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
       .registerTypeAdapter(GameAccess.class, GameAccessTypeAdapter.INSTANCE)
-      .registerTypeAdapter(GameState.class, GameStateTypeAdapter.INSTANCE)
+      .registerTypeAdapter(GameStatus.class, GameStateTypeAdapter.INSTANCE)
       .registerTypeAdapter(VictoryCondition.class, VictoryConditionTypeAdapter.INSTANCE);
 
   private ReplayFiles() {

@@ -10,7 +10,7 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -123,7 +123,7 @@ public class ChatUserItemControllerTest extends AbstractPlainJavaFxTest {
 
     assertThat(instance.statusLabel.getText(), is(""));
 
-    player.setGame(GameBuilder.create().defaultValues().host("junit").state(GameState.OPEN).get());
+    player.setGame(GameBuilder.create().defaultValues().host("junit").state(GameStatus.OPEN).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.statusLabel.getText(), is("Hosting"));
@@ -136,7 +136,7 @@ public class ChatUserItemControllerTest extends AbstractPlainJavaFxTest {
 
     assertThat(instance.statusLabel.getText(), is(""));
 
-    player.setGame(GameBuilder.create().defaultValues().host("junit").state(GameState.PLAYING).get());
+    player.setGame(GameBuilder.create().defaultValues().host("junit").state(GameStatus.PLAYING).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.statusLabel.getText(), is("Playing"));
@@ -146,7 +146,7 @@ public class ChatUserItemControllerTest extends AbstractPlainJavaFxTest {
   public void testNullGameSetsStatusToNothing() throws Exception {
     Player player = PlayerBuilder.create("junit").defaultValues().get();
     instance.setPlayer(player);
-    player.setGame(GameBuilder.create().defaultValues().host("junit").state(GameState.PLAYING).get());
+    player.setGame(GameBuilder.create().defaultValues().host("junit").state(GameStatus.PLAYING).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.statusLabel.getText(), is("Playing"));

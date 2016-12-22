@@ -1,7 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.remote.domain.GameInfoMessage;
-import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.VictoryCondition;
 import com.faforever.client.util.TimeUtil;
 import javafx.beans.property.BooleanProperty;
@@ -44,7 +44,7 @@ public class Game {
   private final BooleanProperty passwordProtected;
   private final StringProperty password;
   private final ObjectProperty<GameVisibility> visibility;
-  private final ObjectProperty<GameState> status;
+  private final ObjectProperty<GameStatus> status;
   private final ObjectProperty<VictoryCondition> victoryCondition;
   private final ObjectProperty<Instant> startTime;
   /**
@@ -278,15 +278,15 @@ public class Game {
     return maxRating;
   }
 
-  public GameState getStatus() {
+  public GameStatus getStatus() {
     return status.get();
   }
 
-  public void setStatus(GameState status) {
+  public void setStatus(GameStatus status) {
     this.status.set(status);
   }
 
-  public ObjectProperty<GameState> statusProperty() {
+  public ObjectProperty<GameStatus> statusProperty() {
     return status;
   }
 
