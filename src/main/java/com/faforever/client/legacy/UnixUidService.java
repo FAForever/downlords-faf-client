@@ -10,7 +10,7 @@ import java.nio.file.Path;
 
 @Lazy
 @Service
-@Profile({"unix", "mac"})
+@Profile({"linux", "mac"})
 public class UnixUidService implements UidService {
 
   @Override
