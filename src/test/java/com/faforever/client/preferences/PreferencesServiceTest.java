@@ -1,7 +1,5 @@
 package com.faforever.client.preferences;
 
-import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
 import com.google.common.eventbus.EventBus;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
@@ -20,17 +18,13 @@ import static org.junit.Assert.assertThat;
 public class PreferencesServiceTest {
 
   @Mock
-  private I18n i18n;
-  @Mock
   private PreferencesService instance;
-  @Mock
-  private NotificationService notificationService;
   @Mock
   private EventBus eventBus;
 
   @Before
   public void setUp() throws Exception {
-    instance = new PreferencesService(i18n, notificationService, eventBus);
+    instance = new PreferencesService(eventBus);
   }
 
   @Test
@@ -55,11 +49,6 @@ public class PreferencesServiceTest {
   @Test
   public void testGetFafReposDirectory() throws Exception {
     assertThat(instance.getGitReposDirectory(), is(instance.getFafDataDirectory().resolve("repos")));
-  }
-
-  @Test
-  public void testAddUpdateListener() throws Exception {
-
   }
 
   @Test

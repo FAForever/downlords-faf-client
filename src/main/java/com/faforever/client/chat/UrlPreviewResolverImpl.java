@@ -77,7 +77,7 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
         imageView.setImage(new Image(guessedUrl));
       }
 
-      String description = i18n.get("urlPreviewDescription", contentType, formatSize(contentLength, i18n.getLocale()));
+      String description = i18n.get("urlPreviewDescription", contentType, formatSize(contentLength, i18n.getUserSpecificLocale()));
 
       return new Preview(imageView, description);
     } catch (IOException e) {

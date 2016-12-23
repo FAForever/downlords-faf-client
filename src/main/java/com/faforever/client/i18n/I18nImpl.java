@@ -1,48 +1,59 @@
 package com.faforever.client.i18n;
 
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import com.faforever.client.preferences.LanguageInfo;
+import com.faforever.client.preferences.PreferencesService;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.util.Locale;
 
-@Component
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Service
 public class I18nImpl implements I18n {
 
   private final MessageSource messageSource;
+  private final PreferencesService preferencesService;
 
-  private final Locale locale;
+  private Locale userSpecificLocale;
 
   @Inject
-  public I18nImpl(MessageSource messageSource, Locale locale) {
+  public I18nImpl(MessageSource messageSource, PreferencesService preferencesService) {
     this.messageSource = messageSource;
-    this.locale = locale;
+    this.preferencesService = preferencesService;
+  }
+
+  @PostConstruct
+  public void postConstruct() {
+    LanguageInfo languageInfo = preferencesService.getPreferences().getLocalization().getLanguage();
+    if (!languageInfo.equals(LanguageInfo.AUTO)) {
+      userSpecificLocale = new Locale(languageInfo.getLanguageCode(), languageInfo.getCountryCode());
+    } else {
+      userSpecificLocale = Locale.getDefault();
+    }
   }
 
   @Override
   public String get(String key, Object... args) {
-    return messageSource.getMessage(key, args, locale);
+    return messageSource.getMessage(key, args, userSpecificLocale);
+  }
+
+  @Override
+  public Locale getUserSpecificLocale() {
+    return this.userSpecificLocale;
   }
 
   @Override
   public String getQuantized(String singularKey, String pluralKey, long arg) {
     Object[] args = {arg};
     if (Math.abs(arg) == 1) {
-      return messageSource.getMessage(singularKey, args, locale);
+      return messageSource.getMessage(singularKey, args, userSpecificLocale);
     }
-    return messageSource.getMessage(pluralKey, args, locale);
-  }
-
-  @Override
-  public Locale getLocale() {
-    return locale;
+    return messageSource.getMessage(pluralKey, args, userSpecificLocale);
   }
 
   @Override
   public String number(int number) {
-    return String.format(locale, "%d", number);
+    return String.format(userSpecificLocale, "%d", number);
   }
 }

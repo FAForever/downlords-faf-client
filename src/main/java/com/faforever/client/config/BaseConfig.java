@@ -13,7 +13,6 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
-import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.SynchronousQueue;
@@ -37,14 +36,10 @@ public class BaseConfig {
   }
 
   @Bean
-  Locale locale() {
-    return Locale.getDefault();
-  }
-
-  @Bean
   MessageSource messageSource() {
     ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
     messageSource.setBasename("i18n.messages");
+    messageSource.setFallbackToSystemLocale(false);
     return messageSource;
   }
 

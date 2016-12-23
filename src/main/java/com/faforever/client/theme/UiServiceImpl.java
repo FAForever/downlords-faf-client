@@ -2,6 +2,7 @@ package com.faforever.client.theme;
 
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.github.nocatch.NoCatch.NoCatchRunnable;
 import javafx.application.Platform;
@@ -48,7 +49,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -76,10 +76,10 @@ public class UiServiceImpl implements UiService {
 
   private final PreferencesService preferencesService;
   private final ThreadPoolExecutor threadPoolExecutor;
-  private final Locale locale;
   private final CacheManager cacheManager;
   private final MessageSource messageSource;
   private final ApplicationContext applicationContext;
+  private final I18n i18n;
 
   private WatchService watchService;
   private ObservableMap<String, Theme> themesByFolderName;
@@ -90,7 +90,16 @@ public class UiServiceImpl implements UiService {
   private MessageSourceResourceBundle resources;
 
   @Inject
-  public UiServiceImpl(PreferencesService preferencesService, ThreadPoolExecutor threadPoolExecutor, Locale locale, CacheManager cacheManager, MessageSource messageSource, ApplicationContext applicationContext) {
+  public UiServiceImpl(PreferencesService preferencesService, ThreadPoolExecutor threadPoolExecutor,
+                       CacheManager cacheManager, MessageSource messageSource, ApplicationContext applicationContext,
+                       I18n i18n) {
+    this.i18n = i18n;
+    this.preferencesService = preferencesService;
+    this.threadPoolExecutor = threadPoolExecutor;
+    this.cacheManager = cacheManager;
+    this.messageSource = messageSource;
+    this.applicationContext = applicationContext;
+
     scenes = Collections.synchronizedSet(new HashSet<>());
     webViews = new HashSet<>();
     watchKeys = new HashMap<>();
@@ -105,17 +114,11 @@ public class UiServiceImpl implements UiService {
         folderNamesByTheme.put(change.getValueAdded(), change.getKey());
       }
     });
-    this.preferencesService = preferencesService;
-    this.threadPoolExecutor = threadPoolExecutor;
-    this.locale = locale;
-    this.cacheManager = cacheManager;
-    this.messageSource = messageSource;
-    this.applicationContext = applicationContext;
   }
 
   @PostConstruct
   void postConstruct() throws IOException, InterruptedException {
-    resources = new MessageSourceResourceBundle(messageSource, locale);
+    resources = new MessageSourceResourceBundle(messageSource, i18n.getUserSpecificLocale());
     Path themesDirectory = preferencesService.getThemesDirectory();
     startWatchService(themesDirectory);
     Path cacheStylesheetsDirectory = preferencesService.getCacheStylesheetsDirectory();

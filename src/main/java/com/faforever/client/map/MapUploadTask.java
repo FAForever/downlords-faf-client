@@ -67,7 +67,7 @@ public class MapUploadTask extends CompletableTask<Void> {
       logger.debug("Zipping map {} to {}", mapPath, tmpFile);
       updateTitle(i18n.get("mapVault.upload.compressing"));
 
-      Locale locale = i18n.getLocale();
+      Locale locale = i18n.getUserSpecificLocale();
       ByteCountListener byteListener = (written, total) -> {
         updateMessage(i18n.get("bytesProgress", formatSize(written, locale), formatSize(total, locale)));
         updateProgress(written, total);

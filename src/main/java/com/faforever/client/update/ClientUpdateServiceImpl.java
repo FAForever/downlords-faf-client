@@ -69,7 +69,7 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
         return;
       }
       notificationService.addNotification(new PersistentNotification(
-          i18n.get("clientUpdateAvailable.notification", updateInfo.getName(), formatSize(updateInfo.getSize(), i18n.getLocale())),
+          i18n.get("clientUpdateAvailable.notification", updateInfo.getName(), formatSize(updateInfo.getSize(), i18n.getUserSpecificLocale())),
           INFO, asList(
           new Action(i18n.get("clientUpdateAvailable.downloadAndInstall"), event -> downloadAndInstallInBackground(updateInfo)),
           new Action(i18n.get("clientUpdateAvailable.releaseNotes"), Action.Type.OK_STAY,
