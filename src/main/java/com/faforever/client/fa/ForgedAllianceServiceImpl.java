@@ -61,7 +61,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
         .mean(mean)
         .username(currentPlayer.getUsername())
         .additionalArgs(additionalArgs)
-        .logFile(preferencesService.getFafLogDirectory().resolve("preferences.log"))
+        .logFile(preferencesService.getFafLogDirectory().resolve("game.log"))
         .localGpgPort(gpgPort)
         .rehost(rehost)
         .build();
@@ -77,7 +77,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
         .executable(executable)
         .replayFile(path)
         .replayId(replayId)
-        .logFile(preferencesService.getFafLogDirectory().resolve("preferences.log"))
+        .logFile(preferencesService.getFafLogDirectory().resolve("game.log"))
         .build();
 
     return launch(executable, launchCommand);
