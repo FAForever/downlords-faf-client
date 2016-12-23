@@ -23,12 +23,13 @@ import javax.inject.Inject;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static javafx.beans.binding.Bindings.createObjectBinding;
 import static javafx.beans.binding.Bindings.createStringBinding;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
-public class GameTileController implements Controller<Node> {
+public class GameCardController implements Controller<Node> {
 
   private final MapService mapService;
   private final I18n i18n;
@@ -48,7 +49,7 @@ public class GameTileController implements Controller<Node> {
   private Game game;
 
   @Inject
-  public GameTileController(MapService mapService, I18n i18n, JoinGameHelper joinGameHelper, ModService modService, UiService uiService) {
+  public GameCardController(MapService mapService, I18n i18n, JoinGameHelper joinGameHelper, ModService modService, UiService uiService) {
     this.mapService = mapService;
     this.i18n = i18n;
     this.joinGameHelper = joinGameHelper;
@@ -87,7 +88,8 @@ public class GameTileController implements Controller<Node> {
         game.numPlayersProperty(),
         game.maxPlayersProperty()
     ));
-    mapImageView.imageProperty().bind(createObjectBinding(() -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE), game.mapFolderNameProperty()));
+    mapImageView.imageProperty().bind(createObjectBinding(() -> supplyAsync(()
+        -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).get(), game.mapFolderNameProperty()));
 
     modsLabel.textProperty().bind(createStringBinding(
         () -> Joiner.on(i18n.get("textSeparator")).join(game.getSimMods().values()),
@@ -95,10 +97,8 @@ public class GameTileController implements Controller<Node> {
     ));
 
     // TODO display "unknown map" image first since loading may take a while
-    mapImageView.imageProperty().bind(createObjectBinding(
-        () -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL),
-        game.mapFolderNameProperty()
-    ));
+    mapImageView.imageProperty().bind(createObjectBinding(() -> supplyAsync(()
+        -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL)).get(), game.mapFolderNameProperty()));
 
     lockIconLabel.visibleProperty().bind(game.passwordProtectedProperty());
 
