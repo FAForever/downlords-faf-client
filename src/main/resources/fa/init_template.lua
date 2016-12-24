@@ -181,12 +181,12 @@ mount_contents(InitFileDir .. '\\..\\user\\My Games\\Gas Powered Games\\Supreme 
 mount_contents(InitFileDir .. '\\..\\user\\My Games\\Gas Powered Games\\Supreme Commander Forged Alliance\\maps', '/maps')
 
 -- Generated
-mountPoints = {
-    --[[ ${mountpointsTable} --]]
+mountSpecs = {--[[ ${mountSpecsTable} --]]
 }
 
-for mountpoint, dir in mountPoints do
-    mount_dir(dir, mountpoint)
+for _, mountSpec in mountSpecs do
+    LOG('Mounting ' .. mountSpec[2] .. ' to ' .. mountSpec[1])
+    mount_dir(mountSpec[2], mountSpec[1])
 end
 
 
@@ -194,8 +194,8 @@ end
 mount_dir_with_whitelist(fa_path .. '\\gamedata\\', '*.scd', '/')
 mount_dir(fa_path, '/')
 
-hook = {
-    '/schook'
+-- Generated
+hook = {--[[ ${hooksTable} --]]
 }
 
 protocols = {

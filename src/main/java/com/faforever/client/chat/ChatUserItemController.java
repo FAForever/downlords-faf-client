@@ -42,6 +42,7 @@ import org.springframework.util.StringUtils;
 
 import javax.inject.Inject;
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static com.faforever.client.chat.SocialStatus.SELF;
@@ -185,7 +186,7 @@ public class ChatUserItemController implements Controller<Node> {
     if (StringUtils.isEmpty(avatarUrl)) {
       avatarImageView.setVisible(false);
     } else {
-      avatarImageView.setImage(avatarService.loadAvatar(avatarUrl));
+      CompletableFuture.supplyAsync(() -> avatarService.loadAvatar(avatarUrl)).thenAccept(image -> avatarImageView.setImage(image));
       avatarImageView.setVisible(true);
     }
   }

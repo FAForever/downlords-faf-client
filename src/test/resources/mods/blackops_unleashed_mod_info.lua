@@ -15,3 +15,18 @@ requiresNames = { }
 conflicts = { }
 before = { }
 after = { }
+mountpoints = {
+    etc = "/etc",
+    env = "/env",
+    loc = '/loc',
+    effects = '/effects',
+    lua = '/lua',
+    meshes = '/meshes',
+    modules = '/modules',
+    projectiles = '/projectiles',
+    textures = '/textures',
+    units = '/units'
+}
+hooks = {
+    '/blackops'
+}

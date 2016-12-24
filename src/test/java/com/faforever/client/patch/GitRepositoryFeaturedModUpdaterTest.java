@@ -2,9 +2,7 @@ package com.faforever.client.patch;
 
 import com.faforever.client.game.FeaturedModBeanBuilder;
 import com.faforever.client.game.KnownFeaturedMod;
-import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.FeaturedModBean;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -47,25 +45,13 @@ public class GitRepositoryFeaturedModUpdaterTest extends AbstractPlainJavaFxTest
   @Mock
   private TaskService taskService;
   @Mock
-  private I18n i18n;
-  @Mock
-  private GitWrapper gitWrapper;
-  @Mock
-  private NotificationService notificationService;
-  @Mock
   private Preferences preferences;
 
   private GitRepositoryFeaturedModUpdater instance;
 
   @Before
   public void setUp() throws Exception {
-    instance = new GitRepositoryFeaturedModUpdater();
-    instance.preferencesService = preferencesService;
-    instance.taskService = taskService;
-    instance.i18n = i18n;
-    instance.gitWrapper = gitWrapper;
-    instance.notificationService = notificationService;
-    instance.applicationContext = applicationContext;
+    instance = new GitRepositoryFeaturedModUpdater(taskService, applicationContext, preferencesService);
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.getGitReposDirectory()).thenReturn(reposDirectory.getRoot().toPath());

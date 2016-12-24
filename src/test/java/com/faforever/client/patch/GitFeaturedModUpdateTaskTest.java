@@ -1,6 +1,7 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.mod.ModInfoBeanBuilder;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.util.TestResources;
@@ -71,10 +72,12 @@ public class GitFeaturedModUpdateTaskTest extends AbstractPlainJavaFxTest {
       return null;
     }).when(gitWrapper).clone(eq(GIT_PATCH_URL), eq(clonedRepoDir), any(ProgressMonitor.class));
     when(modService.readModVersion(clonedRepoDir)).thenReturn(new ComparableVersion("3663"));
-    when(modService.readMountPoints(any(), eq(clonedRepoDir))).thenReturn(Arrays.asList(
-        new MountPoint(Paths.get("env"), "/env"),
-        new MountPoint(Paths.get("projectiles"), "/projectiles")
-        ));
+    when(modService.extractModInfo(any(), eq(clonedRepoDir))).thenReturn(
+        ModInfoBeanBuilder.create().mountPoints(
+            Arrays.asList(
+                new MountPoint(Paths.get("env"), "/env"),
+                new MountPoint(Paths.get("projectiles"), "/projectiles")
+            )).get());
 
     instance.setRepositoryDirectory(clonedRepoDir);
     instance.setRef("develop");
@@ -95,7 +98,7 @@ public class GitFeaturedModUpdateTaskTest extends AbstractPlainJavaFxTest {
     Path faBinDirectory = faDirectory.getRoot().toPath().resolve("bin");
     Files.createDirectories(faBinDirectory);
 
-    try(RandomAccessFile randomAccessFile = new RandomAccessFile(faBinDirectory.resolve(FORGED_ALLIANCE_EXE).toFile(), "rw")) {
+    try (RandomAccessFile randomAccessFile = new RandomAccessFile(faBinDirectory.resolve(FORGED_ALLIANCE_EXE).toFile(), "rw")) {
       randomAccessFile.setLength(1024);
     }
   }

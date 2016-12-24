@@ -1,12 +1,12 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.patch.MountPoint;
 import com.faforever.client.task.CompletableTask;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,7 +60,11 @@ public interface ModService {
 
   CompletionStage<List<Mod>> lookupMod(String string, int maxSuggestions);
 
+  @NotNull
   Mod extractModInfo(Path path);
+
+  @NotNull
+  Mod extractModInfo(InputStream inputStream, Path basePath);
 
   CompletableTask<Void> uploadMod(Path modPath);
 
@@ -73,6 +77,4 @@ public interface ModService {
   CompletableFuture<List<FeaturedModBean>> getFeaturedMods();
 
   CompletableFuture<FeaturedModBean> getFeaturedMod(String gameTypeBeanName);
-
-  List<MountPoint> readMountPoints(InputStream inputStream, Path basePath);
 }

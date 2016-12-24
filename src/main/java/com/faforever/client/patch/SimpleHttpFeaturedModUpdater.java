@@ -17,10 +17,14 @@ import java.util.concurrent.CompletionStage;
 @Profile("!local")
 public class SimpleHttpFeaturedModUpdater implements FeaturedModUpdater {
 
+  private final TaskService taskService;
+  private final ApplicationContext applicationContext;
+
   @Inject
-  TaskService taskService;
-  @Inject
-  ApplicationContext applicationContext;
+  public SimpleHttpFeaturedModUpdater(TaskService taskService, ApplicationContext applicationContext) {
+    this.taskService = taskService;
+    this.applicationContext = applicationContext;
+  }
 
   @Override
   public CompletionStage<PatchResult> updateMod(FeaturedModBean featuredMod, @Nullable Integer version) {

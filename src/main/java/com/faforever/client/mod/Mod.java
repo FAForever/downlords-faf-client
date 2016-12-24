@@ -1,5 +1,6 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.patch.MountPoint;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
@@ -49,6 +50,8 @@ public class Mod {
   private final ObjectProperty<LocalDateTime> publishDate;
   private final IntegerProperty downloads;
   private final ObjectProperty<URL> downloadUrl;
+  private final ListProperty<MountPoint> mountPoints;
+  private final ListProperty<String> hookDirectories;
 
   public Mod() {
     name = new SimpleStringProperty();
@@ -67,6 +70,8 @@ public class Mod {
     thumbnailUrl = new SimpleObjectProperty<>();
     comments = new SimpleListProperty<>(FXCollections.observableArrayList());
     downloadUrl = new SimpleObjectProperty<>();
+    mountPoints = new SimpleListProperty<>(FXCollections.observableArrayList());
+    hookDirectories = new SimpleListProperty<>(FXCollections.observableArrayList());
   }
 
   public static Mod fromModInfo(com.faforever.client.api.Mod mod) {
@@ -299,5 +304,29 @@ public class Mod {
 
   public void setComments(ObservableList<String> comments) {
     this.comments.set(comments);
+  }
+
+  public ObservableList<MountPoint> getMountPoints() {
+    return mountPoints.get();
+  }
+
+  public void setMountPoints(ObservableList<MountPoint> mountPoints) {
+    this.mountPoints.set(mountPoints);
+  }
+
+  public ListProperty<MountPoint> mountPointsProperty() {
+    return mountPoints;
+  }
+
+  public ObservableList<String> getHookDirectories() {
+    return hookDirectories.get();
+  }
+
+  public void setHookDirectories(ObservableList<String> hookDirectories) {
+    this.hookDirectories.set(hookDirectories);
+  }
+
+  public ListProperty<String> hookDirectoriesProperty() {
+    return hookDirectories;
   }
 }

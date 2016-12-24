@@ -1,6 +1,7 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.mod.Mod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.util.Assert;
@@ -55,8 +56,10 @@ public class GitFeaturedModUpdateTaskImpl extends CompletableTask<PatchResult> i
       throw new IllegalStateException("Could not find " + modInfoLuaFile.toAbsolutePath());
     }
 
+
     try (InputStream inputStream = Files.newInputStream(modInfoLuaFile)) {
-      return new PatchResult(modService.readModVersion(repositoryDirectory), modService.readMountPoints(inputStream, repositoryDirectory));
+      Mod mod = modService.extractModInfo(inputStream, repositoryDirectory);
+      return new PatchResult(modService.readModVersion(repositoryDirectory), mod.getMountPoints(), mod.getHookDirectories());
     }
   }
 

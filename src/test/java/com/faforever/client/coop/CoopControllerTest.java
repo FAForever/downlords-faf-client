@@ -94,6 +94,7 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
     when(coopService.getMissions()).thenReturn(completedFuture(singletonList(new CoopMission())));
 
     instance.setUpIfNecessary();
+    WaitForAsyncUtils.waitForFxEvents();
 
     verify(coopService).getMissions();
     assertThat(instance.missionComboBox.getItems(), hasSize(1));

@@ -1,9 +1,9 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.ByteCopier;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.patch.MountPoint;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -38,7 +38,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -96,23 +96,17 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
   private AssetService assetService;
   @Mock
   private ThreadPoolExecutor threadPoolExecutor;
+  @Mock
+  private PlatformService platformService;
 
   private ModServiceImpl instance;
   private Path gamePrefsPath;
+  private Path blackopsSupportPath;
 
   @Before
   public void setUp() throws Exception {
-    instance = new ModServiceImpl();
-    instance.i18n = i18n;
-    instance.preferencesService = preferencesService;
-    instance.applicationContext = applicationContext;
-    instance.taskService = taskService;
-    instance.fafService = fafService;
-    instance.notificationService = notificationService;
-    instance.assetService = assetService;
-    instance.threadPoolExecutor = threadPoolExecutor;
-    instance.directory = new RAMDirectory();
-    instance.analyzer = new SimpleAnalyzer();
+    instance = new ModServiceImpl(taskService, fafService, preferencesService, applicationContext, threadPoolExecutor,
+        new SimpleAnalyzer(), new RAMDirectory(), notificationService, i18n, platformService, assetService);
 
     gamePrefsPath = faDataDirectory.getRoot().toPath().resolve("game.prefs");
 
@@ -124,12 +118,12 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     // FIXME how did that happen... I see this line many times but it doesn't seem to do anything useful
     doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
 
-    copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);
+    blackopsSupportPath = copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);
 
     instance.postConstruct();
   }
 
-  private void copyMod(String directoryName, ClassPathResource classPathResource) throws IOException {
+  private Path copyMod(String directoryName, ClassPathResource classPathResource) throws IOException {
     Path targetDir = modsDirectory.getRoot().toPath().resolve(directoryName);
     Files.createDirectories(targetDir);
 
@@ -139,6 +133,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
           .to(outputStream)
           .copy();
     }
+    return targetDir;
   }
 
   @Test
@@ -315,7 +310,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     instance.loadInstalledMods();
 
     ArrayList<Mod> installedMods = new ArrayList<>(instance.getInstalledMods());
-    Collections.sort(installedMods, (lhs, rhs) -> lhs.getName().compareTo(rhs.getName()));
+    installedMods.sort(Comparator.comparing(Mod::getName));
 
     Mod mod = installedMods.get(0);
 
@@ -338,6 +333,10 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(mod.getSelectable(), is(true));
     assertThat(mod.getId(), is("9e8ea941-c306-4751-b367-a11000000502"));
     assertThat(mod.getUiOnly(), is(false));
+    assertThat(mod.getMountPoints(), hasSize(10));
+    assertThat(mod.getMountPoints().get(3).getDirectory(), is(blackopsSupportPath.resolve("effects")));
+    assertThat(mod.getMountPoints().get(3).getMountPath(), is("/effects"));
+    assertThat(mod.getHookDirectories(), contains("/blackops"));
 
     mod = installedMods.get(2);
 
@@ -417,16 +416,6 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
         .get();
     instance.loadThumbnail(mod);
     verify(assetService).loadAndCacheImage(eq(mod.getThumbnailUrl()), eq(Paths.get("mods")), any());
-  }
-
-  @Test
-  public void testReadMountPoints() throws Exception {
-    try (InputStream inputStream = getClass().getResourceAsStream("/featured_mod/mod_info.lua")) {
-      List<MountPoint> mountPoints = instance.readMountPoints(inputStream, Paths.get("."));
-      assertThat(mountPoints, hasSize(10));
-      assertThat(mountPoints.get(3).getDirectory(), is(Paths.get(".").resolve("effects")));
-      assertThat(mountPoints.get(3).getMountPath(), is("/effects"));
-    }
   }
 
   @Test

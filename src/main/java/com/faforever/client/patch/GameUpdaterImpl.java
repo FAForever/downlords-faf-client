@@ -2,11 +2,8 @@ package com.faforever.client.patch;
 
 import com.faforever.client.game.FaInitGenerator;
 import com.faforever.client.game.KnownFeaturedMod;
-import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -33,26 +30,22 @@ public class GameUpdaterImpl implements GameUpdater {
   private static final List<String> NAMES_OF_FEATURED_BASE_MODS = Stream.of(FAF, FAF_BETA, FAF_DEVELOP, BALANCE_TESTING, LADDER_1V1)
       .map(KnownFeaturedMod::getString)
       .collect(Collectors.toList());
-  private final List<FeaturedModUpdater> featuredModUpdaters;
-  @Inject
-  ModService modService;
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  I18n i18n;
-  @Inject
-  ApplicationContext applicationContext;
-  @Inject
-  TaskService taskService;
-  @Inject
-  FafService fafService;
-  @Inject
-  FaInitGenerator faInitGenerator;
 
-  public GameUpdaterImpl() {
+  private final List<FeaturedModUpdater> featuredModUpdaters;
+  private final ModService modService;
+  private final ApplicationContext applicationContext;
+  private final TaskService taskService;
+  private final FafService fafService;
+  private final FaInitGenerator faInitGenerator;
+
+  @Inject
+  public GameUpdaterImpl(ModService modService, ApplicationContext applicationContext, TaskService taskService, FafService fafService, FaInitGenerator faInitGenerator) {
     featuredModUpdaters = new ArrayList<>();
+    this.modService = modService;
+    this.applicationContext = applicationContext;
+    this.taskService = taskService;
+    this.fafService = fafService;
+    this.faInitGenerator = faInitGenerator;
   }
 
   @Override
@@ -66,26 +59,31 @@ public class GameUpdaterImpl implements GameUpdater {
     // The following ugly code is sponsored by the featured-mod-mess. FAF and Coop are both featured mods - but others,
     // (except fafbeta and fafdevelop) implicitly depend on FAF. So if a non-base mod is being played, make sure FAF is
     // installed.
-    CompletableFuture<Void> future;
     List<PatchResult> patchResults = new ArrayList<>();
+
+    CompletionStage<Void> future = updateFeaturedMod(featuredMod, version)
+        .thenAccept(patchResults::add)
+        .thenAccept(aVoid -> downloadMissingSimMods(simModUids));
+
     if (!NAMES_OF_FEATURED_BASE_MODS.contains(featuredMod.getTechnicalName())) {
-      future = modService.getFeaturedMod(FAF.getString())
-          .thenCompose(baseMod -> updateFeaturedMod(featuredMod, null))
+      future = future.thenCompose(aVoid -> modService.getFeaturedMod(FAF.getString()))
+          .thenCompose(baseMod -> updateFeaturedMod(baseMod, null))
           .thenAccept(patchResults::add);
-    } else {
-      future = CompletableFuture.completedFuture(null);
     }
 
-    return future.thenCompose(aVoid -> updateFeaturedMod(featuredMod, version))
-        .thenAccept(patchResults::add)
-        .thenCompose(aVoid -> updateGameBinaries(patchResults.get(0).getVersion()))
+    future.thenCompose(aVoid -> updateGameBinaries(patchResults.get(patchResults.size() - 1).getVersion()))
         .thenRun(() -> {
-          List<MountPoint> collect = patchResults.stream()
+          List<MountPoint> mountPoints = patchResults.stream()
               .flatMap(patchResult -> patchResult.getMountPoints().stream())
               .collect(Collectors.toList());
-          faInitGenerator.generateInitFile(collect);
-        })
-        .thenRun(() -> downloadMissingSimMods(simModUids));
+
+          Set<String> hookDirectories = patchResults.stream()
+              .flatMap(patchResult -> patchResult.getHookDirectories().stream())
+              .collect(Collectors.toSet());
+          faInitGenerator.generateInitFile(mountPoints, hookDirectories);
+        });
+
+    return future;
   }
 
   @Override

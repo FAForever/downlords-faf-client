@@ -1,11 +1,8 @@
 package com.faforever.client.patch;
 
-import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.FeaturedModBean;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
-import com.google.common.eventbus.EventBus;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
@@ -24,20 +21,16 @@ public class GitRepositoryFeaturedModUpdater implements FeaturedModUpdater {
 
   private static final String NON_WORD_CHARACTER_PATTERN = "[^\\w]";
 
+  private final TaskService taskService;
+  private final ApplicationContext applicationContext;
+  private final PreferencesService preferencesService;
+
   @Inject
-  TaskService taskService;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  I18n i18n;
-  @Inject
-  GitWrapper gitWrapper;
-  @Inject
-  ApplicationContext applicationContext;
-  @Inject
-  EventBus eventBus;
-  @Inject
-  PreferencesService preferencesService;
+  public GitRepositoryFeaturedModUpdater(TaskService taskService, ApplicationContext applicationContext, PreferencesService preferencesService) {
+    this.taskService = taskService;
+    this.applicationContext = applicationContext;
+    this.preferencesService = preferencesService;
+  }
 
   @Override
   @SuppressWarnings("unchecked")

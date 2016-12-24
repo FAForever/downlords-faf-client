@@ -67,7 +67,6 @@ import java.util.stream.Collectors;
 
 import static com.faforever.client.notification.Severity.WARN;
 import static com.faforever.client.util.LuaUtil.load;
-import static com.faforever.client.util.LuaUtil.loadFile;
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.file.Files.createDirectories;
@@ -85,28 +84,17 @@ public class ModServiceImpl implements ModService {
   private static final Pattern ACTIVE_MOD_PATTERN = Pattern.compile("\\['(.*?)']\\s*=\\s*(true|false)", Pattern.DOTALL);
   private static final Lock LOOKUP_LOCK = new ReentrantLock();
 
-  @Inject
-  FafService fafService;
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  TaskService taskService;
-  @Inject
-  ApplicationContext applicationContext;
-  @Inject
-  ThreadPoolExecutor threadPoolExecutor;
-  @Inject
-  Analyzer analyzer;
-  @Inject
-  Directory directory;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  I18n i18n;
-  @Inject
-  PlatformService platformService;
-  @Inject
-  AssetService assetService;
+  private final FafService fafService;
+  private final PreferencesService preferencesService;
+  private final TaskService taskService;
+  private final ApplicationContext applicationContext;
+  private final ThreadPoolExecutor threadPoolExecutor;
+  private final Analyzer analyzer;
+  private final Directory directory;
+  private final NotificationService notificationService;
+  private final I18n i18n;
+  private final PlatformService platformService;
+  private final AssetService assetService;
 
   private Path modsDirectory;
   private Map<Path, Mod> pathToMod;
@@ -115,13 +103,29 @@ public class ModServiceImpl implements ModService {
   private AnalyzingInfixSuggester suggester;
   private Thread directoryWatcherThread;
 
-  public ModServiceImpl() {
+  @Inject
+  // TODO divide and conquer
+  public ModServiceImpl(TaskService taskService, FafService fafService, PreferencesService preferencesService,
+                        ApplicationContext applicationContext, ThreadPoolExecutor threadPoolExecutor, Analyzer analyzer,
+                        Directory directory, NotificationService notificationService, I18n i18n,
+                        PlatformService platformService, AssetService assetService) {
     pathToMod = new HashMap<>();
     installedMods = FXCollections.observableArrayList();
     readOnlyInstalledMods = FXCollections.unmodifiableObservableList(installedMods);
+    this.taskService = taskService;
+    this.fafService = fafService;
+    this.preferencesService = preferencesService;
+    this.applicationContext = applicationContext;
+    this.threadPoolExecutor = threadPoolExecutor;
+    this.analyzer = analyzer;
+    this.directory = directory;
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.platformService = platformService;
+    this.assetService = assetService;
   }
 
-  private static Path extractIconPath(Path path, LuaValue luaValue) {
+  private static Path extractIconPath(Path basePath, LuaValue luaValue) {
     String icon = luaValue.get("icon").toString();
     if ("nil".equals(icon) || StringUtils.isEmpty(icon)) {
       return null;
@@ -137,11 +141,11 @@ public class ModServiceImpl implements ModService {
       // mods/BlackOpsUnleashed/icons/yoda_icon.bmp -> icons/yoda_icon.bmp
       iconPath = iconPath.subpath(2, iconPath.getNameCount());
     } catch (IllegalArgumentException e) {
-      logger.warn("Can't display icon for mod: {}, icon path: {}", path, iconPath);
+      logger.warn("Can't display icon for mod: {}, icon path: {}", basePath, iconPath);
       return null;
     }
 
-    return path.resolve(iconPath);
+    return basePath.resolve(iconPath);
   }
 
   @PostConstruct
@@ -359,18 +363,28 @@ public class ModServiceImpl implements ModService {
   }
 
   @NotNull
+  @Override
   public Mod extractModInfo(Path path) {
-    Mod mod = new Mod();
-
     Path modInfoLua = path.resolve("mod_info.lua");
+    logger.debug("Reading mod {}", path);
     if (Files.notExists(modInfoLua)) {
       throw new ModLoadException("Missing mod_info.lua in: " + path.toAbsolutePath());
     }
 
-    logger.debug("Reading mod {}", path);
+    try (InputStream inputStream = Files.newInputStream(modInfoLua)) {
+      return extractModInfo(inputStream, path);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @NotNull
+  @Override
+  public Mod extractModInfo(InputStream inputStream, Path basePath) {
+    Mod mod = new Mod();
 
     try {
-      LuaValue luaValue = noCatch(() -> loadFile(modInfoLua), ModLoadException.class);
+      LuaValue luaValue = noCatch(() -> load(inputStream), ModLoadException.class);
 
       mod.setId(luaValue.get("uid").toString());
       mod.setName(luaValue.get("name").toString());
@@ -379,7 +393,21 @@ public class ModServiceImpl implements ModService {
       mod.setVersion(new ComparableVersion(luaValue.get("version").toString()));
       mod.setSelectable(luaValue.get("selectable").toboolean());
       mod.setUiOnly(luaValue.get("ui_only").toboolean());
-      mod.setImagePath(extractIconPath(path, luaValue));
+      mod.setImagePath(extractIconPath(basePath, luaValue));
+
+      ArrayList<MountPoint> mountPoints = new ArrayList<>();
+      LuaTable mountpoints = luaValue.get("mountpoints").opttable(LuaValue.tableOf());
+      for (LuaValue key : mountpoints.keys()) {
+        mountPoints.add(new MountPoint(basePath.resolve(key.tojstring()), mountpoints.get(key).tojstring()));
+      }
+      mod.getMountPoints().setAll(mountPoints);
+
+      List<String> hookDirectories = new ArrayList<>();
+      LuaTable hooks = luaValue.get("hooks").opttable(LuaValue.tableOf());
+      for (LuaValue key : hooks.keys()) {
+        hookDirectories.add(hooks.get(key).tojstring());
+      }
+      mod.getHookDirectories().setAll(hookDirectories);
     } catch (LuaError e) {
       throw new ModLoadException(e);
     }
@@ -424,17 +452,6 @@ public class ModServiceImpl implements ModService {
         .findFirst()
         .orElseThrow(() -> new IllegalArgumentException("Not a valid featured mod: " + featuredMod))
     ));
-  }
-
-  @Override
-  public List<MountPoint> readMountPoints(InputStream inputStream, Path basePath) {
-    LuaValue modInfo = noCatch(() -> load(inputStream));
-    ArrayList<MountPoint> mountPoints = new ArrayList<>();
-    LuaTable mountpoints = modInfo.get("mountpoints").checktable();
-    for (LuaValue key : mountpoints.keys()) {
-      mountPoints.add(new MountPoint(basePath.resolve(key.tojstring()), mountpoints.get(key).tojstring()));
-    }
-    return mountPoints;
   }
 
   private CompletionStage<List<Mod>> getTopElements(Comparator<? super Mod> comparator, int count) {

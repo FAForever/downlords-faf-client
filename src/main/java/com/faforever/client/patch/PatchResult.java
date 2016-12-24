@@ -7,10 +7,12 @@ import java.util.List;
 public class PatchResult {
   private final ComparableVersion version;
   private final List<MountPoint> mountPoints;
+  private final List<String> hookDirectories;
 
-  public PatchResult(ComparableVersion version, List<MountPoint> mountPoints) {
+  public PatchResult(ComparableVersion version, List<MountPoint> mountPoints, List<String> hookDirectories) {
     this.version = version;
     this.mountPoints = mountPoints;
+    this.hookDirectories = hookDirectories;
   }
 
   public ComparableVersion getVersion() {
@@ -19,5 +21,9 @@ public class PatchResult {
 
   public List<MountPoint> getMountPoints() {
     return mountPoints;
+  }
+
+  public List<String> getHookDirectories() {
+    return hookDirectories;
   }
 }

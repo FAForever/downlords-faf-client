@@ -3,6 +3,7 @@ package com.faforever.client.patch;
 import com.faforever.client.api.FeaturedModFile;
 import com.faforever.client.io.ByteCopier;
 import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.mod.Mod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
@@ -57,7 +58,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
 
   @Override
   protected PatchResult call() throws Exception {
-    final CompletableFuture<List<MountPoint>> mountPointsFuture = new CompletableFuture<>();
+    final CompletableFuture<Mod> modFuture = new CompletableFuture<>();
     List<FeaturedModFile> featuredModFiles = fafService.getFeaturedModFiles(featuredMod, version).get();
     featuredModFiles.stream()
         // "bin" is excluded since they contain no file of interest (ini file and executable are generated)
@@ -77,11 +78,11 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
           try (ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(targetPath))) {
             for (ZipEntry entry; (entry = zipInputStream.getNextEntry()) != null; ) {
               if (entry.getName().equals("mod_info.lua")) {
-                mountPointsFuture.complete(modService.readMountPoints(zipInputStream, targetPath.getParent()));
+                modFuture.complete(modService.extractModInfo(zipInputStream, targetPath.getParent()));
               }
             }
           }
-          mountPointsFuture.completeExceptionally(new IllegalStateException("Mod does not provide a mod_info.lua: " + featuredMod.getTechnicalName()));
+          modFuture.completeExceptionally(new IllegalStateException("Mod does not provide a mod_info.lua: " + featuredMod.getTechnicalName()));
         }));
 
     int maxVersion = featuredModFiles.stream()
@@ -89,7 +90,8 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
         .max()
         .orElseThrow(() -> new IllegalStateException("No version found"));
 
-    return new PatchResult(new ComparableVersion(String.valueOf(maxVersion)), mountPointsFuture.get());
+    Mod mod = modFuture.get();
+    return new PatchResult(new ComparableVersion(String.valueOf(maxVersion)), mod.getMountPoints(), mod.getHookDirectories());
   }
 
   private void downloadFile(FeaturedModFile featuredModFile, Path targetPath) throws IOException {
