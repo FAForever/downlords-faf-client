@@ -12,6 +12,7 @@
         </option>
         <option name="JD_ALIGN_PARAM_COMMENTS" value="false" />
         <option name="JD_ALIGN_EXCEPTION_COMMENTS" value="false" />
+        <option name="FORMATTER_TAGS_ENABLED" value="true" />
         <XML>
           <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
         </XML>
