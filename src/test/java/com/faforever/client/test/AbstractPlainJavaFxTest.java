@@ -1,5 +1,6 @@
 package com.faforever.client.test;
 
+import com.github.nocatch.NoCatch.NoCatchRunnable;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -12,13 +13,13 @@ import org.springframework.context.support.MessageSourceResourceBundle;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
 import org.testfx.framework.junit.ApplicationTest;
-import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 
 import static com.github.nocatch.NoCatch.noCatch;
 
@@ -64,8 +65,12 @@ public class AbstractPlainJavaFxTest extends ApplicationTest {
     loader.setLocation(getThemeFileUrl(fileName));
     loader.setResources(new MessageSourceResourceBundle(messageSource, Locale.US));
     loader.setControllerFactory(controllerFactory);
-    Platform.runLater(() -> noCatch((Callable<Object>) loader::load));
-    WaitForAsyncUtils.waitForFxEvents();
+    CountDownLatch latch = new CountDownLatch(1);
+    Platform.runLater(() -> {
+      noCatch((Callable<Object>) loader::load);
+      latch.countDown();
+    });
+    noCatch((NoCatchRunnable) latch::await);
   }
 
   protected String getThemeFile(String file) {

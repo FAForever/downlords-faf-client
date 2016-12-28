@@ -22,6 +22,7 @@ import java.io.StringWriter;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ImmediateNotificationController implements Controller<Node> {
 
+  private final WebViewConfigurer webViewConfigurer;
   public WebView errorMessageView;
   public Node exceptionPane;
   public TextArea exceptionTextArea;
@@ -30,7 +31,9 @@ public class ImmediateNotificationController implements Controller<Node> {
   public Region notificationRoot;
 
   @Inject
-  WebViewConfigurer webViewConfigurer;
+  public ImmediateNotificationController(WebViewConfigurer webViewConfigurer) {
+    this.webViewConfigurer = webViewConfigurer;
+  }
 
   public void initialize() {
     exceptionPane.managedProperty().bind(exceptionPane.visibleProperty());

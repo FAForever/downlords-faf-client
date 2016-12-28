@@ -72,7 +72,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
     instance.uiService = uiService;
     instance.eventBus = eventBus;
 
-    connectionState = new SimpleObjectProperty<>();
+    connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
 
     when(uiService.loadFxml("theme/chat/private_chat_tab.fxml")).thenReturn(privateChatTabController);
     when(uiService.loadFxml("theme/chat/channel_tab.fxml")).thenReturn(channelTabController);

@@ -1,10 +1,12 @@
 package com.faforever.client.notification;
 
+import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.scene.control.Button;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Collections;
@@ -18,11 +20,14 @@ import static org.junit.Assert.assertEquals;
 
 public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest {
 
+  @Mock
+  private WebViewConfigurer webViewConfigurer;
+
   private ImmediateNotificationController instance;
 
   @Before
   public void setUp() throws Exception {
-    instance = new ImmediateNotificationController();
+    instance = new ImmediateNotificationController(webViewConfigurer);
     loadFxml("theme/immediate_notification.fxml", clazz -> instance);
   }
 

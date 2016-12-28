@@ -471,7 +471,7 @@ public class GameServiceImpl implements GameService {
 
       if (GameState.CLOSED == gameInfoMessage.getState()) {
         if (currentPlayer.getGame() == game) {
-          // Don't remove the preferences until the current player closed it
+          // Don't remove the game until the current player closed it
           currentPlayer.gameProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == null && oldValue.getStatus() == GameState.CLOSED) {
               removeGame(gameInfoMessage);

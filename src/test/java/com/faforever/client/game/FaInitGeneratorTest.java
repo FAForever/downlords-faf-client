@@ -49,7 +49,7 @@ public class FaInitGeneratorTest {
   }
 
   @Test
-  public void testGenerateIni() throws Exception {
+  public void testGenerateInitFile() throws Exception {
     Path pathToMount = folderToMount.getRoot().toPath();
     List<MountPoint> mountPaths = Arrays.asList(
         new MountPoint(pathToMount, "/"),

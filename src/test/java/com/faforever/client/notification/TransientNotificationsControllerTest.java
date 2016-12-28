@@ -27,11 +27,8 @@ public class TransientNotificationsControllerTest extends AbstractPlainJavaFxTes
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private Preferences preferences;
-  @Mock
-  private NotificationsPrefs notificationPrefs;
-  @Mock
   private UiService uiService;
+  private NotificationsPrefs notificationPrefs;
 
   @Before
   public void setUp() throws Exception {
@@ -39,36 +36,37 @@ public class TransientNotificationsControllerTest extends AbstractPlainJavaFxTes
     instance.preferencesService = preferencesService;
     instance.uiService = uiService;
 
+    Preferences preferences = new Preferences();
+    notificationPrefs = preferences.getNotification();
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.getNotification()).thenReturn(notificationPrefs);
 
     loadFxml("theme/transient_notifications.fxml", clazz -> instance);
   }
 
   @Test
   public void testToastPositionTopLeft() throws Exception {
-    when(notificationPrefs.getToastPosition()).thenReturn(ToastPosition.TOP_LEFT);
+    notificationPrefs.setToastPosition(ToastPosition.TOP_LEFT);
     instance.initialize();
     assertThat(instance.transientNotificationsRoot.getAlignment(), is(Pos.TOP_LEFT));
   }
 
   @Test
   public void testToastPositionTopRight() throws Exception {
-    when(notificationPrefs.getToastPosition()).thenReturn(ToastPosition.TOP_RIGHT);
+    notificationPrefs.setToastPosition(ToastPosition.TOP_RIGHT);
     instance.initialize();
     assertThat(instance.transientNotificationsRoot.getAlignment(), is(Pos.TOP_RIGHT));
   }
 
   @Test
   public void testToastPositionBottomRight() throws Exception {
-    when(notificationPrefs.getToastPosition()).thenReturn(ToastPosition.BOTTOM_RIGHT);
+    notificationPrefs.setToastPosition(ToastPosition.BOTTOM_RIGHT);
     instance.initialize();
     assertThat(instance.transientNotificationsRoot.getAlignment(), is(Pos.BOTTOM_RIGHT));
   }
 
   @Test
   public void testToastPositionBottomLeft() throws Exception {
-    when(notificationPrefs.getToastPosition()).thenReturn(ToastPosition.BOTTOM_LEFT);
+    notificationPrefs.setToastPosition(ToastPosition.BOTTOM_LEFT);
     instance.initialize();
     assertThat(instance.transientNotificationsRoot.getAlignment(), is(Pos.BOTTOM_LEFT));
   }

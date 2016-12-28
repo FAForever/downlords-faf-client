@@ -1,11 +1,11 @@
 package com.faforever.client.main;
 
+import com.faforever.client.chat.ChatController;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.login.LoginController;
-import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.TransientNotification;
@@ -102,10 +102,11 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private UiService uiService;
   @Mock
   private EventBus eventBus;
+  @Mock
+  private ChatController chatController;
 
   private MainController instance;
   private CountDownLatch mainControllerInitializedLatch;
-  private SimpleObjectProperty<ConnectionState> connectionStateProperty;
   private BooleanProperty gameRunningProperty;
 
   @Before
@@ -122,7 +123,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.eventBus = eventBus;
     instance.ratingBeta = 250;
 
-    connectionStateProperty = new SimpleObjectProperty<>();
     gameRunningProperty = new SimpleBooleanProperty();
 
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
@@ -143,6 +143,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(uiService.loadFxml("theme/window.fxml")).thenReturn(windowController);
     when(uiService.loadFxml("theme/settings/settings.fxml")).thenReturn(settingsController);
     when(uiService.loadFxml("theme/login.fxml")).thenReturn(loginController);
+    when(uiService.loadFxml("theme/chat/chat.fxml")).thenReturn(chatController);
 
     doAnswer(invocation -> getThemeFile(invocation.getArgumentAt(0, String.class))).when(uiService).getThemeFile(any());
 

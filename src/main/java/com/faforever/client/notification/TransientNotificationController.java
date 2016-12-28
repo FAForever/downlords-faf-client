@@ -28,18 +28,20 @@ import static javafx.util.Duration.millis;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class TransientNotificationController implements Controller<Node> {
 
+  private final PreferencesService preferencesService;
   public Pane transientNotificationRoot;
   public Label messageLabel;
   public Label titleLabel;
   public ImageView imageView;
-
-  @Inject
-  PreferencesService preferencesService;
-
   private ChangeListener<Number> animationListener;
   private ActionCallback action;
   private Timeline timeline;
   private int toastDisplayTime;
+
+  @Inject
+  public TransientNotificationController(PreferencesService preferencesService) {
+    this.preferencesService = preferencesService;
+  }
 
   public void initialize() {
     Rectangle rectangle = new Rectangle();
