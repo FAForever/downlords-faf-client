@@ -62,13 +62,13 @@ public class FaInitGeneratorTest {
     assertTrue(Files.exists(targetFile));
 
     String fileContent = new String(Files.readAllBytes(targetFile), UTF_8);
-    assertThat(fileContent, CoreMatchers.containsString("-- Generated\r\n" +
+    assertThat(fileContent, CoreMatchers.containsString("\r\n" +
         "mountSpecs = {\r\n" +
         "    {'/', '" + pathToMount.toAbsolutePath().toString().replaceAll("[/\\\\]", "\\\\\\\\") + "'},\r\n" +
         "    {'/effects', '" + Paths.get("gamedata", "effects.nxt").toString().replaceAll("[/\\\\]", "\\\\\\\\") + "'}\r\n" +
         "}"
     ));
-    assertThat(fileContent, CoreMatchers.containsString("-- Generated\r\n" +
+    assertThat(fileContent, CoreMatchers.containsString("\r\n" +
         "hook = {\r\n" +
         "    '/labwars',\r\n" +
         "    '/schook'\r\n" +

@@ -8,7 +8,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -71,10 +70,6 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private Preferences preferences;
-  @Mock
-  private ChatPrefs chatPrefs;
-  @Mock
   private PlayerService playerService;
   @Mock
   private PlatformService platformService;
@@ -97,6 +92,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private WebViewConfigurer webViewConfigurer;
 
+  private Preferences preferences;
   private AbstractChatTabController instance;
   private CountDownLatch chatReadyLatch;
 
@@ -143,13 +139,13 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     TabPane tabPane = new TabPane(instance.getRoot());
     getRoot().getChildren().setAll(tabPane);
 
+    preferences = new Preferences();
+
     when(uiService.getThemeFileUrl(any())).thenReturn(getClass().getResource("/theme/chat/chat_section.html"));
     when(timeService.asShortTime(any())).thenReturn("123");
     when(userService.getUsername()).thenReturn("junit");
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.getCacheDirectory()).thenReturn(tempDir.getRoot().toPath());
-    when(preferences.getThemeName()).thenReturn("default");
-    when(preferences.getChat()).thenReturn(chatPrefs);
 
     chatReadyLatch = new CountDownLatch(1);
     instance.getMessagesWebView().getEngine().getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
@@ -433,9 +429,9 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     String colorStyle = instance.createInlineStyleFromColor(color);
     ChatUser chatUser = new ChatUser("somePlayer", color);
 
-    when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.CUSTOM);
+    preferences.getChat().setChatColorMode(ChatColorMode.CUSTOM);
     when(chatService.getOrCreateChatUser("somePlayer")).thenReturn(chatUser);
-    when(chatPrefs.getHideFoeMessages()).thenReturn(false);
+    preferences.getChat().setHideFoeMessages(false);
 
     String expected = String.format("%s%s", colorStyle, "");
     String result = instance.getInlineStyle("somePlayer");
@@ -450,9 +446,9 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     ChatUser chatUser = new ChatUser(somePlayer, color);
     when(playerService.getPlayerForUsername(somePlayer)).thenReturn(PlayerBuilder.create(somePlayer).chatOnly(true).get());
 
-    when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
+    preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
     when(chatService.getOrCreateChatUser(somePlayer)).thenReturn(chatUser);
-    when(chatPrefs.getHideFoeMessages()).thenReturn(false);
+    preferences.getChat().setHideFoeMessages(false);
 
     String expected = instance.createInlineStyleFromColor(color);
     String result = instance.getInlineStyle(somePlayer);
@@ -467,9 +463,9 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     ChatUser chatUser = new ChatUser(somePlayer, color);
     when(playerService.getPlayerForUsername(somePlayer)).thenReturn(PlayerBuilder.create(somePlayer).chatOnly(true).get());
 
-    when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
+    preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
     when(chatService.getOrCreateChatUser(somePlayer)).thenReturn(chatUser);
-    when(chatPrefs.getHideFoeMessages()).thenReturn(false);
+    preferences.getChat().setHideFoeMessages(false);
 
     String expected = instance.createInlineStyleFromColor(color);
     String result = instance.getInlineStyle(somePlayer);
@@ -482,9 +478,9 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     ChatUser chatUser = new ChatUser(playerName, null);
     when(playerService.getPlayerForUsername(playerName)).thenReturn(PlayerBuilder.create(playerName).socialStatus(FOE).get());
 
-    when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
+    preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
     when(chatService.getOrCreateChatUser(playerName)).thenReturn(chatUser);
-    when(chatPrefs.getHideFoeMessages()).thenReturn(true);
+    preferences.getChat().setHideFoeMessages(true);
 
     String result = instance.getInlineStyle(playerName);
     assertEquals("display: none;", result);
@@ -496,9 +492,9 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     ChatUser chatUser = new ChatUser(playerName, null);
     when(playerService.getPlayerForUsername(playerName)).thenReturn(PlayerBuilder.create(playerName).socialStatus(FOE).get());
 
-    when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
+    preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
     when(chatService.getOrCreateChatUser(playerName)).thenReturn(chatUser);
-    when(chatPrefs.getHideFoeMessages()).thenReturn(false);
+    preferences.getChat().setHideFoeMessages(false);
 
     String result = instance.getInlineStyle(playerName);
     assertEquals("", result);
