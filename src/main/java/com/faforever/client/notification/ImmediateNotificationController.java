@@ -31,9 +31,7 @@ public class ImmediateNotificationController implements Controller<Node> {
   public Region notificationRoot;
 
   @Inject
-  public ImmediateNotificationController(WebViewConfigurer webViewConfigurer) {
-    this.webViewConfigurer = webViewConfigurer;
-  }
+  WebViewConfigurer webViewConfigurer;
 
   public void initialize() {
     exceptionPane.managedProperty().bind(exceptionPane.visibleProperty());

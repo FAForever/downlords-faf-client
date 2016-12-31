@@ -21,11 +21,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class GameCardControllerTest extends AbstractPlainJavaFxTest {
+public class GameTileControllerTest extends AbstractPlainJavaFxTest {
 
   @Mock
   private ModService modService;
-  private GameCardController instance;
+  private GameTileController instance;
   @Mock
   private JoinGameHelper joinGameHelper;
   @Mock
@@ -44,7 +44,7 @@ public class GameCardControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new GameCardController(mapService, i18n, joinGameHelper, modService, uiService);
+    instance = new GameTileController(mapService, i18n, joinGameHelper, modService, uiService);
 
     game = GameBuilder.create().defaultValues().get();
 
