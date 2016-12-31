@@ -14,7 +14,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -30,8 +29,9 @@ public class ImmediateNotificationController implements Controller<Node> {
   public ButtonBar buttonBar;
   public Region notificationRoot;
 
-  @Inject
-  WebViewConfigurer webViewConfigurer;
+  public ImmediateNotificationController(WebViewConfigurer webViewConfigurer) {
+    this.webViewConfigurer = webViewConfigurer;
+  }
 
   public void initialize() {
     exceptionPane.managedProperty().bind(exceptionPane.visibleProperty());
