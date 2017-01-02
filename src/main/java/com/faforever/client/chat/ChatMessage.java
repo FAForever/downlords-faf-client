@@ -5,6 +5,7 @@ import java.time.Instant;
 public class ChatMessage {
 
   private final String source;
+  // TODO change to LocalTime?
   private final Instant time;
   private final String username;
   private final String message;

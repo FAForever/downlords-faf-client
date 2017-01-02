@@ -5,6 +5,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -12,6 +13,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
+import com.faforever.commons.replay.ReplayData;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,10 +27,12 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static org.hamcrest.Matchers.empty;
@@ -100,13 +104,15 @@ public class ReplayServiceImplTest {
   private PlatformService platformService;
   @Mock
   private ReplayServer replayServer;
+  @Mock
+  private ModService modService;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
     instance = new ReplayServiceImpl(new ClientProperties(), preferencesService, replayFileReader, notificationService, gameService,
-        taskService, i18n, reportingService, applicationContext, platformService, replayServer, fafService);
+        taskService, i18n, reportingService, applicationContext, platformService, replayServer, fafService, modService);
 
     when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath());
     when(preferencesService.getCorruptedReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath().resolve("corrupt"));
@@ -147,15 +153,15 @@ public class ReplayServiceImplTest {
     Path file1 = replayDirectory.newFile("replay.fafreplay").toPath();
     Path file2 = replayDirectory.newFile("replay2.fafreplay").toPath();
 
-    doThrow(new IOException("Junit test exception")).when(replayFileReader).readReplayInfo(file1);
-    doThrow(new IOException("Junit test exception")).when(replayFileReader).readReplayInfo(file2);
+    doThrow(new IOException("Junit test exception")).when(replayFileReader).parseMetaData(file1);
+    doThrow(new IOException("Junit test exception")).when(replayFileReader).parseMetaData(file2);
 
     Collection<Replay> localReplays = instance.getLocalReplays();
 
     assertThat(localReplays, empty());
 
-    verify(replayFileReader).readReplayInfo(file1);
-    verify(replayFileReader).readReplayInfo(file2);
+    verify(replayFileReader).parseMetaData(file1);
+    verify(replayFileReader).parseMetaData(file2);
     verify(notificationService, times(2)).addNotification(any(PersistentNotification.class));
 
     assertThat(Files.exists(file1), is(false));
@@ -170,7 +176,7 @@ public class ReplayServiceImplTest {
     localReplayInfo.setUid(123);
     localReplayInfo.setTitle("title");
 
-    when(replayFileReader.readReplayInfo(file1)).thenReturn(localReplayInfo);
+    when(replayFileReader.parseMetaData(file1)).thenReturn(localReplayInfo);
 
     Collection<Replay> localReplays = instance.getLocalReplays();
 
@@ -193,8 +199,8 @@ public class ReplayServiceImplTest {
     replayInfo.setFeaturedMod("faf");
     replayInfo.setMapname(TEST_MAP_NAME);
 
-    when(replayFileReader.readReplayInfo(replayFile)).thenReturn(replayInfo);
-    when(replayFileReader.readReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
+    when(replayFileReader.parseMetaData(replayFile)).thenReturn(replayInfo);
+    when(replayFileReader.readRawReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
 
     instance.runReplay(replay);
 
@@ -209,7 +215,7 @@ public class ReplayServiceImplTest {
     Replay replay = new Replay();
     replay.setReplayFile(replayFile);
 
-    when(replayFileReader.readReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
+    when(replayFileReader.readRawReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
 
     instance.runReplay(replay);
 
@@ -221,7 +227,7 @@ public class ReplayServiceImplTest {
   public void testRunReplayFileExceptionTriggersNotification() throws Exception {
     Path replayFile = replayDirectory.newFile("replay.scfareplay").toPath();
 
-    doThrow(new RuntimeException("Junit test exception")).when(replayFileReader).readReplayData(replayFile);
+    doThrow(new RuntimeException("Junit test exception")).when(replayFileReader).readRawReplayData(replayFile);
 
     Replay replay = new Replay();
     replay.setReplayFile(replayFile);
@@ -236,8 +242,8 @@ public class ReplayServiceImplTest {
   public void testRunFafReplayFileExceptionTriggersNotification() throws Exception {
     Path replayFile = replayDirectory.newFile("replay.fafreplay").toPath();
 
-    doThrow(new IOException("Junit test exception")).when(replayFileReader).readReplayInfo(replayFile);
-    when(replayFileReader.readReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
+    doThrow(new IOException("Junit test exception")).when(replayFileReader).parseMetaData(replayFile);
+    when(replayFileReader.readRawReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
 
     Replay replay = new Replay();
     replay.setReplayFile(replayFile);
@@ -264,8 +270,8 @@ public class ReplayServiceImplTest {
     replayInfo.setFeaturedMod("faf");
     replayInfo.setMapname(TEST_MAP_NAME);
 
-    when(replayFileReader.readReplayInfo(replayFile)).thenReturn(replayInfo);
-    when(replayFileReader.readReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
+    when(replayFileReader.parseMetaData(replayFile)).thenReturn(replayInfo);
+    when(replayFileReader.readRawReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
 
     instance.runReplay(replay);
 
@@ -284,7 +290,7 @@ public class ReplayServiceImplTest {
     when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
     Replay replay = new Replay();
 
-    when(replayFileReader.readReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
+    when(replayFileReader.readRawReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
 
     instance.runReplay(replay);
 
@@ -296,7 +302,7 @@ public class ReplayServiceImplTest {
   @Test
   public void testRunScFaOnlineReplayExceptionTriggersNotification() throws Exception {
     Path replayFile = replayDirectory.newFile("replay.scfareplay").toPath();
-    doThrow(new IOException("Junit test exception")).when(replayFileReader).readReplayInfo(replayFile);
+    doThrow(new IOException("Junit test exception")).when(replayFileReader).parseMetaData(replayFile);
 
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
@@ -317,5 +323,15 @@ public class ReplayServiceImplTest {
     instance.runLiveReplay(new URI("faflive://example.com/123/456.scfareplay?mod=faf&map=map%20name"));
 
     verify(gameService).runWithLiveReplay(new URI("gpgnet://example.com/123/456.scfareplay"), 123, "faf", "map name");
+  }
+
+  @Test
+  public void testEnrich() throws Exception {
+    Path path = Paths.get("foo.bar");
+    when(replayFileReader.parseReplay(path)).thenReturn(new ReplayData(emptyList(), emptyList()));
+
+    instance.enrich(new Replay(), path);
+
+    verify(replayFileReader).parseReplay(path);
   }
 }

@@ -5,7 +5,6 @@ import com.faforever.client.api.dto.AchievementDefinition;
 import com.faforever.client.api.dto.AchievementType;
 import com.faforever.client.api.dto.CoopMission;
 import com.faforever.client.api.dto.CoopResult;
-import com.faforever.client.api.dto.FeaturedMod;
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
@@ -17,8 +16,7 @@ import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.io.ProgressListener;
-import com.faforever.client.mod.FeaturedModBean;
-import com.faforever.client.replay.Replay;
+import com.faforever.client.mod.FeaturedMod;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -79,8 +77,8 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<FeaturedMod> getFeaturedMods() {
-    FeaturedMod featuredMod = new FeaturedMod();
+  public List<com.faforever.client.api.dto.FeaturedMod> getFeaturedMods() {
+    com.faforever.client.api.dto.FeaturedMod featuredMod = new com.faforever.client.api.dto.FeaturedMod();
     featuredMod.setDisplayName("Forged Alliance Forever");
     featuredMod.setTechnicalName("faf");
     featuredMod.setVisible(true);
@@ -155,22 +153,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<FeaturedModFile> getFeaturedModFiles(FeaturedModBean featuredModBean, Integer version) {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public List<Replay> searchReplayByPlayerName(String playerName) {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public List<Replay> searchReplayByMapName(String mapName) {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public List<Game> searchReplayByMod(FeaturedMod featuredMod) {
+  public List<FeaturedModFile> getFeaturedModFiles(FeaturedMod featuredMod, Integer version) {
     return Collections.emptyList();
   }
 
@@ -186,6 +169,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public List<Game> getMostWatchedReplays(int count) {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public List<Game> findReplaysByQuery(String query) {
     return Collections.emptyList();
   }
 

@@ -7,7 +7,7 @@ faf-client:
   vault:
    mapDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/maps/%s.zip
    mapPreviewUrlFormat: ${faf-client.vault.base-url}/faf/vault/map_previews/%s/%s.png
-   replayDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/replay_vault/replay.php?id=asd
+   replayDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/replay_vault/replay.php?id=%s
    modDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/maps/%s.zip
 
   imgur:
@@ -34,6 +34,7 @@ logging:
     org.springframework.beans: warn
     org.springframework.http.client.support: debug
     org.springframework.security.oauth2: debug
+    org.springframework.security.oauth2.client.token.grant: off
     faf-ice-adapter: debug
     org.ice4j.stack: warn
     com.nbarraille.jjsonrpc: warn

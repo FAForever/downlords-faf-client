@@ -1,6 +1,6 @@
 package com.faforever.client.game;
 
-import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.mod.FeaturedMod;
 
 import java.util.Set;
 
@@ -8,14 +8,14 @@ public class NewGameInfo {
 
   private String title;
   private String password;
-  private FeaturedModBean featuredMod;
+  private FeaturedMod featuredMod;
   private String map;
   private Set<String> simMods;
 
   public NewGameInfo() {
   }
 
-  public NewGameInfo(String title, String password, FeaturedModBean featuredMod, String map, Set<String> simMods) {
+  public NewGameInfo(String title, String password, FeaturedMod featuredMod, String map, Set<String> simMods) {
     this.title = title;
     this.password = password;
     this.featuredMod = featuredMod;
@@ -47,11 +47,11 @@ public class NewGameInfo {
     this.map = map;
   }
 
-  public FeaturedModBean getFeaturedMod() {
+  public FeaturedMod getFeaturedMod() {
     return featuredMod;
   }
 
-  public void setFeaturedMod(FeaturedModBean featuredMod) {
+  public void setFeaturedMod(FeaturedMod featuredMod) {
     this.featuredMod = featuredMod;
   }
 

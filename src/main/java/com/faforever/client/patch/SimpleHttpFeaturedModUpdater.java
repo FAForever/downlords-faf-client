@@ -1,7 +1,7 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.FafClientApplication;
-import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.task.TaskService;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.context.ApplicationContext;
@@ -28,7 +28,7 @@ public class SimpleHttpFeaturedModUpdater implements FeaturedModUpdater {
   }
 
   @Override
-  public CompletableFuture<PatchResult> updateMod(FeaturedModBean featuredMod, @Nullable Integer version) {
+  public CompletableFuture<PatchResult> updateMod(FeaturedMod featuredMod, @Nullable Integer version) {
     SimpleHttpFeaturedModUpdaterTask task = applicationContext.getBean(SimpleHttpFeaturedModUpdaterTask.class);
     task.setVersion(version);
     task.setFeaturedMod(featuredMod);
@@ -37,7 +37,7 @@ public class SimpleHttpFeaturedModUpdater implements FeaturedModUpdater {
   }
 
   @Override
-  public boolean canUpdate(FeaturedModBean featuredMod) {
+  public boolean canUpdate(FeaturedMod featuredMod) {
     return true;
   }
 }

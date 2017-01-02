@@ -1,13 +1,15 @@
 package com.faforever.client.replay;
 
+import lombok.Data;
+
+@Data
 public class ServerReplayInfo {
 
-  public String map;
-  public String name;
-  public long end;
-  public long start;
-  // Because we cannot calculate -.-
-  public long duration;
-  public String mod;
-  public int id;
+  private String map;
+  private String name;
+  private long end;
+  private long start;
+  private long duration;
+  private String mod;
+  private int id;
 }

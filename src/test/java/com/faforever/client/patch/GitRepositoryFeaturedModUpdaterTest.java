@@ -2,7 +2,7 @@ package com.faforever.client.patch;
 
 import com.faforever.client.game.FeaturedModBeanBuilder;
 import com.faforever.client.game.KnownFeaturedMod;
-import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -67,7 +67,7 @@ public class GitRepositoryFeaturedModUpdaterTest extends AbstractPlainJavaFxTest
     instance.updateMod(featuredMod(KnownFeaturedMod.FAF), null).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
   }
 
-  private FeaturedModBean featuredMod(KnownFeaturedMod knownFeaturedMod) {
+  private FeaturedMod featuredMod(KnownFeaturedMod knownFeaturedMod) {
     return FeaturedModBeanBuilder.create().defaultValues().technicalName(knownFeaturedMod.getTechnicalName()).get();
   }
 }

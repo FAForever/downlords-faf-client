@@ -284,6 +284,7 @@ dependencies {
   compile("com.github.jasminb:jsonapi-converter:0.6")
   compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonDatatypeJsr310Version}")
   compile("org.projectlombok:lombok:${lombokVersion}")
+  compile("com.github.rutledgepaulv:q-builders:${qBuildersVersion}")
 
   testCompile 'junit:junit:4.11'
   testCompile("org.testfx:testfx-core:4.0.+") {

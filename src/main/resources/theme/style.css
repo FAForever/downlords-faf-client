@@ -317,7 +317,7 @@
  *                                                                             *
  ******************************************************************************/
 .check-box {
-  -fx-padding: 10;
+  -fx-padding: 5;
 }
 
 .check-box .text {
@@ -896,6 +896,10 @@
 .icon {
   -fx-font-family: 'dfc-icons';
   -fx-font-size: 20;
+}
+
+.icon.small {
+  -fx-font-size: 1em;
 }
 
 /***************** Popup *****************/

@@ -3,7 +3,6 @@ package com.faforever.client.api;
 import com.faforever.client.api.dto.AchievementDefinition;
 import com.faforever.client.api.dto.CoopMission;
 import com.faforever.client.api.dto.CoopResult;
-import com.faforever.client.api.dto.FeaturedMod;
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
@@ -20,8 +19,7 @@ import com.faforever.client.config.ClientProperties.Api;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.io.CountingFileSystemResource;
 import com.faforever.client.io.ProgressListener;
-import com.faforever.client.mod.FeaturedModBean;
-import com.faforever.client.replay.Replay;
+import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.collect.ImmutableMap;
@@ -133,7 +131,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @Override
   @Cacheable(CacheNames.FEATURED_MODS)
-  public List<FeaturedMod> getFeaturedMods() {
+  public List<com.faforever.client.api.dto.FeaturedMod> getFeaturedMods() {
     return getAll("/data/featuredMod");
   }
 
@@ -253,48 +251,36 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @Override
   @Cacheable(CacheNames.FEATURED_MOD_FILES)
-  public List<FeaturedModFile> getFeaturedModFiles(FeaturedModBean featuredModBean, Integer version) {
+  public List<FeaturedModFile> getFeaturedModFiles(FeaturedMod featuredMod, Integer version) {
     throw new UnsupportedOperationException("API support missing");
   }
 
   @Override
-  public List<Replay> searchReplayByPlayerName(String playerName) {
-    // TODO case insensitive search
-    return getAll("/data/replay", ImmutableMap.of(
-        "filter[replay.player.login]", "*" + playerName + "*"
-    ));
-  }
-
-  @Override
-  public List<Replay> searchReplayByMapName(String mapName) {
-    // TODO case insensitive search
-    return getAll("/data/replay", ImmutableMap.of(
-        "filter[replay.map.map.displayName]", "*" + mapName + "*"
-    ));
-  }
-
-  @Override
-  public List<Game> searchReplayByMod(FeaturedMod featuredMod) {
-    return getAll("/data/replay", ImmutableMap.of(
-        "filter[mod]", featuredMod.getId()
-    ));
-  }
-
-  @Override
   public List<Game> getNewestReplays(int count) {
-    return getAll("/data/replay", ImmutableMap.of(
-        "sort", "-scoreTime"
+    return getAll("/data/game", ImmutableMap.of(
+        "sort", "-endTime",
+        "include", "featuredMod"
     ));
   }
 
   @Override
   public List<Game> getHighestRatedReplays(int count) {
-    throw new UnsupportedOperationException("Not yet supported by API");
+    // FIXME implement once supported by API
+    return Collections.emptyList();
   }
 
   @Override
   public List<Game> getMostWatchedReplays(int count) {
-    throw new UnsupportedOperationException("Not yet supported by API");
+    // FIXME implement once supported by API
+    return Collections.emptyList();
+  }
+
+  @Override
+  public List<Game> findReplaysByQuery(String query) {
+    return getAll("/data/game", ImmutableMap.of(
+        "filter", query,
+        "include", "featuredMod"
+    ));
   }
 
   @Override

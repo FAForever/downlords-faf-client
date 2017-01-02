@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.time.temporal.Temporal;
 import java.time.temporal.TemporalAccessor;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -82,10 +83,15 @@ public class TimeServiceImpl implements TimeService {
   }
 
   @Override
-  public String asShortTime(Instant instant) {
-    return DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(getCurrentTimeLocale()).format(
-        ZonedDateTime.ofInstant(instant, TimeZone.getDefault().toZoneId())
-    );
+  public String asShortTime(Temporal temporal) {
+    return DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
+        .withLocale(getCurrentTimeLocale())
+        .format(ZonedDateTime.ofInstant(Instant.from(temporal), TimeZone.getDefault().toZoneId()));
+  }
+
+  @Override
+  public String asIsoTime(Temporal temporal) {
+    return DateTimeFormatter.ISO_TIME.format(temporal);
   }
 
   private Locale getCurrentTimeLocale() {
@@ -111,5 +117,11 @@ public class TimeServiceImpl implements TimeService {
     }
 
     return i18n.get("duration.hourMinutes", duration.toMinutes() / 60, duration.toMinutes() % 60);
+  }
+
+  @Override
+  public String asHms(Duration duration) {
+    long seconds = duration.getSeconds();
+    return String.format("%d:%02d:%02d", seconds / 3600, (seconds % 3600) / 60, (seconds % 60));
   }
 }

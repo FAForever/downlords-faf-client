@@ -2,7 +2,7 @@ package com.faforever.client.patch;
 
 import com.faforever.client.game.FaInitGenerator;
 import com.faforever.client.game.KnownFeaturedMod;
-import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
@@ -55,7 +55,7 @@ public class GameUpdaterImpl implements GameUpdater {
   }
 
   @Override
-  public CompletableFuture<Void> update(FeaturedModBean featuredMod, Integer version, Map<String, Integer> featuredModVersions, Set<String> simModUids) {
+  public CompletableFuture<Void> update(FeaturedMod featuredMod, Integer version, Map<String, Integer> featuredModVersions, Set<String> simModUids) {
     // The following ugly code is sponsored by the featured-mod-mess. FAF and Coop are both featured mods - but others,
     // (except fafbeta and fafdevelop) implicitly depend on FAF. So if a non-base mod is being played, make sure FAF is
     // installed.
@@ -87,7 +87,7 @@ public class GameUpdaterImpl implements GameUpdater {
   }
 
   @Override
-  public CompletableFuture<List<FeaturedModBean>> getFeaturedMods() {
+  public CompletableFuture<List<FeaturedMod>> getFeaturedMods() {
     return fafService.getFeaturedMods();
   }
 
@@ -103,7 +103,7 @@ public class GameUpdaterImpl implements GameUpdater {
     return CompletableFuture.allOf(simModFutures.toArray(new CompletableFuture[simModFutures.size()]));
   }
 
-  private CompletableFuture<PatchResult> updateFeaturedMod(FeaturedModBean featuredMod, Integer version) {
+  private CompletableFuture<PatchResult> updateFeaturedMod(FeaturedMod featuredMod, Integer version) {
     for (FeaturedModUpdater featuredModUpdater : featuredModUpdaters) {
       if (featuredModUpdater.canUpdate(featuredMod)) {
         return featuredModUpdater.updateMod(featuredMod, version);

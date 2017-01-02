@@ -25,6 +25,7 @@ public class MapVersion {
   private int height;
   private ComparableVersion version;
   private String folderName;
+  // TODO name consistently with folderName
   private String filename;
   private boolean ranked;
   private boolean hidden;

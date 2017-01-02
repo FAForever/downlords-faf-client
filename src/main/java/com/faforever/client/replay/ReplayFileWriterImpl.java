@@ -4,7 +4,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.Bytes;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.io.QtCompress;
+import com.faforever.commons.replay.QtCompress;
 import com.google.common.io.BaseEncoding;
 import com.google.gson.Gson;
 import org.slf4j.Logger;

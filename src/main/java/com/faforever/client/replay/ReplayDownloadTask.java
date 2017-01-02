@@ -53,6 +53,7 @@ public class ReplayDownloadTask extends CompletableTask<Path> {
     logger.info("Downloading replay {} from {}", replayId, replayUrl);
 
     HttpURLConnection urlConnection = (HttpURLConnection) new URL(replayUrl).openConnection();
+    urlConnection.setInstanceFollowRedirects(true);
     int bytesToRead = urlConnection.getContentLength();
 
     Path tempSupComReplayFile = preferencesService.getCacheDirectory().resolve(TEMP_FAF_REPLAY_FILE_NAME);

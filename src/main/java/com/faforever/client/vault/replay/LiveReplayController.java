@@ -19,6 +19,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.collections.transformation.SortedList;
 import javafx.scene.Node;
 import javafx.scene.control.TableColumn;
@@ -104,8 +105,9 @@ public class LiveReplayController extends AbstractViewController<Node> {
 
   @NotNull
   private ObservableValue<String> modCell(CellDataFeatures<Game, String> param) {
-    int simModCount = param.getValue().getSimMods().size();
-    List<String> modNames = param.getValue().getSimMods().entrySet().stream()
+    ObservableMap<String, String> simMods = param.getValue().getSimMods();
+    int simModCount = simMods.size();
+    List<String> modNames = simMods.entrySet().stream()
         .limit(2)
         .map(Entry::getValue)
         .collect(Collectors.toList());

@@ -1,6 +1,6 @@
 faf-client:
   server:
-    host: test.faforever.com
+    host: localhost
 
   irc:
     host: irc.test.faforever.com

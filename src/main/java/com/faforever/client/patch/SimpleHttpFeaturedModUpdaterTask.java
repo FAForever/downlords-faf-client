@@ -2,7 +2,7 @@ package com.faforever.client.patch;
 
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.io.ByteCopier;
-import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.Mod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.PreferencesService;
@@ -48,7 +48,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
   private final PreferencesService preferencesService;
   private final ModService modService;
 
-  private FeaturedModBean featuredMod;
+  private FeaturedMod featuredMod;
   private Integer version;
 
   @Inject
@@ -125,7 +125,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
     return mountPoints;
   }
 
-  public void setFeaturedMod(FeaturedModBean featuredMod) {
+  public void setFeaturedMod(FeaturedMod featuredMod) {
     this.featuredMod = featuredMod;
   }
 

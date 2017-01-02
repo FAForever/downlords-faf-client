@@ -1,13 +1,13 @@
 package com.faforever.client.game;
 
-import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.mod.FeaturedMod;
 
 public class FeaturedModBeanBuilder {
 
-  private final FeaturedModBean featuredModBean;
+  private final FeaturedMod featuredMod;
 
   private FeaturedModBeanBuilder() {
-    featuredModBean = new FeaturedModBean();
+    featuredMod = new FeaturedMod();
   }
 
   public static FeaturedModBeanBuilder create() {
@@ -15,20 +15,20 @@ public class FeaturedModBeanBuilder {
   }
 
   public FeaturedModBeanBuilder defaultValues() {
-    featuredModBean.setTechnicalName("faf");
-    featuredModBean.setVisible(true);
-    featuredModBean.setDescription("Standard mod");
-    featuredModBean.setDisplayName("Forged Alliance Forever");
-    featuredModBean.setGitUrl("http://localhost/example.git");
+    featuredMod.setTechnicalName("faf");
+    featuredMod.setVisible(true);
+    featuredMod.setDescription("Standard mod");
+    featuredMod.setDisplayName("Forged Alliance Forever");
+    featuredMod.setGitUrl("http://localhost/example.git");
     return this;
   }
 
-  public FeaturedModBean get() {
-    return featuredModBean;
+  public FeaturedMod get() {
+    return featuredMod;
   }
 
   public FeaturedModBeanBuilder technicalName(String technicalName) {
-    featuredModBean.setTechnicalName(technicalName);
+    featuredMod.setTechnicalName(technicalName);
     return this;
   }
 }

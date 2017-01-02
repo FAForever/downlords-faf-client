@@ -3,6 +3,7 @@ package com.faforever.client.vault;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
+import com.faforever.client.replay.OnlineReplayVaultController;
 import com.faforever.client.vault.replay.ReplayVaultController;
 import javafx.scene.Node;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -16,7 +17,7 @@ public class VaultController extends AbstractViewController<Node> {
   public MapVaultController mapVaultController;
   public ModVaultController modVaultController;
   public ReplayVaultController localReplayVaultController;
-  public ReplayVaultController onlineReplayVaultController;
+  public OnlineReplayVaultController onlineReplayVaultController;
 
   @Override
   public Node getRoot() {

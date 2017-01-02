@@ -4,7 +4,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
-import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameState;
@@ -218,7 +218,7 @@ public class CustomGamesController implements Controller<Node> {
     mapLabel.textProperty().bind(game.mapFolderNameProperty());
 
     gameTypeLabel.textProperty().bind(createStringBinding(() -> {
-      FeaturedModBean gameType = modService.getFeaturedMod(game.getFeaturedMod()).get();
+      FeaturedMod gameType = modService.getFeaturedMod(game.getFeaturedMod()).get();
       String fullName = gameType != null ? gameType.getDisplayName() : null;
       return StringUtils.defaultString(fullName);
     }, game.featuredModProperty()));

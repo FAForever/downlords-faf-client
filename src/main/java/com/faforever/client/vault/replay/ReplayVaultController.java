@@ -80,6 +80,7 @@ public class ReplayVaultController implements Controller<Node> {
   TreeItem<Replay> localReplaysRoot;
 
   @Inject
+  // TODO reduce dependencies
   public ReplayVaultController(NotificationService notificationService, ReplayService replayService, MapService mapService, TaskService taskService, I18n i18n, TimeService timeService, ReportingService reportingService, ApplicationContext applicationContext, UiService uiService) {
     this.notificationService = notificationService;
     this.replayService = replayService;
@@ -97,11 +98,7 @@ public class ReplayVaultController implements Controller<Node> {
     localReplaysRoot = new TreeItem<>();
     localReplaysRoot.setExpanded(true);
 
-//    onlineReplaysRoot = new TreeItem<>(new ReplayInfoBean(i18n.get("replays.onlineReplays")));
-//    onlineReplaysRoot.setExpanded(true);
-
     TreeItem<Replay> tableRoot = new TreeItem<>(new Replay("invisibleRootItem"));
-//    tableRoot.getChildren().addAll(localReplaysRoot, onlineReplaysRoot);
 
     replayVaultRoot.setRoot(tableRoot);
     replayVaultRoot.setRowFactory(param -> replayRowFactory());
@@ -116,7 +113,7 @@ public class ReplayVaultController implements Controller<Node> {
     timeColumn.setCellFactory(this::timeCellFactory);
     timeColumn.setSortType(TreeTableColumn.SortType.DESCENDING);
 
-    gameTypeColumn.setCellValueFactory(param -> param.getValue().getValue().featuredModProperty());
+    gameTypeColumn.setCellValueFactory(param -> param.getValue().getValue().getFeaturedMod().displayNameProperty());
 
     mapColumn.setCellValueFactory(param -> param.getValue().getValue().mapProperty());
     mapColumn.setCellFactory(this::mapCellFactory);
@@ -253,6 +250,7 @@ public class ReplayVaultController implements Controller<Node> {
   }
 
   public CompletableFuture<Void> loadLocalReplaysInBackground() {
+    // TODO use replay service
     LoadLocalReplaysTask task = applicationContext.getBean(LoadLocalReplaysTask.class);
 
     localReplaysRoot.getChildren().clear();

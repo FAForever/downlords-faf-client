@@ -380,14 +380,14 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public CompletableFuture<List<FeaturedModBean>> getFeaturedMods() {
+  public CompletableFuture<List<FeaturedMod>> getFeaturedMods() {
     return fafService.getFeaturedMods();
   }
 
   @Override
-  public CompletableFuture<FeaturedModBean> getFeaturedMod(String featuredMod) {
+  public CompletableFuture<FeaturedMod> getFeaturedMod(String featuredMod) {
     return getFeaturedMods().thenCompose(featuredModBeans -> completedFuture(featuredModBeans.stream()
-        .filter(featuredModBean -> featuredMod.equals(featuredModBean.getTechnicalName()))
+        .filter(mod -> featuredMod.equals(mod.getTechnicalName()))
         .findFirst()
         .orElseThrow(() -> new IllegalArgumentException("Not a valid featured mod: " + featuredMod))
     ));

@@ -1,14 +1,14 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.api.dto.FeaturedMod;
 import com.google.common.base.Strings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public class FeaturedModBean {
+public class FeaturedMod {
 
+  public static final FeaturedMod UNKNOWN = new FeaturedMod();
   private final StringProperty id;
   private final StringProperty technicalName;
   private final StringProperty displayName;
@@ -17,7 +17,7 @@ public class FeaturedModBean {
   private final StringProperty gitBranch;
   private final BooleanProperty visible;
 
-  public FeaturedModBean() {
+  public FeaturedMod() {
     id = new SimpleStringProperty();
     technicalName = new SimpleStringProperty();
     displayName = new SimpleStringProperty();
@@ -27,8 +27,8 @@ public class FeaturedModBean {
     gitBranch = new SimpleStringProperty();
   }
 
-  public static FeaturedModBean fromFeaturedMod(FeaturedMod featuredMod) {
-    FeaturedModBean bean = new FeaturedModBean();
+  public static FeaturedMod fromFeaturedMod(com.faforever.client.api.dto.FeaturedMod featuredMod) {
+    FeaturedMod bean = new FeaturedMod();
     bean.setId(featuredMod.getId());
     bean.technicalName.set(featuredMod.getTechnicalName());
     bean.displayName.set(featuredMod.getDisplayName());

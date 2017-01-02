@@ -3,7 +3,6 @@ package com.faforever.client.remote;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.dto.AchievementDefinition;
 import com.faforever.client.api.dto.CoopResult;
-import com.faforever.client.api.dto.FeaturedMod;
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.PlayerAchievement;
@@ -19,7 +18,7 @@ import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.io.ProgressListener;
 import com.faforever.client.leaderboard.LeaderboardEntry;
 import com.faforever.client.map.MapBean;
-import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.Mod;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
@@ -250,16 +249,16 @@ public class FafServiceImpl implements FafService {
 
   @Override
   @Async
-  public CompletableFuture<List<FeaturedModBean>> getFeaturedMods() {
+  public CompletableFuture<List<FeaturedMod>> getFeaturedMods() {
     return CompletableFuture.completedFuture(fafApiAccessor.getFeaturedMods().stream()
-        .sorted(Comparator.comparingInt(FeaturedMod::getDisplayOrder))
-        .map(FeaturedModBean::fromFeaturedMod)
+        .sorted(Comparator.comparingInt(com.faforever.client.api.dto.FeaturedMod::getDisplayOrder))
+        .map(FeaturedMod::fromFeaturedMod)
         .collect(Collectors.toList()));
   }
 
   @Override
   @Async
-  public CompletableFuture<List<FeaturedModFile>> getFeaturedModFiles(FeaturedModBean featuredMod, Integer version) {
+  public CompletableFuture<List<FeaturedModFile>> getFeaturedModFiles(FeaturedMod featuredMod, Integer version) {
     return CompletableFuture.completedFuture(fafApiAccessor.getFeaturedModFiles(featuredMod, version));
   }
 
@@ -277,12 +276,6 @@ public class FafServiceImpl implements FafService {
     return CompletableFuture.completedFuture(fafApiAccessor.getGlobalLeaderboard().parallelStream()
         .map(LeaderboardEntry::fromGlobalRating)
         .collect(toList()));
-  }
-
-  @Override
-  @Async
-  public CompletableFuture<List<Replay>> searchReplayByPlayer(String playerName) {
-    return CompletableFuture.completedFuture(fafApiAccessor.searchReplayByPlayerName(playerName));
   }
 
   @Override
@@ -336,21 +329,16 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  public void sendIceMessage(int remotePlayerId, Object message) {
-    fafServerAccessor.sendGpgMessage(new IceMessage(remotePlayerId, message));
-  }
-
-  @Override
   @Async
-  public CompletableFuture<List<Replay>> searchReplayByMap(String mapName) {
-    return CompletableFuture.completedFuture(fafApiAccessor.searchReplayByMapName(mapName));
-  }
-
-  @Override
-  @Async
-  public CompletableFuture<List<Replay>> searchReplayByMod(FeaturedMod featuredMod) {
-    return CompletableFuture.completedFuture(fafApiAccessor.searchReplayByMod(featuredMod).stream()
+  public CompletableFuture<List<Replay>> findReplaysByQuery(String query) {
+    return CompletableFuture.completedFuture(fafApiAccessor.findReplaysByQuery(query)
+        .parallelStream()
         .map(Replay::fromDto)
         .collect(toList()));
+  }
+
+  @Override
+  public void sendIceMessage(int remotePlayerId, Object message) {
+    fafServerAccessor.sendGpgMessage(new IceMessage(remotePlayerId, message));
   }
 }

@@ -21,12 +21,8 @@ public class Map {
   private String author;
   private String battleType;
   private OffsetDateTime createTime;
-  private String description;
   private String displayName;
   private String mapType;
-  private int downloads;
-  private int numDraws;
-  private int timesPlayed;
 
   @Relationship("statistics")
   private MapStatistics statistics;

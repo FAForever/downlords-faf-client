@@ -1,7 +1,7 @@
 package com.faforever.client.update;
 
 import com.faforever.client.FafClientApplication;
-import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.patch.FeaturedModUpdater;
 import com.faforever.client.patch.PatchResult;
 import org.jetbrains.annotations.Nullable;
@@ -18,12 +18,12 @@ import java.util.concurrent.CompletableFuture;
 public class MockFeaturedModUpdater implements FeaturedModUpdater {
 
   @Override
-  public CompletableFuture<PatchResult> updateMod(FeaturedModBean featuredMod, @Nullable Integer version) {
+  public CompletableFuture<PatchResult> updateMod(FeaturedMod featuredMod, @Nullable Integer version) {
     return CompletableFuture.completedFuture(null);
   }
 
   @Override
-  public boolean canUpdate(FeaturedModBean featuredMod) {
+  public boolean canUpdate(FeaturedMod featuredMod) {
     return true;
   }
 }

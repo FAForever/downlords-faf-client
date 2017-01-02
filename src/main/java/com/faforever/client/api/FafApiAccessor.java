@@ -3,7 +3,6 @@ package com.faforever.client.api;
 import com.faforever.client.api.dto.AchievementDefinition;
 import com.faforever.client.api.dto.CoopMission;
 import com.faforever.client.api.dto.CoopResult;
-import com.faforever.client.api.dto.FeaturedMod;
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
@@ -15,8 +14,7 @@ import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.io.ProgressListener;
-import com.faforever.client.mod.FeaturedModBean;
-import com.faforever.client.replay.Replay;
+import com.faforever.client.mod.FeaturedMod;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -41,7 +39,7 @@ public interface FafApiAccessor {
 
   List<Mod> getMods();
 
-  List<FeaturedMod> getFeaturedMods();
+  List<com.faforever.client.api.dto.FeaturedMod> getFeaturedMods();
 
   List<Ladder1v1LeaderboardEntry> getLadder1v1Leaderboard();
 
@@ -73,17 +71,13 @@ public interface FafApiAccessor {
 
   Mod getMod(String uid);
 
-  List<FeaturedModFile> getFeaturedModFiles(FeaturedModBean featuredModBean, Integer version);
-
-  List<Replay> searchReplayByPlayerName(String playerName);
-
-  List<Replay> searchReplayByMapName(String mapName);
-
-  List<Game> searchReplayByMod(FeaturedMod featuredMod);
+  List<FeaturedModFile> getFeaturedModFiles(FeaturedMod featuredMod, Integer version);
 
   List<Game> getNewestReplays(int count);
 
   List<Game> getHighestRatedReplays(int count);
 
   List<Game> getMostWatchedReplays(int count);
+
+  List<Game> findReplaysByQuery(String condition);
 }

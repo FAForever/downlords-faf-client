@@ -1,7 +1,7 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.FafClientApplication;
-import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +35,7 @@ public class GitRepositoryFeaturedModUpdater implements FeaturedModUpdater {
 
   @Override
   @SuppressWarnings("unchecked")
-  public CompletableFuture<PatchResult> updateMod(FeaturedModBean featuredMod, @Nullable Integer version) {
+  public CompletableFuture<PatchResult> updateMod(FeaturedMod featuredMod, @Nullable Integer version) {
     String repoDirName = featuredMod.getGitUrl().replaceAll(NON_WORD_CHARACTER_PATTERN, "");
     Path repositoryDirectory = preferencesService.getGitReposDirectory().resolve(repoDirName);
 
@@ -53,7 +53,7 @@ public class GitRepositoryFeaturedModUpdater implements FeaturedModUpdater {
   }
 
   @Override
-  public boolean canUpdate(FeaturedModBean featuredMod) {
+  public boolean canUpdate(FeaturedMod featuredMod) {
     return featuredMod.getGitUrl() != null;
   }
 }

@@ -4,7 +4,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapBuilder;
 import com.faforever.client.map.MapService;
-import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.Mod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.net.ConnectionState;
@@ -244,42 +244,42 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testInitGameTypeComboBoxPostPopulated() throws Exception {
-    FeaturedModBean featuredModBean = FeaturedModBeanBuilder.create().defaultValues().get();
-    when(modService.getFeaturedMods()).thenReturn(completedFuture(singletonList(featuredModBean)));
+    FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
+    when(modService.getFeaturedMods()).thenReturn(completedFuture(singletonList(featuredMod)));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.featuredModListView.getItems(), hasSize(1));
-    assertThat(instance.featuredModListView.getItems().get(0), is(featuredModBean));
+    assertThat(instance.featuredModListView.getItems().get(0), is(featuredMod));
   }
 
   @Test
   public void testSelectLastOrDefaultSelectDefault() throws Exception {
-    FeaturedModBean featuredModBean = FeaturedModBeanBuilder.create().defaultValues().technicalName("something").get();
-    FeaturedModBean featuredModBean2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName()).get();
+    FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().technicalName("something").get();
+    FeaturedMod featuredMod2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName()).get();
 
     preferences.setLastGameType(null);
-    when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
+    when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredMod, featuredMod2)));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertThat(instance.featuredModListView.getSelectionModel().getSelectedItem(), is(featuredModBean2));
+    assertThat(instance.featuredModListView.getSelectionModel().getSelectedItem(), is(featuredMod2));
   }
 
   @Test
   public void testSelectLastOrDefaultSelectLast() throws Exception {
-    FeaturedModBean featuredModBean = FeaturedModBeanBuilder.create().defaultValues().technicalName("last").get();
-    FeaturedModBean featuredModBean2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName()).get();
+    FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().technicalName("last").get();
+    FeaturedMod featuredMod2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName()).get();
 
     preferences.setLastGameType("last");
-    when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
+    when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredMod, featuredMod2)));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertThat(instance.featuredModListView.getSelectionModel().getSelectedItem(), is(featuredModBean));
+    assertThat(instance.featuredModListView.getSelectionModel().getSelectedItem(), is(featuredMod));
   }
 
   @Test

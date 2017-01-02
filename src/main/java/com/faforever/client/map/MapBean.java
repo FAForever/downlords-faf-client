@@ -62,7 +62,7 @@ public class MapBean implements Comparable<MapBean> {
     mapBean.setDisplayName(map.getDisplayName());
     mapBean.setFolderName(mapVersion.getFolderName());
     mapBean.setSize(new MapSize(mapVersion.getWidth(), mapVersion.getHeight()));
-    mapBean.setDownloads(map.getDownloads());
+    mapBean.setDownloads(map.getStatistics().getDownloads());
     mapBean.setId(mapVersion.getId());
     mapBean.setPlayers(mapVersion.getMaxPlayers());
 //    mapBean.setRating(((com.faforever.client.api.dto.Map) map).getRating());

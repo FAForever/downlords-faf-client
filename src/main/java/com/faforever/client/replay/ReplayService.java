@@ -1,8 +1,7 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.api.dto.FeaturedMod;
-
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -23,15 +22,20 @@ public interface ReplayService {
 
   void runReplay(Integer replayId);
 
-  CompletableFuture<List<Replay>> searchByMap(String mapName);
-
-  CompletableFuture<List<Replay>> searchByPlayer(String playerName);
-
-  CompletableFuture<List<Replay>> searchByMod(FeaturedMod featuredMod);
-
   CompletableFuture<List<Replay>> getNewestReplays(int topElementCount);
 
   CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount);
 
   CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount);
+
+  CompletableFuture<List<Replay>> findByQuery(String condition);
+
+  CompletableFuture<Path> downloadReplay(int id);
+
+  /**
+   * Reads the specified replay file in order to add more information to the specified replay instance.
+   */
+  void enrich(Replay replay, Path path);
+
+  long getSize(int id);
 }

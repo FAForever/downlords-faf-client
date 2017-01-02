@@ -7,7 +7,7 @@ import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
-import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
@@ -57,7 +57,7 @@ public class GameStatusTooltipController  implements Controller<Node> {
   // TODO use or remove
   public void setGameInfoBean(Game game) {
     gameTypeLabel.textProperty().bind(Bindings.createStringBinding(() -> {
-      FeaturedModBean gameType = modService.getFeaturedMod(game.getFeaturedMod()).get();
+      FeaturedMod gameType = modService.getFeaturedMod(game.getFeaturedMod()).get();
       String fullName = gameType != null ? gameType.getDisplayName() : null;
       return StringUtils.defaultString(fullName);
     }, game.featuredModProperty()));

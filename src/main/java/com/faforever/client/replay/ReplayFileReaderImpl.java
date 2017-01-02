@@ -1,14 +1,17 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.remote.io.QtCompress;
+import com.faforever.commons.replay.QtCompress;
+import com.faforever.commons.replay.ReplayData;
+import com.faforever.commons.replay.ReplayDataParser;
 import com.google.common.io.BaseEncoding;
 import com.google.gson.Gson;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,6 +19,7 @@ import java.util.List;
 
 @Lazy
 @Component
+@Slf4j
 public class ReplayFileReaderImpl implements ReplayFileReader {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -27,21 +31,23 @@ public class ReplayFileReaderImpl implements ReplayFileReader {
   }
 
   @Override
-  public LocalReplayInfo readReplayInfo(Path replayFile) throws IOException {
+  @SneakyThrows
+  public LocalReplayInfo parseMetaData(Path replayFile) {
     logger.debug("Reading replay file {}", replayFile);
     List<String> lines = Files.readAllLines(replayFile);
     return gson.fromJson(lines.get(0), LocalReplayInfo.class);
   }
 
   @Override
-  public byte[] readReplayData(Path replayFile) {
+  @SneakyThrows
+  public byte[] readRawReplayData(Path replayFile) {
     logger.debug("Reading replay file {}", replayFile);
-    try {
-      List<String> lines = Files.readAllLines(replayFile);
-      return QtCompress.qUncompress(BaseEncoding.base64().decode(lines.get(1)));
-    } catch (Exception e) {
-      logger.warn("Replay file " + replayFile + " could not be read", e);
-      return null;
-    }
+    List<String> lines = Files.readAllLines(replayFile);
+    return QtCompress.qUncompress(BaseEncoding.base64().decode(lines.get(1)));
+  }
+
+  @Override
+  public ReplayData parseReplay(Path path) {
+    return new ReplayDataParser(path).parse();
   }
 }

@@ -73,7 +73,7 @@ public interface ModService {
 
   ComparableVersion readModVersion(Path modDirectory);
 
-  CompletableFuture<List<FeaturedModBean>> getFeaturedMods();
+  CompletableFuture<List<FeaturedMod>> getFeaturedMods();
 
-  CompletableFuture<FeaturedModBean> getFeaturedMod(String gameTypeBeanName);
+  CompletableFuture<FeaturedMod> getFeaturedMod(String gameTypeBeanName);
 }

@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class PropertyTypeAdapter implements JsonSerializer<Property>, JsonDeserializer<Property> {
+public class PropertyTypeAdapter implements JsonSerializer<Property<?>>, JsonDeserializer<Property<?>> {
 
   public static final PropertyTypeAdapter INSTANCE = new PropertyTypeAdapter();
 

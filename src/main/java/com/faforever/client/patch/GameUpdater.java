@@ -1,7 +1,7 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.game.KnownFeaturedMod;
-import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.mod.FeaturedMod;
 
 import java.util.List;
 import java.util.Map;
@@ -28,7 +28,7 @@ public interface GameUpdater {
    * @return a completion stage that, when completed, is called with a `mountpoint -> path` which can be used to
    * generate the FA ini file.
    */
-  CompletableFuture<Void> update(FeaturedModBean featuredMod, Integer version, Map<String, Integer> featuredModVersions, Set<String> simModUids);
+  CompletableFuture<Void> update(FeaturedMod featuredMod, Integer version, Map<String, Integer> featuredModVersions, Set<String> simModUids);
 
-  CompletableFuture<List<FeaturedModBean>> getFeaturedMods();
+  CompletableFuture<List<FeaturedMod>> getFeaturedMods();
 }

@@ -8,7 +8,7 @@ import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
-import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.patch.GameUpdater;
@@ -359,7 +359,7 @@ public class GameServiceImplTest {
     gameLaunchMessage.setArgs(emptyList());
     gameLaunchMessage.setMapname("scmp_037");
 
-    FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
+    FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
 
     when(fafService.startSearchLadder1v1(CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
     when(gameUpdater.update(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));

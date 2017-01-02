@@ -157,7 +157,6 @@ public class AudioServiceImpl implements AudioService {
     if (!playSounds) {
       return;
     }
-
     audioClipPlayer.playSound(audioClip);
   }
 }

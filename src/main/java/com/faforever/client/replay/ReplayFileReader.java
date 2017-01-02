@@ -1,17 +1,25 @@
 package com.faforever.client.replay;
 
-import java.io.IOException;
+
+import com.faforever.commons.replay.ReplayData;
+
 import java.nio.file.Path;
 
 public interface ReplayFileReader {
 
   /**
-   * Returns the meta information about this replay.
+   * Returns the meta information about this replay (its FAF header)
    */
-  LocalReplayInfo readReplayInfo(Path replayFile) throws IOException;
+  LocalReplayInfo parseMetaData(Path replayFile);
 
   /**
    * Returns the binary replay data.
    */
-  byte[] readReplayData(Path replayFile);
+  byte[] readRawReplayData(Path replayFile);
+
+  /**
+   * Parses the actual replay data of the specified file and returns information such as chat messages, game options,
+   * executed commands and so on.
+   */
+  ReplayData parseReplay(Path path);
 }

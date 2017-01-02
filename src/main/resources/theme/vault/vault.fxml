@@ -54,7 +54,7 @@
                   </graphic>
               </Tab>
               <Tab>
-                  <fx:include fx:id="onlineReplayVault" source="replay/replay_vault.fxml"/>
+                  <fx:include fx:id="onlineReplayVault" source="replay/online_replays.fxml"/>
                   <graphic>
                       <Group>
                           <children>

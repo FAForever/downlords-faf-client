@@ -2,7 +2,6 @@ package com.faforever.client.remote;
 
 import com.faforever.client.api.dto.AchievementDefinition;
 import com.faforever.client.api.dto.CoopResult;
-import com.faforever.client.api.dto.FeaturedMod;
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.chat.avatar.AvatarBean;
@@ -15,7 +14,7 @@ import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.io.ProgressListener;
 import com.faforever.client.leaderboard.LeaderboardEntry;
 import com.faforever.client.map.MapBean;
-import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.Mod;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
@@ -95,19 +94,13 @@ public interface FafService {
 
   CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(int playerId, KnownFeaturedMod knownFeaturedMod);
 
-  CompletableFuture<List<FeaturedModBean>> getFeaturedMods();
+  CompletableFuture<List<FeaturedMod>> getFeaturedMods();
 
-  CompletableFuture<List<FeaturedModFile>> getFeaturedModFiles(FeaturedModBean featuredMod, Integer version);
+  CompletableFuture<List<FeaturedModFile>> getFeaturedModFiles(FeaturedMod featuredMod, Integer version);
 
   CompletableFuture<List<LeaderboardEntry>> getLadder1v1Leaderboard();
 
   CompletableFuture<List<LeaderboardEntry>> getGlobalLeaderboard();
-
-  CompletableFuture<List<Replay>> searchReplayByMap(String mapName);
-
-  CompletableFuture<List<Replay>> searchReplayByMod(FeaturedMod featuredMod);
-
-  CompletableFuture<List<Replay>> searchReplayByPlayer(String playerName);
 
   CompletableFuture<List<Replay>> getNewestReplays(int topElementCount);
 
@@ -124,4 +117,6 @@ public interface FafService {
   CompletableFuture<AchievementDefinition> getAchievementDefinition(String achievementId);
 
   void sendIceMessage(int remotePlayerId, Object message);
+
+  CompletableFuture<List<Replay>> findReplaysByQuery(String condition);
 }
