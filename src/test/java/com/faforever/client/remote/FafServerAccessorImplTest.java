@@ -151,15 +151,8 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
         serverToClientReadyLatch.countDown();
 
         while (!stopped) {
-          int blockSize = qDataInputStream.readInt();
+          qDataInputStream.readInt();
           String json = qDataInputStream.readQString();
-
-          if (blockSize > json.length() * 2) {
-            // Username
-            qDataInputStream.readQString();
-            // Session ID
-            qDataInputStream.readQString();
-          }
 
           messagesReceivedByFafServer.add(json);
         }
