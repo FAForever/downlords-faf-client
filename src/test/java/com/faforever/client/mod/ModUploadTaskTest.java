@@ -3,12 +3,13 @@ package com.faforever.client.mod;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -19,7 +20,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ModUploadTaskTest extends AbstractPlainJavaFxTest {
+@RunWith(MockitoJUnitRunner.class)
+public class ModUploadTaskTest {
 
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();

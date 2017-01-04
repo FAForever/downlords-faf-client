@@ -15,7 +15,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,8 +33,6 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
 
   private JoinGameHelper instance;
 
-  @Mock
-  private ApplicationContext applicationContext;
   @Mock
   private I18n i18n;
   @Mock
