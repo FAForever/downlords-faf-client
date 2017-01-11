@@ -1,12 +1,16 @@
 package com.faforever.client.login;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.PlatformService;
+import com.faforever.client.fx.PlatformServiceImpl;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import com.google.common.base.Strings;
 import com.google.common.hash.Hashing;
+import javafx.application.HostServices;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -15,12 +19,15 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Required;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
+import java.net.URI;
 import java.util.concurrent.CancellationException;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -39,8 +46,13 @@ public class LoginController implements Controller<Node> {
   public TextField usernameInput;
   public TextField passwordInput;
   public Button loginButton;
+  public Button createAccountButton;
   public Label loginErrorLabel;
   public Pane loginRoot;
+  @Value("${login.create.accountUrl}")
+  private String createLink;
+  @Inject
+  PlatformService PS;
 
   @Inject
   public LoginController(UserService userService, PreferencesService preferencesService) {
@@ -124,4 +136,7 @@ public class LoginController implements Controller<Node> {
   public Pane getRoot() {
     return loginRoot;
   }
+
+  public void createAccountButtonClicked(ActionEvent actionEvent) {PS.showDocument(createLink);}
+
 }
