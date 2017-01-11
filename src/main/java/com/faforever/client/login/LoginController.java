@@ -45,15 +45,15 @@ public class LoginController implements Controller<Node> {
   public Button createAccountButton;
   public Label loginErrorLabel;
   public Pane loginRoot;
-  @Inject
-  PlatformService PS;
-  @Value("${login.create.accountUrl}")
+  private PlatformService platformService;
   private String createLink;
 
   @Inject
-  public LoginController(UserService userService, PreferencesService preferencesService) {
+  public LoginController(UserService userService, PreferencesService preferencesService, PlatformService platformService, @Value("${login.create.accountUrl}") String createLink) {
     this.userService = userService;
     this.preferencesService = preferencesService;
+    this.platformService = platformService;
+    this.createLink = createLink;
   }
 
   public void initialize() {
@@ -134,7 +134,7 @@ public class LoginController implements Controller<Node> {
   }
 
   public void createAccountButtonClicked(ActionEvent actionEvent) {
-    PS.showDocument(createLink);
+    platformService.showDocument(createLink);
   }
 
 }

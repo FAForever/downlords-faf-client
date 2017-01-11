@@ -1,5 +1,6 @@
 package com.faforever.client.login;
 
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -7,6 +8,7 @@ import com.faforever.client.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -17,15 +19,19 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class LoginControllerTest extends AbstractPlainJavaFxTest {
+  @Value("${login.create.accountUrl}")
+  String createLink;
   private LoginController instance;
   @Mock
   private PreferencesService preferencesService;
   @Mock
   private UserService userService;
+  @Mock
+  private PlatformService platformService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new LoginController(userService, preferencesService);
+    instance = new LoginController(userService, preferencesService, platformService, createLink);
     loadFxml("theme/login.fxml", param -> instance);
 
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
