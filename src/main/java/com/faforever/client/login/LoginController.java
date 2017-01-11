@@ -17,6 +17,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
+import javafx.scene.text.Font;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
@@ -107,7 +108,7 @@ public class LoginController implements Controller<Node> {
     logger.warn("Login failed", e);
     Platform.runLater(() -> {
       if (!(e instanceof CancellationException)) {
-        loginErrorLabel.setText(e.getCause().getLocalizedMessage());
+        loginErrorLabel.setText(e.getCause().getLocalizedMessage().toString().replace(". ",".\n"));
         loginErrorLabel.setVisible(true);
       } else {
         loginErrorLabel.setVisible(false);

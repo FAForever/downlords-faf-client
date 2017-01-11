@@ -75,8 +75,8 @@
                   <children>
                       <Button alignment="CENTER" disable="true" maxWidth="1.7976931348623157E308"
                               mnemonicParsing="false" text="%login.forgot" HBox.hgrow="ALWAYS"/>
-                      <Button fx:id="createAccountButton" alignment="CENTER" disable="false" maxWidth="1.7976931348623157E308"
-                              mnemonicParsing="false" text="%login.create" HBox.hgrow="ALWAYS" onAction="#createAccountButtonClicked"/>
+                      <Button fx:id="createAccountButton" alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#createAccountButtonClicked" text="%login.create" HBox.hgrow="ALWAYS" />
+
                   </children>
                   <VBox.margin>
                       <Insets top="20.0"/>
