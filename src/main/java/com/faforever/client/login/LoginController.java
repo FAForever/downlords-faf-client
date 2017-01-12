@@ -40,6 +40,7 @@ public class LoginController implements Controller<Node> {
   public Pane loginProgressPane;
   public CheckBox autoLoginCheckBox;
   public TextField usernameInput;
+  public Button forgotLogin;
   public TextField passwordInput;
   public Button loginButton;
   public Button createAccountButton;
@@ -47,13 +48,15 @@ public class LoginController implements Controller<Node> {
   public Pane loginRoot;
   private PlatformService platformService;
   private String createLink;
+  private String forgotLoginLink;
 
   @Inject
-  public LoginController(UserService userService, PreferencesService preferencesService, PlatformService platformService, @Value("${login.create.accountUrl}") String createLink) {
+  public LoginController(UserService userService, PreferencesService preferencesService, PlatformService platformService, @Value("${login.create.accountUrl}") String createLink, @Value("${login.forgot.loginUrl}") String forgotLoginLink) {
     this.userService = userService;
     this.preferencesService = preferencesService;
     this.platformService = platformService;
     this.createLink = createLink;
+    this.forgotLoginLink = forgotLoginLink;
   }
 
   public void initialize() {
@@ -137,4 +140,7 @@ public class LoginController implements Controller<Node> {
     platformService.showDocument(createLink);
   }
 
+  public void forgotLoginButtonClicked(ActionEvent actionEvent) {
+    platformService.showDocument(forgotLoginLink);
+  }
 }

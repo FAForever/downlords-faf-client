@@ -19,6 +19,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class LoginControllerTest extends AbstractPlainJavaFxTest {
+  @Value("${login.forgot.loginUrl}")
+  String forgotLoginLink;
   @Value("${login.create.accountUrl}")
   String createLink;
   private LoginController instance;
@@ -31,7 +33,7 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new LoginController(userService, preferencesService, platformService, createLink);
+    instance = new LoginController(userService, preferencesService, platformService, createLink, forgotLoginLink);
     loadFxml("theme/login.fxml", param -> instance);
 
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
