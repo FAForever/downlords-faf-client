@@ -14,11 +14,11 @@
 <?import javafx.scene.text.Text?>
 <?import java.lang.String?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="loginRoot" alignment="CENTER" fillWidth="false"
-      xmlns="http://javafx.com/javafx/8.0.60" fx:controller="com.faforever.client.login.LoginController">
+      xmlns="http://javafx.com/javafx/8" fx:controller="com.faforever.client.login.LoginController">
   <children>
     <VBox alignment="CENTER" fillWidth="false" styleClass="login">
       <children>
-          <Text strokeType="OUTSIDE" strokeWidth="0.0" text="">
+          <Text strokeMiterLimit="0.0" strokeType="OUTSIDE" strokeWidth="0.0" text="">
               <VBox.margin>
                   <Insets bottom="50.0" top="70.0"/>
               </VBox.margin>
@@ -51,9 +51,8 @@
                     AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                     AnchorPane.topAnchor="0.0">
               <children>
-                  <Label fx:id="loginErrorLabel" maxHeight="1.7976931348623157E308"
-                         maxWidth="1.7976931348623157E308" styleClass="hint" text="&lt;ErrorMessage&gt;"
-                         wrapText="true">
+                  <Label fx:id="loginErrorLabel" minHeight="-Infinity" maxWidth="1.7976931348623157E308"
+                         styleClass="hint" text="&lt;ErrorMessage&gt;" wrapText="true">
                   <graphic>
                       <Label styleClass="icon" text=""/>
                   </graphic>
@@ -73,8 +72,9 @@
                           mnemonicParsing="false" onAction="#loginButtonClicked" text="%login.button.login"/>
                 <HBox alignment="CENTER" spacing="10.0">
                   <children>
-                      <Button alignment="CENTER" disable="true" maxWidth="1.7976931348623157E308"
-                              mnemonicParsing="false" text="%login.forgot" HBox.hgrow="ALWAYS"/>
+                      <Button fx:id="forgotLogin" alignment="CENTER" maxWidth="1.7976931348623157E308"
+                              mnemonicParsing="false" text="%login.forgot" HBox.hgrow="ALWAYS"
+                              onAction="#forgotLoginButtonClicked"/>
                       <Button fx:id="createAccountButton" alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#createAccountButtonClicked" text="%login.create" HBox.hgrow="ALWAYS" />
 
                   </children>
