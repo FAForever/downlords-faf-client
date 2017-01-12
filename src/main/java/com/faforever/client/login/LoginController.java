@@ -47,16 +47,16 @@ public class LoginController implements Controller<Node> {
   public Label loginErrorLabel;
   public Pane loginRoot;
   private PlatformService platformService;
-  private String createLink;
-  private String forgotLoginLink;
+  private String createUrl;
+  private String forgotLoginUrl;
 
   @Inject
-  public LoginController(UserService userService, PreferencesService preferencesService, PlatformService platformService, @Value("${login.create.accountUrl}") String createLink, @Value("${login.forgot.loginUrl}") String forgotLoginLink) {
+  public LoginController(UserService userService, PreferencesService preferencesService, PlatformService platformService, @Value("${login.createAccountUrl}") String createUrl, @Value("${login.forgotLoginUrl}") String forgotLoginUrl) {
     this.userService = userService;
     this.preferencesService = preferencesService;
     this.platformService = platformService;
-    this.createLink = createLink;
-    this.forgotLoginLink = forgotLoginLink;
+    this.createUrl = createUrl;
+    this.forgotLoginUrl = forgotLoginUrl;
   }
 
   public void initialize() {
@@ -106,8 +106,9 @@ public class LoginController implements Controller<Node> {
     logger.warn("Login failed", e);
     Platform.runLater(() -> {
       if (!(e instanceof CancellationException)) {
-        loginErrorLabel.setText(e.getCause().getLocalizedMessage().toString().replace(". ",".\n"));
+        loginErrorLabel.setText(e.getCause().getLocalizedMessage());
         loginErrorLabel.setVisible(true);
+        //TODO: fix wrapping issue in loginErrorLable
       } else {
         loginErrorLabel.setVisible(false);
       }
@@ -137,10 +138,10 @@ public class LoginController implements Controller<Node> {
   }
 
   public void createAccountButtonClicked(ActionEvent actionEvent) {
-    platformService.showDocument(createLink);
+    platformService.showDocument(createUrl);
   }
 
   public void forgotLoginButtonClicked(ActionEvent actionEvent) {
-    platformService.showDocument(forgotLoginLink);
+    platformService.showDocument(forgotLoginUrl);
   }
 }
