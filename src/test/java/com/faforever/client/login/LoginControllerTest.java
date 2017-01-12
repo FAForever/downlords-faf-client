@@ -8,7 +8,6 @@ import com.faforever.client.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -19,10 +18,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class LoginControllerTest extends AbstractPlainJavaFxTest {
-  @Value("${login.forgotLoginUrl}")
-  String forgotLoginUrl;
-  @Value("${login.createAccountUrl}")
-  String createUrl;
+  private final String forgotLoginUrl = "http://app.faforever.com/faf/forgotPass.php";
+  private final String createUrl = "https://www.faforever.com/account/register";
   private LoginController instance;
   @Mock
   private PreferencesService preferencesService;
