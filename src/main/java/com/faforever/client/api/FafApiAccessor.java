@@ -1,6 +1,7 @@
 package com.faforever.client.api;
 
 import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.api.dto.Clan;
 import com.faforever.client.api.dto.CoopMission;
 import com.faforever.client.api.dto.CoopResult;
 import com.faforever.client.api.dto.FeaturedModFile;
@@ -106,4 +107,6 @@ public interface FafApiAccessor {
   void updateMapVersionReview(MapVersionReview review);
 
   void deleteGameReview(int id);
+
+  Optional<Clan> getClanByTag(String tag);
 }

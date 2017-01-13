@@ -179,6 +179,11 @@ public class PlayerServiceImpl implements PlayerService {
   }
 
   @Override
+  public boolean isOnline(Integer playerId) {
+    return playersById.containsKey(playerId);
+  }
+
+  @Override
   public Player getPlayerForUsername(String username) {
     return playersByName.get(username);
   }

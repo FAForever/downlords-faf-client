@@ -60,6 +60,8 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
     when(modService.loadThumbnail(mod)).thenReturn(new Image("/theme/images/close.png"));
     instance.setMod(mod);
 
+    WaitForAsyncUtils.waitForFxEvents();
+
     assertThat(instance.nameLabel.getText(), is("Mod name"));
     assertThat(instance.authorLabel.getText(), is("Mod author"));
     assertThat(instance.thumbnailImageView.getImage(), is(notNullValue()));

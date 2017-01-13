@@ -1,17 +1,19 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.chat.avatar.AvatarService;
+import com.faforever.client.clan.Clan;
+import com.faforever.client.clan.ClanService;
+import com.faforever.client.clan.ClanTooltipController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.replay.ReplayService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
@@ -25,6 +27,8 @@ import javafx.collections.WeakMapChangeListener;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
@@ -42,6 +46,7 @@ import org.springframework.util.StringUtils;
 
 import javax.inject.Inject;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
@@ -68,11 +73,14 @@ public class ChatUserItemController implements Controller<Node> {
   private final UiService uiService;
   private final JoinGameHelper joinGameHelper;
   private final EventBus eventBus;
+  private final PlayerService playerService;
+  private final ClanService clanService;
+  private final PlatformService platformService;
   public Pane chatUserItemRoot;
   public ImageView countryImageView;
   public ImageView avatarImageView;
   public Label usernameLabel;
-  public Label clanLabel;
+  public MenuButton clanMenu;
   public Label statusLabel;
   public Text presenceStatusIndicator;
   private Player player;
@@ -88,11 +96,15 @@ public class ChatUserItemController implements Controller<Node> {
   // TODO reduce dependencies, rely on eventBus instead
   public ChatUserItemController(PreferencesService preferencesService, AvatarService avatarService,
                                 CountryFlagService countryFlagService, ChatService chatService,
-                                ReplayService replayService, I18n i18n, UiService uiService,
-                                NotificationService notificationService, ReportingService reportingService,
-                                JoinGameHelper joinGameHelper, EventBus eventBus) {
+                                I18n i18n, UiService uiService,
+                                JoinGameHelper joinGameHelper, EventBus eventBus,
+                                ClanService clanService, PlayerService playerService,
+                                PlatformService platformService) {
+    this.platformService = platformService;
     this.preferencesService = preferencesService;
     this.avatarService = avatarService;
+    this.playerService = playerService;
+    this.clanService = clanService;
     this.countryFlagService = countryFlagService;
     this.chatService = chatService;
     this.i18n = i18n;
@@ -104,7 +116,7 @@ public class ChatUserItemController implements Controller<Node> {
   public void initialize() {
     userActivityListener = (observable) -> Platform.runLater(this::onUserActivity);
 
-    // TODO until server side support is available, the precense status is initially set to "unknown" until the user
+    // TODO until server side support is available, the presence status is initially set to "unknown" until the user
     // does something
     presenceStatusIndicator.setText("\uF10C");
     setIdle(false);
@@ -114,6 +126,8 @@ public class ChatUserItemController implements Controller<Node> {
     countryImageView.setVisible(false);
     statusLabel.managedProperty().bind(statusLabel.visibleProperty());
     statusLabel.visibleProperty().bind(statusLabel.textProperty().isNotEmpty());
+    clanMenu.managedProperty().bind(clanMenu.visibleProperty());
+    clanMenu.setVisible(false);
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
@@ -148,7 +162,7 @@ public class ChatUserItemController implements Controller<Node> {
 
     if (player.getSocialStatus() == SELF) {
       usernameLabel.getStyleClass().add(SELF.getCssClass());
-      clanLabel.getStyleClass().add(SELF.getCssClass());
+      clanMenu.getStyleClass().add(SELF.getCssClass());
       return;
     }
 
@@ -175,10 +189,10 @@ public class ChatUserItemController implements Controller<Node> {
   private void assignColor(Color color) {
     if (color != null) {
       usernameLabel.setStyle(String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)));
-      clanLabel.setStyle(String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)));
+      clanMenu.setStyle(String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)));
     } else {
       usernameLabel.setStyle("");
-      clanLabel.setStyle("");
+      clanMenu.setStyle("");
     }
   }
 
@@ -193,11 +207,13 @@ public class ChatUserItemController implements Controller<Node> {
 
   private void setClanTag(String newValue) {
     if (StringUtils.isEmpty(newValue)) {
-      clanLabel.setVisible(false);
-    } else {
-      clanLabel.setText(String.format(CLAN_TAG_FORMAT, newValue));
-      clanLabel.setVisible(true);
+      clanMenu.setVisible(false);
+      return;
     }
+    Optional.ofNullable(usernameLabel.getTooltip()).ifPresent(tooltip -> usernameLabel.setTooltip(null));
+    Optional.ofNullable(clanMenu.getTooltip()).ifPresent(tooltip -> clanMenu.setTooltip(null));
+    clanMenu.setText(String.format(CLAN_TAG_FORMAT, newValue));
+    clanMenu.setVisible(true);
   }
 
   private void updateGameStatus() {
@@ -232,7 +248,7 @@ public class ChatUserItemController implements Controller<Node> {
     addChatColorModeListener();
     configureCountryImageView();
     configureAvatarImageView();
-    configureClanLabel();
+    configureClanMenu();
     configureGameStatusView();
 
     usernameLabel.setText(player.getUsername());
@@ -269,7 +285,7 @@ public class ChatUserItemController implements Controller<Node> {
     Tooltip.install(avatarImageView, avatarTooltip);
   }
 
-  private void configureClanLabel() {
+  private void configureClanMenu() {
     setClanTag(player.getClan());
     player.clanProperty().addListener(new WeakChangeListener<>(clanChangeListener));
   }
@@ -294,12 +310,9 @@ public class ChatUserItemController implements Controller<Node> {
     if (player == null || player.getChatOnly() || usernameLabel.getTooltip() != null) {
       return;
     }
-
-    Tooltip tooltip = new Tooltip();
-    usernameLabel.setTooltip(tooltip);
-    clanLabel.setTooltip(tooltip);
-
-    tooltip.textProperty().bind(Bindings.createStringBinding(
+    Tooltip userTooltip = new Tooltip();
+    usernameLabel.setTooltip(userTooltip);
+    userTooltip.textProperty().bind(Bindings.createStringBinding(
         () -> i18n.get("userInfo.ratingFormat", getGlobalRating(player), getLeaderboardRating(player)),
         player.leaderboardRatingMeanProperty(), player.leaderboardRatingDeviationProperty(),
         player.globalRatingMeanProperty(), player.globalRatingDeviationProperty()
@@ -344,5 +357,35 @@ public class ChatUserItemController implements Controller<Node> {
     // TODO only until server-side support
     presenceStatusIndicator.setText("\uF111");
     updatePresenceStatusIndicator();
+  }
+
+  public void onMouseEnteredClanTag() {
+    clanService.getClanByTag(player.getClan()).thenAccept(optionalClan -> {
+      if (!optionalClan.isPresent() || clanMenu.getTooltip() != null) {
+        return;
+      }
+      clanMenu.getItems().clear();
+
+      Clan clan = optionalClan.get();
+      if (playerService.isOnline(clan.getLeader().getId())) {
+        MenuItem messageLeaderItem = new MenuItem(i18n.get("clan.messageLeader"));
+        messageLeaderItem.setOnAction(event -> eventBus.post(new InitiatePrivateChatEvent(clan.getLeader().getUsername())));
+        clanMenu.getItems().add(messageLeaderItem);
+      }
+
+      Tooltip clanTooltip = new Tooltip();
+      clanMenu.setTooltip(clanTooltip);
+      ClanTooltipController clanTooltipController = uiService.loadFxml("theme/chat/clan_tooltip.fxml");
+      clanTooltipController.setClan(clan);
+      clanTooltip.setMaxHeight(clanTooltipController.getRoot().getHeight());
+      clanTooltip.setGraphic(clanTooltipController.getRoot());
+
+      MenuItem visitClanPageAction = new MenuItem(i18n.get("clan.visitPage"));
+      visitClanPageAction.setOnAction(event -> {
+        platformService.showDocument(clan.getWebsiteUrl());
+        // TODO: Could be viewed in clan section (if implemented)
+      });
+      clanMenu.getItems().add(visitClanPageAction);
+    });
   }
 }

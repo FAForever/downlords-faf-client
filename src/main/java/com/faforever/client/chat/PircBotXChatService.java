@@ -253,7 +253,7 @@ public class PircBotXChatService implements ChatService {
   }
 
   private void joinAutoChannels() {
-    logger.debug("Joining auto channel1: {}", autoChannels);
+    logger.debug("Joining auto channel: {}", autoChannels);
     if (autoChannels == null) {
       return;
     }
@@ -339,6 +339,7 @@ public class PircBotXChatService implements ChatService {
   private void onSocialMessage(SocialMessage socialMessage) {
     if (!autoChannelsJoined && socialMessage.getChannels() != null) {
       this.autoChannels = new ArrayList<>(socialMessage.getChannels());
+      autoChannels.remove(defaultChannelName);
       autoChannels.add(0, defaultChannelName);
       threadPoolExecutor.execute(this::joinAutoChannels);
     }
@@ -515,9 +516,9 @@ public class PircBotXChatService implements ChatService {
 
   @Override
   public void joinChannel(String channelName) {
-    logger.debug("Joining channel1: {}", channelName);
+    logger.debug("Joining channel (waiting for identification): {}", channelName);
     noCatch(() -> identifiedLatch.await());
-    logger.debug("Joining channel2: {}", channelName);
+    logger.debug("Joining channel: {}", channelName);
     pircBotX.sendIRC().joinChannel(channelName);
   }
 

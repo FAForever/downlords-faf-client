@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.clan.ClanService;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
@@ -17,6 +18,7 @@ import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.MapChangeListener.Change;
@@ -25,6 +27,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,15 +67,15 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private UserService userService;
   @Mock
-  private ImageUploadService imageUploadService;
+  private PreferencesService preferencesService;
   @Mock
   private PlayerService playerService;
   @Mock
+  private PlatformService platformService;
+  @Mock
   private TimeService timeService;
   @Mock
-  private PreferencesService preferencesService;
-  @Mock
-  private PlatformService platformService;
+  private ImageUploadService imageUploadService;
   @Mock
   private I18n i18n;
   @Mock
@@ -85,6 +88,8 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   private AutoCompletionHelper autoCompletionHelper;
   @Mock
   private UiService uiService;
+  @Mock
+  private ClanService clanService;
   @Mock
   private UserFilterController userFilterController;
   @Mock
@@ -102,12 +107,19 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private CountryFlagService countryFlagService;
 
+  private Stage stage;
+
   @Before
   public void setUp() throws Exception {
-    instance = new ChannelTabController(
-        userService, chatService, platformService, preferencesService, playerService, audioService, timeService, i18n,
-        imageUploadService, urlPreviewResolver, notificationService, reportingService, uiService,
-        autoCompletionHelper, eventBus, webViewConfigurer, threadPoolExecutor, taskScheduler, countryFlagService);
+    Platform.runLater(() -> stage = new Stage());
+    WaitForAsyncUtils.waitForFxEvents();
+    instance = new ChannelTabController(clanService, userService, chatService,
+        platformService, preferencesService, playerService,
+        audioService, timeService, i18n, imageUploadService,
+        urlPreviewResolver, notificationService, reportingService,
+        uiService, autoCompletionHelper,
+        eventBus, webViewConfigurer, threadPoolExecutor, taskScheduler,
+        countryFlagService);
 
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
     when(userService.getUsername()).thenReturn(USER_NAME);
@@ -191,7 +203,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     Channel channel = new Channel(CHANNEL_NAME);
     instance.setChannel(channel);
 
-    ArgumentCaptor<MapChangeListener<String, ChatUser>> captor = ArgumentCaptor.forClass((Class) MapChangeListener.class);
+    ArgumentCaptor<MapChangeListener<String, ChatUser>> captor = ArgumentCaptor.forClass(MapChangeListener.class);
     verify(chatService).addUsersListener(anyString(), captor.capture());
 
     ChatUser chatUser = new ChatUser("junit", null);

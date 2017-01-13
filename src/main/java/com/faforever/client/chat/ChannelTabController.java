@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.clan.ClanService;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -103,22 +104,23 @@ public class ChannelTabController extends AbstractChatTabController {
 
   // TODO cut dependencies
   @Inject
-  public ChannelTabController(UserService userService, ChatService chatService, PlatformService platformService,
-                              PreferencesService preferencesService, PlayerService playerService,
-                              AudioService audioService, TimeService timeService, I18n i18n,
-                              ImageUploadService imageUploadService, UrlPreviewResolver urlPreviewResolver,
+  public ChannelTabController(ClanService clanService, UserService userService, ChatService chatService,
+                              PlatformService platformService, PreferencesService preferencesService,
+                              PlayerService playerService, AudioService audioService, TimeService timeService,
+                              I18n i18n, ImageUploadService imageUploadService, UrlPreviewResolver urlPreviewResolver,
                               NotificationService notificationService, ReportingService reportingService,
                               UiService uiService, AutoCompletionHelper autoCompletionHelper, EventBus eventBus,
                               WebViewConfigurer webViewConfigurer, ThreadPoolExecutor threadPoolExecutor,
                               TaskScheduler taskScheduler, CountryFlagService countryFlagService) {
-    super(userService, chatService, platformService, preferencesService, playerService, audioService, timeService, i18n,
-        imageUploadService, urlPreviewResolver, notificationService, reportingService, uiService, autoCompletionHelper,
-        eventBus, webViewConfigurer, countryFlagService);
+    super(clanService, webViewConfigurer, userService, chatService, platformService, preferencesService, playerService,
+        audioService, timeService, i18n, imageUploadService, urlPreviewResolver, notificationService, reportingService,
+        uiService, autoCompletionHelper, eventBus, countryFlagService);
 
     userToChatUserControls = FXCollections.observableMap(new ConcurrentHashMap<>());
     this.threadPoolExecutor = threadPoolExecutor;
     this.taskScheduler = taskScheduler;
   }
+
 
   // TODO clean this up
   public Map<String, Map<Pane, ChatUserItemController>> getUserToChatUserControls() {

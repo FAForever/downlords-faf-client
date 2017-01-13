@@ -5,6 +5,7 @@ import com.faforever.client.api.dto.CoopResult;
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.chat.avatar.AvatarBean;
+import com.faforever.client.clan.Clan;
 import com.faforever.client.coop.CoopMission;
 import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.fa.relay.GpgGameMessage;
@@ -136,4 +137,6 @@ public interface FafService {
   CompletableFuture<Optional<Replay>> getLastGameOnMap(int playerId, int mapVersionId);
 
   CompletableFuture<Void> deleteGameReview(Review review);
+
+  CompletableFuture<Optional<Clan>> getClanByTag(String tag);
 }

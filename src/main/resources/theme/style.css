@@ -1278,6 +1278,27 @@
   -fx-fill: #FFA500;
 }
 
+.chat-user-control-clan {
+  -fx-background-color: transparent;
+}
+
+.chat-user-control-clan .label {
+  -fx-padding: 0;
+}
+
+.chat-user-control-clan > .arrow-button,
+.chat-user-control-clan > .arrow-button > .arrow {
+  -fx-padding: 0;
+  visibility: hidden;
+}
+
+.chat-user-control-clan:hover > .arrow-button,
+.chat-user-control-clan:hover > .arrow-button > .arrow {
+  /* Restore value from Modena */
+  -fx-padding: 0.25em;
+  visibility: visible;
+}
+
 /***************** Privat Chat User Info *****************/
 
 .private-chat-user-info-data {

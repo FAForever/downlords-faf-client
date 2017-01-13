@@ -79,6 +79,17 @@ img.country-flag[src=""] {
 .chat-section .username:hover {
   text-decoration: underline;
 }
+.chat-section .clan-tag {
+  /* Same as -primary-text-color */
+  color: #fafafa;
+  cursor: pointer;
+  font-weight: bold;
+  margin-right: 0.5em;
+}
+
+.chat-section .clan-tag:hover {
+  text-decoration: underline;
+}
 
 .chat-section .time {
   /* Same as -tertiary-text-color */

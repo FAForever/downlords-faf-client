@@ -14,6 +14,7 @@ import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
+import com.faforever.client.clan.Clan;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.coop.CoopMission;
 import com.faforever.client.domain.RatingHistoryDataPoint;
@@ -441,6 +442,13 @@ public class FafServiceImpl implements FafService {
   public CompletableFuture<Void> deleteGameReview(Review review) {
     fafApiAccessor.deleteGameReview(review.getId());
     return CompletableFuture.completedFuture(null);
+  }
+
+  @Override
+  @Async
+  public CompletableFuture<Optional<Clan>> getClanByTag(String tag) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getClanByTag(tag)
+        .map(Clan::fromDto));
   }
 
   @Override
