@@ -11,6 +11,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
@@ -21,6 +22,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.util.Objects;
 
 import static javafx.util.Duration.millis;
 
@@ -70,7 +72,6 @@ public class TransientNotificationController implements Controller<Node> {
   }
 
   private void animate(Number height) {
-
     timeline = new Timeline();
     timeline.setAutoReverse(true);
     timeline.setCycleCount(2);
@@ -83,6 +84,7 @@ public class TransientNotificationController implements Controller<Node> {
   }
 
   private void dismiss() {
+    Objects.requireNonNull(timeline, "timeline has not been set");
     timeline.stop();
     Pane parent = (Pane) transientNotificationRoot.getParent();
     if (parent == null) {
@@ -107,6 +109,10 @@ public class TransientNotificationController implements Controller<Node> {
   }
 
   public void onClicked(MouseEvent event) {
-    action.call(event);
+    if (event.getButton().equals(MouseButton.SECONDARY)) {
+      dismiss();
+    } else {
+      action.call(event);
+    }
   }
 }
