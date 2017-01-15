@@ -35,6 +35,9 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -83,6 +86,9 @@ public class GamesTableController implements Controller<Node> {
     gamesTable.setItems(sortedList);
     sortedList.addListener((Observable observable) -> selectFirstGame());
     selectFirstGame();
+
+    ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+    executorService.scheduleWithFixedDelay(() -> gamesTable.refresh(), 0, 10, TimeUnit.SECONDS);
 
     passwordProtectionColumn.setCellValueFactory(param -> param.getValue().passwordProtectedProperty());
     passwordProtectionColumn.setCellFactory(param -> passwordIndicatorColumn());
