@@ -18,8 +18,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class LoginControllerTest extends AbstractPlainJavaFxTest {
-  private final String forgotLoginUrl = "http://app.faforever.com/faf/forgotPass.php";
-  private final String createUrl = "https://www.faforever.com/account/register";
+  private static final String FORGOT_LOGIN_URL = "http://app.faforever.com/faf/forgotPass.php";
+  private static final String CREATE_URL = "https://www.faforever.com/account/register";
   private LoginController instance;
   @Mock
   private PreferencesService preferencesService;
@@ -30,7 +30,7 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new LoginController(userService, preferencesService, platformService, createUrl, forgotLoginUrl);
+    instance = new LoginController(userService, preferencesService, platformService, CREATE_URL, FORGOT_LOGIN_URL);
     loadFxml("theme/login.fxml", param -> instance);
 
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
