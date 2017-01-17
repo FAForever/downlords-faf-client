@@ -2,8 +2,8 @@ package com.faforever.client.theme;
 
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.fx.Controller;
-import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.PreferencesService;
+import com.github.nocatch.NoCatch.NoCatchRunnable;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -52,7 +52,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.faforever.client.io.FileUtils.deleteRecursively;
@@ -329,7 +328,7 @@ public class UiServiceImpl implements UiService {
     loader.setControllerFactory(applicationContext::getBean);
     loader.setLocation(getThemeFileUrl(relativePath));
     loader.setResources(resources);
-    noCatch((Callable<MainController>) loader::load);
+    noCatch((NoCatchRunnable) loader::load);
     return loader.getController();
   }
 
