@@ -39,7 +39,6 @@ import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
@@ -76,18 +75,12 @@ public class UiServiceImpl implements UiService {
   private final Set<Scene> scenes;
   private final Set<WebView> webViews;
 
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  ThreadPoolExecutor threadPoolExecutor;
-  @Inject
-  Locale locale;
-  @Inject
-  CacheManager cacheManager;
-  @Inject
-  MessageSource messageSource;
-  @Inject
-  ApplicationContext applicationContext;
+  private final PreferencesService preferencesService;
+  private final ThreadPoolExecutor threadPoolExecutor;
+  private final Locale locale;
+  private final CacheManager cacheManager;
+  private final MessageSource messageSource;
+  private final ApplicationContext applicationContext;
 
   private WatchService watchService;
   private ObservableMap<String, Theme> themesByFolderName;
@@ -97,7 +90,8 @@ public class UiServiceImpl implements UiService {
   private Path currentTempStyleSheet;
   private MessageSourceResourceBundle resources;
 
-  public UiServiceImpl() {
+  @Inject
+  public UiServiceImpl(PreferencesService preferencesService, ThreadPoolExecutor threadPoolExecutor, Locale locale, CacheManager cacheManager, MessageSource messageSource, ApplicationContext applicationContext) {
     scenes = Collections.synchronizedSet(new HashSet<>());
     webViews = new HashSet<>();
     watchKeys = new HashMap<>();
@@ -112,6 +106,12 @@ public class UiServiceImpl implements UiService {
         folderNamesByTheme.put(change.getValueAdded(), change.getKey());
       }
     });
+    this.preferencesService = preferencesService;
+    this.threadPoolExecutor = threadPoolExecutor;
+    this.locale = locale;
+    this.cacheManager = cacheManager;
+    this.messageSource = messageSource;
+    this.applicationContext = applicationContext;
   }
 
   @PostConstruct
@@ -326,7 +326,7 @@ public class UiServiceImpl implements UiService {
   @Override
   public <T extends Controller<?>> T loadFxml(String relativePath) {
     FXMLLoader loader = new FXMLLoader();
-    loader.setControllerFactory(param -> applicationContext.getBean(param));
+    loader.setControllerFactory(applicationContext::getBean);
     loader.setLocation(getThemeFileUrl(relativePath));
     loader.setResources(resources);
     noCatch((Callable<MainController>) loader::load);

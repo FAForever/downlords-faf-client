@@ -1,7 +1,6 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.collections.FXCollections;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
@@ -10,7 +9,9 @@ import javafx.scene.input.KeyEvent;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Collection;
@@ -18,10 +19,13 @@ import java.util.Collection;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.text.IsEmptyString.isEmptyString;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
-public class AutoCompletionHelperTest extends AbstractPlainJavaFxTest {
+@RunWith(MockitoJUnitRunner.class)
+public class AutoCompletionHelperTest {
 
   private static final long TIMEOUT = 5000;
 

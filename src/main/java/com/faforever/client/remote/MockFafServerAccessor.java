@@ -260,11 +260,6 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public Long getSessionId() {
-    return null;
-  }
-
-  @Override
   public void sendGpgMessage(GpgGameMessage message) {
 
   }

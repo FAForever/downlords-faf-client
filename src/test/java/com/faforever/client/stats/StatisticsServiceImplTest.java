@@ -2,16 +2,19 @@ package com.faforever.client.stats;
 
 import com.faforever.client.api.RatingType;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.mockito.Mockito.verify;
 
-public class StatisticsServiceImplTest extends AbstractPlainJavaFxTest {
+@RunWith(MockitoJUnitRunner.class)
+public class StatisticsServiceImplTest {
 
   @Mock
+  private
   FafService fafService;
 
   private StatisticsServiceImpl instance;

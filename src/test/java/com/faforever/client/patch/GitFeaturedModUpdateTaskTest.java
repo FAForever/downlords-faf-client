@@ -3,7 +3,6 @@ package com.faforever.client.patch;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.ModInfoBeanBuilder;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.util.TestResources;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.eclipse.jgit.lib.ProgressMonitor;
@@ -11,7 +10,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -33,7 +34,8 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class GitFeaturedModUpdateTaskTest extends AbstractPlainJavaFxTest {
+@RunWith(MockitoJUnitRunner.class)
+public class GitFeaturedModUpdateTaskTest {
 
   private static final String GIT_PATCH_URL = "git://dummy/repo.git";
 
