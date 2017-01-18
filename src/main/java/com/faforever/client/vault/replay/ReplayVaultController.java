@@ -59,7 +59,16 @@ import static java.util.Arrays.asList;
 public class ReplayVaultController implements Controller<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
+  private final NotificationService notificationService;
+  private final ReplayService replayService;
+  private final MapService mapService;
+  private final TaskService taskService;
+  private final I18n i18n;
+  private final TimeService timeService;
+  private final ReportingService reportingService;
+  private final FxmlLoader fxmlLoader;
+  private final ApplicationContext applicationContext;
+  private final Locale locale;
   public TreeTableView<Replay> replayVaultRoot;
   public TreeTableColumn<Replay, Number> idColumn;
   public TreeTableColumn<Replay, String> titleColumn;
@@ -68,33 +77,24 @@ public class ReplayVaultController implements Controller<Node> {
   public TreeTableColumn<Replay, Duration> durationColumn;
   public TreeTableColumn<Replay, String> gameTypeColumn;
   public TreeTableColumn<Replay, String> mapColumn;
-
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  ReplayService replayService;
-  @Inject
-  MapService mapService;
-  @Inject
-  TaskService taskService;
-  @Inject
-  I18n i18n;
-  @Inject
-  TimeService timeService;
-  @Inject
-  ReportingService reportingService;
-  @Inject
-  FxmlLoader fxmlLoader;
-  @Inject
-  ApplicationContext applicationContext;
-  @Inject
-  Locale locale;
-
   @VisibleForTesting
   TreeItem<Replay> localReplaysRoot;
 //  @VisibleForTesting
 //  TreeItem<ReplayInfoBean> onlineReplaysRoot;
 
+  @Inject
+  public ReplayVaultController(NotificationService notificationService, ReplayService replayService, MapService mapService, TaskService taskService, I18n i18n, TimeService timeService, ReportingService reportingService, FxmlLoader fxmlLoader, ApplicationContext applicationContext, Locale locale) {
+    this.notificationService = notificationService;
+    this.replayService = replayService;
+    this.mapService = mapService;
+    this.taskService = taskService;
+    this.i18n = i18n;
+    this.timeService = timeService;
+    this.reportingService = reportingService;
+    this.fxmlLoader = fxmlLoader;
+    this.applicationContext = applicationContext;
+    this.locale = locale;
+  }
 
   @SuppressWarnings("unchecked")
   public void initialize() {

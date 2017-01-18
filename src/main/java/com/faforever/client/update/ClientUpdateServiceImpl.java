@@ -36,21 +36,23 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String DEVELOPMENT_VERSION_STRING = "dev";
 
-  @Inject
-  TaskService taskService;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  I18n i18n;
-  @Inject
-  PlatformService platformService;
-  @Inject
-  ApplicationContext applicationContext;
+  private final TaskService taskService;
+  private final NotificationService notificationService;
+  private final I18n i18n;
+  private final PlatformService platformService;
+  private final ApplicationContext applicationContext;
 
   @VisibleForTesting
   ComparableVersion currentVersion;
 
-  public ClientUpdateServiceImpl() {
+  @Inject
+  public ClientUpdateServiceImpl(TaskService taskService, NotificationService notificationService, I18n i18n, PlatformService platformService, ApplicationContext applicationContext) {
+    this.taskService = taskService;
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.platformService = platformService;
+    this.applicationContext = applicationContext;
+
     currentVersion = new ComparableVersion(
         defaultString(Version.VERSION, DEVELOPMENT_VERSION_STRING)
     );

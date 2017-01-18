@@ -9,7 +9,6 @@ import com.faforever.client.game.MapPreviewTableCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameState;
 import com.faforever.client.theme.UiService;
@@ -41,6 +40,11 @@ import java.util.stream.Collectors;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class LiveReplayController extends AbstractViewController<Node> {
   private final ObjectProperty<Game> selectedGame;
+  private final FafService fafService;
+  private final GameService gameService;
+  private final UiService uiService;
+  private final I18n i18n;
+  private final MapService mapService;
   public TableView<Game> liveReplayControllerRoot;
   public TableColumn<Game, Image> mapPreviewColumn;
   public TableColumn<Game, String> gameTitleColumn;
@@ -48,20 +52,15 @@ public class LiveReplayController extends AbstractViewController<Node> {
   public TableColumn<Game, String> modsColumn;
   public TableColumn<Game, String> hostColumn;
   public TableColumn<Game, Game> watchColumn;
-  @Inject
-  FafService fafService;
-  @Inject
-  GameService gameService;
-  @Inject
-  UiService uiService;
-  @Inject
-  I18n i18n;
-  @Inject
-  PlayerService playerService;
-  @Inject
-  MapService mapService;
 
-  public LiveReplayController() {
+  @Inject
+  public LiveReplayController(FafService fafService, GameService gameService, UiService uiService, I18n i18n, MapService mapService) {
+    this.fafService = fafService;
+    this.gameService = gameService;
+    this.uiService = uiService;
+    this.i18n = i18n;
+    this.mapService = mapService;
+
     selectedGame = new SimpleObjectProperty<>();
   }
 
