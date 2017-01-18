@@ -33,15 +33,20 @@ public class LegacyNewsService implements NewsService {
    */
   private static final long POLL_DELAY = 1800;
 
-  @Value("${newsFeedUrl}")
-  String newsFeedUrl;
+  private final String newsFeedUrl;
+
+  private final PreferencesService preferencesService;
+  private final EventBus eventBus;
+  private final ScheduledExecutorService scheduledExecutorService;
 
   @Inject
-  PreferencesService preferencesService;
-  @Inject
-  EventBus eventBus;
-  @Inject
-  ScheduledExecutorService scheduledExecutorService;
+  public LegacyNewsService(@Value("${newsFeedUrl}") String newsFeedUrl, PreferencesService preferencesService, EventBus eventBus, ScheduledExecutorService scheduledExecutorService) {
+    this.newsFeedUrl = newsFeedUrl;
+
+    this.preferencesService = preferencesService;
+    this.eventBus = eventBus;
+    this.scheduledExecutorService = scheduledExecutorService;
+  }
 
   @PostConstruct
   void postConstruct() {
