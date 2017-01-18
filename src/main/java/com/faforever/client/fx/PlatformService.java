@@ -8,11 +8,19 @@ public interface PlatformService {
 
   void reveal(Path path);
 
-  void showWindow(String windowTitle);
+  void focusWindow(String windowTitle);
+
+  void focusGameWindow();
 
   void startFlashingWindow(String windowTitle);
 
   void stopFlashingWindow(String windowTitle);
 
+  void startFlashingGameWindow();
+
+  void stopFlashingGameWindow();
+
   String getForegroundWindowTitle();
+
+  boolean isGameWindowFocused();
 }

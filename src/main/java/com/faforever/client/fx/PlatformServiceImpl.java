@@ -5,6 +5,7 @@ import com.sun.jna.platform.win32.WinDef.HWND;
 import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.platform.win32.WinUser.WINDOWPLACEMENT;
 import javafx.application.HostServices;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.nio.file.Path;
 
@@ -14,6 +15,8 @@ import static org.bridj.Platform.show;
 public class PlatformServiceImpl implements PlatformService {
 
   private final HostServices hostServices;
+  @Value("${forgedAlliance.windowTitle}")
+  private String faWindowTitle;
 
   public PlatformServiceImpl(HostServices hostServices) {
     this.hostServices = hostServices;
@@ -41,7 +44,7 @@ public class PlatformServiceImpl implements PlatformService {
    * will only work on windows systems
    */
   @Override
-  public void showWindow(String windowTitle) {
+  public void focusWindow(String windowTitle) {
     User32 user32 = User32.INSTANCE;
     HWND window = user32.FindWindow(null, windowTitle);
 
@@ -65,6 +68,11 @@ public class PlatformServiceImpl implements PlatformService {
     }
   }
 
+  @Override
+  public void focusGameWindow() {
+    focusWindow(faWindowTitle);
+  }
+
 
   @Override
   public void startFlashingWindow(String windowTitle) {
@@ -81,6 +89,16 @@ public class PlatformServiceImpl implements PlatformService {
   }
 
   @Override
+  public void startFlashingGameWindow() {
+    startFlashingWindow(faWindowTitle);
+  }
+
+  @Override
+  public void stopFlashingGameWindow() {
+    stopFlashingWindow(faWindowTitle);
+  }
+
+  @Override
   public void stopFlashingWindow(String windowTitle) {
     HWND window = User32.INSTANCE.FindWindow(null, windowTitle);
 
@@ -92,6 +110,9 @@ public class PlatformServiceImpl implements PlatformService {
     User32.INSTANCE.FlashWindowEx(flashwinfo);
   }
 
+  /**
+   * @return The title of the foreground window, may be null!
+   */
   @Override
   public String getForegroundWindowTitle() {
     HWND window = User32.INSTANCE.GetForegroundWindow();
@@ -103,5 +124,10 @@ public class PlatformServiceImpl implements PlatformService {
     } else {
       return null;
     }
+  }
+
+  @Override
+  public boolean isGameWindowFocused() {
+    return faWindowTitle.equals(getForegroundWindowTitle());
   }
 }

@@ -63,23 +63,23 @@ public class OnGameFullNotifier {
   @Subscribe
   public void onGameFull(GameFullEvent event) {
     threadPoolExecutor.submit(() -> {
-      platformService.startFlashingWindow(faWindowTitle);
-      while (gameService.isGameRunning() && !faWindowTitle.equals(platformService.getForegroundWindowTitle())) {
+      platformService.startFlashingGameWindow();
+      while (gameService.isGameRunning() && !platformService.isGameWindowFocused()) {
         noCatch(() -> sleep(500));
       }
-      platformService.stopFlashingWindow(faWindowTitle);
+      platformService.stopFlashingGameWindow();
     });
 
     Game currentGame = gameService.getCurrentGame();
     if (currentGame == null) {
       throw new ProgrammingError("Got a GameFull notification but player is not in a preferences");
     }
-    if (faWindowTitle.equals(platformService.getForegroundWindowTitle())) {
+    if (platformService.isGameWindowFocused()) {
       return;
     }
 
     notificationService.addNotification(new TransientNotification(i18n.get("game.full"), i18n.get("game.full.action"),
         mapService.loadPreview(currentGame.getMapFolderName(), PreviewSize.SMALL),
-        v -> platformService.showWindow(faWindowTitle)));
+        v -> platformService.focusGameWindow()));
   }
 }
