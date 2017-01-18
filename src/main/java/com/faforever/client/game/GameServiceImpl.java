@@ -100,14 +100,12 @@ public class GameServiceImpl implements GameService {
   private final Executor executor;
   private final PlayerService playerService;
   private final ReportingService reportingService;
+  private final ReplayService replayService;
   private final EventBus eventBus;
   private final IceAdapter iceAdapter;
   private final ModService modService;
   private final PlatformService platformService;
 
-  //TODO: circular reference
-  @Inject
-  ReplayService replayService;
   @VisibleForTesting
   RatingMode ratingMode;
 
@@ -118,10 +116,9 @@ public class GameServiceImpl implements GameService {
   @Inject
   public GameServiceImpl(FafService fafService, ForgedAllianceService forgedAllianceService, MapService mapService,
                          PreferencesService preferencesService, GameUpdater gameUpdater,
-                         NotificationService notificationService, I18n i18n,
-                         Executor executor, PlayerService playerService,
-                         ReportingService reportingService, EventBus eventBus, IceAdapter iceAdapter,
-                         ModService modService, PlatformService platformService) {
+                         NotificationService notificationService, I18n i18n, Executor executor,
+                         PlayerService playerService, ReportingService reportingService, ReplayService replayService,
+                         EventBus eventBus, IceAdapter iceAdapter, ModService modService, PlatformService platformService) {
     this.fafService = fafService;
     this.forgedAllianceService = forgedAllianceService;
     this.mapService = mapService;
@@ -132,9 +129,11 @@ public class GameServiceImpl implements GameService {
     this.executor = executor;
     this.playerService = playerService;
     this.reportingService = reportingService;
+    this.replayService = replayService;
     this.eventBus = eventBus;
     this.iceAdapter = iceAdapter;
     this.modService = modService;
+    this.platformService = platformService;
 
     uidToGameInfoBean = FXCollections.observableHashMap();
     searching1v1 = new SimpleBooleanProperty();
@@ -500,7 +499,10 @@ public class GameServiceImpl implements GameService {
     }
 
     game.statusProperty().addListener((observable, oldValue, newValue) -> {
-      if (oldValue == GameState.OPEN && newValue == GameState.PLAYING && game.getTeams().values().stream().anyMatch(team -> team.contains(currentPlayer.getUsername())) && !platformService.isGameWindowFocused()) {
+      if (oldValue == GameState.OPEN
+          && newValue == GameState.PLAYING
+          && game.getTeams().values().stream().anyMatch(team -> team.contains(currentPlayer.getUsername()))
+          && !platformService.isGameWindowFocused()) {
         platformService.focusGameWindow();
       }
     });

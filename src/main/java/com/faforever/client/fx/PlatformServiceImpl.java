@@ -6,23 +6,26 @@ import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.platform.win32.WinUser.WINDOWPLACEMENT;
 import javafx.application.HostServices;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
 import java.nio.file.Path;
 
 import static com.github.nocatch.NoCatch.noCatch;
 import static org.bridj.Platform.show;
 
+@Service
 public class PlatformServiceImpl implements PlatformService {
 
   private final HostServices hostServices;
+  private final String faWindowTitle;
 
-  private boolean isOnWindows;
+  private final boolean isOnWindows;
 
-  @Value("${forgedAlliance.windowTitle}")
-  private String faWindowTitle;
-
-  public PlatformServiceImpl(HostServices hostServices) {
+  @Inject
+  public PlatformServiceImpl(HostServices hostServices, @Value("${forgedAlliance.windowTitle}") String faWindowTitle) {
     this.hostServices = hostServices;
+    this.faWindowTitle = faWindowTitle;
 
     isOnWindows = System.getProperty("os.name").startsWith("Windows");
   }
@@ -138,13 +141,13 @@ public class PlatformServiceImpl implements PlatformService {
 
     HWND window = User32.INSTANCE.GetForegroundWindow();
 
-    if (window != null) {
-      char[] textBuffer = new char[255];
-      User32.INSTANCE.GetWindowText(window, textBuffer, 255);
-      return new String(textBuffer).trim();
-    } else {
+    if (window == null) {
       return null;
     }
+
+    char[] textBuffer = new char[255];
+    User32.INSTANCE.GetWindowText(window, textBuffer, 255);
+    return new String(textBuffer).trim();
   }
 
   @Override
