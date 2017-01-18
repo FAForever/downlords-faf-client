@@ -30,6 +30,10 @@ import static java.util.Collections.singletonList;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class MapDetailController implements Controller<Node> {
 
+  private final MapService mapService;
+  private final NotificationService notificationService;
+  private final I18n i18n;
+  private final ReportingService reportingService;
   public Label progressLabel;
   public Button uninstallButton;
   public Button installButton;
@@ -39,18 +43,16 @@ public class MapDetailController implements Controller<Node> {
   public ProgressBar progressBar;
   public Label mapDescriptionLabel;
   public Node mapDetailRoot;
-
-  @Inject
-  MapService mapService;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  I18n i18n;
-  @Inject
-  ReportingService reportingService;
-
   private MapBean map;
   private ListChangeListener<MapBean> installStatusChangeListener;
+
+  @Inject
+  public MapDetailController(MapService mapService, NotificationService notificationService, I18n i18n, ReportingService reportingService) {
+    this.mapService = mapService;
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.reportingService = reportingService;
+  }
 
   public void initialize() {
     uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
