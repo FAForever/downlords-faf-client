@@ -24,15 +24,18 @@ import javax.inject.Inject;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class UserButtonController implements Controller<Node> {
 
+  private final EventBus eventBus;
+  private final PlayerService playerService;
+  private final UiService uiService;
   public MenuButton userButtonRoot;
   public ImageView userImageView;
 
   @Inject
-  EventBus eventBus;
-  @Inject
-  PlayerService playerService;
-  @Inject
-  UiService uiService;
+  public UserButtonController(EventBus eventBus, PlayerService playerService, UiService uiService) {
+    this.eventBus = eventBus;
+    this.playerService = playerService;
+    this.uiService = uiService;
+  }
 
   public void initialize() {
     eventBus.register(this);

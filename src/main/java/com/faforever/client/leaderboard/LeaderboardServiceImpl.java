@@ -22,8 +22,12 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  private final FafService fafService;
+
   @Inject
-  FafService fafService;
+  public LeaderboardServiceImpl(FafService fafService) {
+    this.fafService = fafService;
+  }
 
   @Override
   public CompletionStage<Ranked1v1Stats> getRanked1v1Stats() {

@@ -1,7 +1,5 @@
 package com.faforever.client.config;
 
-import com.faforever.client.i18n.I18n;
-import com.faforever.client.i18n.I18nImpl;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -50,11 +48,6 @@ public class BaseConfig {
     ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
     messageSource.setBasename("i18n.messages");
     return messageSource;
-  }
-
-  @Bean
-  I18n i18n() {
-    return new I18nImpl();
   }
 
   @Bean

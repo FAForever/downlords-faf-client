@@ -102,11 +102,12 @@ public class GameServiceImpl implements GameService {
   private final ScheduledExecutorService scheduledExecutorService;
   private final PlayerService playerService;
   private final ReportingService reportingService;
-  private final ReplayService replayService;
   private final EventBus eventBus;
   private final IceAdapter iceAdapter;
   private final ModService modService;
-
+  //TODO: circular reference
+  @Inject
+  ReplayService replayService;
   @VisibleForTesting
   RatingMode ratingMode;
 
@@ -115,7 +116,7 @@ public class GameServiceImpl implements GameService {
   private boolean rehostRequested;
 
   @Inject
-  public GameServiceImpl(FafService fafService, ForgedAllianceService forgedAllianceService, MapService mapService, PreferencesService preferencesService, GameUpdater gameUpdater, NotificationService notificationService, I18n i18n, ApplicationContext applicationContext, ScheduledExecutorService scheduledExecutorService, PlayerService playerService, ReportingService reportingService, ReplayService replayService, EventBus eventBus, IceAdapter iceAdapter, ModService modService) {
+  public GameServiceImpl(FafService fafService, ForgedAllianceService forgedAllianceService, MapService mapService, PreferencesService preferencesService, GameUpdater gameUpdater, NotificationService notificationService, I18n i18n, ApplicationContext applicationContext, ScheduledExecutorService scheduledExecutorService, PlayerService playerService, ReportingService reportingService, EventBus eventBus, IceAdapter iceAdapter, ModService modService) {
     this.fafService = fafService;
     this.forgedAllianceService = forgedAllianceService;
     this.mapService = mapService;
@@ -127,7 +128,6 @@ public class GameServiceImpl implements GameService {
     this.scheduledExecutorService = scheduledExecutorService;
     this.playerService = playerService;
     this.reportingService = reportingService;
-    this.replayService = replayService;
     this.eventBus = eventBus;
     this.iceAdapter = iceAdapter;
     this.modService = modService;
