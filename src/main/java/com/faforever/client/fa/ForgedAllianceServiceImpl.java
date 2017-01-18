@@ -26,10 +26,14 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  private final PreferencesService preferencesService;
+  private final PlayerService playerService;
+
   @Inject
-  PreferencesService preferencesService;
-  @Inject
-  PlayerService playerService;
+  public ForgedAllianceServiceImpl(PreferencesService preferencesService, PlayerService playerService) {
+    this.preferencesService = preferencesService;
+    this.playerService = playerService;
+  }
 
   @Override
   public Process startGame(int uid, @Nullable Faction faction, @Nullable List<String> additionalArgs, RatingMode ratingMode, int gpgPort, boolean rehost) throws IOException {

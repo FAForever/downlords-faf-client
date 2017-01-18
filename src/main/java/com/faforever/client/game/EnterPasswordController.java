@@ -25,6 +25,7 @@ import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class EnterPasswordController implements Controller<Node> {
 
+  private final UiService uiService;
   public Label loginErrorLabel;
   public Label titleLabel;
   public TextField passwordField;
@@ -32,12 +33,14 @@ public class EnterPasswordController implements Controller<Node> {
   public Region enterPasswordRoot;
   public Button joinButton;
   public Button cancelButton;
-
-  @Inject
-  UiService uiService;
   private OnPasswordEnteredListener listener;
   private Game game;
   private boolean ignoreRating;
+
+  @Inject
+  public EnterPasswordController(UiService uiService) {
+    this.uiService = uiService;
+  }
 
   public void initialize() {
     loginErrorLabel.setVisible(false); // ToDo: manage negative logins

@@ -38,7 +38,7 @@ public class WindowController implements Controller<Node> {
   private static final double RESIZE_BORDER_WIDTH = 7d;
   private static final String PROPERTY_WINDOW_DECORATOR = "windowDecorator";
   private static final PseudoClass MAXIMIZED_PSEUDO_STATE = PseudoClass.getPseudoClass("maximized");
-
+  private final UiService uiService;
   public AnchorPane contentPane;
   public Button minimizeButton;
   public Button maximizeButton;
@@ -46,15 +46,16 @@ public class WindowController implements Controller<Node> {
   public Button closeButton;
   public AnchorPane windowRoot;
   public Pane windowButtons;
-
-  @Inject
-  UiService uiService;
-
   private Stage stage;
   private boolean resizable;
   private Point2D dragOffset;
   private EnumSet<ResizeDirection> resizeDirections;
   private boolean isResizing;
+
+  @Inject
+  public WindowController(UiService uiService) {
+    this.uiService = uiService;
+  }
 
   public static Rectangle2D getVisualBounds(Stage stage) {
     double x1 = stage.getX() + (stage.getWidth() / 2);

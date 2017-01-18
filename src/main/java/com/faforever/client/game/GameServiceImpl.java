@@ -91,36 +91,21 @@ public class GameServiceImpl implements GameService {
   private final ObservableList<Game> games;
   private final ObservableMap<Integer, Game> uidToGameInfoBean;
 
-  @Inject
-  FafService fafService;
-  @Inject
-  ForgedAllianceService forgedAllianceService;
-  @Inject
-  MapService mapService;
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  GameUpdater gameUpdater;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  I18n i18n;
-  @Inject
-  ApplicationContext applicationContext;
-  @Inject
-  ScheduledExecutorService scheduledExecutorService;
-  @Inject
-  PlayerService playerService;
-  @Inject
-  ReportingService reportingService;
-  @Inject
-  ReplayService replayService;
-  @Inject
-  EventBus eventBus;
-  @Inject
-  IceAdapter iceAdapter;
-  @Inject
-  ModService modService;
+  private final FafService fafService;
+  private final ForgedAllianceService forgedAllianceService;
+  private final MapService mapService;
+  private final PreferencesService preferencesService;
+  private final GameUpdater gameUpdater;
+  private final NotificationService notificationService;
+  private final I18n i18n;
+  private final ApplicationContext applicationContext;
+  private final ScheduledExecutorService scheduledExecutorService;
+  private final PlayerService playerService;
+  private final ReportingService reportingService;
+  private final ReplayService replayService;
+  private final EventBus eventBus;
+  private final IceAdapter iceAdapter;
+  private final ModService modService;
 
   @VisibleForTesting
   RatingMode ratingMode;
@@ -129,7 +114,24 @@ public class GameServiceImpl implements GameService {
   private BooleanProperty searching1v1;
   private boolean rehostRequested;
 
-  public GameServiceImpl() {
+  @Inject
+  public GameServiceImpl(FafService fafService, ForgedAllianceService forgedAllianceService, MapService mapService, PreferencesService preferencesService, GameUpdater gameUpdater, NotificationService notificationService, I18n i18n, ApplicationContext applicationContext, ScheduledExecutorService scheduledExecutorService, PlayerService playerService, ReportingService reportingService, ReplayService replayService, EventBus eventBus, IceAdapter iceAdapter, ModService modService) {
+    this.fafService = fafService;
+    this.forgedAllianceService = forgedAllianceService;
+    this.mapService = mapService;
+    this.preferencesService = preferencesService;
+    this.gameUpdater = gameUpdater;
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.applicationContext = applicationContext;
+    this.scheduledExecutorService = scheduledExecutorService;
+    this.playerService = playerService;
+    this.reportingService = reportingService;
+    this.replayService = replayService;
+    this.eventBus = eventBus;
+    this.iceAdapter = iceAdapter;
+    this.modService = modService;
+
     uidToGameInfoBean = FXCollections.observableHashMap();
     searching1v1 = new SimpleBooleanProperty();
     gameRunning = new SimpleBooleanProperty();

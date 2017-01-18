@@ -74,7 +74,19 @@ public class CoopController implements Controller<Node> {
   private static final Predicate<Game> OPEN_COOP_GAMES_PREDICATE = gameInfoBean ->
       gameInfoBean.getStatus() == GameState.OPEN
           && COOP.getString().equals(gameInfoBean.getFeaturedMod());
-
+  private final FxmlLoader fxmlLoader;
+  private final ReplayService replayService;
+  private final GameService gameService;
+  private final CoopService coopService;
+  private final NotificationService notificationService;
+  private final I18n i18n;
+  private final ReportingService reportingService;
+  private final MapService mapService;
+  private final PreferencesService preferencesService;
+  private final UiService uiService;
+  private final TimeService timeService;
+  private final WebViewConfigurer webViewConfigurer;
+  private final ModService modService;
   public Node coopRoot;
   public ComboBox<CoopMission> missionComboBox;
   public ImageView mapImageView;
@@ -100,31 +112,21 @@ public class CoopController implements Controller<Node> {
   public TableColumn<CoopLeaderboardEntry, String> replayColumn;
 
   @Inject
-  FxmlLoader fxmlLoader;
-  @Inject
-  ReplayService replayService;
-  @Inject
-  GameService gameService;
-  @Inject
-  CoopService coopService;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  I18n i18n;
-  @Inject
-  ReportingService reportingService;
-  @Inject
-  MapService mapService;
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  UiService uiService;
-  @Inject
-  TimeService timeService;
-  @Inject
-  WebViewConfigurer webViewConfigurer;
-  @Inject
-  ModService modService;
+  public CoopController(FxmlLoader fxmlLoader, ReplayService replayService, GameService gameService, CoopService coopService, NotificationService notificationService, I18n i18n, ReportingService reportingService, MapService mapService, PreferencesService preferencesService, UiService uiService, TimeService timeService, WebViewConfigurer webViewConfigurer, ModService modService) {
+    this.fxmlLoader = fxmlLoader;
+    this.replayService = replayService;
+    this.gameService = gameService;
+    this.coopService = coopService;
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.reportingService = reportingService;
+    this.mapService = mapService;
+    this.preferencesService = preferencesService;
+    this.uiService = uiService;
+    this.timeService = timeService;
+    this.webViewConfigurer = webViewConfigurer;
+    this.modService = modService;
+  }
 
   public void initialize() {
     missionComboBox.setCellFactory(param -> missionListCell());

@@ -17,16 +17,20 @@ import java.util.Locale;
 @Lazy
 public class FxmlLoaderImpl implements FxmlLoader {
 
-  @Inject
-  MessageSource messageSource;
-  @Inject
-  Locale locale;
-  @Inject
-  UiService uiService;
-  @Inject
-  ApplicationContext applicationContext;
+  private final MessageSource messageSource;
+  private final Locale locale;
+  private final UiService uiService;
+  private final ApplicationContext applicationContext;
 
   private MessageSourceResourceBundle resources;
+
+  @Inject
+  public FxmlLoaderImpl(MessageSource messageSource, Locale locale, UiService uiService, ApplicationContext applicationContext) {
+    this.messageSource = messageSource;
+    this.locale = locale;
+    this.uiService = uiService;
+    this.applicationContext = applicationContext;
+  }
 
   @PostConstruct
   void postConstruct() {

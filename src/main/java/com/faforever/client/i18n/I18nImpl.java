@@ -7,11 +7,15 @@ import java.util.Locale;
 
 public class I18nImpl implements I18n {
 
-  @Inject
-  MessageSource messageSource;
+  private final MessageSource messageSource;
+
+  private final Locale locale;
 
   @Inject
-  Locale locale;
+  public I18nImpl(MessageSource messageSource, Locale locale) {
+    this.messageSource = messageSource;
+    this.locale = locale;
+  }
 
   @Override
   public String get(String key, Object... args) {

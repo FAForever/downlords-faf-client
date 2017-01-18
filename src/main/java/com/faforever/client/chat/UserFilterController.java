@@ -15,6 +15,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import javax.inject.Inject;
 import java.util.Map;
 
 import static com.faforever.client.game.PlayerStatus.HOSTING;
@@ -37,6 +38,7 @@ public class UserFilterController implements Controller<Node> {
   @VisibleForTesting
   PlayerStatus playerStatusFilter;
 
+  @Inject
   public UserFilterController(I18n i18n) {
     this.i18n = i18n;
   }
