@@ -49,16 +49,20 @@ public class PlayerServiceImpl implements PlayerService {
   private final List<Integer> foeList;
   private final List<Integer> friendList;
   private final ObjectProperty<Player> currentPlayer;
-  @Inject
-  FafService fafService;
-  @Inject
-  UserService userService;
-  @Inject
-  GameService gameService;
-  @Inject
-  EventBus eventBus;
 
-  public PlayerServiceImpl() {
+  private final FafService fafService;
+  private final UserService userService;
+  private final GameService gameService;
+  private final EventBus eventBus;
+
+  @Inject
+  public PlayerServiceImpl(FafService fafService, UserService userService, GameService gameService, EventBus eventBus) {
+    this.fafService = fafService;
+    this.userService = userService;
+    this.gameService = gameService;
+    this.eventBus = eventBus;
+
+
     playersByName = FXCollections.observableHashMap();
     playersById = FXCollections.observableHashMap();
     friendList = new ArrayList<>();

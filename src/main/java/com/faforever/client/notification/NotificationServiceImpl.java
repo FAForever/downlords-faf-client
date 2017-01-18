@@ -28,12 +28,14 @@ public class NotificationServiceImpl implements NotificationService {
   private final List<OnTransientNotificationListener> onTransientNotificationListeners;
   private final List<OnImmediateNotificationListener> onImmediateNotificationListeners;
 
-  @Inject
-  private I18n i18n;
-  @Inject
-  private ReportingService reportingService;
+  private final I18n i18n;
+  private final ReportingService reportingService;
 
-  public NotificationServiceImpl() {
+  @Inject
+  public NotificationServiceImpl(I18n i18n, ReportingService reportingService) {
+    this.i18n = i18n;
+    this.reportingService = reportingService;
+
     persistentNotifications = synchronizedObservableSet(observableSet(new TreeSet<>()));
     onTransientNotificationListeners = new ArrayList<>();
     onImmediateNotificationListeners = new ArrayList<>();

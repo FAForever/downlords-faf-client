@@ -25,18 +25,22 @@ import javax.inject.Inject;
 @Component
 public class FriendJoinedGameNotifier {
 
+  private final NotificationService notificationService;
+  private final I18n i18n;
+  private final EventBus eventBus;
+  private final JoinGameHelper joinGameHelper;
+  private final PreferencesService preferencesService;
+  private final AudioService audioService;
+
   @Inject
-  NotificationService notificationService;
-  @Inject
-  I18n i18n;
-  @Inject
-  EventBus eventBus;
-  @Inject
-  JoinGameHelper joinGameHelper;
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  AudioService audioService;
+  public FriendJoinedGameNotifier(NotificationService notificationService, I18n i18n, EventBus eventBus, JoinGameHelper joinGameHelper, PreferencesService preferencesService, AudioService audioService) {
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.eventBus = eventBus;
+    this.joinGameHelper = joinGameHelper;
+    this.preferencesService = preferencesService;
+    this.audioService = audioService;
+  }
 
   @PostConstruct
   void postConstruct() {
