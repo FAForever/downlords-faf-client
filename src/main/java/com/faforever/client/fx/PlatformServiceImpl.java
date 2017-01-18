@@ -3,6 +3,7 @@ package com.faforever.client.fx;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef.HWND;
 import com.sun.jna.platform.win32.WinUser;
+import com.sun.jna.platform.win32.WinUser.WINDOWPLACEMENT;
 import javafx.application.HostServices;
 
 import java.nio.file.Path;
@@ -34,12 +35,36 @@ public class PlatformServiceImpl implements PlatformService {
     noCatch(() -> show(path.toFile()));
   }
 
+
+  /**
+   * Show a Window, restore it to it's state before minimizing (normal/restored or maximized) and move it to foreground
+   * will only work on windows systems
+   */
   @Override
   public void showWindow(String windowTitle) {
-    HWND window = User32.INSTANCE.FindWindow(null, windowTitle);
-    // SW_SHOW should be used instead, but in my tests it didn't work
-    User32.INSTANCE.ShowWindow(window, User32.SW_SHOWMAXIMIZED);
+    User32 user32 = User32.INSTANCE;
+    HWND window = user32.FindWindow(null, windowTitle);
+
+    //Does only set the window to visible, does not restore/bring it to foreground
+    user32.ShowWindow(window, User32.SW_SHOW);
+
+    WINDOWPLACEMENT windowplacement = new WINDOWPLACEMENT();
+    user32.GetWindowPlacement(window, windowplacement);
+
+    if (windowplacement.showCmd == User32.SW_SHOWMINIMIZED) {
+      if ((windowplacement.flags & WINDOWPLACEMENT.WPF_RESTORETOMAXIMIZED) == WINDOWPLACEMENT.WPF_RESTORETOMAXIMIZED) {//bit 2 in flags (bitmask 0x2) signals that window should be maximized when restoring
+        user32.ShowWindow(window, User32.SW_SHOWMAXIMIZED);
+      } else {
+        user32.ShowWindow(window, User32.SW_SHOWNORMAL);
+      }
+    }
+
+    String foregroundWindowTitle = getForegroundWindowTitle();
+    if (foregroundWindowTitle == null || !getForegroundWindowTitle().equals(windowTitle.trim())) {
+      user32.SetForegroundWindow(window);
+    }
   }
+
 
   @Override
   public void startFlashingWindow(String windowTitle) {
@@ -69,9 +94,14 @@ public class PlatformServiceImpl implements PlatformService {
 
   @Override
   public String getForegroundWindowTitle() {
-    HWND hwnd = User32.INSTANCE.GetForegroundWindow();
-    char[] textBuffer = new char[255];
-    User32.INSTANCE.GetWindowText(hwnd, textBuffer, 255);
-    return new String(textBuffer).trim();
+    HWND window = User32.INSTANCE.GetForegroundWindow();
+
+    if (window == null) {
+      char[] textBuffer = new char[255];
+      User32.INSTANCE.GetWindowText(window, textBuffer, 255);
+      return new String(textBuffer).trim();
+    } else {
+      return null;
+    }
   }
 }
