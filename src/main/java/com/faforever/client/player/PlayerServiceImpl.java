@@ -52,14 +52,15 @@ public class PlayerServiceImpl implements PlayerService {
 
   private final FafService fafService;
   private final UserService userService;
-  private final GameService gameService;
   private final EventBus eventBus;
+  //TODO: circular reference
+  @Inject
+  GameService gameService;
 
   @Inject
-  public PlayerServiceImpl(FafService fafService, UserService userService, GameService gameService, EventBus eventBus) {
+  public PlayerServiceImpl(FafService fafService, UserService userService, EventBus eventBus) {
     this.fafService = fafService;
     this.userService = userService;
-    this.gameService = gameService;
     this.eventBus = eventBus;
 
 

@@ -77,30 +77,34 @@ public class ReplayServiceImpl implements ReplayService {
   private static final String GPGNET_SCHEME = "gpgnet";
   private static final String TEMP_SCFA_REPLAY_FILE_NAME = "temp.scfareplay";
 
+  private final Environment environment;
+  private final PreferencesService preferencesService;
+  private final ReplayFileReader replayFileReader;
+  private final NotificationService notificationService;
+  private final GameService gameService;
+  private final TaskService taskService;
+  private final I18n i18n;
+  private final ReportingService reportingService;
+  private final ApplicationContext applicationContext;
+  private final PlatformService platformService;
+  private final ReplayServer replayServer;
+  private final FafService fafService;
+
   @Inject
-  Environment environment;
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  ReplayFileReader replayFileReader;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  GameService gameService;
-  @Inject
-  TaskService taskService;
-  @Inject
-  I18n i18n;
-  @Inject
-  ReportingService reportingService;
-  @Inject
-  ApplicationContext applicationContext;
-  @Inject
-  PlatformService platformService;
-  @Inject
-  ReplayServer replayServer;
-  @Inject
-  FafService fafService;
+  public ReplayServiceImpl(Environment environment, PreferencesService preferencesService, ReplayFileReader replayFileReader, NotificationService notificationService, GameService gameService, TaskService taskService, I18n i18n, ReportingService reportingService, ApplicationContext applicationContext, PlatformService platformService, ReplayServer replayServer, FafService fafService) {
+    this.environment = environment;
+    this.preferencesService = preferencesService;
+    this.replayFileReader = replayFileReader;
+    this.notificationService = notificationService;
+    this.gameService = gameService;
+    this.taskService = taskService;
+    this.i18n = i18n;
+    this.reportingService = reportingService;
+    this.applicationContext = applicationContext;
+    this.platformService = platformService;
+    this.replayServer = replayServer;
+    this.fafService = fafService;
+  }
 
   @VisibleForTesting
   static Integer parseSupComVersion(byte[] rawReplayBytes) {

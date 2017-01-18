@@ -52,7 +52,13 @@ public class Ranked1v1Controller extends AbstractViewController<Node> {
   private static final PseudoClass NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("highlighted-bar");
 
   private final Random random;
-
+  private final GameService gameService;
+  private final PreferencesService preferencesService;
+  private final PlayerService playerService;
+  private final Environment environment;
+  private final LeaderboardService leaderboardService;
+  private final I18n i18n;
+  private final Locale locale;
   public CategoryAxis ratingDistributionXAxis;
   public NumberAxis ratingDistributionYAxis;
   public BarChart<String, Integer> ratingDistributionChart;
@@ -72,29 +78,22 @@ public class Ranked1v1Controller extends AbstractViewController<Node> {
   public Label rankingLabel;
   public Label winLossRationLabel;
   public Label rankingOutOfLabel;
-
-  @Inject
-  GameService gameService;
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  PlayerService playerService;
-  @Inject
-  Environment environment;
-  @Inject
-  LeaderboardService leaderboardService;
-  @Inject
-  I18n i18n;
-  @Inject
-  Locale locale;
-
   @VisibleForTesting
   HashMap<Faction, ToggleButton> factionsToButtons;
 
   private InvalidationListener playerRatingListener;
   private boolean initialized;
 
-  public Ranked1v1Controller() {
+  @Inject
+  public Ranked1v1Controller(GameService gameService, PreferencesService preferencesService, PlayerService playerService, Environment environment, LeaderboardService leaderboardService, I18n i18n, Locale locale) {
+    this.gameService = gameService;
+    this.preferencesService = preferencesService;
+    this.playerService = playerService;
+    this.environment = environment;
+    this.leaderboardService = leaderboardService;
+    this.i18n = i18n;
+    this.locale = locale;
+
     random = new Random();
   }
 
