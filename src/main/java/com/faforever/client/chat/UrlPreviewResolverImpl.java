@@ -29,11 +29,15 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
   private static final String IMGUR_PNG = "http://i.imgur.com/%s.png";
   private static final String IMGUR_GIF = "http://i.imgur.com/%s.gif";
 
-  @Inject
-  FxmlLoader fxmlLoader;
+  private final FxmlLoader fxmlLoader;
+
+  private final I18n i18n;
 
   @Inject
-  I18n i18n;
+  public UrlPreviewResolverImpl(FxmlLoader fxmlLoader, I18n i18n) {
+    this.fxmlLoader = fxmlLoader;
+    this.i18n = i18n;
+  }
 
   private static boolean testUrl(String urlString) {
     try {

@@ -27,6 +27,11 @@ import javax.inject.Inject;
 @Component
 public class GameStatusTooltipController  implements Controller<Node> {
 
+  private final MapService mapService;
+  private final GameService gameService;
+  private final I18n i18n;
+  private final ModService modService;
+  private final UiService uiService;
   public Label lockIconLabel;
   public Label gameTypeLabel;
   public Label gameMapLabel;
@@ -38,15 +43,13 @@ public class GameStatusTooltipController  implements Controller<Node> {
   public Pane gameStatusTooltipRoot;
 
   @Inject
-  MapService mapService;
-  @Inject
-  GameService gameService;
-  @Inject
-  I18n i18n;
-  @Inject
-  ModService modService;
-  @Inject
-  UiService uiService;
+  public GameStatusTooltipController(MapService mapService, GameService gameService, I18n i18n, ModService modService, UiService uiService) {
+    this.mapService = mapService;
+    this.gameService = gameService;
+    this.i18n = i18n;
+    this.modService = modService;
+    this.uiService = uiService;
+  }
 
   public void initialize() {
     modsLabel.managedProperty().bindBidirectional(modsLabel.visibleProperty());

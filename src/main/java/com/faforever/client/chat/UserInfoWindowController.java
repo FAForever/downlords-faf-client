@@ -19,7 +19,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
-import com.faforever.client.util.TimeService;
 import com.neovisionaries.i18n.CountryCode;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -89,7 +88,14 @@ public class UserInfoWindowController implements Controller<Node> {
   private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMM");
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
+  private final StatisticsService statisticsService;
+  private final CountryFlagService countryFlagService;
+  private final AchievementService achievementService;
+  private final EventService eventService;
+  private final PreferencesService preferencesService;
+  private final I18n i18n;
+  private final Locale locale;
+  private final UiService uiService;
   public Label lockedAchievementsHeaderLabel;
   public Label unlockedAchievementsHeaderLabel;
   public PieChart gamesPlayedChart;
@@ -119,33 +125,23 @@ public class UserInfoWindowController implements Controller<Node> {
   public Label countryLabel;
   public ImageView countryImageView;
   public Pane userInfoRoot;
-
-  @Inject
-  StatisticsService statisticsService;
-  @Inject
-  CountryFlagService countryFlagService;
-  @Inject
-  AchievementService achievementService;
-  @Inject
-  EventService eventService;
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  I18n i18n;
-  @Inject
-  Locale locale;
-  @Inject
-  TimeService timeService;
-  @Inject
-  UiService uiService;
-
   private Player player;
   private Map<String, AchievementItemController> achievementItemById;
   private Map<String, AchievementDefinition> achievementDefinitionById;
   private int earnedExperiencePoints;
   private Window ownerWindow;
 
-  public UserInfoWindowController() {
+  @Inject
+  public UserInfoWindowController(StatisticsService statisticsService, CountryFlagService countryFlagService, AchievementService achievementService, EventService eventService, PreferencesService preferencesService, I18n i18n, Locale locale, UiService uiService) {
+    this.statisticsService = statisticsService;
+    this.countryFlagService = countryFlagService;
+    this.achievementService = achievementService;
+    this.eventService = eventService;
+    this.preferencesService = preferencesService;
+    this.i18n = i18n;
+    this.locale = locale;
+    this.uiService = uiService;
+
     achievementItemById = new HashMap<>();
     achievementDefinitionById = new HashMap<>();
   }

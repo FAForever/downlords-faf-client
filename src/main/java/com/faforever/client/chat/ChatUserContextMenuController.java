@@ -57,7 +57,18 @@ import static java.util.Locale.US;
 public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
+  private final UserService userService;
+  private final ChatService chatService;
+  private final PreferencesService preferencesService;
+  private final PlayerService playerService;
+  private final GameService gameService;
+  private final ReplayService replayService;
+  private final NotificationService notificationService;
+  private final I18n i18n;
+  private final EventBus eventBus;
+  private final JoinGameHelper joinGameHelper;
+  private final AvatarService avatarService;
+  private final UiService uiService;
   public ComboBox<AvatarBean> avatarComboBox;
   public CustomMenuItem avatarPickerMenuItem;
   public MenuItem sendPrivateMessageItem;
@@ -77,34 +88,24 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public MenuItem kickItem;
   public MenuItem banItem;
   public ContextMenu chatUserContextMenuRoot;
-
-  @Inject
-  UserService userService;
-  @Inject
-  ChatService chatService;
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  PlayerService playerService;
-  @Inject
-  GameService gameService;
-  @Inject
-  ReplayService replayService;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  I18n i18n;
-  @Inject
-  EventBus eventBus;
-  @Inject
-  JoinGameHelper joinGameHelper;
-  @Inject
-  AvatarService avatarService;
-  @Inject
-  UiService uiService;
-
   private Player player;
 
+  @Inject
+  public ChatUserContextMenuController(UserService userService, ChatService chatService, PreferencesService preferencesService, PlayerService playerService, GameService gameService, ReplayService replayService, NotificationService notificationService, I18n i18n, EventBus eventBus, JoinGameHelper joinGameHelper, AvatarService avatarService, UiService uiService) {
+    this.userService = userService;
+    this.chatService = chatService;
+    this.preferencesService = preferencesService;
+    this.playerService = playerService;
+    this.gameService = gameService;
+    this.replayService = replayService;
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.eventBus = eventBus;
+    this.joinGameHelper = joinGameHelper;
+    this.avatarService = avatarService;
+    this.uiService = uiService;
+  }
+  
   public void initialize() {
     avatarComboBox.setCellFactory(param -> avatarCell());
     avatarComboBox.setButtonCell(avatarCell());

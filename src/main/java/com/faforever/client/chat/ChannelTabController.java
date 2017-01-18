@@ -1,10 +1,22 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.audio.AudioService;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.PlatformService;
+import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.theme.UiService;
+import com.faforever.client.uploader.ImageUploadService;
+import com.faforever.client.user.UserService;
+import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -29,6 +41,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
+import javafx.stage.Stage;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -61,7 +74,6 @@ public class ChannelTabController extends AbstractChatTabController {
    * Keeps track of which ChatUserControl in which pane belongs to which user.
    */
   private final Map<String, Map<Pane, ChatUserItemController>> userToChatUserControls;
-  private final I18n i18n;
   private final ThreadPoolExecutor threadPoolExecutor;
   private final ScheduledExecutorService scheduledExecutorService;
   public Button advancedUserFilter;
@@ -90,9 +102,10 @@ public class ChannelTabController extends AbstractChatTabController {
   private UserFilterController userFilterController;
 
   @Inject
-  public ChannelTabController(I18n i18n, ThreadPoolExecutor threadPoolExecutor, ScheduledExecutorService scheduledExecutorService) {
+  public ChannelTabController(UserService userService, ChatService chatService, PlatformService platformService, PreferencesService preferencesService, PlayerService playerService, AudioService audioService, TimeService timeService, I18n i18n, ImageUploadService imageUploadService, UrlPreviewResolver urlPreviewResolver, NotificationService notificationService, ReportingService reportingService, Stage stage, UiService uiService, AutoCompletionHelper autoCompletionHelper, EventBus eventBus, WebViewConfigurer webViewConfigurer, ThreadPoolExecutor threadPoolExecutor, ScheduledExecutorService scheduledExecutorService) {
+    super(userService, chatService, platformService, preferencesService, playerService, audioService, timeService, i18n, imageUploadService, urlPreviewResolver, notificationService, reportingService, stage, uiService, autoCompletionHelper, eventBus, webViewConfigurer);
+
     userToChatUserControls = FXCollections.observableMap(new ConcurrentHashMap<>());
-    this.i18n = i18n;
     this.threadPoolExecutor = threadPoolExecutor;
     this.scheduledExecutorService = scheduledExecutorService;
   }

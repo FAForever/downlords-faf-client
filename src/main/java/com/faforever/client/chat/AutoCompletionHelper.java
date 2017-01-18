@@ -21,8 +21,7 @@ import static java.util.Locale.US;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class AutoCompletionHelper {
 
-  @Inject
-  PlayerService playerService;
+  private final PlayerService playerService;
 
   private List<String> possibleAutoCompletions;
   private int nextAutoCompleteIndex;
@@ -31,7 +30,10 @@ public class AutoCompletionHelper {
   private TextInputControl boundTextField;
   private EventHandler<KeyEvent> keyEventHandler;
 
-  public AutoCompletionHelper() {
+  @Inject
+  public AutoCompletionHelper(PlayerService playerService) {
+    this.playerService = playerService;
+
     keyEventHandler = keyEvent -> {
       if (!keyEvent.isControlDown() && keyEvent.getCode() == KeyCode.TAB) {
         keyEvent.consume();

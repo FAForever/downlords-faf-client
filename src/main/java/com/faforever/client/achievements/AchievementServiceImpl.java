@@ -41,26 +41,28 @@ public class AchievementServiceImpl implements AchievementService {
   private final ObservableList<PlayerAchievement> readOnlyPlayerAchievements;
   private final ObservableList<PlayerAchievement> playerAchievements;
 
-  @Inject
-  UserService userService;
-  @Inject
-  FafApiAccessor fafApiAccessor;
-  @Inject
-  FafService fafService;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  I18n i18n;
-  @Inject
-  PlayerService playerService;
-  @Inject
-  UiService uiService;
-  @Inject
-  ThreadPoolExecutor threadPoolExecutor;
-  @Inject
-  AssetService assetService;
+  private final UserService userService;
+  private final FafApiAccessor fafApiAccessor;
+  private final FafService fafService;
+  private final NotificationService notificationService;
+  private final I18n i18n;
+  private final PlayerService playerService;
+  private final UiService uiService;
+  private final ThreadPoolExecutor threadPoolExecutor;
+  private final AssetService assetService;
 
-  public AchievementServiceImpl() {
+  @Inject
+  public AchievementServiceImpl(UserService userService, FafApiAccessor fafApiAccessor, FafService fafService, NotificationService notificationService, I18n i18n, PlayerService playerService, UiService uiService, ThreadPoolExecutor threadPoolExecutor, AssetService assetService) {
+    this.userService = userService;
+    this.fafApiAccessor = fafApiAccessor;
+    this.fafService = fafService;
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.playerService = playerService;
+    this.uiService = uiService;
+    this.threadPoolExecutor = threadPoolExecutor;
+    this.assetService = assetService;
+
     playerAchievements = FXCollections.observableArrayList();
     readOnlyPlayerAchievements = FXCollections.unmodifiableObservableList(playerAchievements);
   }

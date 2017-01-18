@@ -15,7 +15,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.Map;
 
 import static com.faforever.client.game.PlayerStatus.HOSTING;
@@ -27,19 +26,20 @@ import static com.faforever.client.game.PlayerStatus.PLAYING;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class UserFilterController implements Controller<Node> {
 
+  private final I18n i18n;
   public MenuButton gameStatusMenu;
   public GridPane filterUserRoot;
   public TextField clanFilterField;
   public TextField minRatingFilterField;
   public TextField maxRatingFilterField;
-
-  @Inject
-  I18n i18n;
-
   @VisibleForTesting
   ChannelTabController channelTabController;
   @VisibleForTesting
   PlayerStatus playerStatusFilter;
+
+  public UserFilterController(I18n i18n) {
+    this.i18n = i18n;
+  }
 
   public void setChannelController(ChannelTabController channelTabController) {
     this.channelTabController = channelTabController;

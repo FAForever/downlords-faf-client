@@ -28,6 +28,10 @@ import java.util.Objects;
 // TODO this class should not use API objects
 public class AchievementItemController implements Controller<Node> {
 
+  private final Locale locale;
+  private final I18n i18n;
+  private final PreferencesService preferencesService;
+  private final AchievementService achievementService;
   public GridPane achievementItemRoot;
   public Label nameLabel;
   public Label descriptionLabel;
@@ -35,17 +39,15 @@ public class AchievementItemController implements Controller<Node> {
   public ProgressBar progressBar;
   public Label progressLabel;
   public ImageView imageView;
-
-  @Inject
-  Locale locale;
-  @Inject
-  I18n i18n;
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  AchievementService achievementService;
-
   private AchievementDefinition achievementDefinition;
+
+  @Inject
+  public AchievementItemController(Locale locale, I18n i18n, PreferencesService preferencesService, AchievementService achievementService) {
+    this.locale = locale;
+    this.i18n = i18n;
+    this.preferencesService = preferencesService;
+    this.achievementService = achievementService;
+  }
 
   public void initialize() {
     progressBar.managedProperty().bind(progressBar.visibleProperty());

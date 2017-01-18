@@ -103,18 +103,12 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   private final ClientHttpRequestFactory clientHttpRequestFactory;
   private final EventBus eventBus;
 
-  @Value("${api.baseUrl}")
-  String baseUrl;
-  @Value("${oauth.authUri}")
-  String oAuthUrl;
-  @Value("${oauth.tokenUri}")
-  String oAuthTokenServerUrl;
-  @Value("${oauth.clientId}")
-  String oAuthClientId;
-  @Value("${oauth.clientSecret}")
-  String oAuthClientSecret;
-  @Value("${oauth.loginUri}")
-  URI oAuthLoginUrl;
+  private final String baseUrl;
+  private final String oAuthUrl;
+  private final String oAuthTokenServerUrl;
+  private final String oAuthClientId;
+  private final String oAuthClientSecret;
+  private final URI oAuthLoginUrl;
 
   @VisibleForTesting
   Credential credential;
@@ -125,13 +119,19 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   private CountDownLatch authorizedLatch;
 
   @Inject
-  public FafApiAccessorImpl(JsonFactory jsonFactory, PreferencesService preferencesService, HttpTransport httpTransport, ClientHttpRequestFactory clientHttpRequestFactory, EventBus eventBus) {
+  public FafApiAccessorImpl(JsonFactory jsonFactory, PreferencesService preferencesService, HttpTransport httpTransport, ClientHttpRequestFactory clientHttpRequestFactory, EventBus eventBus, @Value("${api.baseUrl}") String baseUrl, @Value("${oauth.authUri}") String oAuthUrl, @Value("${oauth.tokenUri}") String oAuthTokenServerUrl, @Value("${oauth.clientId}") String oAuthClientId, @Value("${oauth.clientSecret}") String oAuthClientSecret, @Value("${oauth.loginUri}") URI oAuthLoginUrl) {
     authorizedLatch = new CountDownLatch(1);
     this.jsonFactory = jsonFactory;
     this.preferencesService = preferencesService;
     this.httpTransport = httpTransport;
     this.clientHttpRequestFactory = clientHttpRequestFactory;
     this.eventBus = eventBus;
+    this.baseUrl = baseUrl;
+    this.oAuthUrl = oAuthUrl;
+    this.oAuthTokenServerUrl = oAuthTokenServerUrl;
+    this.oAuthClientId = oAuthClientId;
+    this.oAuthClientSecret = oAuthClientSecret;
+    this.oAuthLoginUrl = oAuthLoginUrl;
   }
 
   @PostConstruct
