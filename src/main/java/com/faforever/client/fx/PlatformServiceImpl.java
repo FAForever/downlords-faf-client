@@ -15,11 +15,16 @@ import static org.bridj.Platform.show;
 public class PlatformServiceImpl implements PlatformService {
 
   private final HostServices hostServices;
+
+  private boolean isOnWindows;
+
   @Value("${forgedAlliance.windowTitle}")
   private String faWindowTitle;
 
   public PlatformServiceImpl(HostServices hostServices) {
     this.hostServices = hostServices;
+
+    isOnWindows = System.getProperty("os.name").startsWith("Windows");
   }
 
   /**
@@ -45,6 +50,10 @@ public class PlatformServiceImpl implements PlatformService {
    */
   @Override
   public void focusWindow(String windowTitle) {
+    if (!isOnWindows) {
+      return;
+    }
+
     User32 user32 = User32.INSTANCE;
     HWND window = user32.FindWindow(null, windowTitle);
 
@@ -76,6 +85,10 @@ public class PlatformServiceImpl implements PlatformService {
 
   @Override
   public void startFlashingWindow(String windowTitle) {
+    if (!isOnWindows) {
+      return;
+    }
+
     HWND window = User32.INSTANCE.FindWindow(null, windowTitle);
 
     WinUser.FLASHWINFO flashwinfo = new WinUser.FLASHWINFO();
@@ -100,6 +113,10 @@ public class PlatformServiceImpl implements PlatformService {
 
   @Override
   public void stopFlashingWindow(String windowTitle) {
+    if (!isOnWindows) {
+      return;
+    }
+
     HWND window = User32.INSTANCE.FindWindow(null, windowTitle);
 
     WinUser.FLASHWINFO flashwinfo = new WinUser.FLASHWINFO();
@@ -115,6 +132,10 @@ public class PlatformServiceImpl implements PlatformService {
    */
   @Override
   public String getForegroundWindowTitle() {
+    if (!isOnWindows) {
+      return null;
+    }
+
     HWND window = User32.INSTANCE.GetForegroundWindow();
 
     if (window != null) {
