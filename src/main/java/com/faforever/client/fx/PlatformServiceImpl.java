@@ -96,7 +96,7 @@ public class PlatformServiceImpl implements PlatformService {
   public String getForegroundWindowTitle() {
     HWND window = User32.INSTANCE.GetForegroundWindow();
 
-    if (window == null) {
+    if (window != null) {
       char[] textBuffer = new char[255];
       User32.INSTANCE.GetWindowText(window, textBuffer, 255);
       return new String(textBuffer).trim();
