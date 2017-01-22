@@ -8,7 +8,6 @@ import com.faforever.client.user.UserService;
 import com.google.common.base.Strings;
 import com.google.common.hash.Hashing;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -36,6 +35,9 @@ public class LoginController implements Controller<Node> {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final UserService userService;
   private final PreferencesService preferencesService;
+  private final PlatformService platformService;
+  private final String createUrl;
+  private final String forgotLoginUrl;
   public Pane loginFormPane;
   public Pane loginProgressPane;
   public CheckBox autoLoginCheckBox;
@@ -46,9 +48,7 @@ public class LoginController implements Controller<Node> {
   public Button createAccountButton;
   public Label loginErrorLabel;
   public Pane loginRoot;
-  private PlatformService platformService;
-  private String createUrl;
-  private String forgotLoginUrl;
+
 
   @Inject
   public LoginController(UserService userService, PreferencesService preferencesService, PlatformService platformService, @Value("${login.createAccountUrl}") String createUrl, @Value("${login.forgotLoginUrl}") String forgotLoginUrl) {
@@ -137,11 +137,11 @@ public class LoginController implements Controller<Node> {
     return loginRoot;
   }
 
-  public void createAccountButtonClicked(ActionEvent actionEvent) {
+  public void createAccountButtonClicked() {
     platformService.showDocument(createUrl);
   }
 
-  public void forgotLoginButtonClicked(ActionEvent actionEvent) {
+  public void forgotLoginButtonClicked() {
     platformService.showDocument(forgotLoginUrl);
   }
 }
