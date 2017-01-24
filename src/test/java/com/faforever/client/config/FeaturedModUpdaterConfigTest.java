@@ -2,10 +2,11 @@ package com.faforever.client.config;
 
 import com.faforever.client.Main;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.base.Stopwatch;
 import javafx.stage.Stage;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -15,7 +16,8 @@ import java.lang.invoke.MethodHandles;
 
 import static org.mockito.Mockito.mock;
 
-public class FeaturedModUpdaterConfigTest extends AbstractPlainJavaFxTest {
+@RunWith(MockitoJUnitRunner.class)
+public class FeaturedModUpdaterConfigTest {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Test

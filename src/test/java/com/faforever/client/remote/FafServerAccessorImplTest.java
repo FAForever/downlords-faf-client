@@ -31,7 +31,6 @@ import com.faforever.client.remote.gson.MessageTargetTypeAdapter;
 import com.faforever.client.remote.gson.RatingRangeTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.io.QDataInputStream;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -41,8 +40,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testfx.util.WaitForAsyncUtils;
@@ -72,7 +73,8 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
+@RunWith(MockitoJUnitRunner.class)
+public class FafServerAccessorImplTest {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -151,15 +153,8 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
         serverToClientReadyLatch.countDown();
 
         while (!stopped) {
-          int blockSize = qDataInputStream.readInt();
+          qDataInputStream.readInt();
           String json = qDataInputStream.readQString();
-
-          if (blockSize > json.length() * 2) {
-            // Username
-            qDataInputStream.readQString();
-            // Session ID
-            qDataInputStream.readQString();
-          }
 
           messagesReceivedByFafServer.add(json);
         }

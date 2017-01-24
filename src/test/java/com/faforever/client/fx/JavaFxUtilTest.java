@@ -1,9 +1,10 @@
 package com.faforever.client.fx;
 
-import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.scene.paint.Color;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,7 +15,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class JavaFxUtilTest extends AbstractPlainJavaFxTest {
+@RunWith(MockitoJUnitRunner.class)
+public class JavaFxUtilTest {
 
   @Test
   public void testPathToStringConverter() throws Exception {

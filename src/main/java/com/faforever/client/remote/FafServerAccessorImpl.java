@@ -59,11 +59,10 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.concurrent.Task;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
@@ -119,7 +118,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private CompletableFuture<SessionMessage> sessionFuture;
   private CompletableFuture<GameLaunchMessage> gameLaunchFuture;
   private ObjectProperty<Long> sessionId;
-  private StringProperty login;
   private String username;
   private String password;
   private ObjectProperty<ConnectionState> connectionState;
@@ -138,7 +136,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     messageListeners = new HashMap<>();
     connectionState = new SimpleObjectProperty<>();
     sessionId = new SimpleObjectProperty<>();
-    login = new SimpleStringProperty();
     // TODO note to myself; seriously, create a single gson instance (or builder) and put it all there
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
@@ -211,7 +208,8 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
       protected Void call() throws Exception {
         while (!isCancelled()) {
           logger.info("Trying to connect to FAF server at {}:{}", lobbyHost, lobbyPort);
-          connectionState.set(ConnectionState.CONNECTING);
+          Platform.runLater(() -> connectionState.set(ConnectionState.CONNECTING));
+
 
           try (Socket fafServerSocket = new Socket(lobbyHost, lobbyPort);
                OutputStream outputStream = fafServerSocket.getOutputStream()) {
@@ -226,11 +224,11 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
             writeToServer(new InitSessionMessage(Version.VERSION));
 
             logger.info("FAF server connection established");
-            connectionState.set(ConnectionState.CONNECTED);
+            Platform.runLater(() -> connectionState.set(ConnectionState.CONNECTED));
 
             blockingReadServer(fafServerSocket);
           } catch (IOException e) {
-            connectionState.set(ConnectionState.DISCONNECTED);
+            Platform.runLater(() -> connectionState.set(ConnectionState.DISCONNECTED));
             if (isCancelled()) {
               logger.debug("Connection to FAF server has been closed");
             } else {
@@ -319,11 +317,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public Long getSessionId() {
-    return sessionId.get();
-  }
-
-  @Override
   public void sendGpgMessage(GpgGameMessage message) {
     writeToServer(message);
   }
@@ -353,8 +346,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
   private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
     ServerWriter serverWriter = new ServerWriter(outputStream);
-    serverWriter.registerMessageSerializer(new ClientMessageSerializer(login, sessionId), ClientMessage.class);
-    serverWriter.registerMessageSerializer(new PongMessageSerializer(login, sessionId), PongMessage.class);
+    serverWriter.registerMessageSerializer(new ClientMessageSerializer(), ClientMessage.class);
     serverWriter.registerMessageSerializer(new StringSerializer(), String.class);
     serverWriter.registerMessageSerializer(new GpgClientMessageSerializer(), GpgGameMessage.class);
     return serverWriter;

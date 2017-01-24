@@ -183,7 +183,7 @@ public class Ranked1v1Controller extends AbstractViewController<Node> {
     }
 
     playerService.currentPlayerProperty().addListener((observable, oldValue, newValue) -> {
-      setCurrentPlayer(newValue);
+      Platform.runLater(() -> setCurrentPlayer(newValue));
     });
     setCurrentPlayer(playerService.getCurrentPlayer());
 

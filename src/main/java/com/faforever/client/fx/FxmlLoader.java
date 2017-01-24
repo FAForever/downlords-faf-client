@@ -1,6 +1,12 @@
 package com.faforever.client.fx;
 
 
+import com.faforever.client.theme.UiService;
+
+/**
+ * @deprecated use {@link UiService#loadFxml(String)} instead.
+ */
+@Deprecated
 public interface FxmlLoader {
 
   /**

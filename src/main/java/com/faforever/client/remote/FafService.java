@@ -62,8 +62,6 @@ public interface FafService {
 
   void removeFoe(Player foeId);
 
-  Long getSessionId();
-
   CompletionStage<Ranked1v1Stats> getRanked1v1Stats();
 
   CompletionStage<Ranked1v1EntryBean> getRanked1v1EntryForPlayer(int playerId);

@@ -7,8 +7,9 @@ import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.context.support.MessageSourceResourceBundle;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
@@ -23,7 +24,8 @@ import java.util.concurrent.CountDownLatch;
 
 import static com.github.nocatch.NoCatch.noCatch;
 
-public class AbstractPlainJavaFxTest extends ApplicationTest {
+@RunWith(MockitoJUnitRunner.class)
+public abstract class AbstractPlainJavaFxTest extends ApplicationTest {
 
   private final Pane root;
   @Mock
@@ -38,7 +40,6 @@ public class AbstractPlainJavaFxTest extends ApplicationTest {
   @Override
   public void start(Stage stage) throws Exception {
     this.stage = stage;
-    MockitoAnnotations.initMocks(this);
 
     scene = new Scene(getRoot(), 1, 1);
     stage.setScene(scene);
