@@ -184,6 +184,8 @@ public class CreateGameController implements Controller<Pane> {
           return i18n.get("game.create.disconnected");
         case CONNECTING:
           return i18n.get("game.create.connecting");
+        default:
+          break;
       }
       if (Strings.isNullOrEmpty(titleTextField.getText())) {
         return i18n.get("game.create.titleMissing");
