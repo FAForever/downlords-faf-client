@@ -7,12 +7,15 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.mod.Mod;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
@@ -68,6 +71,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
   @Mock
   private UiService uiService;
+  @Mock
+  private FafService fafService;
 
   private Preferences preferences;
   private CreateGameController instance;
@@ -75,7 +80,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new CreateGameController(mapService, modService, gameService, preferencesService, i18n, notificationService, reportingService);
+    instance = new CreateGameController(fafService, mapService, modService, gameService, preferencesService, i18n, notificationService, reportingService);
 
     mapList = FXCollections.observableArrayList();
 
@@ -86,7 +91,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     when(modService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(emptyList()));
     when(modService.getInstalledMods()).thenReturn(FXCollections.observableList(emptyList()));
     when(mapService.loadPreview(anyString(), any())).thenReturn(new Image("/theme/images/close.png"));
-
+    when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<ConnectionState>(ConnectionState.CONNECTED));
     doAnswer(invocation -> getThemeFile(invocation.getArgumentAt(0, String.class)))
         .when(uiService).getThemeFile(any());
 
@@ -172,6 +177,55 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.titleTextField.getText(), is("testGame"));
   }
 
+
+  @Test
+  public void testButtonBindingIfFeaturedModNotSet() throws Exception {
+    preferences.setLastGameTitle("123");
+    when(i18n.get("game.create.featuredModMissing")).thenReturn("Mod missing");
+    preferences.getForgedAlliance().setPath(Paths.get(""));
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertThat(instance.titleTextField.getText(), is("123"));
+    assertThat(instance.createGameButton.getText(), is("Mod missing"));
+  }
+
+  @Test
+  public void testButtonBindingIfTitleNotSet() throws Exception {
+
+    when(i18n.get("game.create.titleMissing")).thenReturn("title missing");
+    preferences.getForgedAlliance().setPath(Paths.get(""));
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertThat(instance.titleTextField.getText(), is(""));
+    assertThat(instance.createGameButton.getText(), is("title missing"));
+  }
+
+  @Test
+  public void testButtonBindingIfNotConnected() throws Exception {
+    when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<ConnectionState>(ConnectionState.DISCONNECTED));
+    when(i18n.get("game.create.disconnected")).thenReturn("disconnected");
+    preferences.getForgedAlliance().setPath(Paths.get(""));
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertThat(instance.titleTextField.getText(), is(""));
+    assertThat(instance.createGameButton.getText(), is("disconnected"));
+  }
+
+  @Test
+  public void testButtonBindingIfNotConnecting() throws Exception {
+    when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<ConnectionState>(ConnectionState.CONNECTING));
+    when(i18n.get("game.create.connecting")).thenReturn("connecting");
+    preferences.getForgedAlliance().setPath(Paths.get(""));
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertThat(instance.titleTextField.getText(), is(""));
+    assertThat(instance.createGameButton.getText(), is("connecting"));
+  }
+
   @Test
   public void testSelectLastMap() throws Exception {
     MapBean lastMapBean = MapBuilder.create().defaultValues().folderName("foo").get();
@@ -188,7 +242,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testInitGameTypeComboBoxEmpty() throws Exception {
-    instance = new CreateGameController(mapService, modService, gameService, preferencesService, i18n, notificationService, reportingService);
+    instance = new CreateGameController(fafService, mapService, modService, gameService, preferencesService, i18n, notificationService, reportingService);
     loadFxml("theme/play/create_game.fxml", clazz -> instance);
 
     assertThat(instance.featuredModListView.getItems(), empty());
