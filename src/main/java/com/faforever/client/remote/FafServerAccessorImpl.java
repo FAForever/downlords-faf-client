@@ -59,6 +59,7 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -207,7 +208,8 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
       protected Void call() throws Exception {
         while (!isCancelled()) {
           logger.info("Trying to connect to FAF server at {}:{}", lobbyHost, lobbyPort);
-          connectionState.set(ConnectionState.CONNECTING);
+          Platform.runLater(() -> connectionState.set(ConnectionState.CONNECTING));
+
 
           try (Socket fafServerSocket = new Socket(lobbyHost, lobbyPort);
                OutputStream outputStream = fafServerSocket.getOutputStream()) {
@@ -222,11 +224,11 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
             writeToServer(new InitSessionMessage(Version.VERSION));
 
             logger.info("FAF server connection established");
-            connectionState.set(ConnectionState.CONNECTED);
+            Platform.runLater(() -> connectionState.set(ConnectionState.CONNECTED));
 
             blockingReadServer(fafServerSocket);
           } catch (IOException e) {
-            connectionState.set(ConnectionState.DISCONNECTED);
+            Platform.runLater(() -> connectionState.set(ConnectionState.DISCONNECTED));
             if (isCancelled()) {
               logger.debug("Connection to FAF server has been closed");
             } else {
