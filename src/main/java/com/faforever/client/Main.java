@@ -9,6 +9,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
 import javafx.application.Application;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.slf4j.Logger;
@@ -70,6 +71,8 @@ public class Main extends Application {
   @Override
   public void start(Stage stage) {
     JavaFxUtil.fixTooltipDuration();
+
+    Font.loadFont(Main.class.getResourceAsStream("/font/dfc-icons.ttf"), 10);
 
     initApplicationContext(stage);
     initStage(stage, context.getBean(UiService.class));
