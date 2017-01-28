@@ -1,6 +1,7 @@
 package com.faforever.client.login;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
@@ -15,6 +16,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -33,19 +35,28 @@ public class LoginController implements Controller<Node> {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final UserService userService;
   private final PreferencesService preferencesService;
+  private final PlatformService platformService;
+  private final String createUrl;
+  private final String forgotLoginUrl;
   public Pane loginFormPane;
   public Pane loginProgressPane;
   public CheckBox autoLoginCheckBox;
   public TextField usernameInput;
+  public Button forgotLogin;
   public TextField passwordInput;
   public Button loginButton;
+  public Button createAccountButton;
   public Label loginErrorLabel;
   public Pane loginRoot;
 
+
   @Inject
-  public LoginController(UserService userService, PreferencesService preferencesService) {
+  public LoginController(UserService userService, PreferencesService preferencesService, PlatformService platformService, @Value("${login.createAccountUrl}") String createUrl, @Value("${login.forgotLoginUrl}") String forgotLoginUrl) {
     this.userService = userService;
     this.preferencesService = preferencesService;
+    this.platformService = platformService;
+    this.createUrl = createUrl;
+    this.forgotLoginUrl = forgotLoginUrl;
   }
 
   public void initialize() {
@@ -97,6 +108,7 @@ public class LoginController implements Controller<Node> {
       if (!(e instanceof CancellationException)) {
         loginErrorLabel.setText(e.getCause().getLocalizedMessage());
         loginErrorLabel.setVisible(true);
+        //TODO: fix wrapping issue in loginErrorLable
       } else {
         loginErrorLabel.setVisible(false);
       }
@@ -123,5 +135,13 @@ public class LoginController implements Controller<Node> {
 
   public Pane getRoot() {
     return loginRoot;
+  }
+
+  public void createAccountButtonClicked() {
+    platformService.showDocument(createUrl);
+  }
+
+  public void forgotLoginButtonClicked() {
+    platformService.showDocument(forgotLoginUrl);
   }
 }
