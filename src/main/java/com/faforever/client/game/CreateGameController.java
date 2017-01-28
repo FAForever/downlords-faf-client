@@ -271,6 +271,7 @@ public class CreateGameController implements Controller<Pane> {
     for (MapBean mapBean : mapListView.getItems()) {
       if (mapBean.getFolderName().equalsIgnoreCase(lastMap)) {
         mapListView.getSelectionModel().select(mapBean);
+        mapListView.scrollTo(mapBean);
         return;
       }
     }
@@ -313,6 +314,7 @@ public class CreateGameController implements Controller<Pane> {
     for (FeaturedModBean mod : featuredModListView.getItems()) {
       if (Objects.equals(mod.getTechnicalName(), lastGameMod)) {
         featuredModListView.getSelectionModel().select(mod);
+        featuredModListView.scrollTo(mod);
         break;
       }
     }
