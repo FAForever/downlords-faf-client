@@ -8,7 +8,6 @@ import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -58,7 +57,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
     instance.updateTiles(FXCollections.observableArrayList(game));
 
     WaitForAsyncUtils.waitForFxEvents();
-    Assert.assertThat(instance.selectedGameProperty().get(), CoreMatchers.equalTo(game));
+    assertThat(instance.selectedGameProperty().get(), CoreMatchers.equalTo(game));
   }
 
   @Test
