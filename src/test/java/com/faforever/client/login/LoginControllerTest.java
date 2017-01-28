@@ -1,5 +1,6 @@
 package com.faforever.client.login;
 
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -17,15 +18,19 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class LoginControllerTest extends AbstractPlainJavaFxTest {
+  private static final String FORGOT_LOGIN_URL = "http://app.faforever.com/faf/forgotPass.php";
+  private static final String CREATE_URL = "https://www.faforever.com/account/register";
   private LoginController instance;
   @Mock
   private PreferencesService preferencesService;
   @Mock
   private UserService userService;
+  @Mock
+  private PlatformService platformService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new LoginController(userService, preferencesService);
+    instance = new LoginController(userService, preferencesService, platformService, CREATE_URL, FORGOT_LOGIN_URL);
     loadFxml("theme/login.fxml", param -> instance);
 
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
@@ -36,6 +41,18 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     instance.display();
 
     verify(userService, never()).login(anyString(), anyString(), anyBoolean());
+  }
+
+  @Test
+  public void testOnClickForgot() throws Exception {
+    instance.forgotLoginButtonClicked();
+    verify(platformService).showDocument(FORGOT_LOGIN_URL);
+  }
+
+  @Test
+  public void testOnClickRegister() throws Exception {
+    instance.createAccountButtonClicked();
+    verify(platformService).showDocument(CREATE_URL);
   }
 
   @Test
