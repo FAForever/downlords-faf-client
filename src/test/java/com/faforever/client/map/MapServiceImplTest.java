@@ -177,7 +177,7 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testloadPreview() throws Exception {
+  public void testLoadPreview() throws Exception {
     for (PreviewSize previewSize : PreviewSize.values()) {
       Path cacheSubDir = Paths.get("maps").resolve(previewSize.folderName);
       instance.loadPreview("preview", previewSize);

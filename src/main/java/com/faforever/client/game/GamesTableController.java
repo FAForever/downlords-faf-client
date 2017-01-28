@@ -11,7 +11,6 @@ import com.google.api.client.repackaged.com.google.common.base.Joiner;
 import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -87,16 +86,10 @@ public class GamesTableController implements Controller<Node> {
     passwordProtectionColumn.setCellValueFactory(param -> param.getValue().passwordProtectedProperty());
     passwordProtectionColumn.setCellFactory(param -> passwordIndicatorColumn());
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(uiService));
-    mapPreviewColumn.setCellValueFactory(param -> new ObjectBinding<Image>() {
-      {
-        bind(param.getValue().mapFolderNameProperty());
-      }
-
-      @Override
-      protected Image computeValue() {
-        return mapService.loadPreview(param.getValue().getMapFolderName(), PreviewSize.SMALL);
-      }
-    });
+    mapPreviewColumn.setCellValueFactory(param -> Bindings.createObjectBinding(
+        () -> mapService.loadPreview(param.getValue().getMapFolderName(), PreviewSize.SMALL),
+        param.getValue().mapFolderNameProperty()
+    ));
 
     gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
     gameTitleColumn.setCellFactory(param -> new StringCell<>(title -> title));

@@ -53,7 +53,6 @@ import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.net.ConnectionState.CONNECTED;
@@ -228,11 +227,9 @@ public class CreateGameController implements Controller<Pane> {
     preferencesService.getPreferences().setLastMap(newValue.getFolderName());
     preferencesService.storeInBackground();
 
-    CompletableFuture.runAsync(() -> {
-      Image largePreview = mapService.loadPreview(newValue.getFolderName(), PreviewSize.LARGE);
-      mapPreviewPane.setBackground(new Background(new BackgroundImage(largePreview, NO_REPEAT, NO_REPEAT, CENTER,
-          new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false))));
-    });
+    Image largePreview = mapService.loadPreview(newValue.getFolderName(), PreviewSize.LARGE);
+    mapPreviewPane.setBackground(new Background(new BackgroundImage(largePreview, NO_REPEAT, NO_REPEAT, CENTER,
+        new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false))));
 
     MapSize mapSize = newValue.getSize();
     mapSizeLabel.setText(i18n.get("mapPreview.size", mapSize.getWidth(), mapSize.getHeight()));

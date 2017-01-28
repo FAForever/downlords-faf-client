@@ -10,9 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,8 +39,6 @@ public class AssetServiceImpl implements AssetService {
 
   @Override
   public Image loadAndCacheImage(URL url, Path cacheSubFolder, @Nullable Supplier<Image> defaultSupplier, int width, int height) {
-    JavaFxUtil.assertBackgroundThread();
-
     if (url == null) {
       if (defaultSupplier == null) {
         return null;
@@ -59,20 +55,8 @@ public class AssetServiceImpl implements AssetService {
     }
 
     logger.debug("Fetching image {}", url);
-    try {
-      HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-      if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-        Image image = new Image(url.toString(), true);
-        JavaFxUtil.persistImage(image, cachePath, filename.substring(filename.lastIndexOf('.') + 1));
-        return image;
-      }
-      logger.debug("Image not available: " + url);
-    } catch (IOException e) {
-      logger.warn("Could not fetch image from: " + url, e);
-    }
-    if (defaultSupplier != null) {
-      return defaultSupplier.get();
-    }
-    return null;
+    Image image = new Image(url.toString(), true);
+    JavaFxUtil.persistImage(image, cachePath, filename.substring(filename.lastIndexOf('.') + 1));
+    return image;
   }
 }

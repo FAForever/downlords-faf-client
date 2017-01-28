@@ -15,7 +15,7 @@ import com.faforever.client.remote.domain.GameState;
 import com.faforever.client.theme.UiService;
 import com.google.api.client.repackaged.com.google.common.base.Joiner;
 import javafx.application.Platform;
-import javafx.beans.binding.ObjectBinding;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -74,16 +74,10 @@ public class LiveReplayController extends AbstractViewController<Node> {
     sortedList.comparatorProperty().bind(liveReplayControllerRoot.comparatorProperty());
 
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(uiService));
-    mapPreviewColumn.setCellValueFactory(param -> new ObjectBinding<Image>() {
-      {
-        bind(param.getValue().mapFolderNameProperty());
-      }
-
-      @Override
-      protected Image computeValue() {
-        return mapService.loadPreview(param.getValue().getMapFolderName(), PreviewSize.SMALL);
-      }
-    });
+    mapPreviewColumn.setCellValueFactory(param -> Bindings.createObjectBinding(
+        () -> mapService.loadPreview(param.getValue().getMapFolderName(), PreviewSize.SMALL),
+        param.getValue().mapFolderNameProperty()
+    ));
 
     gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
     gameTitleColumn.setCellFactory(param -> new StringCell<>(title -> title));
