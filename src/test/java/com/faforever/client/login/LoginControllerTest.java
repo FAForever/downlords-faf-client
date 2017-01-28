@@ -44,6 +44,18 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void testOnClickForgot() throws Exception {
+    instance.forgotLoginButtonClicked();
+    verify(platformService).showDocument(FORGOT_LOGIN_URL);
+  }
+
+  @Test
+  public void testOnClickRegister() throws Exception {
+    instance.createAccountButtonClicked();
+    verify(platformService).showDocument(CREATE_URL);
+  }
+
+  @Test
   public void testLoginButtonClicked() throws Exception {
     instance.usernameInput.setText("JUnit");
     instance.passwordInput.setText("password");
