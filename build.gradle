@@ -261,6 +261,7 @@ dependencies {
   compile("commons-validator:commons-validator:1.5.1")
   compile("com.github.micheljung:JJsonRpc:f683b55f55")
   compile("javax.inject:javax.inject:1")
+  compile 'com.github.jasminb:jsonapi-converter:0.6'
   compile("org.projectlombok:lombok:${lombokVersion}")
 
   testCompile 'junit:junit:4.11'
