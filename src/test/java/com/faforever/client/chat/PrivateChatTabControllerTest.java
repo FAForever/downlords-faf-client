@@ -6,6 +6,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.NavigationItem;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
@@ -27,7 +28,9 @@ import javafx.scene.control.TabPane;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
@@ -41,6 +44,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Mock
@@ -97,18 +101,20 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws IOException {
+    PreferencesService preferencesService = new PreferencesService(eventBus);
+    preferencesService.postConstruct();
+    preferencesService.getPreferences().getMainWindow().setLastView(NavigationItem.CHAT.name());
+
     instance = new PrivateChatTabController(clanService,
         userService, platformService, preferencesService, playerService,
         timeService, i18n, imageUploadService, urlPreviewResolver, notificationService,
         reportingService, uiService, autoCompletionHelper, eventBus, audioService,
-        chatService, mapService, webViewConfigurer, countryFlagService
-    );
+        chatService, mapService, webViewConfigurer, countryFlagService);
+
 
     playerName = "testUser";
     Player player = new Player(playerName);
 
-    when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.getChat()).thenReturn(chatPrefs);
     when(playerService.getPlayerForUsername(playerName)).thenReturn(player);
     when(userService.getUsername()).thenReturn(playerName);
     when(uiService.getThemeFileUrl(CHAT_CONTAINER)).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));

@@ -26,7 +26,6 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 @Component
@@ -160,7 +159,7 @@ public class ChatController extends AbstractViewController<Node> {
   public void onChatMessage(ChatMessageEvent event) {
     Platform.runLater(() -> {
       ChatMessage message = event.getMessage();
-      if (Objects.toString(message.getSource(), "").startsWith("#")) {
+      if (!message.isPrivate()) {
         getOrCreateChannelTab(message.getSource()).onChatMessage(message);
       } else {
         addAndGetPrivateMessageTab(message.getSource()).onChatMessage(message);

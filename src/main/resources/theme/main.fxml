@@ -47,7 +47,7 @@
                                 <ToggleGroup fx:id="mainNavigation"/>
                             </toggleGroup>
                         </ToggleButton>
-                        <ToggleButton fx:id="chatButton" mnemonicParsing="false" onAction="#onNavigate"
+                        <ToggleButton fx:id="chatButton" mnemonicParsing="false" onAction="#onChat"
                                       styleClass="main-navigation-button" text="%main.chat"
                                       toggleGroup="$mainNavigation"/>
                         <ToggleButton fx:id="playButton" mnemonicParsing="false" onAction="#onNavigate"

@@ -32,6 +32,9 @@ import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.css.PseudoClass;
+import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.layout.Pane;
@@ -69,6 +72,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class MainControllerTest extends AbstractPlainJavaFxTest {
+
+  private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
+  @Mock
+  private ForgedAlliancePrefs forgedAlliancePrefs;
   @Mock
   private PersistentNotificationsController persistentNotificationsController;
   @Mock
@@ -90,8 +97,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private NotificationService notificationService;
   @Mock
-  private ForgedAlliancePrefs forgedAlliancePrefs;
-  @Mock
   private ClientUpdateService clientUpdateService;
   @Mock
   private GameService gameService;
@@ -109,7 +114,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private EventBus eventBus;
   @Mock
   private ChatController chatController;
-
   private MainController instance;
   private CountDownLatch mainControllerInitializedLatch;
   private BooleanProperty gameRunningProperty;
@@ -220,6 +224,14 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   public void testOnMatchMakerMessageDisplaysNotification80Quality() {
     prepareTestMatchmakerMessageTest(100);
     verify(notificationService).addNotification(any(TransientNotification.class));
+  }
+
+  @Test
+  public void testOnChat() throws Exception {
+    instance.chatButton.pseudoClassStateChanged(HIGHLIGHTED, true);
+    instance.onChat(new ActionEvent(instance.chatButton, Event.NULL_SOURCE_TARGET));
+    assertThat(instance.chatButton.getPseudoClassStates().contains(HIGHLIGHTED), is(false));
+
   }
 
   private void prepareTestMatchmakerMessageTest(float deviation) {

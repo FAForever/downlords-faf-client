@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
 import com.faforever.client.clan.ClanService;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
@@ -131,6 +132,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
       showNotificationIfNecessary(chatMessage);
       setUnread(true);
       incrementUnreadMessagesCount(1);
+      eventBus.post(new UnreadPrivateMessageEvent(chatMessage));
     }
   }
 

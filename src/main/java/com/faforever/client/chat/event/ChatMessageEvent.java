@@ -13,4 +13,5 @@ public class ChatMessageEvent {
   public ChatMessage getMessage() {
     return message;
   }
+
 }
