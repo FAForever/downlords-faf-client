@@ -1344,6 +1344,11 @@
   -fx-border-color: transparent;
 }
 
+.main-navigation-button:highlighted {
+  -fx-background-color: -fx-accent;
+  -fx-text-fill: -primary-text-color-inverse;
+}
+
 .main-navigation-button:hover {
   -fx-color: transparent;
   -fx-border-color: -dimmed-accent;
