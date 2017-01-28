@@ -7,9 +7,12 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
+import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -50,6 +53,15 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void testUpdate() throws Exception {
+    Game game = GameBuilder.create().get();
+    instance.updateTiles(FXCollections.observableArrayList(game));
+
+    WaitForAsyncUtils.waitForFxEvents();
+    Assert.assertThat(instance.selectedGameProperty().get(), CoreMatchers.equalTo(game));
+  }
+
+  @Test
   public void testCreateTiledFlowPaneWithPopulatedList() throws Exception {
     when(gameTileController.getRoot()).thenReturn(new Pane());
     ObservableList<Game> observableList = FXCollections.observableArrayList();
@@ -63,9 +75,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testCreateTiledFlowPaneWithPostInstantiatedGameInfoBean() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    instance.tiledFlowPane.getChildren().addListener((Observable observable) -> {
-      latch.countDown();
-    });
+    instance.tiledFlowPane.getChildren().addListener((Observable observable) -> latch.countDown());
 
     doAnswer(invocation -> new Pane()).when(gameTileController).getRoot();
 
@@ -82,9 +92,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
   public void testCreateTiledFlowPaneWithPopulatedListAndPostInstantiatedGameInfoBean() throws Exception {
     CountDownLatch latch = new CountDownLatch(2);
     ObservableList<Node> children = instance.tiledFlowPane.getChildren();
-    children.addListener((Observable observable) -> {
-      latch.countDown();
-    });
+    children.addListener((Observable observable) -> latch.countDown());
 
     doAnswer(invocation -> new Pane()).when(gameTileController).getRoot();
 
