@@ -45,7 +45,7 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnDisplay() throws Exception {
     when(leaderboardService.getEntries(KnownFeaturedMod.LADDER_1V1)).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
-        new Ranked1v1EntryBean(), new Ranked1v1EntryBean()
+        new LeaderboardEntry(), new LeaderboardEntry()
     )));
 
     CountDownLatch loadedLatch = new CountDownLatch(1);
@@ -60,9 +60,9 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testFilterByNamePlayerExactMatch() throws Exception {
-    Ranked1v1EntryBean entry1 = new Ranked1v1EntryBean();
+    LeaderboardEntry entry1 = new LeaderboardEntry();
     entry1.setUsername("Aa");
-    Ranked1v1EntryBean entry2 = new Ranked1v1EntryBean();
+    LeaderboardEntry entry2 = new LeaderboardEntry();
     entry2.setUsername("Ab");
 
     when(leaderboardService.getEntries(KnownFeaturedMod.LADDER_1V1)).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
@@ -80,9 +80,9 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testFilterByNamePlayerPartialMatch() throws Exception {
-    Ranked1v1EntryBean entry1 = new Ranked1v1EntryBean();
+    LeaderboardEntry entry1 = new LeaderboardEntry();
     entry1.setUsername("Aa");
-    Ranked1v1EntryBean entry2 = new Ranked1v1EntryBean();
+    LeaderboardEntry entry2 = new LeaderboardEntry();
     entry2.setUsername("Ab");
 
     when(leaderboardService.getEntries(KnownFeaturedMod.LADDER_1V1)).thenReturn(CompletableFuture.completedFuture(Arrays.asList(

@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fa.ForgedAllianceService;
+import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.i18n.I18n;
@@ -44,7 +45,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.faforever.client.fa.RatingMode.GLOBAL;
-import static com.faforever.client.fa.RatingMode.RANKED_1V1;
 import static com.faforever.client.game.Faction.AEON;
 import static com.faforever.client.game.Faction.CYBRAN;
 import static com.faforever.client.game.KnownFeaturedMod.LADDER_1V1;
@@ -351,7 +351,7 @@ public class GameServiceImplTest {
   }
 
   @Test
-  public void testStartSearchRanked1v1() throws Exception {
+  public void testStartSearchLadder1v1() throws Exception {
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setMod("ladder1v1");
     gameLaunchMessage.setUid(123);
@@ -360,23 +360,23 @@ public class GameServiceImplTest {
 
     FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
 
-    when(fafService.startSearchRanked1v1(CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
+    when(fafService.startSearchLadder1v1(CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
     when(gameUpdater.update(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));
     when(mapService.isInstalled("scmp_037")).thenReturn(false);
     when(mapService.download("scmp_037")).thenReturn(CompletableFuture.completedFuture(null));
-    when(modService.getFeaturedMod(LADDER_1V1.getString())).thenReturn(CompletableFuture.completedFuture(featuredMod));
+    when(modService.getFeaturedMod(LADDER_1V1.getTechnicalName())).thenReturn(CompletableFuture.completedFuture(featuredMod));
 
-    CompletableFuture<Void> future = instance.startSearchRanked1v1(CYBRAN).toCompletableFuture();
+    CompletableFuture<Void> future = instance.startSearchLadder1v1(CYBRAN).toCompletableFuture();
 
-    verify(fafService).startSearchRanked1v1(CYBRAN, GAME_PORT);
+    verify(fafService).startSearchLadder1v1(CYBRAN, GAME_PORT);
     verify(mapService).download("scmp_037");
     verify(replayService).startReplayServer(123);
-    verify(forgedAllianceService, timeout(100)).startGame(eq(123), eq(CYBRAN), eq(asList("/team", "1", "/players", "2")), eq(RANKED_1V1), anyInt(), eq(false));
+    verify(forgedAllianceService, timeout(100)).startGame(eq(123), eq(CYBRAN), eq(asList("/team", "1", "/players", "2")), eq(RatingMode.LADDER_1V1), anyInt(), eq(false));
     assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
   }
 
   @Test
-  public void testStartSearchRanked1v1GameRunningDoesNothing() throws Exception {
+  public void testStartSearchLadder1v1GameRunningDoesNothing() throws Exception {
     Process process = mock(Process.class);
     when(process.isAlive()).thenReturn(true);
 
@@ -399,23 +399,23 @@ public class GameServiceImplTest {
     instance.hostGame(newGameInfo);
     gameRunningLatch.await(TIMEOUT, TIME_UNIT);
 
-    instance.startSearchRanked1v1(AEON);
+    instance.startSearchLadder1v1(AEON);
 
     assertThat(instance.searching1v1Property().get(), is(false));
   }
 
   @Test
-  public void testStopSearchRanked1v1() throws Exception {
+  public void testStopSearchLadder1v1() throws Exception {
     instance.searching1v1Property().set(true);
-    instance.stopSearchRanked1v1();
+    instance.stopSearchLadder1v1();
     assertThat(instance.searching1v1Property().get(), is(false));
     verify(fafService).stopSearchingRanked();
   }
 
   @Test
-  public void testStopSearchRanked1v1NotSearching() throws Exception {
+  public void testStopSearchLadder1v1NotSearching() throws Exception {
     instance.searching1v1Property().set(false);
-    instance.stopSearchRanked1v1();
+    instance.stopSearchLadder1v1();
     assertThat(instance.searching1v1Property().get(), is(false));
     verify(fafService, never()).stopSearchingRanked();
   }

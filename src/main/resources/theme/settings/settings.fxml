@@ -149,7 +149,9 @@
                                         <ToggleButton fx:id="bottomRightToastButton" focusTraversable="false" mnemonicParsing="false" prefWidth="100.0" selected="true" text="%settings.notifications.toastPosition.bottomRight" toggleGroup="$toastPosition" wrapText="true" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
                                     </children>
                                 </GridPane>
-                                <CheckBox fx:id="displayRanked1v1ToastCheckBox" mnemonicParsing="false" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="10" GridPane.valignment="CENTER" />
+                                <CheckBox fx:id="displayLadder1v1ToastCheckBox" mnemonicParsing="false"
+                                          GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="10"
+                                          GridPane.valignment="CENTER"/>
                                 <CheckBox fx:id="displayPmReceivedToastCheckBox" mnemonicParsing="false" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="9" GridPane.valignment="CENTER" />
                                 <CheckBox fx:id="playPmReceivedSoundCheckBox" mnemonicParsing="false" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="9" GridPane.valignment="CENTER" />
                                 <CheckBox fx:id="playFriendPlaysGameSoundCheckBox" disable="true" mnemonicParsing="false" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="8" GridPane.valignment="CENTER" />

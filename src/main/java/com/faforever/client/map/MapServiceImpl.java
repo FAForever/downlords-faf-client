@@ -22,6 +22,7 @@ import javafx.scene.image.Image;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
 import org.apache.lucene.store.Directory;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.luaj.vm2.LuaError;
@@ -53,8 +54,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -81,7 +80,6 @@ public class MapServiceImpl implements MapService {
   private final ApplicationContext applicationContext;
   private final Directory directory;
   private final Analyzer analyzer;
-  private final ThreadPoolExecutor threadPoolExecutor;
   private final FafService fafService;
   private final AssetService assetService;
   private final I18n i18n;
@@ -100,14 +98,13 @@ public class MapServiceImpl implements MapService {
   @Inject
   public MapServiceImpl(PreferencesService preferencesService, TaskService taskService,
                         ApplicationContext applicationContext, Directory directory, Analyzer analyzer,
-                        ThreadPoolExecutor threadPoolExecutor, FafService fafService, AssetService assetService,
+                        FafService fafService, AssetService assetService,
                         I18n i18n, UiService uiService, ClientProperties clientProperties) {
     this.preferencesService = preferencesService;
     this.taskService = taskService;
     this.applicationContext = applicationContext;
     this.directory = directory;
     this.analyzer = analyzer;
-    this.threadPoolExecutor = threadPoolExecutor;
     this.fafService = fafService;
     this.assetService = assetService;
     this.i18n = i18n;
@@ -252,7 +249,7 @@ public class MapServiceImpl implements MapService {
       mapBean.setFolderName(mapFolder.getFileName().toString());
       mapBean.setDisplayName(scenarioInfo.get("name").toString());
       mapBean.setDescription(scenarioInfo.get("description").tojstring().replaceAll("<LOC .*?>", ""));
-      mapBean.setVersion(scenarioInfo.get("map_version").toint());
+      mapBean.setVersion(new ComparableVersion(scenarioInfo.get("map_version").tojstring()));
       mapBean.setType(Type.fromString(scenarioInfo.get("type").toString()));
       mapBean.setSize(new MapSize(
           (int) (size.get(1).toint() / MAP_SIZE_FACTOR),
@@ -290,11 +287,6 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  public MapBean findMapByName(String mapName) {
-    return fafService.findMapByName(mapName);
-  }
-
-  @Override
   public boolean isOfficialMap(String mapName) {
     return OfficialMap.fromMapName(mapName) != null;
   }
@@ -305,22 +297,22 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  public CompletionStage<Void> download(String technicalMapName) {
+  public CompletableFuture<Void> download(String technicalMapName) {
     URL mapUrl = getDownloadUrl(technicalMapName, mapDownloadUrlFormat);
     return downloadAndInstallMap(technicalMapName, mapUrl, null, null);
   }
 
   @Override
-  public CompletionStage<Void> downloadAndInstallMap(MapBean map, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
+  public CompletableFuture<Void> downloadAndInstallMap(MapBean map, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
     return downloadAndInstallMap(map.getFolderName(), map.getDownloadUrl(), progressProperty, titleProperty);
   }
 
   @Override
-  public CompletionStage<List<MapBean>> lookupMap(String string, int maxResults) {
-    return CompletableFuture.supplyAsync(() -> {
+  public CompletableFuture<List<MapBean>> lookupMap(String string, int maxResults) {
+    return fafService.getMaps().thenApply(mapBeans -> {
       try {
         LOOKUP_LOCK.lock();
-        MapInfoBeanIterator iterator = new MapInfoBeanIterator(fafService.getMaps().iterator());
+        MapInfoBeanIterator iterator = new MapInfoBeanIterator(mapBeans.iterator());
         suggester.build(iterator);
         return suggester.lookup(string, maxResults, true, false).stream()
             .map(lookupResult -> iterator.deserialize(lookupResult.payload.bytes))
@@ -330,29 +322,29 @@ public class MapServiceImpl implements MapService {
       } finally {
         LOOKUP_LOCK.unlock();
       }
-    }, threadPoolExecutor).exceptionally(throwable -> {
+    }).exceptionally(throwable -> {
       logger.warn("Lookup failed", throwable);
       return null;
     });
   }
 
   @Override
-  public CompletionStage<List<MapBean>> getMostDownloadedMaps(int count) {
+  public CompletableFuture<List<MapBean>> getMostDownloadedMaps(int count) {
     return fafService.getMostDownloadedMaps(count);
   }
 
   @Override
-  public CompletionStage<List<MapBean>> getMostLikedMaps(int count) {
+  public CompletableFuture<List<MapBean>> getMostLikedMaps(int count) {
     return fafService.getMostLikedMaps(count);
   }
 
   @Override
-  public CompletionStage<List<MapBean>> getNewestMaps(int count) {
+  public CompletableFuture<List<MapBean>> getNewestMaps(int count) {
     return fafService.getNewestMaps(count);
   }
 
   @Override
-  public CompletionStage<List<MapBean>> getMostPlayedMaps(int count) {
+  public CompletableFuture<List<MapBean>> getMostPlayedMaps(int count) {
     return fafService.getMostPlayedMaps(count);
   }
 
@@ -379,7 +371,7 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  public CompletionStage<Void> uninstallMap(MapBean map) {
+  public CompletableFuture<Void> uninstallMap(MapBean map) {
     UninstallMapTask task = applicationContext.getBean(com.faforever.client.map.UninstallMapTask.class);
     task.setMap(map);
     return taskService.submitTask(task).getFuture();
@@ -414,7 +406,7 @@ public class MapServiceImpl implements MapService {
     // Nothing to see here
   }
 
-  private CompletionStage<Void> downloadAndInstallMap(String folderName, URL downloadUrl, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
+  private CompletableFuture<Void> downloadAndInstallMap(String folderName, URL downloadUrl, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
     DownloadMapTask task = applicationContext.getBean(DownloadMapTask.class);
     task.setMapUrl(downloadUrl);
     task.setFolderName(folderName);

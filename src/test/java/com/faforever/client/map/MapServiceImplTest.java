@@ -17,6 +17,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.store.RAMDirectory;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,7 +32,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.equalTo;
@@ -72,8 +72,6 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private ObjectProperty<Path> customMapsDirectoryProperty;
   @Mock
-  private ThreadPoolExecutor threadPoolExecutor;
-  @Mock
   private TaskService taskService;
   @Mock
   private I18n i18n;
@@ -92,7 +90,7 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
     clientProperties.getVault().setMapPreviewUrlFormat("http://127.0.0.1:65534/preview/%s/%s");
 
     instance = new MapServiceImpl(preferencesService, taskService, applicationContext, new RAMDirectory(), new SimpleAnalyzer(),
-        threadPoolExecutor, fafService, assetService, i18n, uiService, clientProperties);
+        fafService, assetService, i18n, uiService, clientProperties);
 
     mapsDirectory = gameDirectory.newFolder("maps").toPath();
 
@@ -163,7 +161,7 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(mapBean.getId(), isEmptyOrNullString());
     assertThat(mapBean.getDescription(), startsWith("Initial scans of the planet"));
     assertThat(mapBean.getSize(), is(new MapSize(20, 20)));
-    assertThat(mapBean.getVersion(), is(1));
+    assertThat(mapBean.getVersion(), is(new ComparableVersion("1")));
     assertThat(mapBean.getFolderName(), is("SCMP_001"));
   }
 

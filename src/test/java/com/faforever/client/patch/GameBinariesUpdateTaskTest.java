@@ -4,8 +4,6 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.google.common.hash.Hashing;
-import com.google.common.io.Files;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,15 +48,6 @@ public class GameBinariesUpdateTaskTest {
 
     when(preferencesService.getFafBinDirectory()).thenReturn(fafBinDirectory.getRoot().toPath());
     when(preferencesService.getPreferences()).thenReturn(preferences);
-  }
-
-  @Test
-  public void name() throws Exception {
-    Path dummyExe = fafBinDirectory.getRoot().toPath().resolve("ForgedAlliance.exe");
-    createFileWithSize(dummyExe, 12_444_928);
-    GameBinariesUpdateTaskImpl.updateVersionInExe(3660, dummyExe);
-
-    assertThat(Files.hash(dummyExe.toFile(), Hashing.md5()).toString(), is("4de5eed29b45b640fe64aa22808631c3"));
   }
 
   @Test(expected = IllegalStateException.class)

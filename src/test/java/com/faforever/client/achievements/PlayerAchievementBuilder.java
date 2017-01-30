@@ -1,9 +1,9 @@
 package com.faforever.client.achievements;
 
-import com.faforever.client.api.AchievementState;
-import com.faforever.client.api.PlayerAchievement;
+import com.faforever.client.api.dto.AchievementState;
+import com.faforever.client.api.dto.PlayerAchievement;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public class PlayerAchievementBuilder {
 
@@ -13,11 +13,15 @@ public class PlayerAchievementBuilder {
     playerAchievement = new PlayerAchievement();
   }
 
+  public static PlayerAchievementBuilder create() {
+    return new PlayerAchievementBuilder();
+  }
+
   public PlayerAchievementBuilder defaultValues() {
     playerAchievement.setAchievementId("1-2-3");
     playerAchievement.setState(AchievementState.REVEALED);
-    playerAchievement.setCreateTime(LocalDateTime.now());
-    playerAchievement.setUpdateTime(LocalDateTime.now());
+    playerAchievement.setCreateTime(Instant.now());
+    playerAchievement.setUpdateTime(Instant.now());
     return this;
   }
 
@@ -38,9 +42,5 @@ public class PlayerAchievementBuilder {
 
   public PlayerAchievement get() {
     return playerAchievement;
-  }
-
-  public static PlayerAchievementBuilder create() {
-    return new PlayerAchievementBuilder();
   }
 }

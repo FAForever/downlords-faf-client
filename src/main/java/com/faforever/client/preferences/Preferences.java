@@ -32,7 +32,7 @@ public class Preferences {
   private final IntegerProperty lastGameMinRating;
   private final IntegerProperty lastGameMaxRating;
   private final StringProperty gamesViewMode;
-  private final Ranked1v1Prefs ranked1v1;
+  private final Ladder1v1Prefs ladder1v1;
   private final NewsPrefs news;
   private final DeveloperPrefs developer;
 
@@ -43,7 +43,7 @@ public class Preferences {
     mainWindow = new WindowPrefs();
     forgedAlliance = new ForgedAlliancePrefs();
     themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
-    lastGameType = new SimpleStringProperty(KnownFeaturedMod.DEFAULT.getString());
+    lastGameType = new SimpleStringProperty(KnownFeaturedMod.DEFAULT.getTechnicalName());
     ignoredNotifications = new SimpleListProperty<>(observableArrayList());
     notification = new NotificationsPrefs();
     rememberLastTab = new SimpleBooleanProperty(true);
@@ -51,7 +51,7 @@ public class Preferences {
     lastMap = new SimpleStringProperty();
     lastGameMinRating = new SimpleIntegerProperty(800);
     lastGameMaxRating = new SimpleIntegerProperty(1300);
-    ranked1v1 = new Ranked1v1Prefs();
+    ladder1v1 = new Ladder1v1Prefs();
     gamesViewMode = new SimpleStringProperty();
     news = new NewsPrefs();
     developer = new DeveloperPrefs();
@@ -189,8 +189,8 @@ public class Preferences {
     return lastGameMaxRating;
   }
 
-  public Ranked1v1Prefs getRanked1v1() {
-    return ranked1v1;
+  public Ladder1v1Prefs getLadder1v1Prefs() {
+    return ladder1v1;
   }
 
   public NewsPrefs getNews() {

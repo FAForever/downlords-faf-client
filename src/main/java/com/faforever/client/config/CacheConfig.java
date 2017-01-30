@@ -1,12 +1,13 @@
 package com.faforever.client.config;
 
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CachingConfigurer;
+import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.guava.GuavaCache;
 import org.springframework.cache.interceptor.CacheErrorHandler;
 import org.springframework.cache.interceptor.CacheResolver;
 import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.cache.interceptor.SimpleCacheErrorHandler;
 import org.springframework.cache.interceptor.SimpleKeyGenerator;
 import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
@@ -23,7 +24,8 @@ import static com.faforever.client.config.CacheNames.COOP_MAPS;
 import static com.faforever.client.config.CacheNames.COUNTRY_FLAGS;
 import static com.faforever.client.config.CacheNames.FEATURED_MODS;
 import static com.faforever.client.config.CacheNames.FEATURED_MOD_FILES;
-import static com.faforever.client.config.CacheNames.LEADERBOARD;
+import static com.faforever.client.config.CacheNames.GLOBAL_LEADERBOARD;
+import static com.faforever.client.config.CacheNames.LADDER_1V1_LEADERBOARD;
 import static com.faforever.client.config.CacheNames.MAPS;
 import static com.faforever.client.config.CacheNames.MAP_PREVIEW;
 import static com.faforever.client.config.CacheNames.MODS;
@@ -39,7 +41,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Configuration
 @EnableCaching
-public class CacheConfig implements CachingConfigurer {
+public class CacheConfig extends CachingConfigurerSupport {
 
   @Bean
   @Override
@@ -50,7 +52,8 @@ public class CacheConfig implements CachingConfigurer {
         new GuavaCache(ACHIEVEMENTS, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new GuavaCache(MODS, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new GuavaCache(MAPS, newBuilder().expireAfterWrite(10, MINUTES).build()),
-        new GuavaCache(LEADERBOARD, newBuilder().maximumSize(1).expireAfterAccess(1, MINUTES).build()),
+        new GuavaCache(GLOBAL_LEADERBOARD, newBuilder().maximumSize(1).expireAfterAccess(5, MINUTES).build()),
+        new GuavaCache(LADDER_1V1_LEADERBOARD, newBuilder().maximumSize(1).expireAfterAccess(5, MINUTES).build()),
         new GuavaCache(AVAILABLE_AVATARS, newBuilder().expireAfterAccess(30, SECONDS).build()),
         new GuavaCache(COOP_MAPS, newBuilder().expireAfterAccess(10, SECONDS).build()),
         new GuavaCache(NEWS, newBuilder().expireAfterWrite(1, MINUTES).build()),
@@ -85,6 +88,6 @@ public class CacheConfig implements CachingConfigurer {
 
   @Override
   public CacheErrorHandler errorHandler() {
-    return null;
+    return new SimpleCacheErrorHandler();
   }
 }

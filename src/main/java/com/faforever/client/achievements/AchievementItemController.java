@@ -1,9 +1,9 @@
 package com.faforever.client.achievements;
 
 import com.faforever.client.achievements.AchievementService.AchievementState;
-import com.faforever.client.api.AchievementDefinition;
-import com.faforever.client.api.AchievementType;
-import com.faforever.client.api.PlayerAchievement;
+import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.api.dto.AchievementType;
+import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.google.common.base.MoreObjects;

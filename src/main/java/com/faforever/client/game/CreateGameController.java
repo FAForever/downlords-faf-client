@@ -236,7 +236,7 @@ public class CreateGameController implements Controller<Pane> {
     mapNameLabel.setText(newValue.getDisplayName());
     mapPlayersLabel.setText(i18n.number(newValue.getPlayers()));
     mapDescriptionLabel.setText(newValue.getDescription());
-    versionLabel.setText(i18n.number(newValue.getVersion()));
+    versionLabel.setText(newValue.getVersion().toString());
   }
 
   private void initFeaturedModList() {
@@ -305,7 +305,7 @@ public class CreateGameController implements Controller<Pane> {
   private void selectLastOrDefaultGameType() {
     String lastGameMod = preferencesService.getPreferences().getLastGameType();
     if (lastGameMod == null) {
-      lastGameMod = KnownFeaturedMod.DEFAULT.getString();
+      lastGameMod = KnownFeaturedMod.DEFAULT.getTechnicalName();
     }
 
     for (FeaturedModBean mod : featuredModListView.getItems()) {

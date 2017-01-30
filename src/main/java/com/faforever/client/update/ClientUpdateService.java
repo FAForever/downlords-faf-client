@@ -1,5 +1,6 @@
 package com.faforever.client.update;
 
+
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
 public interface ClientUpdateService {

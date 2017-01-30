@@ -52,10 +52,10 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 public class CustomGamesController implements Controller<Node> {
 
   private static final Collection<String> HIDDEN_FEATURED_MODS = Arrays.asList(
-      KnownFeaturedMod.COOP.getString(),
-      KnownFeaturedMod.LADDER_1V1.getString(),
-      KnownFeaturedMod.GALACTIC_WAR.getString(),
-      KnownFeaturedMod.MATCHMAKER.getString()
+      KnownFeaturedMod.COOP.getTechnicalName(),
+      KnownFeaturedMod.LADDER_1V1.getTechnicalName(),
+      KnownFeaturedMod.GALACTIC_WAR.getTechnicalName(),
+      KnownFeaturedMod.MATCHMAKER.getTechnicalName()
   );
 
   private static final Predicate<Game> OPEN_CUSTOM_GAMES_PREDICATE = gameInfoBean ->

@@ -1,5 +1,7 @@
 package com.faforever.client.patch;
 
+
+import com.faforever.commons.mod.MountPoint;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
 import java.util.List;

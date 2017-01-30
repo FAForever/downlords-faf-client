@@ -11,7 +11,7 @@ import javax.inject.Inject;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.config.CacheNames.AVATARS;
 import static com.github.nocatch.NoCatch.noCatch;
@@ -36,7 +36,7 @@ public class AvatarServiceImpl implements AvatarService {
   }
 
   @Override
-  public CompletionStage<List<AvatarBean>> getAvailableAvatars() {
+  public CompletableFuture<List<AvatarBean>> getAvailableAvatars() {
     return fafService.getAvailableAvatars();
   }
 

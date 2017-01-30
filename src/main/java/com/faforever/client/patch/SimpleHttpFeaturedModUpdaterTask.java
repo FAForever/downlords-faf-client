@@ -1,6 +1,6 @@
 package com.faforever.client.patch;
 
-import com.faforever.client.api.FeaturedModFile;
+import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.io.ByteCopier;
 import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.mod.Mod;
@@ -9,6 +9,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
+import com.faforever.commons.mod.MountPoint;
 import com.google.common.hash.Hashing;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.luaj.vm2.LuaTable;

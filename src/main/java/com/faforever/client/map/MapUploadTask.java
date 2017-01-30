@@ -2,7 +2,7 @@ package com.faforever.client.map;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.io.ByteCountListener;
+import com.faforever.client.io.ProgressListener;
 import com.faforever.client.io.Zipper;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
@@ -68,7 +68,7 @@ public class MapUploadTask extends CompletableTask<Void> {
       updateTitle(i18n.get("mapVault.upload.compressing"));
 
       Locale locale = i18n.getUserSpecificLocale();
-      ByteCountListener byteListener = (written, total) -> {
+      ProgressListener byteListener = (written, total) -> {
         updateMessage(i18n.get("bytesProgress", formatSize(written, locale), formatSize(total, locale)));
         updateProgress(written, total);
       };

@@ -12,6 +12,9 @@ public class FactionDeserializer implements JsonDeserializer<Faction> {
 
   @Override
   public Faction deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    if (json.isJsonPrimitive()) {
+      return Faction.fromFaValue(json.getAsInt());
+    }
     return Faction.fromString(json.getAsString());
   }
 }

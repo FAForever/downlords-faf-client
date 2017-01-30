@@ -11,7 +11,7 @@
          fx:controller="com.faforever.client.leaderboard.LeaderboardsController">
     <tabs>
         <Tab>
-            <fx:include fx:id="ranked1v1Leaderboard" source="leaderboard.fxml"/>
+            <fx:include fx:id="ladder1v1Leaderboard" source="leaderboard.fxml"/>
             <graphic>
                 <Group>
                     <children>
@@ -25,7 +25,7 @@
             </graphic>
         </Tab>
         <Tab>
-            <fx:include fx:id="rankedGlobalLeaderboard" source="leaderboard.fxml"/>
+            <fx:include fx:id="globalLeaderboard" source="leaderboard.fxml"/>
             <graphic>
                 <Group>
                     <children>

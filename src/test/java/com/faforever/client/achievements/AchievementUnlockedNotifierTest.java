@@ -1,7 +1,7 @@
 package com.faforever.client.achievements;
 
-import com.faforever.client.api.AchievementDefinition;
-import com.faforever.client.api.AchievementType;
+import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.api.dto.AchievementType;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationServiceImpl;

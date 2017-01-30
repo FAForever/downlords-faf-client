@@ -1,6 +1,6 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.api.Ranked1v1Stats;
+
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.remote.FafService;
 import org.junit.Before;
@@ -9,14 +9,16 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -36,32 +38,49 @@ public class LeaderboardServiceImplTest {
 
   @Test
   public void testGetLeaderboardEntries() throws Exception {
-    List<Ranked1v1EntryBean> ranked1v1EntryBeans = Collections.emptyList();
-    when(fafService.getLeaderboardEntries(any())).thenReturn(CompletableFuture.completedFuture(ranked1v1EntryBeans));
+    List<LeaderboardEntry> ladder1V1Entries = Collections.emptyList();
+    when(fafService.getLadder1v1Leaderboard()).thenReturn(CompletableFuture.completedFuture(ladder1V1Entries));
 
-    List<Ranked1v1EntryBean> result = instance.getEntries(KnownFeaturedMod.LADDER_1V1).toCompletableFuture().get(2, TimeUnit.SECONDS);
+    List<LeaderboardEntry> result = instance.getEntries(KnownFeaturedMod.LADDER_1V1).toCompletableFuture().get(2, TimeUnit.SECONDS);
 
-    verify(fafService).getLeaderboardEntries(KnownFeaturedMod.LADDER_1V1);
-    assertThat(result, is(ranked1v1EntryBeans));
+    verify(fafService).getLadder1v1Leaderboard();
+    assertThat(result, is(ladder1V1Entries));
   }
 
   @Test
-  public void testGetRanked1v1Stats() throws Exception {
-    Ranked1v1Stats ranked1v1Stats = new Ranked1v1Stats();
-    when(fafService.getRanked1v1Stats()).thenReturn(CompletableFuture.completedFuture(ranked1v1Stats));
+  public void testGetLadder1v1Stats() throws Exception {
+    LeaderboardEntry leaderboardEntry1 = new LeaderboardEntry();
+    leaderboardEntry1.setRating(151);
 
-    Ranked1v1Stats result = instance.getRanked1v1Stats().toCompletableFuture().get(2, TimeUnit.SECONDS);
-    verify(fafService).getRanked1v1Stats();
-    assertThat(result, is(ranked1v1Stats));
+    LeaderboardEntry leaderboardEntry2 = new LeaderboardEntry();
+    leaderboardEntry2.setRating(121);
+
+    LeaderboardEntry leaderboardEntry3 = new LeaderboardEntry();
+    leaderboardEntry3.setRating(221);
+
+    when(fafService.getLadder1v1Leaderboard()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
+        leaderboardEntry1, leaderboardEntry2, leaderboardEntry3
+    )));
+
+    List<RatingStat> result = instance.getLadder1v1Stats().toCompletableFuture().get(2, TimeUnit.SECONDS);
+    verify(fafService).getLadder1v1Leaderboard();
+
+    result.sort(Comparator.comparingInt(RatingStat::getCount));
+
+    assertThat(result, hasSize(2));
+    assertThat(result.get(0).getCount(), is(1));
+    assertThat(result.get(0).getRating(), is(200));
+    assertThat(result.get(1).getCount(), is(2));
+    assertThat(result.get(1).getRating(), is(100));
   }
 
   @Test
   public void testGetEntryForPlayer() throws Exception {
-    Ranked1v1EntryBean entry = new Ranked1v1EntryBean();
-    when(fafService.getRanked1v1EntryForPlayer(PLAYER_ID)).thenReturn(CompletableFuture.completedFuture(entry));
+    LeaderboardEntry entry = new LeaderboardEntry();
+    when(fafService.getLadder1v1EntryForPlayer(PLAYER_ID)).thenReturn(CompletableFuture.completedFuture(entry));
 
-    Ranked1v1EntryBean result = instance.getEntryForPlayer(PLAYER_ID).toCompletableFuture().get(2, TimeUnit.SECONDS);
-    verify(fafService).getRanked1v1EntryForPlayer(PLAYER_ID);
+    LeaderboardEntry result = instance.getEntryForPlayer(PLAYER_ID).toCompletableFuture().get(2, TimeUnit.SECONDS);
+    verify(fafService).getLadder1v1EntryForPlayer(PLAYER_ID);
     assertThat(result, is(entry));
   }
 }

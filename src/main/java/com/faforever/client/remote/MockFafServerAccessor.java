@@ -1,5 +1,6 @@
 package com.faforever.client.remote;
 
+import com.faforever.client.FafClientApplication;
 import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.KnownFeaturedMod;
@@ -47,7 +48,6 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 
 import static com.faforever.client.remote.domain.GameAccess.PASSWORD;
@@ -57,7 +57,7 @@ import static java.util.Collections.singletonList;
 
 @Lazy
 @Component
-@Profile("local")
+@Profile(FafClientApplication.POFILE_OFFLINE)
 // NOSONAR
 public class MockFafServerAccessor implements FafServerAccessor {
 
@@ -104,7 +104,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletionStage<LoginMessage> connectAndLogIn(String username, String password) {
+  public CompletableFuture<LoginMessage> connectAndLogIn(String username, String password) {
     return taskService.submitTask(new CompletableTask<LoginMessage>(HIGH) {
       @Override
       protected LoginMessage call() throws Exception {
@@ -194,7 +194,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletionStage<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
+  public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
     return taskService.submitTask(new CompletableTask<GameLaunchMessage>(HIGH) {
       @Override
       protected GameLaunchMessage call() throws Exception {
@@ -210,7 +210,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletionStage<GameLaunchMessage> requestJoinGame(int gameId, String password) {
+  public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password) {
     return taskService.submitTask(new CompletableTask<GameLaunchMessage>(HIGH) {
       @Override
       protected GameLaunchMessage call() throws Exception {
@@ -246,11 +246,11 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletionStage<GameLaunchMessage> startSearchRanked1v1(Faction faction) {
+  public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction) {
     logger.debug("Searching 1v1 match with faction: {}", faction);
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setUid(123);
-    gameLaunchMessage.setMod(KnownFeaturedMod.DEFAULT.getString());
+    gameLaunchMessage.setMod(KnownFeaturedMod.DEFAULT.getTechnicalName());
     return CompletableFuture.completedFuture(gameLaunchMessage);
   }
 

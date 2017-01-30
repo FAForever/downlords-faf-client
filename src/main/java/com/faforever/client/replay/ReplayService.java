@@ -1,12 +1,11 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.api.FeaturedMod;
+import com.faforever.client.api.dto.FeaturedMod;
 
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 public interface ReplayService {
 
@@ -30,9 +29,9 @@ public interface ReplayService {
 
   CompletableFuture<List<Replay>> searchByMod(FeaturedMod featuredMod);
 
-  CompletionStage<List<Replay>> getNewestReplays(int topElementCount);
+  CompletableFuture<List<Replay>> getNewestReplays(int topElementCount);
 
-  CompletionStage<List<Replay>> getHighestRatedReplays(int topElementCount);
+  CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount);
 
-  CompletionStage<List<Replay>> getMostWatchedReplays(int topElementCount);
+  CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount);
 }

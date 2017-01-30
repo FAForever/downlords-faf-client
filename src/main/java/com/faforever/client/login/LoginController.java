@@ -5,7 +5,6 @@ import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import com.google.common.base.Strings;
-import com.google.common.hash.Hashing;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -24,7 +23,6 @@ import java.lang.invoke.MethodHandles;
 import java.util.concurrent.CancellationException;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -108,8 +106,6 @@ public class LoginController implements Controller<Node> {
   public void loginButtonClicked() {
     String username = usernameInput.getText();
     String password = passwordInput.getText();
-
-    password = Hashing.sha256().hashString(password, UTF_8).toString();
 
     boolean autoLogin = autoLoginCheckBox.isSelected();
 

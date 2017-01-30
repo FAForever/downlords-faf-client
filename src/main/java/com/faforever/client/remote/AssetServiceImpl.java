@@ -55,6 +55,7 @@ public class AssetServiceImpl implements AssetService {
     }
 
     logger.debug("Fetching image {}", url);
+
     Image image = new Image(url.toString(), true);
     JavaFxUtil.persistImage(image, cachePath, filename.substring(filename.lastIndexOf('.') + 1));
     return image;

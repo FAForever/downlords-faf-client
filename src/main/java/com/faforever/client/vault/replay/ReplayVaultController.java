@@ -48,7 +48,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -116,7 +116,7 @@ public class ReplayVaultController implements Controller<Node> {
     timeColumn.setCellFactory(this::timeCellFactory);
     timeColumn.setSortType(TreeTableColumn.SortType.DESCENDING);
 
-    gameTypeColumn.setCellValueFactory(param -> param.getValue().getValue().gameTypeProperty());
+    gameTypeColumn.setCellValueFactory(param -> param.getValue().getValue().featuredModProperty());
 
     mapColumn.setCellValueFactory(param -> param.getValue().getValue().mapProperty());
     mapColumn.setCellFactory(this::mapCellFactory);
@@ -252,7 +252,7 @@ public class ReplayVaultController implements Controller<Node> {
     return new SimpleObjectProperty<>(Duration.between(startTime, endTime));
   }
 
-  public CompletionStage<Void> loadLocalReplaysInBackground() {
+  public CompletableFuture<Void> loadLocalReplaysInBackground() {
     LoadLocalReplaysTask task = applicationContext.getBean(LoadLocalReplaysTask.class);
 
     localReplaysRoot.getChildren().clear();

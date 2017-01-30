@@ -1,6 +1,6 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.api.ReplayInfo;
+import com.faforever.client.api.dto.Game;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
@@ -26,7 +26,7 @@ public class Replay {
   private final MapProperty<String, List<String>> teams;
   private final ObjectProperty<Instant> startTime;
   private final ObjectProperty<Instant> endTime;
-  private final StringProperty gameType;
+  private final StringProperty featuredMod;
   private final StringProperty map;
   private final ObjectProperty<Path> replayFile;
   private final IntegerProperty views;
@@ -42,7 +42,7 @@ public class Replay {
     teams = new SimpleMapProperty<>(FXCollections.observableHashMap());
     startTime = new SimpleObjectProperty<>();
     endTime = new SimpleObjectProperty<>();
-    gameType = new SimpleStringProperty();
+    featuredMod = new SimpleStringProperty();
     map = new SimpleStringProperty();
     replayFile = new SimpleObjectProperty<>();
     views = new SimpleIntegerProperty();
@@ -54,7 +54,7 @@ public class Replay {
     title.set(StringEscapeUtils.unescapeHtml4(replayInfo.getTitle()));
     startTime.set(fromPythonTime(replayInfo.getGameTime() > 0 ? replayInfo.getGameTime() : replayInfo.getLaunchedAt()));
     endTime.set(fromPythonTime(replayInfo.getGameEnd()));
-    gameType.set(replayInfo.getFeaturedMod());
+    featuredMod.set(replayInfo.getFeaturedMod());
     map.set(replayInfo.getMapname());
     this.replayFile.set(replayFile);
     if (replayInfo.getTeams() != null) {
@@ -66,21 +66,21 @@ public class Replay {
     this();
     id.setValue(replayInfo.id);
     title.setValue(replayInfo.name);
-    gameType.setValue(replayInfo.mod);
+    featuredMod.setValue(replayInfo.mod);
     map.setValue(replayInfo.map);
     startTime.setValue(Instant.ofEpochMilli(replayInfo.start * 1000));
     endTime.setValue(Instant.ofEpochMilli(replayInfo.end * 1000));
   }
 
-  public static Replay fromReplayInfo(ReplayInfo replayInfo) {
+  public static Replay fromDto(Game dto) {
     Replay replay = new Replay();
-    replay.setId(replayInfo.getId());
-    replay.setGameType(replayInfo.getFeaturedModId());
-    replay.setTitle(replayInfo.getTitle());
-    replay.setEndTime(replayInfo.getEndTime());
-    replay.setMap(replayInfo.getMapId());
-    replay.setViews(replayInfo.getViews());
-    replay.setTeams(replayInfo.getTeams());
+    replay.setId(dto.getId());
+    replay.setFeaturedMod(dto.getFeaturedMod().getTechnicalName());
+    replay.setTitle(dto.getName());
+//    replay.setEndTime(dto.getEndTime());
+    replay.setMap(dto.getMapVersion().getFilename());
+//    replay.setViews(dto.getViews());
+//    replay.setTeams(dto.getTeams());
     return replay;
   }
 
@@ -156,16 +156,16 @@ public class Replay {
     return endTime;
   }
 
-  public String getGameType() {
-    return gameType.get();
+  public String getFeaturedMod() {
+    return featuredMod.get();
   }
 
-  public void setGameType(String gameType) {
-    this.gameType.set(gameType);
+  public void setFeaturedMod(String featuredMod) {
+    this.featuredMod.set(featuredMod);
   }
 
-  public StringProperty gameTypeProperty() {
-    return gameType;
+  public StringProperty featuredModProperty() {
+    return featuredMod;
   }
 
   public String getMap() {

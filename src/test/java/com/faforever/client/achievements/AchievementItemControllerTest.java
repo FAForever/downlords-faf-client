@@ -1,9 +1,9 @@
 package com.faforever.client.achievements;
 
 import com.faforever.client.achievements.AchievementService.AchievementState;
-import com.faforever.client.api.AchievementDefinition;
-import com.faforever.client.api.AchievementType;
-import com.faforever.client.api.PlayerAchievement;
+import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.api.dto.AchievementType;
+import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.scene.effect.ColorAdjust;
@@ -77,7 +77,7 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
         .get());
 
     PlayerAchievement playerAchievement = PlayerAchievementBuilder.create().defaultValues()
-        .state(com.faforever.client.api.AchievementState.UNLOCKED)
+        .state(com.faforever.client.api.dto.AchievementState.UNLOCKED)
         .currentSteps(50)
         .get();
 
@@ -107,7 +107,7 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
     instance.setAchievementDefinition(AchievementDefinitionBuilder.create().defaultValues().get());
 
     PlayerAchievement playerAchievement = PlayerAchievementBuilder.create().defaultValues()
-        .state(com.faforever.client.api.AchievementState.REVEALED)
+        .state(com.faforever.client.api.dto.AchievementState.REVEALED)
         .get();
 
     instance.setPlayerAchievement(playerAchievement);
@@ -120,7 +120,7 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
     instance.setAchievementDefinition(AchievementDefinitionBuilder.create().defaultValues().get());
 
     PlayerAchievement playerAchievement = PlayerAchievementBuilder.create().defaultValues()
-        .state(com.faforever.client.api.AchievementState.UNLOCKED)
+        .state(com.faforever.client.api.dto.AchievementState.UNLOCKED)
         .currentSteps(50)
         .get();
 

@@ -34,7 +34,7 @@ import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -163,7 +163,7 @@ public class ModVaultController extends AbstractViewController<Node> {
     loadingPane.setVisible(false);
   }
 
-  private CompletionStage<Set<Label>> createModSuggestions(String string) {
+  private CompletableFuture<Set<Label>> createModSuggestions(String string) {
     return modService.lookupMod(string, MAX_SUGGESTIONS)
         .thenApply(new Function<List<Mod>, Set<Label>>() {
           @Override

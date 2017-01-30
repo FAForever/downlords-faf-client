@@ -45,7 +45,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
     float mean;
 
     switch (ratingMode) {
-      case RANKED_1V1:
+      case LADDER_1V1:
         deviation = currentPlayer.getLeaderboardRatingDeviation();
         mean = currentPlayer.getLeaderboardRatingMean();
         break;

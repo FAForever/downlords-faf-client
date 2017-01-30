@@ -1,6 +1,6 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.api.ApiException;
+import com.faforever.client.api.dto.ApiException;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.event.ModUploadedEvent;

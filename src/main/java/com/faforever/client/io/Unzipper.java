@@ -17,7 +17,7 @@ public final class Unzipper {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final ZipInputStream zipInputStream;
-  private ByteCountListener byteCountListener;
+  private ProgressListener progressListener;
   private int byteCountInterval;
   private int bufferSize;
   private long totalBytes;
@@ -45,8 +45,8 @@ public final class Unzipper {
     return this;
   }
 
-  public Unzipper listener(ByteCountListener byteCountListener) {
-    this.byteCountListener = byteCountListener;
+  public Unzipper listener(ProgressListener progressListener) {
+    this.progressListener = progressListener;
     return this;
   }
 
@@ -92,8 +92,8 @@ public final class Unzipper {
           outputStream.write(buffer, 0, length);
 
           long now = System.currentTimeMillis();
-          if (byteCountListener != null && lastCountUpdate < now - byteCountInterval) {
-            byteCountListener.updateBytesWritten(bytesDone, totalBytes);
+          if (progressListener != null && lastCountUpdate < now - byteCountInterval) {
+            progressListener.update(bytesDone, totalBytes);
             lastCountUpdate = now;
           }
         }

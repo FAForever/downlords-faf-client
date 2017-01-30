@@ -7,7 +7,7 @@ import java.io.OutputStream;
 public final class ByteCopier {
 
   private final InputStream inputStream;
-  private ByteCountListener byteCountListener;
+  private ProgressListener progressListener;
   private int byteCountInterval;
   private int bufferSize;
   private long totalBytes;
@@ -38,8 +38,8 @@ public final class ByteCopier {
     return this;
   }
 
-  public ByteCopier listener(ByteCountListener byteCountListener) {
-    this.byteCountListener = byteCountListener;
+  public ByteCopier listener(ProgressListener progressListener) {
+    this.progressListener = progressListener;
     return this;
   }
 
@@ -64,8 +64,8 @@ public final class ByteCopier {
       bytesDone += length;
 
       long now = System.currentTimeMillis();
-      if (byteCountListener != null && lastCountUpdate < now - byteCountInterval) {
-        byteCountListener.updateBytesWritten(bytesDone, totalBytes);
+      if (progressListener != null && lastCountUpdate < now - byteCountInterval) {
+        progressListener.update(bytesDone, totalBytes);
         lastCountUpdate = now;
       }
     }

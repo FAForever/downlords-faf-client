@@ -8,6 +8,7 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.Validator;
+import com.faforever.commons.fa.ForgedAllianceExePatcher;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
@@ -20,12 +21,9 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.RandomAccessFile;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -59,7 +57,6 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
       "zlibwapi.dll"
   );
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final int[] VERSION_ADDRESSES = new int[]{0xd3d40, 0x47612d, 0x476666};
 
   private final I18n i18n;
   private final PreferencesService preferencesService;
@@ -78,22 +75,6 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
     this.fafExeUrl = clientProperties.getForgedAlliance().getExeUrl();
   }
 
-  @VisibleForTesting
-  static void updateVersionInExe(Integer version, Path exePath) throws IOException {
-    byte[] versionAsLittleEndianBytes = toLittleEndianByteArray(version);
-    try (RandomAccessFile randomAccessFile = new RandomAccessFile(exePath.toFile(), "rw")) {
-      logger.debug("Updating version in {} to {}", exePath, version);
-      for (int versionAddress : VERSION_ADDRESSES) {
-        randomAccessFile.seek(versionAddress);
-        randomAccessFile.write(versionAsLittleEndianBytes);
-      }
-    }
-  }
-
-  private static byte[] toLittleEndianByteArray(int i) {
-    return ByteBuffer.allocate(Integer.SIZE / Byte.SIZE).order(ByteOrder.LITTLE_ENDIAN).putInt(i).array();
-  }
-
   @Override
   protected Void call() throws Exception {
     updateTitle(i18n.get("updater.binary.taskTitle"));
@@ -104,7 +85,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
 
     copyGameFilesToFafBinDirectory();
     downloadFafExeIfNecessary(exePath);
-    updateVersionInExe(version, exePath);
+    ForgedAllianceExePatcher.patchVersion(exePath, version);
     logger.debug("Binaries have been updated successfully");
     return null;
   }

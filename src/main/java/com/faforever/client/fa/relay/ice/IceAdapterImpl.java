@@ -192,7 +192,7 @@ public class IceAdapterImpl implements IceAdapter {
   }
 
   private void updateLobbyModeFromGameInfo(GameLaunchMessage gameLaunchMessage) {
-    if (KnownFeaturedMod.LADDER_1V1.getString().equals(gameLaunchMessage.getMod())) {
+    if (KnownFeaturedMod.LADDER_1V1.getTechnicalName().equals(gameLaunchMessage.getMod())) {
       lobbyMode = LobbyMode.NO_LOBBY;
     } else {
       lobbyMode = LobbyMode.DEFAULT_LOBBY;

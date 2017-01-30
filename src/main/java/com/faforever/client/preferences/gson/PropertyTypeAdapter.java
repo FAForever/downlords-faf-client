@@ -40,32 +40,6 @@ import java.util.Set;
 
 public class PropertyTypeAdapter implements JsonSerializer<Property>, JsonDeserializer<Property> {
 
-  private class CustomType implements ParameterizedType {
-
-    private final Class<?> rawType;
-    private final Type[] typeArguments;
-
-    public CustomType(Class<?> rawType, Type[] typeArguments) {
-      this.rawType = rawType;
-      this.typeArguments = typeArguments;
-    }
-
-    @Override
-    public Type[] getActualTypeArguments() {
-      return typeArguments;
-    }
-
-    @Override
-    public Type getRawType() {
-      return rawType;
-    }
-
-    @Override
-    public Type getOwnerType() {
-      return null;
-    }
-  }
-
   public static final PropertyTypeAdapter INSTANCE = new PropertyTypeAdapter();
 
   private PropertyTypeAdapter() {
@@ -142,7 +116,7 @@ public class PropertyTypeAdapter implements JsonSerializer<Property>, JsonDeseri
         return new SimpleListProperty<>(FXCollections.observableList(context.deserialize(json, type)));
       } else if (rawType == SetProperty.class) {
         CustomType type = new CustomType(Set.class, parameterizedType.getActualTypeArguments());
-        // Why is this the only call that needs paramaterization?
+        // Why is this the only call that needs parameterization?
         return new SimpleSetProperty<>(FXCollections.observableSet(context.<Set<Object>>deserialize(json, type)));
       } else if (rawType == MapProperty.class) {
         CustomType type = new CustomType(Map.class, parameterizedType.getActualTypeArguments());
@@ -151,5 +125,31 @@ public class PropertyTypeAdapter implements JsonSerializer<Property>, JsonDeseri
     }
 
     throw new IllegalStateException("Unhandled object type: " + typeOfT);
+  }
+
+  private class CustomType implements ParameterizedType {
+
+    private final Class<?> rawType;
+    private final Type[] typeArguments;
+
+    public CustomType(Class<?> rawType, Type[] typeArguments) {
+      this.rawType = rawType;
+      this.typeArguments = typeArguments;
+    }
+
+    @Override
+    public Type[] getActualTypeArguments() {
+      return typeArguments;
+    }
+
+    @Override
+    public Type getRawType() {
+      return rawType;
+    }
+
+    @Override
+    public Type getOwnerType() {
+      return null;
+    }
   }
 }

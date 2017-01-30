@@ -18,7 +18,7 @@ public interface UiService {
   String DEFAULT_ACHIEVEMENT_IMAGE = "theme/images/default_achievement.png";
   String MENTION_SOUND = "theme/sounds/mention.mp3";
   String CSS_CLASS_ICON = "icon";
-  String RANKED_1V1_IMAGE = "theme/images/ranked1v1_notification.png";
+  String LADDER_1V1_IMAGE = "theme/images/ranked1v1_notification.png";
   String CHAT_CONTAINER = "theme/chat/chat_container.html";
   String CHAT_ENTRY = "theme/chat/chat_section.html";
   String CHAT_TEXT = "theme/chat/chat_text.html";

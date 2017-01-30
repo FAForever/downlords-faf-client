@@ -1,6 +1,7 @@
 package com.faforever.client.ui.preferences.event;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
+
 import java.nio.file.Path;
 
 public class GameDirectoryChosenEvent {

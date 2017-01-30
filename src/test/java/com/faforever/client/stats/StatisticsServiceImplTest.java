@@ -1,6 +1,6 @@
 package com.faforever.client.stats;
 
-import com.faforever.client.api.RatingType;
+import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.remote.FafService;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +25,7 @@ public class StatisticsServiceImplTest {
 
   @Test
   public void testGetStatisticsForPlayer() throws Exception {
-    instance.getRatingHistory(RatingType.GLOBAL, 123);
-    verify(fafService).getRatingHistory(RatingType.GLOBAL, 123);
+    instance.getRatingHistory(KnownFeaturedMod.FAF, 123);
+    verify(fafService).getRatingHistory(123, KnownFeaturedMod.FAF);
   }
 }

@@ -1,5 +1,6 @@
 package com.faforever.client.config;
 
+import com.faforever.client.FafClientApplication;
 import com.faforever.client.game.FaInitGenerator;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.patch.GameUpdater;
@@ -16,7 +17,7 @@ import org.springframework.context.annotation.Profile;
 import javax.inject.Inject;
 
 @Configuration
-@Profile("!local")
+@Profile("!" + FafClientApplication.POFILE_OFFLINE)
 public class FeaturedModUpdaterConfig {
 
   @Inject

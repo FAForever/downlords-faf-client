@@ -257,7 +257,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testSelectLastOrDefaultSelectDefault() throws Exception {
     FeaturedModBean featuredModBean = FeaturedModBeanBuilder.create().defaultValues().technicalName("something").get();
-    FeaturedModBean featuredModBean2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getString()).get();
+    FeaturedModBean featuredModBean2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName()).get();
 
     preferences.setLastGameType(null);
     when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
@@ -271,7 +271,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testSelectLastOrDefaultSelectLast() throws Exception {
     FeaturedModBean featuredModBean = FeaturedModBeanBuilder.create().defaultValues().technicalName("last").get();
-    FeaturedModBean featuredModBean2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getString()).get();
+    FeaturedModBean featuredModBean2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName()).get();
 
     preferences.setLastGameType("last");
     when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
