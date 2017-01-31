@@ -57,11 +57,9 @@ import static java.util.Locale.US;
 public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private final UserService userService;
   private final ChatService chatService;
   private final PreferencesService preferencesService;
   private final PlayerService playerService;
-  private final GameService gameService;
   private final ReplayService replayService;
   private final NotificationService notificationService;
   private final I18n i18n;
@@ -92,11 +90,9 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
   @Inject
   public ChatUserContextMenuController(UserService userService, ChatService chatService, PreferencesService preferencesService, PlayerService playerService, GameService gameService, ReplayService replayService, NotificationService notificationService, I18n i18n, EventBus eventBus, JoinGameHelper joinGameHelper, AvatarService avatarService, UiService uiService) {
-    this.userService = userService;
     this.chatService = chatService;
     this.preferencesService = preferencesService;
     this.playerService = playerService;
-    this.gameService = gameService;
     this.replayService = replayService;
     this.notificationService = notificationService;
     this.i18n = i18n;
@@ -124,7 +120,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
         });
   }
 
-  public ContextMenu getContextMenu() {
+  ContextMenu getContextMenu() {
     return chatUserContextMenuRoot;
   }
 

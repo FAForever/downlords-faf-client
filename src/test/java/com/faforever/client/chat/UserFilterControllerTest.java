@@ -33,9 +33,8 @@ public class UserFilterControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new UserFilterController();
+    instance = new UserFilterController(i18n);
     instance.channelTabController = channelTabController;
-    instance.i18n = i18n;
 
     when(chatUserItemController.getPlayer()).thenReturn(player);
 
@@ -126,15 +125,5 @@ public class UserFilterControllerTest extends AbstractPlainJavaFxTest {
     instance.onGameStatusNone(null);
     assertEquals(IDLE, instance.playerStatusFilter);
     assertEquals(i18n.get("chat.filter.gameStatus.none"), instance.gameStatusMenu.getText());
-  }
-
-  @Test
-  public void testOnClearGameStatus() throws Exception {
-    when(channelTabController.getUserToChatUserControls()).thenReturn(new HashMap<>());
-    when(i18n.get("chat.filter.gameStatus")).thenReturn("gameStatus");
-
-    instance.onClearGameStatus(null);
-    assertEquals(null, instance.playerStatusFilter);
-    assertEquals(i18n.get("chat.filter.gameStatus"), instance.gameStatusMenu.getText());
   }
 }

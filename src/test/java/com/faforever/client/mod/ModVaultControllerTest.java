@@ -1,5 +1,7 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
@@ -42,13 +44,14 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
   private EventBus eventBus;
   @Mock
   private ModCardController modCardController;
+  @Mock
+  private I18n i18n;
+  @Mock
+  private PreferencesService preferencesService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new ModVaultController();
-    instance.modService = modService;
-    instance.uiService = uiService;
-    instance.eventBus = eventBus;
+    instance = new ModVaultController(modService, i18n, preferencesService, eventBus, uiService);
 
     doAnswer(invocation -> {
       when(modCardController.getRoot()).then(invocation1 -> new Pane());

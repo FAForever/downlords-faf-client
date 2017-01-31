@@ -51,9 +51,13 @@ import static org.mockito.Mockito.when;
 
 public class FafApiAccessorImplTest {
 
+  private static final String O_AUTH_URL = "http://api.example.com/oauth/authorize";
+
   @Rule
   public TemporaryFolder preferencesDirectory = new TemporaryFolder();
+
   private FafApiAccessorImpl instance;
+
   @Mock
   private PreferencesService preferencesService;
   @Mock
@@ -69,6 +73,7 @@ public class FafApiAccessorImplTest {
 
   @Spy
   private SpyableHttpTransport httpTransport;
+  private URI oAuthLoginUrl;
 
   @Before
   public void setUp() throws Exception {
@@ -76,13 +81,10 @@ public class FafApiAccessorImplTest {
 
     httpTransport.lowLevelHttpRequest = httpRequest;
 
-    instance = new FafApiAccessorImpl(new GsonFactory(), preferencesService, httpTransport, clientHttpRequestFactory, eventBus);
-    instance.baseUrl = "http://api.example.com";
-    instance.oAuthTokenServerUrl = "http://api.example.com/token";
-    instance.oAuthClientSecret = "123";
-    instance.oAuthClientId = "456";
-    instance.oAuthUrl = "http://api.example.com/oauth/authorize";
-    instance.oAuthLoginUrl = new URI("http://api.example.com/login");
+    oAuthLoginUrl = new URI("http://api.example.com/login");
+    instance = new FafApiAccessorImpl(new GsonFactory(), preferencesService, httpTransport, clientHttpRequestFactory,
+        eventBus, "http://api.example.com", O_AUTH_URL,
+        "http://api.example.com/token", "456", "123", oAuthLoginUrl);
 
     when(preferencesService.getPreferencesDirectory()).thenReturn(preferencesDirectory.getRoot().toPath());
     when(userService.getUserId()).thenReturn(123);
@@ -411,13 +413,13 @@ public class FafApiAccessorImplTest {
     loginResponse.getHeaders().add("Set-Cookie", "some cookies");
     MockClientHttpRequest loginRequest = new MockClientHttpRequest();
     loginRequest.setResponse(loginResponse);
-    when(clientHttpRequestFactory.createRequest(instance.oAuthLoginUrl, HttpMethod.POST)).thenReturn(loginRequest);
+    when(clientHttpRequestFactory.createRequest(oAuthLoginUrl, HttpMethod.POST)).thenReturn(loginRequest);
 
     ClientHttpResponse authResponse = new MockClientHttpResponse((byte[]) null, HttpStatus.FOUND);
     authResponse.getHeaders().setLocation(new URI("http://localhost:1111?code=1337"));
     MockClientHttpRequest authRequest = new MockClientHttpRequest();
     authRequest.setResponse(authResponse);
-    when(clientHttpRequestFactory.createRequest(uriStartingWith(instance.oAuthUrl), eq(HttpMethod.POST))).thenReturn(authRequest);
+    when(clientHttpRequestFactory.createRequest(uriStartingWith(O_AUTH_URL), eq(HttpMethod.POST))).thenReturn(authRequest);
 
     mockResponse("{}");
 

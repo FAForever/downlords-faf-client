@@ -35,9 +35,9 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -58,7 +58,6 @@ public class Ranked1v1Controller extends AbstractViewController<Node> {
   private final Environment environment;
   private final LeaderboardService leaderboardService;
   private final I18n i18n;
-  private final Locale locale;
   public CategoryAxis ratingDistributionXAxis;
   public NumberAxis ratingDistributionYAxis;
   public BarChart<String, Integer> ratingDistributionChart;
@@ -85,14 +84,18 @@ public class Ranked1v1Controller extends AbstractViewController<Node> {
   private boolean initialized;
 
   @Inject
-  public Ranked1v1Controller(GameService gameService, PreferencesService preferencesService, PlayerService playerService, Environment environment, LeaderboardService leaderboardService, I18n i18n, Locale locale) {
+  public Ranked1v1Controller(GameService gameService,
+                             PreferencesService preferencesService,
+                             PlayerService playerService,
+                             Environment environment,
+                             LeaderboardService leaderboardService,
+                             I18n i18n) {
     this.gameService = gameService;
     this.preferencesService = preferencesService;
     this.playerService = playerService;
     this.environment = environment;
     this.leaderboardService = leaderboardService;
     this.i18n = i18n;
-    this.locale = locale;
 
     random = new Random();
   }
@@ -213,7 +216,7 @@ public class Ranked1v1Controller extends AbstractViewController<Node> {
     } else {
       ratingProgressIndicator.setVisible(false);
       ratingLabel.setVisible(true);
-      ratingLabel.setText(String.format(locale, "%d", rating));
+      ratingLabel.setText(i18n.number(rating));
 
       updateRatingHint(rating);
     }
@@ -264,10 +267,10 @@ public class Ranked1v1Controller extends AbstractViewController<Node> {
     XYChart.Series<String, Integer> series = new XYChart.Series<>();
     series.setName(i18n.get("ranked1v1.players"));
     series.getData().addAll(ranked1v1Stats.getRatingDistribution().entrySet().stream()
-        .sorted((o1, o2) -> Integer.compare(parseInt(o1.getKey()), parseInt(o2.getKey())))
+        .sorted(Comparator.comparingInt(o -> parseInt(o.getKey())))
         .map(item -> {
           int rating = parseInt(item.getKey());
-          XYChart.Data<String, Integer> data = new XYChart.Data<>(String.format(locale, "%d", rating), item.getValue());
+          XYChart.Data<String, Integer> data = new XYChart.Data<>(i18n.number(rating), item.getValue());
           int currentPlayerRating = RatingUtil.getLeaderboardRating(player);
           if (rating == currentPlayerRating) {
             data.nodeProperty().addListener((observable, oldValue, newValue) -> {

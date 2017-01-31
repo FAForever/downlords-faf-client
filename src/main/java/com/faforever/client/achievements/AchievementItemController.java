@@ -6,7 +6,6 @@ import com.faforever.client.api.AchievementType;
 import com.faforever.client.api.PlayerAchievement;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.PreferencesService;
 import com.google.common.base.MoreObjects;
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -20,7 +19,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import java.util.Locale;
 import java.util.Objects;
 
 @Component
@@ -28,9 +26,7 @@ import java.util.Objects;
 // TODO this class should not use API objects
 public class AchievementItemController implements Controller<Node> {
 
-  private final Locale locale;
   private final I18n i18n;
-  private final PreferencesService preferencesService;
   private final AchievementService achievementService;
   public GridPane achievementItemRoot;
   public Label nameLabel;
@@ -42,10 +38,8 @@ public class AchievementItemController implements Controller<Node> {
   private AchievementDefinition achievementDefinition;
 
   @Inject
-  public AchievementItemController(Locale locale, I18n i18n, PreferencesService preferencesService, AchievementService achievementService) {
-    this.locale = locale;
+  public AchievementItemController(I18n i18n, AchievementService achievementService) {
     this.i18n = i18n;
-    this.preferencesService = preferencesService;
     this.achievementService = achievementService;
   }
 
@@ -63,7 +57,7 @@ public class AchievementItemController implements Controller<Node> {
 
     nameLabel.setText(achievementDefinition.getName());
     descriptionLabel.setText(achievementDefinition.getDescription());
-    pointsLabel.setText(String.format(locale, "%d", achievementDefinition.getExperiencePoints()));
+    pointsLabel.setText(i18n.number(achievementDefinition.getExperiencePoints()));
     imageView.setImage(achievementService.getImage(achievementDefinition, AchievementService.AchievementState.REVEALED));
     progressLabel.setText(i18n.get("achievement.stepsFormat", 0, achievementDefinition.getTotalSteps()));
     progressBar.setProgress(0);

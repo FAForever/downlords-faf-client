@@ -64,15 +64,7 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new UserInfoWindowController();
-    instance.countryFlagService = countryFlagService;
-    instance.locale = locale;
-    instance.i18n = i18n;
-    instance.statisticsService = statisticsService;
-    instance.achievementService = achievementService;
-    instance.eventService = eventService;
-    instance.uiService = uiService;
-    instance.preferencesService = preferencesService;
+    instance = new UserInfoWindowController(statisticsService, countryFlagService, achievementService, eventService, preferencesService, i18n, uiService);
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getThemeName()).thenReturn("default");

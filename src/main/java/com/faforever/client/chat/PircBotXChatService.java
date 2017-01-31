@@ -128,7 +128,12 @@ public class PircBotXChatService implements ChatService {
   private boolean autoChannelsJoined;
 
   @Inject
-  public PircBotXChatService(PreferencesService preferencesService, UserService userService, TaskService taskService, FafService fafService, I18n i18n, PircBotXFactory pircBotXFactory, NotificationService notificationService, ThreadPoolExecutor threadPoolExecutor, EventBus eventBus, @Value("${irc.host}") String ircHost, @Value("${irc.port}") int ircPort, @Value("${irc.defaultChannel}") String defaultChannelName, @Value("${irc.reconnectDelay}") int reconnectDelay) {
+  public PircBotXChatService(PreferencesService preferencesService, UserService userService, TaskService taskService,
+                             FafService fafService, I18n i18n, PircBotXFactory pircBotXFactory,
+                             NotificationService notificationService, ThreadPoolExecutor threadPoolExecutor,
+                             EventBus eventBus, @Value("${irc.host}") String ircHost, @Value("${irc.port}") int ircPort,
+                             @Value("${irc.defaultChannel}") String defaultChannelName,
+                             @Value("${irc.reconnectDelay}") int reconnectDelay) {
     this.preferencesService = preferencesService;
     this.userService = userService;
     this.taskService = taskService;

@@ -119,7 +119,14 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   private CountDownLatch authorizedLatch;
 
   @Inject
-  public FafApiAccessorImpl(JsonFactory jsonFactory, PreferencesService preferencesService, HttpTransport httpTransport, ClientHttpRequestFactory clientHttpRequestFactory, EventBus eventBus, @Value("${api.baseUrl}") String baseUrl, @Value("${oauth.authUri}") String oAuthUrl, @Value("${oauth.tokenUri}") String oAuthTokenServerUrl, @Value("${oauth.clientId}") String oAuthClientId, @Value("${oauth.clientSecret}") String oAuthClientSecret, @Value("${oauth.loginUri}") URI oAuthLoginUrl) {
+  public FafApiAccessorImpl(JsonFactory jsonFactory, PreferencesService preferencesService, HttpTransport httpTransport,
+                            ClientHttpRequestFactory clientHttpRequestFactory, EventBus eventBus,
+                            @Value("${api.baseUrl}") String baseUrl,
+                            @Value("${oauth.authUri}") String oAuthUrl,
+                            @Value("${oauth.tokenUri}") String oAuthTokenServerUrl,
+                            @Value("${oauth.clientId}") String oAuthClientId,
+                            @Value("${oauth.clientSecret}") String oAuthClientSecret,
+                            @Value("${oauth.loginUri}") URI oAuthLoginUrl) {
     authorizedLatch = new CountDownLatch(1);
     this.jsonFactory = jsonFactory;
     this.preferencesService = preferencesService;
@@ -297,9 +304,9 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public void uploadMod(Path file, ByteCountListener listener) throws IOException {
+  public void uploadMod(Path file, ByteCountListener listener) {
     MultipartContent multipartContent = createFileMultipart(file, listener);
-    post("/mods/upload", multipartContent);
+    noCatch(() -> post("/mods/upload", multipartContent));
   }
 
   @Override

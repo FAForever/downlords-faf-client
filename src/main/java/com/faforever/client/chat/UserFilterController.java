@@ -43,20 +43,14 @@ public class UserFilterController implements Controller<Node> {
     this.i18n = i18n;
   }
 
-  public void setChannelController(ChannelTabController channelTabController) {
+  void setChannelController(ChannelTabController channelTabController) {
     this.channelTabController = channelTabController;
   }
 
   void initialize() {
-    clanFilterField.textProperty().addListener((observable, oldValue, newValue) -> {
-      filterUsers();
-    });
-    minRatingFilterField.textProperty().addListener((observable, oldValue, newValue) -> {
-      filterUsers();
-    });
-    maxRatingFilterField.textProperty().addListener((observable, oldValue, newValue) -> {
-      filterUsers();
-    });
+    clanFilterField.textProperty().addListener((observable, oldValue, newValue) -> filterUsers());
+    minRatingFilterField.textProperty().addListener((observable, oldValue, newValue) -> filterUsers());
+    maxRatingFilterField.textProperty().addListener((observable, oldValue, newValue) -> filterUsers());
   }
 
   private void filterUsers() {
@@ -144,12 +138,6 @@ public class UserFilterController implements Controller<Node> {
   public void onGameStatusNone(ActionEvent actionEvent) {
     playerStatusFilter = IDLE;
     gameStatusMenu.setText(i18n.get("chat.filter.gameStatus.none"));
-    filterUsers();
-  }
-
-  public void onClearGameStatus(ActionEvent actionEvent) {
-    playerStatusFilter = null;
-    gameStatusMenu.setText(i18n.get("chat.filter.gameStatus"));
     filterUsers();
   }
 

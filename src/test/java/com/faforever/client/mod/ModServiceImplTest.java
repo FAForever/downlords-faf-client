@@ -46,7 +46,6 @@ import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.contains;
@@ -59,7 +58,6 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ModServiceImplTest {
@@ -173,8 +171,9 @@ public class ModServiceImplTest {
   public void testDownloadAndInstallMod() throws Exception {
     assertThat(instance.getInstalledMods().size(), is(1));
 
-    InstallModTask task = mock(InstallModTask.class, withSettings().useConstructor());
-    when(task.getFuture()).thenReturn(completedFuture(null));
+    InstallModTask task = stubInstallModTask();
+    task.getFuture().complete(null);
+
     when(applicationContext.getBean(InstallModTask.class)).thenReturn(task);
 
     URL modUrl = new URL("http://example.com/some/mod.zip");
@@ -184,7 +183,6 @@ public class ModServiceImplTest {
 
     instance.downloadAndInstallMod(modUrl).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
-    verify(task).setUrl(modUrl);
     assertThat(instance.getInstalledMods().size(), is(2));
   }
 
@@ -192,8 +190,9 @@ public class ModServiceImplTest {
   public void testDownloadAndInstallModWithProperties() throws Exception {
     assertThat(instance.getInstalledMods().size(), is(1));
 
-    InstallModTask task = mock(InstallModTask.class, withSettings().useConstructor());
-    when(task.getFuture()).thenReturn(completedFuture(null));
+    InstallModTask task = stubInstallModTask();
+    task.getFuture().complete(null);
+
     when(applicationContext.getBean(InstallModTask.class)).thenReturn(task);
 
     URL modUrl = new URL("http://example.com/some/mod.zip");
@@ -209,7 +208,6 @@ public class ModServiceImplTest {
     assertThat(stringProperty.isBound(), is(true));
     assertThat(doubleProperty.isBound(), is(true));
 
-    verify(task).setUrl(modUrl);
     assertThat(instance.getInstalledMods().size(), is(2));
   }
 
@@ -217,8 +215,9 @@ public class ModServiceImplTest {
   public void testDownloadAndInstallModInfoBeanWithProperties() throws Exception {
     assertThat(instance.getInstalledMods().size(), is(1));
 
-    InstallModTask task = mock(InstallModTask.class, withSettings().useConstructor());
-    when(task.getFuture()).thenReturn(completedFuture(null));
+    InstallModTask task = stubInstallModTask();
+    task.getFuture().complete(null);
+
     when(applicationContext.getBean(InstallModTask.class)).thenReturn(task);
 
     URL modUrl = new URL("http://example.com/some/mod.zip");
@@ -235,7 +234,6 @@ public class ModServiceImplTest {
     assertThat(stringProperty.isBound(), is(true));
     assertThat(doubleProperty.isBound(), is(true));
 
-    verify(task).setUrl(modUrl);
     assertThat(instance.getInstalledMods().size(), is(2));
   }
 
@@ -469,5 +467,14 @@ public class ModServiceImplTest {
       invocation.getArgumentAt(0, Runnable.class).run();
       return null;
     }).when(threadPoolExecutor).execute(any(Runnable.class));
+  }
+
+  private InstallModTask stubInstallModTask() {
+    return new InstallModTask(preferencesService, i18n) {
+      @Override
+      protected Void call() throws Exception {
+        return null;
+      }
+    };
   }
 }

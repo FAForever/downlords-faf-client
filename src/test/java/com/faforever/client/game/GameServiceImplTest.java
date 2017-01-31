@@ -3,9 +3,11 @@ package com.faforever.client.game;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.IceAdapter;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
@@ -16,6 +18,7 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.replay.ReplayService;
+import com.faforever.client.reporting.ReportingService;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.SimpleObjectProperty;
@@ -112,25 +115,22 @@ public class GameServiceImplTest {
   private IceAdapter iceAdapter;
   @Mock
   private ModService modService;
+  @Mock
+  private NotificationService notificationService;
+  @Mock
+  private I18n i18n;
+  @Mock
+  private ReportingService reportingService;
 
   @Captor
   private ArgumentCaptor<Consumer<GameInfoMessage>> gameInfoMessageListenerCaptor;
 
   @Before
   public void setUp() throws Exception {
-    instance = new GameServiceImpl();
-    instance.fafService = fafService;
-    instance.mapService = mapService;
-    instance.modService = modService;
-    instance.forgedAllianceService = forgedAllianceService;
-    instance.gameUpdater = gameUpdater;
-    instance.preferencesService = preferencesService;
-    instance.applicationContext = applicationContext;
-    instance.playerService = playerService;
-    instance.scheduledExecutorService = scheduledExecutorService;
+    instance = new GameServiceImpl(fafService, forgedAllianceService, mapService, preferencesService, gameUpdater,
+        notificationService, i18n, applicationContext, scheduledExecutorService, playerService, reportingService,
+        eventBus, iceAdapter, modService);
     instance.replayService = replayService;
-    instance.eventBus = eventBus;
-    instance.iceAdapter = iceAdapter;
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);

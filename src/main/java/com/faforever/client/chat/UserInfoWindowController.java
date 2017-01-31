@@ -56,7 +56,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
@@ -92,9 +91,7 @@ public class UserInfoWindowController implements Controller<Node> {
   private final CountryFlagService countryFlagService;
   private final AchievementService achievementService;
   private final EventService eventService;
-  private final PreferencesService preferencesService;
   private final I18n i18n;
-  private final Locale locale;
   private final UiService uiService;
   public Label lockedAchievementsHeaderLabel;
   public Label unlockedAchievementsHeaderLabel;
@@ -128,18 +125,15 @@ public class UserInfoWindowController implements Controller<Node> {
   private Player player;
   private Map<String, AchievementItemController> achievementItemById;
   private Map<String, AchievementDefinition> achievementDefinitionById;
-  private int earnedExperiencePoints;
   private Window ownerWindow;
 
   @Inject
-  public UserInfoWindowController(StatisticsService statisticsService, CountryFlagService countryFlagService, AchievementService achievementService, EventService eventService, PreferencesService preferencesService, I18n i18n, Locale locale, UiService uiService) {
+  public UserInfoWindowController(StatisticsService statisticsService, CountryFlagService countryFlagService, AchievementService achievementService, EventService eventService, PreferencesService preferencesService, I18n i18n, UiService uiService) {
     this.statisticsService = statisticsService;
     this.countryFlagService = countryFlagService;
     this.achievementService = achievementService;
     this.eventService = eventService;
-    this.preferencesService = preferencesService;
     this.i18n = i18n;
-    this.locale = locale;
     this.uiService = uiService;
 
     achievementItemById = new HashMap<>();
@@ -209,9 +203,9 @@ public class UserInfoWindowController implements Controller<Node> {
     usernameLabel.setText(player.getUsername());
     countryImageView.setImage(countryFlagService.loadCountryFlag(player.getCountry()));
     avatarImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
-    gamesPlayedLabel.setText(String.format(locale, "%d", player.getNumberOfGames()));
-    ratingLabelGlobal.setText(String.format(locale, "%d", RatingUtil.getGlobalRating(player)));
-    ratingLabel1v1.setText(String.format(locale, "%d", RatingUtil.getLeaderboardRating(player)));
+    gamesPlayedLabel.setText(i18n.number(player.getNumberOfGames()));
+    ratingLabelGlobal.setText(i18n.number(RatingUtil.getGlobalRating(player)));
+    ratingLabel1v1.setText(i18n.number(RatingUtil.getLeaderboardRating(player)));
 
     CountryCode countryCode = CountryCode.getByCode(player.getCountry());
     if (countryCode != null) {
@@ -327,7 +321,6 @@ public class UserInfoWindowController implements Controller<Node> {
 
   private void updatePlayerAchievements(List<? extends PlayerAchievement> playerAchievements) {
     PlayerAchievement mostRecentPlayerAchievement = null;
-    int unlockedAchievements = 0;
 
     ObservableList<Node> children = unlockedAchievementsContainer.getChildren();
     Platform.runLater(children::clear);
@@ -337,8 +330,6 @@ public class UserInfoWindowController implements Controller<Node> {
       achievementItemController.setPlayerAchievement(playerAchievement);
 
       if (isUnlocked(playerAchievement)) {
-        unlockedAchievements++;
-        earnedExperiencePoints += achievementDefinitionById.get(playerAchievement.getAchievementId()).getExperiencePoints();
         Platform.runLater(() -> children.add(achievementItemController.getRoot()));
         if (mostRecentPlayerAchievement == null
             || playerAchievement.getUpdateTime().compareTo(mostRecentPlayerAchievement.getUpdateTime()) > 0) {

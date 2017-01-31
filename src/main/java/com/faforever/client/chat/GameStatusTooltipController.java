@@ -28,7 +28,6 @@ import javax.inject.Inject;
 public class GameStatusTooltipController  implements Controller<Node> {
 
   private final MapService mapService;
-  private final GameService gameService;
   private final I18n i18n;
   private final ModService modService;
   private final UiService uiService;
@@ -45,7 +44,6 @@ public class GameStatusTooltipController  implements Controller<Node> {
   @Inject
   public GameStatusTooltipController(MapService mapService, GameService gameService, I18n i18n, ModService modService, UiService uiService) {
     this.mapService = mapService;
-    this.gameService = gameService;
     this.i18n = i18n;
     this.modService = modService;
     this.uiService = uiService;
@@ -56,6 +54,7 @@ public class GameStatusTooltipController  implements Controller<Node> {
     modsLabel.visibleProperty().bind(modsLabel.textProperty().isNotEmpty());
   }
 
+  // TODO use or remove
   public void setGameInfoBean(Game game) {
     gameTypeLabel.textProperty().bind(Bindings.createStringBinding(() -> {
       FeaturedModBean gameType = modService.getFeaturedMod(game.getFeaturedMod()).get();

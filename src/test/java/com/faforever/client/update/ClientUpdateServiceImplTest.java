@@ -1,5 +1,6 @@
 package com.faforever.client.update;
 
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.Bytes;
 import com.faforever.client.notification.NotificationService;
@@ -40,14 +41,12 @@ public class ClientUpdateServiceImplTest {
   private TaskService taskService;
   @Mock
   private ApplicationContext applicationContext;
+  @Mock
+  private PlatformService platformService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new ClientUpdateServiceImpl();
-    instance.notificationService = notificationService;
-    instance.i18n = i18n;
-    instance.taskService = taskService;
-    instance.applicationContext = applicationContext;
+    instance = new ClientUpdateServiceImpl(taskService, notificationService, i18n, platformService, applicationContext);
 
     doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
   }

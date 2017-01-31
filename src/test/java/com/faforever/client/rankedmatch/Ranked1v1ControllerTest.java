@@ -71,13 +71,8 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new Ranked1v1Controller();
-    instance.gameService = gameService;
-    instance.preferencesService = preferencesService;
-    instance.playerService = playerService;
-    instance.environment = environment;
-    instance.leaderboardService = leaderboardService;
-    instance.i18n = i18n;
+    instance = new Ranked1v1Controller(gameService, preferencesService, playerService, environment, leaderboardService,
+        i18n);
 
     Player player = new Player(USERNAME);
     player.setId(PLAYER_ID);

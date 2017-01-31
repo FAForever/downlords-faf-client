@@ -1,9 +1,12 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.game.Game;
+import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameTooltipController;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
+import com.faforever.client.mod.ModService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.layout.Pane;
@@ -21,13 +24,18 @@ public class PlayerStatusTooltipControllerTest extends AbstractPlainJavaFxTest {
   private UiService uiService;
   @Mock
   private GameTooltipController gameTooltipController;
+  @Mock
+  private GameService gameService;
+  @Mock
+  private I18n i18n;
+  @Mock
+  private ModService modService;
 
   private GameStatusTooltipController instance;
 
   @Before
   public void setUp() throws Exception {
-    instance = new GameStatusTooltipController();
-    instance.uiService = uiService;
+    instance = new GameStatusTooltipController(mapService, gameService, i18n, modService, uiService);
 
     when(uiService.loadFxml("theme/game_tooltip.fxml")).thenReturn(gameTooltipController);
     when(gameTooltipController.getRoot()).thenReturn(new Pane());

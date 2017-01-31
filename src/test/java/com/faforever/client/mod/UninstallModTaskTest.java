@@ -39,8 +39,7 @@ public class UninstallModTaskTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new UninstallModTask();
-    instance.modService = modService;
+    instance = new UninstallModTask(modService);
   }
 
   @Test

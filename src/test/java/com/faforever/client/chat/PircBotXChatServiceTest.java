@@ -100,8 +100,8 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class PircBotXChatServiceTest {
 
-  public static final String CHAT_USER_NAME = "junit";
-  public static final String CHAT_PASSWORD = "123";
+  private static final String CHAT_USER_NAME = "junit";
+  private static final String CHAT_PASSWORD = "123";
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
   private static final long TIMEOUT = 300000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
@@ -174,17 +174,9 @@ public class PircBotXChatServiceTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new PircBotXChatService();
-    instance.fafService = fafService;
-    instance.userService = userService;
-    instance.taskService = taskService;
-    instance.notificationService = notificationService;
-    instance.i18n = i18n;
-    instance.pircBotXFactory = pircBotXFactory;
-    instance.preferencesService = preferencesService;
-    instance.threadPoolExecutor = threadPoolExecutor;
-    instance.defaultChannelName = DEFAULT_CHANNEL_NAME;
-    instance.eventBus = eventBus;
+    instance = new PircBotXChatService(preferencesService, userService, taskService, fafService, i18n, pircBotXFactory,
+        notificationService, threadPoolExecutor, eventBus, LOOPBACK_ADDRESS.getHostAddress(), IRC_SERVER_PORT,
+        DEFAULT_CHANNEL_NAME, 100);
 
     botShutdownLatch = new CountDownLatch(1);
 
@@ -215,7 +207,7 @@ public class PircBotXChatServiceTest {
       task.run();
       task.getFuture().complete(WaitForAsyncUtils.waitForAsyncFx(1000, task::getValue));
       return task;
-    }).when(instance.taskService).submitTask(any());
+    }).when(taskService).submitTask(any());
 
     botStartedFuture = new CompletableFuture<>();
     doAnswer(invocation -> {
@@ -225,10 +217,6 @@ public class PircBotXChatServiceTest {
     }).when(pircBotX).startBot();
 
     when(pircBotXFactory.createPircBotX(any())).thenReturn(pircBotX);
-
-    instance.ircHost = LOOPBACK_ADDRESS.getHostAddress();
-    instance.ircPort = IRC_SERVER_PORT;
-    instance.reconnectDelay = 100;
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getChat()).thenReturn(chatPrefs);
@@ -762,7 +750,7 @@ public class PircBotXChatServiceTest {
       CompletableTask<Void> task = invocation.getArgumentAt(0, CompletableTask.class);
       task.getFuture().complete(null);
       return task;
-    }).when(instance.taskService).submitTask(any());
+    }).when(taskService).submitTask(any());
 
     connect();
     botStartedFuture.get(TIMEOUT, TIMEOUT_UNIT);
@@ -853,7 +841,7 @@ public class PircBotXChatServiceTest {
       CompletableTask<Void> task = invocation.getArgumentAt(0, CompletableTask.class);
       task.getFuture().complete(null);
       return task;
-    }).when(instance.taskService).submitTask(any());
+    }).when(taskService).submitTask(any());
 
     String channelToJoin = OTHER_CHANNEL_NAME;
     when(userService.getUsername()).thenReturn("user1");

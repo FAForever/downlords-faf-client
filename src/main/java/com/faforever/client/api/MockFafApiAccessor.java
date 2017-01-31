@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -129,7 +128,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public void uploadMod(Path file, ByteCountListener listener) throws IOException {
+  public void uploadMod(Path file, ByteCountListener listener) {
 
   }
 

@@ -111,17 +111,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new MainController();
-    instance.stage = getStage();
-    instance.i18n = i18n;
-    instance.playerService = playerService;
-    instance.preferencesService = preferencesService;
-    instance.notificationService = notificationService;
-    instance.clientUpdateService = clientUpdateService;
-    instance.gameService = gameService;
-    instance.uiService = uiService;
-    instance.eventBus = eventBus;
-    instance.ratingBeta = 250;
+    instance = new MainController(preferencesService, i18n, notificationService, playerService, gameService, clientUpdateService,
+        getStage(), uiService, eventBus, "Foo", 200);
 
     gameRunningProperty = new SimpleBooleanProperty();
 

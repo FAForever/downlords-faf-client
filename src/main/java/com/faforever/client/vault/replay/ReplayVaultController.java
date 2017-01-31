@@ -1,7 +1,6 @@
 package com.faforever.client.vault.replay;
 
 import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
@@ -15,6 +14,7 @@ import com.faforever.client.replay.Replay;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -48,7 +48,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
@@ -66,9 +65,9 @@ public class ReplayVaultController implements Controller<Node> {
   private final I18n i18n;
   private final TimeService timeService;
   private final ReportingService reportingService;
-  private final FxmlLoader fxmlLoader;
   private final ApplicationContext applicationContext;
-  private final Locale locale;
+  private final UiService uiService;
+
   public TreeTableView<Replay> replayVaultRoot;
   public TreeTableColumn<Replay, Number> idColumn;
   public TreeTableColumn<Replay, String> titleColumn;
@@ -79,11 +78,9 @@ public class ReplayVaultController implements Controller<Node> {
   public TreeTableColumn<Replay, String> mapColumn;
   @VisibleForTesting
   TreeItem<Replay> localReplaysRoot;
-//  @VisibleForTesting
-//  TreeItem<ReplayInfoBean> onlineReplaysRoot;
 
   @Inject
-  public ReplayVaultController(NotificationService notificationService, ReplayService replayService, MapService mapService, TaskService taskService, I18n i18n, TimeService timeService, ReportingService reportingService, FxmlLoader fxmlLoader, ApplicationContext applicationContext, Locale locale) {
+  public ReplayVaultController(NotificationService notificationService, ReplayService replayService, MapService mapService, TaskService taskService, I18n i18n, TimeService timeService, ReportingService reportingService, ApplicationContext applicationContext, UiService uiService) {
     this.notificationService = notificationService;
     this.replayService = replayService;
     this.mapService = mapService;
@@ -91,9 +88,8 @@ public class ReplayVaultController implements Controller<Node> {
     this.i18n = i18n;
     this.timeService = timeService;
     this.reportingService = reportingService;
-    this.fxmlLoader = fxmlLoader;
     this.applicationContext = applicationContext;
-    this.locale = locale;
+    this.uiService = uiService;
   }
 
   @SuppressWarnings("unchecked")
@@ -182,7 +178,7 @@ public class ReplayVaultController implements Controller<Node> {
   }
 
   private TreeTableCell<Replay, String> mapCellFactory(TreeTableColumn<Replay, String> column) {
-    final ImageView imageVew = fxmlLoader.loadAndGetRoot("theme/vault/map/map_preview_table_cell.fxml", this);
+    final ImageView imageVew = uiService.loadFxml("theme/vault/map/map_preview_table_cell.fxml");
 
     TreeTableCell<Replay, String> cell = new TreeTableCell<Replay, String>() {
 
@@ -213,7 +209,7 @@ public class ReplayVaultController implements Controller<Node> {
         if (object.intValue() == 0) {
           return "";
         }
-        return String.format(locale, "%d", object.intValue());
+        return i18n.number(object.intValue());
       }
 
       @Override

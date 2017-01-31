@@ -2,7 +2,6 @@ package com.faforever.client.coop;
 
 import com.faforever.client.api.CoopLeaderboardEntry;
 import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.fx.NodeTableCell;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.fx.StringListCell;
@@ -49,7 +48,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.web.WebView;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -74,7 +72,7 @@ public class CoopController implements Controller<Node> {
   private static final Predicate<Game> OPEN_COOP_GAMES_PREDICATE = gameInfoBean ->
       gameInfoBean.getStatus() == GameState.OPEN
           && COOP.getString().equals(gameInfoBean.getFeaturedMod());
-  private final FxmlLoader fxmlLoader;
+
   private final ReplayService replayService;
   private final GameService gameService;
   private final CoopService coopService;
@@ -82,7 +80,6 @@ public class CoopController implements Controller<Node> {
   private final I18n i18n;
   private final ReportingService reportingService;
   private final MapService mapService;
-  private final PreferencesService preferencesService;
   private final UiService uiService;
   private final TimeService timeService;
   private final WebViewConfigurer webViewConfigurer;
@@ -97,11 +94,9 @@ public class CoopController implements Controller<Node> {
   public PasswordField passwordTextField;
   public ImageView selectedGameMapView;
   public Label selectedGameTitleLabel;
-  public Label selectedGameMapLabel;
   public Label selectedGameNumberOfPlayersLabel;
   public Label selectedGameHostLabel;
   public ScrollPane selectedGamePane;
-  public VBox selectedGameTeamPane;
   public TableView<CoopLeaderboardEntry> leaderboardTable;
   public ComboBox<Integer> numberOfPlayersComboBox;
   public TableColumn<CoopLeaderboardEntry, Integer> rankColumn;
@@ -112,8 +107,7 @@ public class CoopController implements Controller<Node> {
   public TableColumn<CoopLeaderboardEntry, String> replayColumn;
 
   @Inject
-  public CoopController(FxmlLoader fxmlLoader, ReplayService replayService, GameService gameService, CoopService coopService, NotificationService notificationService, I18n i18n, ReportingService reportingService, MapService mapService, PreferencesService preferencesService, UiService uiService, TimeService timeService, WebViewConfigurer webViewConfigurer, ModService modService) {
-    this.fxmlLoader = fxmlLoader;
+  public CoopController(ReplayService replayService, GameService gameService, CoopService coopService, NotificationService notificationService, I18n i18n, ReportingService reportingService, MapService mapService, PreferencesService preferencesService, UiService uiService, TimeService timeService, WebViewConfigurer webViewConfigurer, ModService modService) {
     this.replayService = replayService;
     this.gameService = gameService;
     this.coopService = coopService;
@@ -121,7 +115,6 @@ public class CoopController implements Controller<Node> {
     this.i18n = i18n;
     this.reportingService = reportingService;
     this.mapService = mapService;
-    this.preferencesService = preferencesService;
     this.uiService = uiService;
     this.timeService = timeService;
     this.webViewConfigurer = webViewConfigurer;
@@ -157,7 +150,7 @@ public class CoopController implements Controller<Node> {
 
     replayColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getId()));
     replayColumn.setCellFactory(param -> new NodeTableCell<>((replayId) -> {
-      Button button = fxmlLoader.loadAndGetRoot("coop/replay_button.fxml");
+      Button button = uiService.loadFxml("theme/play/coop/replay_button.fxml");
       button.setText(replayId);
       button.setUserData(replayId);
       button.setOnAction(this::onReplayButtonClicked);
@@ -251,6 +244,7 @@ public class CoopController implements Controller<Node> {
     AnchorPane.setTopAnchor(root, 0d);
   }
 
+  // FIXME call before display
   public void setUpIfNecessary() {
     coopService.getMissions().thenAccept(coopMaps -> {
       Platform.runLater(() -> missionComboBox.setItems(observableList(coopMaps)));
