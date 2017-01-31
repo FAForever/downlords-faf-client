@@ -25,16 +25,18 @@ import java.util.Set;
 public class PersistentNotificationsController implements Controller<Node> {
 
   private final Map<PersistentNotification, Node> notificationsToNode;
+  private final NotificationService notificationService;
+  private final AudioService audioService;
+  private final UiService uiService;
   public Label noNotificationsLabel;
   public Pane persistentNotificationsRoot;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  AudioService audioService;
-  @Inject
-  UiService uiService;
 
-  public PersistentNotificationsController() {
+  @Inject
+  public PersistentNotificationsController(NotificationService notificationService, AudioService audioService, UiService uiService) {
+    this.notificationService = notificationService;
+    this.audioService = audioService;
+    this.uiService = uiService;
+
     notificationsToNode = new HashMap<>();
   }
 

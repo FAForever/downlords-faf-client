@@ -6,18 +6,22 @@ import javafx.scene.Node;
 import javafx.scene.web.WebView;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import javax.inject.Inject;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class UnitsController extends AbstractViewController<Node> {
 
+  private final String unitDatabaseUrl;
   public WebView unitsRoot;
 
-  @Value("${unitDatabase.url}")
-  private String unitDatabaseUrl;
+  @Inject
+  public UnitsController(@Value("${unitDatabase.url}") String unitDatabaseUrl) {
+    this.unitDatabaseUrl = unitDatabaseUrl;
+  }
 
   @Override
   public void onDisplay() {

@@ -20,12 +20,9 @@ public class AudioServiceImpl implements AudioService {
   private static final String MENTION_SOUND = "theme/sounds/mention.mp3";
   private static final String PRIVATE_MESSAGE_SOUND = "theme/sounds/pm.mp3";
 
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  AudioClipPlayer audioClipPlayer;
-  @Inject
-  UiService uiService;
+  private final PreferencesService preferencesService;
+  private final AudioClipPlayer audioClipPlayer;
+  private final UiService uiService;
 
   private AudioClip chatMentionSound;
   private AudioClip achievementUnlockedSound;
@@ -40,6 +37,13 @@ public class AudioServiceImpl implements AudioService {
 
   private boolean playSounds;
   private NotificationsPrefs notificationsPrefs;
+
+  @Inject
+  public AudioServiceImpl(PreferencesService preferencesService, AudioClipPlayer audioClipPlayer, UiService uiService) {
+    this.preferencesService = preferencesService;
+    this.audioClipPlayer = audioClipPlayer;
+    this.uiService = uiService;
+  }
 
   @PostConstruct
   void postConstruct() throws IOException {

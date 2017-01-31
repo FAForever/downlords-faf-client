@@ -17,13 +17,17 @@ import javax.inject.Inject;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class TransientNotificationsController  implements Controller<Node> {
+public class TransientNotificationsController implements Controller<Node> {
 
+  private final UiService uiService;
+  private final PreferencesService preferencesService;
   public VBox transientNotificationsRoot;
+
   @Inject
-  UiService uiService;
-  @Inject
-  PreferencesService preferencesService;
+  public TransientNotificationsController(UiService uiService, PreferencesService preferencesService) {
+    this.uiService = uiService;
+    this.preferencesService = preferencesService;
+  }
 
   public void initialize() {
     ToastPosition toastPosition = preferencesService.getPreferences().getNotification().getToastPosition();

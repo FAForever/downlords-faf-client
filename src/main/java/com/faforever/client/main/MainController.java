@@ -79,6 +79,17 @@ public class MainController implements Controller<Node> {
   private static final PseudoClass NOTIFICATION_ERROR_PSEUDO_CLASS = PseudoClass.getPseudoClass("error");
   private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
   private final Cache<NavigationItem, AbstractViewController<?>> viewCache;
+  private final PreferencesService preferencesService;
+  private final I18n i18n;
+  private final NotificationService notificationService;
+  private final PlayerService playerService;
+  private final GameService gameService;
+  private final ClientUpdateService clientUpdateService;
+  private final Stage stage;
+  private final UiService uiService;
+  private final EventBus eventBus;
+  private final String mainWindowTitle;
+  private final int ratingBeta;
   public Pane mainHeaderPane;
   public Labeled notificationsBadge;
   public Pane contentPane;
@@ -90,38 +101,27 @@ public class MainController implements Controller<Node> {
   public ToggleButton unitsButton;
   public Pane mainRoot;
   public ToggleGroup mainNavigation;
-
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  I18n i18n;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  PlayerService playerService;
-  @Inject
-  GameService gameService;
-  @Inject
-  ClientUpdateService clientUpdateService;
-  @Inject
-  Stage stage;
-  @Inject
-  UiService uiService;
-  @Inject
-  EventBus eventBus;
-
-  @Value("${mainWindowTitle}")
-  String mainWindowTitle;
-  @Value("${rating.beta}")
-  int ratingBeta;
-
   @VisibleForTesting
   Popup persistentNotificationsPopup;
 
   private Popup transientNotificationsPopup;
   private WindowController windowController;
 
-  public MainController() {
+  @Inject
+  public MainController(PreferencesService preferencesService, I18n i18n, NotificationService notificationService, PlayerService playerService, GameService gameService, ClientUpdateService clientUpdateService, Stage stage, UiService uiService, EventBus eventBus, @Value("${mainWindowTitle}") String mainWindowTitle, @Value("${rating.beta}") int ratingBeta) {
+    this.preferencesService = preferencesService;
+    this.i18n = i18n;
+    this.notificationService = notificationService;
+    this.playerService = playerService;
+    this.gameService = gameService;
+    this.clientUpdateService = clientUpdateService;
+    this.stage = stage;
+    this.uiService = uiService;
+    this.eventBus = eventBus;
+
+    this.mainWindowTitle = mainWindowTitle;
+    this.ratingBeta = ratingBeta;
+    
     this.viewCache = CacheBuilder.newBuilder().build();
   }
 

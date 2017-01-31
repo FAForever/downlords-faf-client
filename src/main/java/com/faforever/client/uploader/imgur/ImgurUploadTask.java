@@ -35,18 +35,22 @@ import static com.faforever.client.io.Bytes.formatSize;
 public class ImgurUploadTask extends CompletableTask<String> {
 
   private final Gson gson;
-  @Inject
-  I18n i18n;
-  @Inject
-  Environment environment;
+
+  private final I18n i18n;
+  private final Environment environment;
+
   private Image image;
   private int maxUploadSize;
   private String baseUrl;
   private String clientId;
 
-  public ImgurUploadTask() {
+  @Inject
+  public ImgurUploadTask(I18n i18n, Environment environment) {
     super(Priority.HIGH);
     gson = new GsonBuilder().create();
+
+    this.i18n = i18n;
+    this.environment = environment;
   }
 
   @PostConstruct

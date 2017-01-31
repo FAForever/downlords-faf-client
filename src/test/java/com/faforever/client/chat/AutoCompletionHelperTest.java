@@ -30,14 +30,14 @@ public class AutoCompletionHelperTest {
   private static final long TIMEOUT = 5000;
 
   @Mock
-  PlayerService playerService;
-  AutoCompletionHelper instance;
+  private PlayerService playerService;
+
+  private AutoCompletionHelper instance;
   private TextInputControl textInputControl;
 
   @Before
   public void setUp() throws Exception {
-    instance = new AutoCompletionHelper();
-    instance.playerService = playerService;
+    instance = new AutoCompletionHelper(playerService);
 
     textInputControl = new TextField();
     instance.bindTo(textInputControl);

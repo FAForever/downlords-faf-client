@@ -20,8 +20,7 @@ public class CoopServiceImplTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new CoopServiceImpl();
-    instance.fafService = fafService;
+    instance = new CoopServiceImpl(fafService);
   }
 
   @Test

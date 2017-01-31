@@ -64,15 +64,18 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
   private final I18n i18n;
   private final PreferencesService preferencesService;
 
-  @Value("${fafExe.url}")
-  String fafExeUrl;
+  private final String fafExeUrl;
+
   private Integer version;
 
   @Inject
-  public GameBinariesUpdateTaskImpl(I18n i18n, PreferencesService preferencesService) {
+  public GameBinariesUpdateTaskImpl(I18n i18n, PreferencesService preferencesService, @Value("${fafExe.url}") String fafExeUrl) {
     super(Priority.HIGH);
+
     this.i18n = i18n;
     this.preferencesService = preferencesService;
+
+    this.fafExeUrl = fafExeUrl;
   }
 
   @VisibleForTesting

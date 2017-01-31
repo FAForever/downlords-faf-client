@@ -24,18 +24,22 @@ public class AchievementUnlockedNotifier {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Inject
-  NotificationServiceImpl notificationService;
-  @Inject
-  I18n i18n;
-  @Inject
-  AchievementService achievementService;
-  @Inject
-  FafService fafService;
-  @Inject
-  AudioService audioService;
+  private final NotificationServiceImpl notificationService;
+  private final I18n i18n;
+  private final AchievementService achievementService;
+  private final FafService fafService;
+  private final AudioService audioService;
 
   private long lastSoundPlayed;
+
+  @Inject
+  public AchievementUnlockedNotifier(NotificationServiceImpl notificationService, I18n i18n, AchievementService achievementService, FafService fafService, AudioService audioService) {
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.achievementService = achievementService;
+    this.fafService = fafService;
+    this.audioService = audioService;
+  }
 
   @PostConstruct
   void postConstruct() {

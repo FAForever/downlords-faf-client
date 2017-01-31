@@ -1,8 +1,8 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.FafService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,16 +29,13 @@ public class ModUploadTaskTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private FafApiAccessor fafApiAccessor;
+  private FafService fafService;
   @Mock
   private I18n i18n;
 
   @Before
   public void setUp() throws Exception {
-    instance = new ModUploadTask();
-    instance.preferencesService = preferencesService;
-    instance.fafApiAccessor = fafApiAccessor;
-    instance.i18n = i18n;
+    instance = new ModUploadTask(preferencesService, fafService, i18n);
 
     when(preferencesService.getCacheDirectory()).thenReturn(tempFolder.getRoot().toPath().resolve("cache"));
     when(i18n.get(any())).thenReturn("");
@@ -61,7 +58,7 @@ public class ModUploadTaskTest {
 
     instance.call();
 
-    verify(fafApiAccessor).uploadMod(any(), any());
+    verify(fafService).uploadMod(any(), any());
 
     assertThat(Files.list(preferencesService.getCacheDirectory()).toArray(), emptyArray());
   }

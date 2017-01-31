@@ -19,13 +19,15 @@ public class UninstallModTask extends CompletableTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Inject
-  ModService modService;
+  private final ModService modService;
 
   private Mod mod;
 
-  public UninstallModTask() {
+  @Inject
+  public UninstallModTask(ModService modService) {
     super(CompletableTask.Priority.LOW);
+
+    this.modService = modService;
   }
 
   public void setMod(Mod mod) {

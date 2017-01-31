@@ -1,12 +1,16 @@
 package com.faforever.client.vault.replay;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.LoadLocalReplaysTask;
 import com.faforever.client.replay.ReplayInfoBeanBuilder;
 import com.faforever.client.replay.ReplayService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.UiService;
+import com.faforever.client.util.TimeService;
 import javafx.beans.InvalidationListener;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,15 +47,19 @@ public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   private NotificationService notificationService;
   @Mock
   private ReplayService replayService;
+  @Mock
+  private MapService mapService;
+  @Mock
+  private TimeService timeService;
+  @Mock
+  private ReportingService reportingService;
+  @Mock
+  private UiService uiService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new ReplayVaultController();
-    instance.i18n = i18n;
-    instance.applicationContext = applicationContext;
-    instance.taskService = taskService;
-    instance.notificationService = notificationService;
-    instance.replayService = replayService;
+    instance = new ReplayVaultController(notificationService, replayService, mapService, taskService, i18n, timeService,
+        reportingService, applicationContext, uiService);
 
     doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
 

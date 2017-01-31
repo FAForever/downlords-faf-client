@@ -1,10 +1,10 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.ByteCountListener;
 import com.faforever.client.io.Zipper;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.util.Validator;
@@ -32,17 +32,19 @@ public class ModUploadTask extends CompletableTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  FafApiAccessor fafApiAccessor;
-  @Inject
-  I18n i18n;
+  private final PreferencesService preferencesService;
+  private final FafService fafService;
+  private final I18n i18n;
 
   private Path modPath;
 
-  public ModUploadTask() {
+  @Inject
+  public ModUploadTask(PreferencesService preferencesService, FafService fafService, I18n i18n) {
     super(Priority.HIGH);
+
+    this.preferencesService = preferencesService;
+    this.fafService = fafService;
+    this.i18n = i18n;
   }
 
   @Override
@@ -74,7 +76,7 @@ public class ModUploadTask extends CompletableTask<Void> {
       logger.debug("Uploading mod {} as {}", modPath, tmpFile);
       updateTitle(i18n.get("modVault.upload.uploading"));
 
-      fafApiAccessor.uploadMod(tmpFile, byteListener);
+      fafService.uploadMod(tmpFile, byteListener);
       return null;
     } finally {
       Files.delete(tmpFile);

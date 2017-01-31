@@ -26,23 +26,25 @@ import java.util.List;
 public class NewsController extends AbstractViewController<Node> {
 
   private static final ClassPathResource NEWS_DETAIL_HTML_RESOURCE = new ClassPathResource("/theme/news_detail.html");
-
+  private final PreferencesService preferencesService;
+  private final I18n i18n;
+  private final NewsService newsService;
+  private final UiService uiService;
+  private final EventBus eventBus;
+  private final WebViewConfigurer webViewConfigurer;
   public Pane newsRoot;
   public Pane newsListPane;
   public WebView newsDetailWebView;
 
   @Inject
-  PreferencesService preferencesService;
-  @Inject
-  I18n i18n;
-  @Inject
-  NewsService newsService;
-  @Inject
-  UiService uiService;
-  @Inject
-  EventBus eventBus;
-  @Inject
-  WebViewConfigurer webViewConfigurer;
+  public NewsController(PreferencesService preferencesService, I18n i18n, NewsService newsService, UiService uiService, EventBus eventBus, WebViewConfigurer webViewConfigurer) {
+    this.preferencesService = preferencesService;
+    this.i18n = i18n;
+    this.newsService = newsService;
+    this.uiService = uiService;
+    this.eventBus = eventBus;
+    this.webViewConfigurer = webViewConfigurer;
+  }
 
   @Override
   public void onDisplay() {

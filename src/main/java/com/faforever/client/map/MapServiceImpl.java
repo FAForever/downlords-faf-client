@@ -75,31 +75,19 @@ public class MapServiceImpl implements MapService {
   private static final float MAP_SIZE_FACTOR = 51.2f;
   private static final Lock LOOKUP_LOCK = new ReentrantLock();
 
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  TaskService taskService;
-  @Inject
-  ApplicationContext applicationContext;
-  @Inject
-  Directory directory;
-  @Inject
-  Analyzer analyzer;
-  @Inject
-  ThreadPoolExecutor threadPoolExecutor;
-  @Inject
-  FafService fafService;
-  @Inject
-  AssetService assetService;
+  private final PreferencesService preferencesService;
+  private final TaskService taskService;
+  private final ApplicationContext applicationContext;
+  private final Directory directory;
+  private final Analyzer analyzer;
+  private final ThreadPoolExecutor threadPoolExecutor;
+  private final FafService fafService;
+  private final AssetService assetService;
+  private final I18n i18n;
+  private final UiService uiService;
 
-  @Value("${vault.mapDownloadUrl}")
-  String mapDownloadUrl;
-  @Value("${vault.mapPreviewUrlFormat}")
-  String mapPreviewUrlFormat;
-  @Inject
-  I18n i18n;
-  @Inject
-  UiService uiService;
+  private final String mapDownloadUrl;
+  private final String mapPreviewUrlFormat;
 
   private Map<Path, MapBean> pathToMap;
   private AnalyzingInfixSuggester suggester;
@@ -108,7 +96,22 @@ public class MapServiceImpl implements MapService {
   private Map<String, MapBean> mapsByFolderName;
   private Thread directoryWatcherThread;
 
-  public MapServiceImpl() {
+  @Inject
+  public MapServiceImpl(PreferencesService preferencesService, TaskService taskService, ApplicationContext applicationContext, Directory directory, Analyzer analyzer, ThreadPoolExecutor threadPoolExecutor, FafService fafService, AssetService assetService, I18n i18n, UiService uiService, @Value("${vault.mapDownloadUrl}") String mapDownloadUrl, @Value("${vault.mapPreviewUrlFormat}") String mapPreviewUrlFormat) {
+    this.preferencesService = preferencesService;
+    this.taskService = taskService;
+    this.applicationContext = applicationContext;
+    this.directory = directory;
+    this.analyzer = analyzer;
+    this.threadPoolExecutor = threadPoolExecutor;
+    this.fafService = fafService;
+    this.assetService = assetService;
+    this.i18n = i18n;
+    this.uiService = uiService;
+
+    this.mapDownloadUrl = mapDownloadUrl;
+    this.mapPreviewUrlFormat = mapPreviewUrlFormat;
+
     pathToMap = new HashMap<>();
     installedSkirmishMaps = FXCollections.observableArrayList();
     mapsByFolderName = new HashMap<>();

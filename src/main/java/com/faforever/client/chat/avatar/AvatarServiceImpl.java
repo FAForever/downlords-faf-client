@@ -20,10 +20,14 @@ import static com.github.nocatch.NoCatch.noCatch;
 @Service
 public class AvatarServiceImpl implements AvatarService {
 
+  private final FafService fafService;
+  private final AssetService assetService;
+
   @Inject
-  FafService fafService;
-  @Inject
-  AssetService assetService;
+  public AvatarServiceImpl(FafService fafService, AssetService assetService) {
+    this.fafService = fafService;
+    this.assetService = assetService;
+  }
 
   @Override
   @Cacheable(AVATARS)

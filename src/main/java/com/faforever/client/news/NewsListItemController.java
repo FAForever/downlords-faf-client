@@ -18,17 +18,20 @@ import javax.inject.Inject;
 public class NewsListItemController implements Controller<Node> {
 
   static final PseudoClass SELECTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("selected");
-
+  private final I18n i18n;
+  private final UiService uiService;
   public Node newsItemRoot;
   public ImageView imageView;
   public Label titleLabel;
   public Label authoredLabel;
-  @Inject
-  I18n i18n;
-  @Inject
-  UiService uiService;
   private NewsItem newsItem;
   private OnItemSelectedListener onItemSelectedListener;
+
+  @Inject
+  public NewsListItemController(I18n i18n, UiService uiService) {
+    this.i18n = i18n;
+    this.uiService = uiService;
+  }
 
   public void initialize() {
     // TODO only use this if there's no thumbnail. However, there's never a thumbnail ATM.

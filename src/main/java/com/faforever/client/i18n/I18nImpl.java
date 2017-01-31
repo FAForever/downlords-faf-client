@@ -1,17 +1,26 @@
 package com.faforever.client.i18n;
 
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.util.Locale;
 
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class I18nImpl implements I18n {
 
-  @Inject
-  MessageSource messageSource;
+  private final MessageSource messageSource;
+
+  private final Locale locale;
 
   @Inject
-  Locale locale;
+  public I18nImpl(MessageSource messageSource, Locale locale) {
+    this.messageSource = messageSource;
+    this.locale = locale;
+  }
 
   @Override
   public String get(String key, Object... args) {

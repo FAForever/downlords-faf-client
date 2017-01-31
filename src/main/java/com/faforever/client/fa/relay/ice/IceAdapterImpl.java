@@ -50,20 +50,14 @@ public class IceAdapterImpl implements IceAdapter {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Value("${stun.host}")
-  String stunServerAddress;
+  private final String stunServerAddress;
 
-  @Value("${turn.host}")
-  String turnServerAddress;
+  private final String turnServerAddress;
 
-  @Inject
-  ApplicationContext applicationContext;
-  @Inject
-  PlayerService playerService;
-  @Inject
-  EventBus eventBus;
-  @Inject
-  FafService fafService;
+  private final ApplicationContext applicationContext;
+  private final PlayerService playerService;
+  private final EventBus eventBus;
+  private final FafService fafService;
 
   private CompletableFuture<Integer> iceAdapterClientFuture;
   private Process process;
@@ -71,7 +65,16 @@ public class IceAdapterImpl implements IceAdapter {
 
   private LobbyMode lobbyMode;
 
-  public IceAdapterImpl() {
+  @Inject
+  public IceAdapterImpl(@Value("${stun.host}") String stunServerAddress, @Value("${turn.host}") String turnServerAddress, ApplicationContext applicationContext, PlayerService playerService, EventBus eventBus, FafService fafService) {
+    this.stunServerAddress = stunServerAddress;
+    this.turnServerAddress = turnServerAddress;
+
+    this.applicationContext = applicationContext;
+    this.playerService = playerService;
+    this.eventBus = eventBus;
+    this.fafService = fafService;
+
     lobbyMode = LobbyMode.DEFAULT_LOBBY;
   }
 

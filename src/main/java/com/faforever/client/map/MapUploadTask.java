@@ -33,18 +33,19 @@ public class MapUploadTask extends CompletableTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  FafApiAccessor fafApiAccessor;
-  @Inject
-  I18n i18n;
+  private final PreferencesService preferencesService;
+  private final FafApiAccessor fafApiAccessor;
+  private final I18n i18n;
 
   private Path mapPath;
   private Boolean isRanked;
 
-  public MapUploadTask() {
+  @Inject
+  public MapUploadTask(PreferencesService preferencesService, FafApiAccessor fafApiAccessor, I18n i18n) {
     super(Priority.HIGH);
+    this.preferencesService = preferencesService;
+    this.fafApiAccessor = fafApiAccessor;
+    this.i18n = i18n;
   }
 
   @PostConstruct

@@ -9,6 +9,7 @@ import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -24,12 +25,16 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
 
   private PersistentNotificationsController instance;
 
+  @Mock
+  private NotificationService notificationService;
+  @Mock
+  private AudioService audioService;
+  @Mock
+  private UiService uiService;
+
   @Before
   public void setUp() throws Exception {
-    instance = new PersistentNotificationsController();
-    instance.audioService = mock(AudioService.class);
-    instance.notificationService = mock(NotificationService.class);
-    instance.uiService = mock(UiService.class);
+    instance = new PersistentNotificationsController(notificationService, audioService, uiService);
     instance.persistentNotificationsRoot = new Pane();
 
     loadFxml("theme/persistent_notifications.fxml", clazz -> instance);
@@ -38,8 +43,8 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
   @Test
   @SuppressWarnings("unchecked")
   public void testPostConstruct() throws Exception {
-    verify(instance.notificationService).getPersistentNotifications();
-    verify(instance.notificationService).addPersistentNotificationListener(any(SetChangeListener.class));
+    verify(notificationService).getPersistentNotifications();
+    verify(notificationService).addPersistentNotificationListener(any(SetChangeListener.class));
   }
 
   @Test
@@ -52,7 +57,7 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
     CompletableFuture<Void> future = new CompletableFuture<>();
     doAnswer(
         invocation -> future.complete(null)
-    ).when(instance.audioService).playInfoNotificationSound();
+    ).when(audioService).playInfoNotificationSound();
 
     onNotificationAdded(Severity.INFO);
 
@@ -64,10 +69,10 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
     PersistentNotificationController notificationController = mock(PersistentNotificationController.class);
     when(notificationController.getRoot()).thenReturn(new Pane());
 
-    when(instance.uiService.loadFxml("theme/persistent_notification.fxml")).thenReturn(notificationController);
+    when(uiService.loadFxml("theme/persistent_notification.fxml")).thenReturn(notificationController);
 
     ArgumentCaptor<SetChangeListener> argument = ArgumentCaptor.forClass(SetChangeListener.class);
-    verify(instance.notificationService).addPersistentNotificationListener(argument.capture());
+    verify(notificationService).addPersistentNotificationListener(argument.capture());
 
     SetChangeListener listener = argument.getValue();
 
@@ -88,7 +93,7 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
     CompletableFuture<Void> future = new CompletableFuture<>();
     doAnswer(
         invocation -> future.complete(null)
-    ).when(instance.audioService).playWarnNotificationSound();
+    ).when(audioService).playWarnNotificationSound();
 
     onNotificationAdded(Severity.WARN);
 
@@ -100,7 +105,7 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
     CompletableFuture<Void> future = new CompletableFuture<>();
     doAnswer(
         invocation -> future.complete(null)
-    ).when(instance.audioService).playErrorNotificationSound();
+    ).when(audioService).playErrorNotificationSound();
 
     onNotificationAdded(Severity.ERROR);
 

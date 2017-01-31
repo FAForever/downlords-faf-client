@@ -40,9 +40,7 @@ public class InstallModTaskTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new InstallModTask();
-    instance.i18n = i18n;
-    instance.preferencesService = preferencesService;
+    instance = new InstallModTask(preferencesService, i18n);
 
     when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory.getRoot().toPath());
     when(preferencesService.getPreferences()).thenReturn(preferences);

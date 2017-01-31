@@ -43,7 +43,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   public static final String TEST_USER_NAME = "junit";
   private static final String TEST_CHANNEL_NAME = "#testChannel";
   private static final long TIMEOUT = 1000;
-  private static final TimeUnit TIMEOUT_UNITS = TimeUnit.MILLISECONDS;
+
   @Mock
   private ChannelTabController channelTabController;
   @Mock
@@ -66,11 +66,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ChatController();
-    instance.userService = userService;
-    instance.chatService = chatService;
-    instance.uiService = uiService;
-    instance.eventBus = eventBus;
+    instance = new ChatController(chatService, uiService, userService, eventBus);
 
     connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
 

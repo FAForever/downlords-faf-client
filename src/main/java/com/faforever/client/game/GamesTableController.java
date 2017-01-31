@@ -41,6 +41,10 @@ import java.util.stream.Collectors;
 public class GamesTableController implements Controller<Node> {
 
   private final ObjectProperty<Game> selectedGame;
+  private final MapService mapService;
+  private final JoinGameHelper joinGameHelper;
+  private final I18n i18n;
+  private final UiService uiService;
   public TableView<Game> gamesTable;
   public TableColumn<Game, Image> mapPreviewColumn;
   public TableColumn<Game, String> gameTitleColumn;
@@ -49,16 +53,14 @@ public class GamesTableController implements Controller<Node> {
   public TableColumn<Game, String> modsColumn;
   public TableColumn<Game, String> hostColumn;
   public TableColumn<Game, Boolean> passwordProtectionColumn;
-  @Inject
-  MapService mapService;
-  @Inject
-  JoinGameHelper joinGameHelper;
-  @Inject
-  I18n i18n;
-  @Inject
-  UiService uiService;
 
-  public GamesTableController() {
+  @Inject
+  public GamesTableController(MapService mapService, JoinGameHelper joinGameHelper, I18n i18n, UiService uiService) {
+    this.mapService = mapService;
+    this.joinGameHelper = joinGameHelper;
+    this.i18n = i18n;
+    this.uiService = uiService;
+
     this.selectedGame = new SimpleObjectProperty<>();
   }
 

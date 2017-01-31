@@ -14,8 +14,12 @@ import java.util.concurrent.CompletableFuture;
 @Service
 public class CoopServiceImpl implements CoopService {
 
+  private final FafService fafService;
+
   @Inject
-  FafService fafService;
+  public CoopServiceImpl(FafService fafService) {
+    this.fafService = fafService;
+  }
 
   @Override
   public CompletableFuture<List<CoopMission>> getMissions() {

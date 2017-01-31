@@ -15,8 +15,12 @@ import java.util.concurrent.CompletableFuture;
 @Service
 public class StatisticsServiceImpl implements StatisticsService {
 
+  private final FafService fafService;
+
   @Inject
-  FafService fafService;
+  public StatisticsServiceImpl(FafService fafService) {
+    this.fafService = fafService;
+  }
 
   @Override
   public CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(RatingType type, int playerId) {

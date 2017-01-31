@@ -9,9 +9,13 @@ import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.replay.ReplayService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.TimeService;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Pane;
@@ -63,17 +67,19 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
 
   private SimpleObjectProperty<Game> selectedGameProperty;
 
+  @Mock
+  private ReplayService replayService;
+  @Mock
+  private NotificationService notificationService;
+  @Mock
+  private ReportingService reportingService;
+  @Mock
+  private TimeService timeService;
+
   @Before
   public void setUp() throws Exception {
-    instance = new CoopController();
-    instance.coopService = coopService;
-    instance.gameService = gameService;
-    instance.preferencesService = preferencesService;
-    instance.uiService = uiService;
-    instance.mapService = mapService;
-    instance.i18n = i18n;
-    instance.webViewConfigurer = webViewConfigurer;
-    instance.modService = modService;
+    instance = new CoopController(replayService, gameService, coopService, notificationService, i18n, reportingService,
+        mapService, preferencesService, uiService, timeService, webViewConfigurer, modService);
 
     when(coopService.getLeaderboard(any(), anyInt())).thenReturn(CompletableFuture.completedFuture(emptyList()));
     when(modService.getFeaturedMod(COOP.getString())).thenReturn(CompletableFuture.completedFuture(FeaturedModBeanBuilder.create().defaultValues().technicalName("coop").get()));

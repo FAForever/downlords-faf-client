@@ -29,9 +29,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Created by miche on 29/08/2016.
- */
 public class FriendJoinedGameNotifierTest {
   private FriendJoinedGameNotifier instance;
   @Mock
@@ -55,13 +52,7 @@ public class FriendJoinedGameNotifierTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new FriendJoinedGameNotifier();
-    instance.notificationService = notificationService;
-    instance.eventBus = eventBus;
-    instance.i18n = i18n;
-    instance.joinGameHelper = joinGameHelper;
-    instance.preferencesService = preferencesService;
-    instance.audioService = audioService;
+    instance = new FriendJoinedGameNotifier(notificationService, i18n, eventBus, joinGameHelper, preferencesService, audioService);
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getNotification()).thenReturn(notification);

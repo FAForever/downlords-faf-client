@@ -24,13 +24,16 @@ import java.util.Map;
 @Component
 public class GameTooltipController implements Controller<Node> {
 
+  private final UiService uiService;
   public TitledPane modsPane;
   public Pane teamsPane;
   public Label modsLabel;
   public VBox gameTooltipRoot;
 
   @Inject
-  UiService uiService;
+  public GameTooltipController(UiService uiService) {
+    this.uiService = uiService;
+  }
 
   public void initialize() {
     modsPane.managedProperty().bind(modsPane.visibleProperty());

@@ -1,8 +1,12 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.google.common.eventbus.EventBus;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,6 +30,8 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
   private ModUploadController instance;
 
   @Mock
+  private ModUploadTask modUploadTask;
+  @Mock
   private ModService modService;
   @Mock
   private NotificationService notificationService;
@@ -34,17 +40,20 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ThreadPoolExecutor threadPoolExecutor;
 
-  private ModUploadTask modUploadTask;
+  @Mock
+  private I18n i18n;
+  @Mock
+  private EventBus eventBus;
+  @Mock
+  private PreferencesService preferencesService;
+  @Mock
+  private FafService fafService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new ModUploadController();
-    instance.modService = modService;
-    instance.notificationService = notificationService;
-    instance.threadPoolExecutor = threadPoolExecutor;
-    instance.reportingService = reportingService;
+    instance = new ModUploadController(modService, threadPoolExecutor, notificationService, reportingService, i18n, eventBus);
 
-    modUploadTask = new ModUploadTask() {
+    modUploadTask = new ModUploadTask(preferencesService, fafService, i18n) {
       @Override
       protected Void call() throws Exception {
         return null;
@@ -63,6 +72,7 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnCancelUploadClicked() throws Exception {
     when(modService.uploadMod(any())).thenReturn(modUploadTask);
+
     modUploadTask.getFuture().complete(null);
 
     instance.onUploadClicked();

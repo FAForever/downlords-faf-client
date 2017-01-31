@@ -29,17 +29,19 @@ public class ReplayDownloadTask extends CompletableTask<Path> {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String TEMP_FAF_REPLAY_FILE_NAME = "temp.fafreplay";
 
-  @Inject
-  I18n i18n;
-  @Inject
-  Environment environment;
-  @Inject
-  PreferencesService preferencesService;
+  private final I18n i18n;
+  private final Environment environment;
+  private final PreferencesService preferencesService;
 
   private int replayId;
 
-  public ReplayDownloadTask() {
+  @Inject
+  public ReplayDownloadTask(I18n i18n, Environment environment, PreferencesService preferencesService) {
     super(Priority.HIGH);
+
+    this.i18n = i18n;
+    this.environment = environment;
+    this.preferencesService = preferencesService;
   }
 
   @Override

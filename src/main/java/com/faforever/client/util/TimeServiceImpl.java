@@ -19,10 +19,14 @@ import java.util.TimeZone;
 @Service
 public class TimeServiceImpl implements TimeService {
 
+  private final I18n i18n;
+  private final Locale locale;
+
   @Inject
-  I18n i18n;
-  @Inject
-  Locale locale;
+  public TimeServiceImpl(I18n i18n, Locale locale) {
+    this.i18n = i18n;
+    this.locale = locale;
+  }
 
   @Override
   public String timeAgo(Instant instant) {

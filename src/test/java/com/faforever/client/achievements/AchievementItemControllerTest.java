@@ -5,8 +5,6 @@ import com.faforever.client.api.AchievementDefinition;
 import com.faforever.client.api.AchievementType;
 import com.faforever.client.api.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
@@ -20,6 +18,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.when;
 
 public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
@@ -27,20 +26,14 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
   private AchievementItemController instance;
 
   @Mock
-  private PreferencesService preferencesService;
-  @Mock
-  private Preferences preferences;
-  @Mock
   private I18n i18n;
   @Mock
   private AchievementService achievementService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new AchievementItemController();
-    instance.preferencesService = preferencesService;
-    instance.i18n = i18n;
-    instance.achievementService = achievementService;
+    instance = new AchievementItemController(i18n, achievementService);
+    when(i18n.number(anyInt())).thenAnswer(invocation -> String.format("%d", invocation.getArgumentAt(0, int.class)));
 
     loadFxml("theme/achievement_item.fxml", clazz -> instance);
   }

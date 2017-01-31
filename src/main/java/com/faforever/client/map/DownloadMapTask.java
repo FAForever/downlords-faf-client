@@ -25,16 +25,18 @@ public class DownloadMapTask extends CompletableTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  I18n i18n;
+  private final PreferencesService preferencesService;
+  private final I18n i18n;
 
   private URL mapUrl;
   private String folderName;
 
-  public DownloadMapTask() {
+  @Inject
+  public DownloadMapTask(PreferencesService preferencesService, I18n i18n) {
     super(Priority.HIGH);
+
+    this.preferencesService = preferencesService;
+    this.i18n = i18n;
   }
 
   @Override

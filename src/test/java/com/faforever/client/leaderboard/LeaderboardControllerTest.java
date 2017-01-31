@@ -1,6 +1,7 @@
 package com.faforever.client.leaderboard;
 
 import com.faforever.client.game.KnownFeaturedMod;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -31,13 +32,12 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
   private NotificationService notificationService;
   @Mock
   private ReportingService reportingService;
+  @Mock
+  private I18n i18n;
 
   @Before
   public void setUp() throws Exception {
-    instance = new LeaderboardController();
-    instance.leaderboardService = leaderboardService;
-    instance.notificationService = notificationService;
-    instance.reportingService = reportingService;
+    instance = new LeaderboardController(leaderboardService, notificationService, i18n, reportingService);
 
     loadFxml("theme/leaderboard/leaderboard.fxml", clazz -> instance);
   }

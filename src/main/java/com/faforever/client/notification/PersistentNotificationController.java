@@ -19,21 +19,22 @@ import java.util.List;
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class PersistentNotificationController  implements Controller<Node> {
+public class PersistentNotificationController implements Controller<Node> {
 
   private static final String CSS_STYLE_INFO = "info";
   private static final String CSS_STYLE_WARN = "warn";
   private static final String CSS_STYLE_ERROR = "error";
-
+  private final NotificationService notificationService;
   public Node notificationRoot;
   public Label messageLabel;
   public Label iconLabel;
   public HBox actionButtonsContainer;
+  private PersistentNotification notification;
 
   @Inject
-  NotificationService notificationService;
-
-  private PersistentNotification notification;
+  public PersistentNotificationController(NotificationService notificationService) {
+    this.notificationService = notificationService;
+  }
 
   /**
    * Sets the notification to display. Populates corresponding UI elements.

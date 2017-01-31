@@ -23,12 +23,17 @@ public class WebViewConfigurer {
 
   private static final double ZOOM_STEP = 0.2d;
   private static final String EVENT_TYPE_CLICK = "click";
+
+  private final PreferencesService preferencesService;
+  private final UiService uiService;
+  private final PlatformService platformService;
+
   @Inject
-  PreferencesService preferencesService;
-  @Inject
-  UiService uiService;
-  @Inject
-  PlatformService platformService;
+  public WebViewConfigurer(PreferencesService preferencesService, UiService uiService, PlatformService platformService) {
+    this.preferencesService = preferencesService;
+    this.uiService = uiService;
+    this.platformService = platformService;
+  }
 
   public void configureWebView(WebView webView) {
     webView.setContextMenuEnabled(false);

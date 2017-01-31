@@ -36,7 +36,10 @@ import static javafx.collections.FXCollections.observableList;
 public class LeaderboardController extends AbstractViewController<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
+  private final LeaderboardService leaderboardService;
+  private final NotificationService notificationService;
+  private final I18n i18n;
+  private final ReportingService reportingService;
   public Pane leaderboardRoot;
   public TableColumn<Ranked1v1EntryBean, Number> rankColumn;
   public TableColumn<Ranked1v1EntryBean, String> nameColumn;
@@ -47,16 +50,15 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public TextField searchTextField;
   public Pane connectionProgressPane;
   public Pane contentPane;
+  private KnownFeaturedMod ratingType;
 
   @Inject
-  LeaderboardService leaderboardService;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  I18n i18n;
-  @Inject
-  ReportingService reportingService;
-  private KnownFeaturedMod ratingType;
+  public LeaderboardController(LeaderboardService leaderboardService, NotificationService notificationService, I18n i18n, ReportingService reportingService) {
+    this.leaderboardService = leaderboardService;
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.reportingService = reportingService;
+  }
 
   @Override
   public void initialize() {

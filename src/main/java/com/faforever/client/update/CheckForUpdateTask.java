@@ -32,6 +32,7 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final Gson gson;
 
+  //TODO: switch to constructor injection, superclass CompletableTask<UpdateInfo> has no default constructor
   @Inject
   Environment environment;
   @Inject

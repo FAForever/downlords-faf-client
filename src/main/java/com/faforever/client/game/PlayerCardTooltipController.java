@@ -19,13 +19,16 @@ import javax.inject.Inject;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class PlayerCardTooltipController implements Controller<Node> {
 
+  private final CountryFlagService countryFlagService;
+  private final I18n i18n;
   public Label playerInfo;
   public ImageView playerFlag;
 
   @Inject
-  CountryFlagService countryFlagService;
-  @Inject
-  I18n i18n;
+  public PlayerCardTooltipController(CountryFlagService countryFlagService, I18n i18n) {
+    this.countryFlagService = countryFlagService;
+    this.i18n = i18n;
+  }
 
   public void setPlayer(Player player) {
     playerFlag.setImage(countryFlagService.loadCountryFlag(player.getCountry()));

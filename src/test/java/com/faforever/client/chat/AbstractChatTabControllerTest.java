@@ -10,11 +10,13 @@ import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
+import com.google.common.eventbus.EventBus;
 import javafx.concurrent.Worker;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -91,6 +93,10 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   private UiService uiService;
   @Mock
   private WebViewConfigurer webViewConfigurer;
+  @Mock
+  private ReportingService reportingService;
+  @Mock
+  private EventBus eventBus;
 
   private Preferences preferences;
   private AbstractChatTabController instance;
@@ -100,7 +106,9 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void start(Stage stage) throws Exception {
     super.start(stage);
 
-    instance = new AbstractChatTabController() {
+    instance = new AbstractChatTabController(userService, chatService, platformService, preferencesService, playerService,
+        audioService, timeService, i18n, imageUploadService, urlPreviewResolver, notificationService, reportingService,
+        stage, uiService, autoCompletionHelper, eventBus, webViewConfigurer) {
       private final Tab root = new Tab();
       private final WebView webView = new WebView();
       private final TextInputControl messageTextField = new TextField();
@@ -120,21 +128,6 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
         return webView;
       }
     };
-    instance.chatService = chatService;
-    instance.userService = userService;
-    instance.preferencesService = preferencesService;
-    instance.playerService = playerService;
-    instance.platformService = platformService;
-    instance.urlPreviewResolver = urlPreviewResolver;
-    instance.timeService = timeService;
-    instance.audioService = audioService;
-    instance.imageUploadService = imageUploadService;
-    instance.notificationService = notificationService;
-    instance.i18n = i18n;
-    instance.stage = stage;
-    instance.autoCompletionHelper = autoCompletionHelper;
-    instance.webViewConfigurer = webViewConfigurer;
-    instance.uiService = uiService;
 
     TabPane tabPane = new TabPane(instance.getRoot());
     getRoot().getChildren().setAll(tabPane);

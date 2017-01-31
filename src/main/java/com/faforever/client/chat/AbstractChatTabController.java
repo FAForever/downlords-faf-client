@@ -118,47 +118,29 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    */
   private static final String ACTION_CSS_CLASS = "action";
   private static final String MESSAGE_CSS_CLASS = "message";
+  protected final UserService userService;
+  protected final ChatService chatService;
+  protected final PlatformService platformService;
+  protected final PreferencesService preferencesService;
+  protected final PlayerService playerService;
+  protected final AudioService audioService;
+  protected final TimeService timeService;
+  protected final I18n i18n;
+  protected final ImageUploadService imageUploadService;
+  protected final UrlPreviewResolver urlPreviewResolver;
+  protected final NotificationService notificationService;
+  protected final ReportingService reportingService;
+  protected final Stage stage;
+  protected final UiService uiService;
+  protected final AutoCompletionHelper autoCompletionHelper;
+  protected final EventBus eventBus;
+  protected final WebViewConfigurer webViewConfigurer;
   /**
    * Messages that arrived before the web view was ready. Those are appended as soon as it is ready.
    */
   private final List<ChatMessage> waitingMessages;
   private final IntegerProperty unreadMessagesCount;
   private final ChangeListener<Boolean> resetUnreadMessagesListener;
-  @Inject
-  UserService userService;
-  @Inject
-  ChatService chatService;
-  @Inject
-  PlatformService platformService;
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  PlayerService playerService;
-  @Inject
-  AudioService audioService;
-  @Inject
-  TimeService timeService;
-  @Inject
-  I18n i18n;
-  @Inject
-  ImageUploadService imageUploadService;
-  @Inject
-  UrlPreviewResolver urlPreviewResolver;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  ReportingService reportingService;
-  @Inject
-  Stage stage;
-  @Inject
-  UiService uiService;
-  @Inject
-  AutoCompletionHelper autoCompletionHelper;
-  @Inject
-  EventBus eventBus;
-  @Inject
-  WebViewConfigurer webViewConfigurer;
-
   private int lastEntryId;
   private boolean isChatReady;
   private WebEngine engine;
@@ -179,7 +161,26 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private Popup playerInfoPopup;
   private ChatMessage lastMessage;
 
-  public AbstractChatTabController() {
+  @Inject
+  public AbstractChatTabController(UserService userService, ChatService chatService, PlatformService platformService, PreferencesService preferencesService, PlayerService playerService, AudioService audioService, TimeService timeService, I18n i18n, ImageUploadService imageUploadService, UrlPreviewResolver urlPreviewResolver, NotificationService notificationService, ReportingService reportingService, Stage stage, UiService uiService, AutoCompletionHelper autoCompletionHelper, EventBus eventBus, WebViewConfigurer webViewConfigurer) {
+    this.userService = userService;
+    this.chatService = chatService;
+    this.platformService = platformService;
+    this.preferencesService = preferencesService;
+    this.playerService = playerService;
+    this.audioService = audioService;
+    this.timeService = timeService;
+    this.i18n = i18n;
+    this.imageUploadService = imageUploadService;
+    this.urlPreviewResolver = urlPreviewResolver;
+    this.notificationService = notificationService;
+    this.reportingService = reportingService;
+    this.stage = stage;
+    this.uiService = uiService;
+    this.autoCompletionHelper = autoCompletionHelper;
+    this.eventBus = eventBus;
+    this.webViewConfigurer = webViewConfigurer;
+    
     waitingMessages = new ArrayList<>();
     unreadMessagesCount = new SimpleIntegerProperty();
     resetUnreadMessagesListener = (observable, oldValue, newValue) -> {

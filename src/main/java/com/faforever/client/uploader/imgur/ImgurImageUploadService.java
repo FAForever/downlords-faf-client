@@ -15,10 +15,14 @@ import java.util.concurrent.CompletionStage;
 @Service
 public class ImgurImageUploadService implements ImageUploadService {
 
+  private final TaskService taskService;
+  private final ApplicationContext applicationContext;
+
   @Inject
-  TaskService taskService;
-  @Inject
-  ApplicationContext applicationContext;
+  public ImgurImageUploadService(TaskService taskService, ApplicationContext applicationContext) {
+    this.taskService = taskService;
+    this.applicationContext = applicationContext;
+  }
 
   @Override
   public CompletionStage<String> uploadImageInBackground(Image image) {

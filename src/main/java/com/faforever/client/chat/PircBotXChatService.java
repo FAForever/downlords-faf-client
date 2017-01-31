@@ -100,32 +100,20 @@ public class PircBotXChatService implements ChatService {
   private final ObservableMap<String, ChatUser> chatUsersByName;
   private final SimpleIntegerProperty unreadMessagesCount;
 
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  UserService userService;
-  @Inject
-  TaskService taskService;
-  @Inject
-  FafService fafService;
-  @Inject
-  I18n i18n;
-  @Inject
-  PircBotXFactory pircBotXFactory;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  ThreadPoolExecutor threadPoolExecutor;
-  @Inject
-  EventBus eventBus;
-  @Value("${irc.host}")
-  String ircHost;
-  @Value("${irc.port}")
-  int ircPort;
-  @Value("${irc.defaultChannel}")
-  String defaultChannelName;
-  @Value("${irc.reconnectDelay}")
-  int reconnectDelay;
+  private final PreferencesService preferencesService;
+  private final UserService userService;
+  private final TaskService taskService;
+  private final FafService fafService;
+  private final I18n i18n;
+  private final PircBotXFactory pircBotXFactory;
+  private final NotificationService notificationService;
+  private final ThreadPoolExecutor threadPoolExecutor;
+  private final EventBus eventBus;
+  private final String ircHost;
+  private final int ircPort;
+  private final String defaultChannelName;
+  private final int reconnectDelay;
+
   private Configuration configuration;
   private PircBotX pircBotX;
   private CountDownLatch identifiedLatch;
@@ -139,7 +127,27 @@ public class PircBotXChatService implements ChatService {
    */
   private boolean autoChannelsJoined;
 
-  public PircBotXChatService() {
+  @Inject
+  public PircBotXChatService(PreferencesService preferencesService, UserService userService, TaskService taskService,
+                             FafService fafService, I18n i18n, PircBotXFactory pircBotXFactory,
+                             NotificationService notificationService, ThreadPoolExecutor threadPoolExecutor,
+                             EventBus eventBus, @Value("${irc.host}") String ircHost, @Value("${irc.port}") int ircPort,
+                             @Value("${irc.defaultChannel}") String defaultChannelName,
+                             @Value("${irc.reconnectDelay}") int reconnectDelay) {
+    this.preferencesService = preferencesService;
+    this.userService = userService;
+    this.taskService = taskService;
+    this.fafService = fafService;
+    this.i18n = i18n;
+    this.pircBotXFactory = pircBotXFactory;
+    this.notificationService = notificationService;
+    this.threadPoolExecutor = threadPoolExecutor;
+    this.eventBus = eventBus;
+    this.ircHost = ircHost;
+    this.ircPort = ircPort;
+    this.defaultChannelName = defaultChannelName;
+    this.reconnectDelay = reconnectDelay;
+
     connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
     eventListeners = new ConcurrentHashMap<>();
     channels = observableHashMap();

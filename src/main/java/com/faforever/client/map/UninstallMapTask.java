@@ -19,13 +19,14 @@ public class UninstallMapTask extends CompletableTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Inject
-  MapService mapService;
+  private final MapService mapService;
 
   private MapBean map;
 
-  public UninstallMapTask() {
+  @Inject
+  public UninstallMapTask(MapService mapService) {
     super(Priority.LOW);
+    this.mapService = mapService;
   }
 
   public void setMap(MapBean map) {
