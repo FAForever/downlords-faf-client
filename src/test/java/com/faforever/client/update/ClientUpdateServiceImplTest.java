@@ -48,7 +48,7 @@ public class ClientUpdateServiceImplTest {
   public void setUp() throws Exception {
     instance = new ClientUpdateServiceImpl(taskService, notificationService, i18n, platformService, applicationContext);
 
-    doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
+    doAnswer(invocation -> invocation.getArgument(0)).when(taskService).submitTask(any());
   }
 
   /**

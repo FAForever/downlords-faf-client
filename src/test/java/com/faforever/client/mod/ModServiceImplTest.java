@@ -116,7 +116,7 @@ public class ModServiceImplTest {
     when(forgedAlliancePrefs.getModsDirectory()).thenReturn(modsDirectory.getRoot().toPath());
     when(forgedAlliancePrefs.modsDirectoryProperty()).thenReturn(new SimpleObjectProperty<>(modsDirectory.getRoot().toPath()));
     // FIXME how did that happen... I see this line many times but it doesn't seem to do anything useful
-    doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
+    doAnswer(invocation -> invocation.getArgument(0)).when(taskService).submitTask(any());
 
     blackopsSupportPath = copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);
 
@@ -464,7 +464,7 @@ public class ModServiceImplTest {
 
   private void mockThreadPool() {
     doAnswer(invocation -> {
-      invocation.getArgumentAt(0, Runnable.class).run();
+      ((Runnable) invocation.getArgument(0)).run();
       return null;
     }).when(threadPoolExecutor).execute(any(Runnable.class));
   }

@@ -10,7 +10,6 @@ import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,13 +36,9 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ModService modService;
   @Mock
-  private ApplicationContext applicationContext;
-  @Mock
   private UiService uiService;
   @Mock
   private EventBus eventBus;
-  @Mock
-  private ModCardController modCardController;
   @Mock
   private I18n i18n;
   @Mock
@@ -54,6 +49,7 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
     instance = new ModVaultController(modService, i18n, preferencesService, eventBus, uiService);
 
     doAnswer(invocation -> {
+      ModCardController modCardController = mock(ModCardController.class);
       when(modCardController.getRoot()).then(invocation1 -> new Pane());
       return modCardController;
     }).when(uiService).loadFxml("theme/vault/mod/mod_card.fxml");
@@ -85,12 +81,6 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
     when(modService.getMostLikedUiMods(anyInt())).thenReturn(CompletableFuture.completedFuture(mods));
     when(modService.getNewestMods(anyInt())).thenReturn(CompletableFuture.completedFuture(mods));
     when(modService.getMostLikedMods(anyInt())).thenReturn(CompletableFuture.completedFuture(mods));
-    when(modService.getAvailableMods()).thenReturn(CompletableFuture.completedFuture(mods));
-
-    ModCardController modCardController = mock(ModCardController.class);
-    doAnswer(invocation -> new Pane()).when(modCardController).getRoot();
-
-    when(applicationContext.getBean(ModCardController.class)).thenReturn(modCardController);
 
     CountDownLatch latch = new CountDownLatch(3);
     waitUntilInitialized(instance.recommendedUiModsPane, latch);

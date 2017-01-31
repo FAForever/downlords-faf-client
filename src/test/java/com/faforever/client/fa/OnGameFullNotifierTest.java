@@ -1,5 +1,6 @@
 package com.faforever.client.fa;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.relay.event.GameFullEvent;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.Game;
@@ -45,19 +46,12 @@ public class OnGameFullNotifierTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new OnGameFullNotifier();
-    instance.eventBus = eventBus;
-    instance.threadPoolExecutor = threadPoolExecutor;
-    instance.gameService = gameService;
-    instance.i18n = i18n;
-    instance.notificationService = notificationService;
-    instance.mapService = mapService;
-    instance.platformService = platformService;
-    instance.faWindowTitle = "Forged Alliance";
+    instance = new OnGameFullNotifier(platformService, threadPoolExecutor, gameService, notificationService, i18n,
+        mapService, eventBus, new ClientProperties());
     instance.postConstruct();
 
     doAnswer(invocation -> {
-      invocation.getArgumentAt(0, Runnable.class).run();
+      ((Runnable) invocation.getArgument(0)).run();
       return null;
     }).when(threadPoolExecutor).submit(any(Runnable.class));
 

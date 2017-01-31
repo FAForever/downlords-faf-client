@@ -3,8 +3,6 @@ package com.faforever.client.patch;
 import com.faforever.client.game.FeaturedModBeanBuilder;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.mod.FeaturedModBean;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -37,15 +35,11 @@ public class GitRepositoryFeaturedModUpdaterTest extends AbstractPlainJavaFxTest
   public ExpectedException expectedException = ExpectedException.none();
 
   @Mock
-  private ForgedAlliancePrefs forgedAlliancePrefs;
-  @Mock
   private ApplicationContext applicationContext;
   @Mock
   private PreferencesService preferencesService;
   @Mock
   private TaskService taskService;
-  @Mock
-  private Preferences preferences;
 
   private GitRepositoryFeaturedModUpdater instance;
 
@@ -53,11 +47,8 @@ public class GitRepositoryFeaturedModUpdaterTest extends AbstractPlainJavaFxTest
   public void setUp() throws Exception {
     instance = new GitRepositoryFeaturedModUpdater(taskService, applicationContext, preferencesService);
 
-    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.getGitReposDirectory()).thenReturn(reposDirectory.getRoot().toPath());
-    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
-    when(forgedAlliancePrefs.getPath()).thenReturn(faDirectory.getRoot().toPath());
-    doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
+    doAnswer(invocation -> invocation.getArgument(0)).when(taskService).submitTask(any());
   }
 
   @Test
@@ -65,12 +56,10 @@ public class GitRepositoryFeaturedModUpdaterTest extends AbstractPlainJavaFxTest
     GitFeaturedModUpdateTask featuredModTask = mock(GitFeaturedModUpdateTask.class, withSettings());
     when(applicationContext.getBean(GitFeaturedModUpdateTask.class)).thenReturn(featuredModTask);
     GameBinariesUpdateTask binariesTask = mock(GameBinariesUpdateTask.class, withSettings());
-    when(applicationContext.getBean(GameBinariesUpdateTask.class)).thenReturn(binariesTask);
 
     CompletableFuture<PatchResult> future = new CompletableFuture<>();
     future.completeExceptionally(new Exception("This exception mimicks that something went wrong"));
     when(featuredModTask.getFuture()).thenReturn(future);
-    when(binariesTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
 
     expectedException.expect(Exception.class);
     expectedException.expectMessage("This exception mimicks that something went wrong");

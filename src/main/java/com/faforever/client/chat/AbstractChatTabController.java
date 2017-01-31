@@ -21,6 +21,7 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.StageHolder;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.IdenticonUtil;
@@ -130,7 +131,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   protected final UrlPreviewResolver urlPreviewResolver;
   protected final NotificationService notificationService;
   protected final ReportingService reportingService;
-  protected final Stage stage;
   protected final UiService uiService;
   protected final AutoCompletionHelper autoCompletionHelper;
   protected final EventBus eventBus;
@@ -162,7 +162,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private ChatMessage lastMessage;
 
   @Inject
-  public AbstractChatTabController(UserService userService, ChatService chatService, PlatformService platformService, PreferencesService preferencesService, PlayerService playerService, AudioService audioService, TimeService timeService, I18n i18n, ImageUploadService imageUploadService, UrlPreviewResolver urlPreviewResolver, NotificationService notificationService, ReportingService reportingService, Stage stage, UiService uiService, AutoCompletionHelper autoCompletionHelper, EventBus eventBus, WebViewConfigurer webViewConfigurer) {
+  public AbstractChatTabController(UserService userService, ChatService chatService, PlatformService platformService, PreferencesService preferencesService, PlayerService playerService, AudioService audioService, TimeService timeService, I18n i18n, ImageUploadService imageUploadService, UrlPreviewResolver urlPreviewResolver, NotificationService notificationService, ReportingService reportingService, UiService uiService, AutoCompletionHelper autoCompletionHelper, EventBus eventBus, WebViewConfigurer webViewConfigurer) {
     this.userService = userService;
     this.chatService = chatService;
     this.platformService = platformService;
@@ -175,7 +175,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     this.urlPreviewResolver = urlPreviewResolver;
     this.notificationService = notificationService;
     this.reportingService = reportingService;
-    this.stage = stage;
     this.uiService = uiService;
     this.autoCompletionHelper = autoCompletionHelper;
     this.eventBus = eventBus;
@@ -258,7 +257,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     unreadMessagesCount.addListener((observable, oldValue, newValue) ->
         chatService.incrementUnreadMessagesCount(newValue.intValue() - oldValue.intValue())
     );
-    stage.focusedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
+    StageHolder.getStage().focusedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
     getRoot().selectedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
 
     autoCompletionHelper.bindTo(getMessageTextField());
@@ -286,7 +285,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
           getMessageTextField().requestFocus();
         }
       };
-      stage.focusedProperty().addListener(new WeakChangeListener<>(stageFocusedListener));
+      StageHolder.getStage().focusedProperty().addListener(new WeakChangeListener<>(stageFocusedListener));
 
       newTabPane.focusedProperty().addListener((focusedTabPane, oldTabPaneFocus, newTabPaneFocus) -> {
         if (newTabPaneFocus) {
@@ -628,6 +627,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   protected void showNotificationIfNecessary(ChatMessage chatMessage) {
+    Stage stage = StageHolder.getStage();
     if (stage.isFocused() && stage.isShowing()) {
       return;
     }

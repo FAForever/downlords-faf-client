@@ -1,6 +1,8 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.config.CacheNames;
+import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.fa.relay.GpgClientMessageSerializer;
 import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.fa.relay.GpgServerMessageType;
@@ -67,7 +69,6 @@ import javafx.concurrent.Task;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
@@ -129,10 +130,10 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
                                UidService uidService,
                                NotificationService notificationService,
                                I18n i18n,
-                               @Value("${lobby.host}") String lobbyHost,
-                               @Value("${lobby.port}") int lobbyPort) {
-    this.lobbyHost = lobbyHost;
-    this.lobbyPort = lobbyPort;
+                               ClientProperties clientProperties) {
+    Server server = clientProperties.getServer();
+    this.lobbyHost = server.getHost();
+    this.lobbyPort = server.getPort();
     messageListeners = new HashMap<>();
     connectionState = new SimpleObjectProperty<>();
     sessionId = new SimpleObjectProperty<>();

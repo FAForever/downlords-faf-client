@@ -83,9 +83,4 @@ public class PreferencesServiceTest {
   public void testGetFafLogDirectory() throws Exception {
     assertThat(instance.getFafLogDirectory(), is(instance.getFafDataDirectory().resolve("logs")));
   }
-
-  @Test
-  public void testConfigureLogging() throws Exception {
-    PreferencesService.configureLogging();
-  }
 }

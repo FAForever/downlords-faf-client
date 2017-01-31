@@ -104,11 +104,10 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     instance = new ChannelTabController(
         userService, chatService, platformService, preferencesService, playerService, audioService, timeService, i18n,
-        imageUploadService, urlPreviewResolver, notificationService, reportingService, getStage(), uiService,
+        imageUploadService, urlPreviewResolver, notificationService, reportingService, uiService,
         autoCompletionHelper, eventBus, webViewConfigurer, threadPoolExecutor, scheduledExecutorService);
 
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
-    when(preferencesService.getCacheDirectory()).thenReturn(tempDir.getRoot().toPath());
     when(userService.getUsername()).thenReturn(USER_NAME);
     when(uiService.loadFxml("theme/chat/user_filter.fxml")).thenReturn(userFilterController);
     when(uiService.loadFxml("theme/chat/chat_user_item.fxml")).thenReturn(chatUserItemController);
@@ -190,7 +189,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     Channel channel = new Channel(CHANNEL_NAME);
     instance.setChannel(channel);
 
-    ArgumentCaptor<MapChangeListener<String, ChatUser>> captor = ArgumentCaptor.forClass(MapChangeListener.class);
+    ArgumentCaptor<MapChangeListener<String, ChatUser>> captor = ArgumentCaptor.forClass((Class) MapChangeListener.class);
     verify(chatService).addUsersListener(anyString(), captor.capture());
 
     ChatUser chatUser = new ChatUser("junit", null);

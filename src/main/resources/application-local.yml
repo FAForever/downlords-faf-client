@@ -1,0 +1,35 @@
+faf-client:
+  server:
+    host: localhost
+
+  irc:
+    host: localhost
+
+  ice:
+    turn:
+      host: localhost
+    stun:
+      host: localhost
+
+  vault:
+    base-url: http://localhost
+
+  news:
+    feed-url: http://direct.faforever.com/news/feed
+
+  replay:
+    remote-host: localhost
+
+  api:
+    baseUrl: https://api.test.faforever.com
+
+  forged-alliance:
+    exe-url: http://content.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe
+
+security:
+  oauth2:
+    client:
+      clientId: faf-client
+      clientSecret: banana
+      accessTokenUri: https://localhost:8080/oauth/token
+      userAuthorizationUri: https://localhost:8080/oauth/authorize

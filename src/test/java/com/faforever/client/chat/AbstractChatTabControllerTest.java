@@ -108,7 +108,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
     instance = new AbstractChatTabController(userService, chatService, platformService, preferencesService, playerService,
         audioService, timeService, i18n, imageUploadService, urlPreviewResolver, notificationService, reportingService,
-        stage, uiService, autoCompletionHelper, eventBus, webViewConfigurer) {
+        uiService, autoCompletionHelper, eventBus, webViewConfigurer) {
       private final Tab root = new Tab();
       private final WebView webView = new WebView();
       private final TextInputControl messageTextField = new TextField();
@@ -138,7 +138,6 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(timeService.asShortTime(any())).thenReturn("123");
     when(userService.getUsername()).thenReturn("junit");
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferencesService.getCacheDirectory()).thenReturn(tempDir.getRoot().toPath());
 
     chatReadyLatch = new CountDownLatch(1);
     instance.getMessagesWebView().getEngine().getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
@@ -189,7 +188,6 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     String message = "/me is happy";
     instance.getMessageTextField().setText(message);
     instance.setReceiver(receiver);
-    when(timeService.asShortTime(any())).thenReturn("123");
     when(chatService.sendActionInBackground(eq(receiver), any())).thenReturn(CompletableFuture.completedFuture(message));
 
     instance.onSendMessage();

@@ -1,5 +1,7 @@
 package com.faforever.client.fa.relay.ice;
 
+import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.Ice;
 import com.faforever.client.fa.relay.ConnectToPeerMessage;
 import com.faforever.client.fa.relay.DisconnectFromPeerMessage;
 import com.faforever.client.fa.relay.GpgClientCommand;
@@ -23,7 +25,6 @@ import com.nbarraille.jjsonrpc.JJsonPeer;
 import com.nbarraille.jjsonrpc.TcpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -63,12 +64,15 @@ public class IceAdapterImpl implements IceAdapter {
   private Process process;
   private IceAdapterApi iceAdapterProxy;
 
+  // TODO pass to ICE adapter
   private LobbyMode lobbyMode;
 
   @Inject
-  public IceAdapterImpl(@Value("${stun.host}") String stunServerAddress, @Value("${turn.host}") String turnServerAddress, ApplicationContext applicationContext, PlayerService playerService, EventBus eventBus, FafService fafService) {
-    this.stunServerAddress = stunServerAddress;
-    this.turnServerAddress = turnServerAddress;
+  public IceAdapterImpl(ClientProperties clientProperties, ApplicationContext applicationContext, PlayerService playerService,
+                        EventBus eventBus, FafService fafService) {
+    Ice ice = clientProperties.getIce();
+    this.stunServerAddress = ice.getStun().getHost();
+    this.turnServerAddress = ice.getTurn().getHost();
 
     this.applicationContext = applicationContext;
     this.playerService = playerService;

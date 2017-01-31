@@ -40,7 +40,6 @@ import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -68,7 +67,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -138,14 +136,10 @@ public class GameServiceImplTest {
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     when(replayService.startReplayServer(anyInt())).thenReturn(CompletableFuture.completedFuture(null));
     when(iceAdapter.start()).thenReturn(CompletableFuture.completedFuture(GPG_PORT));
-    when(fafService.getFeaturedMods()).thenReturn(completedFuture(asList(
-        FeaturedModBeanBuilder.create().defaultValues().get(),
-        FeaturedModBeanBuilder.create().defaultValues().technicalName(LADDER_1V1.getString()).get()
-    )));
 
     doAnswer(invocation -> {
       try {
-        invocation.getArgumentAt(0, Runnable.class).run();
+        ((Runnable) invocation.getArgument(0)).run();
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -215,12 +209,6 @@ public class GameServiceImplTest {
     });
 
     CountDownLatch processLatch = new CountDownLatch(1);
-
-    process = mock(Process.class);
-    doAnswer(invocation -> {
-      processLatch.await();
-      return null;
-    }).when(process).waitFor();
 
     instance.hostGame(newGameInfo).toCompletableFuture().get(TIMEOUT, TIME_UNIT);
     gameStartedLatch.await(TIMEOUT, TIME_UNIT);
@@ -374,7 +362,6 @@ public class GameServiceImplTest {
 
     when(fafService.startSearchRanked1v1(CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
     when(gameUpdater.update(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));
-    when(scheduledExecutorService.scheduleWithFixedDelay(any(), anyLong(), anyLong(), any())).thenReturn(mock(ScheduledFuture.class));
     when(mapService.isInstalled("scmp_037")).thenReturn(false);
     when(mapService.download("scmp_037")).thenReturn(CompletableFuture.completedFuture(null));
     when(modService.getFeaturedMod(LADDER_1V1.getString())).thenReturn(CompletableFuture.completedFuture(featuredMod));
@@ -464,9 +451,6 @@ public class GameServiceImplTest {
 
     Game game = GameBuilder.create().defaultValues().get();
     instance.currentGame.set(game);
-
-    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(fafService.requestHostGame(any())).thenReturn(completedFuture(GameLaunchMessageBuilder.create().defaultValues().get()));
 
     instance.onRehostRequest(new RehostRequestEvent());
 

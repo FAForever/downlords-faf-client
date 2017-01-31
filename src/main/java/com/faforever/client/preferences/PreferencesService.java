@@ -10,8 +10,8 @@ import com.faforever.client.preferences.gson.ColorTypeAdapter;
 import com.faforever.client.preferences.gson.PathTypeAdapter;
 import com.faforever.client.preferences.gson.PropertyTypeAdapter;
 import com.faforever.client.remote.gson.FactionTypeAdapter;
-import com.faforever.client.ui.preferences.event.GameDirectoryChosenEvent;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
+import com.faforever.client.ui.preferences.event.GameDirectoryChosenEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.gson.Gson;
@@ -121,10 +121,6 @@ public class PreferencesService {
         .registerTypeAdapter(Color.class, new ColorTypeAdapter())
         .registerTypeAdapter(Faction.class, FactionTypeAdapter.INSTANCE)
         .create();
-  }
-
-  public static void configureLogging() {
-    // This method call causes the class to be initialized (static initializers) which in turn causes the logger to initialize.
   }
 
   public Path getPreferencesDirectory() {

@@ -1,5 +1,6 @@
 package com.faforever.client.main;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
@@ -24,6 +25,8 @@ import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.StageHolder;
+import com.faforever.client.ui.tray.event.IncrementApplicationBadgeEvent;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
@@ -52,7 +55,6 @@ import javafx.stage.PopupWindow;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -85,7 +87,6 @@ public class MainController implements Controller<Node> {
   private final PlayerService playerService;
   private final GameService gameService;
   private final ClientUpdateService clientUpdateService;
-  private final Stage stage;
   private final UiService uiService;
   private final EventBus eventBus;
   private final String mainWindowTitle;
@@ -108,19 +109,20 @@ public class MainController implements Controller<Node> {
   private WindowController windowController;
 
   @Inject
-  public MainController(PreferencesService preferencesService, I18n i18n, NotificationService notificationService, PlayerService playerService, GameService gameService, ClientUpdateService clientUpdateService, Stage stage, UiService uiService, EventBus eventBus, @Value("${mainWindowTitle}") String mainWindowTitle, @Value("${rating.beta}") int ratingBeta) {
+  public MainController(PreferencesService preferencesService, I18n i18n, NotificationService notificationService,
+                        PlayerService playerService, GameService gameService, ClientUpdateService clientUpdateService,
+                        UiService uiService, EventBus eventBus, ClientProperties clientProperties) {
     this.preferencesService = preferencesService;
     this.i18n = i18n;
     this.notificationService = notificationService;
     this.playerService = playerService;
     this.gameService = gameService;
     this.clientUpdateService = clientUpdateService;
-    this.stage = stage;
     this.uiService = uiService;
     this.eventBus = eventBus;
 
-    this.mainWindowTitle = mainWindowTitle;
-    this.ratingBeta = ratingBeta;
+    this.mainWindowTitle = clientProperties.getMainWindowTitle();
+    this.ratingBeta = clientProperties.getTrueSkill().getBeta();
     
     this.viewCache = CacheBuilder.newBuilder().build();
   }
@@ -252,7 +254,7 @@ public class MainController implements Controller<Node> {
 
     Stage userInfoWindow = new Stage(StageStyle.TRANSPARENT);
     userInfoWindow.initModality(Modality.NONE);
-    userInfoWindow.initOwner(stage.getOwner());
+    userInfoWindow.initOwner(StageHolder.getStage().getOwner());
 
     WindowController windowController = uiService.loadFxml("theme/window.fxml");
     windowController.configure(userInfoWindow, controller.getRoot(), true, CLOSE, MAXIMIZE_RESTORE);
@@ -311,6 +313,8 @@ public class MainController implements Controller<Node> {
   }
 
   public void display() {
+    eventBus.post(new IncrementApplicationBadgeEvent(0));
+    Stage stage = StageHolder.getStage();
     windowController.configure(stage, mainRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
     double x = mainWindowPrefs.getX();
@@ -337,6 +341,7 @@ public class MainController implements Controller<Node> {
   }
 
   private void enterLoggedOutState() {
+    Stage stage = StageHolder.getStage();
     stage.setTitle(i18n.get("login.title"));
     LoginController loginController = uiService.loadFxml("theme/login.fxml");
     windowController.setContent(loginController.getRoot());
@@ -344,6 +349,7 @@ public class MainController implements Controller<Node> {
   }
 
   private void registerWindowListeners() {
+    Stage stage = StageHolder.getStage();
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
     stage.maximizedProperty().addListener((observable, oldValue, newValue) -> {
       if (!newValue) {
@@ -382,6 +388,7 @@ public class MainController implements Controller<Node> {
   }
 
   private void enterLoggedInState() {
+    Stage stage = StageHolder.getStage();
     stage.setTitle(mainWindowTitle);
     windowController.setContent(mainRoot);
 

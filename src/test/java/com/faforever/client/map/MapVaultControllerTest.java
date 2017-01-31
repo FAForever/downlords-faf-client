@@ -10,7 +10,6 @@ import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +23,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -32,15 +32,9 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private MapService mapService;
   @Mock
-  private ApplicationContext applicationContext;
-  @Mock
   private UiService uiService;
   @Mock
   private EventBus eventBus;
-  @Mock
-  private MapDetailController mapDetailController;
-  @Mock
-  private MapCardController mapCardController;
   @Mock
   private I18n i18n;
   @Mock
@@ -53,13 +47,15 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     instance = new MapVaultController(mapService, i18n, eventBus, preferencesService, uiService);
 
     doAnswer(invocation -> {
-      when(mapDetailController.getRoot()).thenReturn(new Pane());
-      return mapDetailController;
+      MapDetailController controller = mock(MapDetailController.class);
+      when(controller.getRoot()).thenReturn(new Pane());
+      return controller;
     }).when(uiService).loadFxml("theme/vault/map/map_detail.fxml");
 
     doAnswer(invocation -> {
-      when(mapCardController.getRoot()).then(invocation1 -> new Pane());
-      return mapCardController;
+      MapCardController controller = mock(MapCardController.class);
+      when(controller.getRoot()).thenReturn(new Pane());
+      return controller;
     }).when(uiService).loadFxml("theme/vault/map/map_card.fxml");
 
     loadFxml("theme/vault/map/map_vault.fxml", clazz -> instance);
@@ -89,12 +85,9 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
       );
     }
 
-    when(mapService.getMostDownloadedMaps(anyInt())).thenReturn(CompletableFuture.completedFuture(maps));
     when(mapService.getMostLikedMaps(anyInt())).thenReturn(CompletableFuture.completedFuture(maps));
     when(mapService.getNewestMaps(anyInt())).thenReturn(CompletableFuture.completedFuture(maps));
     when(mapService.getMostPlayedMaps(anyInt())).thenReturn(CompletableFuture.completedFuture(maps));
-
-    when(applicationContext.getBean(MapCardController.class)).thenReturn(mapCardController);
 
     CountDownLatch latch = new CountDownLatch(3);
     waitUntilInitialized(instance.mostLikedPane, latch);

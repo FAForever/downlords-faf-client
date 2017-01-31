@@ -33,7 +33,7 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     instance = new AchievementItemController(i18n, achievementService);
-    when(i18n.number(anyInt())).thenAnswer(invocation -> String.format("%d", invocation.getArgumentAt(0, int.class)));
+    when(i18n.number(anyInt())).thenAnswer(invocation -> String.format("%d", (int) invocation.getArgument(0)));
 
     loadFxml("theme/achievement_item.fxml", clazz -> instance);
   }

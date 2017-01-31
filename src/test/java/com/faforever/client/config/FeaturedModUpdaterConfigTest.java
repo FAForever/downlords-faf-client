@@ -1,6 +1,6 @@
 package com.faforever.client.config;
 
-import com.faforever.client.Main;
+import com.faforever.client.FafClientApplication;
 import com.faforever.client.fx.PlatformService;
 import com.google.common.base.Stopwatch;
 import javafx.stage.Stage;
@@ -27,7 +27,7 @@ public class FeaturedModUpdaterConfigTest {
       try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
         context.getBeanFactory().registerSingleton("hostService", mock(PlatformService.class));
         context.getBeanFactory().registerSingleton("stage", new Stage());
-        context.register(Main.class);
+        context.register(FafClientApplication.class);
         context.refresh();
         logger.debug("Loading application context took {}", stopwatch.stop());
       }

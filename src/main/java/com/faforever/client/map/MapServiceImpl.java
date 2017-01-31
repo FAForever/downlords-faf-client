@@ -1,6 +1,8 @@
 package com.faforever.client.map;
 
 import com.faforever.client.config.CacheNames;
+import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.Vault;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean.Type;
 import com.faforever.client.preferences.PreferencesService;
@@ -26,7 +28,6 @@ import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
@@ -86,7 +87,7 @@ public class MapServiceImpl implements MapService {
   private final I18n i18n;
   private final UiService uiService;
 
-  private final String mapDownloadUrl;
+  private final String mapDownloadUrlFormat;
   private final String mapPreviewUrlFormat;
 
   private Map<Path, MapBean> pathToMap;
@@ -97,7 +98,10 @@ public class MapServiceImpl implements MapService {
   private Thread directoryWatcherThread;
 
   @Inject
-  public MapServiceImpl(PreferencesService preferencesService, TaskService taskService, ApplicationContext applicationContext, Directory directory, Analyzer analyzer, ThreadPoolExecutor threadPoolExecutor, FafService fafService, AssetService assetService, I18n i18n, UiService uiService, @Value("${vault.mapDownloadUrl}") String mapDownloadUrl, @Value("${vault.mapPreviewUrlFormat}") String mapPreviewUrlFormat) {
+  public MapServiceImpl(PreferencesService preferencesService, TaskService taskService,
+                        ApplicationContext applicationContext, Directory directory, Analyzer analyzer,
+                        ThreadPoolExecutor threadPoolExecutor, FafService fafService, AssetService assetService,
+                        I18n i18n, UiService uiService, ClientProperties clientProperties) {
     this.preferencesService = preferencesService;
     this.taskService = taskService;
     this.applicationContext = applicationContext;
@@ -109,8 +113,9 @@ public class MapServiceImpl implements MapService {
     this.i18n = i18n;
     this.uiService = uiService;
 
-    this.mapDownloadUrl = mapDownloadUrl;
-    this.mapPreviewUrlFormat = mapPreviewUrlFormat;
+    Vault vault = clientProperties.getVault();
+    this.mapDownloadUrlFormat = vault.getMapDownloadUrlFormat();
+    this.mapPreviewUrlFormat = vault.getMapPreviewUrlFormat();
 
     pathToMap = new HashMap<>();
     installedSkirmishMaps = FXCollections.observableArrayList();
@@ -301,7 +306,7 @@ public class MapServiceImpl implements MapService {
 
   @Override
   public CompletionStage<Void> download(String technicalMapName) {
-    URL mapUrl = getDownloadUrl(technicalMapName, mapDownloadUrl);
+    URL mapUrl = getDownloadUrl(technicalMapName, mapDownloadUrlFormat);
     return downloadAndInstallMap(technicalMapName, mapUrl, null, null);
   }
 

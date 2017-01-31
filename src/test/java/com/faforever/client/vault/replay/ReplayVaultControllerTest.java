@@ -61,7 +61,7 @@ public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     instance = new ReplayVaultController(notificationService, replayService, mapService, taskService, i18n, timeService,
         reportingService, applicationContext, uiService);
 
-    doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
+    doAnswer(invocation -> invocation.getArgument(0)).when(taskService).submitTask(any());
 
     loadFxml("theme/vault/replay/replay_vault.fxml", clazz -> instance);
   }

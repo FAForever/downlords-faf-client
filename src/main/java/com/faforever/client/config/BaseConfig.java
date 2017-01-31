@@ -10,8 +10,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ResourceBundleMessageSource;
-import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
@@ -73,11 +71,6 @@ public class BaseConfig {
   @PreDestroy
   void shutdown() {
     scheduledExecutorService.shutdown();
-  }
-
-  @Bean
-  ClientHttpRequestFactory clientHttpRequestFactory() {
-    return new SimpleClientHttpRequestFactory();
   }
 
   @Bean

@@ -28,7 +28,6 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import static junit.framework.TestCase.assertTrue;
@@ -80,14 +79,12 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   private EventBus eventBus;
   @Mock
   private ThreadPoolExecutor threadPoolExecutor;
-  @Mock
-  private ScheduledExecutorService scheduledExecutorService;
 
   @Before
   public void setUp() throws IOException {
     instance = new PrivateChatTabController(userService, chatService, platformService, preferencesService, playerService,
         audioService, timeService, i18n, imageUploadService, urlPreviewResolver, notificationService, reportingService,
-        getStage(), uiService, autoCompletionHelper, eventBus, webViewConfigurer, threadPoolExecutor
+        uiService, autoCompletionHelper, eventBus, webViewConfigurer, threadPoolExecutor
     );
 
     playerName = "testUser";
@@ -127,7 +124,6 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void onChatMessageTestNotFoeShowFoe() {
-    when(chatPrefs.getHideFoeMessages()).thenReturn(false);
     instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
   }
 

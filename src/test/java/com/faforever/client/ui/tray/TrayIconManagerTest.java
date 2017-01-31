@@ -25,7 +25,7 @@ public class TrayIconManagerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new TrayIconManager(i18n, getStage(), eventBus);
+    instance = new TrayIconManager(i18n, eventBus);
   }
 
   @Test

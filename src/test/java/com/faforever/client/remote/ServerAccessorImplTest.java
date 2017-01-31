@@ -1,5 +1,6 @@
 package com.faforever.client.remote;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.game.Faction;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.FactionDeserializer;
@@ -8,9 +9,7 @@ import com.faforever.client.legacy.UidService;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.LoginPrefs;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.rankedmatch.SearchRanked1V1ClientMessage;
@@ -74,13 +73,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class FafServerAccessorImplTest {
+public class ServerAccessorImplTest {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final long TIMEOUT = 5000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
-  private static final int GAME_PORT = 6112;
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
   private static final Gson gson = new GsonBuilder()
       .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
@@ -97,11 +95,7 @@ public class FafServerAccessorImplTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private Preferences preferences;
-  @Mock
   private UidService uidService;
-  @Mock
-  private ForgedAlliancePrefs forgedAlliancePrefs;
   @Mock
   private NotificationService notificationService;
   @Mock
@@ -122,20 +116,19 @@ public class FafServerAccessorImplTest {
 
     startFakeFafLobbyServer();
 
-    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, LOOPBACK_ADDRESS.getHostAddress(), fafLobbyServerSocket.getLocalPort());
+    ClientProperties clientProperties = new ClientProperties();
+    clientProperties.getServer()
+        .setHost(LOOPBACK_ADDRESS.getHostAddress())
+        .setPort(fafLobbyServerSocket.getLocalPort());
+
+    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, clientProperties);
 
     LoginPrefs loginPrefs = new LoginPrefs();
     loginPrefs.setUsername("junit");
     loginPrefs.setPassword("password");
 
-    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.getFafDataDirectory()).thenReturn(faDirectory.getRoot().toPath());
-    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
-    when(forgedAlliancePrefs.getPort()).thenReturn(GAME_PORT);
-    when(preferences.getLogin()).thenReturn(loginPrefs);
     when(uidService.generate(any(), any())).thenReturn("encrypteduidstring");
-
-    preferencesService.getPreferences().getLogin();
   }
 
   private void startFakeFafLobbyServer() throws IOException {

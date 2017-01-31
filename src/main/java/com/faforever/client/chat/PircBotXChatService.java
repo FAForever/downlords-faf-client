@@ -1,9 +1,10 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.chat.event.ChatMessageEvent;
+import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.UserOnlineEvent;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
@@ -20,7 +21,6 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.hash.Hashing;
-import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -53,7 +53,6 @@ import org.pircbotx.hooks.events.UserListEvent;
 import org.pircbotx.hooks.types.GenericEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -106,7 +105,6 @@ public class PircBotXChatService implements ChatService {
   private final FafService fafService;
   private final I18n i18n;
   private final PircBotXFactory pircBotXFactory;
-  private final NotificationService notificationService;
   private final ThreadPoolExecutor threadPoolExecutor;
   private final EventBus eventBus;
   private final String ircHost;
@@ -130,23 +128,23 @@ public class PircBotXChatService implements ChatService {
   @Inject
   public PircBotXChatService(PreferencesService preferencesService, UserService userService, TaskService taskService,
                              FafService fafService, I18n i18n, PircBotXFactory pircBotXFactory,
-                             NotificationService notificationService, ThreadPoolExecutor threadPoolExecutor,
-                             EventBus eventBus, @Value("${irc.host}") String ircHost, @Value("${irc.port}") int ircPort,
-                             @Value("${irc.defaultChannel}") String defaultChannelName,
-                             @Value("${irc.reconnectDelay}") int reconnectDelay) {
+                             ThreadPoolExecutor threadPoolExecutor, EventBus eventBus,
+                             ClientProperties clientProperties) {
     this.preferencesService = preferencesService;
     this.userService = userService;
     this.taskService = taskService;
     this.fafService = fafService;
     this.i18n = i18n;
     this.pircBotXFactory = pircBotXFactory;
-    this.notificationService = notificationService;
     this.threadPoolExecutor = threadPoolExecutor;
     this.eventBus = eventBus;
-    this.ircHost = ircHost;
-    this.ircPort = ircPort;
-    this.defaultChannelName = defaultChannelName;
-    this.reconnectDelay = reconnectDelay;
+
+
+    Irc irc = clientProperties.getIrc();
+    this.ircHost = irc.getHost();
+    this.ircPort = irc.getPort();
+    this.defaultChannelName = irc.getDefaultChannel();
+    this.reconnectDelay = irc.getReconnectDelay();
 
     connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
     eventListeners = new ConcurrentHashMap<>();
@@ -247,12 +245,14 @@ public class PircBotXChatService implements ChatService {
       joinAutoChannels();
     } else {
       synchronized (channels) {
+        logger.debug("Joining all channels: {}", channels);
         channels.keySet().forEach(this::joinChannel);
       }
     }
   }
 
   private void joinAutoChannels() {
+    logger.debug("Joining auto channel1: {}", autoChannels);
     if (autoChannels == null) {
       return;
     }
@@ -514,7 +514,9 @@ public class PircBotXChatService implements ChatService {
 
   @Override
   public void joinChannel(String channelName) {
+    logger.debug("Joining channel1: {}", channelName);
     noCatch(() -> identifiedLatch.await());
+    logger.debug("Joining channel2: {}", channelName);
     pircBotX.sendIRC().joinChannel(channelName);
   }
 
@@ -528,7 +530,7 @@ public class PircBotXChatService implements ChatService {
   public void close() {
     // TODO clean up disconnect() and close()
     if (connectionTask != null) {
-      Platform.runLater(connectionTask::cancel);
+      connectionTask.cancel();
     }
     if (pircBotX != null) {
       pircBotX.sendIRC().quitServer();

@@ -1,5 +1,6 @@
 package com.faforever.client.map;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
@@ -87,12 +88,14 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
+    ClientProperties clientProperties = new ClientProperties();
+    clientProperties.getVault().setMapPreviewUrlFormat("http://127.0.0.1:65534/preview/%s/%s");
+
     instance = new MapServiceImpl(preferencesService, taskService, applicationContext, new RAMDirectory(), new SimpleAnalyzer(),
-        threadPoolExecutor, fafService, assetService, i18n, uiService, "", "http://127.0.0.1:65534/preview/%s/%s");
+        threadPoolExecutor, fafService, assetService, i18n, uiService, clientProperties);
 
     mapsDirectory = gameDirectory.newFolder("maps").toPath();
 
-    when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory.getRoot().toPath());
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getCustomMapsDirectory()).thenReturn(customMapsDirectory.getRoot().toPath());
@@ -102,7 +105,7 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
 
     doAnswer(invocation -> {
       @SuppressWarnings("unchecked")
-      CompletableTask<Void> task = invocation.getArgumentAt(0, CompletableTask.class);
+      CompletableTask<Void> task = invocation.getArgument(0);
       WaitForAsyncUtils.asyncFx(task);
       task.getFuture().get();
       return task;

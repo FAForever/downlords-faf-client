@@ -13,12 +13,15 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 
+import java.nio.file.Path;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -53,6 +56,11 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     instance = new ModUploadController(modService, threadPoolExecutor, notificationService, reportingService, i18n, eventBus);
 
+    doAnswer(invocation -> {
+      ((Runnable) invocation.getArgument(0)).run();
+      return null;
+    }).when(threadPoolExecutor).execute(any());
+
     modUploadTask = new ModUploadTask(preferencesService, fafService, i18n) {
       @Override
       protected Void call() throws Exception {
@@ -66,7 +74,11 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testSetModPath() throws Exception {
     when(modService.extractModInfo(any())).thenReturn(new Mod());
-    instance.setModPath(modFolder.getRoot().toPath());
+
+    Path modPath = modFolder.getRoot().toPath();
+    instance.setModPath(modPath);
+
+    verify(modService, timeout(3000)).extractModInfo(modPath);
   }
 
   @Test
