@@ -9,7 +9,6 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-
 <VBox xmlns:fx="http://javafx.com/fxml/1" styleClass="settings-content" xmlns="http://javafx.com/javafx/8.0.60"
       fx:controller="">
     <children>
@@ -28,7 +27,7 @@
                     </rowConstraints>
                     <children>
                         <Label text="%settings.general.language"/>
-                        <ComboBox fx:id="languageComboBox" disable="true" GridPane.columnIndex="1"/>
+                        <ComboBox fx:id="languageComboBox" GridPane.columnIndex="1"/>
                         <Label text="%settings.general.theme" GridPane.rowIndex="1"/>
                         <ComboBox fx:id="themeComboBox" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
                         <CheckBox fx:id="rememberLastTabCheckBox" mnemonicParsing="false"

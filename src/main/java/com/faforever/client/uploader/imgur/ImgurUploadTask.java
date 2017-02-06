@@ -69,7 +69,7 @@ public class ImgurUploadTask extends CompletableTask<String> {
     ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
 
     if (byteArrayOutputStream.size() > maxUploadSize) {
-      throw new IllegalArgumentException("Image exceeds max upload size of " + formatSize(maxUploadSize, i18n.getLocale()));
+      throw new IllegalArgumentException("Image exceeds max upload size of " + formatSize(maxUploadSize, i18n.getUserSpecificLocale()));
     }
 
     String dataImage = BaseEncoding.base64().encode(byteArrayOutputStream.toByteArray());

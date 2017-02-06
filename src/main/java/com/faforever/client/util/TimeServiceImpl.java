@@ -1,6 +1,9 @@
 package com.faforever.client.util;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.TimeInfo;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -20,12 +23,12 @@ import java.util.TimeZone;
 public class TimeServiceImpl implements TimeService {
 
   private final I18n i18n;
-  private final Locale locale;
+  private final PreferencesService preferencesService;
 
   @Inject
-  public TimeServiceImpl(I18n i18n, Locale locale) {
+  public TimeServiceImpl(I18n i18n, PreferencesService preferencesService) {
     this.i18n = i18n;
-    this.locale = locale;
+    this.preferencesService = preferencesService;
   }
 
   @Override
@@ -73,16 +76,25 @@ public class TimeServiceImpl implements TimeService {
   @Override
   public String asDate(TemporalAccessor temporalAccessor) {
     return DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
-        .withLocale(locale)
+        .withLocale(getCurrentTimeLocale())
         .withZone(TimeZone.getDefault().toZoneId())
         .format(temporalAccessor);
   }
 
   @Override
   public String asShortTime(Instant instant) {
-    return DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale).format(
+    return DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(getCurrentTimeLocale()).format(
         ZonedDateTime.ofInstant(instant, TimeZone.getDefault().toZoneId())
     );
+  }
+
+  private Locale getCurrentTimeLocale() {
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+    if (chatPrefs.getTimeFormat().equals(TimeInfo.AUTO)) {
+      return Locale.getDefault();
+    }
+    return preferencesService.getPreferences().getChat().getTimeFormat().getUsedLocale();
+
   }
 
   @Override

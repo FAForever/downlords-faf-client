@@ -75,7 +75,7 @@ public class ClientUpdateServiceImplTest {
     verify(notificationService).addNotification(captor.capture());
     PersistentNotification persistentNotification = captor.getValue();
 
-    verify(i18n).get("clientUpdateAvailable.notification", "v0.4.8.1-alpha", Bytes.formatSize(56079360L, i18n.getLocale()));
+    verify(i18n).get("clientUpdateAvailable.notification", "v0.4.8.1-alpha", Bytes.formatSize(56079360L, i18n.getUserSpecificLocale()));
     assertThat(persistentNotification.getSeverity(), is(INFO));
   }
 }

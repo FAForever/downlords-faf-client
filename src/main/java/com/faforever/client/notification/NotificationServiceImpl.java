@@ -27,13 +27,14 @@ public class NotificationServiceImpl implements NotificationService {
   private final ObservableSet<PersistentNotification> persistentNotifications;
   private final List<OnTransientNotificationListener> onTransientNotificationListeners;
   private final List<OnImmediateNotificationListener> onImmediateNotificationListeners;
-
-  private final I18n i18n;
   private final ReportingService reportingService;
 
+  // TODO fix circular reference
   @Inject
-  public NotificationServiceImpl(I18n i18n, ReportingService reportingService) {
-    this.i18n = i18n;
+  private I18n i18n;
+
+  @Inject
+  public NotificationServiceImpl(ReportingService reportingService) {
     this.reportingService = reportingService;
 
     persistentNotifications = synchronizedObservableSet(observableSet(new TreeSet<>()));
