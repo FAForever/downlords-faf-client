@@ -10,14 +10,15 @@ import de.undercouch.gradle.tasks.download.Download
 buildscript {
   repositories {
     mavenCentral()
-    maven {
-      url 'http://maven.ej-technologies.com/repository'
-    }
+    maven { url 'http://maven.ej-technologies.com/repository' }
+    maven { url 'http://repo.spring.io/plugins-release' }
   }
 
   dependencies {
-    classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.4.0'
-    classpath 'com.install4j:gradle-plugin:6.0'
+    classpath("org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.4.0")
+    classpath("com.install4j:gradle-plugin:6.0")
+    classpath("org.springframework.build.gradle:propdeps-plugin:${propdepsVersion}")
+    classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
   }
 }
 
@@ -29,7 +30,8 @@ plugins {
 }
 
 apply plugin: 'java'
-apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'propdeps'
 apply plugin: 'jacoco'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'distribution'
@@ -39,6 +41,19 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 version = '0.6.31-alpha'
+
+compileJava.dependsOn(processResources)
+processResources {
+  filesMatching('**/application.yml') {
+    filter {
+      it.replace('#faf-server.version#', project.version.toString())
+    }
+  }
+}
+
+configurations {
+  compile.exclude module: "assertj-core"
+}
 
 class HttpBuilder extends HTTPBuilder {
 
@@ -127,18 +142,6 @@ jacocoTestReport {
   }
 }
 
-idea {
-  project {
-    jdkName = JavaVersion.VERSION_1_8
-    languageLevel = JavaVersion.VERSION_1_8
-    vcs = 'Git'
-  }
-  module {
-    downloadJavadoc = false
-    downloadSources = true
-  }
-}
-
 jar {
   manifest {
     attributes "Premain-Class": "com.faforever.client.fx.TransparentWebViewPatch",
@@ -217,52 +220,56 @@ jacoco {
   toolVersion = "0.7.5.201505241946"
 }
 
+dependencyManagement {
+  dependencies {
+    dependency "org.mockito:mockito-core:${mockitoVersion}"
+  }
+}
+
 dependencies {
+  compile("org.springframework.boot:spring-boot-starter")
+  compile("org.springframework.boot:spring-boot-starter-cache")
+  compile("org.springframework.boot:spring-boot-starter-logging")
+
+  compile("com.google.code.gson:gson:2.3.1")
+  compile("org.pircbotx:pircbotx:2.1") {
+    exclude module: 'guava'
+  }
+  compile("com.google.guava:guava:18.0")
+  compile("ch.qos.logback:logback-classic:1.0.13")
+  compile("ch.qos.logback:logback-core:1.0.13")
+  compile("org.slf4j:slf4j-api:1.7.2")
+  compile("org.apache.commons:commons-compress:1.9")
+  compile("org.apache.httpcomponents:httpclient:4.4.1")
+  compile("net.java.dev.jna:jna:4.1.0")
+  compile("net.java.dev.jna:jna-platform:4.1.0")
+  compile("org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r")
+  compile("org.jetbrains:annotations:13.0")
+  compile("net.sf.jtidy:jtidy:r938")
+  compile("com.neovisionaries:nv-i18n:1.15")
+  compile("org.slf4j:jul-to-slf4j:1.7.12")
+  compile("com.rometools:rome:1.5.0")
+  compile("org.jsoup:jsoup:1.8.2")
+  compile("com.google.oauth-client:google-oauth-client-java7:1.16.0-rc")
+  compile("com.google.http-client:google-http-client-gson:1.20.0")
+  compile("org.apache.lucene:lucene-core:5.3.1")
+  compile("org.apache.lucene:lucene-analyzers-common:5.3.1")
+  compile("org.apache.lucene:lucene-suggest:5.3.1")
+  compile("com.nativelibs4java:bridj:0.7.0")
+  compile("com.github.nocatch:nocatch:1.1")
+  compile("org.luaj:luaj-jse:3.0.1")
+  compile("commons-validator:commons-validator:1.5.1")
+  compile("com.github.micheljung:JJsonRpc:f683b55f55")
+  compile("javax.inject:javax.inject:1")
+  compile("org.projectlombok:lombok:${lombokVersion}")
+
   testCompile 'junit:junit:4.11'
-  testCompile 'org.hamcrest:hamcrest-integration:1.3'
-  testCompile 'org.mockito:mockito-core:2.0.31-beta'
   testCompile("org.testfx:testfx-core:4.0.+") {
     exclude module: 'guava'
   }
-  testCompile "org.testfx:testfx-junit:4.0.+"
-  testCompile "nl.jqno.equalsverifier:equalsverifier:1.7.3"
-  testCompile 'org.springframework:spring-test:4.2.2.RELEASE'
-  testCompile 'com.natpryce.hamcrest:hamcrest-reflection:0.1-2'
+  testCompile("org.testfx:testfx-junit:4.0.+")
+  testCompile("com.natpryce.hamcrest:hamcrest-reflection:0.1-2")
+  testCompile("org.springframework.boot:spring-boot-starter-test")
 
-  compile 'com.google.code.gson:gson:2.3.1'
-  compile 'org.springframework:spring-beans:4.2.2.RELEASE'
-  compile 'org.springframework:spring-context:4.2.2.RELEASE'
-  compile 'org.springframework:spring-context-support:4.2.2.RELEASE'
-  compile 'org.springframework:spring-core:4.2.2.RELEASE'
-  compile 'org.springframework:spring-web:4.2.2.RELEASE'
-  compile('org.pircbotx:pircbotx:2.1') {
-    exclude module: 'guava'
-  }
-  compile 'com.google.guava:guava:18.0'
-  compile 'ch.qos.logback:logback-classic:1.0.13'
-  compile 'ch.qos.logback:logback-core:1.0.13'
-  compile 'org.slf4j:slf4j-api:1.7.2'
-  compile 'org.apache.commons:commons-compress:1.9'
-  compile 'org.apache.httpcomponents:httpclient:4.4.1'
-  compile 'net.java.dev.jna:jna:4.1.0'
-  compile 'net.java.dev.jna:jna-platform:4.1.0'
-  compile 'org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r'
-  compile 'org.jetbrains:annotations:13.0'
-  compile 'net.sf.jtidy:jtidy:r938'
-  compile 'com.neovisionaries:nv-i18n:1.15'
-  compile 'org.slf4j:jul-to-slf4j:1.7.12'
-  compile 'com.rometools:rome:1.5.0'
-  compile 'org.jsoup:jsoup:1.8.2'
-  compile 'com.google.oauth-client:google-oauth-client-java7:1.16.0-rc'
-  compile 'com.google.http-client:google-http-client-gson:1.20.0'
-  compile 'org.apache.lucene:lucene-core:5.3.1'
-  compile 'org.apache.lucene:lucene-analyzers-common:5.3.1'
-  compile 'org.apache.lucene:lucene-suggest:5.3.1'
-  compile 'com.nativelibs4java:bridj:0.7.0'
-  compile 'com.github.nocatch:nocatch:1.1'
-  compile 'org.javassist:javassist:3.20.0-GA'
-  compile 'org.luaj:luaj-jse:3.0.1'
-  compile 'commons-validator:commons-validator:1.5.1'
-  compile 'com.github.micheljung:JJsonRpc:f683b55f55'
-  compile 'javax.inject:javax.inject:1'
+  optional("org.springframework.boot:spring-boot-configuration-processor")
 }

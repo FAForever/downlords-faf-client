@@ -10,7 +10,6 @@ import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.events.EventService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerBuilder;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -58,24 +57,12 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private Preferences preferences;
-  @Mock
   private AchievementItemController achievementItemController;
 
   @Before
   public void setUp() throws Exception {
-    instance = new UserInfoWindowController();
-    instance.countryFlagService = countryFlagService;
-    instance.locale = locale;
-    instance.i18n = i18n;
-    instance.statisticsService = statisticsService;
-    instance.achievementService = achievementService;
-    instance.eventService = eventService;
-    instance.uiService = uiService;
-    instance.preferencesService = preferencesService;
+    instance = new UserInfoWindowController(statisticsService, countryFlagService, achievementService, eventService, preferencesService, i18n, uiService);
 
-    when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.getThemeName()).thenReturn("default");
     when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
 
     when(statisticsService.getRatingHistory(any(), eq(PLAYER_ID))).thenReturn(CompletableFuture.completedFuture(Arrays.asList(

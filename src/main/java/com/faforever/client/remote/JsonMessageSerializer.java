@@ -41,8 +41,6 @@ public class JsonMessageSerializer<T extends SerializableMessage> implements Ser
     QDataWriter qDataWriter = new QDataWriter(byteArrayOutputStream);
     qDataWriter.append(jsonStringWriter.toString());
 
-    appendMore(qDataWriter);
-
     byte[] byteArray = byteArrayOutputStream.toByteArray();
 
     if (logger.isDebugEnabled()) {
@@ -86,14 +84,6 @@ public class JsonMessageSerializer<T extends SerializableMessage> implements Ser
     } catch (NoSuchFieldException | IllegalAccessException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  /**
-   * Allows subclasses to append more stuff after the serialized JSON. Default implementation does nothing, so super
-   * doesn't need to be called.
-   */
-  protected void appendMore(QDataWriter qDataWriter) throws IOException {
-    // To be overridden by subclasses, if desired
   }
 
   /**

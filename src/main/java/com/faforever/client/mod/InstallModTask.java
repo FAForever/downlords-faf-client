@@ -32,16 +32,17 @@ public class InstallModTask extends CompletableTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Inject
-  PreferencesService preferencesService;
-
-  @Inject
-  I18n i18n;
+  private final PreferencesService preferencesService;
+  private final I18n i18n;
 
   private URL url;
 
-  public InstallModTask() {
+  @Inject
+  public InstallModTask(PreferencesService preferencesService, I18n i18n) {
     super(HIGH);
+
+    this.preferencesService = preferencesService;
+    this.i18n = i18n;
   }
 
   @Override

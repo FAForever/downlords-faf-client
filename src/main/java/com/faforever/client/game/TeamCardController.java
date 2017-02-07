@@ -25,16 +25,18 @@ import java.util.List;
 public class TeamCardController implements Controller<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
+  private final PlayerService playerService;
+  private final UiService uiService;
+  private final I18n i18n;
   public TitledPane teamPaneRoot;
   public VBox teamPane;
 
   @Inject
-  PlayerService playerService;
-  @Inject
-  UiService uiService;
-  @Inject
-  I18n i18n;
+  public TeamCardController(PlayerService playerService, UiService uiService, I18n i18n) {
+    this.playerService = playerService;
+    this.uiService = uiService;
+    this.i18n = i18n;
+  }
 
   public void setPlayersInTeam(String team, List<String> playerList) {
     int totalRating = 0;

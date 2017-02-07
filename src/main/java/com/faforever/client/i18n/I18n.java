@@ -8,7 +8,7 @@ public interface I18n {
 
   String getQuantized(String singularKey, String pluralKey, long arg);
 
-  Locale getLocale();
+  Locale getUserSpecificLocale();
 
   String number(int number);
 }

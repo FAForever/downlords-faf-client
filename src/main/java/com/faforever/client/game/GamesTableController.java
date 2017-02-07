@@ -11,7 +11,6 @@ import com.google.api.client.repackaged.com.google.common.base.Joiner;
 import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -42,6 +41,10 @@ import java.util.stream.Collectors;
 public class GamesTableController implements Controller<Node> {
 
   private final ObjectProperty<Game> selectedGame;
+  private final MapService mapService;
+  private final JoinGameHelper joinGameHelper;
+  private final I18n i18n;
+  private final UiService uiService;
   public TableView<Game> gamesTable;
   public TableColumn<Game, Image> mapPreviewColumn;
   public TableColumn<Game, String> gameTitleColumn;
@@ -50,16 +53,14 @@ public class GamesTableController implements Controller<Node> {
   public TableColumn<Game, String> modsColumn;
   public TableColumn<Game, String> hostColumn;
   public TableColumn<Game, Boolean> passwordProtectionColumn;
-  @Inject
-  MapService mapService;
-  @Inject
-  JoinGameHelper joinGameHelper;
-  @Inject
-  I18n i18n;
-  @Inject
-  UiService uiService;
 
-  public GamesTableController() {
+  @Inject
+  public GamesTableController(MapService mapService, JoinGameHelper joinGameHelper, I18n i18n, UiService uiService) {
+    this.mapService = mapService;
+    this.joinGameHelper = joinGameHelper;
+    this.i18n = i18n;
+    this.uiService = uiService;
+
     this.selectedGame = new SimpleObjectProperty<>();
   }
 
@@ -98,16 +99,10 @@ public class GamesTableController implements Controller<Node> {
     passwordProtectionColumn.setCellValueFactory(param -> param.getValue().passwordProtectedProperty());
     passwordProtectionColumn.setCellFactory(param -> passwordIndicatorColumn());
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(uiService));
-    mapPreviewColumn.setCellValueFactory(param -> new ObjectBinding<Image>() {
-      {
-        bind(param.getValue().mapFolderNameProperty());
-      }
-
-      @Override
-      protected Image computeValue() {
-        return mapService.loadPreview(param.getValue().getMapFolderName(), PreviewSize.SMALL);
-      }
-    });
+    mapPreviewColumn.setCellValueFactory(param -> Bindings.createObjectBinding(
+        () -> mapService.loadPreview(param.getValue().getMapFolderName(), PreviewSize.SMALL),
+        param.getValue().mapFolderNameProperty()
+    ));
 
     gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
     gameTitleColumn.setCellFactory(param -> new StringCell<>(title -> title));

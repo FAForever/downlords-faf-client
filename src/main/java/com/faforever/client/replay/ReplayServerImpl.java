@@ -46,24 +46,28 @@ public class ReplayServerImpl implements ReplayServer {
    */
   private static final byte[] LIVE_REPLAY_PREFIX = new byte[]{'P', '/'};
 
-  @Inject
-  Environment environment;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  I18n i18n;
-  @Inject
-  GameService gameService;
-  @Inject
-  UserService userService;
-  @Inject
-  ReplayFileWriter replayFileWriter;
-  @Inject
-  ClientUpdateService clientUpdateService;
+  private final Environment environment;
+  private final NotificationService notificationService;
+  private final I18n i18n;
+  private final GameService gameService;
+  private final UserService userService;
+  private final ReplayFileWriter replayFileWriter;
+  private final ClientUpdateService clientUpdateService;
 
   private LocalReplayInfo replayInfo;
   private ServerSocket serverSocket;
   private boolean stoppedGracefully;
+
+  @Inject
+  public ReplayServerImpl(Environment environment, NotificationService notificationService, I18n i18n, GameService gameService, UserService userService, ReplayFileWriter replayFileWriter, ClientUpdateService clientUpdateService) {
+    this.environment = environment;
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.gameService = gameService;
+    this.userService = userService;
+    this.replayFileWriter = replayFileWriter;
+    this.clientUpdateService = clientUpdateService;
+  }
 
   /**
    * Returns the current millis the same way as python does since this is what's stored in the replay files *yay*.

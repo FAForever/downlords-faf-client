@@ -1,9 +1,11 @@
 package com.faforever.client.remote;
 
+import com.faforever.client.api.AchievementDefinition;
 import com.faforever.client.api.CoopLeaderboardEntry;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.FeaturedMod;
 import com.faforever.client.api.FeaturedModFile;
+import com.faforever.client.api.PlayerAchievement;
 import com.faforever.client.api.Ranked1v1Stats;
 import com.faforever.client.api.RatingType;
 import com.faforever.client.chat.avatar.AvatarBean;
@@ -15,6 +17,7 @@ import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.game.NewGameInfo;
+import com.faforever.client.io.ByteCountListener;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.FeaturedModBean;
@@ -34,6 +37,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
+import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -133,11 +137,6 @@ public class FafServiceImpl implements FafService {
   @Override
   public void removeFoe(Player player) {
     fafServerAccessor.removeFoe(player.getId());
-  }
-
-  @Override
-  public Long getSessionId() {
-    return fafServerAccessor.getSessionId();
   }
 
   @Override
@@ -294,6 +293,26 @@ public class FafServiceImpl implements FafService {
   @Override
   public CompletionStage<List<Replay>> getMostWatchedReplays(int topElementCount) {
     return CompletableFuture.supplyAsync(() -> fafApiAccessor.getMostWatchedReplays(topElementCount));
+  }
+
+  @Override
+  public void uploadMod(Path modFile, ByteCountListener byteListener) {
+    fafApiAccessor.uploadMod(modFile, byteListener);
+  }
+
+  @Override
+  public CompletionStage<List<PlayerAchievement>> getPlayerAchievements(int playerId) {
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getPlayerAchievements(playerId));
+  }
+
+  @Override
+  public CompletionStage<List<AchievementDefinition>> getAchievementDefinitions() {
+    return CompletableFuture.supplyAsync(fafApiAccessor::getAchievementDefinitions);
+  }
+
+  @Override
+  public CompletionStage<AchievementDefinition> getAchievementDefinition(String achievementId) {
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getAchievementDefinition(achievementId));
   }
 
   @Override

@@ -13,15 +13,14 @@ import java.util.Collection;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class LoadLocalReplaysTask extends CompletableTask<Collection<Replay>> {
 
-  @Inject
-  ReplayService replayService;
+  private final ReplayService replayService;
+  private final I18n i18n;
 
   @Inject
-  I18n i18n;
-
-
-  public LoadLocalReplaysTask() {
+  public LoadLocalReplaysTask(ReplayService replayService, I18n i18n) {
     super(Priority.HIGH);
+    this.replayService = replayService;
+    this.i18n = i18n;
   }
 
   @Override

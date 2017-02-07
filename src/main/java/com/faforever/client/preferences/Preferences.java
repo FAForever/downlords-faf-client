@@ -24,6 +24,7 @@ public class Preferences {
   private final NotificationsPrefs notification;
   private final StringProperty themeName;
   private final StringProperty lastGameType;
+  private final LocalizationPrefs localization;
   private final StringProperty lastGameTitle;
   private final StringProperty lastMap;
   private final BooleanProperty rememberLastTab;
@@ -32,12 +33,13 @@ public class Preferences {
   private final IntegerProperty lastGameMaxRating;
   private final StringProperty gamesViewMode;
   private final Ranked1v1Prefs ranked1v1;
-  private final NewsPrefs newsPrefs;
-  private final DeveloperPrefs developerPrefs;
+  private final NewsPrefs news;
+  private final DeveloperPrefs developer;
 
   public Preferences() {
     chat = new ChatPrefs();
     login = new LoginPrefs();
+    localization = new LocalizationPrefs();
     mainWindow = new WindowPrefs();
     forgedAlliance = new ForgedAlliancePrefs();
     themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
@@ -51,8 +53,8 @@ public class Preferences {
     lastGameMaxRating = new SimpleIntegerProperty(1300);
     ranked1v1 = new Ranked1v1Prefs();
     gamesViewMode = new SimpleStringProperty();
-    newsPrefs = new NewsPrefs();
-    developerPrefs = new DeveloperPrefs();
+    news = new NewsPrefs();
+    developer = new DeveloperPrefs();
   }
 
   public String getGamesViewMode() {
@@ -69,6 +71,10 @@ public class Preferences {
 
   public WindowPrefs getMainWindow() {
     return mainWindow;
+  }
+
+  public LocalizationPrefs getLocalization() {
+    return localization;
   }
 
   public ForgedAlliancePrefs getForgedAlliance() {
@@ -188,10 +194,10 @@ public class Preferences {
   }
 
   public NewsPrefs getNews() {
-    return newsPrefs;
+    return news;
   }
 
-  public DeveloperPrefs getDeveloperPrefs() {
-    return developerPrefs;
+  public DeveloperPrefs getDeveloper() {
+    return developer;
   }
 }

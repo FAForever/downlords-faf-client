@@ -24,11 +24,14 @@ import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 @Profile("local")
 public class MockLeaderboardService implements LeaderboardService {
 
-  @Inject
-  TaskService taskService;
+  private final TaskService taskService;
+  private final I18n i18n;
 
   @Inject
-  I18n i18n;
+  public MockLeaderboardService(TaskService taskService, I18n i18n) {
+    this.taskService = taskService;
+    this.i18n = i18n;
+  }
 
   @Override
   public CompletionStage<Ranked1v1Stats> getRanked1v1Stats() {

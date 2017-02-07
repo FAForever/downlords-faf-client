@@ -29,15 +29,18 @@ public class ReplayFileWriterImpl implements ReplayFileWriter {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final Gson gson;
-  @Inject
-  Environment environment;
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  I18n i18n;
 
-  public ReplayFileWriterImpl() {
+  private final I18n i18n;
+  private final Environment environment;
+  private final PreferencesService preferencesService;
+
+  @Inject
+  public ReplayFileWriterImpl(I18n i18n, Environment environment, PreferencesService preferencesService) {
     gson = ReplayFiles.gson();
+
+    this.i18n = i18n;
+    this.environment = environment;
+    this.preferencesService = preferencesService;
   }
 
   @Override
@@ -45,7 +48,7 @@ public class ReplayFileWriterImpl implements ReplayFileWriter {
     String fileName = String.format(environment.getProperty("replayFileFormat"), replayInfo.getUid(), replayInfo.getRecorder());
     Path replayFile = preferencesService.getReplaysDirectory().resolve(fileName);
 
-    logger.info("Writing replay file to {} ({})", replayFile, Bytes.formatSize(replayData.size(), i18n.getLocale()));
+    logger.info("Writing replay file to {} ({})", replayFile, Bytes.formatSize(replayData.size(), i18n.getUserSpecificLocale()));
 
     Files.createDirectories(replayFile.getParent());
 

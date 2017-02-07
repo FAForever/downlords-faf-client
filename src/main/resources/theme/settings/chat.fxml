@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.VBox?>
-
 <VBox xmlns:fx="http://javafx.com/fxml/1" styleClass="settings-content" xmlns="http://javafx.com/javafx/8.0.60">
     <children>
         <TitledPane collapsible="false" text="%settings.chat">
@@ -38,6 +38,8 @@
                         </VBox>
                         <Label text="%settings.chat.miscellaneous"/>
                         <CheckBox fx:id="hideFoeCheckBox" mnemonicParsing="false" text="%settings.chat.hideFoe"/>
+                        <Label text="%settings.chat.timeFormat"/>
+                        <ComboBox fx:id="timeComboBox"/>
                     </children>
                 </VBox>
             </content>

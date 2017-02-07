@@ -23,7 +23,6 @@ import javax.inject.Inject;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static javafx.beans.binding.Bindings.createObjectBinding;
 import static javafx.beans.binding.Bindings.createStringBinding;
 
@@ -88,8 +87,10 @@ public class GameTileController implements Controller<Node> {
         game.numPlayersProperty(),
         game.maxPlayersProperty()
     ));
-    mapImageView.imageProperty().bind(createObjectBinding(() -> supplyAsync(()
-        -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).get(), game.mapFolderNameProperty()));
+    mapImageView.imageProperty().bind(createObjectBinding(
+        () -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE),
+        game.mapFolderNameProperty()
+    ));
 
     modsLabel.textProperty().bind(createStringBinding(
         () -> Joiner.on(i18n.get("textSeparator")).join(game.getSimMods().values()),
@@ -97,8 +98,10 @@ public class GameTileController implements Controller<Node> {
     ));
 
     // TODO display "unknown map" image first since loading may take a while
-    mapImageView.imageProperty().bind(createObjectBinding(() -> supplyAsync(()
-        -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL)).get(), game.mapFolderNameProperty()));
+    mapImageView.imageProperty().bind(createObjectBinding(
+        () -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL),
+        game.mapFolderNameProperty()
+    ));
 
     lockIconLabel.visibleProperty().bind(game.passwordProtectedProperty());
 

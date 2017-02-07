@@ -1,10 +1,21 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.theme.UiService;
+import com.faforever.client.uploader.ImageUploadService;
+import com.faforever.client.user.UserService;
+import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextInputControl;
@@ -15,6 +26,7 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.time.Instant;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
 
@@ -22,22 +34,17 @@ import static com.faforever.client.chat.SocialStatus.FOE;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class PrivateChatTabController extends AbstractChatTabController {
 
-  private final AudioService audioService;
-  private final ChatService chatService;
-  private final WebViewConfigurer webViewConfigurer;
   public Tab privateChatTabRoot;
   public WebView messagesWebView;
   public TextInputControl messageTextField;
   private boolean userOffline;
 
   @Inject
-  public PrivateChatTabController(AudioService audioService, ChatService chatService, WebViewConfigurer webViewConfigurer) {
-    this.audioService = audioService;
-    this.chatService = chatService;
-    this.webViewConfigurer = webViewConfigurer;
+  public PrivateChatTabController(UserService userService, ChatService chatService, PlatformService platformService, PreferencesService preferencesService, PlayerService playerService, AudioService audioService, TimeService timeService, I18n i18n, ImageUploadService imageUploadService, UrlPreviewResolver urlPreviewResolver, NotificationService notificationService, ReportingService reportingService, UiService uiService, AutoCompletionHelper autoCompletionHelper, EventBus eventBus, WebViewConfigurer webViewConfigurer, ThreadPoolExecutor threadPoolExecutor) {
+    super(userService, chatService, platformService, preferencesService, playerService, audioService, timeService, i18n, imageUploadService, urlPreviewResolver, notificationService, reportingService, uiService, autoCompletionHelper, eventBus, webViewConfigurer);
   }
 
-  public boolean isUserOffline() {
+  boolean isUserOffline() {
     return userOffline;
   }
 

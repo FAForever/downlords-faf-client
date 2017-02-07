@@ -24,11 +24,15 @@ public class IceAdapterCallbacks {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Inject
-  EventBus eventBus;
+  private final EventBus eventBus;
+
+  private final FafService fafService;
 
   @Inject
-  FafService fafService;
+  public IceAdapterCallbacks(EventBus eventBus, FafService fafService) {
+    this.eventBus = eventBus;
+    this.fafService = fafService;
+  }
 
   public void onNeedSdp(long localPlayerId, long remotePlayerId) {
     logger.debug("SDP for connection {}/{} requested", localPlayerId, remotePlayerId);

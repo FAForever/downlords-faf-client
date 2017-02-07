@@ -33,18 +33,19 @@ public class MapUploadTask extends CompletableTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  FafApiAccessor fafApiAccessor;
-  @Inject
-  I18n i18n;
+  private final PreferencesService preferencesService;
+  private final FafApiAccessor fafApiAccessor;
+  private final I18n i18n;
 
   private Path mapPath;
   private Boolean isRanked;
 
-  public MapUploadTask() {
+  @Inject
+  public MapUploadTask(PreferencesService preferencesService, FafApiAccessor fafApiAccessor, I18n i18n) {
     super(Priority.HIGH);
+    this.preferencesService = preferencesService;
+    this.fafApiAccessor = fafApiAccessor;
+    this.i18n = i18n;
   }
 
   @PostConstruct
@@ -66,7 +67,7 @@ public class MapUploadTask extends CompletableTask<Void> {
       logger.debug("Zipping map {} to {}", mapPath, tmpFile);
       updateTitle(i18n.get("mapVault.upload.compressing"));
 
-      Locale locale = i18n.getLocale();
+      Locale locale = i18n.getUserSpecificLocale();
       ByteCountListener byteListener = (written, total) -> {
         updateMessage(i18n.get("bytesProgress", formatSize(written, locale), formatSize(total, locale)));
         updateProgress(written, total);

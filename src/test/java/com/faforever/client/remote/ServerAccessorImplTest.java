@@ -1,5 +1,6 @@
 package com.faforever.client.remote;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.game.Faction;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.FactionDeserializer;
@@ -8,9 +9,7 @@ import com.faforever.client.legacy.UidService;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.LoginPrefs;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.rankedmatch.SearchRanked1V1ClientMessage;
@@ -31,7 +30,6 @@ import com.faforever.client.remote.gson.MessageTargetTypeAdapter;
 import com.faforever.client.remote.gson.RatingRangeTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.io.QDataInputStream;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -41,8 +39,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testfx.util.WaitForAsyncUtils;
@@ -72,13 +72,13 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
+@RunWith(MockitoJUnitRunner.class)
+public class ServerAccessorImplTest {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final long TIMEOUT = 5000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
-  private static final int GAME_PORT = 6112;
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
   private static final Gson gson = new GsonBuilder()
       .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
@@ -95,11 +95,7 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private Preferences preferences;
-  @Mock
   private UidService uidService;
-  @Mock
-  private ForgedAlliancePrefs forgedAlliancePrefs;
   @Mock
   private NotificationService notificationService;
   @Mock
@@ -120,20 +116,19 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
     startFakeFafLobbyServer();
 
-    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, LOOPBACK_ADDRESS.getHostAddress(), fafLobbyServerSocket.getLocalPort());
+    ClientProperties clientProperties = new ClientProperties();
+    clientProperties.getServer()
+        .setHost(LOOPBACK_ADDRESS.getHostAddress())
+        .setPort(fafLobbyServerSocket.getLocalPort());
+
+    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, clientProperties);
 
     LoginPrefs loginPrefs = new LoginPrefs();
     loginPrefs.setUsername("junit");
     loginPrefs.setPassword("password");
 
-    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.getFafDataDirectory()).thenReturn(faDirectory.getRoot().toPath());
-    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
-    when(forgedAlliancePrefs.getPort()).thenReturn(GAME_PORT);
-    when(preferences.getLogin()).thenReturn(loginPrefs);
     when(uidService.generate(any(), any())).thenReturn("encrypteduidstring");
-
-    preferencesService.getPreferences().getLogin();
   }
 
   private void startFakeFafLobbyServer() throws IOException {
@@ -151,15 +146,8 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
         serverToClientReadyLatch.countDown();
 
         while (!stopped) {
-          int blockSize = qDataInputStream.readInt();
+          qDataInputStream.readInt();
           String json = qDataInputStream.readQString();
-
-          if (blockSize > json.length() * 2) {
-            // Username
-            qDataInputStream.readQString();
-            // Session ID
-            qDataInputStream.readQString();
-          }
 
           messagesReceivedByFafServer.add(json);
         }

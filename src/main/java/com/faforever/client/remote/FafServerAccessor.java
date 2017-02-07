@@ -1,15 +1,14 @@
 package com.faforever.client.remote;
 
+import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import org.jetbrains.annotations.Nullable;
 
 import java.net.URL;
 import java.util.List;
@@ -46,9 +45,6 @@ public interface FafServerAccessor {
   CompletionStage<GameLaunchMessage> startSearchRanked1v1(Faction faction);
 
   void stopSearchingRanked();
-
-  @Nullable
-  Long getSessionId();
 
   void sendGpgMessage(GpgGameMessage message);
 

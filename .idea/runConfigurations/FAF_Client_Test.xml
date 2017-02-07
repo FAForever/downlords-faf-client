@@ -6,8 +6,8 @@
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>
-    <option name="MAIN_CLASS_NAME" value="com.faforever.client.Main" />
-    <option name="VM_PARAMETERS" value="-XX:+UseConcMarkSweepGC -Djava.library.path=src/main/native -Xmx256m -Duid.dir=src/main/native -Dspring.profiles.active=local -Dprism.dirtyopts=false" />
+    <option name="MAIN_CLASS_NAME" value="com.faforever.client.FafClientApplication" />
+    <option name="VM_PARAMETERS" value="-XX:+UseConcMarkSweepGC -Djava.library.path=src/main/native -Xmx256m -Duid.dir=src/main/native -Dspring.profiles.active=test -Dprism.dirtyopts=false" />
     <option name="PROGRAM_PARAMETERS" value="" />
     <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />

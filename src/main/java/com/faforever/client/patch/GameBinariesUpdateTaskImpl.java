@@ -1,5 +1,6 @@
 package com.faforever.client.patch;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.ByteCopier;
 import com.faforever.client.preferences.PreferencesService;
@@ -11,7 +12,6 @@ import com.google.common.annotations.VisibleForTesting;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -64,15 +64,18 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
   private final I18n i18n;
   private final PreferencesService preferencesService;
 
-  @Value("${fafExe.url}")
-  String fafExeUrl;
+  private final String fafExeUrl;
+
   private Integer version;
 
   @Inject
-  public GameBinariesUpdateTaskImpl(I18n i18n, PreferencesService preferencesService) {
+  public GameBinariesUpdateTaskImpl(I18n i18n, PreferencesService preferencesService, ClientProperties clientProperties) {
     super(Priority.HIGH);
+
     this.i18n = i18n;
     this.preferencesService = preferencesService;
+
+    this.fafExeUrl = clientProperties.getForgedAlliance().getExeUrl();
   }
 
   @VisibleForTesting

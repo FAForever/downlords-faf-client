@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.audio.AudioService;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
@@ -9,11 +10,13 @@ import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
+import com.google.common.eventbus.EventBus;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.MapChangeListener.Change;
@@ -53,6 +56,9 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
+
+  private ChannelTabController instance;
+
   @Mock
   private ChatService chatService;
   @Mock
@@ -85,27 +91,23 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   private ChatUserItemController chatUserItemController;
   @Mock
   private WebViewConfigurer webViewConfigurer;
-
-  private ChannelTabController instance;
+  @Mock
+  private AudioService audioService;
+  @Mock
+  private UrlPreviewResolver urlPreviewResolver;
+  @Mock
+  private ReportingService reportingService;
+  @Mock
+  private EventBus eventBus;
 
   @Before
   public void setUp() throws Exception {
-    instance = new ChannelTabController(i18n, threadPoolExecutor, scheduledExecutorService);
-    instance.chatService = chatService;
-    instance.userService = userService;
-    instance.imageUploadService = imageUploadService;
-    instance.playerService = playerService;
-    instance.timeService = timeService;
-    instance.notificationService = notificationService;
-    instance.preferencesService = preferencesService;
-    instance.platformService = platformService;
-    instance.autoCompletionHelper = autoCompletionHelper;
-    instance.uiService = uiService;
-    instance.webViewConfigurer = webViewConfigurer;
-    instance.stage = getStage();
+    instance = new ChannelTabController(
+        userService, chatService, platformService, preferencesService, playerService, audioService, timeService, i18n,
+        imageUploadService, urlPreviewResolver, notificationService, reportingService, uiService,
+        autoCompletionHelper, eventBus, webViewConfigurer, threadPoolExecutor, scheduledExecutorService);
 
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
-    when(preferencesService.getCacheDirectory()).thenReturn(tempDir.getRoot().toPath());
     when(userService.getUsername()).thenReturn(USER_NAME);
     when(uiService.loadFxml("theme/chat/user_filter.fxml")).thenReturn(userFilterController);
     when(uiService.loadFxml("theme/chat/chat_user_item.fxml")).thenReturn(chatUserItemController);
@@ -187,7 +189,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     Channel channel = new Channel(CHANNEL_NAME);
     instance.setChannel(channel);
 
-    ArgumentCaptor<MapChangeListener<String, ChatUser>> captor = ArgumentCaptor.forClass(MapChangeListener.class);
+    ArgumentCaptor<MapChangeListener<String, ChatUser>> captor = ArgumentCaptor.forClass((Class) MapChangeListener.class);
     verify(chatService).addUsersListener(anyString(), captor.capture());
 
     ChatUser chatUser = new ChatUser("junit", null);

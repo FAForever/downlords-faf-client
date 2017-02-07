@@ -27,16 +27,17 @@ public class DownloadUpdateTask extends CompletableTask<Path> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Inject
-  I18n i18n;
-
-  @Inject
-  PreferencesService preferencesService;
+  private final I18n i18n;
+  private final PreferencesService preferencesService;
 
   private UpdateInfo updateInfo;
 
-  public DownloadUpdateTask() {
+  @Inject
+  public DownloadUpdateTask(I18n i18n, PreferencesService preferencesService) {
     super(Priority.MEDIUM);
+
+    this.i18n = i18n;
+    this.preferencesService = preferencesService;
   }
 
   @Override

@@ -8,9 +8,9 @@ import com.faforever.client.theme.UiService;
 import javafx.scene.media.AudioClip;
 import javafx.stage.Stage;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -20,18 +20,22 @@ public class AudioServiceImplTest extends AbstractPlainJavaFxTest {
   private AudioServiceImpl instance;
   private NotificationsPrefs notificationsPrefs;
 
+  @Mock
+  private PreferencesService preferencesService;
+  @Mock
+  private AudioClipPlayer audioClipPlayer;
+  @Mock
+  private UiService uiService;
+
   @Override
   public void start(Stage stage) throws Exception {
-    instance = new AudioServiceImpl();
-    instance.preferencesService = mock(PreferencesService.class);
-    instance.audioClipPlayer = mock(AudioClipPlayer.class);
-    instance.uiService = mock(UiService.class);
+    instance = new AudioServiceImpl(preferencesService, audioClipPlayer, uiService);
 
     Preferences preferences = new Preferences();
     notificationsPrefs = preferences.getNotification();
 
-    when(instance.preferencesService.getPreferences()).thenReturn(preferences);
-    when(instance.uiService.getThemeFileUrl(any())).thenReturn(getThemeFileUrl(UiService.MENTION_SOUND));
+    when(preferencesService.getPreferences()).thenReturn(preferences);
+    when(uiService.getThemeFileUrl(any())).thenReturn(getThemeFileUrl(UiService.MENTION_SOUND));
 
     instance.postConstruct();
 
@@ -45,7 +49,7 @@ public class AudioServiceImplTest extends AbstractPlainJavaFxTest {
 
     instance.playChatMentionSound();
 
-    verify(instance.audioClipPlayer).playSound(any(AudioClip.class));
+    verify(audioClipPlayer).playSound(any(AudioClip.class));
   }
 
   @Test
@@ -55,7 +59,7 @@ public class AudioServiceImplTest extends AbstractPlainJavaFxTest {
 
     instance.playPrivateMessageSound();
 
-    verify(instance.audioClipPlayer).playSound(any(AudioClip.class));
+    verify(audioClipPlayer).playSound(any(AudioClip.class));
   }
 
   @Test
@@ -65,7 +69,7 @@ public class AudioServiceImplTest extends AbstractPlainJavaFxTest {
 
     instance.playInfoNotificationSound();
 
-    verify(instance.audioClipPlayer).playSound(any(AudioClip.class));
+    verify(audioClipPlayer).playSound(any(AudioClip.class));
   }
 
   @Test
@@ -75,7 +79,7 @@ public class AudioServiceImplTest extends AbstractPlainJavaFxTest {
 
     instance.playWarnNotificationSound();
 
-    verify(instance.audioClipPlayer).playSound(any(AudioClip.class));
+    verify(audioClipPlayer).playSound(any(AudioClip.class));
   }
 
   @Test
@@ -85,6 +89,6 @@ public class AudioServiceImplTest extends AbstractPlainJavaFxTest {
 
     instance.playErrorNotificationSound();
 
-    verify(instance.audioClipPlayer).playSound(any(AudioClip.class));
+    verify(audioClipPlayer).playSound(any(AudioClip.class));
   }
 }

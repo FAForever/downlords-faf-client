@@ -1,17 +1,12 @@
 package com.faforever.client.preferences;
 
 import com.faforever.client.game.Faction;
-import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.Action;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
-import com.faforever.client.notification.Severity;
+import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.preferences.gson.ColorTypeAdapter;
 import com.faforever.client.preferences.gson.PathTypeAdapter;
 import com.faforever.client.preferences.gson.PropertyTypeAdapter;
 import com.faforever.client.remote.gson.FactionTypeAdapter;
 import com.faforever.client.ui.preferences.event.GameDirectoryChosenEvent;
-import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.gson.Gson;
@@ -40,8 +35,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -98,17 +91,13 @@ public class PreferencesService {
    */
   private final Timer timer;
   private final Collection<PreferenceUpdateListener> updateListeners;
-  private final I18n i18n;
-  private final NotificationService notificationService;
   private final EventBus eventBus;
 
   private Preferences preferences;
   private TimerTask storeInBackgroundTask;
 
   @Inject
-  public PreferencesService(I18n i18n, NotificationService notificationService, EventBus eventBus) {
-    this.i18n = i18n;
-    this.notificationService = notificationService;
+  public PreferencesService(EventBus eventBus) {
     this.eventBus = eventBus;
 
     updateListeners = new ArrayList<>();
@@ -123,10 +112,6 @@ public class PreferencesService {
         .create();
   }
 
-  public static void configureLogging() {
-    // This method call causes the class to be initialized (static initializers) which in turn causes the logger to initialize.
-  }
-
   public Path getPreferencesDirectory() {
     if (org.bridj.Platform.isWindows()) {
       return Paths.get(System.getenv("APPDATA")).resolve(APP_DATA_SUB_FOLDER);
@@ -135,7 +120,7 @@ public class PreferencesService {
   }
 
   @PostConstruct
-  void postConstruct() throws IOException {
+  public void postConstruct() throws IOException {
     eventBus.register(this);
 
     if (Files.exists(preferencesFilePath)) {
@@ -168,15 +153,7 @@ public class PreferencesService {
     }
 
     logger.info("Game path could not be detected");
-    notifyMissingGamePath();
-  }
-
-  private void notifyMissingGamePath() {
-    List<Action> actions = Collections.singletonList(
-        new Action(i18n.get("missingGamePath.locate"), event -> eventBus.post(new GameDirectoryChooseEvent()))
-    );
-
-    notificationService.addNotification(new PersistentNotification(i18n.get("missingGamePath.notification"), Severity.WARN, actions));
+    eventBus.post(new MissingGamePathEvent());
   }
 
   /**

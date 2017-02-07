@@ -1,7 +1,7 @@
 package com.faforever.client.ui.tray;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.tray.event.IncrementApplicationBadgeEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -16,7 +16,6 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.TextAlignment;
-import javafx.stage.Stage;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -26,7 +25,6 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -36,21 +34,18 @@ import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
 @Component
 public class TrayIconManager {
 
-  private final Stage stage;
   private final I18n i18n;
   private final EventBus eventBus;
 
   @Inject
-  public TrayIconManager(I18n i18n, Stage stage, EventBus eventBus) {
+  public TrayIconManager(I18n i18n, EventBus eventBus) {
     this.i18n = i18n;
-    this.stage = stage;
     this.eventBus = eventBus;
   }
 
   @PostConstruct
   public void postConstruct() {
     eventBus.register(this);
-    eventBus.post(new IncrementApplicationBadgeEvent(0));
   }
 
   /**
@@ -71,7 +66,7 @@ public class TrayIconManager {
             .map(image -> addBadge(image, event.getDelta()))
             .collect(Collectors.toList());
       }
-      stage.getIcons().addAll(icons);
+      StageHolder.getStage().getIcons().addAll(icons);
     });
   }
 

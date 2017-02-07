@@ -2,19 +2,21 @@ package com.faforever.client.chat.avatar;
 
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.net.URL;
 import java.nio.file.Paths;
 
 import static org.mockito.Mockito.verify;
 
-public class AvatarServiceImplTest extends AbstractPlainJavaFxTest {
+@RunWith(MockitoJUnitRunner.class)
+public class AvatarServiceImplTest {
 
   @Rule
   public TemporaryFolder cacheFolder = new TemporaryFolder();
@@ -27,9 +29,7 @@ public class AvatarServiceImplTest extends AbstractPlainJavaFxTest {
   private AvatarServiceImpl instance;
   @Before
   public void setUp() throws Exception {
-    instance = new AvatarServiceImpl();
-    instance.fafService = fafService;
-    instance.assetService = assetService;
+    instance = new AvatarServiceImpl(fafService, assetService);
   }
 
   @Test

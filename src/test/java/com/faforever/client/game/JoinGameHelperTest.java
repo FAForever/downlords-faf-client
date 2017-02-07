@@ -15,7 +15,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,8 +33,6 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
 
   private JoinGameHelper instance;
 
-  @Mock
-  private ApplicationContext applicationContext;
   @Mock
   private I18n i18n;
   @Mock
@@ -95,7 +92,7 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
     when(preferencesService.isGamePathValid()).thenReturn(false).thenReturn(true);
 
     doAnswer(invocation -> {
-      invocation.getArgumentAt(0, GameDirectoryChooseEvent.class).getFuture().ifPresent(future -> future.complete(Paths.get("")));
+      ((GameDirectoryChooseEvent) invocation.getArgument(0)).getFuture().ifPresent(future -> future.complete(Paths.get("")));
       return null;
     }).when(eventBus).post(any(GameDirectoryChooseEvent.class));
 
@@ -115,7 +112,7 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
     // First, user selects invalid path. Seconds, he aborts so we don't stay in an endless loop
     AtomicInteger invocationCounter = new AtomicInteger();
     doAnswer(invocation -> {
-      Optional<CompletableFuture<Path>> optional = invocation.getArgumentAt(0, GameDirectoryChooseEvent.class).getFuture();
+      Optional<CompletableFuture<Path>> optional = ((GameDirectoryChooseEvent) invocation.getArgument(0)).getFuture();
       if (invocationCounter.incrementAndGet() == 1) {
         optional.ifPresent(future -> future.complete(Paths.get("")));
       } else {
@@ -145,11 +142,12 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
    */
   @Test
   public void testJoinGameIgnoreRatings() throws Exception {
-    when(game.getMinRating()).thenReturn(5000);
-    when(game.getMaxRating()).thenReturn(100);
     instance.join(game, "haha", true);
     verify(gameService).joinGame(game, "haha");
     verify(notificationService, never()).addNotification(any(ImmediateNotification.class));
+
+    verify(game, never()).getMinRating();
+    verify(game, never()).getMaxRating();
   }
 
   /**

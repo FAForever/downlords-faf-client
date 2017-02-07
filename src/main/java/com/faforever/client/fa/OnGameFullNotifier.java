@@ -1,5 +1,6 @@
 package com.faforever.client.fa;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.relay.event.GameFullEvent;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.Game;
@@ -12,7 +13,6 @@ import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.util.ProgrammingError;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -32,23 +32,28 @@ import static java.lang.Thread.sleep;
 @Component
 public class OnGameFullNotifier {
 
-  @Inject
-  PlatformService platformService;
-  @Inject
-  ThreadPoolExecutor threadPoolExecutor;
-  @Inject
-  GameService gameService;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  I18n i18n;
-  @Inject
-  MapService mapService;
-  @Inject
-  EventBus eventBus;
+  private final PlatformService platformService;
+  private final ThreadPoolExecutor threadPoolExecutor;
+  private final GameService gameService;
+  private final NotificationService notificationService;
+  private final I18n i18n;
+  private final MapService mapService;
+  private final EventBus eventBus;
+  private final String faWindowTitle;
 
-  @Value("${forgedAlliance.windowTitle}")
-  String faWindowTitle;
+  @Inject
+  public OnGameFullNotifier(PlatformService platformService, ThreadPoolExecutor threadPoolExecutor,
+                            GameService gameService, NotificationService notificationService, I18n i18n,
+                            MapService mapService, EventBus eventBus, ClientProperties clientProperties) {
+    this.platformService = platformService;
+    this.threadPoolExecutor = threadPoolExecutor;
+    this.gameService = gameService;
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.mapService = mapService;
+    this.eventBus = eventBus;
+    this.faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
+  }
 
   @PostConstruct
   void postConstruct() {

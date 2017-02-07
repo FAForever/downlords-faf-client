@@ -10,7 +10,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -25,7 +24,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 
@@ -45,7 +46,6 @@ import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.contains;
@@ -58,9 +58,9 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
 
-public class ModServiceImplTest extends AbstractPlainJavaFxTest {
+@RunWith(MockitoJUnitRunner.class)
+public class ModServiceImplTest {
 
   public static final String BLACK_OPS_UNLEASHED_DIRECTORY_NAME = "BlackOpsUnleashed";
   private static final ClassPathResource BLACKOPS_SUPPORT_MOD_INFO = new ClassPathResource("/mods/blackops_support_mod_info.lua");
@@ -116,7 +116,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     when(forgedAlliancePrefs.getModsDirectory()).thenReturn(modsDirectory.getRoot().toPath());
     when(forgedAlliancePrefs.modsDirectoryProperty()).thenReturn(new SimpleObjectProperty<>(modsDirectory.getRoot().toPath()));
     // FIXME how did that happen... I see this line many times but it doesn't seem to do anything useful
-    doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
+    doAnswer(invocation -> invocation.getArgument(0)).when(taskService).submitTask(any());
 
     blackopsSupportPath = copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);
 
@@ -171,8 +171,9 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
   public void testDownloadAndInstallMod() throws Exception {
     assertThat(instance.getInstalledMods().size(), is(1));
 
-    InstallModTask task = mock(InstallModTask.class, withSettings().useConstructor());
-    when(task.getFuture()).thenReturn(completedFuture(null));
+    InstallModTask task = stubInstallModTask();
+    task.getFuture().complete(null);
+
     when(applicationContext.getBean(InstallModTask.class)).thenReturn(task);
 
     URL modUrl = new URL("http://example.com/some/mod.zip");
@@ -182,7 +183,6 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
 
     instance.downloadAndInstallMod(modUrl).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
-    verify(task).setUrl(modUrl);
     assertThat(instance.getInstalledMods().size(), is(2));
   }
 
@@ -190,8 +190,9 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
   public void testDownloadAndInstallModWithProperties() throws Exception {
     assertThat(instance.getInstalledMods().size(), is(1));
 
-    InstallModTask task = mock(InstallModTask.class, withSettings().useConstructor());
-    when(task.getFuture()).thenReturn(completedFuture(null));
+    InstallModTask task = stubInstallModTask();
+    task.getFuture().complete(null);
+
     when(applicationContext.getBean(InstallModTask.class)).thenReturn(task);
 
     URL modUrl = new URL("http://example.com/some/mod.zip");
@@ -207,7 +208,6 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(stringProperty.isBound(), is(true));
     assertThat(doubleProperty.isBound(), is(true));
 
-    verify(task).setUrl(modUrl);
     assertThat(instance.getInstalledMods().size(), is(2));
   }
 
@@ -215,8 +215,9 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
   public void testDownloadAndInstallModInfoBeanWithProperties() throws Exception {
     assertThat(instance.getInstalledMods().size(), is(1));
 
-    InstallModTask task = mock(InstallModTask.class, withSettings().useConstructor());
-    when(task.getFuture()).thenReturn(completedFuture(null));
+    InstallModTask task = stubInstallModTask();
+    task.getFuture().complete(null);
+
     when(applicationContext.getBean(InstallModTask.class)).thenReturn(task);
 
     URL modUrl = new URL("http://example.com/some/mod.zip");
@@ -233,7 +234,6 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(stringProperty.isBound(), is(true));
     assertThat(doubleProperty.isBound(), is(true));
 
-    verify(task).setUrl(modUrl);
     assertThat(instance.getInstalledMods().size(), is(2));
   }
 
@@ -464,8 +464,17 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
 
   private void mockThreadPool() {
     doAnswer(invocation -> {
-      invocation.getArgumentAt(0, Runnable.class).run();
+      ((Runnable) invocation.getArgument(0)).run();
       return null;
     }).when(threadPoolExecutor).execute(any(Runnable.class));
+  }
+
+  private InstallModTask stubInstallModTask() {
+    return new InstallModTask(preferencesService, i18n) {
+      @Override
+      protected Void call() throws Exception {
+        return null;
+      }
+    };
   }
 }

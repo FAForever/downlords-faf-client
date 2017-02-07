@@ -58,7 +58,7 @@ public class QDataInputStream extends InputStream {
    * Skip the "block size" bytes, since we just don't care.
    */
   public void skipBlockSize() throws IOException {
-    dataInput.skipBytes(Integer.SIZE / Byte.SIZE);
+    dataInput.skipBytes(Integer.BYTES);
   }
 
   public int readShort() throws IOException {

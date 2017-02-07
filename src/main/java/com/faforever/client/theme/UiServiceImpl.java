@@ -2,8 +2,9 @@ package com.faforever.client.theme;
 
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.fx.Controller;
-import com.faforever.client.main.MainController;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
+import com.github.nocatch.NoCatch.NoCatchRunnable;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -39,7 +40,6 @@ import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
@@ -49,11 +49,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.faforever.client.io.FileUtils.deleteRecursively;
@@ -76,18 +74,12 @@ public class UiServiceImpl implements UiService {
   private final Set<Scene> scenes;
   private final Set<WebView> webViews;
 
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  ThreadPoolExecutor threadPoolExecutor;
-  @Inject
-  Locale locale;
-  @Inject
-  CacheManager cacheManager;
-  @Inject
-  MessageSource messageSource;
-  @Inject
-  ApplicationContext applicationContext;
+  private final PreferencesService preferencesService;
+  private final ThreadPoolExecutor threadPoolExecutor;
+  private final CacheManager cacheManager;
+  private final MessageSource messageSource;
+  private final ApplicationContext applicationContext;
+  private final I18n i18n;
 
   private WatchService watchService;
   private ObservableMap<String, Theme> themesByFolderName;
@@ -97,7 +89,17 @@ public class UiServiceImpl implements UiService {
   private Path currentTempStyleSheet;
   private MessageSourceResourceBundle resources;
 
-  public UiServiceImpl() {
+  @Inject
+  public UiServiceImpl(PreferencesService preferencesService, ThreadPoolExecutor threadPoolExecutor,
+                       CacheManager cacheManager, MessageSource messageSource, ApplicationContext applicationContext,
+                       I18n i18n) {
+    this.i18n = i18n;
+    this.preferencesService = preferencesService;
+    this.threadPoolExecutor = threadPoolExecutor;
+    this.cacheManager = cacheManager;
+    this.messageSource = messageSource;
+    this.applicationContext = applicationContext;
+
     scenes = Collections.synchronizedSet(new HashSet<>());
     webViews = new HashSet<>();
     watchKeys = new HashMap<>();
@@ -116,7 +118,7 @@ public class UiServiceImpl implements UiService {
 
   @PostConstruct
   void postConstruct() throws IOException, InterruptedException {
-    resources = new MessageSourceResourceBundle(messageSource, locale);
+    resources = new MessageSourceResourceBundle(messageSource, i18n.getUserSpecificLocale());
     Path themesDirectory = preferencesService.getThemesDirectory();
     startWatchService(themesDirectory);
     Path cacheStylesheetsDirectory = preferencesService.getCacheStylesheetsDirectory();
@@ -326,10 +328,10 @@ public class UiServiceImpl implements UiService {
   @Override
   public <T extends Controller<?>> T loadFxml(String relativePath) {
     FXMLLoader loader = new FXMLLoader();
-    loader.setControllerFactory(param -> applicationContext.getBean(param));
+    loader.setControllerFactory(applicationContext::getBean);
     loader.setLocation(getThemeFileUrl(relativePath));
     loader.setResources(resources);
-    noCatch((Callable<MainController>) loader::load);
+    noCatch((NoCatchRunnable) loader::load);
     return loader.getController();
   }
 

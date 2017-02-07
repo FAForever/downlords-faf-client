@@ -1,13 +1,13 @@
 package com.faforever.client.news;
 
 import com.faforever.client.config.CacheNames;
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.preferences.PreferencesService;
 import com.google.common.eventbus.EventBus;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -33,15 +33,21 @@ public class LegacyNewsService implements NewsService {
    */
   private static final long POLL_DELAY = 1800;
 
-  @Value("${newsFeedUrl}")
-  String newsFeedUrl;
+  private final String newsFeedUrl;
+
+  private final PreferencesService preferencesService;
+  private final EventBus eventBus;
+  private final ScheduledExecutorService scheduledExecutorService;
 
   @Inject
-  PreferencesService preferencesService;
-  @Inject
-  EventBus eventBus;
-  @Inject
-  ScheduledExecutorService scheduledExecutorService;
+  public LegacyNewsService(ClientProperties clientProperties, PreferencesService preferencesService, EventBus eventBus,
+                           ScheduledExecutorService scheduledExecutorService) {
+    this.newsFeedUrl = clientProperties.getNews().getFeedUrl();
+
+    this.preferencesService = preferencesService;
+    this.eventBus = eventBus;
+    this.scheduledExecutorService = scheduledExecutorService;
+  }
 
   @PostConstruct
   void postConstruct() {

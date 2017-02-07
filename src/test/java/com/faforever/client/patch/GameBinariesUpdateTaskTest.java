@@ -1,5 +1,6 @@
 package com.faforever.client.patch;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -34,18 +35,17 @@ public class GameBinariesUpdateTaskTest {
   private I18n i18n;
 
   private GameBinariesUpdateTaskImpl instance;
-  private Preferences preferences;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new GameBinariesUpdateTaskImpl(i18n, preferencesService);
+    instance = new GameBinariesUpdateTaskImpl(i18n, preferencesService, new ClientProperties());
 
     Path faPath = faDirectory.getRoot().toPath();
     java.nio.file.Files.createDirectories(faPath.resolve("bin"));
 
-    preferences = new Preferences();
+    Preferences preferences = new Preferences();
     preferences.getForgedAlliance().setPath(faPath);
 
     when(preferencesService.getFafBinDirectory()).thenReturn(fafBinDirectory.getRoot().toPath());

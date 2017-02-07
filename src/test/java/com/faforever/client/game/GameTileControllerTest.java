@@ -7,7 +7,6 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -48,8 +47,6 @@ public class GameTileControllerTest extends AbstractPlainJavaFxTest {
 
     game = GameBuilder.create().defaultValues().get();
 
-    when(uiService.loadFxml("theme/game_tooltip.fxml")).thenReturn(gameTooltipController);
-    when(gameTooltipController.getRoot()).thenReturn(new Pane());
     when(i18n.get(anyString())).thenReturn("test");
     when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(CompletableFuture.completedFuture(
         FeaturedModBeanBuilder.create().defaultValues().get()

@@ -1,7 +1,5 @@
 package com.faforever.client.config;
 
-import com.faforever.client.i18n.I18n;
-import com.faforever.client.i18n.I18nImpl;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -12,12 +10,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ResourceBundleMessageSource;
-import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
-import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.SynchronousQueue;
@@ -41,20 +36,11 @@ public class BaseConfig {
   }
 
   @Bean
-  Locale locale() {
-    return Locale.getDefault();
-  }
-
-  @Bean
   MessageSource messageSource() {
     ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
     messageSource.setBasename("i18n.messages");
+    messageSource.setFallbackToSystemLocale(false);
     return messageSource;
-  }
-
-  @Bean
-  I18n i18n() {
-    return new I18nImpl();
   }
 
   @Bean
@@ -80,11 +66,6 @@ public class BaseConfig {
   @PreDestroy
   void shutdown() {
     scheduledExecutorService.shutdown();
-  }
-
-  @Bean
-  ClientHttpRequestFactory clientHttpRequestFactory() {
-    return new SimpleClientHttpRequestFactory();
   }
 
   @Bean

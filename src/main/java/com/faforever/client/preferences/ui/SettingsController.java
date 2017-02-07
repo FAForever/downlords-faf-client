@@ -4,15 +4,23 @@ import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.Severity;
+import com.faforever.client.preferences.LanguageInfo;
+import com.faforever.client.preferences.LocalizationPrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.TimeInfo;
 import com.faforever.client.preferences.ToastPosition;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
@@ -30,12 +38,17 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.Region;
 import javafx.stage.Screen;
 import javafx.util.converter.NumberStringConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.lang.invoke.MethodHandles;
 import java.text.NumberFormat;
+import java.util.Collections;
+import java.util.Objects;
 
 import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
 import static com.faforever.client.theme.UiService.DEFAULT_THEME;
@@ -43,6 +56,13 @@ import static com.faforever.client.theme.UiService.DEFAULT_THEME;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class SettingsController implements Controller<Node> {
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private final UserService userService;
+  private final PreferencesService preferencesService;
+  private final UiService uiService;
+  private final I18n i18n;
+  private final EventBus eventBus;
+  private final NotificationService notificationService;
 
   public TextField executableDecoratorField;
   public TextField executionDirectoryField;
@@ -70,7 +90,7 @@ public class SettingsController implements Controller<Node> {
   public CheckBox displayRanked1v1ToastCheckBox;
   public CheckBox playPmReceivedSoundCheckBox;
   public Region settingsRoot;
-  public ComboBox<String> languageComboBox;
+  public ComboBox<LanguageInfo> languageComboBox;
   public ComboBox<Theme> themeComboBox;
   public CheckBox rememberLastTabCheckBox;
   public ToggleGroup toastPosition;
@@ -83,24 +103,20 @@ public class SettingsController implements Controller<Node> {
   public PasswordField currentPasswordField;
   public PasswordField newPasswordField;
   public PasswordField confirmPasswordField;
+  public ComboBox<TimeInfo> timeComboBox;
   public Label passwordChangeErrorLabel;
   public Label passwordChangeSuccessLabel;
-
-  private final UserService userService;
-  private final PreferencesService preferencesService;
-  private final UiService uiService;
-  private final I18n i18n;
-  private final EventBus eventBus;
-
   private ChangeListener<Theme> themeChangeListener;
 
   @Inject
-  public SettingsController(UserService userService, PreferencesService preferencesService, UiService uiService, I18n i18n, EventBus eventBus) {
+  public SettingsController(UserService userService, PreferencesService preferencesService, UiService uiService,
+                            I18n i18n, EventBus eventBus, NotificationService notificationService) {
     this.userService = userService;
     this.preferencesService = preferencesService;
     this.uiService = uiService;
     this.i18n = i18n;
     this.eventBus = eventBus;
+    this.notificationService = notificationService;
   }
 
   /**
@@ -189,8 +205,8 @@ public class SettingsController implements Controller<Node> {
         preferences.getNotification().setToastPosition(ToastPosition.BOTTOM_RIGHT);
       }
     });
-
-    configureLanguageSelection();
+    configureTimeSetting(preferences);
+    configureLanguageSelection(preferences);
     configureThemeSelection(preferences);
     configureRememberLastTab(preferences);
     configureToastScreen(preferences);
@@ -217,6 +233,22 @@ public class SettingsController implements Controller<Node> {
 
     usernameField.textProperty().bind(userService.currentUserProperty());
     passwordChangeErrorLabel.setVisible(false);
+  }
+
+  private void configureTimeSetting(Preferences preferences) {
+    timeComboBox.setButtonCell(new StringListCell<>(timeInfo -> i18n.get(timeInfo.getDisplayNameKey())));
+    timeComboBox.setCellFactory(param -> new StringListCell<>(timeInfo -> i18n.get(timeInfo.getDisplayNameKey())));
+    timeComboBox.setItems(FXCollections.observableArrayList(TimeInfo.values()));
+    timeComboBox.setDisable(false);
+    timeComboBox.setFocusTraversable(true);
+    timeComboBox.getSelectionModel().select(preferences.getChat().getTimeFormat());
+  }
+
+  public void onTimeFormatSelected() {
+    logger.debug("A new time format was selected: {}", timeComboBox.getValue());
+    Preferences preferences = preferencesService.getPreferences();
+    preferences.getChat().setTimeFormat(timeComboBox.getValue());
+    preferencesService.storeInBackground();
   }
 
   private StringListCell<Screen> screenListCell() {
@@ -255,9 +287,31 @@ public class SettingsController implements Controller<Node> {
     );
   }
 
-  private void configureLanguageSelection() {
-    languageComboBox.setItems(FXCollections.singletonObservableList("English"));
-    languageComboBox.getSelectionModel().select(0);
+  private void configureLanguageSelection(Preferences preferences) {
+    languageComboBox.setButtonCell(new StringListCell<>(languageInfo -> i18n.get(languageInfo.getDisplayNameKey())));
+    languageComboBox.setCellFactory(param -> new StringListCell<>(languageInfo -> i18n.get(languageInfo.getDisplayNameKey())));
+    languageComboBox.setItems(FXCollections.observableArrayList(LanguageInfo.values()));
+    LanguageInfo languageInfo = preferences.getLocalization().getLanguage();
+    languageComboBox.getSelectionModel().select(languageInfo.ordinal());
+  }
+
+  public void onLanguageSelected() {
+    LocalizationPrefs localizationPrefs = preferencesService.getPreferences().getLocalization();
+    if (Objects.equals(languageComboBox.getValue(), localizationPrefs.getLanguage())) {
+      return;
+    }
+    logger.debug("A new language was selected: {}", languageComboBox.getValue());
+    localizationPrefs.setLanguage(languageComboBox.getValue());
+    preferencesService.storeInBackground();
+    notificationService.addNotification(new PersistentNotification(
+        i18n.get("settings.languages.restart.message"),
+        Severity.WARN,
+        Collections.singletonList(new Action(i18n.get("settings.languages.restart"),
+            event -> {
+              Platform.exit();
+              // FIXME reload application (stage & application context)
+            })
+        )));
   }
 
   private void configureToastScreen(Preferences preferences) {

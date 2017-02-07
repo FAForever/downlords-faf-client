@@ -1,6 +1,8 @@
 package com.faforever.client.map;
 
 import com.faforever.client.config.CacheNames;
+import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.Vault;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean.Type;
 import com.faforever.client.preferences.PreferencesService;
@@ -26,7 +28,6 @@ import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
@@ -75,31 +76,19 @@ public class MapServiceImpl implements MapService {
   private static final float MAP_SIZE_FACTOR = 51.2f;
   private static final Lock LOOKUP_LOCK = new ReentrantLock();
 
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  TaskService taskService;
-  @Inject
-  ApplicationContext applicationContext;
-  @Inject
-  Directory directory;
-  @Inject
-  Analyzer analyzer;
-  @Inject
-  ThreadPoolExecutor threadPoolExecutor;
-  @Inject
-  FafService fafService;
-  @Inject
-  AssetService assetService;
+  private final PreferencesService preferencesService;
+  private final TaskService taskService;
+  private final ApplicationContext applicationContext;
+  private final Directory directory;
+  private final Analyzer analyzer;
+  private final ThreadPoolExecutor threadPoolExecutor;
+  private final FafService fafService;
+  private final AssetService assetService;
+  private final I18n i18n;
+  private final UiService uiService;
 
-  @Value("${vault.mapDownloadUrl}")
-  String mapDownloadUrl;
-  @Value("${vault.mapPreviewUrlFormat}")
-  String mapPreviewUrlFormat;
-  @Inject
-  I18n i18n;
-  @Inject
-  UiService uiService;
+  private final String mapDownloadUrlFormat;
+  private final String mapPreviewUrlFormat;
 
   private Map<Path, MapBean> pathToMap;
   private AnalyzingInfixSuggester suggester;
@@ -108,7 +97,26 @@ public class MapServiceImpl implements MapService {
   private Map<String, MapBean> mapsByFolderName;
   private Thread directoryWatcherThread;
 
-  public MapServiceImpl() {
+  @Inject
+  public MapServiceImpl(PreferencesService preferencesService, TaskService taskService,
+                        ApplicationContext applicationContext, Directory directory, Analyzer analyzer,
+                        ThreadPoolExecutor threadPoolExecutor, FafService fafService, AssetService assetService,
+                        I18n i18n, UiService uiService, ClientProperties clientProperties) {
+    this.preferencesService = preferencesService;
+    this.taskService = taskService;
+    this.applicationContext = applicationContext;
+    this.directory = directory;
+    this.analyzer = analyzer;
+    this.threadPoolExecutor = threadPoolExecutor;
+    this.fafService = fafService;
+    this.assetService = assetService;
+    this.i18n = i18n;
+    this.uiService = uiService;
+
+    Vault vault = clientProperties.getVault();
+    this.mapDownloadUrlFormat = vault.getMapDownloadUrlFormat();
+    this.mapPreviewUrlFormat = vault.getMapPreviewUrlFormat();
+
     pathToMap = new HashMap<>();
     installedSkirmishMaps = FXCollections.observableArrayList();
     mapsByFolderName = new HashMap<>();
@@ -298,7 +306,7 @@ public class MapServiceImpl implements MapService {
 
   @Override
   public CompletionStage<Void> download(String technicalMapName) {
-    URL mapUrl = getDownloadUrl(technicalMapName, mapDownloadUrl);
+    URL mapUrl = getDownloadUrl(technicalMapName, mapDownloadUrlFormat);
     return downloadAndInstallMap(technicalMapName, mapUrl, null, null);
   }
 

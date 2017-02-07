@@ -43,7 +43,6 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCreateTiledFlowPaneWithEmptyList() throws Exception {
-    when(gameTileController.getRoot()).thenReturn(new Pane());
     ObservableList<Game> observableList = FXCollections.observableArrayList();
 
     instance.createTiledFlowPane(observableList);

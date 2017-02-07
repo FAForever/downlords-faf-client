@@ -3,6 +3,7 @@ package com.faforever.client.notification;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import java.util.Collections;
 
@@ -12,17 +13,18 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 public class PersistentNotificationControllerTest extends AbstractPlainJavaFxTest {
 
   private PersistentNotificationController instance;
 
+  @Mock
+  private NotificationService notificationService;
+
   @Before
   public void setUp() throws Exception {
-    instance = new PersistentNotificationController();
-    instance.notificationService = mock(NotificationService.class);
+    instance = new PersistentNotificationController(notificationService);
 
     loadFxml("theme/persistent_notification.fxml", clazz -> instance);
   }
@@ -78,6 +80,6 @@ public class PersistentNotificationControllerTest extends AbstractPlainJavaFxTes
     PersistentNotification notification = new PersistentNotification("text", Severity.WARN);
     instance.setNotification(notification);
     instance.onCloseButtonClicked();
-    verify(instance.notificationService).removeNotification(notification);
+    verify(notificationService).removeNotification(notification);
   }
 }

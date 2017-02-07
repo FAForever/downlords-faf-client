@@ -3,9 +3,11 @@ package com.faforever.client.game;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.IceAdapter;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
@@ -16,7 +18,7 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.replay.ReplayService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.reporting.ReportingService;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.SimpleObjectProperty;
@@ -24,9 +26,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.ReflectionUtils;
 import org.testfx.util.WaitForAsyncUtils;
@@ -36,7 +40,6 @@ import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -64,7 +67,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -73,7 +75,8 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class GameServiceImplTest extends AbstractPlainJavaFxTest {
+@RunWith(MockitoJUnitRunner.class)
+public class GameServiceImplTest {
 
   private static final long TIMEOUT = 5000;
   private static final TimeUnit TIME_UNIT = TimeUnit.MILLISECONDS;
@@ -110,25 +113,22 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   private IceAdapter iceAdapter;
   @Mock
   private ModService modService;
+  @Mock
+  private NotificationService notificationService;
+  @Mock
+  private I18n i18n;
+  @Mock
+  private ReportingService reportingService;
 
   @Captor
   private ArgumentCaptor<Consumer<GameInfoMessage>> gameInfoMessageListenerCaptor;
 
   @Before
   public void setUp() throws Exception {
-    instance = new GameServiceImpl();
-    instance.fafService = fafService;
-    instance.mapService = mapService;
-    instance.modService = modService;
-    instance.forgedAllianceService = forgedAllianceService;
-    instance.gameUpdater = gameUpdater;
-    instance.preferencesService = preferencesService;
-    instance.applicationContext = applicationContext;
-    instance.playerService = playerService;
-    instance.scheduledExecutorService = scheduledExecutorService;
+    instance = new GameServiceImpl(fafService, forgedAllianceService, mapService, preferencesService, gameUpdater,
+        notificationService, i18n, applicationContext, scheduledExecutorService, playerService, reportingService,
+        eventBus, iceAdapter, modService);
     instance.replayService = replayService;
-    instance.eventBus = eventBus;
-    instance.iceAdapter = iceAdapter;
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
@@ -136,14 +136,10 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     when(replayService.startReplayServer(anyInt())).thenReturn(CompletableFuture.completedFuture(null));
     when(iceAdapter.start()).thenReturn(CompletableFuture.completedFuture(GPG_PORT));
-    when(fafService.getFeaturedMods()).thenReturn(completedFuture(asList(
-        FeaturedModBeanBuilder.create().defaultValues().get(),
-        FeaturedModBeanBuilder.create().defaultValues().technicalName(LADDER_1V1.getString()).get()
-    )));
 
     doAnswer(invocation -> {
       try {
-        invocation.getArgumentAt(0, Runnable.class).run();
+        ((Runnable) invocation.getArgument(0)).run();
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -213,12 +209,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     });
 
     CountDownLatch processLatch = new CountDownLatch(1);
-
-    process = mock(Process.class);
-    doAnswer(invocation -> {
-      processLatch.await();
-      return null;
-    }).when(process).waitFor();
 
     instance.hostGame(newGameInfo).toCompletableFuture().get(TIMEOUT, TIME_UNIT);
     gameStartedLatch.await(TIMEOUT, TIME_UNIT);
@@ -372,7 +362,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     when(fafService.startSearchRanked1v1(CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
     when(gameUpdater.update(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));
-    when(scheduledExecutorService.scheduleWithFixedDelay(any(), anyLong(), anyLong(), any())).thenReturn(mock(ScheduledFuture.class));
     when(mapService.isInstalled("scmp_037")).thenReturn(false);
     when(mapService.download("scmp_037")).thenReturn(CompletableFuture.completedFuture(null));
     when(modService.getFeaturedMod(LADDER_1V1.getString())).thenReturn(CompletableFuture.completedFuture(featuredMod));
@@ -462,9 +451,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     Game game = GameBuilder.create().defaultValues().get();
     instance.currentGame.set(game);
-
-    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(fafService.requestHostGame(any())).thenReturn(completedFuture(GameLaunchMessageBuilder.create().defaultValues().get()));
 
     instance.onRehostRequest(new RehostRequestEvent());
 

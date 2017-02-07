@@ -22,12 +22,16 @@ import static java.util.stream.Collectors.toMap;
 @Service
 public class EventServiceImpl implements EventService {
 
+  private final FafApiAccessor fafApiAccessor;
+  private final PlayerService playerService;
+  private final ThreadPoolExecutor threadPoolExecutor;
+
   @Inject
-  FafApiAccessor fafApiAccessor;
-  @Inject
-  PlayerService playerService;
-  @Inject
-  ThreadPoolExecutor threadPoolExecutor;
+  public EventServiceImpl(FafApiAccessor fafApiAccessor, PlayerService playerService, ThreadPoolExecutor threadPoolExecutor) {
+    this.fafApiAccessor = fafApiAccessor;
+    this.playerService = playerService;
+    this.threadPoolExecutor = threadPoolExecutor;
+  }
 
   @Override
   public CompletionStage<Map<String, PlayerEvent>> getPlayerEvents(String username) {
