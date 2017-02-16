@@ -420,6 +420,7 @@ public class MainController implements Controller<Node> {
     SettingsController settingsController = uiService.loadFxml("theme/settings/settings.fxml");
     WindowController windowController = uiService.loadFxml("theme/window.fxml");
     windowController.configure(stage, settingsController.getRoot(), true, CLOSE);
+    windowController.setOnHiding(event -> preferencesService.storeInBackground());
 
     stage.setTitle(i18n.get("settings.windowTitle"));
     stage.show();

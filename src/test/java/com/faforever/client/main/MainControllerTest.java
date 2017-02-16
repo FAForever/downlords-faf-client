@@ -31,6 +31,7 @@ import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
@@ -196,6 +197,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     verify(windowController).configure(
         any(), eq(root), eq(true), eq(WindowController.WindowButtonType.CLOSE)
     );
+    verify(windowController).setOnHiding(any(EventHandler.class));
   }
 
   @Test
@@ -218,7 +220,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
   private void prepareTestMatchmakerMessageTest(float deviation) {
     @SuppressWarnings("unchecked")
-    ArgumentCaptor<Consumer<MatchmakerMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass((Class) Consumer.class);
+    ArgumentCaptor<Consumer<MatchmakerMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
     when(notificationPrefs.getLadder1v1ToastEnabled()).thenReturn(true);
     when(playerService.getCurrentPlayer()).thenReturn(
         Optional.ofNullable(PlayerBuilder.create("JUnit").leaderboardRatingMean(1500).leaderboardRatingDeviation(deviation).get())

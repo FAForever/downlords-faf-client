@@ -3,6 +3,7 @@ package com.faforever.client.fx;
 import com.faforever.client.theme.UiService;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
+import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
@@ -17,6 +18,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -85,6 +87,10 @@ public class WindowController implements Controller<Node> {
 
   public void onRestoreButtonClicked() {
     restore();
+  }
+
+  public void setOnHiding(EventHandler<WindowEvent> eventEventHandler) {
+    stage.setOnHiding(eventEventHandler);
   }
 
   private void restore() {

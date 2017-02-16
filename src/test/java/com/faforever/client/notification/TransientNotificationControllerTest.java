@@ -1,5 +1,7 @@
 package com.faforever.client.notification;
 
+import com.faforever.client.fx.MouseEvents;
+import com.faforever.client.notification.Action.ActionCallback;
 import com.faforever.client.notification.Action.ActionCallback;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
