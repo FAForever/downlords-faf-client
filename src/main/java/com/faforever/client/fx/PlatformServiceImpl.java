@@ -1,33 +1,27 @@
 package com.faforever.client.fx;
 
+import com.sun.jna.Platform;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef.HWND;
 import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.platform.win32.WinUser.WINDOWPLACEMENT;
 import javafx.application.HostServices;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.jetbrains.annotations.Nullable;
 
-import javax.inject.Inject;
 import java.nio.file.Path;
 
 import static com.github.nocatch.NoCatch.noCatch;
 import static org.bridj.Platform.show;
 
-@Service
 public class PlatformServiceImpl implements PlatformService {
 
   private final HostServices hostServices;
-  private final String faWindowTitle;
 
-  private final boolean isOnWindows;
+  private final boolean isWindows;
 
-  @Inject
-  public PlatformServiceImpl(HostServices hostServices, @Value("${forgedAlliance.windowTitle}") String faWindowTitle) {
+  public PlatformServiceImpl(HostServices hostServices) {
     this.hostServices = hostServices;
-    this.faWindowTitle = faWindowTitle;
-
-    isOnWindows = System.getProperty("os.name").startsWith("Windows");
+    isWindows = Platform.isWindows();
   }
 
   /**
@@ -53,21 +47,22 @@ public class PlatformServiceImpl implements PlatformService {
    */
   @Override
   public void focusWindow(String windowTitle) {
-    if (!isOnWindows) {
+    if (!isWindows) {
       return;
     }
 
     User32 user32 = User32.INSTANCE;
     HWND window = user32.FindWindow(null, windowTitle);
 
-    //Does only set the window to visible, does not restore/bring it to foreground
+    // Does only set the window to visible, does not restore/bring it to foreground
     user32.ShowWindow(window, User32.SW_SHOW);
 
     WINDOWPLACEMENT windowplacement = new WINDOWPLACEMENT();
     user32.GetWindowPlacement(window, windowplacement);
 
     if (windowplacement.showCmd == User32.SW_SHOWMINIMIZED) {
-      if ((windowplacement.flags & WINDOWPLACEMENT.WPF_RESTORETOMAXIMIZED) == WINDOWPLACEMENT.WPF_RESTORETOMAXIMIZED) {//bit 2 in flags (bitmask 0x2) signals that window should be maximized when restoring
+      // Bit 2 in flags (bitmask 0x2) signals that window should be maximized when restoring
+      if ((windowplacement.flags & WINDOWPLACEMENT.WPF_RESTORETOMAXIMIZED) == WINDOWPLACEMENT.WPF_RESTORETOMAXIMIZED) {
         user32.ShowWindow(window, User32.SW_SHOWMAXIMIZED);
       } else {
         user32.ShowWindow(window, User32.SW_SHOWNORMAL);
@@ -81,14 +76,8 @@ public class PlatformServiceImpl implements PlatformService {
   }
 
   @Override
-  public void focusGameWindow() {
-    focusWindow(faWindowTitle);
-  }
-
-
-  @Override
   public void startFlashingWindow(String windowTitle) {
-    if (!isOnWindows) {
+    if (!isWindows) {
       return;
     }
 
@@ -105,18 +94,8 @@ public class PlatformServiceImpl implements PlatformService {
   }
 
   @Override
-  public void startFlashingGameWindow() {
-    startFlashingWindow(faWindowTitle);
-  }
-
-  @Override
-  public void stopFlashingGameWindow() {
-    stopFlashingWindow(faWindowTitle);
-  }
-
-  @Override
   public void stopFlashingWindow(String windowTitle) {
-    if (!isOnWindows) {
+    if (!isWindows) {
       return;
     }
 
@@ -130,12 +109,9 @@ public class PlatformServiceImpl implements PlatformService {
     User32.INSTANCE.FlashWindowEx(flashwinfo);
   }
 
-  /**
-   * @return The title of the foreground window, may be null!
-   */
-  @Override
-  public String getForegroundWindowTitle() {
-    if (!isOnWindows) {
+  @Nullable
+  private String getForegroundWindowTitle() {
+    if (!isWindows) {
       return null;
     }
 
@@ -151,7 +127,7 @@ public class PlatformServiceImpl implements PlatformService {
   }
 
   @Override
-  public boolean isGameWindowFocused() {
-    return faWindowTitle.equals(getForegroundWindowTitle());
+  public boolean isWindowFocused(String windowTitle) {
+    return windowTitle.equals(getForegroundWindowTitle());
   }
 }

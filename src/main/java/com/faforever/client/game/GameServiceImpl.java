@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
@@ -105,6 +106,7 @@ public class GameServiceImpl implements GameService {
   private final IceAdapter iceAdapter;
   private final ModService modService;
   private final PlatformService platformService;
+  private final String faWindowTitle;
 
   @VisibleForTesting
   RatingMode ratingMode;
@@ -114,7 +116,7 @@ public class GameServiceImpl implements GameService {
   private boolean rehostRequested;
 
   @Inject
-  public GameServiceImpl(FafService fafService, ForgedAllianceService forgedAllianceService, MapService mapService,
+  public GameServiceImpl(ClientProperties clientProperties, FafService fafService, ForgedAllianceService forgedAllianceService, MapService mapService,
                          PreferencesService preferencesService, GameUpdater gameUpdater,
                          NotificationService notificationService, I18n i18n, Executor executor,
                          PlayerService playerService, ReportingService reportingService, ReplayService replayService,
@@ -135,6 +137,7 @@ public class GameServiceImpl implements GameService {
     this.modService = modService;
     this.platformService = platformService;
 
+    faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
     uidToGameInfoBean = FXCollections.observableHashMap();
     searching1v1 = new SimpleBooleanProperty();
     gameRunning = new SimpleBooleanProperty();
@@ -502,8 +505,8 @@ public class GameServiceImpl implements GameService {
       if (oldValue == GameState.OPEN
           && newValue == GameState.PLAYING
           && game.getTeams().values().stream().anyMatch(team -> team.contains(currentPlayer.getUsername()))
-          && !platformService.isGameWindowFocused()) {
-        platformService.focusGameWindow();
+          && !platformService.isWindowFocused(faWindowTitle)) {
+        platformService.focusWindow(faWindowTitle);
       }
     });
   }
