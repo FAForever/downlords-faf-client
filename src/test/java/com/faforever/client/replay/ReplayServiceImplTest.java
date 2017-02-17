@@ -135,7 +135,7 @@ public class ReplayServiceImplTest {
   public void testGuessModByFileNameModIsMissing() throws Exception {
     String mod = ReplayServiceImpl.guessModByFileName("110621-2128 Saltrock Colony.SCFAReplay");
 
-    assertEquals(KnownFeaturedMod.DEFAULT.getString(), mod);
+    assertEquals(KnownFeaturedMod.DEFAULT.getTechnicalName(), mod);
   }
 
   @Test

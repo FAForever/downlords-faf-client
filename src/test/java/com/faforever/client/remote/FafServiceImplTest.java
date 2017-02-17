@@ -12,7 +12,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.net.URL;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -28,13 +27,11 @@ public class FafServiceImplTest {
   private EventBus eventBus;
   @Mock
   private FafApiAccessor fafApiAccessor;
-  @Mock
-  private ThreadPoolExecutor threadPoolExecutor;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
-    instance = new FafServiceImpl(fafServerAccessor, fafApiAccessor, threadPoolExecutor, eventBus);
+    instance = new FafServiceImpl(fafServerAccessor, fafApiAccessor, eventBus);
   }
 
   @Test

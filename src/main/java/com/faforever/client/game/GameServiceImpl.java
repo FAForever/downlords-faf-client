@@ -61,7 +61,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 
@@ -148,13 +147,13 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public CompletionStage<Void> hostGame(NewGameInfo newGameInfo) {
+  public CompletableFuture<Void> hostGame(NewGameInfo newGameInfo) {
     if (isRunning()) {
       logger.debug("Game is running, ignoring host request");
       return completedFuture(null);
     }
 
-    stopSearchRanked1v1();
+    stopSearchLadder1v1();
 
     return updateGameIfNecessary(newGameInfo.getFeaturedMod(), null, emptyMap(), newGameInfo.getSimMods())
         .thenCompose(aVoid -> downloadMapIfNecessary(newGameInfo.getMap()))
@@ -163,7 +162,7 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public CompletionStage<Void> joinGame(Game game, String password) {
+  public CompletableFuture<Void> joinGame(Game game, String password) {
     if (isRunning()) {
       logger.debug("Game is running, ignoring join request");
       return completedFuture(null);
@@ -171,7 +170,7 @@ public class GameServiceImpl implements GameService {
 
     logger.info("Joining preferences: {} ({})", game.getTitle(), game.getId());
 
-    stopSearchRanked1v1();
+    stopSearchLadder1v1();
 
     Map<String, Integer> featuredModVersions = game.getFeaturedModVersions();
     Set<String> simModUIds = game.getSimMods().keySet();
@@ -190,7 +189,7 @@ public class GameServiceImpl implements GameService {
         });
   }
 
-  private CompletionStage<Void> downloadMapIfNecessary(String mapFolderName) {
+  private CompletableFuture<Void> downloadMapIfNecessary(String mapFolderName) {
     if (mapService.isInstalled(mapFolderName)) {
       return completedFuture(null);
     }
@@ -232,7 +231,7 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public CompletionStage<Void> runWithLiveReplay(URI replayUrl, Integer gameId, String gameType, String mapName) {
+  public CompletableFuture<Void> runWithLiveReplay(URI replayUrl, Integer gameId, String gameType, String mapName) {
     if (isRunning()) {
       logger.warn("Forged Alliance is already running, not starting live replay");
       return completedFuture(null);
@@ -274,7 +273,7 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public CompletionStage<Void> startSearchRanked1v1(Faction faction) {
+  public CompletableFuture<Void> startSearchLadder1v1(Faction faction) {
     if (isRunning()) {
       logger.debug("Game is running, ignoring 1v1 search request");
       return completedFuture(null);
@@ -284,9 +283,9 @@ public class GameServiceImpl implements GameService {
 
     int port = preferencesService.getPreferences().getForgedAlliance().getPort();
 
-    return modService.getFeaturedMod(LADDER_1V1.getString())
+    return modService.getFeaturedMod(LADDER_1V1.getTechnicalName())
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
-        .thenCompose(aVoid -> fafService.startSearchRanked1v1(faction, port))
+        .thenCompose(aVoid -> fafService.startSearchLadder1v1(faction, port))
         .thenAccept((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapname())
             .thenRun(() -> {
               // TODO this should be sent by the server!
@@ -294,7 +293,7 @@ public class GameServiceImpl implements GameService {
               gameLaunchMessage.getArgs().add("/team 1");
               gameLaunchMessage.getArgs().add("/players 2");
 
-              startGame(gameLaunchMessage, faction, RatingMode.RANKED_1V1);
+              startGame(gameLaunchMessage, faction, RatingMode.LADDER_1V1);
             }))
         .exceptionally(throwable -> {
           if (throwable instanceof CancellationException) {
@@ -307,7 +306,7 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public void stopSearchRanked1v1() {
+  public void stopSearchLadder1v1() {
     if (searching1v1.get()) {
       fafService.stopSearchingRanked();
       searching1v1.set(false);
@@ -331,7 +330,7 @@ public class GameServiceImpl implements GameService {
     return process != null && process.isAlive();
   }
 
-  private CompletionStage<Void> updateGameIfNecessary(FeaturedModBean featuredMod, @Nullable Integer version, @NotNull Map<String, Integer> featuredModVersions, @NotNull Set<String> simModUids) {
+  private CompletableFuture<Void> updateGameIfNecessary(FeaturedModBean featuredMod, @Nullable Integer version, @NotNull Map<String, Integer> featuredModVersions, @NotNull Set<String> simModUids) {
     return gameUpdater.update(featuredMod, version, featuredModVersions, simModUids);
   }
 
@@ -358,7 +357,7 @@ public class GameServiceImpl implements GameService {
       return;
     }
 
-    stopSearchRanked1v1();
+    stopSearchLadder1v1();
     replayService.startReplayServer(gameLaunchMessage.getUid())
         .thenCompose(aVoid -> iceAdapter.start())
         .thenAccept(adapterPort -> {

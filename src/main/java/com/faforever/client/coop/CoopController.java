@@ -1,6 +1,6 @@
 package com.faforever.client.coop;
 
-import com.faforever.client.api.CoopLeaderboardEntry;
+import com.faforever.client.api.dto.CoopResult;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.NodeTableCell;
 import com.faforever.client.fx.StringCell;
@@ -71,7 +71,7 @@ public class CoopController implements Controller<Node> {
 
   private static final Predicate<Game> OPEN_COOP_GAMES_PREDICATE = gameInfoBean ->
       gameInfoBean.getStatus() == GameState.OPEN
-          && COOP.getString().equals(gameInfoBean.getFeaturedMod());
+          && COOP.getTechnicalName().equals(gameInfoBean.getFeaturedMod());
 
   private final ReplayService replayService;
   private final GameService gameService;
@@ -97,14 +97,14 @@ public class CoopController implements Controller<Node> {
   public Label selectedGameNumberOfPlayersLabel;
   public Label selectedGameHostLabel;
   public ScrollPane selectedGamePane;
-  public TableView<CoopLeaderboardEntry> leaderboardTable;
+  public TableView<CoopResult> leaderboardTable;
   public ComboBox<Integer> numberOfPlayersComboBox;
-  public TableColumn<CoopLeaderboardEntry, Integer> rankColumn;
-  public TableColumn<CoopLeaderboardEntry, Integer> playerCountColumn;
-  public TableColumn<CoopLeaderboardEntry, String> playerNamesColumn;
-  public TableColumn<CoopLeaderboardEntry, Boolean> secondaryObjectivesColumn;
-  public TableColumn<CoopLeaderboardEntry, Integer> timeColumn;
-  public TableColumn<CoopLeaderboardEntry, String> replayColumn;
+  public TableColumn<CoopResult, Integer> rankColumn;
+  public TableColumn<CoopResult, Integer> playerCountColumn;
+  public TableColumn<CoopResult, String> playerNamesColumn;
+  public TableColumn<CoopResult, Boolean> secondaryObjectivesColumn;
+  public TableColumn<CoopResult, Integer> timeColumn;
+  public TableColumn<CoopResult, String> replayColumn;
 
   @Inject
   public CoopController(ReplayService replayService, GameService gameService, CoopService coopService, NotificationService notificationService, I18n i18n, ReportingService reportingService, MapService mapService, PreferencesService preferencesService, UiService uiService, TimeService timeService, WebViewConfigurer webViewConfigurer, ModService modService) {
@@ -260,7 +260,7 @@ public class CoopController implements Controller<Node> {
   }
 
   public void onPlayButtonClicked() {
-    modService.getFeaturedMod(COOP.getString())
+    modService.getFeaturedMod(COOP.getTechnicalName())
         .thenAccept(featuredModBean -> gameService.hostGame(new NewGameInfo(titleTextField.getText(),
             Strings.emptyToNull(passwordTextField.getText()), featuredModBean, getSelectedMission().getMapFolderName(),
             emptySet())));

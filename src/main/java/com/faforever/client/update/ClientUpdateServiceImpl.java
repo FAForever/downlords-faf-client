@@ -1,5 +1,6 @@
 package com.faforever.client.update;
 
+import com.faforever.client.FafClientApplication;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
@@ -30,7 +31,7 @@ import static org.apache.commons.lang3.StringUtils.defaultString;
 
 @Lazy
 @Service
-@Profile("!local")
+@Profile("!" + FafClientApplication.POFILE_OFFLINE)
 public class ClientUpdateServiceImpl implements ClientUpdateService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());

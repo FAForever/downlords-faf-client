@@ -29,12 +29,13 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
+import lombok.SneakyThrows;
 
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -70,7 +71,7 @@ public final class JavaFxUtil {
   }
 
   public static void makeSuggestionField(TextField textField,
-                                         Function<String, CompletionStage<Set<Label>>> itemsFactory,
+                                         Function<String, CompletableFuture<Set<Label>>> itemsFactory,
                                          Consumer<Void> onAction) {
     ListView<Label> listView = new ListView<>();
     listView.prefWidthProperty().bind(textField.widthProperty());
@@ -257,10 +258,14 @@ public final class JavaFxUtil {
     }
   }
 
+  @SneakyThrows
   private static void writeImage(Image image, Path path, String format) {
-    if (path.getParent() != null) {
-      noCatch(() -> createDirectories(path.getParent()));
+    if (image == null) {
+      return;
     }
-    noCatch(() -> write(SwingFXUtils.fromFXImage(image, null), format, path.toFile()));
+    if (path.getParent() != null) {
+      createDirectories(path.getParent());
+    }
+    write(SwingFXUtils.fromFXImage(image, null), format, path.toFile());
   }
 }

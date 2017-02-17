@@ -1,6 +1,6 @@
 package com.faforever.client.map;
 
-import com.faforever.client.api.ApiException;
+import com.faforever.client.api.dto.ApiException;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.event.MapUploadedEvent;
@@ -11,6 +11,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.CompletableTask;
+import com.faforever.commons.map.PreviewGenerator;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Node;

@@ -1,6 +1,8 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.patch.MountPoint;
+import com.faforever.client.api.dto.ModType;
+import com.faforever.client.api.dto.ModVersion;
+import com.faforever.commons.mod.MountPoint;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
@@ -13,27 +15,19 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.lang.invoke.MethodHandles;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.Objects;
 
-import static com.github.nocatch.NoCatch.noCatch;
-
 public class Mod {
-  public static final Comparator<? super Mod> TIMES_PLAYED_COMPARATOR = (o1, o2) -> Integer.compare(o1.getPlayed(), o2.getPlayed());
-  public static final Comparator<? super Mod> LIKES_COMPARATOR = (o1, o2) -> Integer.compare(o1.getLikes(), o2.getLikes());
-  public static final Comparator<? super Mod> PUBLISH_DATE_COMPARATOR = (o1, o2) -> o1.getPublishDate().compareTo(o2.getPublishDate());
-  public static final Comparator<? super Mod> DOWNLOADS_COMPARATOR = (o1, o2) -> Integer.compare(o1.getDownloads(), o2.getDownloads());
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  public static final Comparator<? super Mod> TIMES_PLAYED_COMPARATOR = Comparator.comparingInt(Mod::getPlayed);
+  public static final Comparator<? super Mod> LIKES_COMPARATOR = Comparator.comparingInt(Mod::getLikes);
+  public static final Comparator<? super Mod> PUBLISH_DATE_COMPARATOR = Comparator.comparing(Mod::getPublishDate);
+  public static final Comparator<? super Mod> DOWNLOADS_COMPARATOR = Comparator.comparingInt(Mod::getDownloads);
   private final StringProperty name;
   private final ObjectProperty<Path> imagePath;
   private final StringProperty id;
@@ -74,26 +68,38 @@ public class Mod {
     hookDirectories = new SimpleListProperty<>(FXCollections.observableArrayList());
   }
 
-  public static Mod fromModInfo(com.faforever.client.api.Mod mod) {
+  public static Mod fromDto(com.faforever.commons.mod.Mod modInfo) {
+    Mod mod = new Mod();
+    mod.setId(modInfo.getId());
+    mod.setName(modInfo.getName());
+    mod.setDescription(modInfo.getDescription());
+    mod.setAuthor(modInfo.getAuthor());
+    mod.setVersion(modInfo.getVersion());
+    mod.setSelectable(modInfo.isSelectable());
+    mod.setUiOnly(modInfo.isUiOnly());
+    mod.setImagePath(modInfo.getImagePath());
+    mod.getMountPoints().setAll(modInfo.getMountPoints());
+    mod.getHookDirectories().setAll(modInfo.getHookDirectories());
+    return mod;
+  }
+
+  public static Mod fromDto(com.faforever.client.api.dto.Mod mod) {
+    ModVersion modVersion = mod.getLatestVersion();
+
     Mod modInfoBean = new Mod();
-    modInfoBean.setUiOnly("UI".equals(mod.getType()));
+    modInfoBean.setUiOnly(modVersion.getType() == ModType.UI);
     modInfoBean.setName(mod.getDisplayName());
     modInfoBean.setAuthor(mod.getAuthor());
-    modInfoBean.setVersion(new ComparableVersion(mod.getVersion()));
-    modInfoBean.setLikes(mod.getLikes());
+    modInfoBean.setVersion(new ComparableVersion(String.valueOf(modVersion.getVersion())));
+//    modInfoBean.setLikes(modVersion.getLikes());
 //    modInfoBean.setPlayed(mod.getPlayed());
-    modInfoBean.setPublishDate(mod.getCreateTime());
-    modInfoBean.setDescription(mod.getDescription());
-    modInfoBean.setId(mod.getId());
-    modInfoBean.setDownloads(mod.getDownloads());
-    modInfoBean.setThumbnailUrl(StringUtils.isEmpty(mod.getThumbnailUrl()) ? null : noCatch(() -> new URL(mod.getThumbnailUrl())));
+    modInfoBean.setPublishDate(modVersion.getCreateTime().toLocalDateTime());
+    modInfoBean.setDescription(modVersion.getDescription());
+    modInfoBean.setId(modVersion.getId());
+//    modInfoBean.setDownloads(mod));
+    modInfoBean.setThumbnailUrl(modVersion.getThumbnailUrl());
 //    modInfoBean.getComments().setAll(mod.getComments());
-    try {
-      modInfoBean.setDownloadUrl(new URL(mod.getDownloadUrl()));
-    } catch (MalformedURLException e) {
-      logger.warn("Mod '{}' has an invalid downloadUrl: {}", mod.getId(), mod.getDownloadUrl());
-      modInfoBean.setDownloadUrl(null);
-    }
+    modInfoBean.setDownloadUrl(modVersion.getDownloadUrl());
     return modInfoBean;
   }
 

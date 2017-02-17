@@ -1,8 +1,8 @@
 package com.faforever.client.game;
 
-import com.faforever.client.patch.MountPoint;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.commons.mod.MountPoint;
 import com.google.common.base.Joiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

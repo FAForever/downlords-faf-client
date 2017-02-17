@@ -21,15 +21,10 @@ faf-client:
     remote-host: lobby.test.faforever.com
 
   api:
-    baseUrl: https://api.test.faforever.com
+    base-url: http://japi.test.faforever.com
+    access-token-uri: ${faf-client.api.base-url}/oauth/token
+    client-id: faf-client
+    client-secret: banana
 
   forged-alliance:
     exe-url: http://content.test.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe
-
-security:
-  oauth2:
-    client:
-      clientId: 3bc8282c-7730-11e5-8bcf-feff819cdc9f
-      clientSecret: 6035bd78-7730-11e5-8bcf-feff819cdc9f
-      accessTokenUri: https://japi.test.faforever.com/oauth/token
-      userAuthorizationUri: https://japi.test.faforever.com/oauth/authorize

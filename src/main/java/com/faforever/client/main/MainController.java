@@ -265,7 +265,7 @@ public class MainController implements Controller<Node> {
   private void onMatchmakerMessage(MatchmakerMessage message) {
     if (message.getQueues() == null
         || gameService.gameRunningProperty().get()
-        || !preferencesService.getPreferences().getNotification().isRanked1v1ToastEnabled()) {
+        || !preferencesService.getPreferences().getNotification().getLadder1v1ToastEnabled()) {
       return;
     }
 
@@ -307,7 +307,7 @@ public class MainController implements Controller<Node> {
     notificationService.addNotification(new TransientNotification(
         i18n.get("ranked1v1.notification.title"),
         i18n.get("ranked1v1.notification.message"),
-        uiService.getThemeImage(UiService.RANKED_1V1_IMAGE),
+        uiService.getThemeImage(UiService.LADDER_1V1_IMAGE),
         event -> eventBus.post(new NavigateEvent(NavigationItem.PLAY))
     ));
   }

@@ -21,15 +21,10 @@ faf-client:
     remote-host: localhost
 
   api:
-    baseUrl: https://api.test.faforever.com
+    base-url: http://localhost:8010
+    access-token-uri: ${faf-client.api.base-url}/oauth/token
+    client-id: faf-client
+    client-secret: banana
 
   forged-alliance:
     exe-url: http://content.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe
-
-security:
-  oauth2:
-    client:
-      clientId: faf-client
-      clientSecret: banana
-      accessTokenUri: https://localhost:8080/oauth/token
-      userAuthorizationUri: https://localhost:8080/oauth/authorize

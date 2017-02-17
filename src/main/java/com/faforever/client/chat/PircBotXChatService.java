@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.FafClientApplication;
 import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
@@ -66,7 +67,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -84,7 +85,7 @@ import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 
 @Lazy
 @Service
-@Profile("!local")
+@Profile("!" + FafClientApplication.POFILE_OFFLINE)
 public class PircBotXChatService implements ChatService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -332,7 +333,7 @@ public class PircBotXChatService implements ChatService {
 
   @NotNull
   private String getPassword() {
-    return Hashing.md5().hashString(userService.getPassword(), UTF_8).toString();
+    return Hashing.md5().hashString(Hashing.sha256().hashString(userService.getPassword(), UTF_8).toString(), UTF_8).toString();
   }
 
   private void onSocialMessage(SocialMessage socialMessage) {
@@ -429,7 +430,7 @@ public class PircBotXChatService implements ChatService {
   }
 
   @Override
-  public CompletionStage<String> sendMessageInBackground(String target, String message) {
+  public CompletableFuture<String> sendMessageInBackground(String target, String message) {
     eventBus.post(new ChatMessageEvent(new ChatMessage(target, Instant.now(), userService.getUsername(), message)));
     return taskService.submitTask(new CompletableTask<String>(HIGH) {
       @Override
@@ -500,7 +501,7 @@ public class PircBotXChatService implements ChatService {
   }
 
   @Override
-  public CompletionStage<String> sendActionInBackground(String target, String action) {
+  public CompletableFuture<String> sendActionInBackground(String target, String action) {
     return taskService.submitTask(new CompletableTask<String>(HIGH) {
       @Override
       protected String call() throws Exception {

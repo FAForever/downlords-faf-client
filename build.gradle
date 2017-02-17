@@ -230,28 +230,24 @@ dependencies {
   compile("org.springframework.boot:spring-boot-starter")
   compile("org.springframework.boot:spring-boot-starter-cache")
   compile("org.springframework.boot:spring-boot-starter-logging")
+  compile("org.springframework.security.oauth:spring-security-oauth2")
+  compile("org.springframework:spring-web")
 
+  compile("com.github.FAForever:faf-java-commons:${fafCommonsVersion}")
   compile("com.google.code.gson:gson:2.3.1")
   compile("org.pircbotx:pircbotx:2.1") {
     exclude module: 'guava'
   }
   compile("com.google.guava:guava:18.0")
-  compile("ch.qos.logback:logback-classic:1.0.13")
-  compile("ch.qos.logback:logback-core:1.0.13")
-  compile("org.slf4j:slf4j-api:1.7.2")
   compile("org.apache.commons:commons-compress:1.9")
-  compile("org.apache.httpcomponents:httpclient:4.4.1")
   compile("net.java.dev.jna:jna:4.1.0")
   compile("net.java.dev.jna:jna-platform:4.1.0")
   compile("org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r")
   compile("org.jetbrains:annotations:13.0")
   compile("net.sf.jtidy:jtidy:r938")
   compile("com.neovisionaries:nv-i18n:1.15")
-  compile("org.slf4j:jul-to-slf4j:1.7.12")
   compile("com.rometools:rome:1.5.0")
   compile("org.jsoup:jsoup:1.8.2")
-  compile("com.google.oauth-client:google-oauth-client-java7:1.16.0-rc")
-  compile("com.google.http-client:google-http-client-gson:1.20.0")
   compile("org.apache.lucene:lucene-core:5.3.1")
   compile("org.apache.lucene:lucene-analyzers-common:5.3.1")
   compile("org.apache.lucene:lucene-suggest:5.3.1")
@@ -261,6 +257,8 @@ dependencies {
   compile("commons-validator:commons-validator:1.5.1")
   compile("com.github.micheljung:JJsonRpc:f683b55f55")
   compile("javax.inject:javax.inject:1")
+  compile("com.github.jasminb:jsonapi-converter:0.6")
+  compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonDatatypeJsr310Version}")
   compile("org.projectlombok:lombok:${lombokVersion}")
 
   testCompile 'junit:junit:4.11'

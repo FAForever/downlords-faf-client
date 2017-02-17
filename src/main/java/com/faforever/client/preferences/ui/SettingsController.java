@@ -38,14 +38,12 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.Region;
 import javafx.stage.Screen;
 import javafx.util.converter.NumberStringConverter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import java.lang.invoke.MethodHandles;
 import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.Objects;
@@ -55,14 +53,15 @@ import static com.faforever.client.theme.UiService.DEFAULT_THEME;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Slf4j
 public class SettingsController implements Controller<Node> {
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+  private final NotificationService notificationService;
   private final UserService userService;
   private final PreferencesService preferencesService;
   private final UiService uiService;
   private final I18n i18n;
   private final EventBus eventBus;
-  private final NotificationService notificationService;
 
   public TextField executableDecoratorField;
   public TextField executionDirectoryField;
@@ -87,7 +86,7 @@ public class SettingsController implements Controller<Node> {
   public CheckBox playFriendJoinsGameSoundCheckBox;
   public CheckBox playFriendPlaysGameSoundCheckBox;
   public CheckBox displayPmReceivedToastCheckBox;
-  public CheckBox displayRanked1v1ToastCheckBox;
+  public CheckBox displayLadder1v1ToastCheckBox;
   public CheckBox playPmReceivedSoundCheckBox;
   public Region settingsRoot;
   public ComboBox<LanguageInfo> languageComboBox;
@@ -216,7 +215,7 @@ public class SettingsController implements Controller<Node> {
     displayFriendJoinsGameToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendJoinsGameToastEnabledProperty());
     displayFriendPlaysGameToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendPlaysGameToastEnabledProperty());
     displayPmReceivedToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().privateMessageToastEnabledProperty());
-    displayRanked1v1ToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().ranked1v1ToastEnabledProperty());
+    displayLadder1v1ToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().ladder1v1ToastEnabledProperty());
     playFriendOnlineSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendOnlineSoundEnabledProperty());
     playFriendOfflineSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendOfflineSoundEnabledProperty());
     playFriendJoinsGameSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendJoinsGameSoundEnabledProperty());
@@ -245,7 +244,7 @@ public class SettingsController implements Controller<Node> {
   }
 
   public void onTimeFormatSelected() {
-    logger.debug("A new time format was selected: {}", timeComboBox.getValue());
+    log.debug("A new time format was selected: {}", timeComboBox.getValue());
     Preferences preferences = preferencesService.getPreferences();
     preferences.getChat().setTimeFormat(timeComboBox.getValue());
     preferencesService.storeInBackground();
@@ -300,7 +299,7 @@ public class SettingsController implements Controller<Node> {
     if (Objects.equals(languageComboBox.getValue(), localizationPrefs.getLanguage())) {
       return;
     }
-    logger.debug("A new language was selected: {}", languageComboBox.getValue());
+    log.debug("A new language was selected: {}", languageComboBox.getValue());
     localizationPrefs.setLanguage(languageComboBox.getValue());
     preferencesService.storeInBackground();
     notificationService.addNotification(new PersistentNotification(

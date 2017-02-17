@@ -1,6 +1,6 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.api.Mod;
+import com.faforever.client.api.dto.Mod;
 
 public class ModInfoBuilder {
 
@@ -8,6 +8,10 @@ public class ModInfoBuilder {
 
   public ModInfoBuilder() {
     mod = new Mod();
+  }
+
+  public static ModInfoBuilder create() {
+    return new ModInfoBuilder();
   }
 
   public ModInfoBuilder defaultValues() {
@@ -21,9 +25,5 @@ public class ModInfoBuilder {
 
   public Mod get() {
     return mod;
-  }
-
-  public static ModInfoBuilder create() {
-    return new ModInfoBuilder();
   }
 }

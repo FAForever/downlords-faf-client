@@ -31,7 +31,7 @@ public class CoopMission {
     mapFolderName = new SimpleStringProperty();
   }
 
-  public static CoopMission fromCoopInfo(com.faforever.client.api.CoopMission mission) {
+  public static CoopMission fromCoopInfo(com.faforever.client.api.dto.CoopMission mission) {
     CoopMission bean = new CoopMission();
     bean.setId(mission.getId());
     bean.setDescription(mission.getDescription());

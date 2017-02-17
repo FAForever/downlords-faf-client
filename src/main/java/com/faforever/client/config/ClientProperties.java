@@ -131,8 +131,11 @@ public class ClientProperties {
   @Data
   public static class Api {
     private String baseUrl;
+    private String clientId;
+    private String clientSecret;
+    private String accessTokenUri;
+    private int maxPageSize = 10_000;
   }
-
 
   @Data
   public static class UnitDatabase {

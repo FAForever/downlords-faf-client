@@ -12,7 +12,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 
 import java.net.URL;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 /**
@@ -28,11 +28,11 @@ public interface FafServerAccessor {
 
   ReadOnlyObjectProperty<ConnectionState> connectionStateProperty();
 
-  CompletionStage<LoginMessage> connectAndLogIn(String username, String password);
+  CompletableFuture<LoginMessage> connectAndLogIn(String username, String password);
 
-  CompletionStage<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo);
+  CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo);
 
-  CompletionStage<GameLaunchMessage> requestJoinGame(int gameId, String password);
+  CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password);
 
   void disconnect();
 
@@ -42,7 +42,7 @@ public interface FafServerAccessor {
 
   void addFoe(int playerId);
 
-  CompletionStage<GameLaunchMessage> startSearchRanked1v1(Faction faction);
+  CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction);
 
   void stopSearchingRanked();
 

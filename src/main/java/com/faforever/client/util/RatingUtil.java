@@ -1,9 +1,8 @@
 package com.faforever.client.util;
 
-import com.faforever.client.player.Player;
 import com.faforever.client.domain.RatingHistoryDataPoint;
+import com.faforever.client.player.Player;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class RatingUtil {
@@ -44,13 +43,5 @@ public final class RatingUtil {
 
   public static int getRating(RatingHistoryDataPoint datapoint) {
     return getRating(datapoint.getMean(), datapoint.getDeviation());
-  }
-
-  public static String extractRating(String title) {
-    Matcher matcher = RATING_PATTERN.matcher(title);
-    if (matcher.find()) {
-      return matcher.group(1);
-    }
-    return null;
   }
 }

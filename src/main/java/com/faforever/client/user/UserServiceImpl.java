@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 
 @Lazy
 @Service
@@ -40,7 +40,7 @@ public class UserServiceImpl implements UserService {
 
   private String password;
   private Integer userId;
-  private CompletionStage<Void> loginFuture;
+  private CompletableFuture<Void> loginFuture;
 
   @Inject
   public UserServiceImpl(FafService fafService, PreferencesService preferencesService, EventBus eventBus, ApplicationContext applicationContext, TaskService taskService) {
@@ -53,14 +53,14 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public CompletionStage<Void> login(String username, String password, boolean autoLogin) {
+  public CompletableFuture<Void> login(String username, String password, boolean autoLogin) {
+    this.password = password;
+
     preferencesService.getPreferences().getLogin()
         .setUsername(username)
         .setPassword(password)
         .setAutoLogin(autoLogin);
     preferencesService.storeInBackground();
-
-    this.password = password;
 
     loginFuture = fafService.connectAndLogIn(username, password)
         .thenAccept(loginInfo -> {

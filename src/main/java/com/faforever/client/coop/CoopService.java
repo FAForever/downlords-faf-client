@@ -1,6 +1,6 @@
 package com.faforever.client.coop;
 
-import com.faforever.client.api.CoopLeaderboardEntry;
+import com.faforever.client.api.dto.CoopResult;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -8,5 +8,5 @@ import java.util.concurrent.CompletableFuture;
 public interface CoopService {
   CompletableFuture<List<CoopMission>> getMissions();
 
-  CompletableFuture<List<CoopLeaderboardEntry>> getLeaderboard(CoopMission mission, int numberOfPlayers);
+  CompletableFuture<List<CoopResult>> getLeaderboard(CoopMission mission, int numberOfPlayers);
 }

@@ -4,6 +4,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.ModInfoBeanBuilder;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.util.TestResources;
+import com.faforever.commons.mod.MountPoint;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.junit.Before;

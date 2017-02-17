@@ -218,7 +218,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private void prepareTestMatchmakerMessageTest(float deviation) {
     @SuppressWarnings("unchecked")
     ArgumentCaptor<Consumer<MatchmakerMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass((Class) Consumer.class);
-    when(notificationPrefs.isRanked1v1ToastEnabled()).thenReturn(true);
+    when(notificationPrefs.getLadder1v1ToastEnabled()).thenReturn(true);
     when(playerService.getCurrentPlayer()).thenReturn(
         PlayerBuilder.create("JUnit").leaderboardRatingMean(1500).leaderboardRatingDeviation(deviation).get()
     );
@@ -268,7 +268,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   public void testOnMatchMakerMessageDisplaysNotificationWithQueuesButDisabled() {
     @SuppressWarnings("unchecked")
     ArgumentCaptor<Consumer<MatchmakerMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
-    when(notificationPrefs.isRanked1v1ToastEnabled()).thenReturn(false);
+    when(notificationPrefs.getLadder1v1ToastEnabled()).thenReturn(false);
 
     verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
 

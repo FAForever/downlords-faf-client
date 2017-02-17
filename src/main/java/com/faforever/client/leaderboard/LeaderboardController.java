@@ -41,12 +41,12 @@ public class LeaderboardController extends AbstractViewController<Node> {
   private final I18n i18n;
   private final ReportingService reportingService;
   public Pane leaderboardRoot;
-  public TableColumn<Ranked1v1EntryBean, Number> rankColumn;
-  public TableColumn<Ranked1v1EntryBean, String> nameColumn;
-  public TableColumn<Ranked1v1EntryBean, Number> winLossColumn;
-  public TableColumn<Ranked1v1EntryBean, Number> gamesPlayedColumn;
-  public TableColumn<Ranked1v1EntryBean, Number> ratingColumn;
-  public TableView<Ranked1v1EntryBean> ratingTable;
+  public TableColumn<LeaderboardEntry, Number> rankColumn;
+  public TableColumn<LeaderboardEntry, String> nameColumn;
+  public TableColumn<LeaderboardEntry, Number> winLossColumn;
+  public TableColumn<LeaderboardEntry, Number> gamesPlayedColumn;
+  public TableColumn<LeaderboardEntry, Number> ratingColumn;
+  public TableView<LeaderboardEntry> ratingTable;
   public TextField searchTextField;
   public Pane connectionProgressPane;
   public Pane contentPane;
@@ -86,17 +86,17 @@ public class LeaderboardController extends AbstractViewController<Node> {
       if (Validator.isInt(newValue)) {
         ratingTable.scrollTo(Integer.parseInt(newValue) - 1);
       } else {
-        Ranked1v1EntryBean foundPlayer = null;
-        for (Ranked1v1EntryBean ranked1v1EntryBean : ratingTable.getItems()) {
-          if (ranked1v1EntryBean.getUsername().toLowerCase().startsWith(newValue.toLowerCase())) {
-            foundPlayer = ranked1v1EntryBean;
+        LeaderboardEntry foundPlayer = null;
+        for (LeaderboardEntry leaderboardEntry : ratingTable.getItems()) {
+          if (leaderboardEntry.getUsername().toLowerCase().startsWith(newValue.toLowerCase())) {
+            foundPlayer = leaderboardEntry;
             break;
           }
         }
         if (foundPlayer == null) {
-          for (Ranked1v1EntryBean ranked1v1EntryBean : ratingTable.getItems()) {
-            if (ranked1v1EntryBean.getUsername().toLowerCase().contains(newValue.toLowerCase())) {
-              foundPlayer = ranked1v1EntryBean;
+          for (LeaderboardEntry leaderboardEntry : ratingTable.getItems()) {
+            if (leaderboardEntry.getUsername().toLowerCase().contains(newValue.toLowerCase())) {
+              foundPlayer = leaderboardEntry;
               break;
             }
           }

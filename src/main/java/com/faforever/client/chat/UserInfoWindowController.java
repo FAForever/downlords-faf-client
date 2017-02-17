@@ -3,14 +3,14 @@ package com.faforever.client.chat;
 import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.achievements.AchievementService.AchievementState;
-import com.faforever.client.api.AchievementDefinition;
-import com.faforever.client.api.PlayerAchievement;
-import com.faforever.client.api.PlayerEvent;
-import com.faforever.client.api.RatingType;
+import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.api.dto.PlayerAchievement;
+import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.events.EventService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.WindowController;
+import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.preferences.PreferencesService;
@@ -57,7 +57,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.achievements.AchievementService.AchievementState.UNLOCKED;
@@ -72,7 +72,7 @@ import static com.faforever.client.events.EventService.EVENT_BUILT_TECH_3_UNITS;
 import static com.faforever.client.events.EventService.EVENT_CUSTOM_GAMES_PLAYED;
 import static com.faforever.client.events.EventService.EVENT_CYBRAN_PLAYS;
 import static com.faforever.client.events.EventService.EVENT_CYBRAN_WINS;
-import static com.faforever.client.events.EventService.EVENT_RANKED_1V1_GAMES_PLAYED;
+import static com.faforever.client.events.EventService.EVENT_LADDER_1V1_GAMES_PLAYED;
 import static com.faforever.client.events.EventService.EVENT_SERAPHIM_PLAYS;
 import static com.faforever.client.events.EventService.EVENT_SERAPHIM_WINS;
 import static com.faforever.client.events.EventService.EVENT_UEF_PLAYS;
@@ -306,7 +306,7 @@ public class UserInfoWindowController implements Controller<Node> {
   @SuppressWarnings("unchecked")
   private void plotGamesPlayedChart(Map<String, PlayerEvent> playerEvents) {
     int tech1Built = playerEvents.containsKey(EVENT_CUSTOM_GAMES_PLAYED) ? playerEvents.get(EVENT_CUSTOM_GAMES_PLAYED).getCount() : 0;
-    int tech2Built = playerEvents.containsKey(EVENT_RANKED_1V1_GAMES_PLAYED) ? playerEvents.get(EVENT_RANKED_1V1_GAMES_PLAYED).getCount() : 0;
+    int tech2Built = playerEvents.containsKey(EVENT_LADDER_1V1_GAMES_PLAYED) ? playerEvents.get(EVENT_LADDER_1V1_GAMES_PLAYED).getCount() : 0;
 
     Platform.runLater(() -> gamesPlayedChart.setData(FXCollections.observableArrayList(
         new PieChart.Data(i18n.get("stats.custom"), tech1Built),
@@ -360,11 +360,11 @@ public class UserInfoWindowController implements Controller<Node> {
   }
 
   public void ladder1v1ButtonClicked() {
-    loadStatistics(RatingType.LADDER_1V1);
+    loadStatistics(KnownFeaturedMod.LADDER_1V1);
   }
 
-  private CompletionStage<Void> loadStatistics(RatingType type) {
-    return statisticsService.getRatingHistory(type, player.getId())
+  private CompletableFuture<Void> loadStatistics(KnownFeaturedMod featuredMod) {
+    return statisticsService.getRatingHistory(featuredMod, player.getId())
         .thenAccept(ratingHistory -> Platform.runLater(() -> plotPlayerRatingGraph(ratingHistory)))
         .exceptionally(throwable -> {
           // FIXME display to user
@@ -394,7 +394,7 @@ public class UserInfoWindowController implements Controller<Node> {
         int number = object.intValue();
         int numberOfDataPoints = dataPoints.size();
         int dataPointIndex = number >= numberOfDataPoints ? numberOfDataPoints - 1 : number;
-        return DATE_FORMATTER.format(dataPoints.get(dataPointIndex).getDateTime());
+        return DATE_FORMATTER.format(dataPoints.get(dataPointIndex).getInstant());
       }
 
       @Override
@@ -405,7 +405,7 @@ public class UserInfoWindowController implements Controller<Node> {
   }
 
   public void globalButtonClicked() {
-    loadStatistics(RatingType.GLOBAL);
+    loadStatistics(KnownFeaturedMod.FAF);
   }
 
   public void show() {

@@ -68,6 +68,6 @@ public class GitRepositoryFeaturedModUpdaterTest extends AbstractPlainJavaFxTest
   }
 
   private FeaturedModBean featuredMod(KnownFeaturedMod knownFeaturedMod) {
-    return FeaturedModBeanBuilder.create().defaultValues().technicalName(knownFeaturedMod.getString()).get();
+    return FeaturedModBeanBuilder.create().defaultValues().technicalName(knownFeaturedMod.getTechnicalName()).get();
   }
 }

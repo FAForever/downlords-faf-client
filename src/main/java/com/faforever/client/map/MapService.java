@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 
 public interface MapService {
 
@@ -28,8 +28,6 @@ public interface MapService {
 
   MapBean getMapBeanLocallyFromName(String mapName);
 
-  MapBean findMapByName(String mapId);
-
   boolean isOfficialMap(String mapName);
 
   /**
@@ -37,23 +35,23 @@ public interface MapService {
    */
   boolean isInstalled(String mapFolderName);
 
-  CompletionStage<Void> download(String technicalMapName);
+  CompletableFuture<Void> download(String technicalMapName);
 
-  CompletionStage<Void> downloadAndInstallMap(MapBean map, DoubleProperty progressProperty, StringProperty titleProperty);
+  CompletableFuture<Void> downloadAndInstallMap(MapBean map, DoubleProperty progressProperty, StringProperty titleProperty);
 
-  CompletionStage<List<MapBean>> lookupMap(String string, int maxResults);
+  CompletableFuture<List<MapBean>> lookupMap(String string, int maxResults);
 
-  CompletionStage<List<MapBean>> getMostDownloadedMaps(int count);
+  CompletableFuture<List<MapBean>> getMostDownloadedMaps(int count);
 
-  CompletionStage<List<MapBean>> getMostLikedMaps(int count);
+  CompletableFuture<List<MapBean>> getMostLikedMaps(int count);
 
-  CompletionStage<List<MapBean>> getNewestMaps(int count);
+  CompletableFuture<List<MapBean>> getNewestMaps(int count);
 
-  CompletionStage<List<MapBean>> getMostPlayedMaps(int count);
+  CompletableFuture<List<MapBean>> getMostPlayedMaps(int count);
 
   Image loadPreview(MapBean map, PreviewSize previewSize);
 
-  CompletionStage<Void> uninstallMap(MapBean map);
+  CompletableFuture<Void> uninstallMap(MapBean map);
 
   Path getPathForMap(MapBean map);
 

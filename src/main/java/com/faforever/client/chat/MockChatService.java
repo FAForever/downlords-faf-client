@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.FafClientApplication;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.task.CompletableTask;
@@ -32,14 +33,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 
 @Lazy
 @Service
-@Profile("local")
+@Profile(FafClientApplication.POFILE_OFFLINE)
 // NOSONAR
 public class MockChatService implements ChatService {
 
@@ -102,7 +103,7 @@ public class MockChatService implements ChatService {
   }
 
   @Override
-  public CompletionStage<String> sendMessageInBackground(String target, String message) {
+  public CompletableFuture<String> sendMessageInBackground(String target, String message) {
     return taskService.submitTask(new CompletableTask<String>(HIGH) {
       @Override
       protected String call() throws Exception {
@@ -152,7 +153,7 @@ public class MockChatService implements ChatService {
   }
 
   @Override
-  public CompletionStage<String> sendActionInBackground(String target, String action) {
+  public CompletableFuture<String> sendActionInBackground(String target, String action) {
     return sendMessageInBackground(target, action);
   }
 

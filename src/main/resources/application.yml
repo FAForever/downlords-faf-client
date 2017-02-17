@@ -32,6 +32,8 @@ security:
 logging:
   level:
     org.springframework.beans: warn
+    org.springframework.http.client.support: debug
+    org.springframework.security.oauth2: debug
     faf-ice-adapter: warn
     org.ice4j.stack: warn
     com.nbarraille.jjsonrpc: warn

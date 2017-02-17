@@ -82,7 +82,7 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
         mapService, preferencesService, uiService, timeService, webViewConfigurer, modService);
 
     when(coopService.getLeaderboard(any(), anyInt())).thenReturn(CompletableFuture.completedFuture(emptyList()));
-    when(modService.getFeaturedMod(COOP.getString())).thenReturn(CompletableFuture.completedFuture(FeaturedModBeanBuilder.create().defaultValues().technicalName("coop").get()));
+    when(modService.getFeaturedMod(COOP.getTechnicalName())).thenReturn(CompletableFuture.completedFuture(FeaturedModBeanBuilder.create().defaultValues().technicalName("coop").get()));
     when(gameService.getGames()).thenReturn(FXCollections.emptyObservableList());
     when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
     when(gamesTableController.getRoot()).thenReturn(new Pane());

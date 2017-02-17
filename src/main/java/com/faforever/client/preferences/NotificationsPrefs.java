@@ -17,7 +17,7 @@ public class NotificationsPrefs {
   private final BooleanProperty errorSoundEnabled;
   private final BooleanProperty friendOnlineToastEnabled;
   private final BooleanProperty friendOfflineToastEnabled;
-  private final BooleanProperty ranked1v1ToastEnabled;
+  private final BooleanProperty ladder1v1ToastEnabled;
   private final BooleanProperty friendOnlineSoundEnabled;
   private final BooleanProperty friendOfflineSoundEnabled;
   private final BooleanProperty friendJoinsGameSoundEnabled;
@@ -40,7 +40,7 @@ public class NotificationsPrefs {
     toastPosition = new SimpleObjectProperty<>(ToastPosition.BOTTOM_RIGHT);
     friendOnlineToastEnabled = new SimpleBooleanProperty(true);
     friendOfflineToastEnabled = new SimpleBooleanProperty(true);
-    ranked1v1ToastEnabled = new SimpleBooleanProperty(true);
+    ladder1v1ToastEnabled = new SimpleBooleanProperty(true);
     friendOnlineSoundEnabled = new SimpleBooleanProperty(true);
     friendOfflineSoundEnabled = new SimpleBooleanProperty(true);
     friendJoinsGameSoundEnabled = new SimpleBooleanProperty(true);
@@ -149,16 +149,16 @@ public class NotificationsPrefs {
     return friendOfflineToastEnabled;
   }
 
-  public boolean isRanked1v1ToastEnabled() {
-    return ranked1v1ToastEnabled.get();
+  public boolean getLadder1v1ToastEnabled() {
+    return ladder1v1ToastEnabled.get();
   }
 
-  public void setRanked1v1ToastEnabled(boolean ranked1v1ToastEnabled) {
-    this.ranked1v1ToastEnabled.set(ranked1v1ToastEnabled);
+  public void setLadder1v1ToastEnabled(boolean ladder1v1ToastEnabled) {
+    this.ladder1v1ToastEnabled.set(ladder1v1ToastEnabled);
   }
 
-  public BooleanProperty ranked1v1ToastEnabledProperty() {
-    return ranked1v1ToastEnabled;
+  public BooleanProperty ladder1v1ToastEnabledProperty() {
+    return ladder1v1ToastEnabled;
   }
 
   public boolean isFriendOnlineSoundEnabled() {

@@ -12,14 +12,14 @@ import org.springframework.stereotype.Component;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class LeaderboardsController extends AbstractViewController<Node> {
   public TabPane leaderboardRoot;
-  public LeaderboardController ranked1v1LeaderboardController;
-  public LeaderboardController rankedGlobalLeaderboardController;
+  public LeaderboardController ladder1v1LeaderboardController;
+  public LeaderboardController globalLeaderboardController;
 
   @Override
   public void initialize() {
     super.initialize();
-    ranked1v1LeaderboardController.setRatingType(KnownFeaturedMod.LADDER_1V1);
-    rankedGlobalLeaderboardController.setRatingType(KnownFeaturedMod.FAF);
+    ladder1v1LeaderboardController.setRatingType(KnownFeaturedMod.LADDER_1V1);
+    globalLeaderboardController.setRatingType(KnownFeaturedMod.FAF);
   }
 
   @Override

@@ -1,6 +1,6 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.api.FeaturedMod;
+import com.faforever.client.api.dto.FeaturedMod;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 import static com.faforever.client.notification.Severity.WARN;
 import static com.github.nocatch.NoCatch.noCatch;
@@ -125,7 +124,7 @@ public class ReplayServiceImpl implements ReplayService {
     if (splitFileName.length > 2) {
       return splitFileName[splitFileName.length - 2];
     }
-    return KnownFeaturedMod.DEFAULT.getString();
+    return KnownFeaturedMod.DEFAULT.getTechnicalName();
   }
 
   @Override
@@ -260,17 +259,17 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public CompletionStage<List<Replay>> getNewestReplays(int topElementCount) {
+  public CompletableFuture<List<Replay>> getNewestReplays(int topElementCount) {
     return fafService.getNewestReplays(topElementCount);
   }
 
   @Override
-  public CompletionStage<List<Replay>> getHighestRatedReplays(int topElementCount) {
+  public CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount) {
     return fafService.getHighestRatedReplays(topElementCount);
   }
 
   @Override
-  public CompletionStage<List<Replay>> getMostWatchedReplays(int topElementCount) {
+  public CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount) {
     return fafService.getMostWatchedReplays(topElementCount);
   }
 
@@ -339,7 +338,7 @@ public class ReplayServiceImpl implements ReplayService {
     gameService.runWithReplay(path, null, gameType, version, emptyMap(), emptySet(), mapName);
   }
 
-  private CompletionStage<Path> downloadReplayToTemporaryDirectory(int replayId) {
+  private CompletableFuture<Path> downloadReplayToTemporaryDirectory(int replayId) {
     ReplayDownloadTask task = applicationContext.getBean(ReplayDownloadTask.class);
     task.setReplayId(replayId);
     return taskService.submitTask(task).getFuture();

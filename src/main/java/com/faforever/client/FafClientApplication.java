@@ -13,6 +13,8 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.springframework.boot.Banner.Mode;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -21,9 +23,21 @@ import org.springframework.context.annotation.Bean;
 import java.util.ArrayList;
 import java.util.List;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = {
+    JmxAutoConfiguration.class,
+    SecurityAutoConfiguration.class,
+
+})
 @EnableConfigurationProperties({ClientProperties.class})
 public class FafClientApplication extends Application {
+  public static final String POFILE_PROD = "prod";
+  public static final String POFILE_TEST = "test";
+  public static final String POFILE_LOCAL = "local";
+  public static final String POFILE_OFFLINE = "offline";
+  public static final String POFILE_WINDOWS = "windows";
+  public static final String POFILE_WINDOWS_7 = "windows7";
+  public static final String POFILE_LINUX = "linux";
+  public static final String POFILE_MAC = "mac";
 
   private static String[] args;
 
@@ -38,14 +52,14 @@ public class FafClientApplication extends Application {
     List<String> additionalProfiles = new ArrayList<>();
 
     if (org.bridj.Platform.isWindows()) {
-      additionalProfiles.add("windows");
+      additionalProfiles.add(POFILE_WINDOWS);
       if (org.bridj.Platform.isWindows7()) {
-        additionalProfiles.add("windows7");
+        additionalProfiles.add(POFILE_WINDOWS_7);
       }
     } else if (org.bridj.Platform.isLinux()) {
-      additionalProfiles.add("linux");
+      additionalProfiles.add(POFILE_LINUX);
     } else if (org.bridj.Platform.isMacOSX()) {
-      additionalProfiles.add("mac");
+      additionalProfiles.add(POFILE_MAC);
     }
     return additionalProfiles.toArray(new String[additionalProfiles.size()]);
   }

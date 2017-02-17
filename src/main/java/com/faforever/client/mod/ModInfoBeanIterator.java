@@ -3,11 +3,11 @@ package com.faforever.client.mod;
 import com.faforever.client.preferences.gson.PropertyTypeAdapter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializer;
 import javafx.beans.property.Property;
 import org.apache.lucene.search.suggest.InputIterator;
 import org.apache.lucene.util.BytesRef;
 import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.apache.maven.artifact.versioning.ComparableVersionDeserializer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -28,9 +28,11 @@ public class ModInfoBeanIterator implements InputIterator {
 
   public ModInfoBeanIterator(Iterator<Mod> modIterator) {
     this.modIterator = modIterator;
+    // TODO replace with jackson
     this.gson = new GsonBuilder()
         .registerTypeHierarchyAdapter(Property.class, PropertyTypeAdapter.INSTANCE)
-        .registerTypeAdapter(ComparableVersion.class, ComparableVersionDeserializer.INSTANCE)
+        .registerTypeAdapter(ComparableVersion.class, (JsonDeserializer<ComparableVersion>) (json, typeOfT, context)
+            -> new ComparableVersion(json.getAsJsonObject().get("value").getAsString()))
         .create();
   }
 

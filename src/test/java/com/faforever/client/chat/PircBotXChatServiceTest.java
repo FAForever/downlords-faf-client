@@ -64,7 +64,6 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
@@ -76,6 +75,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
@@ -767,8 +767,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     instance.connectionState.set(ConnectionState.CONNECTED);
 
-    String md5Password = Hashing.md5().hashString(password, StandardCharsets.UTF_8).toString();
-    verify(outputIrc, timeout(100)).message("NickServ", String.format("register %s junit@users.faforever.com", md5Password));
+    String md5sha256Password = Hashing.md5().hashString(Hashing.sha256().hashString(password, UTF_8).toString(), UTF_8).toString();
+    verify(outputIrc, timeout(100)).message("NickServ", String.format("register %s junit@users.faforever.com", md5sha256Password));
   }
 
   @Test

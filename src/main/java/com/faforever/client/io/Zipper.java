@@ -23,7 +23,7 @@ public final class Zipper {
   private static final char PATH_SEPARATOR = File.separatorChar;
   private final Path directoryToZip;
   private boolean zipContent;
-  private ByteCountListener byteCountListener;
+  private ProgressListener progressListener;
   private int byteCountInterval;
   private int bufferSize;
   private long bytesTotal;
@@ -62,8 +62,8 @@ public final class Zipper {
     return this;
   }
 
-  public Zipper listener(ByteCountListener byteCountListener) {
-    this.byteCountListener = byteCountListener;
+  public Zipper listener(ProgressListener progressListener) {
+    this.progressListener = progressListener;
     return this;
   }
 
@@ -123,8 +123,8 @@ public final class Zipper {
       bytesDone += length;
 
       long now = System.currentTimeMillis();
-      if (byteCountListener != null && lastCountUpdate < now - byteCountInterval) {
-        byteCountListener.updateBytesWritten(bytesDone, bytesTotal);
+      if (progressListener != null && lastCountUpdate < now - byteCountInterval) {
+        progressListener.update(bytesDone, bytesTotal);
         lastCountUpdate = now;
       }
     }

@@ -21,15 +21,10 @@ faf-client:
     remote-host: lobby.faforever.com
 
   api:
-    baseUrl: https://api.faforever.com
+    base-url: https://japi.faforever.com
+    access-token-uri: ${faf-client.api.base-url}/oauth/token
+    client-id: 3bc8282c-7730-11e5-8bcf-feff819cdc9f
+    client-secret: 6035bd78-7730-11e5-8bcf-feff819cdc9f
 
   forged-alliance:
     exe-url: http://content.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe
-
-security:
-  oauth2:
-    client:
-      clientId: 3bc8282c-7730-11e5-8bcf-feff819cdc9f
-      clientSecret: 6035bd78-7730-11e5-8bcf-feff819cdc9f
-      accessTokenUri: https://japi.faforever.com/oauth/token
-      userAuthorizationUri: https://japi.faforever.com/oauth/authorize

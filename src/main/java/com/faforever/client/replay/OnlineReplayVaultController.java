@@ -1,6 +1,6 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.api.FeaturedMod;
+import com.faforever.client.api.dto.FeaturedMod;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.theme.UiService;
 import javafx.application.Platform;
