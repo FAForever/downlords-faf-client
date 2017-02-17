@@ -128,7 +128,8 @@ public class GameServiceImplTest {
   public void setUp() throws Exception {
     instance = new GameServiceImpl(new ClientProperties(), fafService, forgedAllianceService, mapService,
         preferencesService, gameUpdater, notificationService, i18n, executor, playerService,
-        reportingService, replayService, eventBus, iceAdapter, modService, platformService);
+        reportingService, eventBus, iceAdapter, modService, platformService);
+    instance.replayService = replayService;
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPort()).thenReturn(GAME_PORT);

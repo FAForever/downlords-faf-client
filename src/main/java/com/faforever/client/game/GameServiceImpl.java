@@ -101,13 +101,14 @@ public class GameServiceImpl implements GameService {
   private final Executor executor;
   private final PlayerService playerService;
   private final ReportingService reportingService;
-  private final ReplayService replayService;
   private final EventBus eventBus;
   private final IceAdapter iceAdapter;
   private final ModService modService;
   private final PlatformService platformService;
   private final String faWindowTitle;
-
+  //TODO: circular reference
+  @Inject
+  ReplayService replayService;
   @VisibleForTesting
   RatingMode ratingMode;
 
@@ -116,11 +117,7 @@ public class GameServiceImpl implements GameService {
   private boolean rehostRequested;
 
   @Inject
-  public GameServiceImpl(ClientProperties clientProperties, FafService fafService, ForgedAllianceService forgedAllianceService, MapService mapService,
-                         PreferencesService preferencesService, GameUpdater gameUpdater,
-                         NotificationService notificationService, I18n i18n, Executor executor,
-                         PlayerService playerService, ReportingService reportingService, ReplayService replayService,
-                         EventBus eventBus, IceAdapter iceAdapter, ModService modService, PlatformService platformService) {
+  public GameServiceImpl(ClientProperties clientProperties, FafService fafService, ForgedAllianceService forgedAllianceService, MapService mapService, PreferencesService preferencesService, GameUpdater gameUpdater, NotificationService notificationService, I18n i18n, Executor executor, PlayerService playerService, ReportingService reportingService,  EventBus eventBus, IceAdapter iceAdapter, ModService modService, PlatformService platformService) {
     this.fafService = fafService;
     this.forgedAllianceService = forgedAllianceService;
     this.mapService = mapService;
@@ -131,7 +128,6 @@ public class GameServiceImpl implements GameService {
     this.executor = executor;
     this.playerService = playerService;
     this.reportingService = reportingService;
-    this.replayService = replayService;
     this.eventBus = eventBus;
     this.iceAdapter = iceAdapter;
     this.modService = modService;
