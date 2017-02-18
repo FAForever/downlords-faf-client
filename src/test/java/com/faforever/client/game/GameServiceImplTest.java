@@ -32,7 +32,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.context.ApplicationContext;
 import org.springframework.util.ReflectionUtils;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -40,7 +39,7 @@ import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -100,11 +99,9 @@ public class GameServiceImplTest {
   @Mock
   private ForgedAlliancePrefs forgedAlliancePrefs;
   @Mock
-  private ApplicationContext applicationContext;
-  @Mock
   private PlayerService playerService;
   @Mock
-  private ScheduledExecutorService scheduledExecutorService;
+  private Executor executor;
   @Mock
   private ReplayService replayService;
   @Mock
@@ -126,7 +123,7 @@ public class GameServiceImplTest {
   @Before
   public void setUp() throws Exception {
     instance = new GameServiceImpl(fafService, forgedAllianceService, mapService, preferencesService, gameUpdater,
-        notificationService, i18n, applicationContext, scheduledExecutorService, playerService, reportingService,
+        notificationService, i18n, executor, playerService, reportingService,
         eventBus, iceAdapter, modService);
     instance.replayService = replayService;
 
@@ -144,7 +141,7 @@ public class GameServiceImplTest {
         e.printStackTrace();
       }
       return null;
-    }).when(scheduledExecutorService).execute(any());
+    }).when(executor).execute(any());
 
     instance.postConstruct();
 

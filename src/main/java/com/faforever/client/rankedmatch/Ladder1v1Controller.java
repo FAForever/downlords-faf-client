@@ -1,5 +1,6 @@
 package com.faforever.client.rankedmatch;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
@@ -28,9 +29,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -49,7 +48,7 @@ import static com.faforever.client.game.Faction.SERAPHIM;
 import static com.faforever.client.game.Faction.UEF;
 
 @Component
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Lazy
 public class Ladder1v1Controller extends AbstractViewController<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -59,9 +58,10 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
   private final GameService gameService;
   private final PreferencesService preferencesService;
   private final PlayerService playerService;
-  private final Environment environment;
   private final LeaderboardService leaderboardService;
   private final I18n i18n;
+  private final ClientProperties clientProperties;
+
   public CategoryAxis ratingDistributionXAxis;
   public NumberAxis ratingDistributionYAxis;
   public BarChart<String, Integer> ratingDistributionChart;
@@ -84,6 +84,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
   @VisibleForTesting
   HashMap<Faction, ToggleButton> factionsToButtons;
 
+  // Kept as a field in order to prevent garbage collection
   private InvalidationListener playerRatingListener;
   private boolean initialized;
 
@@ -91,15 +92,14 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
   public Ladder1v1Controller(GameService gameService,
                              PreferencesService preferencesService,
                              PlayerService playerService,
-                             Environment environment,
                              LeaderboardService leaderboardService,
-                             I18n i18n) {
+                             I18n i18n, ClientProperties clientProperties) {
     this.gameService = gameService;
     this.preferencesService = preferencesService;
     this.playerService = playerService;
-    this.environment = environment;
     this.leaderboardService = leaderboardService;
     this.i18n = i18n;
+    this.clientProperties = clientProperties;
 
     random = new Random();
   }
@@ -133,6 +133,9 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
         onCancelButtonClicked();
       }
     });
+
+    playerService.currentPlayerProperty().addListener((observable, oldValue, newValue) -> Platform.runLater(() -> setCurrentPlayer(newValue)));
+    playerService.getCurrentPlayer().ifPresent(this::setCurrentPlayer);
   }
 
   private void setSearching(boolean searching) {
@@ -183,20 +186,6 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
     playButton.setDisable(factions.isEmpty());
   }
 
-  public void onDisplay() {
-    if (initialized) {
-      return;
-    }
-
-    playerService.currentPlayerProperty().addListener((observable, oldValue, newValue) -> {
-      Platform.runLater(() -> setCurrentPlayer(newValue));
-    });
-    setCurrentPlayer(playerService.getCurrentPlayer());
-
-
-    initialized = true;
-  }
-
   private void setCurrentPlayer(Player player) {
     playerRatingListener = ratingObservable -> Platform.runLater(() -> updateRating(player));
 
@@ -208,11 +197,11 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
 
   private void updateRating(Player player) {
     int rating = RatingUtil.getLeaderboardRating(player);
-    int beta = environment.getProperty("rating.beta", int.class);
+    int beta = clientProperties.getTrueSkill().getBeta();
     float deviation = player.getLeaderboardRatingDeviation();
 
     if (deviation > beta) {
-      int initialStandardDeviation = environment.getProperty("rating.initialStandardDeviation", int.class);
+      int initialStandardDeviation = clientProperties.getTrueSkill().getInitialStandardDeviation();
       ratingProgressIndicator.setProgress((initialStandardDeviation - deviation) / beta);
       ratingProgressIndicator.setVisible(true);
       ratingLabel.setVisible(false);
@@ -253,17 +242,18 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
   }
 
   private void updateRatingHint(int rating) {
-    if (rating < environment.getProperty("rating.low", int.class)) {
-      ratingHintLabel.setText(i18n.get("ranked1v1.ratingHint.low"));
-    } else if (rating < environment.getProperty("rating.moderate", int.class)) {
-      ratingHintLabel.setText(i18n.get("ranked1v1.ratingHint.moderate"));
-    } else if (rating < environment.getProperty("rating.good", int.class)) {
-      ratingHintLabel.setText(i18n.get("ranked1v1.ratingHint.good"));
-    } else if (rating < environment.getProperty("rating.high", int.class)) {
-      ratingHintLabel.setText(i18n.get("ranked1v1.ratingHint.high"));
-    } else if (rating < environment.getProperty("rating.top", int.class)) {
-      ratingHintLabel.setText(i18n.get("ranked1v1.ratingHint.top"));
-    }
+    // TODO remove/rethink rating hint
+//    if (rating < environment.getProperty("rating.low", int.class)) {
+//      ratingHintLabel.setText(i18n.get("ranked1v1.ratingHint.low"));
+//    } else if (rating < environment.getProperty("rating.moderate", int.class)) {
+//      ratingHintLabel.setText(i18n.get("ranked1v1.ratingHint.moderate"));
+//    } else if (rating < environment.getProperty("rating.good", int.class)) {
+//      ratingHintLabel.setText(i18n.get("ranked1v1.ratingHint.good"));
+//    } else if (rating < environment.getProperty("rating.high", int.class)) {
+//      ratingHintLabel.setText(i18n.get("ranked1v1.ratingHint.high"));
+//    } else if (rating < environment.getProperty("rating.top", int.class)) {
+//      ratingHintLabel.setText(i18n.get("ranked1v1.ratingHint.top"));
+//    }
   }
 
   @SuppressWarnings("unchecked")

@@ -102,7 +102,7 @@ public class PlayerServiceImpl implements PlayerService {
 
   @Subscribe
   public void onAvatarChanged(AvatarChangedEvent event) {
-    Player player = getCurrentPlayer();
+    Player player = getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
 
     AvatarBean avatar = event.getAvatar();
     if (avatar == null) {
@@ -216,9 +216,8 @@ public class PlayerServiceImpl implements PlayerService {
   }
 
   @Override
-  public Player getCurrentPlayer() {
-    Assert.checkNullIllegalState(currentPlayer.get(), "currentPlayer has not yet been set");
-    return currentPlayer.get();
+  public Optional<Player> getCurrentPlayer() {
+    return Optional.ofNullable(currentPlayer.get());
   }
 
   @Override
@@ -259,7 +258,7 @@ public class PlayerServiceImpl implements PlayerService {
 
   private void onPlayerInfo(com.faforever.client.remote.domain.Player player) {
     if (player.getLogin().equalsIgnoreCase(userService.getUsername())) {
-      Player playerInfoBean = getCurrentPlayer();
+      Player playerInfoBean = getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
       playerInfoBean.updateFromPlayerInfo(player);
       playerInfoBean.setSocialStatus(SELF);
     } else {

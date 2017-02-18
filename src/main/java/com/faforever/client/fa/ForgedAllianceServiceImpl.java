@@ -39,7 +39,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   public Process startGame(int uid, @Nullable Faction faction, @Nullable List<String> additionalArgs, RatingMode ratingMode, int gpgPort, boolean rehost) throws IOException {
     Path executable = getExecutable();
 
-    Player currentPlayer = playerService.getCurrentPlayer();
+    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
 
     float deviation;
     float mean;
@@ -91,7 +91,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   public Process startReplay(URI replayUri, Integer replayId) throws IOException {
     Path executable = getExecutable();
 
-    Player currentPlayer = playerService.getCurrentPlayer();
+    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
     List<String> launchCommand = LaunchCommandBuilder.create()
         .executable(executable)
         .replayUri(replayUri)

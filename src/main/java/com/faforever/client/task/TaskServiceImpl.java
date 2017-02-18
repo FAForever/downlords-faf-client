@@ -8,10 +8,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.Executor;
 
 @Lazy
 @Service
@@ -19,14 +18,14 @@ public class TaskServiceImpl implements TaskService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private final ThreadPoolExecutor threadPoolExecutor;
+  private final Executor executor;
   private final ObservableList<Worker<?>> activeTasks;
 
   private ObservableList<Worker<?>> unmodifiableObservableList;
 
   @Inject
-  public TaskServiceImpl(ThreadPoolExecutor threadPoolExecutor) {
-    this.threadPoolExecutor = threadPoolExecutor;
+  public TaskServiceImpl(Executor executor) {
+    this.executor = executor;
 
     activeTasks = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
     unmodifiableObservableList = FXCollections.unmodifiableObservableList(activeTasks);
@@ -43,7 +42,7 @@ public class TaskServiceImpl implements TaskService {
     });
 
     activeTasks.add(task);
-    threadPoolExecutor.execute(task);
+    executor.execute(task);
 
     return task;
   }
@@ -51,10 +50,5 @@ public class TaskServiceImpl implements TaskService {
   @Override
   public ObservableList<Worker<?>> getActiveWorkers() {
     return unmodifiableObservableList;
-  }
-
-  @PreDestroy
-  void preDestroy() {
-    threadPoolExecutor.shutdownNow();
   }
 }

@@ -1,5 +1,7 @@
 package com.faforever.client.uploader.imgur;
 
+import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.Imgur.Upload;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.ByteCopier;
 import com.faforever.client.task.CompletableTask;
@@ -11,7 +13,6 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -37,7 +38,7 @@ public class ImgurUploadTask extends CompletableTask<String> {
   private final Gson gson;
 
   private final I18n i18n;
-  private final Environment environment;
+  private final ClientProperties clientProperties;
 
   private Image image;
   private int maxUploadSize;
@@ -45,20 +46,21 @@ public class ImgurUploadTask extends CompletableTask<String> {
   private String clientId;
 
   @Inject
-  public ImgurUploadTask(I18n i18n, Environment environment) {
+  public ImgurUploadTask(I18n i18n, ClientProperties clientProperties) {
     super(Priority.HIGH);
     gson = new GsonBuilder().create();
 
     this.i18n = i18n;
-    this.environment = environment;
+    this.clientProperties = clientProperties;
   }
 
   @PostConstruct
   void postConstruct() {
     updateTitle(i18n.get("chat.imageUploadTask.title"));
-    maxUploadSize = environment.getProperty("imgur.upload.maxSize", int.class);
-    baseUrl = environment.getProperty("imgur.upload.baseUrl");
-    clientId = environment.getProperty("imgur.upload.clientId");
+    Upload uploadProperties = clientProperties.getImgur().getUpload();
+    maxUploadSize = uploadProperties.getMaxSize();
+    baseUrl = uploadProperties.getBaseUrl();
+    clientId = uploadProperties.getClientId();
   }
 
   @Override

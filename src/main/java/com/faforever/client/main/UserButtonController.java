@@ -56,7 +56,7 @@ public class UserButtonController implements Controller<Node> {
 
   public void onShowProfile(ActionEvent event) {
     UserInfoWindowController userInfoWindowController = uiService.loadFxml("theme/user_info_window.fxml");
-    userInfoWindowController.setPlayer(playerService.getCurrentPlayer());
+    userInfoWindowController.setPlayer(playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set")));
     userInfoWindowController.setOwnerWindow(userButtonRoot.getScene().getWindow());
     userInfoWindowController.show();
   }

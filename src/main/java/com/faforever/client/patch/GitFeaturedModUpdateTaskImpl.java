@@ -46,7 +46,7 @@ public class GitFeaturedModUpdateTaskImpl extends CompletableTask<PatchResult> i
 
   @Override
   protected PatchResult call() throws Exception {
-    logger.info("Updating preferences files from {}@{}", gameRepositoryUrl, ref);
+    logger.info("Updating game files from {}@{}", gameRepositoryUrl, ref);
     updateTitle(i18n.get("updater.git.taskTitle"));
 
     checkout(repositoryDirectory, gameRepositoryUrl, ref);

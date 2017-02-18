@@ -1,5 +1,6 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.KnownFeaturedMod;
@@ -19,7 +20,6 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
 
 import java.io.IOException;
 import java.net.URI;
@@ -81,8 +81,6 @@ public class ReplayServiceImplTest {
   @Mock
   private I18n i18n;
   @Mock
-  private Environment environment;
-  @Mock
   private PreferencesService preferencesService;
   @Mock
   private ReplayFileReader replayFileReader;
@@ -107,13 +105,12 @@ public class ReplayServiceImplTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new ReplayServiceImpl(environment, preferencesService, replayFileReader, notificationService, gameService,
+    instance = new ReplayServiceImpl(new ClientProperties(), preferencesService, replayFileReader, notificationService, gameService,
         taskService, i18n, reportingService, applicationContext, platformService, replayServer, fafService);
 
     when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath());
     when(preferencesService.getCorruptedReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath().resolve("corrupt"));
     when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory.getRoot().toPath());
-    when(environment.getProperty("replayFileGlob")).thenReturn("*.fafreplay");
     doAnswer(invocation -> invocation.getArgument(0)).when(taskService).submitTask(any());
   }
 

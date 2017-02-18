@@ -57,5 +57,5 @@ logging:
     com.faforever.client.game: info
     com.faforever.client.task: info
     com.faforever.client.theme: info
-    com.faforever.client.io: debug
+    com.faforever.client.io: info
     com.faforever.client.fa.relay.ice: info

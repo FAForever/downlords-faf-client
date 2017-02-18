@@ -91,26 +91,26 @@ public class ClientProperties {
   }
 
   @Data
-  private static class Replay {
+  public static class Replay {
     private String remoteHost;
     private int remotePort = 15000;
-    private int localPort = 15000;
+    private int localServerPort = 15000;
     private String replayFileFormat = "%d-%s.fafreplay";
     private String replayFileGlob = "*.fafreplay";
   }
 
   @Data
-  private static class GitHub {
+  public static class GitHub {
     private String releasesUrl = "https://api.github.com/repos/FAForever/downlords-faf-client/releases";
     private int timeout = (int) Duration.ofSeconds(5).toMillis();
   }
 
   @Data
-  private static class Imgur {
+  public static class Imgur {
     private Upload upload = new Upload();
 
     @Data
-    private static class Upload {
+    public static class Upload {
       private String baseUrl = "https://api.imgur.com/3/image";
       private String clientId;
       private int maxSize = 2097152;

@@ -18,10 +18,10 @@ faf-client:
     feed-url: http://direct.faforever.com/news/feed
 
   replay:
-    remote-host: lobby.test.faforever.com
+    remote-host: test.faforever.com
 
   api:
-    base-url: http://japi.test.faforever.com
+    base-url: http://localhost:8010
     access-token-uri: ${faf-client.api.base-url}/oauth/token
     client-id: faf-client
     client-secret: banana

@@ -1,5 +1,6 @@
 package com.faforever.client.rankedmatch;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -21,7 +22,6 @@ import javafx.scene.control.ToggleButton;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.springframework.core.env.Environment;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -51,8 +51,6 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private PlayerService playerService;
   @Mock
-  private Environment environment;
-  @Mock
   private LeaderboardService leaderboardService;
   @Mock
   private I18n i18n;
@@ -70,8 +68,8 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new Ladder1v1Controller(gameService, preferencesService, playerService, environment, leaderboardService,
-        i18n);
+    instance = new Ladder1v1Controller(gameService, preferencesService, playerService, leaderboardService, i18n,
+        new ClientProperties());
 
     Player player = new Player(USERNAME);
     player.setId(PLAYER_ID);
@@ -93,12 +91,6 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(playerService.getCurrentPlayer()).thenReturn(currentPlayerProperty.get());
     when(playerService.currentPlayerProperty()).thenReturn(currentPlayerProperty);
-    when(environment.getProperty("rating.low", int.class)).thenReturn(100);
-    when(environment.getProperty("rating.moderate", int.class)).thenReturn(200);
-    when(environment.getProperty("rating.good", int.class)).thenReturn(300);
-    when(environment.getProperty("rating.high", int.class)).thenReturn(400);
-    when(environment.getProperty("rating.top", int.class)).thenReturn(500);
-    when(environment.getProperty("rating.beta", int.class)).thenReturn(10);
 
     loadFxml("theme/play/ranked_1v1.fxml", clazz -> instance);
   }
@@ -212,9 +204,6 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testUpdateRatingInProgress() throws Exception {
-    when(environment.getProperty("rating.beta", int.class)).thenReturn(10);
-    when(environment.getProperty("rating.initialStandardDeviation", int.class)).thenReturn(50);
-
     Player currentPlayer = currentPlayerProperty.get();
     currentPlayer.setLeaderboardRatingDeviation(45);
     currentPlayer.setLeaderboardRatingMean(100);
