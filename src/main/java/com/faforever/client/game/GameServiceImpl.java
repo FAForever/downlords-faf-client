@@ -1,10 +1,12 @@
 package com.faforever.client.game;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.FeaturedModBean;
@@ -102,6 +104,8 @@ public class GameServiceImpl implements GameService {
   private final EventBus eventBus;
   private final IceAdapter iceAdapter;
   private final ModService modService;
+  private final PlatformService platformService;
+  private final String faWindowTitle;
   //TODO: circular reference
   @Inject
   ReplayService replayService;
@@ -113,12 +117,7 @@ public class GameServiceImpl implements GameService {
   private boolean rehostRequested;
 
   @Inject
-  public GameServiceImpl(FafService fafService, ForgedAllianceService forgedAllianceService, MapService mapService,
-                         PreferencesService preferencesService, GameUpdater gameUpdater,
-                         NotificationService notificationService, I18n i18n,
-                         Executor executor, PlayerService playerService,
-                         ReportingService reportingService, EventBus eventBus, IceAdapter iceAdapter,
-                         ModService modService) {
+  public GameServiceImpl(ClientProperties clientProperties, FafService fafService, ForgedAllianceService forgedAllianceService, MapService mapService, PreferencesService preferencesService, GameUpdater gameUpdater, NotificationService notificationService, I18n i18n, Executor executor, PlayerService playerService, ReportingService reportingService,  EventBus eventBus, IceAdapter iceAdapter, ModService modService, PlatformService platformService) {
     this.fafService = fafService;
     this.forgedAllianceService = forgedAllianceService;
     this.mapService = mapService;
@@ -132,7 +131,9 @@ public class GameServiceImpl implements GameService {
     this.eventBus = eventBus;
     this.iceAdapter = iceAdapter;
     this.modService = modService;
+    this.platformService = platformService;
 
+    faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
     uidToGameInfoBean = FXCollections.observableHashMap();
     searching1v1 = new SimpleBooleanProperty();
     gameRunning = new SimpleBooleanProperty();
@@ -495,6 +496,15 @@ public class GameServiceImpl implements GameService {
         currentGame.set(game);
       }
     }
+
+    game.statusProperty().addListener((observable, oldValue, newValue) -> {
+      if (oldValue == GameState.OPEN
+          && newValue == GameState.PLAYING
+          && game.getTeams().values().stream().anyMatch(team -> team.contains(currentPlayer.getUsername()))
+          && !platformService.isWindowFocused(faWindowTitle)) {
+        platformService.focusWindow(faWindowTitle);
+      }
+    });
   }
 
   private void removeGame(GameInfoMessage gameInfoMessage) {

@@ -62,7 +62,7 @@ public class OnGameFullNotifierTest {
   public void testOnGameFull() throws Exception {
     Game game = GameBuilder.create().defaultValues().get();
     when(gameService.getCurrentGame()).thenReturn(game);
-    when(platformService.getForegroundWindowTitle()).thenReturn("Some window");
+    when(platformService.isWindowFocused("Forged Alliance")).thenReturn(false);
 
     CountDownLatch countDownLatch = new CountDownLatch(1);
     doAnswer(invocation -> {
@@ -82,7 +82,7 @@ public class OnGameFullNotifierTest {
   public void testAlreadyFocusedDoesntTriggerNotification() throws Exception {
     Game game = GameBuilder.create().defaultValues().get();
     when(gameService.getCurrentGame()).thenReturn(game);
-    when(platformService.getForegroundWindowTitle()).thenReturn("Forged Alliance");
+    when(platformService.isWindowFocused("Forged Alliance")).thenReturn(true);
 
     instance.onGameFull(new GameFullEvent());
 

@@ -1,9 +1,11 @@
 package com.faforever.client.game;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.IceAdapter;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.FeaturedModBean;
@@ -116,17 +118,18 @@ public class GameServiceImplTest {
   private I18n i18n;
   @Mock
   private ReportingService reportingService;
+  @Mock
+  private PlatformService platformService;
 
   @Captor
   private ArgumentCaptor<Consumer<GameInfoMessage>> gameInfoMessageListenerCaptor;
 
   @Before
   public void setUp() throws Exception {
-    instance = new GameServiceImpl(fafService, forgedAllianceService, mapService, preferencesService, gameUpdater,
-        notificationService, i18n, executor, playerService, reportingService,
-        eventBus, iceAdapter, modService);
+    instance = new GameServiceImpl(new ClientProperties(), fafService, forgedAllianceService, mapService,
+        preferencesService, gameUpdater, notificationService, i18n, executor, playerService,
+        reportingService, eventBus, iceAdapter, modService, platformService);
     instance.replayService = replayService;
-
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPort()).thenReturn(GAME_PORT);
