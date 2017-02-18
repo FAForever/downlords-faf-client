@@ -1,11 +1,11 @@
 import co.riiid.gradle.ReleaseTask
 import com.install4j.gradle.Install4jTask
+import de.undercouch.gradle.tasks.download.Download
 import groovy.json.JsonSlurper
 import groovyx.net.http.ContentType
 import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.Method
 import groovyx.net.http.ParserRegistry
-import de.undercouch.gradle.tasks.download.Download
 
 buildscript {
   repositories {
@@ -23,10 +23,9 @@ buildscript {
 }
 
 plugins {
-  id "org.sonarqube" version "1.0"
   id "com.install4j.gradle" version "6.1.1"
   id "co.riiid.gradle" version "0.4.2"
-  id "de.undercouch.download" version "3.1.2"
+  id "de.undercouch.download" version "3.2.0"
 }
 
 apply plugin: 'java'
@@ -128,14 +127,6 @@ def buildAssetList() {
   }).collect({ file -> "build/install4j/${file}" })
 }
 
-sonarqube {
-  properties {
-    property "sonar.host.url", "http://home.micheljung.ch/sonar"
-    property "sonar.jdbc.url", "jdbc:mysql://home.micheljung.ch:3306/sonar"
-    property "sonar.jdbc.driverClassName", "com.mysql.jdbc.Driver"
-  }
-}
-
 jacocoTestReport {
   reports {
     xml.enabled = true
@@ -155,7 +146,16 @@ jar {
 distributions {
   main {
     contents {
-      from { [configurations.runtime, file('src/main/native'), jar] }
+      from {
+        [
+            configurations.runtime,
+            file('src/main/native'),
+            jar,
+            unpackIceAdapter.outputs.files,
+            downloadUnixUid.outputs.files,
+            downloadWindowsUid.outputs.files
+        ]
+      }
     }
   }
 }
@@ -201,9 +201,33 @@ task githubRelease(type: ReleaseTask, overwrite: true) {
 }
 
 task downloadIceAdapter(type: Download) {
-  mustRunAfter 'assemble'
-  src "https://github.com/FAForever/ice-adapter/releases/download/v${faf_ice_adapter_version}/faf-ice-adapter.exe"
-  dest file("${buildDir}/resources/native/faf-ice-adapter.exe")
+  src "https://github.com/FAForever/ice-adapter/releases/download/v${faf_ice_adapter_version}/faf-ice-adapter.zip"
+  dest file("${buildDir}/tmp/faf-ice-adapter.zip")
+  onlyIfNewer true
+}
+
+task unpackIceAdapter(type: Copy, dependsOn: downloadIceAdapter) {
+  group "native dependencies"
+  from zipTree(downloadIceAdapter.outputs.files.singleFile)
+  into file("${buildDir}/resources/native")
+}
+
+task downloadUnixUid(type: Download, dependsOn: unpackIceAdapter) {
+  group "native dependencies"
+  src "https://github.com/FAForever/uid/releases/download/v${faf_uid_version}/faf-uid"
+  dest file("${buildDir}/resources/native")
+  onlyIfNewer true
+}
+
+task downloadWindowsUid(type: Download, dependsOn: unpackIceAdapter) {
+  group "native dependencies"
+  src "https://github.com/FAForever/uid/releases/download/v${faf_uid_version}/faf-uid.exe"
+  dest file("${buildDir}/resources/native")
+  onlyIfNewer true
+}
+
+task downloadNativeDependencies(dependsOn: [unpackIceAdapter, downloadUnixUid, downloadWindowsUid]) {
+  group "native dependencies"
 }
 
 task wrapper(type: Wrapper) {
@@ -255,7 +279,7 @@ dependencies {
   compile("com.github.nocatch:nocatch:1.1")
   compile("org.luaj:luaj-jse:3.0.1")
   compile("commons-validator:commons-validator:1.5.1")
-  compile("com.github.micheljung:JJsonRpc:f683b55f55")
+  compile("com.github.micheljung:JJsonRpc:01a7fba5f4")
   compile("javax.inject:javax.inject:1")
   compile("com.github.jasminb:jsonapi-converter:0.6")
   compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonDatatypeJsr310Version}")

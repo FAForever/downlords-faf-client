@@ -34,7 +34,7 @@ logging:
     org.springframework.beans: warn
     org.springframework.http.client.support: debug
     org.springframework.security.oauth2: debug
-    faf-ice-adapter: warn
+    faf-ice-adapter: debug
     org.ice4j.stack: warn
     com.nbarraille.jjsonrpc: warn
     org.pircbotx: warn
@@ -50,12 +50,12 @@ logging:
     com.faforever.client.patch: info
     com.faforever.client.events: info
     com.faforever.client.legacy: info
-    com.faforever.client.remote: info
+    com.faforever.client.remote: debug
     com.faforever.client.replay: info
     com.faforever.client.relay: info
     com.faforever.client.chat: info
     com.faforever.client.game: info
     com.faforever.client.task: info
     com.faforever.client.theme: info
-    com.faforever.client.io: info
-    com.faforever.client.fa.relay.ice: info
+    com.faforever.client.io: debug
+    com.faforever.client.fa.relay.ice: debug

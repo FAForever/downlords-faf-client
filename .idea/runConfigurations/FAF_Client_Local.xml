@@ -7,7 +7,7 @@
       </pattern>
     </extension>
     <option name="MAIN_CLASS_NAME" value="com.faforever.client.FafClientApplication" />
-    <option name="VM_PARAMETERS" value="-XX:+UseConcMarkSweepGC -Djava.library.path=src/main/native -Xmx256m -Duid.dir=src/main/native -Dspring.profiles.active=local -Dprism.dirtyopts=false" />
+    <option name="VM_PARAMETERS" value="-XX:+UseConcMarkSweepGC -DnativeDir=build/resources/native -Dspring.profiles.active=local -Dprism.dirtyopts=false" />
     <option name="PROGRAM_PARAMETERS" value="" />
     <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
@@ -17,6 +17,8 @@
     <option name="PASS_PARENT_ENVS" value="true" />
     <module name="downlords-faf-client_main" />
     <envs />
-    <method />
+    <method>
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks="downloadNativeDependencies" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
+    </method>
   </configuration>
 </component>

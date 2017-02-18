@@ -139,9 +139,11 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @Override
   @Cacheable(CacheNames.GLOBAL_LEADERBOARD)
+  @SneakyThrows
   @SuppressWarnings("unchecked")
   public List<GlobalLeaderboardEntry> getGlobalLeaderboard() {
     // This is not an ordinary JSON-API route and thus doesn't support paging, that's why it's called manually
+    authorizedLatch.await();
     return restOperations.getForObject("/leaderboards/global", List.class,
         ImmutableMap.of(
             "sort", "-rating",
@@ -153,9 +155,11 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @Override
   @Cacheable(CacheNames.LADDER_1V1_LEADERBOARD)
+  @SneakyThrows
   @SuppressWarnings("unchecked")
   public List<Ladder1v1LeaderboardEntry> getLadder1v1Leaderboard() {
     // This is not an ordinary JSON-API route and thus doesn't support paging, that's why it's called manually
+    authorizedLatch.await();
     return restOperations.getForObject("/leaderboards/ladder1v1", List.class,
         ImmutableMap.of(
             "sort", "-rating",

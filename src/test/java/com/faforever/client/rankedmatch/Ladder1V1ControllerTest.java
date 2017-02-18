@@ -25,6 +25,7 @@ import org.mockito.Mock;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -32,10 +33,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
@@ -89,7 +87,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
     when(preferences.getLadder1v1Prefs()).thenReturn(ladder1V1Prefs);
     when(ladder1V1Prefs.getFactions()).thenReturn(factionList);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
-    when(playerService.getCurrentPlayer()).thenReturn(currentPlayerProperty.get());
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.ofNullable(currentPlayerProperty.get()));
     when(playerService.currentPlayerProperty()).thenReturn(currentPlayerProperty);
 
     loadFxml("theme/play/ranked_1v1.fxml", clazz -> instance);
@@ -162,66 +160,5 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
 
     verify(preferencesService).storeInBackground();
     assertThat(factionList, containsInAnyOrder(Faction.AEON, Faction.CYBRAN));
-  }
-
-  @Test
-  public void testUpdateRatingLow() throws Exception {
-    testUpdateRating(10, "ranked1v1.ratingHint.low");
-  }
-
-  private void testUpdateRating(int leaderboardRatingMean, String key) {
-    reset(i18n);
-
-    Player currentPlayer = currentPlayerProperty.get();
-    currentPlayer.setLeaderboardRatingDeviation(1);
-    currentPlayer.setLeaderboardRatingMean(leaderboardRatingMean);
-
-    instance.onDisplay();
-
-    verify(playerService).getCurrentPlayer();
-    verify(i18n).get(key);
-  }
-
-  @Test
-  public void testUpdateRatingModerate() throws Exception {
-    testUpdateRating(150, "ranked1v1.ratingHint.moderate");
-  }
-
-  @Test
-  public void testUpdateRatingGood() throws Exception {
-    testUpdateRating(250, "ranked1v1.ratingHint.good");
-  }
-
-  @Test
-  public void testUpdateRatingHigh() throws Exception {
-    testUpdateRating(350, "ranked1v1.ratingHint.high");
-  }
-
-  @Test
-  public void testUpdateRatingTop() throws Exception {
-    testUpdateRating(450, "ranked1v1.ratingHint.top");
-  }
-
-  @Test
-  public void testUpdateRatingInProgress() throws Exception {
-    Player currentPlayer = currentPlayerProperty.get();
-    currentPlayer.setLeaderboardRatingDeviation(45);
-    currentPlayer.setLeaderboardRatingMean(100);
-
-    instance.onDisplay();
-
-    assertThat(instance.ratingProgressIndicator.isVisible(), is(true));
-    assertThat(instance.ratingProgressIndicator.getProgress(), is(5d / 10d));
-  }
-
-  @Test
-  public void testOnDisplayFiresOnlyOnce() throws Exception {
-    verifyZeroInteractions(playerService);
-    instance.onDisplay();
-    verify(playerService).currentPlayerProperty();
-    verify(playerService).getCurrentPlayer();
-    verify(playerService).currentPlayerProperty();
-    instance.onDisplay();
-    verifyNoMoreInteractions(playerService);
   }
 }

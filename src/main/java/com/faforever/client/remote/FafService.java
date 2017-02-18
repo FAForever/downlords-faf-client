@@ -95,8 +95,6 @@ public interface FafService {
 
   CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(int playerId, KnownFeaturedMod knownFeaturedMod);
 
-  void sendSdp(int remotePlayerId, String sdp);
-
   CompletableFuture<List<FeaturedModBean>> getFeaturedMods();
 
   CompletableFuture<List<FeaturedModFile>> getFeaturedModFiles(FeaturedModBean featuredMod, Integer version);
@@ -124,4 +122,6 @@ public interface FafService {
   CompletableFuture<List<AchievementDefinition>> getAchievementDefinitions();
 
   CompletableFuture<AchievementDefinition> getAchievementDefinition(String achievementId);
+
+  void sendIceMessage(int remotePlayerId, Object message);
 }

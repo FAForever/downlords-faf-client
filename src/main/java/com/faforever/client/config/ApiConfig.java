@@ -14,7 +14,6 @@ public class ApiConfig {
     Api api = clientProperties.getApi();
     return new RestTemplateBuilder()
         .messageConverters(jsonApiMessageConverter)
-        .basicAuthorization(api.getClientId(), api.getClientSecret())
         .rootUri(api.getBaseUrl());
   }
 }

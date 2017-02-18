@@ -25,8 +25,8 @@ import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
 import com.faforever.client.remote.domain.GameEndedMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
+import com.faforever.client.remote.domain.IceMessage;
 import com.faforever.client.remote.domain.LoginMessage;
-import com.faforever.client.remote.domain.SdpRecordClientMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.replay.Replay;
 import com.google.common.eventbus.EventBus;
@@ -84,8 +84,7 @@ public class FafServiceImpl implements FafService {
 
   @Override
   public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password) {
-    return fafServerAccessor.requestJoinGame(gameId, password
-    );
+    return fafServerAccessor.requestJoinGame(gameId, password);
   }
 
   @Override
@@ -250,11 +249,6 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  public void sendSdp(int remotePlayerId, String sdp) {
-    fafServerAccessor.sendGpgMessage(new SdpRecordClientMessage(remotePlayerId, sdp));
-  }
-
-  @Override
   @Async
   public CompletableFuture<List<FeaturedModBean>> getFeaturedMods() {
     return CompletableFuture.completedFuture(fafApiAccessor.getFeaturedMods().stream()
@@ -339,6 +333,11 @@ public class FafServiceImpl implements FafService {
   @Async
   public CompletableFuture<AchievementDefinition> getAchievementDefinition(String achievementId) {
     return CompletableFuture.completedFuture(fafApiAccessor.getAchievementDefinition(achievementId));
+  }
+
+  @Override
+  public void sendIceMessage(int remotePlayerId, Object message) {
+    fafServerAccessor.sendGpgMessage(new IceMessage(remotePlayerId, message));
   }
 
   @Override

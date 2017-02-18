@@ -206,7 +206,7 @@ public class PlayerServiceImplTest {
     LoginSuccessEvent event = new LoginSuccessEvent("junit", "", 1);
     instance.onLoginSuccess(event);
 
-    Player currentPlayer = instance.getCurrentPlayer();
+    Player currentPlayer = instance.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("No player returned"));
 
     assertThat(currentPlayer.getUsername(), is("junit"));
     assertThat(currentPlayer.getId(), is(1));

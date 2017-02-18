@@ -44,6 +44,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -220,7 +221,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     ArgumentCaptor<Consumer<MatchmakerMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass((Class) Consumer.class);
     when(notificationPrefs.getLadder1v1ToastEnabled()).thenReturn(true);
     when(playerService.getCurrentPlayer()).thenReturn(
-        PlayerBuilder.create("JUnit").leaderboardRatingMean(1500).leaderboardRatingDeviation(deviation).get()
+        Optional.ofNullable(PlayerBuilder.create("JUnit").leaderboardRatingMean(1500).leaderboardRatingDeviation(deviation).get())
     );
 
     verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
