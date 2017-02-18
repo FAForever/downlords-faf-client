@@ -1,5 +1,6 @@
 package com.faforever.client.update;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.task.CompletableTask;
 import com.google.common.io.CharStreams;
@@ -12,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -34,7 +34,7 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
 
   //TODO: switch to constructor injection, superclass CompletableTask<UpdateInfo> has no default constructor
   @Inject
-  Environment environment;
+  ClientProperties clientProperties;
   @Inject
   I18n i18n;
 
@@ -52,8 +52,8 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
     updateTitle(i18n.get("clientUpdateCheckTask.title"));
     logger.info("Checking for client update");
 
-    String releasesUrl = environment.getProperty("github.releases.url");
-    int connectionTimeout = environment.getProperty("github.releases.timeout", int.class);
+    String releasesUrl = clientProperties.getGitHub().getReleasesUrl();
+    int connectionTimeout = clientProperties.getGitHub().getTimeout();
 
     URL url = new URL(releasesUrl);
     HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();

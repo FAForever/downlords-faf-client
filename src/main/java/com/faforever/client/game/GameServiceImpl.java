@@ -42,7 +42,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -61,7 +60,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 import static com.faforever.client.fa.RatingMode.NONE;
@@ -97,8 +96,7 @@ public class GameServiceImpl implements GameService {
   private final GameUpdater gameUpdater;
   private final NotificationService notificationService;
   private final I18n i18n;
-  private final ApplicationContext applicationContext;
-  private final ScheduledExecutorService scheduledExecutorService;
+  private final Executor executor;
   private final PlayerService playerService;
   private final ReportingService reportingService;
   private final EventBus eventBus;
@@ -115,7 +113,12 @@ public class GameServiceImpl implements GameService {
   private boolean rehostRequested;
 
   @Inject
-  public GameServiceImpl(FafService fafService, ForgedAllianceService forgedAllianceService, MapService mapService, PreferencesService preferencesService, GameUpdater gameUpdater, NotificationService notificationService, I18n i18n, ApplicationContext applicationContext, ScheduledExecutorService scheduledExecutorService, PlayerService playerService, ReportingService reportingService, EventBus eventBus, IceAdapter iceAdapter, ModService modService) {
+  public GameServiceImpl(FafService fafService, ForgedAllianceService forgedAllianceService, MapService mapService,
+                         PreferencesService preferencesService, GameUpdater gameUpdater,
+                         NotificationService notificationService, I18n i18n,
+                         Executor executor, PlayerService playerService,
+                         ReportingService reportingService, EventBus eventBus, IceAdapter iceAdapter,
+                         ModService modService) {
     this.fafService = fafService;
     this.forgedAllianceService = forgedAllianceService;
     this.mapService = mapService;
@@ -123,8 +126,7 @@ public class GameServiceImpl implements GameService {
     this.gameUpdater = gameUpdater;
     this.notificationService = notificationService;
     this.i18n = i18n;
-    this.applicationContext = applicationContext;
-    this.scheduledExecutorService = scheduledExecutorService;
+    this.executor = executor;
     this.playerService = playerService;
     this.reportingService = reportingService;
     this.eventBus = eventBus;
@@ -168,7 +170,7 @@ public class GameServiceImpl implements GameService {
       return completedFuture(null);
     }
 
-    logger.info("Joining preferences: {} ({})", game.getTitle(), game.getId());
+    logger.info("Joining game: '{}' ({})", game.getTitle(), game.getId());
 
     stopSearchLadder1v1();
 
@@ -397,7 +399,7 @@ public class GameServiceImpl implements GameService {
 
   @VisibleForTesting
   void spawnTerminationListener(Process process) {
-    CompletableFuture.runAsync(() -> {
+    executor.execute(() -> {
       try {
         rehostRequested = false;
         int exitCode = process.waitFor();
@@ -416,7 +418,7 @@ public class GameServiceImpl implements GameService {
       } catch (InterruptedException e) {
         logger.warn("Error during post-preferences processing", e);
       }
-    }, scheduledExecutorService);
+    });
   }
 
   private void rehost() {
@@ -462,7 +464,7 @@ public class GameServiceImpl implements GameService {
 
     final Game game;
     Integer gameId = gameInfoMessage.getUid();
-    Player currentPlayer = playerService.getCurrentPlayer();
+    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
     if (!uidToGameInfoBean.containsKey(gameId)) {
       game = new Game(gameInfoMessage);
       uidToGameInfoBean.put(gameId, game);

@@ -153,7 +153,7 @@ public class PreferencesService {
     }
 
     logger.info("Game path could not be detected");
-    eventBus.post(new MissingGamePathEvent());
+    eventBus.post(MissingGamePathEvent.INSTANCE);
   }
 
   /**

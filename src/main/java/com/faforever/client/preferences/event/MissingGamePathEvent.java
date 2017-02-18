@@ -1,4 +1,5 @@
 package com.faforever.client.preferences.event;
 
-public class MissingGamePathEvent {
+public enum MissingGamePathEvent {
+  INSTANCE
 }

@@ -98,7 +98,7 @@ public class GameUpdaterImpl implements GameUpdater {
 
     List<CompletableFuture<Void>> simModFutures = simModUids.stream()
         .filter(uid -> !modService.isModInstalled(uid))
-        .map(uid -> modService.downloadAndInstallMod(uid))
+        .map(modService::downloadAndInstallMod)
         .collect(Collectors.toList());
     return CompletableFuture.allOf(simModFutures.toArray(new CompletableFuture[simModFutures.size()]));
   }

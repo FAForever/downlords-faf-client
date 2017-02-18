@@ -1,5 +1,6 @@
 package com.faforever.client.update;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.io.CharStreams;
@@ -12,7 +13,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.InputStreamReader;
@@ -24,8 +24,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
 
-import static org.mockito.Mockito.when;
-
 public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -35,8 +33,6 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
   private CheckForUpdateTask instance;
 
   @Mock
-  private Environment environment;
-  @Mock
   private I18n i18n;
 
   private CountDownLatch terminateLatch;
@@ -45,7 +41,7 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     instance = new CheckForUpdateTask();
     instance.i18n = i18n;
-    instance.environment = environment;
+    instance.clientProperties = new ClientProperties();
 
     terminateLatch = new CountDownLatch(1);
   }
@@ -63,8 +59,9 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
 
     startFakeGitHubApiServer();
     int port = fakeGithubServerSocket.getLocalPort();
-    when(environment.getProperty("github.releases.url")).thenReturn("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
-    when(environment.getProperty("github.releases.timeout", int.class)).thenReturn(3000);
+
+    instance.clientProperties.getGitHub().setReleasesUrl("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
+    instance.clientProperties.getGitHub().setTimeout(3000);
 
     instance.call();
   }
@@ -99,8 +96,8 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
 
     startFakeGitHubApiServer();
     int port = fakeGithubServerSocket.getLocalPort();
-    when(environment.getProperty("github.releases.url")).thenReturn("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
-    when(environment.getProperty("github.releases.timeout", int.class)).thenReturn(3000);
+    instance.clientProperties.getGitHub().setReleasesUrl("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
+    instance.clientProperties.getGitHub().setTimeout(3000);
 
     instance.call();
   }

@@ -1,5 +1,6 @@
 package com.faforever.client.rankedmatch;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -21,10 +22,10 @@ import javafx.scene.control.ToggleButton;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.springframework.core.env.Environment;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -32,10 +33,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
@@ -50,8 +48,6 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
   private PreferencesService preferencesService;
   @Mock
   private PlayerService playerService;
-  @Mock
-  private Environment environment;
   @Mock
   private LeaderboardService leaderboardService;
   @Mock
@@ -70,8 +66,8 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new Ladder1v1Controller(gameService, preferencesService, playerService, environment, leaderboardService,
-        i18n);
+    instance = new Ladder1v1Controller(gameService, preferencesService, playerService, leaderboardService, i18n,
+        new ClientProperties());
 
     Player player = new Player(USERNAME);
     player.setId(PLAYER_ID);
@@ -91,14 +87,8 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
     when(preferences.getLadder1v1Prefs()).thenReturn(ladder1V1Prefs);
     when(ladder1V1Prefs.getFactions()).thenReturn(factionList);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
-    when(playerService.getCurrentPlayer()).thenReturn(currentPlayerProperty.get());
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.ofNullable(currentPlayerProperty.get()));
     when(playerService.currentPlayerProperty()).thenReturn(currentPlayerProperty);
-    when(environment.getProperty("rating.low", int.class)).thenReturn(100);
-    when(environment.getProperty("rating.moderate", int.class)).thenReturn(200);
-    when(environment.getProperty("rating.good", int.class)).thenReturn(300);
-    when(environment.getProperty("rating.high", int.class)).thenReturn(400);
-    when(environment.getProperty("rating.top", int.class)).thenReturn(500);
-    when(environment.getProperty("rating.beta", int.class)).thenReturn(10);
 
     loadFxml("theme/play/ranked_1v1.fxml", clazz -> instance);
   }
@@ -170,69 +160,5 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
 
     verify(preferencesService).storeInBackground();
     assertThat(factionList, containsInAnyOrder(Faction.AEON, Faction.CYBRAN));
-  }
-
-  @Test
-  public void testUpdateRatingLow() throws Exception {
-    testUpdateRating(10, "ranked1v1.ratingHint.low");
-  }
-
-  private void testUpdateRating(int leaderboardRatingMean, String key) {
-    reset(i18n);
-
-    Player currentPlayer = currentPlayerProperty.get();
-    currentPlayer.setLeaderboardRatingDeviation(1);
-    currentPlayer.setLeaderboardRatingMean(leaderboardRatingMean);
-
-    instance.onDisplay();
-
-    verify(playerService).getCurrentPlayer();
-    verify(i18n).get(key);
-  }
-
-  @Test
-  public void testUpdateRatingModerate() throws Exception {
-    testUpdateRating(150, "ranked1v1.ratingHint.moderate");
-  }
-
-  @Test
-  public void testUpdateRatingGood() throws Exception {
-    testUpdateRating(250, "ranked1v1.ratingHint.good");
-  }
-
-  @Test
-  public void testUpdateRatingHigh() throws Exception {
-    testUpdateRating(350, "ranked1v1.ratingHint.high");
-  }
-
-  @Test
-  public void testUpdateRatingTop() throws Exception {
-    testUpdateRating(450, "ranked1v1.ratingHint.top");
-  }
-
-  @Test
-  public void testUpdateRatingInProgress() throws Exception {
-    when(environment.getProperty("rating.beta", int.class)).thenReturn(10);
-    when(environment.getProperty("rating.initialStandardDeviation", int.class)).thenReturn(50);
-
-    Player currentPlayer = currentPlayerProperty.get();
-    currentPlayer.setLeaderboardRatingDeviation(45);
-    currentPlayer.setLeaderboardRatingMean(100);
-
-    instance.onDisplay();
-
-    assertThat(instance.ratingProgressIndicator.isVisible(), is(true));
-    assertThat(instance.ratingProgressIndicator.getProgress(), is(5d / 10d));
-  }
-
-  @Test
-  public void testOnDisplayFiresOnlyOnce() throws Exception {
-    verifyZeroInteractions(playerService);
-    instance.onDisplay();
-    verify(playerService).currentPlayerProperty();
-    verify(playerService).getCurrentPlayer();
-    verify(playerService).currentPlayerProperty();
-    instance.onDisplay();
-    verifyNoMoreInteractions(playerService);
   }
 }

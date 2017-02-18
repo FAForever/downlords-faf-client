@@ -51,7 +51,7 @@ public class GitFeaturedModUpdateTaskTest {
   private ModService modService;
 
   /**
-   * The directory containing the cloned preferences repository
+   * The directory containing the cloned game repository
    */
   private Path clonedRepoDir;
   private GitFeaturedModUpdateTaskImpl instance;

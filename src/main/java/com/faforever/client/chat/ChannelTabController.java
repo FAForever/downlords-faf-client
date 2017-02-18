@@ -43,18 +43,19 @@ import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import static com.faforever.client.chat.ChatColorMode.DEFAULT;
 import static com.faforever.client.chat.SocialStatus.FOE;
@@ -68,13 +69,13 @@ public class ChannelTabController extends AbstractChatTabController {
   @VisibleForTesting
   static final String CSS_CLASS_MODERATOR = "moderator";
   private static final String USER_CSS_CLASS_FORMAT = "user-%s";
-  private static final long IDLE_TIME_UPDATE_DELAY = Duration.ofMinutes(1).getSeconds();
+  private static final long IDLE_TIME_UPDATE_DELAY = Duration.ofMinutes(1).toMillis();
   /**
    * Keeps track of which ChatUserControl in which pane belongs to which user.
    */
   private final Map<String, Map<Pane, ChatUserItemController>> userToChatUserControls;
   private final ThreadPoolExecutor threadPoolExecutor;
-  private final ScheduledExecutorService scheduledExecutorService;
+  private final TaskScheduler taskScheduler;
   public Button advancedUserFilter;
   public HBox searchFieldContainer;
   public Button closeSearchFieldButton;
@@ -101,12 +102,21 @@ public class ChannelTabController extends AbstractChatTabController {
   private UserFilterController userFilterController;
 
   @Inject
-  public ChannelTabController(UserService userService, ChatService chatService, PlatformService platformService, PreferencesService preferencesService, PlayerService playerService, AudioService audioService, TimeService timeService, I18n i18n, ImageUploadService imageUploadService, UrlPreviewResolver urlPreviewResolver, NotificationService notificationService, ReportingService reportingService, UiService uiService, AutoCompletionHelper autoCompletionHelper, EventBus eventBus, WebViewConfigurer webViewConfigurer, ThreadPoolExecutor threadPoolExecutor, ScheduledExecutorService scheduledExecutorService) {
-    super(userService, chatService, platformService, preferencesService, playerService, audioService, timeService, i18n, imageUploadService, urlPreviewResolver, notificationService, reportingService, uiService, autoCompletionHelper, eventBus, webViewConfigurer);
+  public ChannelTabController(UserService userService, ChatService chatService, PlatformService platformService,
+                              PreferencesService preferencesService, PlayerService playerService,
+                              AudioService audioService, TimeService timeService, I18n i18n,
+                              ImageUploadService imageUploadService, UrlPreviewResolver urlPreviewResolver,
+                              NotificationService notificationService, ReportingService reportingService,
+                              UiService uiService, AutoCompletionHelper autoCompletionHelper, EventBus eventBus,
+                              WebViewConfigurer webViewConfigurer, ThreadPoolExecutor threadPoolExecutor,
+                              TaskScheduler taskScheduler) {
+    super(userService, chatService, platformService, preferencesService, playerService, audioService, timeService, i18n,
+        imageUploadService, urlPreviewResolver, notificationService, reportingService, uiService, autoCompletionHelper,
+        eventBus, webViewConfigurer);
 
     userToChatUserControls = FXCollections.observableMap(new ConcurrentHashMap<>());
     this.threadPoolExecutor = threadPoolExecutor;
-    this.scheduledExecutorService = scheduledExecutorService;
+    this.taskScheduler = taskScheduler;
   }
 
   // TODO clean this up
@@ -157,7 +167,7 @@ public class ChannelTabController extends AbstractChatTabController {
   @Override
   public void initialize() {
     super.initialize();
-    scheduledExecutorService.scheduleWithFixedDelay(this::updatePresenceStatusIndicators, 0, IDLE_TIME_UPDATE_DELAY, TimeUnit.SECONDS);
+    taskScheduler.scheduleWithFixedDelay(this::updatePresenceStatusIndicators, Date.from(Instant.now()), IDLE_TIME_UPDATE_DELAY);
     userSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> filterChatUserControlsBySearchString());
 
     chatColorModeChangeListener = (observable, oldValue, newValue) -> {

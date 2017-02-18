@@ -31,9 +31,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.springframework.scheduling.TaskScheduler;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
@@ -80,7 +80,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ThreadPoolExecutor threadPoolExecutor;
   @Mock
-  private ScheduledExecutorService scheduledExecutorService;
+  private TaskScheduler taskScheduler;
   @Mock
   private AutoCompletionHelper autoCompletionHelper;
   @Mock
@@ -105,7 +105,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     instance = new ChannelTabController(
         userService, chatService, platformService, preferencesService, playerService, audioService, timeService, i18n,
         imageUploadService, urlPreviewResolver, notificationService, reportingService, uiService,
-        autoCompletionHelper, eventBus, webViewConfigurer, threadPoolExecutor, scheduledExecutorService);
+        autoCompletionHelper, eventBus, webViewConfigurer, threadPoolExecutor, taskScheduler);
 
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
     when(userService.getUsername()).thenReturn(USER_NAME);

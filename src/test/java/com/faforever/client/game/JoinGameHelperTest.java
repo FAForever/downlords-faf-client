@@ -61,7 +61,7 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
     instance = new JoinGameHelper(i18n, playerService, gameService, preferencesService, notificationService, reportingService, uiService, eventBus);
     instance.setParentNode(this.getRoot());
 
-    when(playerService.getCurrentPlayer()).thenReturn(player);
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.ofNullable(player));
     when(player.getGlobalRatingMean()).thenReturn(1000.0f);
     when(player.getGlobalRatingDeviation()).thenReturn(0.0f);
 

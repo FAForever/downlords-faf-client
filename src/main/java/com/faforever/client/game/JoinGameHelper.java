@@ -69,7 +69,7 @@ public class JoinGameHelper {
   public void join(Game game, String password, boolean ignoreRating) {
     Objects.requireNonNull(parentNode, "parentNode has not been set");
 
-    Player currentPlayer = playerService.getCurrentPlayer();
+    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
     int playerRating = RatingUtil.getRoundedGlobalRating(currentPlayer);
 
     if (!preferencesService.isGamePathValid()) {

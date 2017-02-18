@@ -1,6 +1,7 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.api.dto.FeaturedMod;
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
@@ -26,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -76,7 +76,7 @@ public class ReplayServiceImpl implements ReplayService {
   private static final String GPGNET_SCHEME = "gpgnet";
   private static final String TEMP_SCFA_REPLAY_FILE_NAME = "temp.scfareplay";
 
-  private final Environment environment;
+  private final ClientProperties clientProperties;
   private final PreferencesService preferencesService;
   private final ReplayFileReader replayFileReader;
   private final NotificationService notificationService;
@@ -90,8 +90,12 @@ public class ReplayServiceImpl implements ReplayService {
   private final FafService fafService;
 
   @Inject
-  public ReplayServiceImpl(Environment environment, PreferencesService preferencesService, ReplayFileReader replayFileReader, NotificationService notificationService, GameService gameService, TaskService taskService, I18n i18n, ReportingService reportingService, ApplicationContext applicationContext, PlatformService platformService, ReplayServer replayServer, FafService fafService) {
-    this.environment = environment;
+  public ReplayServiceImpl(ClientProperties clientProperties, PreferencesService preferencesService,
+                           ReplayFileReader replayFileReader, NotificationService notificationService,
+                           GameService gameService, TaskService taskService, I18n i18n,
+                           ReportingService reportingService, ApplicationContext applicationContext,
+                           PlatformService platformService, ReplayServer replayServer, FafService fafService) {
+    this.clientProperties = clientProperties;
     this.preferencesService = preferencesService;
     this.replayFileReader = replayFileReader;
     this.notificationService = notificationService;
@@ -131,7 +135,7 @@ public class ReplayServiceImpl implements ReplayService {
   public Collection<Replay> getLocalReplays() {
     Collection<Replay> replayInfos = new ArrayList<>();
 
-    String replayFileGlob = environment.getProperty("replayFileGlob");
+    String replayFileGlob = clientProperties.getReplay().getReplayFileGlob();
 
     Path replaysDirectory = preferencesService.getReplaysDirectory();
     if (!Files.notExists(replaysDirectory)) {
@@ -190,7 +194,8 @@ public class ReplayServiceImpl implements ReplayService {
 
     URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setScheme(FAF_LIFE_PROTOCOL);
-    uriBuilder.setHost(environment.getProperty("lobby.host"));
+    // TODO check if this host is correct
+    uriBuilder.setHost(clientProperties.getReplay().getRemoteHost());
     uriBuilder.setPath("/" + gameId + "/" + playerId + SUP_COM_REPLAY_FILE_ENDING);
     uriBuilder.addParameter("map", UrlEscapers.urlFragmentEscaper().escape(game.getMapFolderName()));
     uriBuilder.addParameter("mod", game.getFeaturedMod());

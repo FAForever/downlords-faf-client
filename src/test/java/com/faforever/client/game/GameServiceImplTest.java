@@ -32,15 +32,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.context.ApplicationContext;
 import org.springframework.util.ReflectionUtils;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.net.InetSocketAddress;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -100,11 +99,9 @@ public class GameServiceImplTest {
   @Mock
   private ForgedAlliancePrefs forgedAlliancePrefs;
   @Mock
-  private ApplicationContext applicationContext;
-  @Mock
   private PlayerService playerService;
   @Mock
-  private ScheduledExecutorService scheduledExecutorService;
+  private Executor executor;
   @Mock
   private ReplayService replayService;
   @Mock
@@ -126,7 +123,7 @@ public class GameServiceImplTest {
   @Before
   public void setUp() throws Exception {
     instance = new GameServiceImpl(fafService, forgedAllianceService, mapService, preferencesService, gameUpdater,
-        notificationService, i18n, applicationContext, scheduledExecutorService, playerService, reportingService,
+        notificationService, i18n, executor, playerService, reportingService,
         eventBus, iceAdapter, modService);
     instance.replayService = replayService;
 
@@ -136,6 +133,7 @@ public class GameServiceImplTest {
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     when(replayService.startReplayServer(anyInt())).thenReturn(CompletableFuture.completedFuture(null));
     when(iceAdapter.start()).thenReturn(CompletableFuture.completedFuture(GPG_PORT));
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(PlayerBuilder.create("JUnit").defaultValues().get()));
 
     doAnswer(invocation -> {
       try {
@@ -144,7 +142,7 @@ public class GameServiceImplTest {
         e.printStackTrace();
       }
       return null;
-    }).when(scheduledExecutorService).execute(any());
+    }).when(executor).execute(any());
 
     instance.postConstruct();
 
@@ -277,7 +275,7 @@ public class GameServiceImplTest {
   public void testOnGameInfoMessageSetsCurrentGameIfUserIsInAndStatusOpen() throws Exception {
     assertThat(instance.getCurrentGame(), nullValue());
 
-    when(playerService.getCurrentPlayer()).thenReturn(PlayerBuilder.create("PlayerName").get());
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.ofNullable(PlayerBuilder.create("PlayerName").get()));
 
     GameInfoMessage gameInfoMessage = GameInfoMessageBuilder.create(1234).defaultValues()
         .state(OPEN)
@@ -292,7 +290,7 @@ public class GameServiceImplTest {
   public void testOnGameInfoMessageDoesntSetCurrentGameIfUserIsInAndStatusNotOpen() throws Exception {
     assertThat(instance.getCurrentGame(), nullValue());
 
-    when(playerService.getCurrentPlayer()).thenReturn(PlayerBuilder.create("PlayerName").get());
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.ofNullable(PlayerBuilder.create("PlayerName").get()));
 
     GameInfoMessage gameInfoMessage = GameInfoMessageBuilder.create(1234).defaultValues()
         .state(PLAYING)
@@ -306,7 +304,7 @@ public class GameServiceImplTest {
   public void testOnGameInfoMessageDoesntSetCurrentGameIfUserDoesntMatch() throws Exception {
     assertThat(instance.getCurrentGame(), nullValue());
 
-    when(playerService.getCurrentPlayer()).thenReturn(PlayerBuilder.create("PlayerName").get());
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.ofNullable(PlayerBuilder.create("PlayerName").get()));
 
     GameInfoMessage gameInfoMessage = GameInfoMessageBuilder.create(1234).defaultValues().addTeamMember("1", "Other").get();
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
@@ -338,7 +336,7 @@ public class GameServiceImplTest {
   public void testOnGameInfoRemove() {
     assertThat(instance.getGames(), empty());
 
-    when(playerService.getCurrentPlayer()).thenReturn(PlayerBuilder.create("PlayerName").get());
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.ofNullable(PlayerBuilder.create("PlayerName").get()));
 
     GameInfoMessage gameInfoMessage = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").get();
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
@@ -382,7 +380,6 @@ public class GameServiceImplTest {
 
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
-    InetSocketAddress externalSocketAddress = new InetSocketAddress(123);
 
     when(forgedAllianceService.startGame(anyInt(), any(), any(), any(), anyInt(), eq(false))).thenReturn(process);
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));

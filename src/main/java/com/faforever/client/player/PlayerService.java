@@ -4,6 +4,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
 import java.util.Set;
 
 public interface PlayerService {
@@ -29,7 +30,7 @@ public interface PlayerService {
 
   void removeFoe(Player player);
 
-  Player getCurrentPlayer();
+  Optional<Player> getCurrentPlayer();
 
   ReadOnlyObjectProperty<Player> currentPlayerProperty();
 

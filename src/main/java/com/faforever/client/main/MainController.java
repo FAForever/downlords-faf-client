@@ -269,7 +269,7 @@ public class MainController implements Controller<Node> {
       return;
     }
 
-    Player currentPlayer = playerService.getCurrentPlayer();
+    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
 
     int deviationFor80PercentQuality = (int) (ratingBeta / 2.5f);
     int deviationFor75PercentQuality = (int) (ratingBeta / 1.25f);
