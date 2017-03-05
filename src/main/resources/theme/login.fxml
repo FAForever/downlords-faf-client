@@ -54,9 +54,9 @@
                   <Label fx:id="loginErrorLabel" maxHeight="1.7976931348623157E308"
                          maxWidth="1.7976931348623157E308" styleClass="hint" text="&lt;ErrorMessage&gt;"
                          wrapText="true">
-                  <graphic>
-                      <Label styleClass="icon" text=""/>
-                  </graphic>
+                      <graphic>
+                          <Label styleClass="icon" text=""/>
+                      </graphic>
                   <VBox.margin>
                       <Insets bottom="5.0"/>
                   </VBox.margin>

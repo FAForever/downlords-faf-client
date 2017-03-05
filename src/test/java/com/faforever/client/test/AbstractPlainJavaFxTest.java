@@ -1,5 +1,6 @@
 package com.faforever.client.test;
 
+import com.faforever.client.ui.StageHolder;
 import com.github.nocatch.NoCatch.NoCatchRunnable;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -40,6 +41,7 @@ public abstract class AbstractPlainJavaFxTest extends ApplicationTest {
   @Override
   public void start(Stage stage) throws Exception {
     this.stage = stage;
+    StageHolder.setStage(stage);
 
     scene = new Scene(getRoot(), 1, 1);
     stage.setScene(scene);

@@ -18,7 +18,7 @@ public class GameLaunchMessageBuilder {
 
   public GameLaunchMessageBuilder defaultValues() {
     gameLaunchMessage.setUid(1);
-    gameLaunchMessage.setMod(KnownFeaturedMod.DEFAULT.getString());
+    gameLaunchMessage.setMod(KnownFeaturedMod.DEFAULT.getTechnicalName());
     gameLaunchMessage.setArgs(Arrays.asList("/ratingcolor red", "/clan foo"));
     return this;
   }

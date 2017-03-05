@@ -29,9 +29,7 @@ public class AvatarServiceImplTest {
   private AvatarServiceImpl instance;
   @Before
   public void setUp() throws Exception {
-    instance = new AvatarServiceImpl();
-    instance.fafService = fafService;
-    instance.assetService = assetService;
+    instance = new AvatarServiceImpl(fafService, assetService);
   }
 
   @Test

@@ -1,6 +1,7 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.patch.MountPoint;
+
+import com.faforever.commons.mod.MountPoint;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
 import java.net.MalformedURLException;

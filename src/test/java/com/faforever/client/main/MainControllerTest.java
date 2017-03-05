@@ -1,6 +1,7 @@
 package com.faforever.client.main;
 
 import com.faforever.client.chat.ChatController;
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -29,9 +30,7 @@ import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
@@ -45,6 +44,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -111,29 +111,22 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new MainController();
-    instance.stage = getStage();
-    instance.i18n = i18n;
-    instance.playerService = playerService;
-    instance.preferencesService = preferencesService;
-    instance.notificationService = notificationService;
-    instance.clientUpdateService = clientUpdateService;
-    instance.gameService = gameService;
-    instance.uiService = uiService;
-    instance.eventBus = eventBus;
-    instance.ratingBeta = 250;
+    ClientProperties clientProperties = new ClientProperties();
+    clientProperties.getTrueSkill()
+        .setBeta(240)
+        .setInitialMean(1500)
+        .setInitialStandardDeviation(500);
+
+    instance = new MainController(preferencesService, i18n, notificationService, playerService, gameService, clientUpdateService,
+        uiService, eventBus, clientProperties);
 
     gameRunningProperty = new SimpleBooleanProperty();
 
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
-    when(leaderboardController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(uiService.loadFxml("theme/window.fxml")).thenReturn(windowController);
     when(preferences.getMainWindow()).thenReturn(mainWindowPrefs);
-    when(mainWindowPrefs.getLastChildViews()).thenReturn(FXCollections.observableHashMap());
-    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
-    when(forgedAlliancePrefs.portProperty()).thenReturn(new SimpleIntegerProperty());
     when(preferences.getNotification()).thenReturn(notificationPrefs);
     when(notificationPrefs.toastPositionProperty()).thenReturn(new SimpleObjectProperty<>(ToastPosition.BOTTOM_RIGHT));
     when(notificationPrefs.getToastPosition()).thenReturn(ToastPosition.BOTTOM_RIGHT);
@@ -144,8 +137,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(uiService.loadFxml("theme/settings/settings.fxml")).thenReturn(settingsController);
     when(uiService.loadFxml("theme/login.fxml")).thenReturn(loginController);
     when(uiService.loadFxml("theme/chat/chat.fxml")).thenReturn(chatController);
-
-    doAnswer(invocation -> getThemeFile(invocation.getArgumentAt(0, String.class))).when(uiService).getThemeFile(any());
 
     loadFxml("theme/main.fxml", clazz -> {
       if (clazz == instance.getClass()) {
@@ -169,7 +160,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     fakeLogin();
 
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display());
-    when(mainWindowPrefs.getLastView()).thenReturn(instance.newsButton.getId());
 
     assertTrue(getStage().isShowing());
   }
@@ -228,10 +218,10 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
   private void prepareTestMatchmakerMessageTest(float deviation) {
     @SuppressWarnings("unchecked")
-    ArgumentCaptor<Consumer<MatchmakerMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
-    when(notificationPrefs.isRanked1v1ToastEnabled()).thenReturn(true);
+    ArgumentCaptor<Consumer<MatchmakerMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass((Class) Consumer.class);
+    when(notificationPrefs.getLadder1v1ToastEnabled()).thenReturn(true);
     when(playerService.getCurrentPlayer()).thenReturn(
-        PlayerBuilder.create("JUnit").leaderboardRatingMean(1500).leaderboardRatingDeviation(deviation).get()
+        Optional.ofNullable(PlayerBuilder.create("JUnit").leaderboardRatingMean(1500).leaderboardRatingDeviation(deviation).get())
     );
 
     verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
@@ -279,10 +269,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   public void testOnMatchMakerMessageDisplaysNotificationWithQueuesButDisabled() {
     @SuppressWarnings("unchecked")
     ArgumentCaptor<Consumer<MatchmakerMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
-    when(notificationPrefs.isRanked1v1ToastEnabled()).thenReturn(false);
-    when(playerService.getCurrentPlayer()).thenReturn(
-        PlayerBuilder.create("JUnit").leaderboardRatingMean(1500).leaderboardRatingDeviation(100).get()
-    );
+    when(notificationPrefs.getLadder1v1ToastEnabled()).thenReturn(false);
 
     verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
 
@@ -301,7 +288,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(mainWindowPrefs.getX()).thenReturn(visualBounds.getMaxX() + 1);
 
     doAnswer(invocation -> {
-      getRoot().getChildren().setAll(invocation.getArgumentAt(1, Region.class));
+      getRoot().getChildren().setAll((Region) invocation.getArgument(1));
       return null;
     }).when(windowController).configure(any(), any(), anyBoolean(), anyVararg());
 

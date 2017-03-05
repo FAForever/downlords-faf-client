@@ -1,7 +1,7 @@
 package com.faforever.client.stats;
 
-import com.faforever.client.api.RatingType;
 import com.faforever.client.domain.RatingHistoryDataPoint;
+import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.remote.FafService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -15,11 +15,15 @@ import java.util.concurrent.CompletableFuture;
 @Service
 public class StatisticsServiceImpl implements StatisticsService {
 
+  private final FafService fafService;
+
   @Inject
-  FafService fafService;
+  public StatisticsServiceImpl(FafService fafService) {
+    this.fafService = fafService;
+  }
 
   @Override
-  public CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(RatingType type, int playerId) {
-    return fafService.getRatingHistory(type, playerId);
+  public CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(KnownFeaturedMod featuredMod, int playerId) {
+    return fafService.getRatingHistory(playerId, featuredMod);
   }
 }

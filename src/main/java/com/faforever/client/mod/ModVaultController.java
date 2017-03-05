@@ -34,7 +34,7 @@ import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -52,7 +52,11 @@ public class ModVaultController extends AbstractViewController<Node> {
    * How many mod cards should be badged into one UI thread runnable.
    */
   private static final int BATCH_SIZE = 10;
-
+  private final ModService modService;
+  private final I18n i18n;
+  private final PreferencesService preferencesService;
+  private final EventBus eventBus;
+  private final UiService uiService;
   public Pane searchResultGroup;
   public Pane searchResultPane;
   public Pane showroomGroup;
@@ -63,19 +67,16 @@ public class ModVaultController extends AbstractViewController<Node> {
   public Pane popularModsPane;
   public Pane mostLikedModsPane;
   public Pane modVaultRoot;
-
-  @Inject
-  ModService modService;
-  @Inject
-  I18n i18n;
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  EventBus eventBus;
-  @Inject
-  UiService uiService;
-
   private boolean initialized;
+
+  @Inject
+  public ModVaultController(ModService modService, I18n i18n, PreferencesService preferencesService, EventBus eventBus, UiService uiService) {
+    this.modService = modService;
+    this.i18n = i18n;
+    this.preferencesService = preferencesService;
+    this.eventBus = eventBus;
+    this.uiService = uiService;
+  }
 
   @Override
   public void initialize() {
@@ -162,7 +163,7 @@ public class ModVaultController extends AbstractViewController<Node> {
     loadingPane.setVisible(false);
   }
 
-  private CompletionStage<Set<Label>> createModSuggestions(String string) {
+  private CompletableFuture<Set<Label>> createModSuggestions(String string) {
     return modService.lookupMod(string, MAX_SUGGESTIONS)
         .thenApply(new Function<List<Mod>, Set<Label>>() {
           @Override

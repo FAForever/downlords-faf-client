@@ -4,7 +4,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.RatingUtil;
-import com.google.api.client.repackaged.com.google.common.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.MenuButton;
@@ -27,34 +27,30 @@ import static com.faforever.client.game.PlayerStatus.PLAYING;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class UserFilterController implements Controller<Node> {
 
+  private final I18n i18n;
   public MenuButton gameStatusMenu;
   public GridPane filterUserRoot;
   public TextField clanFilterField;
   public TextField minRatingFilterField;
   public TextField maxRatingFilterField;
-
-  @Inject
-  I18n i18n;
-
   @VisibleForTesting
   ChannelTabController channelTabController;
   @VisibleForTesting
   PlayerStatus playerStatusFilter;
 
-  public void setChannelController(ChannelTabController channelTabController) {
+  @Inject
+  public UserFilterController(I18n i18n) {
+    this.i18n = i18n;
+  }
+
+  void setChannelController(ChannelTabController channelTabController) {
     this.channelTabController = channelTabController;
   }
 
-  void initialize() {
-    clanFilterField.textProperty().addListener((observable, oldValue, newValue) -> {
-      filterUsers();
-    });
-    minRatingFilterField.textProperty().addListener((observable, oldValue, newValue) -> {
-      filterUsers();
-    });
-    maxRatingFilterField.textProperty().addListener((observable, oldValue, newValue) -> {
-      filterUsers();
-    });
+  public void initialize() {
+    clanFilterField.textProperty().addListener((observable, oldValue, newValue) -> filterUsers());
+    minRatingFilterField.textProperty().addListener((observable, oldValue, newValue) -> filterUsers());
+    maxRatingFilterField.textProperty().addListener((observable, oldValue, newValue) -> filterUsers());
   }
 
   private void filterUsers() {
@@ -142,12 +138,6 @@ public class UserFilterController implements Controller<Node> {
   public void onGameStatusNone(ActionEvent actionEvent) {
     playerStatusFilter = IDLE;
     gameStatusMenu.setText(i18n.get("chat.filter.gameStatus.none"));
-    filterUsers();
-  }
-
-  public void onClearGameStatus(ActionEvent actionEvent) {
-    playerStatusFilter = null;
-    gameStatusMenu.setText(i18n.get("chat.filter.gameStatus"));
     filterUsers();
   }
 

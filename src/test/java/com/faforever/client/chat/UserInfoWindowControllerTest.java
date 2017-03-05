@@ -4,13 +4,12 @@ import com.faforever.client.achievements.AchievementDefinitionBuilder;
 import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.achievements.PlayerAchievementBuilder;
-import com.faforever.client.api.AchievementState;
-import com.faforever.client.api.RatingType;
+import com.faforever.client.api.dto.AchievementState;
 import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.events.EventService;
+import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerBuilder;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -19,7 +18,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
@@ -58,29 +58,17 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private Preferences preferences;
-  @Mock
   private AchievementItemController achievementItemController;
 
   @Before
   public void setUp() throws Exception {
-    instance = new UserInfoWindowController();
-    instance.countryFlagService = countryFlagService;
-    instance.locale = locale;
-    instance.i18n = i18n;
-    instance.statisticsService = statisticsService;
-    instance.achievementService = achievementService;
-    instance.eventService = eventService;
-    instance.uiService = uiService;
-    instance.preferencesService = preferencesService;
+    instance = new UserInfoWindowController(statisticsService, countryFlagService, achievementService, eventService, preferencesService, i18n, uiService);
 
-    when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.getThemeName()).thenReturn("default");
     when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
 
     when(statisticsService.getRatingHistory(any(), eq(PLAYER_ID))).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
-        new RatingHistoryDataPoint(LocalDateTime.now(), 1500, 50),
-        new RatingHistoryDataPoint(LocalDateTime.now().plusDays(1), 1500, 50)
+        new RatingHistoryDataPoint(Instant.now(), 1500f, 50f),
+        new RatingHistoryDataPoint(Instant.now().plus(1, ChronoUnit.DAYS), 1500f, 50f)
     )));
 
     loadFxml("theme/user_info_window.fxml", clazz -> instance);
@@ -138,13 +126,13 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
   public void testOnGlobalRatingButtonClicked() throws Exception {
     testSetPlayerInfoBean();
     instance.globalButtonClicked();
-    verify(statisticsService, times(2)).getRatingHistory(RatingType.GLOBAL, PLAYER_ID);
+    verify(statisticsService, times(2)).getRatingHistory(KnownFeaturedMod.FAF, PLAYER_ID);
   }
 
   @Test
   public void testOn1v1RatingButtonClicked() throws Exception {
     testSetPlayerInfoBean();
     instance.ladder1v1ButtonClicked();
-    verify(statisticsService).getRatingHistory(RatingType.LADDER_1V1, PLAYER_ID);
+    verify(statisticsService).getRatingHistory(KnownFeaturedMod.LADDER_1V1, PLAYER_ID);
   }
 }

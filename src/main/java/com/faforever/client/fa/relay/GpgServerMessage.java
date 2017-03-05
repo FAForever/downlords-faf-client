@@ -31,8 +31,17 @@ public class GpgServerMessage implements SerializableMessage, ServerMessage {
     return ((Number) args.get(index)).intValue();
   }
 
+  protected boolean getBoolean(int index) {
+    return (boolean) args.get(index);
+  }
+
   protected String getString(int index) {
     return ((String) args.get(index));
+  }
+
+  @SuppressWarnings("unchecked")
+  protected <T> T getObject(int index) {
+    return (T) args.get(index);
   }
 
   @Override

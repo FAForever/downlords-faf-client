@@ -3,11 +3,11 @@ package com.faforever.client.user;
 import com.faforever.client.task.CompletableTask;
 import javafx.beans.property.ReadOnlyStringProperty;
 
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 
 public interface UserService {
 
-  CompletionStage<Void> login(String username, String password, boolean autoLogin);
+  CompletableFuture<Void> login(String username, String password, boolean autoLogin);
 
   String getUsername();
 

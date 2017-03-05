@@ -40,9 +40,7 @@ public class DownloadMapBeanTaskTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new DownloadMapTask();
-    instance.preferencesService = preferencesService;
-    instance.i18n = i18n;
+    instance = new DownloadMapTask(preferencesService, i18n);
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliance);

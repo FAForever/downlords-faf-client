@@ -26,22 +26,26 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  private final PreferencesService preferencesService;
+  private final PlayerService playerService;
+
   @Inject
-  PreferencesService preferencesService;
-  @Inject
-  PlayerService playerService;
+  public ForgedAllianceServiceImpl(PreferencesService preferencesService, PlayerService playerService) {
+    this.preferencesService = preferencesService;
+    this.playerService = playerService;
+  }
 
   @Override
   public Process startGame(int uid, @Nullable Faction faction, @Nullable List<String> additionalArgs, RatingMode ratingMode, int gpgPort, boolean rehost) throws IOException {
     Path executable = getExecutable();
 
-    Player currentPlayer = playerService.getCurrentPlayer();
+    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
 
     float deviation;
     float mean;
 
     switch (ratingMode) {
-      case RANKED_1V1:
+      case LADDER_1V1:
         deviation = currentPlayer.getLeaderboardRatingDeviation();
         mean = currentPlayer.getLeaderboardRatingMean();
         break;
@@ -87,7 +91,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   public Process startReplay(URI replayUri, Integer replayId) throws IOException {
     Path executable = getExecutable();
 
-    Player currentPlayer = playerService.getCurrentPlayer();
+    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
     List<String> launchCommand = LaunchCommandBuilder.create()
         .executable(executable)
         .replayUri(replayUri)

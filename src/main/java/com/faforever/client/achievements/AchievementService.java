@@ -1,19 +1,19 @@
 package com.faforever.client.achievements;
 
-import com.faforever.client.api.AchievementDefinition;
-import com.faforever.client.api.PlayerAchievement;
+import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.api.dto.PlayerAchievement;
 import javafx.scene.image.Image;
 
 import java.util.List;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 
 public interface AchievementService {
 
-  CompletionStage<List<PlayerAchievement>> getPlayerAchievements(String username);
+  CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(String username);
 
-  CompletionStage<List<AchievementDefinition>> getAchievementDefinitions();
+  CompletableFuture<List<AchievementDefinition>> getAchievementDefinitions();
 
-  CompletionStage<AchievementDefinition> getAchievementDefinition(String achievementId);
+  CompletableFuture<AchievementDefinition> getAchievementDefinition(String achievementId);
 
   Image getImage(AchievementDefinition achievementDefinition, AchievementState achievementState);
 

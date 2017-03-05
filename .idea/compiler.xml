@@ -2,6 +2,9 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <addNotNullAssertions enabled="false" />
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+    </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="downlords-faf-client_main" target="1.8" />
       <module name="downlords-faf-client_test" target="1.8" />

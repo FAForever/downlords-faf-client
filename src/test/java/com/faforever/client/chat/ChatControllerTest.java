@@ -43,7 +43,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   public static final String TEST_USER_NAME = "junit";
   private static final String TEST_CHANNEL_NAME = "#testChannel";
   private static final long TIMEOUT = 1000;
-  private static final TimeUnit TIMEOUT_UNITS = TimeUnit.MILLISECONDS;
+
   @Mock
   private ChannelTabController channelTabController;
   @Mock
@@ -66,11 +66,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ChatController();
-    instance.userService = userService;
-    instance.chatService = chatService;
-    instance.uiService = uiService;
-    instance.eventBus = eventBus;
+    instance = new ChatController(chatService, uiService, userService, eventBus);
 
     connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
 
@@ -127,14 +123,11 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOpenPrivateMessageTabForSelf() throws Exception {
-    when(privateChatTabController.getRoot()).thenReturn(new Tab());
     instance.onInitiatePrivateChatEvent(new InitiatePrivateChatEvent(TEST_USER_NAME));
   }
 
   @Test
   public void testOnChannelsJoinedRequest() throws Exception {
-    when(channelTabController.getRoot()).thenReturn(new Tab());
-
     channelJoined(TEST_CHANNEL_NAME);
     channelJoined(TEST_CHANNEL_NAME);
 
@@ -144,8 +137,6 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   @SuppressWarnings("unchecked")
   private void channelJoined(String channel) {
     MapChangeListener.Change<? extends String, ? extends Channel> testChannelChange = mock(MapChangeListener.Change.class);
-    // Error here is caused by a bug in IntelliJ
-    when(testChannelChange.getKey()).thenReturn(channel);
     channelsListener.getValue().onChanged(testChannelChange);
   }
 
@@ -159,12 +150,11 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
     when(channelTabController.getRoot()).thenReturn(tab);
     when(userService.getUsername()).thenReturn(TEST_USER_NAME);
-    when(chatService.isDefaultChannel(TEST_CHANNEL_NAME)).thenReturn(false);
     doAnswer(invocation -> {
       MapChangeListener.Change<? extends String, ? extends Channel> change = mock(MapChangeListener.Change.class);
       when(change.wasAdded()).thenReturn(true);
       // Error here is caused by a bug in IntelliJ
-      when(change.getValueAdded()).thenReturn(new Channel(invocation.getArgumentAt(0, String.class)));
+      when(change.getValueAdded()).thenReturn(new Channel(invocation.getArgument(0)));
       channelsListener.getValue().onChanged(change);
       return null;
     }).when(chatService).joinChannel(anyString());

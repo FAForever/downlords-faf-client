@@ -43,10 +43,9 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.contains;
@@ -59,7 +58,6 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ModServiceImplTest {
@@ -97,8 +95,6 @@ public class ModServiceImplTest {
   @Mock
   private AssetService assetService;
   @Mock
-  private ThreadPoolExecutor threadPoolExecutor;
-  @Mock
   private PlatformService platformService;
 
   private ModServiceImpl instance;
@@ -107,7 +103,7 @@ public class ModServiceImplTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ModServiceImpl(taskService, fafService, preferencesService, applicationContext, threadPoolExecutor,
+    instance = new ModServiceImpl(taskService, fafService, preferencesService, applicationContext,
         new SimpleAnalyzer(), new RAMDirectory(), notificationService, i18n, platformService, assetService);
 
     gamePrefsPath = faDataDirectory.getRoot().toPath().resolve("game.prefs");
@@ -118,7 +114,7 @@ public class ModServiceImplTest {
     when(forgedAlliancePrefs.getModsDirectory()).thenReturn(modsDirectory.getRoot().toPath());
     when(forgedAlliancePrefs.modsDirectoryProperty()).thenReturn(new SimpleObjectProperty<>(modsDirectory.getRoot().toPath()));
     // FIXME how did that happen... I see this line many times but it doesn't seem to do anything useful
-    doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
+    doAnswer(invocation -> invocation.getArgument(0)).when(taskService).submitTask(any());
 
     blackopsSupportPath = copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);
 
@@ -173,8 +169,9 @@ public class ModServiceImplTest {
   public void testDownloadAndInstallMod() throws Exception {
     assertThat(instance.getInstalledMods().size(), is(1));
 
-    InstallModTask task = mock(InstallModTask.class, withSettings().useConstructor());
-    when(task.getFuture()).thenReturn(completedFuture(null));
+    InstallModTask task = stubInstallModTask();
+    task.getFuture().complete(null);
+
     when(applicationContext.getBean(InstallModTask.class)).thenReturn(task);
 
     URL modUrl = new URL("http://example.com/some/mod.zip");
@@ -184,7 +181,6 @@ public class ModServiceImplTest {
 
     instance.downloadAndInstallMod(modUrl).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
-    verify(task).setUrl(modUrl);
     assertThat(instance.getInstalledMods().size(), is(2));
   }
 
@@ -192,8 +188,9 @@ public class ModServiceImplTest {
   public void testDownloadAndInstallModWithProperties() throws Exception {
     assertThat(instance.getInstalledMods().size(), is(1));
 
-    InstallModTask task = mock(InstallModTask.class, withSettings().useConstructor());
-    when(task.getFuture()).thenReturn(completedFuture(null));
+    InstallModTask task = stubInstallModTask();
+    task.getFuture().complete(null);
+
     when(applicationContext.getBean(InstallModTask.class)).thenReturn(task);
 
     URL modUrl = new URL("http://example.com/some/mod.zip");
@@ -209,7 +206,6 @@ public class ModServiceImplTest {
     assertThat(stringProperty.isBound(), is(true));
     assertThat(doubleProperty.isBound(), is(true));
 
-    verify(task).setUrl(modUrl);
     assertThat(instance.getInstalledMods().size(), is(2));
   }
 
@@ -217,8 +213,9 @@ public class ModServiceImplTest {
   public void testDownloadAndInstallModInfoBeanWithProperties() throws Exception {
     assertThat(instance.getInstalledMods().size(), is(1));
 
-    InstallModTask task = mock(InstallModTask.class, withSettings().useConstructor());
-    when(task.getFuture()).thenReturn(completedFuture(null));
+    InstallModTask task = stubInstallModTask();
+    task.getFuture().complete(null);
+
     when(applicationContext.getBean(InstallModTask.class)).thenReturn(task);
 
     URL modUrl = new URL("http://example.com/some/mod.zip");
@@ -235,7 +232,6 @@ public class ModServiceImplTest {
     assertThat(stringProperty.isBound(), is(true));
     assertThat(doubleProperty.isBound(), is(true));
 
-    verify(task).setUrl(modUrl);
     assertThat(instance.getInstalledMods().size(), is(2));
   }
 
@@ -422,25 +418,21 @@ public class ModServiceImplTest {
 
   @Test
   public void testGetAvailableMods() throws Exception {
-    mockThreadPool();
-
-    when(fafService.getMods()).thenReturn(Arrays.asList(
+    when(fafService.getMods()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
         ModInfoBeanBuilder.create().defaultValues().uid("1").get(),
         ModInfoBeanBuilder.create().defaultValues().uid("2").get()
-    ));
+    )));
     List<Mod> modInfoBeen = instance.getAvailableMods().toCompletableFuture().get();
     assertThat(modInfoBeen, hasSize(2));
   }
 
   @Test
   public void testGetMostLikedUiMods() throws Exception {
-    mockThreadPool();
-
-    when(fafService.getMods()).thenReturn(Arrays.asList(
+    when(fafService.getMods()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
         ModInfoBeanBuilder.create().defaultValues().uid("1").uiMod(true).get(),
         ModInfoBeanBuilder.create().defaultValues().uid("2").uiMod(false).get(),
         ModInfoBeanBuilder.create().defaultValues().uid("3").uiMod(true).get()
-    ));
+    )));
     List<Mod> mods = instance.getMostLikedUiMods(1).toCompletableFuture().get();
     assertThat(mods, hasSize(1));
     assertThat(mods.get(0).getId(), is("1"));
@@ -448,13 +440,11 @@ public class ModServiceImplTest {
 
   @Test
   public void testLookupMod() throws Exception {
-    mockThreadPool();
-
-    when(fafService.getMods()).thenReturn(Arrays.asList(
+    when(fafService.getMods()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
         ModInfoBeanBuilder.create().defaultValues().uid("1").name("Test mod 1").get(),
         ModInfoBeanBuilder.create().defaultValues().uid("2").name("Mod test").get(),
         ModInfoBeanBuilder.create().defaultValues().uid("3").name("Another mod").get()
-    ));
+    )));
 
     List<Mod> mods = instance.lookupMod("test", 3).toCompletableFuture().get();
     assertThat(mods, hasSize(2));
@@ -464,10 +454,12 @@ public class ModServiceImplTest {
     assertThat(mods.get(1).getVersion(), is(new ComparableVersion("1")));
   }
 
-  private void mockThreadPool() {
-    doAnswer(invocation -> {
-      invocation.getArgumentAt(0, Runnable.class).run();
-      return null;
-    }).when(threadPoolExecutor).execute(any(Runnable.class));
+  private InstallModTask stubInstallModTask() {
+    return new InstallModTask(preferencesService, i18n) {
+      @Override
+      protected Void call() throws Exception {
+        return null;
+      }
+    };
   }
 }

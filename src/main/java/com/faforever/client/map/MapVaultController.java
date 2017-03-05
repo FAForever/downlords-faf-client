@@ -33,7 +33,7 @@ import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -169,7 +169,7 @@ public class MapVaultController extends AbstractViewController<Node> {
     loadingPane.setVisible(false);
   }
 
-  private CompletionStage<Set<Label>> createMapSuggestions(String string) {
+  private CompletableFuture<Set<Label>> createMapSuggestions(String string) {
     return mapService.lookupMap(string, MAX_SUGGESTIONS)
         .thenApply(new Function<List<MapBean>, Set<Label>>() {
           @Override

@@ -80,19 +80,8 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ChatUserContextMenuController();
-    instance.userService = userService;
-    instance.chatService = chatService;
-    instance.preferencesService = preferencesService;
-    instance.uiService = uiService;
-    instance.playerService = playerService;
-    instance.gameService = gameService;
-    instance.replayService = replayService;
-    instance.notificationService = notificationService;
-    instance.i18n = i18n;
-    instance.eventBus = eventBus;
-    instance.joinGameHelper = joinGameHelper;
-    instance.avatarService = avatarService;
+    instance = new ChatUserContextMenuController(userService, chatService, preferencesService, playerService, gameService,
+        replayService, notificationService, i18n, eventBus, joinGameHelper, avatarService, uiService);
 
     Preferences preferences = mock(Preferences.class);
     ChatPrefs chatPrefs = mock(ChatPrefs.class);

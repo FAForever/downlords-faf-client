@@ -1,5 +1,6 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -14,7 +15,6 @@ import com.google.common.primitives.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -46,24 +46,30 @@ public class ReplayServerImpl implements ReplayServer {
    */
   private static final byte[] LIVE_REPLAY_PREFIX = new byte[]{'P', '/'};
 
-  @Inject
-  Environment environment;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  I18n i18n;
-  @Inject
-  GameService gameService;
-  @Inject
-  UserService userService;
-  @Inject
-  ReplayFileWriter replayFileWriter;
-  @Inject
-  ClientUpdateService clientUpdateService;
+  private final ClientProperties clientProperties;
+  private final NotificationService notificationService;
+  private final I18n i18n;
+  private final GameService gameService;
+  private final UserService userService;
+  private final ReplayFileWriter replayFileWriter;
+  private final ClientUpdateService clientUpdateService;
 
   private LocalReplayInfo replayInfo;
   private ServerSocket serverSocket;
   private boolean stoppedGracefully;
+
+  @Inject
+  public ReplayServerImpl(ClientProperties clientProperties, NotificationService notificationService, I18n i18n,
+                          GameService gameService, UserService userService, ReplayFileWriter replayFileWriter,
+                          ClientUpdateService clientUpdateService) {
+    this.clientProperties = clientProperties;
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.gameService = gameService;
+    this.userService = userService;
+    this.replayFileWriter = replayFileWriter;
+    this.clientUpdateService = clientUpdateService;
+  }
 
   /**
    * Returns the current millis the same way as python does since this is what's stored in the replay files *yay*.
@@ -86,17 +92,18 @@ public class ReplayServerImpl implements ReplayServer {
     stoppedGracefully = false;
     CompletableFuture<Void> future = new CompletableFuture<>();
     new Thread(() -> {
-      Integer localReplayServerPort = environment.getProperty("localReplayServer.port", Integer.class);
-      String fafReplayServerHost = environment.getProperty("fafReplayServer.host");
-      Integer fafReplayServerPort = environment.getProperty("fafReplayServer.port", Integer.class);
+      Integer localReplayServerPort = clientProperties.getReplay().getLocalServerPort();
+      String remoteReplayServerHost = clientProperties.getReplay().getRemoteHost();
+      Integer remoteReplayServerPort = clientProperties.getReplay().getRemotePort();
 
       logger.debug("Opening local replay server on port {}", localReplayServerPort);
+      logger.debug("Connecting to replay server at '{}:{}'", remoteReplayServerHost, remoteReplayServerPort);
 
-      try (ServerSocket serverSocket = new ServerSocket(localReplayServerPort);
-           Socket fafReplayServerSocket = new Socket(fafReplayServerHost, fafReplayServerPort)) {
-        this.serverSocket = serverSocket;
+      try (ServerSocket localSocket = new ServerSocket(localReplayServerPort);
+           Socket remoteReplayServerSocket = new Socket(remoteReplayServerHost, remoteReplayServerPort)) {
+        this.serverSocket = localSocket;
         future.complete(null);
-        recordAndRelay(uid, serverSocket, new BufferedOutputStream(fafReplayServerSocket.getOutputStream()));
+        recordAndRelay(uid, localSocket, new BufferedOutputStream(remoteReplayServerSocket.getOutputStream()));
       } catch (IOException e) {
         if (stoppedGracefully) {
           return;

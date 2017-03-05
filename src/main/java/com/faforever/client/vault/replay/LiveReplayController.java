@@ -9,13 +9,11 @@ import com.faforever.client.game.MapPreviewTableCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
-import com.faforever.client.player.PlayerService;
-import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameState;
 import com.faforever.client.theme.UiService;
-import com.google.api.client.repackaged.com.google.common.base.Joiner;
+import com.google.common.base.Joiner;
 import javafx.application.Platform;
-import javafx.beans.binding.ObjectBinding;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -41,6 +39,10 @@ import java.util.stream.Collectors;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class LiveReplayController extends AbstractViewController<Node> {
   private final ObjectProperty<Game> selectedGame;
+  private final GameService gameService;
+  private final UiService uiService;
+  private final I18n i18n;
+  private final MapService mapService;
   public TableView<Game> liveReplayControllerRoot;
   public TableColumn<Game, Image> mapPreviewColumn;
   public TableColumn<Game, String> gameTitleColumn;
@@ -48,20 +50,14 @@ public class LiveReplayController extends AbstractViewController<Node> {
   public TableColumn<Game, String> modsColumn;
   public TableColumn<Game, String> hostColumn;
   public TableColumn<Game, Game> watchColumn;
-  @Inject
-  FafService fafService;
-  @Inject
-  GameService gameService;
-  @Inject
-  UiService uiService;
-  @Inject
-  I18n i18n;
-  @Inject
-  PlayerService playerService;
-  @Inject
-  MapService mapService;
 
-  public LiveReplayController() {
+  @Inject
+  public LiveReplayController(GameService gameService, UiService uiService, I18n i18n, MapService mapService) {
+    this.gameService = gameService;
+    this.uiService = uiService;
+    this.i18n = i18n;
+    this.mapService = mapService;
+
     selectedGame = new SimpleObjectProperty<>();
   }
 
@@ -74,16 +70,10 @@ public class LiveReplayController extends AbstractViewController<Node> {
     sortedList.comparatorProperty().bind(liveReplayControllerRoot.comparatorProperty());
 
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(uiService));
-    mapPreviewColumn.setCellValueFactory(param -> new ObjectBinding<Image>() {
-      {
-        bind(param.getValue().mapFolderNameProperty());
-      }
-
-      @Override
-      protected Image computeValue() {
-        return mapService.loadPreview(param.getValue().getMapFolderName(), PreviewSize.SMALL);
-      }
-    });
+    mapPreviewColumn.setCellValueFactory(param -> Bindings.createObjectBinding(
+        () -> mapService.loadPreview(param.getValue().getMapFolderName(), PreviewSize.SMALL),
+        param.getValue().mapFolderNameProperty()
+    ));
 
     gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
     gameTitleColumn.setCellFactory(param -> new StringCell<>(title -> title));

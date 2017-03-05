@@ -2,6 +2,6 @@ package com.faforever.client.fa;
 
 public enum RatingMode {
   GLOBAL,
-  RANKED_1V1,
+  LADDER_1V1,
   NONE
 }

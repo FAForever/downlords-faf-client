@@ -1,5 +1,7 @@
 package com.faforever.client.uploader.imgur;
 
+import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.Imgur.Upload;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.ByteCopier;
 import com.faforever.client.task.CompletableTask;
@@ -11,7 +13,6 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -35,26 +36,31 @@ import static com.faforever.client.io.Bytes.formatSize;
 public class ImgurUploadTask extends CompletableTask<String> {
 
   private final Gson gson;
-  @Inject
-  I18n i18n;
-  @Inject
-  Environment environment;
+
+  private final I18n i18n;
+  private final ClientProperties clientProperties;
+
   private Image image;
   private int maxUploadSize;
   private String baseUrl;
   private String clientId;
 
-  public ImgurUploadTask() {
+  @Inject
+  public ImgurUploadTask(I18n i18n, ClientProperties clientProperties) {
     super(Priority.HIGH);
     gson = new GsonBuilder().create();
+
+    this.i18n = i18n;
+    this.clientProperties = clientProperties;
   }
 
   @PostConstruct
   void postConstruct() {
     updateTitle(i18n.get("chat.imageUploadTask.title"));
-    maxUploadSize = environment.getProperty("imgur.upload.maxSize", int.class);
-    baseUrl = environment.getProperty("imgur.upload.baseUrl");
-    clientId = environment.getProperty("imgur.upload.clientId");
+    Upload uploadProperties = clientProperties.getImgur().getUpload();
+    maxUploadSize = uploadProperties.getMaxSize();
+    baseUrl = uploadProperties.getBaseUrl();
+    clientId = uploadProperties.getClientId();
   }
 
   @Override
@@ -65,7 +71,7 @@ public class ImgurUploadTask extends CompletableTask<String> {
     ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
 
     if (byteArrayOutputStream.size() > maxUploadSize) {
-      throw new IllegalArgumentException("Image exceeds max upload size of " + formatSize(maxUploadSize, i18n.getLocale()));
+      throw new IllegalArgumentException("Image exceeds max upload size of " + formatSize(maxUploadSize, i18n.getUserSpecificLocale()));
     }
 
     String dataImage = BaseEncoding.base64().encode(byteArrayOutputStream.toByteArray());

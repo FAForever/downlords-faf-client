@@ -22,7 +22,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import java.util.concurrent.CompletableFuture;
 
 import static java.util.Collections.singletonList;
 
@@ -102,7 +101,7 @@ public class ModDetailController implements Controller<Node> {
 
   public void setMod(Mod mod) {
     this.mod = mod;
-    CompletableFuture.runAsync(() -> thumbnailImageView.setImage(modService.loadThumbnail(mod)));
+    thumbnailImageView.setImage(modService.loadThumbnail(mod));
     nameLabel.setText(mod.getName());
     authorLabel.setText(mod.getAuthor());
 

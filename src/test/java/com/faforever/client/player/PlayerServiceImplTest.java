@@ -41,13 +41,13 @@ import static org.mockito.Mockito.when;
 public class PlayerServiceImplTest {
 
   @Mock
-  GameService gameService;
+  private GameService gameService;
   @Mock
-  FafService fafService;
+  private FafService fafService;
   @Mock
-  UserService userService;
+  private UserService userService;
   @Mock
-  EventBus eventBus;
+  private EventBus eventBus;
 
   private PlayerServiceImpl instance;
 
@@ -55,10 +55,7 @@ public class PlayerServiceImplTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new PlayerServiceImpl();
-    instance.eventBus = eventBus;
-    instance.fafService = fafService;
-    instance.userService = userService;
+    instance = new PlayerServiceImpl(fafService, userService, eventBus);
     instance.gameService = gameService;
 
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
@@ -209,7 +206,7 @@ public class PlayerServiceImplTest {
     LoginSuccessEvent event = new LoginSuccessEvent("junit", "", 1);
     instance.onLoginSuccess(event);
 
-    Player currentPlayer = instance.getCurrentPlayer();
+    Player currentPlayer = instance.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("No player returned"));
 
     assertThat(currentPlayer.getUsername(), is("junit"));
     assertThat(currentPlayer.getId(), is(1));

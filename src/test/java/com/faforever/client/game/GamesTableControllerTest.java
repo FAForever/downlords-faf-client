@@ -26,11 +26,7 @@ public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new GamesTableController();
-    instance.i18n = i18n;
-    instance.joinGameHelper = joinGameHelper;
-    instance.uiService = uiService;
-    instance.mapService = mapService;
+    instance = new GamesTableController(mapService, joinGameHelper, i18n, uiService);
 
     loadFxml("theme/play/games_table.fxml", param -> instance);
 

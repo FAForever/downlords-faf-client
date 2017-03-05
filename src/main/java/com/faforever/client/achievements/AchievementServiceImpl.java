@@ -1,8 +1,7 @@
 package com.faforever.client.achievements;
 
-import com.faforever.client.api.AchievementDefinition;
-import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.api.PlayerAchievement;
+import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -27,8 +26,6 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.github.nocatch.NoCatch.noCatch;
 
@@ -41,32 +38,27 @@ public class AchievementServiceImpl implements AchievementService {
   private final ObservableList<PlayerAchievement> readOnlyPlayerAchievements;
   private final ObservableList<PlayerAchievement> playerAchievements;
 
-  @Inject
-  UserService userService;
-  @Inject
-  FafApiAccessor fafApiAccessor;
-  @Inject
-  FafService fafService;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  I18n i18n;
-  @Inject
-  PlayerService playerService;
-  @Inject
-  UiService uiService;
-  @Inject
-  ThreadPoolExecutor threadPoolExecutor;
-  @Inject
-  AssetService assetService;
+  private final UserService userService;
+  private final FafService fafService;
+  private final PlayerService playerService;
+  private final AssetService assetService;
 
-  public AchievementServiceImpl() {
+  @Inject
+  // TODO cut dependencies if possible
+  public AchievementServiceImpl(UserService userService, FafService fafService,
+                                NotificationService notificationService, I18n i18n, PlayerService playerService,
+                                UiService uiService, AssetService assetService) {
+    this.userService = userService;
+    this.fafService = fafService;
+    this.playerService = playerService;
+    this.assetService = assetService;
+
     playerAchievements = FXCollections.observableArrayList();
     readOnlyPlayerAchievements = FXCollections.unmodifiableObservableList(playerAchievements);
   }
 
   @Override
-  public CompletionStage<List<PlayerAchievement>> getPlayerAchievements(String username) {
+  public CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(String username) {
     if (userService.getUsername().equalsIgnoreCase(username)) {
       if (readOnlyPlayerAchievements.isEmpty()) {
         reloadAchievements();
@@ -79,17 +71,18 @@ public class AchievementServiceImpl implements AchievementService {
       return CompletableFuture.completedFuture(Collections.emptyList());
     }
     int playerId = playerForUsername.getId();
-    return CompletableFuture.supplyAsync(() -> FXCollections.observableList(fafApiAccessor.getPlayerAchievements(playerId)), threadPoolExecutor);
+
+    return fafService.getPlayerAchievements(playerId);
   }
 
   @Override
-  public CompletionStage<List<AchievementDefinition>> getAchievementDefinitions() {
-    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getAchievementDefinitions(), threadPoolExecutor);
+  public CompletableFuture<List<AchievementDefinition>> getAchievementDefinitions() {
+    return fafService.getAchievementDefinitions();
   }
 
   @Override
-  public CompletionStage<AchievementDefinition> getAchievementDefinition(String achievementId) {
-    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getAchievementDefinition(achievementId), threadPoolExecutor);
+  public CompletableFuture<AchievementDefinition> getAchievementDefinition(String achievementId) {
+    return fafService.getAchievementDefinition(achievementId);
   }
 
   @Override
@@ -111,7 +104,7 @@ public class AchievementServiceImpl implements AchievementService {
   }
 
   private void reloadAchievements() {
-    playerAchievements.setAll(fafApiAccessor.getPlayerAchievements(userService.getUserId()));
+    fafService.getPlayerAchievements(userService.getUserId()).thenAccept(playerAchievements::setAll);
   }
 
   @PostConstruct

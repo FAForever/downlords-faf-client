@@ -15,7 +15,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 public interface ModService {
 
@@ -23,13 +22,13 @@ public interface ModService {
 
   ObservableList<Mod> getInstalledMods();
 
-  CompletionStage<Void> downloadAndInstallMod(String uid);
+  CompletableFuture<Void> downloadAndInstallMod(String uid);
 
-  CompletionStage<Void> downloadAndInstallMod(URL url);
+  CompletableFuture<Void> downloadAndInstallMod(URL url);
 
-  CompletionStage<Void> downloadAndInstallMod(URL url, DoubleProperty progressProperty, StringProperty titleProperty);
+  CompletableFuture<Void> downloadAndInstallMod(URL url, DoubleProperty progressProperty, StringProperty titleProperty);
 
-  CompletionStage<Void> downloadAndInstallMod(Mod mod, DoubleProperty progressProperty, StringProperty titleProperty);
+  CompletableFuture<Void> downloadAndInstallMod(Mod mod, DoubleProperty progressProperty, StringProperty titleProperty);
 
   Set<String> getInstalledModUids();
 
@@ -39,26 +38,26 @@ public interface ModService {
 
   boolean isModInstalled(String uid);
 
-  CompletionStage<Void> uninstallMod(Mod mod);
+  CompletableFuture<Void> uninstallMod(Mod mod);
 
   Path getPathForMod(Mod mod);
 
   /**
    * Returns mods available on the server.
    */
-  CompletionStage<List<Mod>> getAvailableMods();
+  CompletableFuture<List<Mod>> getAvailableMods();
 
-  CompletionStage<List<Mod>> getMostDownloadedMods(int count);
+  CompletableFuture<List<Mod>> getMostDownloadedMods(int count);
 
-  CompletionStage<List<Mod>> getMostLikedMods(int count);
+  CompletableFuture<List<Mod>> getMostLikedMods(int count);
 
-  CompletionStage<List<Mod>> getMostPlayedMods(int count);
+  CompletableFuture<List<Mod>> getMostPlayedMods(int count);
 
-  CompletionStage<List<Mod>> getNewestMods(int count);
+  CompletableFuture<List<Mod>> getNewestMods(int count);
 
-  CompletionStage<List<Mod>> getMostLikedUiMods(int count);
+  CompletableFuture<List<Mod>> getMostLikedUiMods(int count);
 
-  CompletionStage<List<Mod>> lookupMod(String string, int maxSuggestions);
+  CompletableFuture<List<Mod>> lookupMod(String string, int maxSuggestions);
 
   @NotNull
   Mod extractModInfo(Path path);

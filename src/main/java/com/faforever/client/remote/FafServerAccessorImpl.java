@@ -1,6 +1,9 @@
 package com.faforever.client.remote;
 
+import com.faforever.client.FafClientApplication;
 import com.faforever.client.config.CacheNames;
+import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.fa.relay.GpgClientMessageSerializer;
 import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.fa.relay.GpgServerMessageType;
@@ -14,8 +17,8 @@ import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.rankedmatch.SearchRanked1V1ClientMessage;
-import com.faforever.client.rankedmatch.StopSearchRanked1V1ClientMessage;
+import com.faforever.client.rankedmatch.SearchLadder1v1ClientMessage;
+import com.faforever.client.rankedmatch.StopSearchLadder1v1ClientMessage;
 import com.faforever.client.remote.domain.AddFoeMessage;
 import com.faforever.client.remote.domain.AddFriendMessage;
 import com.faforever.client.remote.domain.AuthenticationFailedMessage;
@@ -55,10 +58,12 @@ import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.update.Version;
 import com.github.nocatch.NoCatch;
+import com.google.common.hash.Hashing;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -66,7 +71,6 @@ import javafx.concurrent.Task;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
@@ -87,15 +91,15 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Lazy
 @Component
-@Profile("!local")
+@Profile("!" + FafClientApplication.POFILE_OFFLINE)
 public class FafServerAccessorImpl extends AbstractServerAccessor implements FafServerAccessor {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -128,10 +132,10 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
                                UidService uidService,
                                NotificationService notificationService,
                                I18n i18n,
-                               @Value("${lobby.host}") String lobbyHost,
-                               @Value("${lobby.port}") int lobbyPort) {
-    this.lobbyHost = lobbyHost;
-    this.lobbyPort = lobbyPort;
+                               ClientProperties clientProperties) {
+    Server server = clientProperties.getServer();
+    this.lobbyHost = server.getHost();
+    this.lobbyPort = server.getPort();
     messageListeners = new HashMap<>();
     connectionState = new SimpleObjectProperty<>();
     sessionId = new SimpleObjectProperty<>();
@@ -194,7 +198,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletionStage<LoginMessage> connectAndLogIn(String username, String password) {
+  public CompletableFuture<LoginMessage> connectAndLogIn(String username, String password) {
     sessionFuture = new CompletableFuture<>();
     loginFuture = new CompletableFuture<>();
     this.username = username;
@@ -207,7 +211,8 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
       protected Void call() throws Exception {
         while (!isCancelled()) {
           logger.info("Trying to connect to FAF server at {}:{}", lobbyHost, lobbyPort);
-          connectionState.set(ConnectionState.CONNECTING);
+          Platform.runLater(() -> connectionState.set(ConnectionState.CONNECTING));
+
 
           try (Socket fafServerSocket = new Socket(lobbyHost, lobbyPort);
                OutputStream outputStream = fafServerSocket.getOutputStream()) {
@@ -222,11 +227,11 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
             writeToServer(new InitSessionMessage(Version.VERSION));
 
             logger.info("FAF server connection established");
-            connectionState.set(ConnectionState.CONNECTED);
+            Platform.runLater(() -> connectionState.set(ConnectionState.CONNECTED));
 
             blockingReadServer(fafServerSocket);
           } catch (IOException e) {
-            connectionState.set(ConnectionState.DISCONNECTED);
+            Platform.runLater(() -> connectionState.set(ConnectionState.DISCONNECTED));
             if (isCancelled()) {
               logger.debug("Connection to FAF server has been closed");
             } else {
@@ -250,7 +255,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletionStage<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
+  public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
     HostGameMessage hostGameMessage = new HostGameMessage(
         StringUtils.isEmpty(newGameInfo.getPassword()) ? GameAccess.PUBLIC : GameAccess.PASSWORD,
         newGameInfo.getMap(),
@@ -267,11 +272,8 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletionStage<GameLaunchMessage> requestJoinGame(int gameId, String password) {
-    JoinGameMessage joinGameMessage = new JoinGameMessage(
-        gameId,
-        password
-    );
+  public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password) {
+    JoinGameMessage joinGameMessage = new JoinGameMessage(gameId, password);
 
     gameLaunchFuture = new CompletableFuture<>();
     writeToServer(joinGameMessage);
@@ -302,15 +304,15 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletionStage<GameLaunchMessage> startSearchRanked1v1(Faction faction) {
+  public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction) {
     gameLaunchFuture = new CompletableFuture<>();
-    writeToServer(new SearchRanked1V1ClientMessage(faction));
+    writeToServer(new SearchLadder1v1ClientMessage(faction));
     return gameLaunchFuture;
   }
 
   @Override
   public void stopSearchingRanked() {
-    writeToServer(new StopSearchRanked1V1ClientMessage());
+    writeToServer(new StopSearchLadder1v1ClientMessage());
     gameLaunchFuture = null;
   }
 
@@ -426,7 +428,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
   private void logIn(String username, String password) {
     String uniqueId = uidService.generate(String.valueOf(sessionId.get()), preferencesService.getFafDataDirectory().resolve("uid.log"));
-    writeToServer(new LoginClientMessage(username, password, sessionId.get(), uniqueId, localIp));
+    writeToServer(new LoginClientMessage(username, Hashing.sha256().hashString(password, UTF_8).toString(), sessionId.get(), uniqueId, localIp));
   }
 
   private void onGameLaunchInfo(GameLaunchMessage gameLaunchMessage) {

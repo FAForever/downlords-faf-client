@@ -24,6 +24,7 @@ public class Preferences {
   private final NotificationsPrefs notification;
   private final StringProperty themeName;
   private final StringProperty lastGameType;
+  private final LocalizationPrefs localization;
   private final StringProperty lastGameTitle;
   private final StringProperty lastMap;
   private final BooleanProperty rememberLastTab;
@@ -31,17 +32,18 @@ public class Preferences {
   private final IntegerProperty lastGameMinRating;
   private final IntegerProperty lastGameMaxRating;
   private final StringProperty gamesViewMode;
-  private final Ranked1v1Prefs ranked1v1;
-  private final NewsPrefs newsPrefs;
-  private final DeveloperPrefs developerPrefs;
+  private final Ladder1v1Prefs ladder1v1;
+  private final NewsPrefs news;
+  private final DeveloperPrefs developer;
 
   public Preferences() {
     chat = new ChatPrefs();
     login = new LoginPrefs();
+    localization = new LocalizationPrefs();
     mainWindow = new WindowPrefs();
     forgedAlliance = new ForgedAlliancePrefs();
     themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
-    lastGameType = new SimpleStringProperty(KnownFeaturedMod.DEFAULT.getString());
+    lastGameType = new SimpleStringProperty(KnownFeaturedMod.DEFAULT.getTechnicalName());
     ignoredNotifications = new SimpleListProperty<>(observableArrayList());
     notification = new NotificationsPrefs();
     rememberLastTab = new SimpleBooleanProperty(true);
@@ -49,10 +51,10 @@ public class Preferences {
     lastMap = new SimpleStringProperty();
     lastGameMinRating = new SimpleIntegerProperty(800);
     lastGameMaxRating = new SimpleIntegerProperty(1300);
-    ranked1v1 = new Ranked1v1Prefs();
+    ladder1v1 = new Ladder1v1Prefs();
     gamesViewMode = new SimpleStringProperty();
-    newsPrefs = new NewsPrefs();
-    developerPrefs = new DeveloperPrefs();
+    news = new NewsPrefs();
+    developer = new DeveloperPrefs();
   }
 
   public String getGamesViewMode() {
@@ -69,6 +71,10 @@ public class Preferences {
 
   public WindowPrefs getMainWindow() {
     return mainWindow;
+  }
+
+  public LocalizationPrefs getLocalization() {
+    return localization;
   }
 
   public ForgedAlliancePrefs getForgedAlliance() {
@@ -183,15 +189,15 @@ public class Preferences {
     return lastGameMaxRating;
   }
 
-  public Ranked1v1Prefs getRanked1v1() {
-    return ranked1v1;
+  public Ladder1v1Prefs getLadder1v1Prefs() {
+    return ladder1v1;
   }
 
   public NewsPrefs getNews() {
-    return newsPrefs;
+    return news;
   }
 
-  public DeveloperPrefs getDeveloperPrefs() {
-    return developerPrefs;
+  public DeveloperPrefs getDeveloper() {
+    return developer;
   }
 }

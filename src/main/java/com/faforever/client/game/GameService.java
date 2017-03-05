@@ -10,7 +10,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 /**
@@ -20,17 +20,16 @@ public interface GameService {
 
   ReadOnlyBooleanProperty gameRunningProperty();
 
-  CompletionStage<Void> hostGame(NewGameInfo name);
+  CompletableFuture<Void> hostGame(NewGameInfo name);
 
-  CompletionStage<Void> joinGame(Game game, String password);
+  CompletableFuture<Void> joinGame(Game game, String password);
 
   /**
    * @param path a replay file that is readable by the preferences without any further conversion
-   * @param featuredMod
    */
   void runWithReplay(Path path, @Nullable Integer replayId, String featuredMod, Integer version, Map<String, Integer> modVersions, Set<String> simMods, String mapName);
 
-  CompletionStage<Void> runWithLiveReplay(URI replayUri, Integer gameId, String gameType, String mapName);
+  CompletableFuture<Void> runWithLiveReplay(URI replayUri, Integer gameId, String gameType, String mapName);
 
   ObservableList<Game> getGames();
 
@@ -38,9 +37,9 @@ public interface GameService {
 
   void addOnRankedMatchNotificationListener(Consumer<MatchmakerMessage> listener);
 
-  CompletionStage<Void> startSearchRanked1v1(Faction faction);
+  CompletableFuture<Void> startSearchLadder1v1(Faction faction);
 
-  void stopSearchRanked1v1();
+  void stopSearchLadder1v1();
 
   BooleanProperty searching1v1Property();
 

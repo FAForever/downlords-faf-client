@@ -1,6 +1,7 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.api.FeaturedMod;
+import com.faforever.client.api.dto.FeaturedMod;
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
@@ -26,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 import static com.faforever.client.notification.Severity.WARN;
 import static com.github.nocatch.NoCatch.noCatch;
@@ -77,30 +76,38 @@ public class ReplayServiceImpl implements ReplayService {
   private static final String GPGNET_SCHEME = "gpgnet";
   private static final String TEMP_SCFA_REPLAY_FILE_NAME = "temp.scfareplay";
 
+  private final ClientProperties clientProperties;
+  private final PreferencesService preferencesService;
+  private final ReplayFileReader replayFileReader;
+  private final NotificationService notificationService;
+  private final GameService gameService;
+  private final TaskService taskService;
+  private final I18n i18n;
+  private final ReportingService reportingService;
+  private final ApplicationContext applicationContext;
+  private final PlatformService platformService;
+  private final ReplayServer replayServer;
+  private final FafService fafService;
+
   @Inject
-  Environment environment;
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  ReplayFileReader replayFileReader;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  GameService gameService;
-  @Inject
-  TaskService taskService;
-  @Inject
-  I18n i18n;
-  @Inject
-  ReportingService reportingService;
-  @Inject
-  ApplicationContext applicationContext;
-  @Inject
-  PlatformService platformService;
-  @Inject
-  ReplayServer replayServer;
-  @Inject
-  FafService fafService;
+  public ReplayServiceImpl(ClientProperties clientProperties, PreferencesService preferencesService,
+                           ReplayFileReader replayFileReader, NotificationService notificationService,
+                           GameService gameService, TaskService taskService, I18n i18n,
+                           ReportingService reportingService, ApplicationContext applicationContext,
+                           PlatformService platformService, ReplayServer replayServer, FafService fafService) {
+    this.clientProperties = clientProperties;
+    this.preferencesService = preferencesService;
+    this.replayFileReader = replayFileReader;
+    this.notificationService = notificationService;
+    this.gameService = gameService;
+    this.taskService = taskService;
+    this.i18n = i18n;
+    this.reportingService = reportingService;
+    this.applicationContext = applicationContext;
+    this.platformService = platformService;
+    this.replayServer = replayServer;
+    this.fafService = fafService;
+  }
 
   @VisibleForTesting
   static Integer parseSupComVersion(byte[] rawReplayBytes) {
@@ -121,14 +128,14 @@ public class ReplayServiceImpl implements ReplayService {
     if (splitFileName.length > 2) {
       return splitFileName[splitFileName.length - 2];
     }
-    return KnownFeaturedMod.DEFAULT.getString();
+    return KnownFeaturedMod.DEFAULT.getTechnicalName();
   }
 
   @Override
   public Collection<Replay> getLocalReplays() {
     Collection<Replay> replayInfos = new ArrayList<>();
 
-    String replayFileGlob = environment.getProperty("replayFileGlob");
+    String replayFileGlob = clientProperties.getReplay().getReplayFileGlob();
 
     Path replaysDirectory = preferencesService.getReplaysDirectory();
     if (!Files.notExists(replaysDirectory)) {
@@ -187,7 +194,8 @@ public class ReplayServiceImpl implements ReplayService {
 
     URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setScheme(FAF_LIFE_PROTOCOL);
-    uriBuilder.setHost(environment.getProperty("lobby.host"));
+    // TODO check if this host is correct
+    uriBuilder.setHost(clientProperties.getReplay().getRemoteHost());
     uriBuilder.setPath("/" + gameId + "/" + playerId + SUP_COM_REPLAY_FILE_ENDING);
     uriBuilder.addParameter("map", UrlEscapers.urlFragmentEscaper().escape(game.getMapFolderName()));
     uriBuilder.addParameter("mod", game.getFeaturedMod());
@@ -256,17 +264,17 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public CompletionStage<List<Replay>> getNewestReplays(int topElementCount) {
+  public CompletableFuture<List<Replay>> getNewestReplays(int topElementCount) {
     return fafService.getNewestReplays(topElementCount);
   }
 
   @Override
-  public CompletionStage<List<Replay>> getHighestRatedReplays(int topElementCount) {
+  public CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount) {
     return fafService.getHighestRatedReplays(topElementCount);
   }
 
   @Override
-  public CompletionStage<List<Replay>> getMostWatchedReplays(int topElementCount) {
+  public CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount) {
     return fafService.getMostWatchedReplays(topElementCount);
   }
 
@@ -335,7 +343,7 @@ public class ReplayServiceImpl implements ReplayService {
     gameService.runWithReplay(path, null, gameType, version, emptyMap(), emptySet(), mapName);
   }
 
-  private CompletionStage<Path> downloadReplayToTemporaryDirectory(int replayId) {
+  private CompletableFuture<Path> downloadReplayToTemporaryDirectory(int replayId) {
     ReplayDownloadTask task = applicationContext.getBean(ReplayDownloadTask.class);
     task.setReplayId(replayId);
     return taskService.submitTask(task).getFuture();

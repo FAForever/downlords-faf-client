@@ -8,20 +8,24 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 
 
 @Lazy
 @Service
 public class ImgurImageUploadService implements ImageUploadService {
 
+  private final TaskService taskService;
+  private final ApplicationContext applicationContext;
+
   @Inject
-  TaskService taskService;
-  @Inject
-  ApplicationContext applicationContext;
+  public ImgurImageUploadService(TaskService taskService, ApplicationContext applicationContext) {
+    this.taskService = taskService;
+    this.applicationContext = applicationContext;
+  }
 
   @Override
-  public CompletionStage<String> uploadImageInBackground(Image image) {
+  public CompletableFuture<String> uploadImageInBackground(Image image) {
     ImgurUploadTask imgurUploadTask = applicationContext.getBean(ImgurUploadTask.class);
     imgurUploadTask.setImage(image);
     return taskService.submitTask(imgurUploadTask).getFuture();

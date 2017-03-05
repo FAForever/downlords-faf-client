@@ -25,7 +25,7 @@ public enum GpgClientCommand {
   DESYNC("Desync"),
   GAME_FULL("GameFull"),
   ENDED("Ended"),
-  SDP_RECORD("SdpRecord"),
+  ICE_MESSAGE("IceMsg"),
   // Yes, this is the only lower-cased command in the protocol. Because reasons.
   CONNECTED_TO_HOST("connectedToHost");
 

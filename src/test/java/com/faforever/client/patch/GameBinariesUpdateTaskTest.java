@@ -1,10 +1,9 @@
 package com.faforever.client.patch;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.google.common.hash.Hashing;
-import com.google.common.io.Files;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,31 +33,21 @@ public class GameBinariesUpdateTaskTest {
   private I18n i18n;
 
   private GameBinariesUpdateTaskImpl instance;
-  private Preferences preferences;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new GameBinariesUpdateTaskImpl(i18n, preferencesService);
+    instance = new GameBinariesUpdateTaskImpl(i18n, preferencesService, new ClientProperties());
 
     Path faPath = faDirectory.getRoot().toPath();
     java.nio.file.Files.createDirectories(faPath.resolve("bin"));
 
-    preferences = new Preferences();
+    Preferences preferences = new Preferences();
     preferences.getForgedAlliance().setPath(faPath);
 
     when(preferencesService.getFafBinDirectory()).thenReturn(fafBinDirectory.getRoot().toPath());
     when(preferencesService.getPreferences()).thenReturn(preferences);
-  }
-
-  @Test
-  public void name() throws Exception {
-    Path dummyExe = fafBinDirectory.getRoot().toPath().resolve("ForgedAlliance.exe");
-    createFileWithSize(dummyExe, 12_444_928);
-    GameBinariesUpdateTaskImpl.updateVersionInExe(3660, dummyExe);
-
-    assertThat(Files.hash(dummyExe.toFile(), Hashing.md5()).toString(), is("4de5eed29b45b640fe64aa22808631c3"));
   }
 
   @Test(expected = IllegalStateException.class)

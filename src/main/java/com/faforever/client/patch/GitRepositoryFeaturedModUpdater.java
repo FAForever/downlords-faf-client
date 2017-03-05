@@ -1,22 +1,23 @@
 package com.faforever.client.patch;
 
+import com.faforever.client.FafClientApplication;
 import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.nio.file.Path;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 
 
 @Lazy
 @Component
-@Profile("!local")
+@Profile("!" + FafClientApplication.POFILE_OFFLINE)
 public class GitRepositoryFeaturedModUpdater implements FeaturedModUpdater {
 
   private static final String NON_WORD_CHARACTER_PATTERN = "[^\\w]";
@@ -34,7 +35,7 @@ public class GitRepositoryFeaturedModUpdater implements FeaturedModUpdater {
 
   @Override
   @SuppressWarnings("unchecked")
-  public CompletionStage<PatchResult> updateMod(FeaturedModBean featuredMod, @Nullable Integer version) {
+  public CompletableFuture<PatchResult> updateMod(FeaturedModBean featuredMod, @Nullable Integer version) {
     String repoDirName = featuredMod.getGitUrl().replaceAll(NON_WORD_CHARACTER_PATTERN, "");
     Path repositoryDirectory = preferencesService.getGitReposDirectory().resolve(repoDirName);
 

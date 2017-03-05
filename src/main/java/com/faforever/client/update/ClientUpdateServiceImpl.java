@@ -1,5 +1,6 @@
 package com.faforever.client.update;
 
+import com.faforever.client.FafClientApplication;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
@@ -30,27 +31,29 @@ import static org.apache.commons.lang3.StringUtils.defaultString;
 
 @Lazy
 @Service
-@Profile("!local")
+@Profile("!" + FafClientApplication.POFILE_OFFLINE)
 public class ClientUpdateServiceImpl implements ClientUpdateService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String DEVELOPMENT_VERSION_STRING = "dev";
 
-  @Inject
-  TaskService taskService;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  I18n i18n;
-  @Inject
-  PlatformService platformService;
-  @Inject
-  ApplicationContext applicationContext;
+  private final TaskService taskService;
+  private final NotificationService notificationService;
+  private final I18n i18n;
+  private final PlatformService platformService;
+  private final ApplicationContext applicationContext;
 
   @VisibleForTesting
   ComparableVersion currentVersion;
 
-  public ClientUpdateServiceImpl() {
+  @Inject
+  public ClientUpdateServiceImpl(TaskService taskService, NotificationService notificationService, I18n i18n, PlatformService platformService, ApplicationContext applicationContext) {
+    this.taskService = taskService;
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.platformService = platformService;
+    this.applicationContext = applicationContext;
+
     currentVersion = new ComparableVersion(
         defaultString(Version.VERSION, DEVELOPMENT_VERSION_STRING)
     );
@@ -67,7 +70,7 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
         return;
       }
       notificationService.addNotification(new PersistentNotification(
-          i18n.get("clientUpdateAvailable.notification", updateInfo.getName(), formatSize(updateInfo.getSize(), i18n.getLocale())),
+          i18n.get("clientUpdateAvailable.notification", updateInfo.getName(), formatSize(updateInfo.getSize(), i18n.getUserSpecificLocale())),
           INFO, asList(
           new Action(i18n.get("clientUpdateAvailable.downloadAndInstall"), event -> downloadAndInstallInBackground(updateInfo)),
           new Action(i18n.get("clientUpdateAvailable.releaseNotes"), Action.Type.OK_STAY,

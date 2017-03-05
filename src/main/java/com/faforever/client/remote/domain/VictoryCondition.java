@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum VictoryCondition {
+  // Order is crucial
   DEMORALIZATION(0),
   DOMINATION(1),
   ERADICATION(2),
@@ -30,10 +31,6 @@ public enum VictoryCondition {
     this.value = value;
   }
 
-  public Object getValue() {
-    return value;
-  }
-
   public static VictoryCondition fromNumber(Object number) {
     VictoryCondition victoryCondition = fromNumber.get(number);
     if (victoryCondition == null) {
@@ -41,5 +38,9 @@ public enum VictoryCondition {
       return UNKNOWN;
     }
     return victoryCondition;
+  }
+
+  public Object getValue() {
+    return value;
   }
 }

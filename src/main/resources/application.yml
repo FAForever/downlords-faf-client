@@ -1,0 +1,61 @@
+faf-client:
+  true-skill:
+    initialStandardDeviation: 500
+    initialMean: 1500
+    beta: 240
+
+  vault:
+   mapDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/maps/%s.zip
+   mapPreviewUrlFormat: ${faf-client.vault.base-url}/faf/vault/map_previews/%s/%s.png
+   replayDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/replay_vault/replay.php?id=asd
+   modDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/maps/%s.zip
+
+  imgur:
+    upload:
+      clientId: 141ee8a7030f16d
+
+  unit-database:
+    url: http://spooky.github.io/unitdb/#/
+
+spring:
+  profiles:
+    active: ${CLIENT_PROFILE:prod}
+  main:
+    web-environment: false
+  application:
+    name: Downlord's FAF Client
+
+security:
+  oauth2:
+    client:
+      clientAuthenticationScheme: header
+logging:
+  level:
+    org.springframework.beans: warn
+    org.springframework.http.client.support: debug
+    org.springframework.security.oauth2: debug
+    faf-ice-adapter: debug
+    org.ice4j.stack: warn
+    com.nbarraille.jjsonrpc: warn
+    org.pircbotx: warn
+
+    com.faforever.client.FafClientApplication: debug
+    com.faforever.client.api: info
+    com.faforever.client.connectivity: info
+    com.faforever.client.preferences: info
+    com.faforever.client.map: info
+    com.faforever.client.mod: info
+    com.faforever.client.net: info
+    com.faforever.client.util: info
+    com.faforever.client.patch: info
+    com.faforever.client.events: info
+    com.faforever.client.legacy: info
+    com.faforever.client.remote: debug
+    com.faforever.client.replay: info
+    com.faforever.client.relay: info
+    com.faforever.client.chat: info
+    com.faforever.client.game: info
+    com.faforever.client.task: info
+    com.faforever.client.theme: info
+    com.faforever.client.io: debug
+    com.faforever.client.fa.relay.ice: debug

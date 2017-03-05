@@ -1,5 +1,7 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.config.ClientProperties;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
@@ -8,6 +10,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -17,7 +20,6 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
 
 import java.io.IOException;
 import java.net.URI;
@@ -79,8 +81,6 @@ public class ReplayServiceImplTest {
   @Mock
   private I18n i18n;
   @Mock
-  private Environment environment;
-  @Mock
   private PreferencesService preferencesService;
   @Mock
   private ReplayFileReader replayFileReader;
@@ -94,27 +94,24 @@ public class ReplayServiceImplTest {
   private GameService gameService;
   @Mock
   private FafService fafService;
+  @Mock
+  private ReportingService reportingService;
+  @Mock
+  private PlatformService platformService;
+  @Mock
+  private ReplayServer replayServer;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new ReplayServiceImpl();
-    instance.i18n = i18n;
-    instance.environment = environment;
-    instance.preferencesService = preferencesService;
-    instance.replayFileReader = replayFileReader;
-    instance.notificationService = notificationService;
-    instance.applicationContext = applicationContext;
-    instance.taskService = taskService;
-    instance.gameService = gameService;
-    instance.fafService = fafService;
+    instance = new ReplayServiceImpl(new ClientProperties(), preferencesService, replayFileReader, notificationService, gameService,
+        taskService, i18n, reportingService, applicationContext, platformService, replayServer, fafService);
 
     when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath());
     when(preferencesService.getCorruptedReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath().resolve("corrupt"));
     when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory.getRoot().toPath());
-    when(environment.getProperty("replayFileGlob")).thenReturn("*.fafreplay");
-    doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
+    doAnswer(invocation -> invocation.getArgument(0)).when(taskService).submitTask(any());
   }
 
   @Test
@@ -135,7 +132,7 @@ public class ReplayServiceImplTest {
   public void testGuessModByFileNameModIsMissing() throws Exception {
     String mod = ReplayServiceImpl.guessModByFileName("110621-2128 Saltrock Colony.SCFAReplay");
 
-    assertEquals(KnownFeaturedMod.DEFAULT.getString(), mod);
+    assertEquals(KnownFeaturedMod.DEFAULT.getTechnicalName(), mod);
   }
 
   @Test

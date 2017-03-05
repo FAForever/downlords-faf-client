@@ -1,12 +1,10 @@
 package com.faforever.client.achievements;
 
 import com.faforever.client.achievements.AchievementService.AchievementState;
-import com.faforever.client.api.AchievementDefinition;
-import com.faforever.client.api.AchievementType;
-import com.faforever.client.api.PlayerAchievement;
+import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.api.dto.AchievementType;
+import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
@@ -20,6 +18,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.when;
 
 public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
@@ -27,20 +26,14 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
   private AchievementItemController instance;
 
   @Mock
-  private PreferencesService preferencesService;
-  @Mock
-  private Preferences preferences;
-  @Mock
   private I18n i18n;
   @Mock
   private AchievementService achievementService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new AchievementItemController();
-    instance.preferencesService = preferencesService;
-    instance.i18n = i18n;
-    instance.achievementService = achievementService;
+    instance = new AchievementItemController(i18n, achievementService);
+    when(i18n.number(anyInt())).thenAnswer(invocation -> String.format("%d", (int) invocation.getArgument(0)));
 
     loadFxml("theme/achievement_item.fxml", clazz -> instance);
   }
@@ -84,7 +77,7 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
         .get());
 
     PlayerAchievement playerAchievement = PlayerAchievementBuilder.create().defaultValues()
-        .state(com.faforever.client.api.AchievementState.UNLOCKED)
+        .state(com.faforever.client.api.dto.AchievementState.UNLOCKED)
         .currentSteps(50)
         .get();
 
@@ -114,7 +107,7 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
     instance.setAchievementDefinition(AchievementDefinitionBuilder.create().defaultValues().get());
 
     PlayerAchievement playerAchievement = PlayerAchievementBuilder.create().defaultValues()
-        .state(com.faforever.client.api.AchievementState.REVEALED)
+        .state(com.faforever.client.api.dto.AchievementState.REVEALED)
         .get();
 
     instance.setPlayerAchievement(playerAchievement);
@@ -127,7 +120,7 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
     instance.setAchievementDefinition(AchievementDefinitionBuilder.create().defaultValues().get());
 
     PlayerAchievement playerAchievement = PlayerAchievementBuilder.create().defaultValues()
-        .state(com.faforever.client.api.AchievementState.UNLOCKED)
+        .state(com.faforever.client.api.dto.AchievementState.UNLOCKED)
         .currentSteps(50)
         .get();
 

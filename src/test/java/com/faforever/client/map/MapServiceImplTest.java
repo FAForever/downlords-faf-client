@@ -1,11 +1,13 @@
 package com.faforever.client.map;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.AssetService;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -15,6 +17,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.store.RAMDirectory;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -22,13 +25,13 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.luaj.vm2.LuaError;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.equalTo;
@@ -58,6 +61,8 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
   public ExpectedException expectedException = ExpectedException.none();
 
   private MapServiceImpl instance;
+  private Path mapsDirectory;
+
   @Mock
   private PreferencesService preferencesService;
   @Mock
@@ -67,8 +72,6 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private ObjectProperty<Path> customMapsDirectoryProperty;
   @Mock
-  private ThreadPoolExecutor threadPoolExecutor;
-  @Mock
   private TaskService taskService;
   @Mock
   private I18n i18n;
@@ -76,25 +79,21 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
   private UiService uiService;
   @Mock
   private AssetService assetService;
-
-  private Path mapsDirectory;
+  @Mock
+  private ApplicationContext applicationContext;
+  @Mock
+  private FafService fafService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new MapServiceImpl();
-    instance.preferencesService = preferencesService;
-    instance.threadPoolExecutor = threadPoolExecutor;
-    instance.taskService = taskService;
-    instance.directory = new RAMDirectory();
-    instance.analyzer = new SimpleAnalyzer();
-    instance.i18n = i18n;
-    instance.uiService = uiService;
-    instance.assetService = assetService;
-    instance.mapPreviewUrlFormat = "http://127.0.0.1:65534/preview/%s/%s";
+    ClientProperties clientProperties = new ClientProperties();
+    clientProperties.getVault().setMapPreviewUrlFormat("http://127.0.0.1:65534/preview/%s/%s");
+
+    instance = new MapServiceImpl(preferencesService, taskService, applicationContext, new RAMDirectory(), new SimpleAnalyzer(),
+        fafService, assetService, i18n, uiService, clientProperties);
 
     mapsDirectory = gameDirectory.newFolder("maps").toPath();
 
-    when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory.getRoot().toPath());
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getCustomMapsDirectory()).thenReturn(customMapsDirectory.getRoot().toPath());
@@ -104,7 +103,7 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
 
     doAnswer(invocation -> {
       @SuppressWarnings("unchecked")
-      CompletableTask<Void> task = invocation.getArgumentAt(0, CompletableTask.class);
+      CompletableTask<Void> task = invocation.getArgument(0);
       WaitForAsyncUtils.asyncFx(task);
       task.getFuture().get();
       return task;
@@ -162,7 +161,7 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(mapBean.getId(), isEmptyOrNullString());
     assertThat(mapBean.getDescription(), startsWith("Initial scans of the planet"));
     assertThat(mapBean.getSize(), is(new MapSize(20, 20)));
-    assertThat(mapBean.getVersion(), is(1));
+    assertThat(mapBean.getVersion(), is(new ComparableVersion("1")));
     assertThat(mapBean.getFolderName(), is("SCMP_001"));
   }
 
@@ -177,7 +176,7 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testloadPreview() throws Exception {
+  public void testLoadPreview() throws Exception {
     for (PreviewSize previewSize : PreviewSize.values()) {
       Path cacheSubDir = Paths.get("maps").resolve(previewSize.folderName);
       instance.loadPreview("preview", previewSize);

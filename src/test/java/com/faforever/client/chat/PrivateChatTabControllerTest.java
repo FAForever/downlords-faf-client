@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -10,10 +11,15 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.UiService;
+import com.faforever.client.uploader.ImageUploadService;
+import com.faforever.client.user.UserService;
+import com.faforever.client.util.TimeService;
+import com.google.common.eventbus.EventBus;
 import com.sun.javafx.scene.control.skin.TabPaneSkin;
 import javafx.scene.control.TabPane;
-import javafx.stage.Stage;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -22,6 +28,7 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertFalse;
@@ -31,6 +38,8 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
+  private PrivateChatTabController instance;
+  private String playerName;
 
   @Mock
   private PreferencesService preferencesService;
@@ -50,20 +59,33 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   private WebViewConfigurer webViewConfigurer;
   @Mock
   private ChatService chatService;
-
-  private PrivateChatTabController instance;
-  private String playerName;
+  @Mock
+  private UserService userService;
+  @Mock
+  private PlatformService platformService;
+  @Mock
+  private TimeService timeService;
+  @Mock
+  private ImageUploadService imageUploadService;
+  @Mock
+  private UrlPreviewResolver urlPreviewResolver;
+  @Mock
+  private ReportingService reportingService;
+  @Mock
+  private UiService uiService;
+  @Mock
+  private AutoCompletionHelper autoCompletionHelper;
+  @Mock
+  private EventBus eventBus;
+  @Mock
+  private ThreadPoolExecutor threadPoolExecutor;
 
   @Before
   public void setUp() throws IOException {
-    instance = new PrivateChatTabController(audioService, chatService, webViewConfigurer);
-    instance.preferencesService = preferencesService;
-    instance.playerService = playerService;
-    instance.notificationService = notificationService;
-    instance.i18n = i18n;
-
-    WaitForAsyncUtils.asyncFx(() -> instance.stage = new Stage());
-    WaitForAsyncUtils.waitForFxEvents();
+    instance = new PrivateChatTabController(userService, chatService, platformService, preferencesService, playerService,
+        audioService, timeService, i18n, imageUploadService, urlPreviewResolver, notificationService, reportingService,
+        uiService, autoCompletionHelper, eventBus, webViewConfigurer, threadPoolExecutor
+    );
 
     playerName = "testUser";
     Player player = new Player(playerName);
@@ -102,7 +124,6 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void onChatMessageTestNotFoeShowFoe() {
-    when(chatPrefs.getHideFoeMessages()).thenReturn(false);
     instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
   }
 

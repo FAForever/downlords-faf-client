@@ -49,16 +49,21 @@ public class PlayerServiceImpl implements PlayerService {
   private final List<Integer> foeList;
   private final List<Integer> friendList;
   private final ObjectProperty<Player> currentPlayer;
-  @Inject
-  FafService fafService;
-  @Inject
-  UserService userService;
+
+  private final FafService fafService;
+  private final UserService userService;
+  private final EventBus eventBus;
+  //TODO: circular reference
   @Inject
   GameService gameService;
-  @Inject
-  EventBus eventBus;
 
-  public PlayerServiceImpl() {
+  @Inject
+  public PlayerServiceImpl(FafService fafService, UserService userService, EventBus eventBus) {
+    this.fafService = fafService;
+    this.userService = userService;
+    this.eventBus = eventBus;
+
+
     playersByName = FXCollections.observableHashMap();
     playersById = FXCollections.observableHashMap();
     friendList = new ArrayList<>();
@@ -97,7 +102,7 @@ public class PlayerServiceImpl implements PlayerService {
 
   @Subscribe
   public void onAvatarChanged(AvatarChangedEvent event) {
-    Player player = getCurrentPlayer();
+    Player player = getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
 
     AvatarBean avatar = event.getAvatar();
     if (avatar == null) {
@@ -211,9 +216,8 @@ public class PlayerServiceImpl implements PlayerService {
   }
 
   @Override
-  public Player getCurrentPlayer() {
-    Assert.checkNullIllegalState(currentPlayer.get(), "currentPlayer has not yet been set");
-    return currentPlayer.get();
+  public Optional<Player> getCurrentPlayer() {
+    return Optional.ofNullable(currentPlayer.get());
   }
 
   @Override
@@ -254,7 +258,7 @@ public class PlayerServiceImpl implements PlayerService {
 
   private void onPlayerInfo(com.faforever.client.remote.domain.Player player) {
     if (player.getLogin().equalsIgnoreCase(userService.getUsername())) {
-      Player playerInfoBean = getCurrentPlayer();
+      Player playerInfoBean = getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
       playerInfoBean.updateFromPlayerInfo(player);
       playerInfoBean.setSocialStatus(SELF);
     } else {

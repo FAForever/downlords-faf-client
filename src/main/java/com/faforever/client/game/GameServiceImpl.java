@@ -1,10 +1,12 @@
 package com.faforever.client.game;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.FeaturedModBean;
@@ -42,7 +44,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -61,8 +62,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 import static com.faforever.client.fa.RatingMode.NONE;
@@ -91,37 +91,24 @@ public class GameServiceImpl implements GameService {
   private final ObservableList<Game> games;
   private final ObservableMap<Integer, Game> uidToGameInfoBean;
 
-  @Inject
-  FafService fafService;
-  @Inject
-  ForgedAllianceService forgedAllianceService;
-  @Inject
-  MapService mapService;
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  GameUpdater gameUpdater;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  I18n i18n;
-  @Inject
-  ApplicationContext applicationContext;
-  @Inject
-  ScheduledExecutorService scheduledExecutorService;
-  @Inject
-  PlayerService playerService;
-  @Inject
-  ReportingService reportingService;
+  private final FafService fafService;
+  private final ForgedAllianceService forgedAllianceService;
+  private final MapService mapService;
+  private final PreferencesService preferencesService;
+  private final GameUpdater gameUpdater;
+  private final NotificationService notificationService;
+  private final I18n i18n;
+  private final Executor executor;
+  private final PlayerService playerService;
+  private final ReportingService reportingService;
+  private final EventBus eventBus;
+  private final IceAdapter iceAdapter;
+  private final ModService modService;
+  private final PlatformService platformService;
+  private final String faWindowTitle;
+  //TODO: circular reference
   @Inject
   ReplayService replayService;
-  @Inject
-  EventBus eventBus;
-  @Inject
-  IceAdapter iceAdapter;
-  @Inject
-  ModService modService;
-
   @VisibleForTesting
   RatingMode ratingMode;
 
@@ -129,7 +116,24 @@ public class GameServiceImpl implements GameService {
   private BooleanProperty searching1v1;
   private boolean rehostRequested;
 
-  public GameServiceImpl() {
+  @Inject
+  public GameServiceImpl(ClientProperties clientProperties, FafService fafService, ForgedAllianceService forgedAllianceService, MapService mapService, PreferencesService preferencesService, GameUpdater gameUpdater, NotificationService notificationService, I18n i18n, Executor executor, PlayerService playerService, ReportingService reportingService,  EventBus eventBus, IceAdapter iceAdapter, ModService modService, PlatformService platformService) {
+    this.fafService = fafService;
+    this.forgedAllianceService = forgedAllianceService;
+    this.mapService = mapService;
+    this.preferencesService = preferencesService;
+    this.gameUpdater = gameUpdater;
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.executor = executor;
+    this.playerService = playerService;
+    this.reportingService = reportingService;
+    this.eventBus = eventBus;
+    this.iceAdapter = iceAdapter;
+    this.modService = modService;
+    this.platformService = platformService;
+
+    faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
     uidToGameInfoBean = FXCollections.observableHashMap();
     searching1v1 = new SimpleBooleanProperty();
     gameRunning = new SimpleBooleanProperty();
@@ -146,13 +150,13 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public CompletionStage<Void> hostGame(NewGameInfo newGameInfo) {
+  public CompletableFuture<Void> hostGame(NewGameInfo newGameInfo) {
     if (isRunning()) {
       logger.debug("Game is running, ignoring host request");
       return completedFuture(null);
     }
 
-    stopSearchRanked1v1();
+    stopSearchLadder1v1();
 
     return updateGameIfNecessary(newGameInfo.getFeaturedMod(), null, emptyMap(), newGameInfo.getSimMods())
         .thenCompose(aVoid -> downloadMapIfNecessary(newGameInfo.getMap()))
@@ -161,15 +165,15 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public CompletionStage<Void> joinGame(Game game, String password) {
+  public CompletableFuture<Void> joinGame(Game game, String password) {
     if (isRunning()) {
       logger.debug("Game is running, ignoring join request");
       return completedFuture(null);
     }
 
-    logger.info("Joining preferences: {} ({})", game.getTitle(), game.getId());
+    logger.info("Joining game: '{}' ({})", game.getTitle(), game.getId());
 
-    stopSearchRanked1v1();
+    stopSearchLadder1v1();
 
     Map<String, Integer> featuredModVersions = game.getFeaturedModVersions();
     Set<String> simModUIds = game.getSimMods().keySet();
@@ -188,7 +192,7 @@ public class GameServiceImpl implements GameService {
         });
   }
 
-  private CompletionStage<Void> downloadMapIfNecessary(String mapFolderName) {
+  private CompletableFuture<Void> downloadMapIfNecessary(String mapFolderName) {
     if (mapService.isInstalled(mapFolderName)) {
       return completedFuture(null);
     }
@@ -230,7 +234,7 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public CompletionStage<Void> runWithLiveReplay(URI replayUrl, Integer gameId, String gameType, String mapName) {
+  public CompletableFuture<Void> runWithLiveReplay(URI replayUrl, Integer gameId, String gameType, String mapName) {
     if (isRunning()) {
       logger.warn("Forged Alliance is already running, not starting live replay");
       return completedFuture(null);
@@ -272,7 +276,7 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public CompletionStage<Void> startSearchRanked1v1(Faction faction) {
+  public CompletableFuture<Void> startSearchLadder1v1(Faction faction) {
     if (isRunning()) {
       logger.debug("Game is running, ignoring 1v1 search request");
       return completedFuture(null);
@@ -282,9 +286,9 @@ public class GameServiceImpl implements GameService {
 
     int port = preferencesService.getPreferences().getForgedAlliance().getPort();
 
-    return modService.getFeaturedMod(LADDER_1V1.getString())
+    return modService.getFeaturedMod(LADDER_1V1.getTechnicalName())
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
-        .thenCompose(aVoid -> fafService.startSearchRanked1v1(faction, port))
+        .thenCompose(aVoid -> fafService.startSearchLadder1v1(faction, port))
         .thenAccept((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapname())
             .thenRun(() -> {
               // TODO this should be sent by the server!
@@ -292,7 +296,7 @@ public class GameServiceImpl implements GameService {
               gameLaunchMessage.getArgs().add("/team 1");
               gameLaunchMessage.getArgs().add("/players 2");
 
-              startGame(gameLaunchMessage, faction, RatingMode.RANKED_1V1);
+              startGame(gameLaunchMessage, faction, RatingMode.LADDER_1V1);
             }))
         .exceptionally(throwable -> {
           if (throwable instanceof CancellationException) {
@@ -305,7 +309,7 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public void stopSearchRanked1v1() {
+  public void stopSearchLadder1v1() {
     if (searching1v1.get()) {
       fafService.stopSearchingRanked();
       searching1v1.set(false);
@@ -329,7 +333,7 @@ public class GameServiceImpl implements GameService {
     return process != null && process.isAlive();
   }
 
-  private CompletionStage<Void> updateGameIfNecessary(FeaturedModBean featuredMod, @Nullable Integer version, @NotNull Map<String, Integer> featuredModVersions, @NotNull Set<String> simModUids) {
+  private CompletableFuture<Void> updateGameIfNecessary(FeaturedModBean featuredMod, @Nullable Integer version, @NotNull Map<String, Integer> featuredModVersions, @NotNull Set<String> simModUids) {
     return gameUpdater.update(featuredMod, version, featuredModVersions, simModUids);
   }
 
@@ -356,7 +360,7 @@ public class GameServiceImpl implements GameService {
       return;
     }
 
-    stopSearchRanked1v1();
+    stopSearchLadder1v1();
     replayService.startReplayServer(gameLaunchMessage.getUid())
         .thenCompose(aVoid -> iceAdapter.start())
         .thenAccept(adapterPort -> {
@@ -396,7 +400,7 @@ public class GameServiceImpl implements GameService {
 
   @VisibleForTesting
   void spawnTerminationListener(Process process) {
-    CompletableFuture.runAsync(() -> {
+    executor.execute(() -> {
       try {
         rehostRequested = false;
         int exitCode = process.waitFor();
@@ -415,7 +419,7 @@ public class GameServiceImpl implements GameService {
       } catch (InterruptedException e) {
         logger.warn("Error during post-preferences processing", e);
       }
-    }, scheduledExecutorService);
+    });
   }
 
   private void rehost() {
@@ -461,7 +465,7 @@ public class GameServiceImpl implements GameService {
 
     final Game game;
     Integer gameId = gameInfoMessage.getUid();
-    Player currentPlayer = playerService.getCurrentPlayer();
+    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
     if (!uidToGameInfoBean.containsKey(gameId)) {
       game = new Game(gameInfoMessage);
       uidToGameInfoBean.put(gameId, game);
@@ -492,6 +496,15 @@ public class GameServiceImpl implements GameService {
         currentGame.set(game);
       }
     }
+
+    game.statusProperty().addListener((observable, oldValue, newValue) -> {
+      if (oldValue == GameState.OPEN
+          && newValue == GameState.PLAYING
+          && game.getTeams().values().stream().anyMatch(team -> team.contains(currentPlayer.getUsername()))
+          && !platformService.isWindowFocused(faWindowTitle)) {
+        platformService.focusWindow(faWindowTitle);
+      }
+    });
   }
 
   private void removeGame(GameInfoMessage gameInfoMessage) {

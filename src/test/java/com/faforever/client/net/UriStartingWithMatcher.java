@@ -13,12 +13,12 @@ public class UriStartingWithMatcher implements ArgumentMatcher<URI> {
     this.prefix = prefix;
   }
 
-  @Override
-  public boolean matches(Object argument) {
-    return ((URI) argument).toASCIIString().startsWith(prefix);
-  }
-
   public static URI uriStartingWith(String prefix) {
     return Matchers.argThat(new UriStartingWithMatcher(prefix));
+  }
+
+  @Override
+  public boolean matches(URI argument) {
+    return ((URI) argument).toASCIIString().startsWith(prefix);
   }
 }

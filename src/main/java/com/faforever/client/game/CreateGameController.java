@@ -16,6 +16,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -52,9 +53,9 @@ import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import static com.faforever.client.net.ConnectionState.CONNECTED;
 import static javafx.scene.layout.BackgroundPosition.CENTER;
 import static javafx.scene.layout.BackgroundRepeat.NO_REPEAT;
 
@@ -71,6 +72,7 @@ public class CreateGameController implements Controller<Pane> {
   private final I18n i18n;
   private final NotificationService notificationService;
   private final ReportingService reportingService;
+  private final FafService fafService;
   public Label mapSizeLabel;
   public Label mapPlayersLabel;
   public Label mapDescriptionLabel;
@@ -91,7 +93,7 @@ public class CreateGameController implements Controller<Pane> {
   FilteredList<MapBean> filteredMapBeans;
 
   @Inject
-  public CreateGameController(MapService mapService, ModService modService, GameService gameService, PreferencesService preferencesService, I18n i18n, NotificationService notificationService, ReportingService reportingService) {
+  public CreateGameController(FafService fafService, MapService mapService, ModService modService, GameService gameService, PreferencesService preferencesService, I18n i18n, NotificationService notificationService, ReportingService reportingService) {
     this.mapService = mapService;
     this.modService = modService;
     this.gameService = gameService;
@@ -99,6 +101,7 @@ public class CreateGameController implements Controller<Pane> {
     this.i18n = i18n;
     this.notificationService = notificationService;
     this.reportingService = reportingService;
+    this.fafService = fafService;
   }
 
   public void initialize() {
@@ -153,6 +156,7 @@ public class CreateGameController implements Controller<Pane> {
     } else {
       init();
     }
+
   }
 
   public void onCloseButtonClicked() {
@@ -174,17 +178,25 @@ public class CreateGameController implements Controller<Pane> {
     });
 
     createGameButton.textProperty().bind(Bindings.createStringBinding(() -> {
+      switch (fafService.connectionStateProperty().get()) {
+        case DISCONNECTED:
+          return i18n.get("game.create.disconnected");
+        case CONNECTING:
+          return i18n.get("game.create.connecting");
+        default:
+          break;
+      }
       if (Strings.isNullOrEmpty(titleTextField.getText())) {
         return i18n.get("game.create.titleMissing");
       } else if (featuredModListView.getSelectionModel().getSelectedItem() == null) {
         return i18n.get("game.create.featuredModMissing");
       }
       return i18n.get("game.create.create");
-    }, titleTextField.textProperty(), featuredModListView.getSelectionModel().selectedItemProperty()));
+    }, titleTextField.textProperty(), featuredModListView.getSelectionModel().selectedItemProperty(), fafService.connectionStateProperty()));
 
     createGameButton.disableProperty().bind(
         titleTextField.textProperty().isEmpty()
-            .or(featuredModListView.getSelectionModel().selectedItemProperty().isNull())
+            .or(featuredModListView.getSelectionModel().selectedItemProperty().isNull().or(fafService.connectionStateProperty().isNotEqualTo(CONNECTED)))
     );
   }
 
@@ -215,18 +227,16 @@ public class CreateGameController implements Controller<Pane> {
     preferencesService.getPreferences().setLastMap(newValue.getFolderName());
     preferencesService.storeInBackground();
 
-    CompletableFuture.runAsync(() -> {
-      Image largePreview = mapService.loadPreview(newValue.getFolderName(), PreviewSize.LARGE);
-      mapPreviewPane.setBackground(new Background(new BackgroundImage(largePreview, NO_REPEAT, NO_REPEAT, CENTER,
-          new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false))));
-    });
+    Image largePreview = mapService.loadPreview(newValue.getFolderName(), PreviewSize.LARGE);
+    mapPreviewPane.setBackground(new Background(new BackgroundImage(largePreview, NO_REPEAT, NO_REPEAT, CENTER,
+        new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false))));
 
     MapSize mapSize = newValue.getSize();
     mapSizeLabel.setText(i18n.get("mapPreview.size", mapSize.getWidth(), mapSize.getHeight()));
     mapNameLabel.setText(newValue.getDisplayName());
     mapPlayersLabel.setText(i18n.number(newValue.getPlayers()));
     mapDescriptionLabel.setText(newValue.getDescription());
-    versionLabel.setText(i18n.number(newValue.getVersion()));
+    versionLabel.setText(newValue.getVersion().toString());
   }
 
   private void initFeaturedModList() {
@@ -258,6 +268,7 @@ public class CreateGameController implements Controller<Pane> {
     for (MapBean mapBean : mapListView.getItems()) {
       if (mapBean.getFolderName().equalsIgnoreCase(lastMap)) {
         mapListView.getSelectionModel().select(mapBean);
+        mapListView.scrollTo(mapBean);
         return;
       }
     }
@@ -294,12 +305,13 @@ public class CreateGameController implements Controller<Pane> {
   private void selectLastOrDefaultGameType() {
     String lastGameMod = preferencesService.getPreferences().getLastGameType();
     if (lastGameMod == null) {
-      lastGameMod = KnownFeaturedMod.DEFAULT.getString();
+      lastGameMod = KnownFeaturedMod.DEFAULT.getTechnicalName();
     }
 
     for (FeaturedModBean mod : featuredModListView.getItems()) {
       if (Objects.equals(mod.getTechnicalName(), lastGameMod)) {
         featuredModListView.getSelectionModel().select(mod);
+        featuredModListView.scrollTo(mod);
         break;
       }
     }

@@ -1,6 +1,6 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.api.ApiException;
+import com.faforever.client.api.dto.ApiException;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.event.ModUploadedEvent;
@@ -43,7 +43,12 @@ import static java.util.Arrays.asList;
 public class ModUploadController  implements Controller<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
+  private final ModService modService;
+  private final ThreadPoolExecutor threadPoolExecutor;
+  private final NotificationService notificationService;
+  private final ReportingService reportingService;
+  private final I18n i18n;
+  private final EventBus eventBus;
   public Label uploadTaskMessageLabel;
   public Label uploadTaskTitleLabel;
   public Pane parseProgressPane;
@@ -57,23 +62,19 @@ public class ModUploadController  implements Controller<Node> {
   public Label uidLabel;
   public ImageView thumbnailImageView;
   public Region modUploadRoot;
-
-  @Inject
-  ModService modService;
-  @Inject
-  ThreadPoolExecutor threadPoolExecutor;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  ReportingService reportingService;
-  @Inject
-  I18n i18n;
-  @Inject
-  EventBus eventBus;
-
   private Path modPath;
   private CompletableTask<Void> modUploadTask;
   private Mod modInfo;
+
+  @Inject
+  public ModUploadController(ModService modService, ThreadPoolExecutor threadPoolExecutor, NotificationService notificationService, ReportingService reportingService, I18n i18n, EventBus eventBus) {
+    this.modService = modService;
+    this.threadPoolExecutor = threadPoolExecutor;
+    this.notificationService = notificationService;
+    this.reportingService = reportingService;
+    this.i18n = i18n;
+    this.eventBus = eventBus;
+  }
 
   public void initialize() {
     modInfoPane.managedProperty().bind(modInfoPane.visibleProperty());

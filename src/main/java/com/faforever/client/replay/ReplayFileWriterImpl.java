@@ -1,5 +1,6 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.Bytes;
 import com.faforever.client.preferences.PreferencesService;
@@ -9,7 +10,6 @@ import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -29,23 +29,26 @@ public class ReplayFileWriterImpl implements ReplayFileWriter {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final Gson gson;
-  @Inject
-  Environment environment;
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  I18n i18n;
 
-  public ReplayFileWriterImpl() {
+  private final I18n i18n;
+  private final ClientProperties clientProperties;
+  private final PreferencesService preferencesService;
+
+  @Inject
+  public ReplayFileWriterImpl(I18n i18n, ClientProperties clientProperties, PreferencesService preferencesService) {
+    this.i18n = i18n;
+    this.clientProperties = clientProperties;
+    this.preferencesService = preferencesService;
+
     gson = ReplayFiles.gson();
   }
 
   @Override
   public void writeReplayDataToFile(ByteArrayOutputStream replayData, LocalReplayInfo replayInfo) throws IOException {
-    String fileName = String.format(environment.getProperty("replayFileFormat"), replayInfo.getUid(), replayInfo.getRecorder());
+    String fileName = String.format(clientProperties.getReplay().getReplayFileFormat(), replayInfo.getUid(), replayInfo.getRecorder());
     Path replayFile = preferencesService.getReplaysDirectory().resolve(fileName);
 
-    logger.info("Writing replay file to {} ({})", replayFile, Bytes.formatSize(replayData.size(), i18n.getLocale()));
+    logger.info("Writing replay file to {} ({})", replayFile, Bytes.formatSize(replayData.size(), i18n.getUserSpecificLocale()));
 
     Files.createDirectories(replayFile.getParent());
 

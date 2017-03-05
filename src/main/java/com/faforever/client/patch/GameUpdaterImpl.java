@@ -6,6 +6,7 @@ import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
+import com.faforever.commons.mod.MountPoint;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.context.ApplicationContext;
 
@@ -15,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,7 +28,7 @@ import static com.faforever.client.game.KnownFeaturedMod.LADDER_1V1;
 public class GameUpdaterImpl implements GameUpdater {
 
   private static final List<String> NAMES_OF_FEATURED_BASE_MODS = Stream.of(FAF, FAF_BETA, FAF_DEVELOP, BALANCE_TESTING, LADDER_1V1)
-      .map(KnownFeaturedMod::getString)
+      .map(KnownFeaturedMod::getTechnicalName)
       .collect(Collectors.toList());
 
   private final List<FeaturedModUpdater> featuredModUpdaters;
@@ -55,18 +55,18 @@ public class GameUpdaterImpl implements GameUpdater {
   }
 
   @Override
-  public CompletionStage<Void> update(FeaturedModBean featuredMod, Integer version, Map<String, Integer> featuredModVersions, Set<String> simModUids) {
+  public CompletableFuture<Void> update(FeaturedModBean featuredMod, Integer version, Map<String, Integer> featuredModVersions, Set<String> simModUids) {
     // The following ugly code is sponsored by the featured-mod-mess. FAF and Coop are both featured mods - but others,
     // (except fafbeta and fafdevelop) implicitly depend on FAF. So if a non-base mod is being played, make sure FAF is
     // installed.
     List<PatchResult> patchResults = new ArrayList<>();
 
-    CompletionStage<Void> future = updateFeaturedMod(featuredMod, version)
+    CompletableFuture<Void> future = updateFeaturedMod(featuredMod, version)
         .thenAccept(patchResults::add)
         .thenAccept(aVoid -> downloadMissingSimMods(simModUids));
 
     if (!NAMES_OF_FEATURED_BASE_MODS.contains(featuredMod.getTechnicalName())) {
-      future = future.thenCompose(aVoid -> modService.getFeaturedMod(FAF.getString()))
+      future = future.thenCompose(aVoid -> modService.getFeaturedMod(FAF.getTechnicalName()))
           .thenCompose(baseMod -> updateFeaturedMod(baseMod, null))
           .thenAccept(patchResults::add);
     }
@@ -91,19 +91,19 @@ public class GameUpdaterImpl implements GameUpdater {
     return fafService.getFeaturedMods();
   }
 
-  private CompletionStage<Void> downloadMissingSimMods(Set<String> simModUids) {
+  private CompletableFuture<Void> downloadMissingSimMods(Set<String> simModUids) {
     if (simModUids == null || simModUids.isEmpty()) {
       return CompletableFuture.completedFuture(null);
     }
 
-    List<CompletionStage<Void>> simModFutures = simModUids.stream()
+    List<CompletableFuture<Void>> simModFutures = simModUids.stream()
         .filter(uid -> !modService.isModInstalled(uid))
-        .map(uid -> modService.downloadAndInstallMod(uid))
+        .map(modService::downloadAndInstallMod)
         .collect(Collectors.toList());
     return CompletableFuture.allOf(simModFutures.toArray(new CompletableFuture[simModFutures.size()]));
   }
 
-  private CompletionStage<PatchResult> updateFeaturedMod(FeaturedModBean featuredMod, Integer version) {
+  private CompletableFuture<PatchResult> updateFeaturedMod(FeaturedModBean featuredMod, Integer version) {
     for (FeaturedModUpdater featuredModUpdater : featuredModUpdaters) {
       if (featuredModUpdater.canUpdate(featuredMod)) {
         return featuredModUpdater.updateMod(featuredMod, version);

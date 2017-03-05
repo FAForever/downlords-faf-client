@@ -3,14 +3,14 @@ package com.faforever.client.chat;
 import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.achievements.AchievementService.AchievementState;
-import com.faforever.client.api.AchievementDefinition;
-import com.faforever.client.api.PlayerAchievement;
-import com.faforever.client.api.PlayerEvent;
-import com.faforever.client.api.RatingType;
+import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.api.dto.PlayerAchievement;
+import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.events.EventService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.WindowController;
+import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.preferences.PreferencesService;
@@ -19,7 +19,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
-import com.faforever.client.util.TimeService;
 import com.neovisionaries.i18n.CountryCode;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -57,9 +56,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.achievements.AchievementService.AchievementState.UNLOCKED;
@@ -74,7 +72,7 @@ import static com.faforever.client.events.EventService.EVENT_BUILT_TECH_3_UNITS;
 import static com.faforever.client.events.EventService.EVENT_CUSTOM_GAMES_PLAYED;
 import static com.faforever.client.events.EventService.EVENT_CYBRAN_PLAYS;
 import static com.faforever.client.events.EventService.EVENT_CYBRAN_WINS;
-import static com.faforever.client.events.EventService.EVENT_RANKED_1V1_GAMES_PLAYED;
+import static com.faforever.client.events.EventService.EVENT_LADDER_1V1_GAMES_PLAYED;
 import static com.faforever.client.events.EventService.EVENT_SERAPHIM_PLAYS;
 import static com.faforever.client.events.EventService.EVENT_SERAPHIM_WINS;
 import static com.faforever.client.events.EventService.EVENT_UEF_PLAYS;
@@ -89,7 +87,12 @@ public class UserInfoWindowController implements Controller<Node> {
   private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMM");
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
+  private final StatisticsService statisticsService;
+  private final CountryFlagService countryFlagService;
+  private final AchievementService achievementService;
+  private final EventService eventService;
+  private final I18n i18n;
+  private final UiService uiService;
   public Label lockedAchievementsHeaderLabel;
   public Label unlockedAchievementsHeaderLabel;
   public PieChart gamesPlayedChart;
@@ -119,33 +122,20 @@ public class UserInfoWindowController implements Controller<Node> {
   public Label countryLabel;
   public ImageView countryImageView;
   public Pane userInfoRoot;
-
-  @Inject
-  StatisticsService statisticsService;
-  @Inject
-  CountryFlagService countryFlagService;
-  @Inject
-  AchievementService achievementService;
-  @Inject
-  EventService eventService;
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  I18n i18n;
-  @Inject
-  Locale locale;
-  @Inject
-  TimeService timeService;
-  @Inject
-  UiService uiService;
-
   private Player player;
   private Map<String, AchievementItemController> achievementItemById;
   private Map<String, AchievementDefinition> achievementDefinitionById;
-  private int earnedExperiencePoints;
   private Window ownerWindow;
 
-  public UserInfoWindowController() {
+  @Inject
+  public UserInfoWindowController(StatisticsService statisticsService, CountryFlagService countryFlagService, AchievementService achievementService, EventService eventService, PreferencesService preferencesService, I18n i18n, UiService uiService) {
+    this.statisticsService = statisticsService;
+    this.countryFlagService = countryFlagService;
+    this.achievementService = achievementService;
+    this.eventService = eventService;
+    this.i18n = i18n;
+    this.uiService = uiService;
+
     achievementItemById = new HashMap<>();
     achievementDefinitionById = new HashMap<>();
   }
@@ -213,9 +203,9 @@ public class UserInfoWindowController implements Controller<Node> {
     usernameLabel.setText(player.getUsername());
     countryImageView.setImage(countryFlagService.loadCountryFlag(player.getCountry()));
     avatarImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
-    gamesPlayedLabel.setText(String.format(locale, "%d", player.getNumberOfGames()));
-    ratingLabelGlobal.setText(String.format(locale, "%d", RatingUtil.getGlobalRating(player)));
-    ratingLabel1v1.setText(String.format(locale, "%d", RatingUtil.getLeaderboardRating(player)));
+    gamesPlayedLabel.setText(i18n.number(player.getNumberOfGames()));
+    ratingLabelGlobal.setText(i18n.number(RatingUtil.getGlobalRating(player)));
+    ratingLabel1v1.setText(i18n.number(RatingUtil.getLeaderboardRating(player)));
 
     CountryCode countryCode = CountryCode.getByCode(player.getCountry());
     if (countryCode != null) {
@@ -316,7 +306,7 @@ public class UserInfoWindowController implements Controller<Node> {
   @SuppressWarnings("unchecked")
   private void plotGamesPlayedChart(Map<String, PlayerEvent> playerEvents) {
     int tech1Built = playerEvents.containsKey(EVENT_CUSTOM_GAMES_PLAYED) ? playerEvents.get(EVENT_CUSTOM_GAMES_PLAYED).getCount() : 0;
-    int tech2Built = playerEvents.containsKey(EVENT_RANKED_1V1_GAMES_PLAYED) ? playerEvents.get(EVENT_RANKED_1V1_GAMES_PLAYED).getCount() : 0;
+    int tech2Built = playerEvents.containsKey(EVENT_LADDER_1V1_GAMES_PLAYED) ? playerEvents.get(EVENT_LADDER_1V1_GAMES_PLAYED).getCount() : 0;
 
     Platform.runLater(() -> gamesPlayedChart.setData(FXCollections.observableArrayList(
         new PieChart.Data(i18n.get("stats.custom"), tech1Built),
@@ -331,7 +321,6 @@ public class UserInfoWindowController implements Controller<Node> {
 
   private void updatePlayerAchievements(List<? extends PlayerAchievement> playerAchievements) {
     PlayerAchievement mostRecentPlayerAchievement = null;
-    int unlockedAchievements = 0;
 
     ObservableList<Node> children = unlockedAchievementsContainer.getChildren();
     Platform.runLater(children::clear);
@@ -341,8 +330,6 @@ public class UserInfoWindowController implements Controller<Node> {
       achievementItemController.setPlayerAchievement(playerAchievement);
 
       if (isUnlocked(playerAchievement)) {
-        unlockedAchievements++;
-        earnedExperiencePoints += achievementDefinitionById.get(playerAchievement.getAchievementId()).getExperiencePoints();
         Platform.runLater(() -> children.add(achievementItemController.getRoot()));
         if (mostRecentPlayerAchievement == null
             || playerAchievement.getUpdateTime().compareTo(mostRecentPlayerAchievement.getUpdateTime()) > 0) {
@@ -373,11 +360,11 @@ public class UserInfoWindowController implements Controller<Node> {
   }
 
   public void ladder1v1ButtonClicked() {
-    loadStatistics(RatingType.LADDER_1V1);
+    loadStatistics(KnownFeaturedMod.LADDER_1V1);
   }
 
-  private CompletionStage<Void> loadStatistics(RatingType type) {
-    return statisticsService.getRatingHistory(type, player.getId())
+  private CompletableFuture<Void> loadStatistics(KnownFeaturedMod featuredMod) {
+    return statisticsService.getRatingHistory(featuredMod, player.getId())
         .thenAccept(ratingHistory -> Platform.runLater(() -> plotPlayerRatingGraph(ratingHistory)))
         .exceptionally(throwable -> {
           // FIXME display to user
@@ -407,7 +394,7 @@ public class UserInfoWindowController implements Controller<Node> {
         int number = object.intValue();
         int numberOfDataPoints = dataPoints.size();
         int dataPointIndex = number >= numberOfDataPoints ? numberOfDataPoints - 1 : number;
-        return DATE_FORMATTER.format(dataPoints.get(dataPointIndex).getDateTime());
+        return DATE_FORMATTER.format(dataPoints.get(dataPointIndex).getInstant());
       }
 
       @Override
@@ -418,7 +405,7 @@ public class UserInfoWindowController implements Controller<Node> {
   }
 
   public void globalButtonClicked() {
-    loadStatistics(RatingType.GLOBAL);
+    loadStatistics(KnownFeaturedMod.FAF);
   }
 
   public void show() {

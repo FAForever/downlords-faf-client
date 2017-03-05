@@ -1,6 +1,6 @@
 package com.faforever.client.coop;
 
-import com.faforever.client.api.CoopLeaderboardEntry;
+import com.faforever.client.api.dto.CoopResult;
 import com.faforever.client.remote.FafService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -14,8 +14,12 @@ import java.util.concurrent.CompletableFuture;
 @Service
 public class CoopServiceImpl implements CoopService {
 
+  private final FafService fafService;
+
   @Inject
-  FafService fafService;
+  public CoopServiceImpl(FafService fafService) {
+    this.fafService = fafService;
+  }
 
   @Override
   public CompletableFuture<List<CoopMission>> getMissions() {
@@ -23,7 +27,7 @@ public class CoopServiceImpl implements CoopService {
   }
 
   @Override
-  public CompletableFuture<List<CoopLeaderboardEntry>> getLeaderboard(CoopMission mission, int numberOfPlayers) {
+  public CompletableFuture<List<CoopResult>> getLeaderboard(CoopMission mission, int numberOfPlayers) {
     return fafService.getCoopLeaderboard(mission, numberOfPlayers);
   }
 }

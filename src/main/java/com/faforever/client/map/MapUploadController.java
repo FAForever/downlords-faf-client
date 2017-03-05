@@ -1,6 +1,6 @@
 package com.faforever.client.map;
 
-import com.faforever.client.api.ApiException;
+import com.faforever.client.api.dto.ApiException;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.event.MapUploadedEvent;
@@ -11,6 +11,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.CompletableTask;
+import com.faforever.commons.map.PreviewGenerator;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
@@ -42,7 +43,12 @@ import static java.util.Arrays.asList;
 public class MapUploadController implements Controller<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
+  private final MapService mapService;
+  private final ThreadPoolExecutor threadPoolExecutor;
+  private final NotificationService notificationService;
+  private final ReportingService reportingService;
+  private final I18n i18n;
+  private final EventBus eventBus;
   public Label rankedLabel;
   public Label uploadTaskMessageLabel;
   public Label uploadTaskTitleLabel;
@@ -59,23 +65,19 @@ public class MapUploadController implements Controller<Node> {
   public ImageView thumbnailImageView;
   public Region mapUploadRoot;
   public CheckBox rankedCheckbox;
-
-  @Inject
-  MapService mapService;
-  @Inject
-  ThreadPoolExecutor threadPoolExecutor;
-  @Inject
-  NotificationService notificationService;
-  @Inject
-  ReportingService reportingService;
-  @Inject
-  I18n i18n;
-  @Inject
-  EventBus eventBus;
-
   private Path mapPath;
   private MapBean mapInfo;
   private CompletableTask<Void> uploadMapTask;
+
+  @Inject
+  public MapUploadController(MapService mapService, ThreadPoolExecutor threadPoolExecutor, NotificationService notificationService, ReportingService reportingService, I18n i18n, EventBus eventBus) {
+    this.mapService = mapService;
+    this.threadPoolExecutor = threadPoolExecutor;
+    this.notificationService = notificationService;
+    this.reportingService = reportingService;
+    this.i18n = i18n;
+    this.eventBus = eventBus;
+  }
 
   public void initialize() {
     mapInfoPane.managedProperty().bind(mapInfoPane.visibleProperty());

@@ -34,21 +34,23 @@ import java.util.Optional;
 public class ChatController extends AbstractViewController<Node> {
 
   private final Map<String, AbstractChatTabController> nameToChatTabController;
+  private final ChatService chatService;
+  private final UiService uiService;
+  private final UserService userService;
+  private final EventBus eventBus;
   public Node chatRoot;
   public TabPane tabPane;
   public Pane connectingProgressPane;
   public VBox noOpenTabsContainer;
   public TextField channelNameTextField;
-  @Inject
-  ChatService chatService;
-  @Inject
-  UiService uiService;
-  @Inject
-  UserService userService;
-  @Inject
-  EventBus eventBus;
 
-  public ChatController() {
+  @Inject
+  public ChatController(ChatService chatService, UiService uiService, UserService userService, EventBus eventBus) {
+    this.chatService = chatService;
+    this.uiService = uiService;
+    this.userService = userService;
+    this.eventBus = eventBus;
+
     nameToChatTabController = new HashMap<>();
   }
 

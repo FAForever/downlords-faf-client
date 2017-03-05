@@ -27,6 +27,7 @@ public class ChatPrefs {
   private final IntegerProperty channelTabScrollPaneWidth;
   private final MapProperty<String, Color> userToColor;
   private final BooleanProperty hideFoeMessages;
+  private final ObjectProperty<TimeInfo> timeFormat;
 
   /**
    * Time in minutes a player has to be inactive to be considered idle.
@@ -35,6 +36,7 @@ public class ChatPrefs {
 
 
   public ChatPrefs() {
+    timeFormat = new SimpleObjectProperty<>(TimeInfo.AUTO);
     maxMessages = new SimpleIntegerProperty(500);
     zoom = new SimpleDoubleProperty(1);
     learnedAutoComplete = new SimpleBooleanProperty(false);
@@ -52,6 +54,14 @@ public class ChatPrefs {
 
   public void setChatColorMode(ChatColorMode chatColorMode) {
     this.chatColorMode.set(chatColorMode);
+  }
+
+  public TimeInfo getTimeFormat() {
+    return timeFormat.get();
+  }
+
+  public void setTimeFormat(TimeInfo time) {
+    this.timeFormat.set(time);
   }
 
   public ObjectProperty<ChatColorMode> chatColorModeProperty() {
@@ -84,10 +94,6 @@ public class ChatPrefs {
 
   public Double getZoom() {
     return zoom.getValue();
-  }
-
-  public void setZoom(Double zoom) {
-    this.zoom.set(zoom);
   }
 
   public void setZoom(double zoom) {
@@ -151,11 +157,11 @@ public class ChatPrefs {
     return idleThreshold.get();
   }
 
-  public IntegerProperty idleThresholdProperty() {
-    return idleThreshold;
-  }
-
   public void setIdleThreshold(int idleThreshold) {
     this.idleThreshold.set(idleThreshold);
+  }
+
+  public IntegerProperty idleThresholdProperty() {
+    return idleThreshold;
   }
 }

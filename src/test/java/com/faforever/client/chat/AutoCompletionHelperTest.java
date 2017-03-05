@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.collections.FXCollections;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
@@ -22,22 +23,24 @@ import static org.hamcrest.text.IsEmptyString.isEmptyString;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AutoCompletionHelperTest {
+public class AutoCompletionHelperTest extends AbstractPlainJavaFxTest {
 
   private static final long TIMEOUT = 5000;
 
   @Mock
-  PlayerService playerService;
-  AutoCompletionHelper instance;
+  private PlayerService playerService;
+
+  private AutoCompletionHelper instance;
   private TextInputControl textInputControl;
 
   @Before
   public void setUp() throws Exception {
-    instance = new AutoCompletionHelper();
-    instance.playerService = playerService;
+    instance = new AutoCompletionHelper(playerService);
 
     textInputControl = new TextField();
     instance.bindTo(textInputControl);
@@ -78,14 +81,13 @@ public class AutoCompletionHelperTest {
 
   @Test
   public void testAutoCompleteDoesntCompleteWhenTheresNoWordBeforeCaret() throws Exception {
-    when(playerService.getPlayerNames()).thenReturn(FXCollections.observableSet("DummyUser", "Junit"));
     textInputControl.setText("j");
     textInputControl.positionCaret(0);
-    KeyEvent keyEvent = keyEvent(KeyCode.TAB);
 
-    simulate(keyEvent);
+    simulate(keyEvent(KeyCode.TAB));
 
     assertThat(textInputControl.getText(), is("j"));
+    verify(playerService, never()).getPlayerNames();
   }
 
   @Test

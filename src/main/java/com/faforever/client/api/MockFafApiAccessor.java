@@ -1,26 +1,37 @@
 package com.faforever.client.api;
 
-import com.faforever.client.coop.CoopMission;
-import com.faforever.client.io.ByteCountListener;
-import com.faforever.client.leaderboard.Ranked1v1EntryBean;
-import com.faforever.client.map.MapBean;
+import com.faforever.client.FafClientApplication;
+import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.api.dto.AchievementType;
+import com.faforever.client.api.dto.CoopMission;
+import com.faforever.client.api.dto.CoopResult;
+import com.faforever.client.api.dto.FeaturedMod;
+import com.faforever.client.api.dto.FeaturedModFile;
+import com.faforever.client.api.dto.Game;
+import com.faforever.client.api.dto.GamePlayerStats;
+import com.faforever.client.api.dto.GlobalLeaderboardEntry;
+import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
+import com.faforever.client.api.dto.Map;
+import com.faforever.client.api.dto.Mod;
+import com.faforever.client.api.dto.PlayerAchievement;
+import com.faforever.client.api.dto.PlayerEvent;
+import com.faforever.client.game.KnownFeaturedMod;
+import com.faforever.client.io.ProgressListener;
 import com.faforever.client.mod.FeaturedModBean;
-import com.faforever.client.mod.Mod;
 import com.faforever.client.replay.Replay;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 @Lazy
 @Component
-@Profile("local")
+@Profile(FafClientApplication.POFILE_OFFLINE)
 // NOSONAR
 public class MockFafApiAccessor implements FafApiAccessor {
 
@@ -56,14 +67,14 @@ public class MockFafApiAccessor implements FafApiAccessor {
   @Override
   public List<Mod> getMods() {
     return Arrays.asList(
-        Mod.fromModInfo(new com.faforever.client.api.Mod("1-1-1", "Mod Number One", "Mod description Apple", "Mock", LocalDateTime.now())),
-        Mod.fromModInfo(new com.faforever.client.api.Mod("2-2-2", "Mod Number Two", "Mod description Banana", "Mock", LocalDateTime.now())),
-        Mod.fromModInfo(new com.faforever.client.api.Mod("3-3-3", "Mod Number Three", "Mod description Citrus", "Mock", LocalDateTime.now())),
-        Mod.fromModInfo(new com.faforever.client.api.Mod("4-4-4", "Mod Number Four", "Mod description Date", "Mock", LocalDateTime.now())),
-        Mod.fromModInfo(new com.faforever.client.api.Mod("5-5-5", "Mod Number Five", "Mod description Elderberry", "Mock", LocalDateTime.now())),
-        Mod.fromModInfo(new com.faforever.client.api.Mod("6-6-6", "Mod Number Six", "Mod description Fig", "Mock", LocalDateTime.now())),
-        Mod.fromModInfo(new com.faforever.client.api.Mod("7-7-7", "Mod Number Seven", "Mod description Garlic", "Mock", LocalDateTime.now())),
-        Mod.fromModInfo(new com.faforever.client.api.Mod("8-8-8", "Mod Number Eight", "Mod description Haricot bean", "Mock", LocalDateTime.now()))
+        new com.faforever.client.api.dto.Mod("1-1-1", "Mod Number One", "Mock", OffsetDateTime.now()),
+        new com.faforever.client.api.dto.Mod("2-2-2", "Mod Number Two", "Mock", OffsetDateTime.now()),
+        new com.faforever.client.api.dto.Mod("3-3-3", "Mod Number Three", "Mock", OffsetDateTime.now()),
+        new com.faforever.client.api.dto.Mod("4-4-4", "Mod Number Four", "Mock", OffsetDateTime.now()),
+        new com.faforever.client.api.dto.Mod("5-5-5", "Mod Number Five", "Mock", OffsetDateTime.now()),
+        new com.faforever.client.api.dto.Mod("6-6-6", "Mod Number Six", "Mock", OffsetDateTime.now()),
+        new com.faforever.client.api.dto.Mod("7-7-7", "Mod Number Seven", "Mock", OffsetDateTime.now()),
+        new com.faforever.client.api.dto.Mod("8-8-8", "Mod Number Eight", "Mock", OffsetDateTime.now())
     );
   }
 
@@ -79,107 +90,57 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public MapBean findMapByName(String mapId) {
-    return null;
-  }
-
-  @Override
-  public List<Ranked1v1EntryBean> getLeaderboardEntries(RatingType ratingType) {
-    return null;
-  }
-
-  @Override
-  public Ranked1v1Stats getRanked1v1Stats() {
-    return null;
-  }
-
-  @Override
-  public Ranked1v1EntryBean getRanked1v1EntryForPlayer(int playerId) {
-    return null;
-  }
-
-  @Override
-  public History getRatingHistory(RatingType ratingType, int playerId) {
-    return new History();
-  }
-
-  @Override
-  public List<MapBean> getMaps() {
+  public List<Ladder1v1LeaderboardEntry> getLadder1v1Leaderboard() {
     return Collections.emptyList();
   }
 
   @Override
-  public List<MapBean> getMostDownloadedMaps(int count) {
+  public List<GlobalLeaderboardEntry> getGlobalLeaderboard() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public Ladder1v1LeaderboardEntry getLadder1v1EntryForPlayer(int playerId) {
     return null;
   }
 
   @Override
-  public List<MapBean> getMostPlayedMaps(int count) {
-    return null;
+  public List<GamePlayerStats> getGamePlayerStats(int playerId, KnownFeaturedMod knownFeaturedMod) {
+    return Collections.emptyList();
   }
 
   @Override
-  public List<MapBean> getBestRatedMaps(int count) {
-    return null;
+  public List<Map> getAllMaps() {
+    return Collections.emptyList();
   }
 
   @Override
-  public List<MapBean> getNewestMaps(int count) {
-    return null;
+  public List<Map> getMostDownloadedMaps(int count) {
+    return Collections.emptyList();
   }
 
   @Override
-  public void uploadMod(Path file, ByteCountListener listener) throws IOException {
+  public List<Map> getMostPlayedMaps(int count) {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public List<Map> getHighestRatedMaps(int count) {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public List<Map> getNewestMaps(int count) {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public void uploadMod(Path file, ProgressListener listener) {
 
   }
 
   @Override
-  public void uploadMap(Path file, boolean isRanked, ByteCountListener listener) {
-
-  }
-
-  @Override
-  public Mod getMod(String uid) {
-    return null;
-  }
-
-  @Override
-  public List<FeaturedModFile> getFeaturedModFiles(FeaturedModBean featuredModBean, Integer version) {
-    return null;
-  }
-
-  @Override
-  public List<Replay> searchReplayByPlayer(String playerName) {
-    return null;
-  }
-
-  @Override
-  public List<Replay> searchReplayByMap(String mapName) {
-    return null;
-  }
-
-  @Override
-  public List<Replay> searchReplayByMod(FeaturedMod featuredMod) {
-    return null;
-  }
-
-  @Override
-  public List<Replay> getNewestReplays(int count) {
-    return null;
-  }
-
-  @Override
-  public List<Replay> getHighestRatedReplays(int count) {
-    return null;
-  }
-
-  @Override
-  public List<Replay> getMostWatchedReplays(int count) {
-    return null;
-  }
-
-  @Override
-  public void changePassword(String username, String currentPasswordHash, String newPasswordHash) {
+  public void uploadMap(Path file, boolean isRanked, ProgressListener listener) {
 
   }
 
@@ -189,8 +150,52 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<CoopLeaderboardEntry> getCoopLeaderboard(String missionId, int numberOfPlayers) {
+  public Mod getMod(String uid) {
+    return null;
+  }
+
+  @Override
+  public List<FeaturedModFile> getFeaturedModFiles(FeaturedModBean featuredModBean, Integer version) {
     return Collections.emptyList();
   }
 
+  @Override
+  public List<Replay> searchReplayByPlayerName(String playerName) {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public List<Replay> searchReplayByMapName(String mapName) {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public List<Game> searchReplayByMod(FeaturedMod featuredMod) {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public List<Game> getNewestReplays(int count) {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public List<Game> getHighestRatedReplays(int count) {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public List<Game> getMostWatchedReplays(int count) {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public void changePassword(String username, String currentPasswordHash, String newPasswordHash) {
+
+  }
+
+  @Override
+  public List<CoopResult> getCoopLeaderboard(String missionId, int numberOfPlayers) {
+    return Collections.emptyList();
+  }
 }

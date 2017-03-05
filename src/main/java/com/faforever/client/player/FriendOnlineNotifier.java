@@ -6,7 +6,6 @@ import com.faforever.client.chat.SocialStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.IdenticonUtil;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -21,18 +20,20 @@ import javax.inject.Inject;
 @Component
 public class FriendOnlineNotifier {
 
+  private final NotificationService notificationService;
+  private final I18n i18n;
+  private final EventBus eventBus;
+  private final AudioService audioService;
+  private final PlayerServiceImpl playerService;
+
   @Inject
-  NotificationService notificationService;
-  @Inject
-  I18n i18n;
-  @Inject
-  EventBus eventBus;
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  AudioService audioService;
-  @Inject
-  PlayerServiceImpl playerService;
+  public FriendOnlineNotifier(NotificationService notificationService, I18n i18n, EventBus eventBus, AudioService audioService, PlayerServiceImpl playerService) {
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.eventBus = eventBus;
+    this.audioService = audioService;
+    this.playerService = playerService;
+  }
 
   @PostConstruct
   void postConstruct() {

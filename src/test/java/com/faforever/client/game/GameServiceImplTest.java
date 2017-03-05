@@ -1,11 +1,16 @@
 package com.faforever.client.game;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.ForgedAllianceService;
+import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.IceAdapter;
+import com.faforever.client.fx.PlatformService;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
@@ -16,6 +21,7 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.replay.ReplayService;
+import com.faforever.client.reporting.ReportingService;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.SimpleObjectProperty;
@@ -28,21 +34,18 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.context.ApplicationContext;
 import org.springframework.util.ReflectionUtils;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.net.InetSocketAddress;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.faforever.client.fa.RatingMode.GLOBAL;
-import static com.faforever.client.fa.RatingMode.RANKED_1V1;
 import static com.faforever.client.game.Faction.AEON;
 import static com.faforever.client.game.Faction.CYBRAN;
 import static com.faforever.client.game.KnownFeaturedMod.LADDER_1V1;
@@ -65,7 +68,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -99,11 +101,9 @@ public class GameServiceImplTest {
   @Mock
   private ForgedAlliancePrefs forgedAlliancePrefs;
   @Mock
-  private ApplicationContext applicationContext;
-  @Mock
   private PlayerService playerService;
   @Mock
-  private ScheduledExecutorService scheduledExecutorService;
+  private Executor executor;
   @Mock
   private ReplayService replayService;
   @Mock
@@ -112,45 +112,40 @@ public class GameServiceImplTest {
   private IceAdapter iceAdapter;
   @Mock
   private ModService modService;
+  @Mock
+  private NotificationService notificationService;
+  @Mock
+  private I18n i18n;
+  @Mock
+  private ReportingService reportingService;
+  @Mock
+  private PlatformService platformService;
 
   @Captor
   private ArgumentCaptor<Consumer<GameInfoMessage>> gameInfoMessageListenerCaptor;
 
   @Before
   public void setUp() throws Exception {
-    instance = new GameServiceImpl();
-    instance.fafService = fafService;
-    instance.mapService = mapService;
-    instance.modService = modService;
-    instance.forgedAllianceService = forgedAllianceService;
-    instance.gameUpdater = gameUpdater;
-    instance.preferencesService = preferencesService;
-    instance.applicationContext = applicationContext;
-    instance.playerService = playerService;
-    instance.scheduledExecutorService = scheduledExecutorService;
+    instance = new GameServiceImpl(new ClientProperties(), fafService, forgedAllianceService, mapService,
+        preferencesService, gameUpdater, notificationService, i18n, executor, playerService,
+        reportingService, eventBus, iceAdapter, modService, platformService);
     instance.replayService = replayService;
-    instance.eventBus = eventBus;
-    instance.iceAdapter = iceAdapter;
-
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPort()).thenReturn(GAME_PORT);
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     when(replayService.startReplayServer(anyInt())).thenReturn(CompletableFuture.completedFuture(null));
     when(iceAdapter.start()).thenReturn(CompletableFuture.completedFuture(GPG_PORT));
-    when(fafService.getFeaturedMods()).thenReturn(completedFuture(asList(
-        FeaturedModBeanBuilder.create().defaultValues().get(),
-        FeaturedModBeanBuilder.create().defaultValues().technicalName(LADDER_1V1.getString()).get()
-    )));
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(PlayerBuilder.create("JUnit").defaultValues().get()));
 
     doAnswer(invocation -> {
       try {
-        invocation.getArgumentAt(0, Runnable.class).run();
+        ((Runnable) invocation.getArgument(0)).run();
       } catch (Exception e) {
         e.printStackTrace();
       }
       return null;
-    }).when(scheduledExecutorService).execute(any());
+    }).when(executor).execute(any());
 
     instance.postConstruct();
 
@@ -215,12 +210,6 @@ public class GameServiceImplTest {
     });
 
     CountDownLatch processLatch = new CountDownLatch(1);
-
-    process = mock(Process.class);
-    doAnswer(invocation -> {
-      processLatch.await();
-      return null;
-    }).when(process).waitFor();
 
     instance.hostGame(newGameInfo).toCompletableFuture().get(TIMEOUT, TIME_UNIT);
     gameStartedLatch.await(TIMEOUT, TIME_UNIT);
@@ -289,7 +278,7 @@ public class GameServiceImplTest {
   public void testOnGameInfoMessageSetsCurrentGameIfUserIsInAndStatusOpen() throws Exception {
     assertThat(instance.getCurrentGame(), nullValue());
 
-    when(playerService.getCurrentPlayer()).thenReturn(PlayerBuilder.create("PlayerName").get());
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.ofNullable(PlayerBuilder.create("PlayerName").get()));
 
     GameInfoMessage gameInfoMessage = GameInfoMessageBuilder.create(1234).defaultValues()
         .state(OPEN)
@@ -304,7 +293,7 @@ public class GameServiceImplTest {
   public void testOnGameInfoMessageDoesntSetCurrentGameIfUserIsInAndStatusNotOpen() throws Exception {
     assertThat(instance.getCurrentGame(), nullValue());
 
-    when(playerService.getCurrentPlayer()).thenReturn(PlayerBuilder.create("PlayerName").get());
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.ofNullable(PlayerBuilder.create("PlayerName").get()));
 
     GameInfoMessage gameInfoMessage = GameInfoMessageBuilder.create(1234).defaultValues()
         .state(PLAYING)
@@ -318,7 +307,7 @@ public class GameServiceImplTest {
   public void testOnGameInfoMessageDoesntSetCurrentGameIfUserDoesntMatch() throws Exception {
     assertThat(instance.getCurrentGame(), nullValue());
 
-    when(playerService.getCurrentPlayer()).thenReturn(PlayerBuilder.create("PlayerName").get());
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.ofNullable(PlayerBuilder.create("PlayerName").get()));
 
     GameInfoMessage gameInfoMessage = GameInfoMessageBuilder.create(1234).defaultValues().addTeamMember("1", "Other").get();
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
@@ -350,7 +339,7 @@ public class GameServiceImplTest {
   public void testOnGameInfoRemove() {
     assertThat(instance.getGames(), empty());
 
-    when(playerService.getCurrentPlayer()).thenReturn(PlayerBuilder.create("PlayerName").get());
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.ofNullable(PlayerBuilder.create("PlayerName").get()));
 
     GameInfoMessage gameInfoMessage = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").get();
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
@@ -363,7 +352,7 @@ public class GameServiceImplTest {
   }
 
   @Test
-  public void testStartSearchRanked1v1() throws Exception {
+  public void testStartSearchLadder1v1() throws Exception {
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setMod("ladder1v1");
     gameLaunchMessage.setUid(123);
@@ -372,30 +361,28 @@ public class GameServiceImplTest {
 
     FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
 
-    when(fafService.startSearchRanked1v1(CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
+    when(fafService.startSearchLadder1v1(CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
     when(gameUpdater.update(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));
-    when(scheduledExecutorService.scheduleWithFixedDelay(any(), anyLong(), anyLong(), any())).thenReturn(mock(ScheduledFuture.class));
     when(mapService.isInstalled("scmp_037")).thenReturn(false);
     when(mapService.download("scmp_037")).thenReturn(CompletableFuture.completedFuture(null));
-    when(modService.getFeaturedMod(LADDER_1V1.getString())).thenReturn(CompletableFuture.completedFuture(featuredMod));
+    when(modService.getFeaturedMod(LADDER_1V1.getTechnicalName())).thenReturn(CompletableFuture.completedFuture(featuredMod));
 
-    CompletableFuture<Void> future = instance.startSearchRanked1v1(CYBRAN).toCompletableFuture();
+    CompletableFuture<Void> future = instance.startSearchLadder1v1(CYBRAN).toCompletableFuture();
 
-    verify(fafService).startSearchRanked1v1(CYBRAN, GAME_PORT);
+    verify(fafService).startSearchLadder1v1(CYBRAN, GAME_PORT);
     verify(mapService).download("scmp_037");
     verify(replayService).startReplayServer(123);
-    verify(forgedAllianceService, timeout(100)).startGame(eq(123), eq(CYBRAN), eq(asList("/team", "1", "/players", "2")), eq(RANKED_1V1), anyInt(), eq(false));
+    verify(forgedAllianceService, timeout(100)).startGame(eq(123), eq(CYBRAN), eq(asList("/team", "1", "/players", "2")), eq(RatingMode.LADDER_1V1), anyInt(), eq(false));
     assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
   }
 
   @Test
-  public void testStartSearchRanked1v1GameRunningDoesNothing() throws Exception {
+  public void testStartSearchLadder1v1GameRunningDoesNothing() throws Exception {
     Process process = mock(Process.class);
     when(process.isAlive()).thenReturn(true);
 
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
-    InetSocketAddress externalSocketAddress = new InetSocketAddress(123);
 
     when(forgedAllianceService.startGame(anyInt(), any(), any(), any(), anyInt(), eq(false))).thenReturn(process);
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
@@ -412,23 +399,23 @@ public class GameServiceImplTest {
     instance.hostGame(newGameInfo);
     gameRunningLatch.await(TIMEOUT, TIME_UNIT);
 
-    instance.startSearchRanked1v1(AEON);
+    instance.startSearchLadder1v1(AEON);
 
     assertThat(instance.searching1v1Property().get(), is(false));
   }
 
   @Test
-  public void testStopSearchRanked1v1() throws Exception {
+  public void testStopSearchLadder1v1() throws Exception {
     instance.searching1v1Property().set(true);
-    instance.stopSearchRanked1v1();
+    instance.stopSearchLadder1v1();
     assertThat(instance.searching1v1Property().get(), is(false));
     verify(fafService).stopSearchingRanked();
   }
 
   @Test
-  public void testStopSearchRanked1v1NotSearching() throws Exception {
+  public void testStopSearchLadder1v1NotSearching() throws Exception {
     instance.searching1v1Property().set(false);
-    instance.stopSearchRanked1v1();
+    instance.stopSearchLadder1v1();
     assertThat(instance.searching1v1Property().get(), is(false));
     verify(fafService, never()).stopSearchingRanked();
   }
@@ -464,9 +451,6 @@ public class GameServiceImplTest {
 
     Game game = GameBuilder.create().defaultValues().get();
     instance.currentGame.set(game);
-
-    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(fafService.requestHostGame(any())).thenReturn(completedFuture(GameLaunchMessageBuilder.create().defaultValues().get()));
 
     instance.onRehostRequest(new RehostRequestEvent());
 

@@ -1,5 +1,7 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
@@ -8,7 +10,6 @@ import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,22 +36,20 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ModService modService;
   @Mock
-  private ApplicationContext applicationContext;
-  @Mock
   private UiService uiService;
   @Mock
   private EventBus eventBus;
   @Mock
-  private ModCardController modCardController;
+  private I18n i18n;
+  @Mock
+  private PreferencesService preferencesService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new ModVaultController();
-    instance.modService = modService;
-    instance.uiService = uiService;
-    instance.eventBus = eventBus;
+    instance = new ModVaultController(modService, i18n, preferencesService, eventBus, uiService);
 
     doAnswer(invocation -> {
+      ModCardController modCardController = mock(ModCardController.class);
       when(modCardController.getRoot()).then(invocation1 -> new Pane());
       return modCardController;
     }).when(uiService).loadFxml("theme/vault/mod/mod_card.fxml");
@@ -82,12 +81,6 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
     when(modService.getMostLikedUiMods(anyInt())).thenReturn(CompletableFuture.completedFuture(mods));
     when(modService.getNewestMods(anyInt())).thenReturn(CompletableFuture.completedFuture(mods));
     when(modService.getMostLikedMods(anyInt())).thenReturn(CompletableFuture.completedFuture(mods));
-    when(modService.getAvailableMods()).thenReturn(CompletableFuture.completedFuture(mods));
-
-    ModCardController modCardController = mock(ModCardController.class);
-    doAnswer(invocation -> new Pane()).when(modCardController).getRoot();
-
-    when(applicationContext.getBean(ModCardController.class)).thenReturn(modCardController);
 
     CountDownLatch latch = new CountDownLatch(3);
     waitUntilInitialized(instance.recommendedUiModsPane, latch);

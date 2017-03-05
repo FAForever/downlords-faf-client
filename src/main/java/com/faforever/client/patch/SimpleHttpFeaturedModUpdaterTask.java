@@ -1,6 +1,6 @@
 package com.faforever.client.patch;
 
-import com.faforever.client.api.FeaturedModFile;
+import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.io.ByteCopier;
 import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.mod.Mod;
@@ -9,6 +9,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
+import com.faforever.commons.mod.MountPoint;
 import com.google.common.hash.Hashing;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.luaj.vm2.LuaTable;
@@ -42,18 +43,21 @@ import static com.github.nocatch.NoCatch.noCatch;
 public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResult> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  @Inject
-  FafService fafService;
-  @Inject
-  PreferencesService preferencesService;
-  @Inject
-  ModService modService;
+
+  private final FafService fafService;
+  private final PreferencesService preferencesService;
+  private final ModService modService;
 
   private FeaturedModBean featuredMod;
   private Integer version;
 
-  public SimpleHttpFeaturedModUpdaterTask() {
+  @Inject
+  public SimpleHttpFeaturedModUpdaterTask(FafService fafService, PreferencesService preferencesService, ModService modService) {
     super(Priority.HIGH);
+
+    this.fafService = fafService;
+    this.preferencesService = preferencesService;
+    this.modService = modService;
   }
 
   @Override

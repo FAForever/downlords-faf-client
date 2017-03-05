@@ -1,5 +1,6 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.ByteCopier;
 import com.faforever.client.preferences.PreferencesService;
@@ -8,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -29,24 +29,26 @@ public class ReplayDownloadTask extends CompletableTask<Path> {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String TEMP_FAF_REPLAY_FILE_NAME = "temp.fafreplay";
 
-  @Inject
-  I18n i18n;
-  @Inject
-  Environment environment;
-  @Inject
-  PreferencesService preferencesService;
+  private final I18n i18n;
+  private final ClientProperties clientProperties;
+  private final PreferencesService preferencesService;
 
   private int replayId;
 
-  public ReplayDownloadTask() {
+  @Inject
+  public ReplayDownloadTask(I18n i18n, ClientProperties clientProperties, PreferencesService preferencesService) {
     super(Priority.HIGH);
+
+    this.i18n = i18n;
+    this.clientProperties = clientProperties;
+    this.preferencesService = preferencesService;
   }
 
   @Override
   protected Path call() throws Exception {
     updateTitle(i18n.get("mapReplayTask.title", replayId));
 
-    String replayUrl = getReplayUrl(replayId, environment.getProperty("vault.replayDownloadUrl"));
+    String replayUrl = getReplayUrl(replayId, clientProperties.getVault().getReplayDownloadUrlFormat());
 
     logger.info("Downloading replay {} from {}", replayId, replayUrl);
 

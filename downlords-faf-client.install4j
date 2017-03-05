@@ -41,7 +41,7 @@
           <versionLine x="370" y="273" text="v${compiler:sys.version}" fontSize="16" fontColor="255,255,255" bold="true" />
         </text>
       </splashScreen>
-      <java mainClass="com.faforever.client.Main" vmParameters="-Duid.dir=lib -Dprism.dirtyopts=false" arguments="" allowVMPassthroughParameters="true" preferredVM="client" bundleRuntime="true">
+      <java mainClass="com.faforever.client.Main" vmParameters="-DnativeDir=lib -Dprism.dirtyopts=false" arguments="" allowVMPassthroughParameters="true" preferredVM="client" bundleRuntime="true">
         <classPath>
           <scanDirectory location="lib" failOnError="true" />
         </classPath>
@@ -479,6 +479,7 @@
       <excludedBeans />
       <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
       <exclude>
+        <entry location="lib/faf-ice-adapter/faf-ice-testclient.exe" fileType="regular" />
         <entry location="lib/uid" fileType="regular" />
       </exclude>
       <variables />

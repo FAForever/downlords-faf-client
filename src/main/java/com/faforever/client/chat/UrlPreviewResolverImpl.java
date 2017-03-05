@@ -1,8 +1,8 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.config.CacheNames;
-import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.theme.UiService;
 import com.google.common.net.MediaType;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
@@ -22,6 +22,7 @@ import static com.faforever.client.io.Bytes.formatSize;
 
 @Lazy
 @Component
+// TODO reintroduce once it's working better
 public class UrlPreviewResolverImpl implements UrlPreviewResolver {
 
   private static final Pattern IMGUR_PATTERN = Pattern.compile("https?://imgur\\.com/gallery/(\\w+)");
@@ -29,11 +30,15 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
   private static final String IMGUR_PNG = "http://i.imgur.com/%s.png";
   private static final String IMGUR_GIF = "http://i.imgur.com/%s.gif";
 
-  @Inject
-  FxmlLoader fxmlLoader;
+  private final UiService uiService;
+
+  private final I18n i18n;
 
   @Inject
-  I18n i18n;
+  public UrlPreviewResolverImpl(UiService uiService, I18n i18n) {
+    this.uiService = uiService;
+    this.i18n = i18n;
+  }
 
   private static boolean testUrl(String urlString) {
     try {
@@ -64,7 +69,7 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
       long contentLength = connection.getContentLengthLong();
       String contentType = connection.getContentType();
 
-      Node root = fxmlLoader.loadAndGetRoot("theme/image_preview.fxml");
+      Node root = uiService.loadFxml("theme/image_preview.fxml");
       ImageView imageView = (ImageView) root.lookup("#imageView");
 
       if (MediaType.JPEG.toString().equals(contentType)
@@ -72,7 +77,7 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
         imageView.setImage(new Image(guessedUrl));
       }
 
-      String description = i18n.get("urlPreviewDescription", contentType, formatSize(contentLength, i18n.getLocale()));
+      String description = i18n.get("urlPreviewDescription", contentType, formatSize(contentLength, i18n.getUserSpecificLocale()));
 
       return new Preview(imageView, description);
     } catch (IOException e) {

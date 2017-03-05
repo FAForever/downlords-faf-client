@@ -1,7 +1,7 @@
 package com.faforever.client.events;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.api.PlayerEvent;
+import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import org.springframework.context.annotation.Lazy;
@@ -11,7 +11,6 @@ import javax.inject.Inject;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import static java.util.function.Function.identity;
@@ -22,15 +21,19 @@ import static java.util.stream.Collectors.toMap;
 @Service
 public class EventServiceImpl implements EventService {
 
+  private final FafApiAccessor fafApiAccessor;
+  private final PlayerService playerService;
+  private final ThreadPoolExecutor threadPoolExecutor;
+
   @Inject
-  FafApiAccessor fafApiAccessor;
-  @Inject
-  PlayerService playerService;
-  @Inject
-  ThreadPoolExecutor threadPoolExecutor;
+  public EventServiceImpl(FafApiAccessor fafApiAccessor, PlayerService playerService, ThreadPoolExecutor threadPoolExecutor) {
+    this.fafApiAccessor = fafApiAccessor;
+    this.playerService = playerService;
+    this.threadPoolExecutor = threadPoolExecutor;
+  }
 
   @Override
-  public CompletionStage<Map<String, PlayerEvent>> getPlayerEvents(String username) {
+  public CompletableFuture<Map<String, PlayerEvent>> getPlayerEvents(String username) {
     Player playerForUsername = playerService.getPlayerForUsername(username);
     if (playerForUsername == null) {
       return CompletableFuture.completedFuture(Collections.emptyMap());
