@@ -230,8 +230,8 @@ public class PlayerServiceImpl implements PlayerService {
   }
 
   private void onFoeList(SocialMessage socialMessage) {
-    onFoeList(socialMessage.getFoes());
-    onFriendList(socialMessage.getFriends());
+    Optional.ofNullable(socialMessage.getFoes()).ifPresent(this::onFoeList);
+    Optional.ofNullable(socialMessage.getFriends()).ifPresent(this::onFriendList);
   }
 
   private void onFoeList(List<Integer> foes) {
