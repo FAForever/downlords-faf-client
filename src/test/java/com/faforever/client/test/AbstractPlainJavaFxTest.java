@@ -9,7 +9,6 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.context.support.MessageSourceResourceBundle;
 import org.springframework.context.support.ResourceBundleMessageSource;
@@ -19,7 +18,6 @@ import org.testfx.framework.junit.ApplicationTest;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Locale;
-import java.util.ResourceBundle;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 
@@ -29,8 +27,6 @@ import static com.github.nocatch.NoCatch.noCatch;
 public abstract class AbstractPlainJavaFxTest extends ApplicationTest {
 
   private final Pane root;
-  @Mock
-  ResourceBundle resources;
   private Scene scene;
   private Stage stage;
 

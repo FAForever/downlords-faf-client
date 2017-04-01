@@ -47,9 +47,13 @@ public class LoginController implements Controller<Node> {
   }
 
   public void initialize() {
-    loginProgressPane.setVisible(false);
     loginErrorLabel.managedProperty().bind(loginErrorLabel.visibleProperty());
     loginErrorLabel.setVisible(false);
+
+    loginFormPane.managedProperty().bind(loginFormPane.visibleProperty());
+
+    loginProgressPane.managedProperty().bind(loginProgressPane.visibleProperty());
+    loginProgressPane.setVisible(false);
   }
 
   public void display() {

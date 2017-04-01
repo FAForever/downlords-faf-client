@@ -1,8 +1,14 @@
 package com.faforever.client.api;
 
 import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
+import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
+import com.faforever.client.api.dto.MapVersion;
+import com.faforever.client.api.dto.MapVersionReview;
+import com.faforever.client.api.dto.ModVersion;
+import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.config.ClientProperties;
@@ -10,8 +16,6 @@ import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.leaderboard.LeaderboardEntry;
 import com.faforever.client.mod.Mod;
 import com.faforever.client.mod.ModInfoBeanBuilder;
-import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
 import org.junit.Before;
 import org.junit.Rule;
@@ -56,23 +60,23 @@ public class FafApiAccessorImplTest {
   private FafApiAccessorImpl instance;
 
   @Mock
-  private PreferencesService preferencesService;
-  @Mock
-  private UserService userService;
-  @Mock
   private EventBus eventBus;
   @Mock
   private OAuth2RestTemplate restOperations;
   @Mock
   private RestTemplateBuilder restTemplateBuilder;
+  @Mock
+  private JsonApiMessageConverter jsonApiMessageConverter;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
+    when(restTemplateBuilder.additionalMessageConverters(any(JsonApiMessageConverter.class))).thenReturn(restTemplateBuilder);
+    when(restTemplateBuilder.rootUri(any())).thenReturn(restTemplateBuilder);
     when(restTemplateBuilder.configure(any(OAuth2RestTemplate.class))).thenReturn(restOperations);
 
-    instance = new FafApiAccessorImpl(eventBus, restTemplateBuilder, new ClientProperties());
+    instance = new FafApiAccessorImpl(eventBus, restTemplateBuilder, new ClientProperties(), jsonApiMessageConverter);
     instance.postConstruct();
     instance.authorize(123, "junit", "42");
   }
@@ -94,8 +98,8 @@ public class FafApiAccessorImplTest {
 
     assertThat(instance.getPlayerAchievements(123), is(result));
 
-    verify(restOperations).getForObject("/data/playerAchievement?filter[playerAchievement.player.id]=123&page[size]=10000&page[number]=1", List.class);
-    verify(restOperations).getForObject("/data/playerAchievement?filter[playerAchievement.player.id]=123&page[size]=10000&page[number]=2", List.class);
+    verify(restOperations).getForObject("/data/playerAchievement?filter=playerAchievement.player.id==\"123\"&page[size]=10000&page[number]=1", List.class);
+    verify(restOperations).getForObject("/data/playerAchievement?filter=playerAchievement.player.id==\"123\"&page[size]=10000&page[number]=2", List.class);
   }
 
   @Test
@@ -144,7 +148,7 @@ public class FafApiAccessorImplTest {
     assertThat(instance.getPlayerEvents(123), is(result));
 
     verify(restOperations).getForObject("/data/playerEvent" +
-        "?filter[playerEvent.player.id]=123" +
+        "?filter=playerEvent.player.id==\"123\"" +
         "&page[size]=10000" +
         "&page[number]=1", List.class);
   }
@@ -205,7 +209,10 @@ public class FafApiAccessorImplTest {
     List<GamePlayerStats> result = instance.getGamePlayerStats(123, KnownFeaturedMod.FAF);
 
     assertThat(result, is(gamePlayerStats));
-    verify(restOperations).getForObject("/data/gamePlayerStats?filter[gamePlayerStats.game.featuredMod.technicalName]=faf&filter[gamePlayerStats.player.id]=123&page[size]=10000&page[number]=1", List.class);
+    verify(restOperations).getForObject("/data/gamePlayerStats" +
+        "?filter=gamePlayerStats.player.id==\"123\";gamePlayerStats.game.featuredMod.technicalName==\"faf\"" +
+        "&page[size]=10000" +
+        "&page[number]=1", List.class);
   }
 
   @Test
@@ -221,8 +228,7 @@ public class FafApiAccessorImplTest {
 
     assertThat(result, is(gamePlayerStats));
     verify(restOperations).getForObject("/data/gamePlayerStats" +
-        "?filter[gamePlayerStats.game.featuredMod.technicalName]=ladder1v1" +
-        "&filter[gamePlayerStats.player.id]=123" +
+        "?filter=gamePlayerStats.player.id==\"123\";gamePlayerStats.game.featuredMod.technicalName==\"ladder1v1\"" +
         "&page[size]=10000" +
         "&page[number]=1", List.class);
   }
@@ -265,5 +271,63 @@ public class FafApiAccessorImplTest {
     instance.getCoopMissions();
 
     verify(restOperations).getForObject(eq("/data/coopMission?page[size]=10000&page[number]=1"), eq(List.class));
+  }
+
+  @Test
+  public void testCreateGameReview() throws Exception {
+    GameReview gameReview = new GameReview().setGame(new Game().setId("5"));
+
+    when(restOperations.postForEntity(eq("/data/game/5/reviews"), eq(gameReview), eq(GameReview.class)))
+        .thenReturn(new ResponseEntity<>(HttpStatus.OK));
+
+    instance.createGameReview(gameReview);
+
+    ArgumentCaptor<GameReview> captor = ArgumentCaptor.forClass(GameReview.class);
+    verify(restOperations).postForEntity(eq("/data/game/5/reviews"), captor.capture(), eq(GameReview.class));
+    GameReview review = captor.getValue();
+
+    assertThat(review, is(gameReview));
+  }
+
+  @Test
+  public void testCreateModVersionReview() throws Exception {
+    ModVersionReview modVersionReview = new ModVersionReview();
+    when(restOperations.postForEntity(eq("/data/modVersion/5/reviews"), eq(modVersionReview), eq(ModVersionReview.class)))
+        .thenReturn(new ResponseEntity<>(HttpStatus.OK));
+
+    instance.createModVersionReview(modVersionReview.setModVersion(new ModVersion().setId("5")));
+
+    ArgumentCaptor<ModVersionReview> captor = ArgumentCaptor.forClass(ModVersionReview.class);
+    verify(restOperations).postForEntity(eq("/data/modVersion/5/reviews"), captor.capture(), eq(ModVersionReview.class));
+    ModVersionReview review = captor.getValue();
+
+    assertThat(review, is(modVersionReview));
+  }
+
+  @Test
+  public void testCreateMapVersionReview() throws Exception {
+    MapVersionReview mapVersionReview = new MapVersionReview().setMapVersion(new MapVersion().setId("5"));
+    when(restOperations.postForEntity(eq("/data/mapVersion/5/reviews"), eq(mapVersionReview), eq(MapVersionReview.class)))
+        .thenReturn(new ResponseEntity<>(HttpStatus.OK));
+
+    instance.createMapVersionReview(mapVersionReview);
+
+    ArgumentCaptor<MapVersionReview> captor = ArgumentCaptor.forClass(MapVersionReview.class);
+    verify(restOperations).postForEntity(eq("/data/mapVersion/5/reviews"), captor.capture(), eq(MapVersionReview.class));
+    MapVersionReview review = captor.getValue();
+
+    assertThat(review, is(mapVersionReview));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testGetLastGameOnMap() throws Exception {
+    when(restOperations.getForObject(startsWith("/data/game"), eq(List.class)))
+        .thenReturn(Collections.singletonList(new Game()))
+        .thenReturn(emptyList());
+
+    instance.getLastGamesOnMap(4, 42, 3);
+
+    verify(restOperations).getForObject("/data/game?filter=mapVersion.id==\"42\";playerStats.player.id==\"4\"&sort=-endTime&page[size]=3&page[number]=1", List.class);
   }
 }

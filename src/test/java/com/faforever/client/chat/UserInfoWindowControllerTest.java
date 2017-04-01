@@ -18,11 +18,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.Arrays.asList;
@@ -42,7 +41,7 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
   private static final int PLAYER_ID = 123;
 
   private UserInfoWindowController instance;
-  private Locale locale = Locale.US;
+
   @Mock
   private CountryFlagService countryFlagService;
   @Mock
@@ -67,8 +66,8 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
     when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
 
     when(statisticsService.getRatingHistory(any(), eq(PLAYER_ID))).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
-        new RatingHistoryDataPoint(Instant.now(), 1500f, 50f),
-        new RatingHistoryDataPoint(Instant.now().plus(1, ChronoUnit.DAYS), 1500f, 50f)
+        new RatingHistoryDataPoint(OffsetDateTime.now(), 1500f, 50f),
+        new RatingHistoryDataPoint(OffsetDateTime.now().plus(1, ChronoUnit.DAYS), 1500f, 50f)
     )));
 
     loadFxml("theme/user_info_window.fxml", clazz -> instance);

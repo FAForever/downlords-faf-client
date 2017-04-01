@@ -11,7 +11,6 @@ import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.game.NewGameInfo;
-import com.faforever.client.io.ProgressListener;
 import com.faforever.client.leaderboard.LeaderboardEntry;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.FeaturedMod;
@@ -22,10 +21,14 @@ import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.replay.Replay;
+import com.faforever.client.vault.review.Review;
+import com.faforever.commons.io.ByteCountListener;
 import javafx.beans.property.ReadOnlyObjectProperty;
 
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -108,7 +111,7 @@ public interface FafService {
 
   CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount);
 
-  void uploadMod(Path modFile, ProgressListener byteListener);
+  void uploadMod(Path modFile, ByteCountListener byteListener);
 
   CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(int playerId);
 
@@ -118,5 +121,19 @@ public interface FafService {
 
   void sendIceMessage(int remotePlayerId, Object message);
 
-  CompletableFuture<List<Replay>> findReplaysByQuery(String condition);
+  CompletableFuture<List<Replay>> findReplaysByQuery(String condition, int maxResults);
+
+  CompletableFuture<Optional<MapBean>> findMapByFolderName(String folderName);
+
+  CompletableFuture<List<Player>> getPlayersByIds(Collection<Integer> playerIds);
+
+  CompletableFuture<Void> saveGameReview(Review review, int gameId);
+
+  CompletableFuture<Void> saveModVersionReview(Review review, int modVersionId);
+
+  CompletableFuture<Void> saveMapVersionReview(Review review, int mapVersionId);
+
+  CompletableFuture<Optional<Replay>> getLastGameOnMap(int playerId, int mapVersionId);
+
+  CompletableFuture<Void> deleteGameReview(Review review);
 }

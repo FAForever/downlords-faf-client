@@ -2,6 +2,7 @@ package com.faforever.client.replay;
 
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
@@ -20,7 +21,9 @@ import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -43,6 +46,8 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int TOP_ELEMENT_COUNT = 10;
+  private static final int TOP_MORE_ELEMENT_COUNT = 100;
+  private static final int MAX_SEARCH_RESULTS = 100;
   private final ReplayService replayService;
   private final UiService uiService;
   private final NotificationService notificationService;
@@ -65,6 +70,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   public LogicalNodeController initialLogicalNodeController;
   public Button backButton;
   public Button searchButton;
+  public ScrollPane scrollPane;
   private ReplayDetailController replayDetailController;
   private List<LogicalNodeController> queryNodes;
   private InvalidationListener queryInvalidationListener;
@@ -80,11 +86,13 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
 
   public void initialize() {
     super.initialize();
+    JavaFxUtil.fixScrollSpeed(scrollPane);
     loadingPane.managedProperty().bind(loadingPane.visibleProperty());
     showroomGroup.managedProperty().bind(showroomGroup.visibleProperty());
     searchResultGroup.managedProperty().bind(searchResultGroup.visibleProperty());
     queryTextField.managedProperty().bind(queryTextField.visibleProperty());
     queryTextField.visibleProperty().bind(displayQueryCheckBox.selectedProperty());
+    backButton.managedProperty().bind(backButton.visibleProperty());
     initialLogicalNodeController.logicalOperatorField.managedProperty()
         .bind(initialLogicalNodeController.logicalOperatorField.visibleProperty());
     initialLogicalNodeController.removeCriteriaButton.managedProperty()
@@ -106,15 +114,26 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     logicalNodeController.specificationController.propertyField.valueProperty().addListener(queryInvalidationListener);
     logicalNodeController.specificationController.operationField.valueProperty().addListener(queryInvalidationListener);
     logicalNodeController.specificationController.valueField.valueProperty().addListener(queryInvalidationListener);
+    logicalNodeController.specificationController.valueField.getEditor().textProperty()
+        .addListener(observable -> {
+          if (!logicalNodeController.specificationController.valueField.valueProperty().isBound()) {
+            logicalNodeController.specificationController.valueField.setValue(logicalNodeController.specificationController.valueField.getEditor().getText());
+          }
+        });
+    logicalNodeController.specificationController.valueField.setOnKeyReleased(event -> {
+      if (event.getCode() == KeyCode.ENTER) {
+        searchButton.fire();
+      }
+    });
   }
 
   private void displaySearchResult(List<Replay> replays) {
+    populateReplays(replays, searchResultPane);
+
     showroomGroup.setVisible(false);
     searchResultGroup.setVisible(true);
     loadingPane.setVisible(false);
     backButton.setVisible(true);
-
-    populateReplays(replays, searchResultPane);
   }
 
   private void populateReplays(List<Replay> replays, Pane pane) {
@@ -127,6 +146,10 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
         controller.setReplay(replay);
         controller.setOnOpenDetailListener(this::onShowReplayDetail);
         children.add(controller.getRoot());
+
+        if (replays.size() == 1) {
+          onShowReplayDetail(replay);
+        }
       });
     });
   }
@@ -149,15 +172,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   @Override
   protected void onDisplay() {
     super.onDisplay();
-    enterSearchingState();
-    replayService.getNewestReplays(TOP_ELEMENT_COUNT).thenAccept(replays -> populateReplays(replays, newestPane))
-        .thenCompose(aVoid -> replayService.getHighestRatedReplays(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateReplays(modInfoBeans, highestRatedPane)))
-        .thenCompose(aVoid -> replayService.getMostWatchedReplays(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateReplays(modInfoBeans, mostWatchedPane)))
-        .thenRun(this::enterShowroomState)
-        .exceptionally(throwable -> {
-          logger.warn("Could not populate replays", throwable);
-          return null;
-        });
+    refresh();
   }
 
   @Override
@@ -180,7 +195,8 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   }
 
   public void onSearchButtonClicked() {
-    replayService.findByQuery(queryTextField.getText())
+    enterSearchingState();
+    replayService.findByQuery(queryTextField.getText(), MAX_SEARCH_RESULTS)
         .thenAccept(this::displaySearchResult)
         .exceptionally(e -> {
           notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
@@ -232,5 +248,44 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
 
   public void onBackButtonClicked() {
     enterShowroomState();
+  }
+
+  public void onResetButtonClicked() {
+    new ArrayList<>(queryNodes).forEach(logicalNodeController -> logicalNodeController.removeCriteriaButton.fire());
+    initialLogicalNodeController.specificationController.propertyField.getSelectionModel().select(0);
+    initialLogicalNodeController.specificationController.operationField.getSelectionModel().select(0);
+    initialLogicalNodeController.specificationController.valueField.setValue(null);
+  }
+
+  public void onRefreshButtonClicked() {
+    refresh();
+  }
+
+  private void refresh() {
+    enterSearchingState();
+    replayService.getNewestReplays(TOP_ELEMENT_COUNT)
+        .thenAccept(replays -> populateReplays(replays, newestPane))
+        .thenCompose(aVoid -> replayService.getHighestRatedReplays(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateReplays(modInfoBeans, highestRatedPane)))
+        .thenCompose(aVoid -> replayService.getMostWatchedReplays(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateReplays(modInfoBeans, mostWatchedPane)))
+        .thenRun(this::enterShowroomState)
+        .exceptionally(throwable -> {
+          logger.warn("Could not populate replays", throwable);
+          return null;
+        });
+  }
+
+  public void onMoreNewestButtonClicked() {
+    enterSearchingState();
+    replayService.getNewestReplays(TOP_MORE_ELEMENT_COUNT).thenAccept(this::displaySearchResult);
+  }
+
+  public void onMoreHighestRatedButtonClicked() {
+    enterSearchingState();
+    replayService.getHighestRatedReplays(TOP_MORE_ELEMENT_COUNT).thenAccept(this::displaySearchResult);
+  }
+
+  public void onMoreMostWatchedButtonClicked() {
+    enterSearchingState();
+    replayService.getMostWatchedReplays(TOP_MORE_ELEMENT_COUNT).thenAccept(this::displaySearchResult);
   }
 }

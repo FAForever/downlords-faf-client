@@ -2,7 +2,6 @@ package com.faforever.client.mod;
 
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.io.ByteCopier;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
@@ -10,6 +9,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
+import com.faforever.commons.io.ByteCopier;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -331,9 +331,9 @@ public class ModServiceImplTest {
     assertThat(mod.getSelectable(), is(true));
     assertThat(mod.getId(), is("9e8ea941-c306-4751-b367-a11000000502"));
     assertThat(mod.getUiOnly(), is(false));
-    assertThat(mod.getMountPoints(), hasSize(10));
-    assertThat(mod.getMountPoints().get(3).getDirectory(), is(blackopsSupportPath.resolve("effects")));
-    assertThat(mod.getMountPoints().get(3).getMountPath(), is("/effects"));
+    assertThat(mod.getMountInfos(), hasSize(10));
+    assertThat(mod.getMountInfos().get(3).getFile(), is(Paths.get("effects")));
+    assertThat(mod.getMountInfos().get(3).getMountPoint(), is("/effects"));
     assertThat(mod.getHookDirectories(), contains("/blackops"));
 
     mod = installedMods.get(2);

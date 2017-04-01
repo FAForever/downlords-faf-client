@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public interface MapService {
@@ -60,4 +61,11 @@ public interface MapService {
   CompletableTask<Void> uploadMap(Path mapPath, boolean ranked);
 
   void evictCache();
+
+  /**
+   * Tries to find a map my its folder name, first locally then on the server.
+   */
+  CompletableFuture<Optional<MapBean>> findByMapFolderName(String folderName);
+
+  CompletableFuture<Boolean> hasPlayedMap(int playerId, int mapVersionId);
 }

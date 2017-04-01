@@ -17,8 +17,6 @@
     <option name="PASS_PARENT_ENVS" value="true" />
     <module name="downlords-faf-client_main" />
     <envs />
-    <method>
-      <option name="Gradle.BeforeRunTask" enabled="true" tasks="downloadNativeDependencies" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
-    </method>
+    <method />
   </configuration>
 </component>

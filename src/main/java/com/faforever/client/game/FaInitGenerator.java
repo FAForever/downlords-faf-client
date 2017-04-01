@@ -2,7 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.commons.mod.MountPoint;
+import com.faforever.commons.mod.MountInfo;
 import com.google.common.base.Joiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +18,7 @@ import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,14 +47,14 @@ public class FaInitGenerator {
    *
    * @return the path of the generated init file.
    */
-  public Path generateInitFile(List<MountPoint> mountPoints, Set<String> hookDirectories) {
+  public Path generateInitFile(List<MountInfo> mountInfos, Set<String> hookDirectories) {
     Path initFile = preferencesService.getFafBinDirectory().resolve(ForgedAlliancePrefs.INIT_FILE_NAME);
     String faPath = preferencesService.getPreferences().getForgedAlliance().getPath().toAbsolutePath().toString().replaceAll("[/\\\\]", "\\\\\\\\");
 
     logger.debug("Generating init file at {}", initFile);
 
-    List<String> mountPointStrings = mountPoints.stream()
-        .map(mountPoint -> String.format("{'%s', '%s'}", mountPoint.getMountPath(), mountPoint.getDirectory().toString().replaceAll("[/\\\\]", "\\\\\\\\")))
+    List<String> mountPointStrings = mountInfos.stream()
+        .map(this::toMountPointFormat)
         .collect(Collectors.toList());
     CharSequence mountPointsLuaTable = Joiner.on(",\r\n    ").join(mountPointStrings);
 
@@ -76,5 +77,14 @@ public class FaInitGenerator {
       }
     });
     return initFile;
+  }
+
+  private String toMountPointFormat(MountInfo mountInfo) {
+    String source = Optional.ofNullable(mountInfo.getBaseDir())
+        .map(path -> path.resolve(mountInfo.getFile()).toAbsolutePath().toString())
+        .orElse(mountInfo.getFile().toAbsolutePath().toString())
+        .replaceAll("[/\\\\]", "\\\\\\\\");
+
+    return String.format("{'%s', '%s'}", source, mountInfo.getMountPoint());
   }
 }

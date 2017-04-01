@@ -2,10 +2,10 @@ package com.faforever.client.update;
 
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.io.Bytes;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.task.TaskService;
+import com.faforever.commons.io.Bytes;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.Before;
 import org.junit.Test;

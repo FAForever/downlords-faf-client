@@ -6,6 +6,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameState;
 import com.faforever.client.theme.UiService;
@@ -39,7 +40,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
@@ -68,6 +68,8 @@ public class CustomGamesController implements Controller<Node> {
   private final PreferencesService preferencesService;
   private final ModService modService;
   private final EventBus eventBus;
+  private final PlayerService playerService;
+
   public ToggleButton tableButton;
   public ToggleButton tilesButton;
   public ToggleGroup viewToggleGroup;
@@ -87,8 +89,11 @@ public class CustomGamesController implements Controller<Node> {
   private Game currentGame;
   private InvalidationListener teamsChangeListener;
 
+
   @Inject
-  public CustomGamesController(UiService uiService, I18n i18n, GameService gameService, MapService mapService, PreferencesService preferencesService, ModService modService, EventBus eventBus) {
+  public CustomGamesController(UiService uiService, I18n i18n, GameService gameService, MapService mapService,
+                               PreferencesService preferencesService, ModService modService, EventBus eventBus,
+                               PlayerService playerService) {
     this.uiService = uiService;
     this.i18n = i18n;
     this.gameService = gameService;
@@ -96,6 +101,7 @@ public class CustomGamesController implements Controller<Node> {
     this.preferencesService = preferencesService;
     this.modService = modService;
     this.eventBus = eventBus;
+    this.playerService = playerService;
   }
 
   public void initialize() {
@@ -237,11 +243,7 @@ public class CustomGamesController implements Controller<Node> {
   private void createTeams(ObservableMap<? extends String, ? extends List<String>> playersByTeamNumber) {
     teamListPane.getChildren().clear();
     synchronized (playersByTeamNumber) {
-      for (Map.Entry<? extends String, ? extends List<String>> entry : playersByTeamNumber.entrySet()) {
-        TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
-        teamCardController.setPlayersInTeam(entry.getKey(), entry.getValue());
-        teamListPane.getChildren().add(teamCardController.getRoot());
-      }
+      TeamCardController.createAndAdd(playersByTeamNumber, playerService, uiService, teamListPane);
     }
   }
 }

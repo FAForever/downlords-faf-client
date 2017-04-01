@@ -2,7 +2,7 @@ package com.faforever.client.mod;
 
 import com.faforever.client.api.dto.ModType;
 import com.faforever.client.api.dto.ModVersion;
-import com.faforever.commons.mod.MountPoint;
+import com.faforever.commons.mod.MountInfo;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
@@ -19,9 +19,11 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.Objects;
+import java.util.Optional;
 
 public class Mod {
   public static final Comparator<? super Mod> TIMES_PLAYED_COMPARATOR = Comparator.comparingInt(Mod::getPlayed);
@@ -44,7 +46,7 @@ public class Mod {
   private final ObjectProperty<LocalDateTime> publishDate;
   private final IntegerProperty downloads;
   private final ObjectProperty<URL> downloadUrl;
-  private final ListProperty<MountPoint> mountPoints;
+  private final ListProperty<MountInfo> mountPoints;
   private final ListProperty<String> hookDirectories;
 
   public Mod() {
@@ -68,22 +70,28 @@ public class Mod {
     hookDirectories = new SimpleListProperty<>(FXCollections.observableArrayList());
   }
 
-  public static Mod fromDto(com.faforever.commons.mod.Mod modInfo) {
+  /**
+   * @param basePath path to the directory where all the mod files are, used to resolve the path of the icon file.
+   */
+  static Mod fromModInfo(com.faforever.commons.mod.Mod modInfo, Path basePath) {
     Mod mod = new Mod();
-    mod.setId(modInfo.getId());
+    mod.setId(modInfo.getUid());
     mod.setName(modInfo.getName());
     mod.setDescription(modInfo.getDescription());
     mod.setAuthor(modInfo.getAuthor());
     mod.setVersion(modInfo.getVersion());
     mod.setSelectable(modInfo.isSelectable());
     mod.setUiOnly(modInfo.isUiOnly());
-    mod.setImagePath(modInfo.getImagePath());
-    mod.getMountPoints().setAll(modInfo.getMountPoints());
+    mod.getMountInfos().setAll(modInfo.getMountInfos());
     mod.getHookDirectories().setAll(modInfo.getHookDirectories());
+    Optional.ofNullable(modInfo.getIcon())
+        .map(icon -> Paths.get(icon))
+        .filter(iconPath -> iconPath.getNameCount() > 2)
+        .ifPresent(iconPath -> mod.setImagePath(basePath.resolve(iconPath.subpath(2, iconPath.getNameCount()))));
     return mod;
   }
 
-  public static Mod fromDto(com.faforever.client.api.dto.Mod mod) {
+  public static Mod fromModInfo(com.faforever.client.api.dto.Mod mod) {
     ModVersion modVersion = mod.getLatestVersion();
 
     Mod modInfoBean = new Mod();
@@ -312,27 +320,11 @@ public class Mod {
     this.comments.set(comments);
   }
 
-  public ObservableList<MountPoint> getMountPoints() {
+  public ObservableList<MountInfo> getMountInfos() {
     return mountPoints.get();
-  }
-
-  public void setMountPoints(ObservableList<MountPoint> mountPoints) {
-    this.mountPoints.set(mountPoints);
-  }
-
-  public ListProperty<MountPoint> mountPointsProperty() {
-    return mountPoints;
   }
 
   public ObservableList<String> getHookDirectories() {
     return hookDirectories.get();
-  }
-
-  public void setHookDirectories(ObservableList<String> hookDirectories) {
-    this.hookDirectories.set(hookDirectories);
-  }
-
-  public ListProperty<String> hookDirectoriesProperty() {
-    return hookDirectories;
   }
 }

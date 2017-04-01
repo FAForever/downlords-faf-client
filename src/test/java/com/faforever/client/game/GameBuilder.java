@@ -4,6 +4,8 @@ import com.faforever.client.remote.domain.GameState;
 import com.faforever.client.remote.domain.VictoryCondition;
 import javafx.collections.FXCollections;
 
+import java.time.Instant;
+
 public class GameBuilder {
 
   private final Game game;
@@ -31,6 +33,7 @@ public class GameBuilder {
     game.setId(1);
     game.setMaxRating(800);
     game.setMaxRating(1300);
+    game.setStartTime(Instant.now());
     return this;
   }
 

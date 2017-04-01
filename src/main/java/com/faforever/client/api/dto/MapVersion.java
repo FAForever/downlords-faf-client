@@ -10,6 +10,7 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 
 import java.net.URL;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -40,4 +41,7 @@ public class MapVersion {
 
   @Relationship("statistics")
   private MapVersionStatistics statistics;
+
+  @Relationship("reviews")
+  private List<MapVersionReview> reviews;
 }

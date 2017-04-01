@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Getter
@@ -19,10 +19,13 @@ public class Game {
   @Id
   private String id;
   private String name;
-  private Instant startTime;
-  private Instant endTime;
+  private OffsetDateTime startTime;
+  private OffsetDateTime endTime;
   private Validity validity;
   private VictoryCondition victoryCondition;
+
+  @Relationship("reviews")
+  private List<GameReview> reviews;
 
   @Relationship("playerStats")
   private List<GamePlayerStats> playerStats;

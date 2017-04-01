@@ -3,6 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -39,10 +40,12 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
   private ModService modService;
   @Mock
   private EventBus eventBus;
+  @Mock
+  private PlayerService playerService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new CustomGamesController(uiService, i18n, gameService, mapService, preferencesService, modService, eventBus);
+    instance = new CustomGamesController(uiService, i18n, gameService, mapService, preferencesService, modService, eventBus, playerService);
 
     when(gameService.getGames()).thenReturn(FXCollections.observableArrayList());
     when(preferencesService.getPreferences()).thenReturn(preferences);

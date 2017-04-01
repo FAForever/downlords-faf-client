@@ -7,9 +7,9 @@
       maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" spacing="10.0"
       xmlns="http://javafx.com/javafx/8.0.60" fx:controller="com.faforever.client.query.LogicalNodeController">
     <children>
-        <ChoiceBox fx:id="logicalOperatorField" prefWidth="100.0"/>
+        <ChoiceBox fx:id="logicalOperatorField" maxHeight="1.7976931348623157E308" prefWidth="100.0"/>
         <fx:include fx:id="specification" source="specification.fxml"/>
-        <Button fx:id="removeCriteriaButton" mnemonicParsing="false" onAction="#onRemoveCriteriaButtonClicked"
-                text="%query.removeCriteria"/>
+        <Button fx:id="removeCriteriaButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
+                onAction="#onRemoveCriteriaButtonClicked" text="%query.removeCriteria"/>
     </children>
 </HBox>

@@ -11,4 +11,8 @@ public interface I18n {
   Locale getUserSpecificLocale();
 
   String number(int number);
+
+  String number(double number);
+
+  String rounded(double number, int digits);
 }

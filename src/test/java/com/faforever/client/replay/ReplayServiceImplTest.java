@@ -5,6 +5,8 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapBeanBuilder;
+import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -23,13 +25,13 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationContext;
 
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.Collections.emptyList;
@@ -106,13 +108,15 @@ public class ReplayServiceImplTest {
   private ReplayServer replayServer;
   @Mock
   private ModService modService;
+  @Mock
+  private MapService mapService;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
     instance = new ReplayServiceImpl(new ClientProperties(), preferencesService, replayFileReader, notificationService, gameService,
-        taskService, i18n, reportingService, applicationContext, platformService, replayServer, fafService, modService);
+        taskService, i18n, reportingService, applicationContext, platformService, replayServer, fafService, modService, mapService);
 
     when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath());
     when(preferencesService.getCorruptedReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath().resolve("corrupt"));
@@ -153,8 +157,8 @@ public class ReplayServiceImplTest {
     Path file1 = replayDirectory.newFile("replay.fafreplay").toPath();
     Path file2 = replayDirectory.newFile("replay2.fafreplay").toPath();
 
-    doThrow(new IOException("Junit test exception")).when(replayFileReader).parseMetaData(file1);
-    doThrow(new IOException("Junit test exception")).when(replayFileReader).parseMetaData(file2);
+    doThrow(new RuntimeException("Junit test exception")).when(replayFileReader).parseMetaData(file1);
+    doThrow(new RuntimeException("Junit test exception")).when(replayFileReader).parseMetaData(file2);
 
     Collection<Replay> localReplays = instance.getLocalReplays();
 
@@ -177,6 +181,8 @@ public class ReplayServiceImplTest {
     localReplayInfo.setTitle("title");
 
     when(replayFileReader.parseMetaData(file1)).thenReturn(localReplayInfo);
+    when(modService.getFeaturedMod(any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(mapService.findByMapFolderName(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(MapBeanBuilder.create().defaultValues().get())));
 
     Collection<Replay> localReplays = instance.getLocalReplays();
 
@@ -239,19 +245,17 @@ public class ReplayServiceImplTest {
   }
 
   @Test
-  public void testRunFafReplayFileExceptionTriggersNotification() throws Exception {
+  public void testRunFafReplayFileExceptionPropagates() throws Exception {
     Path replayFile = replayDirectory.newFile("replay.fafreplay").toPath();
 
-    doThrow(new IOException("Junit test exception")).when(replayFileReader).parseMetaData(replayFile);
+    doThrow(new RuntimeException("Junit test exception")).when(replayFileReader).parseMetaData(replayFile);
     when(replayFileReader.readRawReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
 
     Replay replay = new Replay();
     replay.setReplayFile(replayFile);
 
+    expectedException.expectMessage("Junit test exception");
     instance.runReplay(replay);
-
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
-    verifyNoMoreInteractions(gameService);
   }
 
   @Test
@@ -302,7 +306,7 @@ public class ReplayServiceImplTest {
   @Test
   public void testRunScFaOnlineReplayExceptionTriggersNotification() throws Exception {
     Path replayFile = replayDirectory.newFile("replay.scfareplay").toPath();
-    doThrow(new IOException("Junit test exception")).when(replayFileReader).parseMetaData(replayFile);
+    doThrow(new RuntimeException("Junit test exception")).when(replayFileReader).parseMetaData(replayFile);
 
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));

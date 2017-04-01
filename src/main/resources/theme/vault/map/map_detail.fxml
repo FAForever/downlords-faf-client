@@ -54,12 +54,12 @@
             <Button fx:id="uninstallButton" mnemonicParsing="false" onAction="#onUninstallButtonClicked"
                     text="%mapVault.uninstall" GridPane.columnIndex="3" GridPane.halignment="RIGHT"/>
             <Button fx:id="installButton" mnemonicParsing="false" onAction="#onInstallButtonClicked"
-                    styleClass="highlighted-button" text="%mapVault.install" GridPane.columnIndex="3"
+                    text="%mapVault.install" GridPane.columnIndex="3"
                     GridPane.halignment="RIGHT"/>
             <VBox alignment="CENTER_LEFT" maxWidth="300.0" GridPane.columnIndex="2" GridPane.columnSpan="2"
                   GridPane.halignment="RIGHT" GridPane.rowIndex="1">
               <children>
-                <Label fx:id="progressLabel" text=""/>
+                  <Label fx:id="progressLabel"/>
                 <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308" progress="0.0"/>
               </children>
             </VBox>

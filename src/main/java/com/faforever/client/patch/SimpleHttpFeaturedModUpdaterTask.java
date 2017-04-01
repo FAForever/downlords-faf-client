@@ -1,7 +1,6 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.api.dto.FeaturedModFile;
-import com.faforever.client.io.ByteCopier;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.Mod;
 import com.faforever.client.mod.ModService;
@@ -9,11 +8,9 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
-import com.faforever.commons.mod.MountPoint;
+import com.faforever.commons.io.ByteCopier;
 import com.google.common.hash.Hashing;
 import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.luaj.vm2.LuaTable;
-import org.luaj.vm2.LuaValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -30,7 +27,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.zip.ZipEntry;
@@ -95,7 +91,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
         .orElseThrow(() -> new IllegalStateException("No version found"));
 
     Mod mod = modFuture.get();
-    return new PatchResult(new ComparableVersion(String.valueOf(maxVersion)), mod.getMountPoints(), mod.getHookDirectories());
+    return new PatchResult(new ComparableVersion(String.valueOf(maxVersion)), mod.getMountInfos(), mod.getHookDirectories());
   }
 
   private void downloadFile(FeaturedModFile featuredModFile, Path targetPath) throws IOException {
@@ -114,15 +110,6 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
     } finally {
       ResourceLocks.freeDownloadLock();
     }
-  }
-
-  private List<MountPoint> readMountPoints(LuaValue modInfo, Path basePath) {
-    ArrayList<MountPoint> mountPoints = new ArrayList<>();
-    LuaTable mountpoints = modInfo.get("mountpoints").checktable();
-    for (LuaValue key : mountpoints.keys()) {
-      mountPoints.add(new MountPoint(basePath.resolve(key.tojstring()), mountpoints.get(key).tojstring()));
-    }
-    return mountPoints;
   }
 
   public void setFeaturedMod(FeaturedMod featuredMod) {

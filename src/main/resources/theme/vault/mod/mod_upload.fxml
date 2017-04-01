@@ -12,7 +12,6 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Text?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="modUploadRoot" styleClass="dialog-window"
       xmlns="http://javafx.com/javafx/8.0.60" fx:controller="com.faforever.client.mod.ModUploadController">
   <children>
@@ -22,11 +21,12 @@
           <Label styleClass="h1" text="%modVault.upload.title"/>
           <HBox styleClass="info">
           <children>
-              <Label contentDisplay="RIGHT" styleClass="icon" text="">
-              <graphic>
-                  <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="text" text="%modVault.upload.hint"/>
-              </graphic>
-            </Label>
+              <Label maxWidth="1.7976931348623157E308" styleClass="hint" text="%modVault.upload.hint" wrapText="true"
+                     HBox.hgrow="ALWAYS">
+                  <graphic>
+                      <Label contentDisplay="RIGHT" styleClass="icon" text=""/>
+                  </graphic>
+              </Label>
           </children>
         </HBox>
           <Label fx:id="modNameLabel" alignment="CENTER" contentDisplay="TOP" maxWidth="1.7976931348623157E308"

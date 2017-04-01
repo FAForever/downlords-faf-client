@@ -2,13 +2,13 @@ package com.faforever.client.patch;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.io.ByteCopier;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.Validator;
 import com.faforever.commons.fa.ForgedAllianceExePatcher;
+import com.faforever.commons.io.ByteCopier;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;

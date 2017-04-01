@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.EQ;
 import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.GT;
@@ -79,7 +78,7 @@ public class SpecificationController implements Controller<Node> {
 
   private static final Map<Class<?>, Collection<ComparisonOperator>> VALID_OPERATORS = ImmutableMap.of(
       Number.class, Arrays.asList(EQ, NE, GT, GTE, LT, LTE, IN, NIN),
-      Instant.class, Arrays.asList(EQ, NE, GT, GTE, LT, LTE),
+      Temporal.class, Arrays.asList(EQ, NE, GT, GTE, LT, LTE),
       String.class, Arrays.asList(EQ, NE, IN, NIN),
       Boolean.class, Arrays.asList(EQ, NE),
       Enum.class, Arrays.asList(EQ, NE, IN, NIN)
@@ -103,7 +102,9 @@ public class SpecificationController implements Controller<Node> {
     datePicker.setValue(LocalDate.now());
     datePicker.managedProperty().bind(datePicker.visibleProperty());
     datePicker.setVisible(false);
+
     valueField.managedProperty().bind(valueField.visibleProperty());
+
     operationField.setItems(comparisonOperators);
     operationField.setConverter(new StringConverter<ComparisonOperator>() {
       @Override
@@ -143,8 +144,12 @@ public class SpecificationController implements Controller<Node> {
    * selected date will then be populated to the hidden value field in its proper format.
    */
   private void populateValueField(Class<?> propertyClass) {
+    valueField.setVisible(true);
     valueField.getItems().clear();
     valueField.valueProperty().unbind();
+    valueField.setValue(null);
+    datePicker.setVisible(false);
+
     if (ClassUtils.isAssignable(Boolean.class, propertyClass)) {
       valueField.getItems().setAll(Boolean.TRUE, Boolean.FALSE);
       valueField.getSelectionModel().select(0);
@@ -162,11 +167,15 @@ public class SpecificationController implements Controller<Node> {
 
   private boolean isOperatorApplicable(ComparisonOperator comparisonOperator, String propertyName) {
     Class<?> propertyClass = ClassUtils.resolvePrimitiveIfNecessary(getPropertyClass(propertyName));
-    while (!VALID_OPERATORS.containsKey(propertyClass)) {
-      propertyClass = propertyClass.getSuperclass();
-      if (propertyClass == null) {
-        throw new IllegalStateException("No valid operators specified for property: " + propertyName);
+
+    for (Class<?> aClass : VALID_OPERATORS.keySet()) {
+      if (aClass.isAssignableFrom(propertyClass)) {
+        propertyClass = aClass;
       }
+    }
+
+    if (!VALID_OPERATORS.containsKey(propertyClass)) {
+      throw new IllegalStateException("No valid operators specified for property: " + propertyName);
     }
 
     return VALID_OPERATORS.get(propertyClass).contains(comparisonOperator);
@@ -196,7 +205,7 @@ public class SpecificationController implements Controller<Node> {
   }
 
   private Collection<Integer> splitInts(String value) {
-    return Stream.of(value.split(","))
+    return Arrays.stream(value.split(","))
         .map(Integer::parseInt)
         .collect(Collectors.toList());
   }

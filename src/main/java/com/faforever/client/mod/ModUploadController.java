@@ -11,13 +11,11 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.CompletableTask;
-import com.faforever.client.util.IdenticonUtil;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
@@ -29,7 +27,6 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -106,22 +103,16 @@ public class ModUploadController  implements Controller<Node> {
     uploadCompletePane.setVisible(false);
   }
 
-  private void setModInfo(Mod modInfo) {
-    this.modInfo = modInfo;
+  private void setModInfo(Mod mod) {
+    this.modInfo = mod;
 
     enterModInfoState();
-    modNameLabel.textProperty().bind(modInfo.nameProperty());
-    descriptionLabel.textProperty().bind(modInfo.descriptionProperty());
-    versionLabel.textProperty().bind(modInfo.versionProperty().asString());
-    uidLabel.textProperty().bind(modInfo.idProperty());
+    modNameLabel.textProperty().bind(mod.nameProperty());
+    descriptionLabel.textProperty().bind(mod.descriptionProperty());
+    versionLabel.textProperty().bind(mod.versionProperty().asString());
+    uidLabel.textProperty().bind(mod.idProperty());
     thumbnailImageView.imageProperty().bind(
-        Bindings.createObjectBinding(() -> {
-          if (modInfo.getImagePath() != null && Files.isRegularFile(modInfo.getImagePath())) {
-            return new Image(modInfo.getImagePath().toUri().toString(), true);
-          }
-
-          return IdenticonUtil.createIdenticon(modInfo.getId());
-        }, modInfo.idProperty(), modInfo.imagePathProperty())
+        Bindings.createObjectBinding(() -> modService.loadThumbnail(mod), mod.idProperty(), mod.imagePathProperty())
     );
   }
 

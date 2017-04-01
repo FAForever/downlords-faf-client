@@ -20,7 +20,7 @@
   /* Text */
   -fx-font-family: 'Open Sans';
   -fx-font-size: 14px;
-  -fx-disabled-opacity: 0.6;
+  -fx-disabled-opacity: 0.8;
 
   -base-color: -swatch-grey-900;
   -accent-color: -swatch-green-500;
@@ -82,6 +82,13 @@
 
   SHADOW_COLOR: #00000099;
 
+  /* Review score color palette */
+  REVIEW_SCORE_5: #117D3C;
+  REVIEW_SCORE_4: #9BD454;
+  REVIEW_SCORE_3: #d4bb5a;
+  REVIEW_SCORE_2: #e9985d;
+  REVIEW_SCORE_1: #ae453b;
+
   /* Chart Color Palette */
   CHART_COLOR_1: #609E15;
   CHART_COLOR_2: #9BD454;
@@ -135,6 +142,124 @@
 .split-pane > .split-pane-divider {
   -fx-padding: 0 1 0 0;
   -fx-background-color: -divider-color;
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * List, Tree, Table COMMON                                                    *
+ *                                                                             *
+ ******************************************************************************/
+
+.list-cell {
+  -fx-cell-size: 40;
+  -fx-text-fill: -secondary-text-color;
+}
+
+.list-view {
+  -fx-border-color: -border-color;
+}
+
+.list-view:focused .list-cell:filled:focused:selected {
+  -fx-background-color: -fx-background;
+}
+
+.list-view:hover .list-cell:hover,
+.list-view:hover .list-cell:focused:hover {
+  -fx-background-color: -cell-hover-color;
+}
+
+/* Selected rows */
+.list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
+.tree-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-cell:filled:selected,
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled:selected,
+.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:filled:selected,
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell .table-cell:selected,
+.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell .tree-table-cell:selected {
+  -fx-background: -fx-selection-bar;
+  -fx-text-fill: -fx-accent;
+}
+
+/* Selected when control is not focused */
+.list-cell:filled:selected,
+.table-row-cell:filled:selected,
+.tree-table-row-cell:filled:selected,
+.table-row-cell:filled > .table-cell:selected,
+.tree-table-row-cell:filled > .tree-table-cell:selected {
+  -fx-background: -cell-hover-color;
+  -fx-text-fill: -fx-accent;
+}
+
+/* Hovered rows */
+.list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover,
+.tree-view > .virtual-flow > .clipped-container > .sheet > .tree-cell:filled:hover,
+.table-view > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled:hover,
+.tree-table-view > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:filled:hover,
+.table-view > .virtual-flow > .clipped-container > .sheet > .table-row-cell .table-cell:hover,
+.tree-table-view > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell .tree-table-cell:hover {
+  -fx-background: -cell-hover-color;
+  -fx-text-fill: -secondary-text-color;
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * Tables	                                                                     *
+ *                                                                             *
+ ******************************************************************************/
+.table-view, .tree-table-view {
+  -fx-table-header-border-color: transparent;
+  -fx-table-cell-border-color: -divider-color;
+  -fx-background-color: transparent;
+}
+
+/* The column header row is made up of a number of column-header, one for each
+   TableColumn, and a 'filler' area that extends from the right-most column
+   to the edge of the tableview, or up to the 'column control' button. */
+.table-view .filler, .tree-table-view .filler, .table-view .column-header,
+.tree-table-view .column-header {
+  -fx-size: 4em;
+  -fx-border-style: null;
+  -fx-border-color: -divider-color; /* Horizontal Lines*/
+  -fx-border-width: 0 0 2 0;
+  -fx-background-color: transparent;
+}
+
+.table-view .column-header .label, .table-view .filler .label,
+.table-view .column-drag-header .label, .tree-table-view .column-header .label,
+.tree-table-view .filler .label, .tree-table-view .column-drag-header .label {
+  -fx-text-fill: -primary-text-color;
+  -fx-alignment: CENTER_LEFT;
+}
+
+.table-view .column-header-background, .tree-table-view .column-header-background {
+  -fx-background-color: transparent;
+}
+
+.table-row-cell {
+  -fx-background: -fx-control-inner-background;
+  -fx-background-color: -fx-table-cell-border-color, -fx-background;
+  -fx-background-insets: 0, 0 0 1 0;
+  -fx-padding: 0;
+}
+
+.table-row-cell, .tree-table-row-cell {
+  -fx-background: -fx-base;
+  -fx-cell-size: 3em;
+}
+
+.table-row-cell:selected, .tree-table-row-cell:selected {
+  -fx-background: -fx-selection-bar-non-focused;
+}
+
+.table-cell {
+  -fx-text-fill: -secondary-text-color;
+}
+
+.table-row-cell .text {
+  -fx-fill: -secondary-text-color;
+}
+
+.table-row-cell:selected .text {
+  -fx-fill: -fx-accent;
 }
 
 /*******************************************************************************
@@ -230,9 +355,9 @@
   -fx-effect: dropshadow(gaussian, SHADOW_COLOR, 6, 0.3, 1, 1);
 }
 
-.button-raised > .label,
-.button:default > .label {
-  -fx-text-fill: -primary-text-color-inverse;
+.button-raised > .label > .text,
+.button-raised:default > .label > .text {
+  -fx-fill: -primary-text-color-inverse;
 }
 
 .button-raised:hover,
@@ -263,6 +388,7 @@
 
 .icon-button {
   -fx-color: transparent;
+  -fx-text-overrun: clip;
 }
 
 .icon-button > .text {
@@ -430,7 +556,7 @@
 
 /*******************************************************************************
  *                                                                             *
- * Date Picker			                                                       *
+ * Date Picker			                                                           *
  *                                                                             *
  ******************************************************************************/
 .date-picker-popup .button {
@@ -449,22 +575,10 @@
   -fx-border-width: 0;
 }
 
-.date-picker-popup > * > .spinner > .label {
-  -fx-text-fill: white;
-  -fx-font-weight: bold;
-}
-
 .date-picker-popup > * > .day-name-cell, .date-picker-popup > * > .week-number-cell {
-  -fx-font-weight: normal;
-  -fx-text-fill: -swatch-dark-grey;
-  -fx-font-size: 1em;
+  -fx-text-fill: white;
 }
 
-/*******************************************************************************
- *                                                                             *
- * Date picker						                                           *
- *                                                                             *
- ******************************************************************************/
 .date-picker .arrow-button {
   -fx-background-color: transparent;
 }
@@ -475,6 +589,63 @@
 
 .date-picker .date-picker-display-node {
   -fx-border-width: 0;
+}
+
+.date-picker-popup > * > .day-cell {
+  -fx-background: -fx-base;
+  -fx-text-fill: -secondary-text-color;
+}
+
+.date-picker-popup > * > .today {
+  -fx-text-fill: white;
+  -fx-background-insets: 0;
+}
+
+.date-picker-popup > * > .day-cell:hover,
+.date-picker-popup > * > .selected {
+  -fx-background: -swatch-800;
+  -fx-text-fill: white;
+}
+
+.date-picker-popup > * > .previous-month:hover,
+.date-picker-popup > * > .next-month:hover {
+  -fx-background: -fx-selection-bar-non-focused;
+}
+
+.date-picker-popup > * > .today:hover,
+.date-picker-popup > * > .today.selected {
+  -fx-background-color: -fx-selection-bar, derive(-fx-selection-bar-non-focused, -20%), -fx-selection-bar;
+}
+
+.date-picker-popup > * > .day-cell:focused,
+.date-picker-popup > * > .today:focused {
+  -fx-background-color: -fx-control-inner-background, -fx-cell-focus-inner-border, -fx-control-inner-background;
+  -fx-background-insets: 1, 2, 3;
+}
+
+.date-picker-popup > * > .day-cell:focused:hover,
+.date-picker-popup > * > .today:focused:hover,
+.date-picker-popup > * > .selected:focused,
+.date-picker-popup > * > .today.selected:focused,
+.date-picker-popup > * > .previous-month.selected,
+.date-picker-popup > * > .next-month.selected {
+  -fx-background-color: -fx-accent;
+}
+
+.date-picker-popup > * > .previous-month,
+.date-picker-popup > * > .next-month {
+  -fx-background: -swatch-grey-800;
+  -fx-text-fill: -tertiary-text-color;
+}
+
+.date-picker-popup > * > .previous-month.today,
+.date-picker-popup > * > .next-month.today {
+  -fx-background-color: derive(-fx-control-inner-background, -4%), derive(-fx-selection-bar-non-focused, -20%), derive(-fx-control-inner-background, -4%);
+}
+
+.date-picker-popup > * > .previous-month.today:hover,
+.date-picker-popup > * > .next-month.today:hover {
+  -fx-background-color: -fx-selection-bar-non-focused, derive(-fx-selection-bar-non-focused, -20%), -fx-selection-bar-non-focused;
 }
 
 /*******************************************************************************
@@ -519,62 +690,6 @@
 
 .label:show-mnemonics > .mnemonic-underline {
   -fx-stroke: -fx-text-base-color;
-}
-
-/*******************************************************************************
- *                                                                             *
- * List, Tree, Table COMMON                                                    *
- *                                                                             *
- ******************************************************************************/
-
-.list-cell {
-  -fx-cell-size: 40;
-  -fx-text-fill: -secondary-text-color;
-}
-
-.list-view {
-  -fx-border-color: -border-color;
-}
-
-.list-view:focused .list-cell:filled:focused:selected {
-  -fx-background-color: -fx-background;
-}
-
-.list-view:hover .list-cell:hover,
-.list-view:hover .list-cell:focused:hover {
-  -fx-background-color: -cell-hover-color;
-}
-
-/* Selected rows */
-.list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
-.tree-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-cell:filled:selected,
-.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled:selected,
-.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:filled:selected,
-.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell .table-cell:selected,
-.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell .tree-table-cell:selected {
-  -fx-background: -fx-selection-bar;
-  -fx-text-fill: -fx-accent;
-}
-
-/* Selected when control is not focused */
-.list-cell:filled:selected,
-.table-row-cell:filled:selected,
-.tree-table-row-cell:filled:selected,
-.table-row-cell:filled > .table-cell:selected,
-.tree-table-row-cell:filled > .tree-table-cell:selected {
-  -fx-background: -cell-hover-color;
-  -fx-text-fill: -fx-accent;
-}
-
-/* Hovered rows */
-.list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover,
-.tree-view > .virtual-flow > .clipped-container > .sheet > .tree-cell:filled:hover,
-.table-view > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled:hover,
-.tree-table-view > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:filled:hover,
-.table-view > .virtual-flow > .clipped-container > .sheet > .table-row-cell .table-cell:hover,
-.tree-table-view > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell .tree-table-cell:hover {
-  -fx-background: -cell-hover-color;
-  -fx-text-fill: -secondary-text-color;
 }
 
 /*******************************************************************************
@@ -786,68 +901,6 @@
 
 /*******************************************************************************
  *                                                                             *
- * Tables	                                                                     *
- *                                                                             *
- ******************************************************************************/
-.table-view, .tree-table-view {
-  -fx-table-header-border-color: transparent;
-  -fx-table-cell-border-color: -divider-color;
-  -fx-background-color: transparent;
-}
-
-/* The column header row is made up of a number of column-header, one for each
-   TableColumn, and a 'filler' area that extends from the right-most column
-   to the edge of the tableview, or up to the 'column control' button. */
-.table-view .filler, .tree-table-view .filler, .table-view .column-header,
-.tree-table-view .column-header {
-  -fx-size: 4em;
-  -fx-border-style: null;
-  -fx-border-color: -divider-color; /* Horizontal Lines*/
-  -fx-border-width: 0 0 2 0;
-  -fx-background-color: transparent;
-}
-
-.table-view .column-header .label, .table-view .filler .label,
-.table-view .column-drag-header .label, .tree-table-view .column-header .label,
-.tree-table-view .filler .label, .tree-table-view .column-drag-header .label {
-  -fx-text-fill: -primary-text-color;
-  -fx-alignment: CENTER_LEFT;
-}
-
-.table-view .column-header-background, .tree-table-view .column-header-background {
-  -fx-background-color: transparent;
-}
-
-.table-row-cell {
-  -fx-background: -fx-control-inner-background;
-  -fx-background-color: -fx-table-cell-border-color, -fx-background;
-  -fx-background-insets: 0, 0 0 1 0;
-  -fx-padding: 0;
-}
-
-.table-row-cell, .tree-table-row-cell {
-  -fx-background: -fx-base;
-  -fx-cell-size: 3em;
-}
-
-.table-row-cell:selected, .tree-table-row-cell:selected {
-  -fx-background: -fx-selection-bar-non-focused;
-}
-
-.table-cell {
-  -fx-text-fill: -secondary-text-color;
-}
-
-.table-row-cell .text {
-  -fx-fill: -secondary-text-color;
-}
-
-.table-row-cell:selected .text {
-  -fx-fill: -fx-accent;
-}
-
-/*******************************************************************************
- *                                                                             *
  * Text, Text field & Text area                                                *
  *                                                                             *
  ******************************************************************************/
@@ -863,18 +916,23 @@
   -fx-text-fill: -primary-text-color;
 }
 
+.text-area:readonly, .text-field:readonly {
+  -fx-border-width: 0;
+}
+
 .text-area {
   -fx-padding: 0.15em;
+  -fx-border-width: 0;
 }
 
 .text-area .content {
   -fx-padding: 0.7em;
   -fx-border-width: 0;
-  -fx-background-color: transparent;
+  -fx-background-color: -swatch-grey-800;
 }
 
 .text-area:focused .content {
-  -fx-background-color: transparent;
+  -fx-background-color: -swatch-grey-800;
 }
 
 .text-area:focused, .text-field:focused {
@@ -891,6 +949,10 @@
   -fx-cursor: hand;
 }
 
+.combo-box > .text-field {
+  -fx-border-width: 0;
+}
+
 /***************** Icon *****************/
 
 .icon {
@@ -900,6 +962,14 @@
 
 .icon.small {
   -fx-font-size: 1em;
+}
+
+.button.icon {
+  -fx-text-overrun: clip;
+}
+
+.button.icon.medium {
+  -fx-padding: 0.2em 0.6em 0.2em 0.6em;
 }
 
 /***************** Popup *****************/
@@ -1461,4 +1531,62 @@
 .game-card-title {
   -fx-font-weight: bold;
   -fx-font-size: 1.2em;
+}
+
+/***************** Review *****************/
+
+.review-score {
+  -fx-font-size: 3em;
+}
+
+.review-stars:selectable .review-star {
+  -fx-cursor: hand;
+}
+
+.large-stars .review-stars {
+  -fx-spacing: 10;
+}
+
+.review-star-background, .review-star-fill {
+  -fx-stroke-width: 0;
+  -fx-stroke: transparent;
+  -fx-font-size: 2em;
+}
+
+.review-star-background {
+  -fx-fill: -tertiary-text-color;
+}
+
+.review-star-fill {
+  -fx-fill: -primary-text-color;
+}
+
+.small-stars .review-star-background,
+.small-stars .review-star-fill {
+  -fx-font-size: 1em;
+}
+
+.medium-stars .review-star-background,
+.medium-stars .review-star-fill {
+  -fx-font-size: 1.5em;
+}
+
+.score-bar.five {
+  -fx-background-color: REVIEW_SCORE_5;
+}
+
+.score-bar.four {
+  -fx-background-color: REVIEW_SCORE_4;
+}
+
+.score-bar.three {
+  -fx-background-color: REVIEW_SCORE_3;
+}
+
+.score-bar.two {
+  -fx-background-color: REVIEW_SCORE_2;
+}
+
+.score-bar.one {
+  -fx-background-color: REVIEW_SCORE_1;
 }

@@ -406,6 +406,21 @@ public class MapServiceImpl implements MapService {
     // Nothing to see here
   }
 
+  @Override
+  public CompletableFuture<Optional<MapBean>> findByMapFolderName(String folderName) {
+    Path localMapFolder = getPathForMap(folderName);
+    if (Files.exists(localMapFolder)) {
+      return CompletableFuture.completedFuture(Optional.of(readMap(localMapFolder)));
+    }
+    return fafService.findMapByFolderName(folderName);
+  }
+
+  @Override
+  public CompletableFuture<Boolean> hasPlayedMap(int playerId, int mapVersionId) {
+    return fafService.getLastGameOnMap(playerId, mapVersionId)
+        .thenApply(Optional::isPresent);
+  }
+
   private CompletableFuture<Void> downloadAndInstallMap(String folderName, URL downloadUrl, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
     DownloadMapTask task = applicationContext.getBean(DownloadMapTask.class);
     task.setMapUrl(downloadUrl);

@@ -34,9 +34,9 @@ public class SearchableProperties {
 
       .put("mapVersion.description", "map.description")
       .put("mapVersion.maxPlayers", "map.maxPlayers")
-      .put("mapVersion.width", "map.width")
-      .put("mapVersion.height", "map.height")
-      .put("mapVersion.version", "map.version")
+      .put("mapVersion.width", "game.map.width")
+      .put("mapVersion.height", "game.map.height")
+      .put("mapVersion.version", "game.map.version")
       .put("mapVersion.folderName", "game.map.folderName")
       .put("mapVersion.ranked", "game.map.isRanked")
       .put("mapVersion.map.displayName", "game.map.displayName")

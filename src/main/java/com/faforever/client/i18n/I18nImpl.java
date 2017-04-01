@@ -56,4 +56,14 @@ public class I18nImpl implements I18n {
   public String number(int number) {
     return String.format(userSpecificLocale, "%d", number);
   }
+
+  @Override
+  public String number(double number) {
+    return String.format(userSpecificLocale, "%f", number);
+  }
+
+  @Override
+  public String rounded(double number, int digits) {
+    return String.format(userSpecificLocale, "%." + digits + "f", number);
+  }
 }

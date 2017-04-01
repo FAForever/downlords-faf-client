@@ -84,6 +84,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
     hostColumn.setCellFactory(param -> new StringCell<>(String::toString));
     modsColumn.setCellValueFactory(this::modCell);
     modsColumn.setCellFactory(param -> new StringCell<>(String::toString));
+    watchColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue()));
     watchColumn.setCellFactory(param -> new NodeTableCell<>(this::watchReplayButton));
 
     liveReplayControllerRoot.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue)
@@ -94,7 +95,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
 
   private Node watchReplayButton(Game game) {
     WatchButtonController controller = uiService.loadFxml("theme/vault/replay/watch_button.fxml");
-    controller.setGameId(game.getId());
+    controller.setGame(game);
     return controller.getRoot();
   }
 

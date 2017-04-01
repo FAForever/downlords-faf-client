@@ -4,7 +4,13 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.dto.AchievementDefinition;
 import com.faforever.client.api.dto.CoopResult;
 import com.faforever.client.api.dto.FeaturedModFile;
+import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
+import com.faforever.client.api.dto.GameReview;
+import com.faforever.client.api.dto.MapVersion;
+import com.faforever.client.api.dto.MapVersionReview;
+import com.faforever.client.api.dto.ModVersion;
+import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
@@ -15,7 +21,6 @@ import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.game.NewGameInfo;
-import com.faforever.client.io.ProgressListener;
 import com.faforever.client.leaderboard.LeaderboardEntry;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.FeaturedMod;
@@ -28,17 +33,22 @@ import com.faforever.client.remote.domain.IceMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.replay.Replay;
+import com.faforever.client.vault.review.Review;
+import com.faforever.commons.io.ByteCountListener;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import javax.inject.Inject;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -155,14 +165,14 @@ public class FafServiceImpl implements FafService {
   @Async
   public CompletableFuture<List<Mod>> getMods() {
     return CompletableFuture.completedFuture(fafApiAccessor.getMods().stream()
-        .map(Mod::fromDto)
+        .map(Mod::fromModInfo)
         .collect(toList()));
   }
 
   @Override
   @Async
   public CompletableFuture<Mod> getMod(String uid) {
-    return CompletableFuture.completedFuture(Mod.fromDto(fafApiAccessor.getMod(uid)));
+    return CompletableFuture.completedFuture(Mod.fromModInfo(fafApiAccessor.getMod(uid)));
   }
 
   @Override
@@ -306,7 +316,7 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  public void uploadMod(Path modFile, ProgressListener byteListener) {
+  public void uploadMod(Path modFile, ByteCountListener byteListener) {
     fafApiAccessor.uploadMod(modFile, byteListener);
   }
 
@@ -330,11 +340,104 @@ public class FafServiceImpl implements FafService {
 
   @Override
   @Async
-  public CompletableFuture<List<Replay>> findReplaysByQuery(String query) {
-    return CompletableFuture.completedFuture(fafApiAccessor.findReplaysByQuery(query)
+  public CompletableFuture<List<Replay>> findReplaysByQuery(String query, int maxResults) {
+    return CompletableFuture.completedFuture(fafApiAccessor.findReplaysByQuery(query, maxResults)
         .parallelStream()
         .map(Replay::fromDto)
         .collect(toList()));
+  }
+
+  @Override
+  public CompletableFuture<Optional<MapBean>> findMapByFolderName(String folderName) {
+    return CompletableFuture.completedFuture(fafApiAccessor.findMapByFolderName(folderName));
+  }
+
+  @Override
+  public CompletableFuture<List<Player>> getPlayersByIds(Collection<Integer> playerIds) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getPlayersByIds(playerIds).stream()
+        .map(Player::fromDto)
+        .collect(toList()));
+  }
+
+  @Override
+  @Async
+  public CompletableFuture<Void> saveGameReview(Review review, int gameId) {
+    GameReview gameReview = (GameReview) new GameReview()
+        .setScore((byte) review.getScore())
+        .setText(review.getText());
+
+    if (review.getId() == null) {
+      Assert.notNull(review.getPlayer(), "Player ID must be set");
+      GameReview updatedReview = fafApiAccessor.createGameReview(
+          (GameReview) gameReview
+              .setGame(new Game().setId(String.valueOf(gameId)))
+              .setPlayer(new com.faforever.client.api.dto.Player().setId(String.valueOf(review.getPlayer().getId())))
+      );
+      review.setId(Integer.parseInt(updatedReview.getId()));
+    } else {
+      fafApiAccessor.updateGameReview((GameReview) gameReview.setId(String.valueOf(review.getId())));
+    }
+    return CompletableFuture.completedFuture(null);
+  }
+
+  @Override
+  @Async
+  public CompletableFuture<Void> saveModVersionReview(Review review, int modVersionId) {
+    ModVersionReview modVersionReview = (ModVersionReview) new ModVersionReview()
+        .setScore((byte) review.getScore())
+        .setText(review.getText());
+
+    if (review.getId() == null) {
+      Assert.notNull(review.getPlayer(), "Player ID must be set");
+      ModVersionReview updatedReview = fafApiAccessor.createModVersionReview(
+          (ModVersionReview) modVersionReview
+              .setModVersion(new ModVersion().setId(String.valueOf(modVersionId)))
+              .setId(String.valueOf(review.getId()))
+              .setPlayer(new com.faforever.client.api.dto.Player().setId(String.valueOf(review.getPlayer().getId())))
+      );
+      review.setId(Integer.parseInt(updatedReview.getId()));
+    } else {
+      fafApiAccessor.updateModVersionReview((ModVersionReview) modVersionReview.setId(String.valueOf(review.getId())));
+    }
+    return CompletableFuture.completedFuture(null);
+  }
+
+  @Override
+  @Async
+  public CompletableFuture<Void> saveMapVersionReview(Review review, int mapVersionId) {
+    MapVersionReview mapVersionReview = (MapVersionReview) new MapVersionReview()
+        .setScore((byte) review.getScore())
+        .setText(review.getText());
+
+    if (review.getId() == null) {
+      Assert.notNull(review.getPlayer(), "Player ID must be set");
+      MapVersionReview updatedReview = fafApiAccessor.createMapVersionReview(
+          (MapVersionReview) mapVersionReview
+              .setMapVersion(new MapVersion().setId(String.valueOf(mapVersionId)))
+              .setId(String.valueOf(review.getId()))
+              .setPlayer(new com.faforever.client.api.dto.Player().setId(String.valueOf(review.getPlayer().getId())))
+      );
+      review.setId(Integer.parseInt(updatedReview.getId()));
+    } else {
+      fafApiAccessor.updateMapVersionReview((MapVersionReview) mapVersionReview.setId(String.valueOf(review.getId())));
+    }
+
+    return CompletableFuture.completedFuture(null);
+  }
+
+  @Override
+  @Async
+  public CompletableFuture<Optional<Replay>> getLastGameOnMap(int playerId, int mapVersionId) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getLastGamesOnMap(playerId, mapVersionId, 1).stream()
+        .map(Replay::fromDto)
+        .findFirst());
+  }
+
+  @Override
+  @Async
+  public CompletableFuture<Void> deleteGameReview(Review review) {
+    fafApiAccessor.deleteGameReview(review.getId());
+    return CompletableFuture.completedFuture(null);
   }
 
   @Override

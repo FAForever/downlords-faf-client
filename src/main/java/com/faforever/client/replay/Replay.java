@@ -1,7 +1,11 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.api.dto.Game;
+import com.faforever.client.api.dto.GamePlayerStats;
+import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.FeaturedMod;
+import com.faforever.client.vault.review.Review;
+import javafx.beans.Observable;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
@@ -15,14 +19,18 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import lombok.Data;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 import java.time.Duration;
-import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.temporal.Temporal;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.faforever.client.util.TimeUtil.fromPythonTime;
 
@@ -31,14 +39,16 @@ public class Replay {
   private final IntegerProperty id;
   private final StringProperty title;
   private final MapProperty<String, List<String>> teams;
-  private final ObjectProperty<Instant> startTime;
-  private final ObjectProperty<Instant> endTime;
+  private final MapProperty<String, List<PlayerStats>> teamPlayerStats;
+  private final ObjectProperty<Temporal> startTime;
+  private final ObjectProperty<Temporal> endTime;
   private final ObjectProperty<FeaturedMod> featuredMod;
-  private final StringProperty map;
+  private final ObjectProperty<MapBean> map;
   private final ObjectProperty<Path> replayFile;
   private final IntegerProperty views;
   private final ListProperty<ChatMessage> chatMessages;
   private final ListProperty<GameOption> gameOptions;
+  private final ListProperty<Review> reviews;
 
   public Replay(String title) {
     this();
@@ -49,38 +59,31 @@ public class Replay {
     id = new SimpleIntegerProperty();
     title = new SimpleStringProperty();
     teams = new SimpleMapProperty<>(FXCollections.observableHashMap());
+    teamPlayerStats = new SimpleMapProperty<>(FXCollections.observableHashMap());
     startTime = new SimpleObjectProperty<>();
     endTime = new SimpleObjectProperty<>();
     featuredMod = new SimpleObjectProperty<>();
-    map = new SimpleStringProperty();
+    map = new SimpleObjectProperty<>();
     replayFile = new SimpleObjectProperty<>();
     views = new SimpleIntegerProperty();
     chatMessages = new SimpleListProperty<>(FXCollections.observableArrayList());
     gameOptions = new SimpleListProperty<>(FXCollections.observableArrayList());
+    reviews = new SimpleListProperty<>(FXCollections.observableArrayList(param
+        -> new Observable[]{param.scoreProperty(), param.textProperty()}));
   }
 
-  public Replay(LocalReplayInfo replayInfo, Path replayFile, FeaturedMod featuredMod) {
+  public Replay(LocalReplayInfo replayInfo, Path replayFile, FeaturedMod featuredMod, MapBean mapBean) {
     this();
     id.set(replayInfo.getUid());
     title.set(StringEscapeUtils.unescapeHtml4(replayInfo.getTitle()));
     startTime.set(fromPythonTime(replayInfo.getGameTime() > 0 ? replayInfo.getGameTime() : replayInfo.getLaunchedAt()));
     endTime.set(fromPythonTime(replayInfo.getGameEnd()));
     this.featuredMod.set(featuredMod);
-    map.set(replayInfo.getMapname());
+    map.set(mapBean);
     this.replayFile.set(replayFile);
     if (replayInfo.getTeams() != null) {
       teams.putAll(replayInfo.getTeams());
     }
-  }
-
-  public Replay(ServerReplayInfo replayInfo, FeaturedMod featuredMod) {
-    this();
-    id.setValue(replayInfo.getId());
-    title.setValue(replayInfo.getName());
-    this.featuredMod.setValue(featuredMod);
-    map.setValue(replayInfo.getMap());
-    startTime.setValue(Instant.ofEpochMilli(replayInfo.getStart() * 1000));
-    endTime.setValue(Instant.ofEpochMilli(replayInfo.getEnd() * 1000));
   }
 
   public static Replay fromDto(Game dto) {
@@ -90,10 +93,38 @@ public class Replay {
     replay.setTitle(dto.getName());
     replay.setStartTime(dto.getStartTime());
     Optional.ofNullable(dto.getEndTime()).ifPresent(replay::setEndTime);
-    Optional.ofNullable(dto.getMapVersion()).ifPresent(mapVersion -> replay.setMap(mapVersion.getFilename()));
+    Optional.ofNullable(dto.getMapVersion()).ifPresent(mapVersion -> replay.setMap(MapBean.fromMap(dto.getMapVersion())));
 //    replay.setViews(dto.getViews());
-//    replay.setTeams(dto.getTeams());
+    replay.setTeams(teams(dto));
+    replay.setTeamPlayerStats(teamPlayerStats(dto));
+    replay.getReviews().setAll(reviews(dto));
     return replay;
+  }
+
+  private static ObservableList<Review> reviews(Game dto) {
+    return FXCollections.observableList(dto.getReviews().stream()
+        .map(Review::fromDto)
+        .collect(Collectors.toList()));
+  }
+
+  private static ObservableMap<String, List<String>> teams(Game dto) {
+    ObservableMap<String, List<String>> teams = FXCollections.observableHashMap();
+    dto.getPlayerStats()
+        .forEach(gamePlayerStats -> teams.computeIfAbsent(
+            String.valueOf(gamePlayerStats.getTeam()),
+            s -> new LinkedList<>()
+        ).add(gamePlayerStats.getPlayer().getLogin()));
+    return teams;
+  }
+
+  private static ObservableMap<String, List<PlayerStats>> teamPlayerStats(Game dto) {
+    ObservableMap<String, List<PlayerStats>> teams = FXCollections.observableHashMap();
+    dto.getPlayerStats()
+        .forEach(gamePlayerStats -> teams.computeIfAbsent(
+            String.valueOf(gamePlayerStats.getTeam()),
+            s -> new LinkedList<>()
+        ).add(PlayerStats.fromDto(gamePlayerStats)));
+    return teams;
   }
 
   public Path getReplayFile() {
@@ -144,28 +175,32 @@ public class Replay {
     return id;
   }
 
-  public Instant getStartTime() {
+  public Temporal getStartTime() {
     return startTime.get();
   }
 
-  public void setStartTime(Instant startTime) {
+  public void setStartTime(Temporal startTime) {
     this.startTime.set(startTime);
   }
 
-  public ObjectProperty<Instant> startTimeProperty() {
+  public void setStartTime(OffsetDateTime startTime) {
+    this.startTime.set(startTime);
+  }
+
+  public ObjectProperty<Temporal> startTimeProperty() {
     return startTime;
   }
 
   @Nullable
-  public Instant getEndTime() {
+  public Temporal getEndTime() {
     return endTime.get();
   }
 
-  public void setEndTime(Instant endTime) {
+  public void setEndTime(Temporal endTime) {
     this.endTime.set(endTime);
   }
 
-  public ObjectProperty<Instant> endTimeProperty() {
+  public ObjectProperty<Temporal> endTimeProperty() {
     return endTime;
   }
 
@@ -181,15 +216,16 @@ public class Replay {
     return featuredMod;
   }
 
-  public String getMap() {
+  @Nullable
+  public MapBean getMap() {
     return map.get();
   }
 
-  public void setMap(String map) {
+  public void setMap(MapBean map) {
     this.map.set(map);
   }
 
-  public StringProperty mapProperty() {
+  public ObjectProperty<MapBean> mapProperty() {
     return map;
   }
 
@@ -227,6 +263,22 @@ public class Replay {
 
   public ListProperty<GameOption> gameOptionsProperty() {
     return gameOptions;
+  }
+
+  public ObservableMap<String, List<PlayerStats>> getTeamPlayerStats() {
+    return teamPlayerStats.get();
+  }
+
+  public void setTeamPlayerStats(ObservableMap<String, List<PlayerStats>> teamPlayerStats) {
+    this.teamPlayerStats.set(teamPlayerStats);
+  }
+
+  public MapProperty<String, List<PlayerStats>> teamPlayerStatsProperty() {
+    return teamPlayerStats;
+  }
+
+  public ObservableList<Review> getReviews() {
+    return reviews.get();
   }
 
   public static class ChatMessage {
@@ -308,6 +360,21 @@ public class Replay {
 
     public StringProperty valueProperty() {
       return value;
+    }
+  }
+
+  @Data
+  public static class PlayerStats {
+    private final int playerId;
+    private final double mean;
+    private final double deviation;
+
+    public static PlayerStats fromDto(GamePlayerStats gamePlayerStats) {
+      return new PlayerStats(
+          Integer.valueOf(gamePlayerStats.getPlayer().getId()),
+          gamePlayerStats.getBeforeMean(),
+          gamePlayerStats.getBeforeDeviation()
+      );
     }
   }
 }

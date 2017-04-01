@@ -337,7 +337,7 @@ public class PircBotXChatService implements ChatService {
   }
 
   private void onSocialMessage(SocialMessage socialMessage) {
-    if (!autoChannelsJoined) {
+    if (!autoChannelsJoined && socialMessage.getChannels() != null) {
       this.autoChannels = new ArrayList<>(socialMessage.getChannels());
       autoChannels.add(0, defaultChannelName);
       threadPoolExecutor.execute(this::joinAutoChannels);

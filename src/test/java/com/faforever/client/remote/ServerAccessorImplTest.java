@@ -155,7 +155,6 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
         }
       } catch (IOException e) {
         System.out.println("Closing fake FAF lobby server: " + e.getMessage());
-        throw new RuntimeException(e);
       }
     });
   }

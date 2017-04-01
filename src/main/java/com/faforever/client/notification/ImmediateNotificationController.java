@@ -24,7 +24,7 @@ public class ImmediateNotificationController implements Controller<Node> {
 
   private final WebViewConfigurer webViewConfigurer;
   public WebView errorMessageView;
-  public Node exceptionPane;
+  public Label exceptionAreaTitleLabel;
   public TextArea exceptionTextArea;
   public Label titleLabel;
   public ButtonBar buttonBar;
@@ -36,7 +36,9 @@ public class ImmediateNotificationController implements Controller<Node> {
   }
 
   public void initialize() {
-    exceptionPane.managedProperty().bind(exceptionPane.visibleProperty());
+    exceptionAreaTitleLabel.managedProperty().bind(exceptionAreaTitleLabel.visibleProperty());
+    exceptionAreaTitleLabel.visibleProperty().bind(exceptionTextArea.visibleProperty());
+    exceptionTextArea.managedProperty().bind(exceptionTextArea.visibleProperty());
     webViewConfigurer.configureWebView(errorMessageView);
   }
 
@@ -45,10 +47,10 @@ public class ImmediateNotificationController implements Controller<Node> {
     Throwable throwable = notification.getThrowable();
     if (throwable != null) {
       throwable.printStackTrace(new PrintWriter(writer));
-      exceptionPane.setVisible(true);
+      exceptionTextArea.setVisible(true);
       exceptionTextArea.setText(writer.toString());
     } else {
-      exceptionPane.setVisible(false);
+      exceptionTextArea.setVisible(false);
     }
 
     titleLabel.setText(notification.getTitle());

@@ -8,15 +8,19 @@ import com.faforever.client.api.dto.CoopResult;
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
+import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.GlobalLeaderboardEntry;
 import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
 import com.faforever.client.api.dto.Map;
+import com.faforever.client.api.dto.MapVersionReview;
 import com.faforever.client.api.dto.Mod;
+import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.game.KnownFeaturedMod;
-import com.faforever.client.io.ProgressListener;
+import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.FeaturedMod;
+import com.faforever.commons.io.ByteCountListener;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -24,8 +28,10 @@ import org.springframework.stereotype.Component;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Lazy
 @Component
@@ -133,12 +139,17 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public void uploadMod(Path file, ProgressListener listener) {
+  public List<Game> getLastGamesOnMap(int playerId, int mapVersionId, int count) {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public void uploadMod(Path file, ByteCountListener listener) {
 
   }
 
   @Override
-  public void uploadMap(Path file, boolean isRanked, ProgressListener listener) {
+  public void uploadMap(Path file, boolean isRanked, ByteCountListener listener) {
 
   }
 
@@ -173,8 +184,54 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<Game> findReplaysByQuery(String query) {
+  public List<Game> findReplaysByQuery(String query, int maxResults) {
     return Collections.emptyList();
+  }
+
+  @Override
+  public Optional<MapBean> findMapByFolderName(String folderName) {
+    return Optional.empty();
+  }
+
+  @Override
+  public List<com.faforever.client.api.dto.Player> getPlayersByIds(Collection<Integer> playerIds) {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public GameReview createGameReview(GameReview review) {
+
+    return null;
+  }
+
+  @Override
+  public void updateGameReview(GameReview review) {
+
+  }
+
+  @Override
+  public ModVersionReview createModVersionReview(ModVersionReview review) {
+    return null;
+  }
+
+  @Override
+  public void updateModVersionReview(ModVersionReview review) {
+
+  }
+
+  @Override
+  public MapVersionReview createMapVersionReview(MapVersionReview review) {
+    return null;
+  }
+
+  @Override
+  public void updateMapVersionReview(MapVersionReview review) {
+
+  }
+
+  @Override
+  public void deleteGameReview(int id) {
+
   }
 
   @Override

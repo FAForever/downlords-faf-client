@@ -59,7 +59,7 @@ public class GitFeaturedModUpdateTaskImpl extends CompletableTask<PatchResult> i
 
     try (InputStream inputStream = Files.newInputStream(modInfoLuaFile)) {
       Mod mod = modService.extractModInfo(inputStream, repositoryDirectory);
-      return new PatchResult(modService.readModVersion(repositoryDirectory), mod.getMountPoints(), mod.getHookDirectories());
+      return new PatchResult(modService.readModVersion(repositoryDirectory), mod.getMountInfos(), mod.getHookDirectories());
     }
   }
 

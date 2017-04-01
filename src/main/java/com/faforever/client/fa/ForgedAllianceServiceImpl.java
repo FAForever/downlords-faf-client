@@ -36,7 +36,8 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   }
 
   @Override
-  public Process startGame(int uid, @Nullable Faction faction, @Nullable List<String> additionalArgs, RatingMode ratingMode, int gpgPort, boolean rehost) throws IOException {
+  public Process startGame(int uid, @Nullable Faction faction, @Nullable List<String> additionalArgs,
+                           RatingMode ratingMode, int gpgPort, int localReplayPort, boolean rehost) throws IOException {
     Path executable = getExecutable();
 
     Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
@@ -67,6 +68,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
         .additionalArgs(additionalArgs)
         .logFile(preferencesService.getFafLogDirectory().resolve("game.log"))
         .localGpgPort(gpgPort)
+        .localReplayPort(localReplayPort)
         .rehost(rehost)
         .build();
 

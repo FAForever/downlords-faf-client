@@ -6,6 +6,7 @@ import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapService;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.Action;
@@ -96,6 +97,7 @@ public class ReplayServiceImpl implements ReplayService {
   private final ReplayServer replayServer;
   private final FafService fafService;
   private final ModService modService;
+  private final MapService mapService;
 
   @Inject
   public ReplayServiceImpl(ClientProperties clientProperties, PreferencesService preferencesService,
@@ -103,7 +105,7 @@ public class ReplayServiceImpl implements ReplayService {
                            GameService gameService, TaskService taskService, I18n i18n,
                            ReportingService reportingService, ApplicationContext applicationContext,
                            PlatformService platformService, ReplayServer replayServer, FafService fafService,
-                           ModService modService) {
+                           ModService modService, MapService mapService) {
     this.clientProperties = clientProperties;
     this.preferencesService = preferencesService;
     this.replayFileReader = replayFileReader;
@@ -117,6 +119,7 @@ public class ReplayServiceImpl implements ReplayService {
     this.replayServer = replayServer;
     this.fafService = fafService;
     this.modService = modService;
+    this.mapService = mapService;
   }
 
   @VisibleForTesting
@@ -157,7 +160,19 @@ public class ReplayServiceImpl implements ReplayService {
         try {
           LocalReplayInfo replayInfo = replayFileReader.parseMetaData(replayFile);
           FeaturedMod featuredMod = modService.getFeaturedMod(replayInfo.getFeaturedMod()).getNow(FeaturedMod.UNKNOWN);
-          replayInfos.add(new Replay(replayInfo, replayFile, featuredMod));
+
+          mapService.findByMapFolderName(replayInfo.getMapname())
+              .thenAccept(mapBean -> {
+                if (!mapBean.isPresent()) {
+                  notificationService.addNotification(new ImmediateNotification(
+                      i18n.get("errorTitle"),
+                      i18n.get("mapNotFound", replayInfo.getMapname()),
+                      WARN
+                  ));
+                  return;
+                }
+                replayInfos.add(new Replay(replayInfo, replayFile, featuredMod, mapBean.get()));
+              });
         } catch (Exception e) {
           logger.warn("Could not read replay file {} ({})", replayFile, e.getMessage());
           moveCorruptedReplayFile(replayFile);
@@ -274,8 +289,8 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public CompletableFuture<List<Replay>> findByQuery(String query) {
-    return fafService.findReplaysByQuery(query);
+  public CompletableFuture<List<Replay>> findByQuery(String query, int maxResults) {
+    return fafService.findReplaysByQuery(query, maxResults);
   }
 
   @Override
@@ -300,27 +315,19 @@ public class ReplayServiceImpl implements ReplayService {
 
   @Override
   @SneakyThrows
-  public long getSize(int id) {
-    return new URL(String.format(clientProperties.getVault().getReplayDownloadUrlFormat(), id))
+  public CompletableFuture<Integer> getSize(int id) {
+    return CompletableFuture.supplyAsync(() -> noCatch(() -> new URL(String.format(clientProperties.getVault().getReplayDownloadUrlFormat(), id))
         .openConnection()
-        .getContentLength();
+        .getContentLength()));
   }
 
+  @SneakyThrows
   private void runReplayFile(Path path) {
-    try {
-      String fileName = path.getFileName().toString();
-      if (fileName.endsWith(FAF_REPLAY_FILE_ENDING)) {
-        runFafReplayFile(path);
-      } else if (fileName.endsWith(SUP_COM_REPLAY_FILE_ENDING)) {
-        runSupComReplayFile(path);
-      }
-    } catch (IOException e) {
-      logger.warn("Replay could not be started", e);
-      notificationService.addNotification(new ImmediateNotification(
-          i18n.get("errorTitle"),
-          i18n.get("replayCouldNotBeStarted", path.getFileName()),
-          WARN, e, singletonList(new ReportAction(i18n, reportingService, e))
-      ));
+    String fileName = path.getFileName().toString();
+    if (fileName.endsWith(FAF_REPLAY_FILE_ENDING)) {
+      runFafReplayFile(path);
+    } else if (fileName.endsWith(SUP_COM_REPLAY_FILE_ENDING)) {
+      runSupComReplayFile(path);
     }
   }
 
@@ -330,7 +337,7 @@ public class ReplayServiceImpl implements ReplayService {
         .exceptionally(throwable -> {
           notificationService.addNotification(new ImmediateNotification(
               i18n.get("errorTitle"),
-              i18n.get("replayCouldNotBeDownloaded", replayId),
+              i18n.get("replayCouldNotBeStarted", replayId),
               Severity.ERROR, throwable,
               singletonList(new ReportAction(i18n, reportingService, throwable)))
           );

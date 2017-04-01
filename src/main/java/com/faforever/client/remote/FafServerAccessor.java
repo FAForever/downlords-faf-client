@@ -55,5 +55,4 @@ public interface FafServerAccessor {
   void selectAvatar(URL url);
 
   List<Avatar> getAvailableAvatars();
-
 }

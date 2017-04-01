@@ -1,11 +1,11 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.io.ByteCopier;
-import com.faforever.client.io.Unzipper;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
+import com.faforever.commons.io.ByteCopier;
+import com.faforever.commons.io.Unzipper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;

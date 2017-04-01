@@ -1,6 +1,7 @@
 package com.faforever.client.map;
 
 import com.faforever.client.api.dto.MapVersion;
+import com.faforever.client.api.dto.Review;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleFloatProperty;
@@ -65,7 +66,25 @@ public class MapBean implements Comparable<MapBean> {
     mapBean.setDownloads(map.getStatistics().getDownloads());
     mapBean.setId(mapVersion.getId());
     mapBean.setPlayers(mapVersion.getMaxPlayers());
-//    mapBean.setRating(((com.faforever.client.api.dto.Map) map).getRating());
+    mapBean.setRating((float) mapVersion.getReviews().stream().mapToInt(Review::getScore).average().orElse(0d));
+    mapBean.setVersion(mapVersion.getVersion());
+    mapBean.setDownloadUrl(mapVersion.getDownloadUrl());
+    mapBean.setSmallThumbnailUrl(mapVersion.getThumbnailUrlSmall());
+    mapBean.setLargeThumbnailUrl(mapVersion.getThumbnailUrlLarge());
+    mapBean.setCreateTime(mapVersion.getCreateTime().toLocalDateTime());
+    return mapBean;
+  }
+
+  public static MapBean fromMap(com.faforever.client.api.dto.MapVersion mapVersion) {
+    MapBean mapBean = new MapBean();
+    mapBean.setDescription(mapVersion.getDescription());
+    mapBean.setDisplayName(mapVersion.getMap().getDisplayName());
+    mapBean.setFolderName(mapVersion.getFolderName());
+    mapBean.setSize(new MapSize(mapVersion.getWidth(), mapVersion.getHeight()));
+    mapBean.setDownloads(mapVersion.getMap().getStatistics().getDownloads());
+    mapBean.setId(mapVersion.getId());
+    mapBean.setPlayers(mapVersion.getMaxPlayers());
+    mapBean.setRating((float) mapVersion.getReviews().stream().mapToInt(Review::getScore).average().orElse(0d));
     mapBean.setVersion(mapVersion.getVersion());
     mapBean.setDownloadUrl(mapVersion.getDownloadUrl());
     mapBean.setSmallThumbnailUrl(mapVersion.getThumbnailUrlSmall());

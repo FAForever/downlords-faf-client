@@ -53,6 +53,7 @@ import java.util.function.Consumer;
 import static com.faforever.client.remote.domain.GameAccess.PASSWORD;
 import static com.faforever.client.remote.domain.GameAccess.PUBLIC;
 import static com.faforever.client.task.CompletableTask.Priority.HIGH;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 @Lazy
@@ -281,8 +282,9 @@ public class MockFafServerAccessor implements FafServerAccessor {
 
   @Override
   public List<Avatar> getAvailableAvatars() {
-    return null;
+    return emptyList();
   }
+
 
   private GameInfoMessage createGameInfo(int uid, String title, GameAccess access, String featuredMod, String mapName, int numPlayers, int maxPlayers, String host) {
     GameInfoMessage gameInfoMessage = new GameInfoMessage();

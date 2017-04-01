@@ -17,7 +17,8 @@
 <StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="replayVaultRoot" xmlns="http://javafx.com/javafx/8.0.60"
            fx:controller="com.faforever.client.replay.OnlineReplayVaultController">
     <children>
-        <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+        <ScrollPane fx:id="scrollPane" fitToWidth="true" maxHeight="1.7976931348623157E308"
+                    maxWidth="1.7976931348623157E308">
             <content>
                 <VBox fx:id="contentPane" spacing="10.0">
                     <children>
@@ -26,21 +27,22 @@
                                 <HBox alignment="CENTER_LEFT" spacing="10.0">
                                     <children>
                                         <fx:include fx:id="initialLogicalNode" source="../../query/logical_node.fxml"/>
-                                        <Button fx:id="searchButton" defaultButton="true" mnemonicParsing="false"
-                                                onAction="#onSearchButtonClicked" styleClass="button-raised"
-                                                text="%search">
-                                            <graphic>
-                                                <Label styleClass="icon" text=""/>
-                                            </graphic>
-                                        </Button>
                                     </children>
                         </HBox>
                             </children>
                         </VBox>
                         <HBox alignment="CENTER_LEFT" spacing="10.0">
                             <children>
-                                <Button mnemonicParsing="false" onAction="#onAddCriteriaButtonClicked"
-                                        text="%query.addCriteria"/>
+                                <Button maxHeight="1.7976931348623157E308" mnemonicParsing="false"
+                                        onAction="#onAddCriteriaButtonClicked" text="%query.addCriteria"/>
+                                <Button layoutX="10.0" layoutY="10.0" maxHeight="1.7976931348623157E308"
+                                        mnemonicParsing="false" onAction="#onResetButtonClicked" text="%reset"/>
+                                <Button fx:id="searchButton" defaultButton="true" mnemonicParsing="false"
+                                        onAction="#onSearchButtonClicked" styleClass="button-raised" text="%search">
+                                    <graphic>
+                                        <Label styleClass="icon" text=""/>
+                                    </graphic>
+                                </Button>
                                 <CheckBox fx:id="displayQueryCheckBox" mnemonicParsing="false"
                                           text="%vault.replays.displayQuery"/>
                             </children>
@@ -48,11 +50,21 @@
                         <TextField fx:id="queryTextField" maxWidth="1.7976931348623157E308"
                                    promptText="%vault.replays.queryPrompt"/>
                         <Separator prefWidth="200.0"/>
-                        <Button fx:id="backButton" mnemonicParsing="false" onAction="#onBackButtonClicked" text="%back">
-                            <graphic>
-                                <Label styleClass="icon" text=""/>
-                            </graphic>
+                        <HBox spacing="10.0">
+                            <children>
+                                <Button fx:id="backButton" mnemonicParsing="false" onAction="#onBackButtonClicked"
+                                        text="%back">
+                                    <graphic>
+                                        <Label styleClass="icon" text=""/>
+                                    </graphic>
+                                </Button>
+                                <Button mnemonicParsing="false" onAction="#onRefreshButtonClicked" text="%refresh">
+                                    <graphic>
+                                        <Label styleClass="icon" text=""/>
+                                    </graphic>
                         </Button>
+                            </children>
+                        </HBox>
                         <GridPane fx:id="showroomGroup" vgap="10.0">
                             <columnConstraints>
                                 <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
@@ -68,18 +80,20 @@
                             </rowConstraints>
                             <children>
                                 <Label styleClass="h2" text="%vault.replays.newest"/>
-                                <Button mnemonicParsing="false" styleClass="button-raised" text="%more"
-                                        GridPane.columnIndex="1"/>
+                                <Button mnemonicParsing="false" onAction="#onMoreNewestButtonClicked"
+                                        styleClass="button-raised" text="%more" GridPane.columnIndex="1"/>
                                 <VBox fx:id="newestPane" spacing="10.0" GridPane.columnSpan="2147483647"
                                       GridPane.rowIndex="1"/>
                                 <Label styleClass="h2" text="%vault.replays.highestRated" GridPane.rowIndex="2"/>
-                                <Button mnemonicParsing="false" styleClass="button-raised" text="%more"
-                                        GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                                <Button mnemonicParsing="false" onAction="#onMoreHighestRatedButtonClicked"
+                                        styleClass="button-raised" text="%more" GridPane.columnIndex="1"
+                                        GridPane.rowIndex="2"/>
                                 <VBox fx:id="highestRatedPane" spacing="10.0" GridPane.columnSpan="2147483647"
                                       GridPane.rowIndex="3"/>
                                 <Label styleClass="h2" text="%vault.replays.mostWatched" GridPane.rowIndex="4"/>
-                                <Button mnemonicParsing="false" styleClass="button-raised" text="%more"
-                                        GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+                                <Button mnemonicParsing="false" onAction="#onMoreMostWatchedButtonClicked"
+                                        styleClass="button-raised" text="%more" GridPane.columnIndex="1"
+                                        GridPane.rowIndex="4"/>
                                 <VBox fx:id="mostWatchedPane" spacing="10.0" GridPane.columnSpan="2147483647"
                                       GridPane.rowIndex="5"/>
                             </children>
@@ -90,15 +104,6 @@
                                 <VBox fx:id="searchResultPane" spacing="10.0"/>
                             </children>
                         </VBox>
-                        <VBox fx:id="loadingPane" alignment="CENTER" spacing="10.0">
-                            <children>
-                                <Label contentDisplay="TOP" text="%vault.replays.loading">
-                                    <graphic>
-                                        <ProgressIndicator/>
-                                    </graphic>
-                                </Label>
-                            </children>
-                        </VBox>
                     </children>
                     <padding>
                         <Insets bottom="20.0" left="20.0" right="20.0" top="30.0"/>
@@ -106,5 +111,15 @@
                 </VBox>
             </content>
         </ScrollPane>
+        <VBox fx:id="loadingPane" alignment="CENTER" maxHeight="1.7976931348623157E308"
+              maxWidth="1.7976931348623157E308" mouseTransparent="true" spacing="10.0">
+            <children>
+                <Label contentDisplay="TOP" text="%vault.replays.loading">
+                    <graphic>
+                        <ProgressIndicator/>
+                    </graphic>
+                </Label>
+            </children>
+        </VBox>
     </children>
 </StackPane>

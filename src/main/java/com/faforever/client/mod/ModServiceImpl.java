@@ -351,7 +351,7 @@ public class ModServiceImpl implements ModService {
   @NotNull
   @Override
   public Mod extractModInfo(InputStream inputStream, Path basePath) {
-    return Mod.fromDto(modReader.extractModInfo(inputStream, basePath));
+    return Mod.fromModInfo(modReader.readModInfo(inputStream, basePath), basePath);
   }
 
   @Override
@@ -366,7 +366,7 @@ public class ModServiceImpl implements ModService {
   @Cacheable(value = CacheNames.MOD_THUMBNAIL, unless = "#result == null")
   public Image loadThumbnail(Mod mod) {
     URL url = mod.getThumbnailUrl();
-    return assetService.loadAndCacheImage(url, Paths.get("mods"), () -> IdenticonUtil.createIdenticon(mod.getId()));
+    return assetService.loadAndCacheImage(url, Paths.get("mods"), () -> IdenticonUtil.createIdenticon(mod.getName()));
   }
 
   @Override

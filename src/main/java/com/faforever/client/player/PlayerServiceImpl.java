@@ -30,10 +30,12 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.chat.SocialStatus.FRIEND;
@@ -223,6 +225,11 @@ public class PlayerServiceImpl implements PlayerService {
   @Override
   public ReadOnlyObjectProperty<Player> currentPlayerProperty() {
     return currentPlayer;
+  }
+
+  @Override
+  public CompletableFuture<List<Player>> getPlayersByIds(Collection<Integer> playerIds) {
+    return fafService.getPlayersByIds(playerIds);
   }
 
   private void onPlayersInfo(PlayersMessage playersMessage) {

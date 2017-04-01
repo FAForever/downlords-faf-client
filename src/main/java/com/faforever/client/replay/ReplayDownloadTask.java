@@ -2,9 +2,9 @@ package com.faforever.client.replay;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.io.ByteCopier;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
+import com.faforever.commons.io.ByteCopier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;

@@ -1,7 +1,7 @@
 package com.faforever.client.mod;
 
 
-import com.faforever.commons.mod.MountPoint;
+import com.faforever.commons.mod.MountInfo;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
 import java.net.MalformedURLException;
@@ -71,8 +71,8 @@ public class ModInfoBeanBuilder {
     return this;
   }
 
-  public ModInfoBeanBuilder mountPoints(List<MountPoint> mountPoints) {
-    modInfo.getMountPoints().setAll(mountPoints);
+  public ModInfoBeanBuilder mountPoints(List<MountInfo> mountPoints) {
+    modInfo.getMountInfos().setAll(mountPoints);
     return this;
   }
 }

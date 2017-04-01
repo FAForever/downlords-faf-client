@@ -1,5 +1,6 @@
 package com.faforever.client.io;
 
+import com.faforever.commons.io.ByteCountListener;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.io.FileSystemResource;
@@ -17,9 +18,9 @@ import java.util.Optional;
  */
 public class CountingFileSystemResource extends FileSystemResource {
 
-  private ProgressListener listener;
+  private ByteCountListener listener;
 
-  public CountingFileSystemResource(Path file, ProgressListener listener) {
+  public CountingFileSystemResource(Path file, ByteCountListener listener) {
     super(file.toFile());
     this.listener = Optional.ofNullable(listener)
         .orElseThrow(() -> new IllegalArgumentException("'listener' must not be null"));
@@ -33,11 +34,11 @@ public class CountingFileSystemResource extends FileSystemResource {
 
   private class CountingInputStream extends FileInputStream {
 
-    private final ProgressListener listener;
+    private final ByteCountListener listener;
     private final long totalBytes;
     private long bytesDone;
 
-    CountingInputStream(File file, ProgressListener listener) throws FileNotFoundException {
+    CountingInputStream(File file, ByteCountListener listener) throws FileNotFoundException {
       super(file);
       this.listener = listener;
       this.totalBytes = file.length();
@@ -50,7 +51,7 @@ public class CountingFileSystemResource extends FileSystemResource {
         this.bytesDone += bytesRead;
       }
 
-      this.listener.update(this.bytesDone, totalBytes);
+      this.listener.updateBytesWritten(this.bytesDone, totalBytes);
       return bytesRead;
     }
   }

@@ -3,7 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.commons.mod.MountPoint;
+import com.faforever.commons.mod.MountInfo;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Rule;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 
 public class FaInitGeneratorTest {
   @Rule
-  public TemporaryFolder folderToMount = new TemporaryFolder();
+  public TemporaryFolder mountBaseDir = new TemporaryFolder();
   @Rule
   public TemporaryFolder fafBinDirectory = new TemporaryFolder();
   @Rule
@@ -50,10 +50,10 @@ public class FaInitGeneratorTest {
 
   @Test
   public void testGenerateInitFile() throws Exception {
-    Path pathToMount = folderToMount.getRoot().toPath();
-    List<MountPoint> mountPaths = Arrays.asList(
-        new MountPoint(pathToMount, "/"),
-        new MountPoint(Paths.get("gamedata", "effects.nxt"), "/effects")
+    Path mountBasePath = this.mountBaseDir.getRoot().toPath();
+    List<MountInfo> mountPaths = Arrays.asList(
+        new MountInfo(mountBasePath, Paths.get("foobar"), "/foobar"),
+        new MountInfo(mountBasePath, Paths.get("gamedata/effects.nxt"), "/effects")
     );
 
     instance.generateInitFile(mountPaths, new HashSet<>(Arrays.asList("/schook", "/labwars")));
@@ -62,10 +62,11 @@ public class FaInitGeneratorTest {
     assertTrue(Files.exists(targetFile));
 
     String fileContent = new String(Files.readAllBytes(targetFile), UTF_8);
+    String basePathString = mountBasePath.toAbsolutePath().toString().replaceAll("[/\\\\]", "\\\\\\\\");
     assertThat(fileContent, CoreMatchers.containsString("\r\n" +
         "mountSpecs = {\r\n" +
-        "    {'/', '" + pathToMount.toAbsolutePath().toString().replaceAll("[/\\\\]", "\\\\\\\\") + "'},\r\n" +
-        "    {'/effects', '" + Paths.get("gamedata", "effects.nxt").toString().replaceAll("[/\\\\]", "\\\\\\\\") + "'}\r\n" +
+        "    {'" + basePathString + "\\\\foobar', '/foobar'},\r\n" +
+        "    {'" + basePathString + "\\\\gamedata\\\\effects.nxt', '/effects'}\r\n" +
         "}"
     ));
     assertThat(fileContent, CoreMatchers.containsString("\r\n" +

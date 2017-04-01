@@ -12,8 +12,7 @@ import com.faforever.client.remote.domain.GameState;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import com.google.common.primitives.Bytes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.invoke.MethodHandles;
+import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -35,9 +34,8 @@ import static com.github.nocatch.NoCatch.noCatch;
 
 @Lazy
 @Component
+@Slf4j
 public class ReplayServerImpl implements ReplayServer {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final int REPLAY_BUFFER_SIZE = 0x200;
 
@@ -81,7 +79,7 @@ public class ReplayServerImpl implements ReplayServer {
   @Override
   public void stop() {
     if (serverSocket == null) {
-      throw new IllegalStateException("Server has never been started");
+      return;
     }
     stoppedGracefully = true;
     noCatch(() -> serverSocket.close());
@@ -96,20 +94,25 @@ public class ReplayServerImpl implements ReplayServer {
       String remoteReplayServerHost = clientProperties.getReplay().getRemoteHost();
       Integer remoteReplayServerPort = clientProperties.getReplay().getRemotePort();
 
-      logger.debug("Opening local replay server on port {}", localReplayServerPort);
-      logger.debug("Connecting to replay server at '{}:{}'", remoteReplayServerHost, remoteReplayServerPort);
+      log.debug("Opening local replay server on port {}", localReplayServerPort);
+      log.debug("Connecting to replay server at '{}:{}'", remoteReplayServerHost, remoteReplayServerPort);
 
       try (ServerSocket localSocket = new ServerSocket(localReplayServerPort);
            Socket remoteReplayServerSocket = new Socket(remoteReplayServerHost, remoteReplayServerPort)) {
         this.serverSocket = localSocket;
         future.complete(null);
         recordAndRelay(uid, localSocket, new BufferedOutputStream(remoteReplayServerSocket.getOutputStream()));
+      } catch (ConnectException e) {
+        // TODO record locally even though remote is down.
+        log.warn("Could not connect to remote replay server", e);
+        notificationService.addNotification(new PersistentNotification(i18n.get("replayServer.unreachable"), Severity.WARN));
+        future.complete(null);
       } catch (IOException e) {
         if (stoppedGracefully) {
           return;
         }
         future.completeExceptionally(e);
-        logger.warn("Error in replay server", e);
+        log.warn("Error in replay server", e);
         notificationService.addNotification(new PersistentNotification(
                 i18n.get("replayServer.listeningFailed", localReplayServerPort),
                 Severity.WARN, Collections.singletonList(new Action(i18n.get("replayServer.retry"), event -> start(uid)))
@@ -132,7 +135,7 @@ public class ReplayServerImpl implements ReplayServer {
 
   private void recordAndRelay(int uid, ServerSocket serverSocket, OutputStream fafReplayOutputStream) throws IOException {
     Socket socket = serverSocket.accept();
-    logger.debug("Accepted connection from {}", socket.getRemoteSocketAddress());
+    log.debug("Accepted connection from {}", socket.getRemoteSocketAddress());
 
     initReplayInfo(uid);
 
@@ -155,23 +158,23 @@ public class ReplayServerImpl implements ReplayServer {
             fafReplayOutputStream.write(buffer, 0, bytesRead);
           } catch (SocketException e) {
             // In case we lose connection to the replay server, just stop writing to it
-            logger.warn("Connection to replay server lost ({})", e.getMessage());
+            log.warn("Connection to replay server lost ({})", e.getMessage());
             connectionToServerLost = true;
           }
         }
       }
     } catch (Exception e) {
-      logger.warn("Error while recording replay", e);
+      log.warn("Error while recording replay", e);
       throw e;
     } finally {
       try {
         fafReplayOutputStream.flush();
       } catch (IOException e) {
-        logger.warn("Could not flush FAF replay output stream", e);
+        log.warn("Could not flush FAF replay output stream", e);
       }
     }
 
-    logger.debug("FAF has disconnected, writing replay data to file");
+    log.debug("FAF has disconnected, writing replay data to file");
     finishReplayInfo();
     replayFileWriter.writeReplayDataToFile(replayData, replayInfo);
   }

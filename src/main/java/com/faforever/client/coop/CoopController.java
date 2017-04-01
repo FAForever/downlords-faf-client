@@ -2,6 +2,7 @@ package com.faforever.client.coop;
 
 import com.faforever.client.api.dto.CoopResult;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeTableCell;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.fx.StringListCell;
@@ -46,7 +47,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.scene.web.WebView;
@@ -238,10 +238,7 @@ public class CoopController implements Controller<Node> {
 
   private void populateContainer(Node root) {
     gameViewContainer.getChildren().setAll(root);
-    AnchorPane.setBottomAnchor(root, 0d);
-    AnchorPane.setLeftAnchor(root, 0d);
-    AnchorPane.setRightAnchor(root, 0d);
-    AnchorPane.setTopAnchor(root, 0d);
+    JavaFxUtil.setAnchors(gameViewContainer, 0d);
   }
 
   // FIXME call before display

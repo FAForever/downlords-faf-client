@@ -18,7 +18,8 @@ import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.faforever.client.io.Bytes.formatSize;
+import static com.faforever.commons.io.Bytes.formatSize;
+
 
 @Lazy
 @Component

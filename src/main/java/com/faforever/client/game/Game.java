@@ -3,6 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameState;
 import com.faforever.client.remote.domain.VictoryCondition;
+import com.faforever.client.util.TimeUtil;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.MapProperty;
@@ -17,7 +18,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import org.apache.commons.lang3.StringEscapeUtils;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,6 +46,7 @@ public class Game {
   private final ObjectProperty<GameVisibility> visibility;
   private final ObjectProperty<GameState> status;
   private final ObjectProperty<VictoryCondition> victoryCondition;
+  private final ObjectProperty<Instant> startTime;
   /**
    * Maps a sim mod's UID to its name.
    */
@@ -76,6 +80,7 @@ public class Game {
     teams = new SimpleMapProperty<>(FXCollections.observableHashMap());
     featuredModVersions = new SimpleMapProperty<>(FXCollections.observableHashMap());
     status = new SimpleObjectProperty<>();
+    startTime = new SimpleObjectProperty<>();
   }
 
   public void updateFromGameInfo(GameInfoMessage gameInfoMessage) {
@@ -89,6 +94,9 @@ public class Game {
     victoryCondition.set(gameInfoMessage.getGameType());
     status.set(gameInfoMessage.getState());
     passwordProtected.set(gameInfoMessage.getPasswordProtected());
+    Optional.ofNullable(gameInfoMessage.getLaunchedAt()).ifPresent(aDouble -> startTime.set(
+        TimeUtil.fromPythonTime(aDouble.longValue()).toInstant()
+    ));
 
     synchronized (simMods.get()) {
       simMods.clear();
@@ -374,5 +382,17 @@ public class Game {
 
   public StringProperty passwordProperty() {
     return password;
+  }
+
+  public Instant getStartTime() {
+    return startTime.get();
+  }
+
+  public void setStartTime(Instant startTime) {
+    this.startTime.set(startTime);
+  }
+
+  public ObjectProperty<Instant> startTimeProperty() {
+    return startTime;
   }
 }

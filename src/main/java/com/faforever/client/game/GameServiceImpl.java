@@ -106,6 +106,8 @@ public class GameServiceImpl implements GameService {
   private final ModService modService;
   private final PlatformService platformService;
   private final String faWindowTitle;
+  private final ClientProperties clientProperties;
+
   //TODO: circular reference
   @Inject
   ReplayService replayService;
@@ -117,7 +119,13 @@ public class GameServiceImpl implements GameService {
   private boolean rehostRequested;
 
   @Inject
-  public GameServiceImpl(ClientProperties clientProperties, FafService fafService, ForgedAllianceService forgedAllianceService, MapService mapService, PreferencesService preferencesService, GameUpdater gameUpdater, NotificationService notificationService, I18n i18n, Executor executor, PlayerService playerService, ReportingService reportingService,  EventBus eventBus, IceAdapter iceAdapter, ModService modService, PlatformService platformService) {
+  public GameServiceImpl(ClientProperties clientProperties, FafService fafService,
+                         ForgedAllianceService forgedAllianceService, MapService mapService,
+                         PreferencesService preferencesService, GameUpdater gameUpdater,
+                         NotificationService notificationService, I18n i18n, Executor executor,
+                         PlayerService playerService, ReportingService reportingService, EventBus eventBus,
+                         IceAdapter iceAdapter, ModService modService, PlatformService platformService) {
+    this.clientProperties = clientProperties;
     this.fafService = fafService;
     this.forgedAllianceService = forgedAllianceService;
     this.mapService = mapService;
@@ -225,6 +233,7 @@ public class GameServiceImpl implements GameService {
   }
 
   private void notifyCantPlayReplay(@Nullable Integer replayId, Throwable throwable) {
+    logger.error("Could not play replay '" + replayId + "'", throwable);
     notificationService.addNotification(new ImmediateNotification(
         i18n.get("errorTitle"),
         i18n.get("replayCouldNotBeStarted", replayId),
@@ -365,7 +374,8 @@ public class GameServiceImpl implements GameService {
         .thenCompose(aVoid -> iceAdapter.start())
         .thenAccept(adapterPort -> {
           List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
-          process = noCatch(() -> forgedAllianceService.startGame(gameLaunchMessage.getUid(), faction, args, ratingMode, adapterPort, rehostRequested));
+          process = noCatch(() -> forgedAllianceService.startGame(gameLaunchMessage.getUid(), faction, args, ratingMode,
+              adapterPort, clientProperties.getReplay().getLocalServerPort(), rehostRequested));
           setGameRunning(true);
 
           this.ratingMode = ratingMode;

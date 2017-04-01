@@ -6,19 +6,25 @@ import com.faforever.client.api.dto.CoopResult;
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
+import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.GlobalLeaderboardEntry;
 import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
 import com.faforever.client.api.dto.Map;
+import com.faforever.client.api.dto.MapVersionReview;
 import com.faforever.client.api.dto.Mod;
+import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.game.KnownFeaturedMod;
-import com.faforever.client.io.ProgressListener;
+import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.FeaturedMod;
+import com.faforever.commons.io.ByteCountListener;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Provides access to the FAF REST API. Services should not access this class directly, but use {@link
@@ -59,9 +65,11 @@ public interface FafApiAccessor {
 
   List<Map> getNewestMaps(int count);
 
-  void uploadMod(Path file, ProgressListener listener);
+  List<Game> getLastGamesOnMap(int playerId, int mapVersionId, int count);
 
-  void uploadMap(Path file, boolean isRanked, ProgressListener listener) throws IOException;
+  void uploadMod(Path file, ByteCountListener listener);
+
+  void uploadMap(Path file, boolean isRanked, ByteCountListener listener) throws IOException;
 
   List<CoopMission> getCoopMissions();
 
@@ -79,5 +87,23 @@ public interface FafApiAccessor {
 
   List<Game> getMostWatchedReplays(int count);
 
-  List<Game> findReplaysByQuery(String condition);
+  List<Game> findReplaysByQuery(String condition, int maxResults);
+
+  Optional<MapBean> findMapByFolderName(String folderName);
+
+  List<com.faforever.client.api.dto.Player> getPlayersByIds(Collection<Integer> playerIds);
+
+  GameReview createGameReview(GameReview review);
+
+  void updateGameReview(GameReview review);
+
+  ModVersionReview createModVersionReview(ModVersionReview review);
+
+  void updateModVersionReview(ModVersionReview review);
+
+  MapVersionReview createMapVersionReview(MapVersionReview review);
+
+  void updateMapVersionReview(MapVersionReview review);
+
+  void deleteGameReview(int id);
 }

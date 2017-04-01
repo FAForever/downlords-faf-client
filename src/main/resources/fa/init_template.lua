@@ -188,8 +188,8 @@ mountSpecs = {
 -- @formatter:on
 
 for _, mountSpec in mountSpecs do
-    LOG('Mounting ' .. mountSpec[2] .. ' to ' .. mountSpec[1])
-    mount_dir(mountSpec[2], mountSpec[1])
+    LOG('Mounting ' .. mountSpec[1] .. ' to ' .. mountSpec[2])
+    mount_dir(mountSpec[1], mountSpec[2])
 end
 
 

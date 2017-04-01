@@ -2,6 +2,7 @@ package com.faforever.client.api;
 
 import com.faforever.client.api.dto.ApiException;
 import com.github.jasminb.jsonapi.JSONAPIDocument;
+import com.github.jasminb.jsonapi.ReflectionUtils;
 import com.github.jasminb.jsonapi.ResourceConverter;
 import lombok.SneakyThrows;
 import org.springframework.http.HttpInputMessage;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -28,7 +30,8 @@ public class JsonApiMessageConverter extends AbstractHttpMessageConverter<Object
 
   @Override
   protected boolean supports(Class<?> clazz) {
-    return true;
+    return Collection.class.isAssignableFrom(clazz)
+        || ReflectionUtils.getTypeName(clazz) != null;
   }
 
   @Override
@@ -57,9 +60,9 @@ public class JsonApiMessageConverter extends AbstractHttpMessageConverter<Object
   @SneakyThrows
   protected void writeInternal(Object o, HttpOutputMessage outputMessage) {
     if (o instanceof Iterable) {
-      resourceConverter.writeDocumentCollection(new JSONAPIDocument<Iterable<?>>((Iterable<?>) o));
+      outputMessage.getBody().write(resourceConverter.writeDocumentCollection(new JSONAPIDocument<Iterable<?>>((Iterable<?>) o)));
     } else {
-      resourceConverter.writeDocument(new JSONAPIDocument<>(o));
+      outputMessage.getBody().write(resourceConverter.writeDocument(new JSONAPIDocument<>(o)));
     }
   }
 }

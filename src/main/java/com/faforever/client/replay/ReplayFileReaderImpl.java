@@ -33,7 +33,7 @@ public class ReplayFileReaderImpl implements ReplayFileReader {
   @Override
   @SneakyThrows
   public LocalReplayInfo parseMetaData(Path replayFile) {
-    logger.debug("Reading replay file {}", replayFile);
+    logger.debug("Parsing metadata of replay file: {}", replayFile);
     List<String> lines = Files.readAllLines(replayFile);
     return gson.fromJson(lines.get(0), LocalReplayInfo.class);
   }
@@ -41,7 +41,7 @@ public class ReplayFileReaderImpl implements ReplayFileReader {
   @Override
   @SneakyThrows
   public byte[] readRawReplayData(Path replayFile) {
-    logger.debug("Reading replay file {}", replayFile);
+    logger.debug("Reading replay file: {}", replayFile);
     List<String> lines = Files.readAllLines(replayFile);
     return QtCompress.qUncompress(BaseEncoding.base64().decode(lines.get(1)));
   }

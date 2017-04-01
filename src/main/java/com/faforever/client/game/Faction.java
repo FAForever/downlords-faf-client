@@ -8,7 +8,12 @@ import java.util.Map;
 
 public enum Faction {
   // Order is crucial
-  AEON("aeon"), CYBRAN("cybran"), UEF("uef"), SERAPHIM("seraphim"), NOMAD("nomad");
+  AEON("aeon"),
+  CYBRAN("cybran"),
+  UEF("uef"),
+  SERAPHIM("seraphim"),
+  NOMAD("nomad"),
+  CIVILIAN("civilian");
 
   private static final Map<String, Faction> fromString;
 

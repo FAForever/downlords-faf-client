@@ -3,6 +3,8 @@ faf-client:
     initialStandardDeviation: 500
     initialMean: 1500
     beta: 240
+    dynamic-factor: 10
+    draw-probability: 0.1
 
   vault:
    mapDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/maps/%s.zip
@@ -52,7 +54,7 @@ logging:
     com.faforever.client.events: info
     com.faforever.client.legacy: info
     com.faforever.client.remote: debug
-    com.faforever.client.replay: info
+    com.faforever.client.replay: debug
     com.faforever.client.relay: info
     com.faforever.client.chat: info
     com.faforever.client.game: info

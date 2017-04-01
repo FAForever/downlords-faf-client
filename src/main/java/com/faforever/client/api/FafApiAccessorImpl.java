@@ -6,11 +6,15 @@ import com.faforever.client.api.dto.CoopResult;
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
+import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.GlobalLeaderboardEntry;
 import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
 import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapStatistics;
+import com.faforever.client.api.dto.MapVersionReview;
 import com.faforever.client.api.dto.Mod;
+import com.faforever.client.api.dto.ModVersionReview;
+import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.config.CacheNames;
@@ -18,10 +22,14 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Api;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.io.CountingFileSystemResource;
-import com.faforever.client.io.ProgressListener;
+import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
+import com.faforever.commons.io.ByteCountListener;
+import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
+import com.github.rutledgepaulv.qbuilders.conditions.Condition;
+import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -47,11 +55,13 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.io.Serializable;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
@@ -60,6 +70,7 @@ import java.util.stream.Collectors;
 public class FafApiAccessorImpl implements FafApiAccessor {
 
   private static final String MAP_ENDPOINT = "/data/map";
+  private static final String REPLAY_INCLUDES = "featuredMod,playerStats,playerStats.player,reviews,reviews.player,mapVersion,mapVersion.map";
   private final EventBus eventBus;
   private final RestTemplateBuilder restTemplateBuilder;
   private final ClientProperties clientProperties;
@@ -68,11 +79,23 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   private RestOperations restOperations;
 
   @Inject
-  public FafApiAccessorImpl(EventBus eventBus, RestTemplateBuilder restTemplateBuilder, ClientProperties clientProperties) {
+  public FafApiAccessorImpl(EventBus eventBus, RestTemplateBuilder restTemplateBuilder,
+                            ClientProperties clientProperties, JsonApiMessageConverter jsonApiMessageConverter) {
     this.eventBus = eventBus;
-    this.restTemplateBuilder = restTemplateBuilder;
     this.clientProperties = clientProperties;
     authorizedLatch = new CountDownLatch(1);
+
+    this.restTemplateBuilder = restTemplateBuilder
+        .additionalMessageConverters(jsonApiMessageConverter)
+        .rootUri(clientProperties.getApi().getBaseUrl());
+  }
+
+  private static String rsql(Condition<?> eq) {
+    return eq.query(new RSQLVisitor());
+  }
+
+  private static <T extends QBuilder<T>> QBuilder<T> qBuilder() {
+    return new QBuilder<>();
   }
 
   @PostConstruct
@@ -95,7 +118,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @SuppressWarnings("unchecked")
   public List<PlayerAchievement> getPlayerAchievements(int playerId) {
     return getAll("/data/playerAchievement", ImmutableMap.of(
-        "filter[playerAchievement.player.id]", String.valueOf(playerId)
+        "filter", rsql(qBuilder().intNum("playerAchievement.player.id").eq(playerId))
     ));
   }
 
@@ -103,7 +126,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @SuppressWarnings("unchecked")
   public List<PlayerEvent> getPlayerEvents(int playerId) {
     return getAll("/data/playerEvent", ImmutableMap.of(
-        "filter[playerEvent.player.id]", String.valueOf(playerId)
+        "filter", rsql(qBuilder().intNum("playerEvent.player.id").eq(playerId))
     ));
   }
 
@@ -132,7 +155,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   @Cacheable(CacheNames.FEATURED_MODS)
   public List<com.faforever.client.api.dto.FeaturedMod> getFeaturedMods() {
-    return getAll("/data/featuredMod");
+    return getMany("/data/featuredMod", 1000, ImmutableMap.of());
   }
 
   @Override
@@ -176,9 +199,11 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Cacheable(CacheNames.RATING_HISTORY)
   public List<GamePlayerStats> getGamePlayerStats(int playerId, KnownFeaturedMod knownFeaturedMod) {
     return getAll("/data/gamePlayerStats", ImmutableMap.of(
-        "filter[gamePlayerStats.player.id]", String.valueOf(playerId),
-        "filter[gamePlayerStats.game.featuredMod.technicalName]", knownFeaturedMod.getTechnicalName()
-    ));
+        "filter", rsql(qBuilder()
+            .intNum("gamePlayerStats.player.id").eq(playerId)
+            .and()
+            .string("gamePlayerStats.game.featuredMod.technicalName").eq(knownFeaturedMod.getTechnicalName())
+        )));
   }
 
   @Override
@@ -221,13 +246,24 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public void uploadMod(Path file, ProgressListener listener) {
+  public List<Game> getLastGamesOnMap(int playerId, int mapVersionId, int count) {
+    return getMany("/data/game", count, ImmutableMap.of(
+        "filter", rsql(qBuilder()
+            .intNum("mapVersion.id").eq(mapVersionId)
+            .and()
+            .intNum("playerStats.player.id").eq(playerId)),
+        "sort", "-endTime"
+    ));
+  }
+
+  @Override
+  public void uploadMod(Path file, ByteCountListener listener) {
     MultiValueMap<String, Object> multipartContent = createFileMultipart(file, listener);
     post("/mods/upload", multipartContent);
   }
 
   @Override
-  public void uploadMap(Path file, boolean isRanked, ProgressListener listener) {
+  public void uploadMap(Path file, boolean isRanked, ByteCountListener listener) {
     MultiValueMap<String, Object> multipartContent = createFileMultipart(file, listener);
     post("/maps/upload", multipartContent);
   }
@@ -252,14 +288,17 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   @Cacheable(CacheNames.FEATURED_MOD_FILES)
   public List<FeaturedModFile> getFeaturedModFiles(FeaturedMod featuredMod, Integer version) {
-    throw new UnsupportedOperationException("API support missing");
+    String endpoint = String.format("/featuredMods/%s/files/%s", featuredMod.getId(),
+        Optional.ofNullable(version).map(String::valueOf).orElse("latest"));
+    return getMany(endpoint, 10_000, ImmutableMap.of());
   }
 
   @Override
   public List<Game> getNewestReplays(int count) {
-    return getAll("/data/game", ImmutableMap.of(
+    return getMany("/data/game", count, ImmutableMap.of(
         "sort", "-endTime",
-        "include", "featuredMod"
+        "include", REPLAY_INCLUDES,
+        "filter", "endTime=isnull=false"
     ));
   }
 
@@ -276,11 +315,67 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public List<Game> findReplaysByQuery(String query) {
-    return getAll("/data/game", ImmutableMap.of(
-        "filter", query,
-        "include", "featuredMod"
+  public List<Game> findReplaysByQuery(String query, int maxResults) {
+    return getMany("/data/game", maxResults, ImmutableMap.of(
+        "filter", "(" + query + ");endTime=isnull=false",
+        "include", REPLAY_INCLUDES
     ));
+  }
+
+  @Override
+  public Optional<MapBean> findMapByFolderName(String folderName) {
+    List<MapBean> maps = getMany("/data/map", 1, ImmutableMap.of(
+        "include", "latestVersion",
+        "sort", "-updateTime"));
+    if (maps.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(maps.get(0));
+  }
+
+  @Override
+  public List<Player> getPlayersByIds(Collection<Integer> playerIds) {
+    List<String> ids = playerIds.stream().map(String::valueOf).collect(Collectors.toList());
+
+    return getMany("/data/player", playerIds.size(), ImmutableMap.of(
+        "include", "globalRating,ladder1v1Rating",
+        "filter", rsql(qBuilder().string("id").in(ids))
+    ));
+  }
+
+  @Override
+  public GameReview createGameReview(GameReview review) {
+    return post("/data/game/" + review.getGame().getId() + "/reviews", review, GameReview.class);
+  }
+
+  @Override
+  public void updateGameReview(GameReview review) {
+    patch("/data/gameReview/" + review.getId(), review, Void.class);
+  }
+
+  @Override
+  public ModVersionReview createModVersionReview(ModVersionReview review) {
+    return post("/data/modVersion/" + review.getModVersion().getId() + "/reviews", review, ModVersionReview.class);
+  }
+
+  @Override
+  public void updateModVersionReview(ModVersionReview review) {
+    patch("/data/modVersionReview/" + review.getId(), review, Void.class);
+  }
+
+  @Override
+  public MapVersionReview createMapVersionReview(MapVersionReview review) {
+    return post("/data/mapVersion/" + review.getMapVersion().getId() + "/reviews", review, MapVersionReview.class);
+  }
+
+  @Override
+  public void updateMapVersionReview(MapVersionReview review) {
+    patch("/data/mapVersionReview/" + review.getId(), review, Void.class);
+  }
+
+  @Override
+  public void deleteGameReview(int id) {
+    delete("/data/gameReview/" + id);
   }
 
   @Override
@@ -293,7 +388,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Cacheable(CacheNames.COOP_LEADERBOARD)
   public List<CoopResult> getCoopLeaderboard(String missionId, int numberOfPlayers) {
     return getMany("/data/coopLeaderboard", numberOfPlayers, ImmutableMap.of(
-        "filter[playerCount]", numberOfPlayers,
+        "filter", rsql(qBuilder().intNum("playerCount").eq(numberOfPlayers)),
         "sort", "-duration"
     ));
   }
@@ -317,7 +412,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @NotNull
-  private MultiValueMap<String, Object> createFileMultipart(Path file, ProgressListener listener) {
+  private MultiValueMap<String, Object> createFileMultipart(Path file, ByteCountListener listener) {
     MultiValueMap<String, Object> form = new LinkedMultiValueMap<>();
     form.add("file", new CountingFileSystemResource(file, listener));
     return form;
@@ -327,9 +422,29 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   private void post(String endpointPath, Object request) {
     authorizedLatch.await();
     ResponseEntity<Void> entity = restOperations.postForEntity(endpointPath, request, Void.class);
-    if (entity.getStatusCode() != HttpStatus.OK) {
-      throw new FileUploadException(entity.getStatusCode());
+    if (!entity.getStatusCode().is2xxSuccessful()) {
+      throw new ApiWriteException(entity.getStatusCode());
     }
+  }
+
+  @SneakyThrows
+  private <T> T post(String endpointPath, Object request, Class<T> type) {
+    authorizedLatch.await();
+    ResponseEntity<T> entity = restOperations.postForEntity(endpointPath, request, type);
+    if (!entity.getStatusCode().is2xxSuccessful()) {
+      throw new ApiWriteException(entity.getStatusCode());
+    }
+    return entity.getBody();
+  }
+
+  @SneakyThrows
+  private <T> T patch(String endpointPath, Object request, Class<T> type) {
+    authorizedLatch.await();
+    return restOperations.patchForObject(endpointPath, request, type);
+  }
+
+  private void delete(String endpointPath) {
+    restOperations.delete(endpointPath);
   }
 
   @SuppressWarnings("unchecked")
@@ -382,13 +497,14 @@ public class FafApiAccessorImpl implements FafApiAccessor {
         .build();
 
     authorizedLatch.await();
-    return (List<T>) restOperations.getForObject(uriComponents.getPath() + "?" + uriComponents.getQuery(), List.class);
+    return (List<T>) restOperations.getForObject(uriComponents.toUriString(), List.class);
   }
 
-  public class FileUploadException extends RuntimeException {
+  public class ApiWriteException extends RuntimeException {
 
-    FileUploadException(HttpStatus statusCode) {
-      super("Upload failed with status code: " + statusCode);
+    ApiWriteException(HttpStatus statusCode) {
+      super("Writing to API failed with status code: " + statusCode);
     }
+
   }
 }

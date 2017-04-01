@@ -6,7 +6,7 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
-import com.faforever.commons.mod.MountPoint;
+import com.faforever.commons.mod.MountInfo;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.context.ApplicationContext;
 
@@ -73,13 +73,14 @@ public class GameUpdaterImpl implements GameUpdater {
 
     future.thenCompose(aVoid -> updateGameBinaries(patchResults.get(patchResults.size() - 1).getVersion()))
         .thenRun(() -> {
-          List<MountPoint> mountPoints = patchResults.stream()
-              .flatMap(patchResult -> patchResult.getMountPoints().stream())
+          List<MountInfo> mountPoints = patchResults.stream()
+              .flatMap(patchResult -> patchResult.getMountInfos().stream())
               .collect(Collectors.toList());
 
           Set<String> hookDirectories = patchResults.stream()
               .flatMap(patchResult -> patchResult.getHookDirectories().stream())
               .collect(Collectors.toSet());
+
           faInitGenerator.generateInitFile(mountPoints, hookDirectories);
         });
 

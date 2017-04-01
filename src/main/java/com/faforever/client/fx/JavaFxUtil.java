@@ -17,11 +17,14 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
@@ -31,6 +34,7 @@ import javafx.util.Duration;
 import javafx.util.StringConverter;
 import lombok.SneakyThrows;
 
+import java.awt.image.BufferedImage;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -266,6 +270,28 @@ public final class JavaFxUtil {
     if (path.getParent() != null) {
       createDirectories(path.getParent());
     }
-    write(SwingFXUtils.fromFXImage(image, null), format, path.toFile());
+    BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
+    if (bufferedImage == null) {
+      return;
+    }
+    write(bufferedImage, format, path.toFile());
+  }
+
+  public static void setAnchors(Pane pane, double value) {
+    AnchorPane.setBottomAnchor(pane, value);
+    AnchorPane.setLeftAnchor(pane, value);
+    AnchorPane.setRightAnchor(pane, value);
+    AnchorPane.setTopAnchor(pane, value);
+  }
+
+  public static void fixScrollSpeed(ScrollPane scrollPane) {
+    Node content = scrollPane.getContent();
+    content.setOnScroll(event -> {
+      double deltaY = event.getDeltaY() * 3;
+      double height = scrollPane.getContent().getBoundsInLocal().getHeight();
+      double vvalue = scrollPane.getVvalue();
+      // deltaY/height to make the scrolling equally fast regardless of the actual height of the component
+      scrollPane.setVvalue(vvalue + -deltaY / height);
+    });
   }
 }

@@ -56,7 +56,7 @@
                                    <Label styleClass="icon" text=""/>
                                </graphic>
                            </Button>
-                           <Button mnemonicParsing="false" onAction="#onRefreshClicked" text="%modVault.refresh">
+                           <Button mnemonicParsing="false" onAction="#onRefreshClicked" text="%refresh">
                                <graphic>
                                    <Label styleClass="icon" text=""/>
                                </graphic>

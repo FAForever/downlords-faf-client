@@ -31,6 +31,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
+  private static final int MAX_RESULTS = 100;
   private OnlineReplayVaultController instance;
 
   @Mock
@@ -50,8 +51,6 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    when(uiService.loadFxml("theme/vault/replay/replay_detail.fxml")).thenReturn(replayDetailController);
-
     when(uiService.loadFxml("theme/query/logical_node.fxml")).thenAnswer(invocation -> {
       LogicalNodeController controller = mock(LogicalNodeController.class);
       controller.logicalOperatorField = new ChoiceBox<>();
@@ -67,8 +66,6 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
       when(controller.getRoot()).thenReturn(new Pane());
       return controller;
     });
-
-    when(replayDetailController.getRoot()).thenReturn(new Pane());
 
     instance = new OnlineReplayVaultController(replayService, uiService, notificationService, i18n);
 
@@ -106,14 +103,14 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnSearchButtonClicked() throws Exception {
     instance.queryTextField.setText("query");
-    when(replayService.findByQuery("query"))
+    when(replayService.findByQuery("query", MAX_RESULTS))
         .thenReturn(CompletableFuture.completedFuture(Arrays.asList(new Replay(), new Replay())));
 
     instance.onSearchButtonClicked();
 
     assertThat(instance.showroomGroup.isVisible(), is(false));
     assertThat(instance.searchResultGroup.isVisible(), is(true));
-    verify(replayService).findByQuery("query");
+    verify(replayService).findByQuery("query", MAX_RESULTS);
   }
 
   @Test
@@ -121,7 +118,7 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     instance.queryTextField.setText("query");
     CompletableFuture<List<Replay>> completableFuture = new CompletableFuture<>();
     completableFuture.completeExceptionally(new RuntimeException("JUnit test exception"));
-    when(replayService.findByQuery("query")).thenReturn(completableFuture);
+    when(replayService.findByQuery("query", MAX_RESULTS)).thenReturn(completableFuture);
 
     instance.onSearchButtonClicked();
 

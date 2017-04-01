@@ -28,7 +28,7 @@ public interface ReplayService {
 
   CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount);
 
-  CompletableFuture<List<Replay>> findByQuery(String condition);
+  CompletableFuture<List<Replay>> findByQuery(String condition, int maxResults);
 
   CompletableFuture<Path> downloadReplay(int id);
 
@@ -37,5 +37,5 @@ public interface ReplayService {
    */
   void enrich(Replay replay, Path path);
 
-  long getSize(int id);
+  CompletableFuture<Integer> getSize(int id);
 }

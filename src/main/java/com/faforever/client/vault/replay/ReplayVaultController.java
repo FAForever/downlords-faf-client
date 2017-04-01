@@ -2,6 +2,7 @@ package com.faforever.client.vault.replay;
 
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.notification.DismissAction;
@@ -43,7 +44,8 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.time.Duration;
-import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -72,10 +74,10 @@ public class ReplayVaultController implements Controller<Node> {
   public TreeTableColumn<Replay, Number> idColumn;
   public TreeTableColumn<Replay, String> titleColumn;
   public TreeTableColumn<Replay, String> playersColumn;
-  public TreeTableColumn<Replay, Instant> timeColumn;
+  public TreeTableColumn<Replay, Temporal> timeColumn;
   public TreeTableColumn<Replay, Duration> durationColumn;
   public TreeTableColumn<Replay, String> gameTypeColumn;
-  public TreeTableColumn<Replay, String> mapColumn;
+  public TreeTableColumn<Replay, MapBean> mapColumn;
   @VisibleForTesting
   TreeItem<Replay> localReplaysRoot;
 
@@ -158,38 +160,38 @@ public class ReplayVaultController implements Controller<Node> {
     };
   }
 
-  private TreeTableCell<Replay, Instant> timeCellFactory(TreeTableColumn<Replay, Instant> column) {
-    TextFieldTreeTableCell<Replay, Instant> cell = new TextFieldTreeTableCell<>();
-    cell.setConverter(new StringConverter<Instant>() {
+  private TreeTableCell<Replay, Temporal> timeCellFactory(TreeTableColumn<Replay, Temporal> column) {
+    TextFieldTreeTableCell<Replay, Temporal> cell = new TextFieldTreeTableCell<>();
+    cell.setConverter(new StringConverter<Temporal>() {
       @Override
-      public String toString(Instant object) {
+      public String toString(Temporal object) {
         return timeService.lessThanOneDayAgo(object);
       }
 
       @Override
-      public Instant fromString(String string) {
+      public OffsetDateTime fromString(String string) {
         return null;
       }
     });
     return cell;
   }
 
-  private TreeTableCell<Replay, String> mapCellFactory(TreeTableColumn<Replay, String> column) {
+  private TreeTableCell<Replay, MapBean> mapCellFactory(TreeTableColumn<Replay, MapBean> column) {
     final ImageView imageVew = uiService.loadFxml("theme/vault/map/map_preview_table_cell.fxml");
 
-    TreeTableCell<Replay, String> cell = new TreeTableCell<Replay, String>() {
+    TreeTableCell<Replay, MapBean> cell = new TreeTableCell<Replay, MapBean>() {
 
       @Override
-      protected void updateItem(String mapName, boolean empty) {
-        super.updateItem(mapName, empty);
+      protected void updateItem(MapBean map, boolean empty) {
+        super.updateItem(map, empty);
 
-        if (empty || mapName == null) {
+        if (empty || map == null) {
           setText(null);
           setGraphic(null);
         } else {
-          imageVew.setImage(mapService.loadPreview(mapName, PreviewSize.SMALL));
+          imageVew.setImage(mapService.loadPreview(map, PreviewSize.SMALL));
           setGraphic(imageVew);
-          setText(mapName);
+          setText(map.getDisplayName());
         }
       }
     };
@@ -239,8 +241,8 @@ public class ReplayVaultController implements Controller<Node> {
   @NotNull
   private ObservableValue<Duration> durationCellValueFactory(TreeTableColumn.CellDataFeatures<Replay, Duration> param) {
     Replay replay = param.getValue().getValue();
-    Instant startTime = replay.getStartTime();
-    Instant endTime = replay.getEndTime();
+    Temporal startTime = replay.getStartTime();
+    Temporal endTime = replay.getEndTime();
 
     if (startTime == null || endTime == null) {
       return new SimpleObjectProperty<>(null);

@@ -1,7 +1,6 @@
 package com.faforever.client.util;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.time.temporal.Temporal;
 import java.time.temporal.TemporalAccessor;
 
@@ -10,12 +9,12 @@ public interface TimeService {
   /**
    * A string as "10 minutes ago"
    */
-  String timeAgo(Instant instant);
+  String timeAgo(Temporal temporal);
 
   /**
-   * Returns {@link #timeAgo(Instant)} if the specified instant is less than one day ago, otherwise a date string.
+   * Returns {@link #timeAgo(Temporal)} if the specified instant is less than one day ago, otherwise a date string.
    */
-  String lessThanOneDayAgo(Instant instant);
+  String lessThanOneDayAgo(Temporal temporal);
 
   String asDate(TemporalAccessor temporalAccessor);
 

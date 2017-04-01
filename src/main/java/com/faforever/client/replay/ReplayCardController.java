@@ -2,10 +2,19 @@ package com.faforever.client.replay;
 
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
+import com.faforever.client.rating.RatingService;
+import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
+import com.faforever.client.vault.review.Review;
+import com.faforever.client.vault.review.StarsController;
 import com.google.common.base.Joiner;
+import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
+import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -16,7 +25,6 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -28,8 +36,10 @@ public class ReplayCardController implements Controller<Node> {
 
   private final TimeService timeService;
   private final MapService mapService;
+  private final RatingService ratingService;
+
   public Label dateLabel;
-  public ImageView thumbnailImageView;
+  public ImageView mapThumbnailImageView;
   public Label gameTitleLabel;
   public Node replayTileRoot;
   public Label timeLabel;
@@ -40,48 +50,68 @@ public class ReplayCardController implements Controller<Node> {
   public Label qualityLabel;
   public Label numberOfReviewsLabel;
   public Label playerListLabel;
+  public Label onMapLabel;
+  public StarsController starsController;
 
   private Replay replay;
   private Consumer<Replay> onOpenDetailListener;
   private I18n i18n;
+  private InvalidationListener reviewsChangedListener;
 
   @Inject
-  public ReplayCardController(TimeService timeService, MapService mapService, I18n i18n) {
+  public ReplayCardController(TimeService timeService, MapService mapService, RatingService ratingService, I18n i18n) {
     this.timeService = timeService;
     this.mapService = mapService;
+    this.ratingService = ratingService;
     this.i18n = i18n;
+    reviewsChangedListener = observable -> populateReviews();
   }
 
   public void setReplay(Replay replay) {
     this.replay = replay;
 
-    Optional.ofNullable(replay.getMap()).ifPresent(map -> {
+    Optional<MapBean> optionalMap = Optional.ofNullable(replay.getMap());
+    if (optionalMap.isPresent()) {
+      MapBean map = optionalMap.get();
       Image image = mapService.loadPreview(map, PreviewSize.SMALL);
-      thumbnailImageView.setImage(image);
-    });
+      mapThumbnailImageView.setImage(image);
+      onMapLabel.setText(i18n.get("game.onMapFormat", map.getDisplayName()));
+    } else {
+      onMapLabel.setText(i18n.get("game.onUnknownMap"));
+    }
 
     gameTitleLabel.setText(replay.getTitle());
     dateLabel.setText(timeService.asDate(replay.getStartTime()));
     timeLabel.setText(timeService.asShortTime(replay.getStartTime()));
     modLabel.setText(replay.getFeaturedMod().getDisplayName());
     playerCountLabel.setText(i18n.number(replay.getTeams().values().stream().mapToInt(List::size).sum()));
+    qualityLabel.setText(i18n.number((int) ((ratingService.calculateQuality(replay) * 10) / 10)));
+    replay.getTeamPlayerStats().values().stream()
+        .flatMapToInt(playerStats -> playerStats.stream()
+            .mapToInt(stats -> RatingUtil.getRating(stats.getMean(), stats.getDeviation())))
+        .average()
+        .ifPresent(averageRating -> ratingLabel.setText(i18n.number((int) averageRating)));
 
-    // FIXME implement
-    ratingLabel.setText("n/a");
-    qualityLabel.setText("n/a");
-    numberOfReviewsLabel.setText("0");
-
-    Instant endTime = replay.getEndTime();
-    if (endTime != null) {
-      durationLabel.setText(timeService.shortDuration(Duration.between(endTime, replay.getStartTime())));
-    } else {
-      durationLabel.setText(i18n.get("notAvailable"));
-    }
+    durationLabel.setText(Optional.ofNullable(replay.getEndTime())
+        .map(endTime -> timeService.shortDuration(Duration.between(replay.getStartTime(), endTime)))
+        .orElse(i18n.get("notAvailable")));
 
     String players = replay.getTeams().values().stream()
         .map(team -> Joiner.on(i18n.get("textSeparator")).join(team))
         .collect(Collectors.joining(i18n.get("vsSeparator")));
     playerListLabel.setText(players);
+
+    ObservableList<Review> reviews = replay.getReviews();
+    reviews.addListener(new WeakInvalidationListener(reviewsChangedListener));
+    reviewsChangedListener.invalidated(reviews);
+  }
+
+  private void populateReviews() {
+    ObservableList<Review> reviews = replay.getReviews();
+    Platform.runLater(() -> {
+      numberOfReviewsLabel.setText(i18n.number(reviews.size()));
+      starsController.setValue((float) reviews.stream().mapToInt(Review::getScore).average().orElse(0d));
+    });
   }
 
   public Node getRoot() {

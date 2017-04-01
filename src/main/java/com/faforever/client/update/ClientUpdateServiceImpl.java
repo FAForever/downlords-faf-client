@@ -21,9 +21,9 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 
-import static com.faforever.client.io.Bytes.formatSize;
 import static com.faforever.client.notification.Severity.INFO;
 import static com.faforever.client.notification.Severity.WARN;
+import static com.faforever.commons.io.Bytes.formatSize;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.StringUtils.defaultString;

@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
 import javafx.application.Platform;
@@ -18,21 +19,23 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.util.List;
-import java.util.Map;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 public class GameTooltipController implements Controller<Node> {
 
   private final UiService uiService;
+  private final PlayerService playerService;
+
   public TitledPane modsPane;
   public Pane teamsPane;
   public Label modsLabel;
   public VBox gameTooltipRoot;
 
   @Inject
-  public GameTooltipController(UiService uiService) {
+  public GameTooltipController(UiService uiService, PlayerService playerService) {
     this.uiService = uiService;
+    this.playerService = playerService;
   }
 
   public void initialize() {
@@ -50,11 +53,7 @@ public class GameTooltipController implements Controller<Node> {
     Platform.runLater(() -> {
       synchronized (teamsList) {
         teamsPane.getChildren().clear();
-        for (Map.Entry<? extends String, ? extends List<String>> entry : teamsList.entrySet()) {
-          TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
-          teamCardController.setPlayersInTeam(entry.getKey(), entry.getValue());
-          teamsPane.getChildren().add(teamCardController.getRoot());
-        }
+        TeamCardController.createAndAdd(teamsList, playerService, uiService, teamsPane);
       }
     });
   }

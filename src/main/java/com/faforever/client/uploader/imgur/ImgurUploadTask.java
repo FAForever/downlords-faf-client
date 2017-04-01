@@ -3,9 +3,9 @@ package com.faforever.client.uploader.imgur;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Imgur.Upload;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.io.ByteCopier;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
+import com.faforever.commons.io.ByteCopier;
 import com.google.common.io.BaseEncoding;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -29,7 +29,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-import static com.faforever.client.io.Bytes.formatSize;
+import static com.faforever.commons.io.Bytes.formatSize;
+
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
