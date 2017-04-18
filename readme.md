@@ -7,7 +7,7 @@
 
 Please see the [project page](http://FAForever.github.io/downlords-faf-client/)
 
-Please take a look at the [contribution guidelines](https://github.com/FAForever/downlords-faf-client/wiki/Contribution-guidelines) before creating a pull request
+Please take a look at the [contribution guidelines](https://github.com/FAForever/java-guidelines/wiki/Contribution-Guidelines) before creating a pull request
 
 
 # How to run
