@@ -36,6 +36,6 @@ public interface EventService {
   String EVENT_SERAPHIM_PLAYS = "fefcb392-848f-4836-9683-300b283bc308";
   String EVENT_SERAPHIM_WINS = "15b6c19a-6084-4e82-ada9-6c30e282191f";
 
-  CompletableFuture<Map<String, PlayerEvent>> getPlayerEvents(String username);
+  CompletableFuture<Map<String, PlayerEvent>> getPlayerEvents(int playerId);
 
 }

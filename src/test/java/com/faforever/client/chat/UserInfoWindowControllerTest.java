@@ -79,16 +79,16 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
         AchievementDefinitionBuilder.create().defaultValues().get()
     )));
     when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
-    when(achievementService.getPlayerAchievements(PLAYER_NAME)).thenReturn(CompletableFuture.completedFuture(
+    when(achievementService.getPlayerAchievements(PLAYER_ID)).thenReturn(CompletableFuture.completedFuture(
         singletonList(PlayerAchievementBuilder.create().defaultValues().get())
     ));
-    when(eventService.getPlayerEvents(PLAYER_NAME)).thenReturn(CompletableFuture.completedFuture(new HashMap<>()));
+    when(eventService.getPlayerEvents(PLAYER_ID)).thenReturn(CompletableFuture.completedFuture(new HashMap<>()));
 
     instance.setPlayer(PlayerBuilder.create(PLAYER_NAME).id(PLAYER_ID).get());
 
     verify(achievementService).getAchievementDefinitions();
-    verify(achievementService).getPlayerAchievements(PLAYER_NAME);
-    verify(eventService).getPlayerEvents(PLAYER_NAME);
+    verify(achievementService).getPlayerAchievements(PLAYER_ID);
+    verify(eventService).getPlayerEvents(PLAYER_ID);
 
     assertThat(instance.mostRecentAchievementPane.isVisible(), is(false));
   }
@@ -106,17 +106,17 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
         AchievementDefinitionBuilder.create().defaultValues().get()
     )));
     when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
-    when(achievementService.getPlayerAchievements(PLAYER_NAME)).thenReturn(CompletableFuture.completedFuture(asList(
+    when(achievementService.getPlayerAchievements(PLAYER_ID)).thenReturn(CompletableFuture.completedFuture(asList(
         PlayerAchievementBuilder.create().defaultValues().achievementId("foo-bar").state(AchievementState.UNLOCKED).get(),
         PlayerAchievementBuilder.create().defaultValues().get()
     )));
-    when(eventService.getPlayerEvents(PLAYER_NAME)).thenReturn(CompletableFuture.completedFuture(new HashMap<>()));
+    when(eventService.getPlayerEvents(PLAYER_ID)).thenReturn(CompletableFuture.completedFuture(new HashMap<>()));
 
     instance.setPlayer(PlayerBuilder.create(PLAYER_NAME).id(PLAYER_ID).get());
 
     verify(achievementService).getAchievementDefinitions();
-    verify(achievementService).getPlayerAchievements(PLAYER_NAME);
-    verify(eventService).getPlayerEvents(PLAYER_NAME);
+    verify(achievementService).getPlayerAchievements(PLAYER_ID);
+    verify(eventService).getPlayerEvents(PLAYER_ID);
 
     assertThat(instance.mostRecentAchievementPane.isVisible(), is(true));
   }

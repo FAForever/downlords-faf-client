@@ -134,17 +134,19 @@ public class PlayerServiceImpl implements PlayerService {
       teams.forEach((team, players) -> updateGamePlayers(players, game));
 
       List<Player> leftGame = new LinkedList<>();
-      gamesByPlayers.forEach((player, g) -> {
-        if (g == game
-            && game.getTeams().entrySet().stream()
-            .flatMap(team -> team.getValue().stream())
-            .filter(Objects::nonNull)
-            .noneMatch(s -> s.equals(player.getUsername()))) {
-          player.setGame(null);
-          leftGame.add(player);
-        }
-      });
-      leftGame.forEach(gamesByPlayers::remove);
+      synchronized (gamesByPlayers) {
+        gamesByPlayers.forEach((player, g) -> {
+          if (g == game
+              && game.getTeams().entrySet().stream()
+              .flatMap(team -> team.getValue().stream())
+              .filter(Objects::nonNull)
+              .noneMatch(s -> s.equals(player.getUsername()))) {
+            player.setGame(null);
+            leftGame.add(player);
+          }
+        });
+        leftGame.forEach(gamesByPlayers::remove);
+      }
     }
   }
 
@@ -155,17 +157,21 @@ public class PlayerServiceImpl implements PlayerService {
         .forEach(player -> {
           resetIdleTime(player);
           player.setGame(game);
-          if (gamesByPlayers.containsKey(player) && gamesByPlayers.get(player) != game) {
-            gamesByPlayers.remove(player);
-          }
-          if (!gamesByPlayers.containsKey(player)) {
-            gamesByPlayers.put(player, game);
+
+          synchronized (gamesByPlayers) {
+            if (gamesByPlayers.containsKey(player) && gamesByPlayers.get(player) != game) {
+              gamesByPlayers.remove(player);
+            }
+            if (!gamesByPlayers.containsKey(player)) {
+              gamesByPlayers.put(player, game);
+            }
           }
           GameStatus gameStatus = game.getStatus();
           if (player.getSocialStatus() == FRIEND) {
             if (gameStatus == GameStatus.OPEN) {
               eventBus.post(new FriendJoinedGameEvent(player));
             } else if (gameStatus == GameStatus.PLAYING) {
+              // TODO implement
 //              eventBus.post(new FriendPlaysGameEvent(player));
             }
           }

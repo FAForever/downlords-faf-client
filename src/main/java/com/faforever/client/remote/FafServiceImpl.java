@@ -251,6 +251,9 @@ public class FafServiceImpl implements FafService {
   public CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(int playerId, KnownFeaturedMod knownFeaturedMod) {
     return CompletableFuture.completedFuture(fafApiAccessor.getGamePlayerStats(playerId, knownFeaturedMod)
         .parallelStream()
+        .filter(gamePlayerStats -> gamePlayerStats.getScoreTime() != null
+            && gamePlayerStats.getAfterMean() != null
+            && gamePlayerStats.getAfterDeviation() != null)
         .sorted(Comparator.comparing(GamePlayerStats::getScoreTime))
         .map(entry -> new RatingHistoryDataPoint(entry.getScoreTime(), entry.getAfterMean(), entry.getAfterDeviation()))
         .collect(Collectors.toList())
@@ -261,7 +264,7 @@ public class FafServiceImpl implements FafService {
   @Async
   public CompletableFuture<List<FeaturedMod>> getFeaturedMods() {
     return CompletableFuture.completedFuture(fafApiAccessor.getFeaturedMods().stream()
-        .sorted(Comparator.comparingInt(com.faforever.client.api.dto.FeaturedMod::getDisplayOrder))
+        .sorted(Comparator.comparingInt(com.faforever.client.api.dto.FeaturedMod::getOrder))
         .map(FeaturedMod::fromFeaturedMod)
         .collect(Collectors.toList()));
   }

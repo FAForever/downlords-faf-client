@@ -508,8 +508,8 @@ public class GameServiceImpl implements GameService {
     }
 
     game.statusProperty().addListener((observable, oldValue, newValue) -> {
-      if (oldValue == GameState.OPEN
-          && newValue == GameState.PLAYING
+      if (oldValue == GameStatus.OPEN
+          && newValue == GameStatus.PLAYING
           && game.getTeams().values().stream().anyMatch(team -> team.contains(currentPlayer.getUsername()))
           && !platformService.isWindowFocused(faWindowTitle)) {
         platformService.focusWindow(faWindowTitle);

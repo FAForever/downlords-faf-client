@@ -259,7 +259,7 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   @Override
-  protected TextInputControl getMessageTextField() {
+  protected TextInputControl messageTextField() {
     return messageTextField;
   }
 

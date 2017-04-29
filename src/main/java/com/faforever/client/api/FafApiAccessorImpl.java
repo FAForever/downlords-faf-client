@@ -67,6 +67,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Profile("!offline")
+// TODO use RSQL builder for all filters
 public class FafApiAccessorImpl implements FafApiAccessor {
 
   private static final String MAP_ENDPOINT = "/data/map";
@@ -118,7 +119,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @SuppressWarnings("unchecked")
   public List<PlayerAchievement> getPlayerAchievements(int playerId) {
     return getAll("/data/playerAchievement", ImmutableMap.of(
-        "filter", rsql(qBuilder().intNum("playerAchievement.player.id").eq(playerId))
+        "filter", rsql(qBuilder().intNum("player.id").eq(playerId))
     ));
   }
 
@@ -126,7 +127,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @SuppressWarnings("unchecked")
   public List<PlayerEvent> getPlayerEvents(int playerId) {
     return getAll("/data/playerEvent", ImmutableMap.of(
-        "filter", rsql(qBuilder().intNum("playerEvent.player.id").eq(playerId))
+        "filter", rsql(qBuilder().intNum("player.id").eq(playerId))
     ));
   }
 
@@ -200,9 +201,9 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   public List<GamePlayerStats> getGamePlayerStats(int playerId, KnownFeaturedMod knownFeaturedMod) {
     return getAll("/data/gamePlayerStats", ImmutableMap.of(
         "filter", rsql(qBuilder()
-            .intNum("gamePlayerStats.player.id").eq(playerId)
+            .intNum("player.id").eq(playerId)
             .and()
-            .string("gamePlayerStats.game.featuredMod.technicalName").eq(knownFeaturedMod.getTechnicalName())
+            .string("game.featuredMod.technicalName").eq(knownFeaturedMod.getTechnicalName())
         )));
   }
 
@@ -473,7 +474,8 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     List<T> result = new LinkedList<>();
     List<T> current = null;
     int page = 1;
-    while ((current == null || !current.isEmpty()) && result.size() < count) {
+    int maxPageSize = clientProperties.getApi().getMaxPageSize();
+    while ((current == null || current.size() >= maxPageSize) && result.size() < count) {
       current = getPage(endpointPath, count, page++, params);
       result.addAll(current);
     }

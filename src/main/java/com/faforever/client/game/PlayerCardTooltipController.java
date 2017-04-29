@@ -22,7 +22,7 @@ public class PlayerCardTooltipController implements Controller<Node> {
   private final CountryFlagService countryFlagService;
   private final I18n i18n;
   public Label playerInfo;
-  public ImageView playerFlag;
+  public ImageView countryImageView;
 
   @Inject
   public PlayerCardTooltipController(CountryFlagService countryFlagService, I18n i18n) {
@@ -31,7 +31,10 @@ public class PlayerCardTooltipController implements Controller<Node> {
   }
 
   public void setPlayer(Player player) {
-    playerFlag.setImage(countryFlagService.loadCountryFlag(player.getCountry()));
+    if (player == null) {
+      return;
+    }
+    countryImageView.setImage(countryFlagService.loadCountryFlag(player.getCountry()));
 
     String playerInfoLocalized = i18n.get("userInfo.tooltipFormat", player.getUsername(), RatingUtil.getRoundedGlobalRating(player));
     playerInfo.setText(playerInfoLocalized);

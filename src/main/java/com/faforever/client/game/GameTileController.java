@@ -23,6 +23,7 @@ import javax.inject.Inject;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import static javafx.beans.binding.Bindings.createObjectBinding;
 import static javafx.beans.binding.Bindings.createStringBinding;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)

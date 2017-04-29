@@ -43,15 +43,13 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import javafx.util.StringConverter;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import java.lang.invoke.MethodHandles;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
@@ -82,11 +80,11 @@ import static javafx.collections.FXCollections.observableList;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
+@Slf4j
 public class UserInfoWindowController implements Controller<Node> {
 
   private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMM");
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final StatisticsService statisticsService;
   private final CountryFlagService countryFlagService;
   private final AchievementService achievementService;
@@ -128,7 +126,9 @@ public class UserInfoWindowController implements Controller<Node> {
   private Window ownerWindow;
 
   @Inject
-  public UserInfoWindowController(StatisticsService statisticsService, CountryFlagService countryFlagService, AchievementService achievementService, EventService eventService, PreferencesService preferencesService, I18n i18n, UiService uiService) {
+  public UserInfoWindowController(StatisticsService statisticsService, CountryFlagService countryFlagService,
+                                  AchievementService achievementService, EventService eventService,
+                                  PreferencesService preferencesService, I18n i18n, UiService uiService) {
     this.statisticsService = statisticsService;
     this.countryFlagService = countryFlagService;
     this.achievementService = achievementService;
@@ -184,7 +184,7 @@ public class UserInfoWindowController implements Controller<Node> {
     return userInfoRoot;
   }
 
-  private void displayAvailableAchievements(List<AchievementDefinition> achievementDefinitions) {
+  private void setAvailableAchievements(List<AchievementDefinition> achievementDefinitions) {
     ObservableList<Node> children = lockedAchievementsContainer.getChildren();
     Platform.runLater(children::clear);
 
@@ -219,12 +219,17 @@ public class UserInfoWindowController implements Controller<Node> {
     globalButton.setSelected(true);
 
     loadAchievements();
-    eventService.getPlayerEvents(player.getUsername()).thenAccept(events -> {
-      plotFactionsChart(events);
-      plotUnitsByCategoriesChart(events);
-      plotTechBuiltChart(events);
-      plotGamesPlayedChart(events);
-    });
+    eventService.getPlayerEvents(player.getId())
+        .thenAccept(events -> {
+          plotFactionsChart(events);
+          plotUnitsByCategoriesChart(events);
+          plotTechBuiltChart(events);
+          plotGamesPlayedChart(events);
+        })
+        .exceptionally(throwable -> {
+          log.warn("Could not load player events", throwable);
+          return null;
+        });
   }
 
   private void loadAchievements() {
@@ -232,18 +237,18 @@ public class UserInfoWindowController implements Controller<Node> {
     achievementService.getAchievementDefinitions()
         .exceptionally(throwable -> {
           // TODO display to user
-          logger.warn("Could not display achievement definitions", throwable);
+          log.warn("Could not display achievement definitions", throwable);
           return Collections.emptyList();
         })
-        .thenAccept(this::displayAvailableAchievements)
-        .thenCompose(aVoid -> achievementService.getPlayerAchievements(player.getUsername()))
+        .thenAccept(this::setAvailableAchievements)
+        .thenCompose(aVoid -> achievementService.getPlayerAchievements(player.getId()))
         .thenAccept(playerAchievements -> {
           updatePlayerAchievements(playerAchievements);
           enterAchievementsLoadedState();
         })
         .exceptionally(throwable -> {
           // TODO tell the user
-          logger.warn("Player achievements could not be loaded", throwable);
+          log.warn("Player achievements could not be loaded", throwable);
           return null;
         });
   }
@@ -326,7 +331,7 @@ public class UserInfoWindowController implements Controller<Node> {
     Platform.runLater(children::clear);
 
     for (PlayerAchievement playerAchievement : playerAchievements) {
-      AchievementItemController achievementItemController = achievementItemById.get(playerAchievement.getAchievementId());
+      AchievementItemController achievementItemController = achievementItemById.get(playerAchievement.getAchievement().getId());
       achievementItemController.setPlayerAchievement(playerAchievement);
 
       if (isUnlocked(playerAchievement)) {
@@ -342,7 +347,10 @@ public class UserInfoWindowController implements Controller<Node> {
       mostRecentAchievementPane.setVisible(false);
     } else {
       mostRecentAchievementPane.setVisible(true);
-      AchievementDefinition mostRecentAchievement = achievementDefinitionById.get(mostRecentPlayerAchievement.getAchievementId());
+      AchievementDefinition mostRecentAchievement = achievementDefinitionById.get(mostRecentPlayerAchievement.getAchievement().getId());
+      if (mostRecentAchievement == null) {
+        return;
+      }
       String mostRecentAchievementName = mostRecentAchievement.getName();
       String mostRecentAchievementDescription = mostRecentAchievement.getDescription();
 
@@ -368,7 +376,7 @@ public class UserInfoWindowController implements Controller<Node> {
         .thenAccept(ratingHistory -> Platform.runLater(() -> plotPlayerRatingGraph(ratingHistory)))
         .exceptionally(throwable -> {
           // FIXME display to user
-          logger.warn("Statistics could not be loaded", throwable);
+          log.warn("Statistics could not be loaded", throwable);
           return null;
         });
   }

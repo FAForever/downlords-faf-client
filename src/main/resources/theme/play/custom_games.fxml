@@ -7,7 +7,6 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToggleGroup?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -63,47 +62,7 @@
             </VBox>
         <ScrollPane fx:id="gameDetailPane" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowSpan="2147483647">
           <content>
-            <VBox maxHeight="1.7976931348623157E308" maxWidth="300.0" minHeight="50.0" minWidth="50.0">
-              <children>
-                  <ImageView fx:id="mapImageView" fitWidth="256.0" pickOnBounds="true" preserveRatio="true" styleClass="map-preview">
-                  <VBox.margin>
-                      <Insets bottom="20.0" />
-                  </VBox.margin>
-                </ImageView>
-                  <Label fx:id="gameTitleLabel" alignment="CENTER" styleClass="game-detail-title" text="&lt;Game title&gt;" wrapText="true" />
-                <Label fx:id="gameTypeLabel" text="&lt;Game type&gt;">
-                  <VBox.margin>
-                      <Insets bottom="5.0" />
-                  </VBox.margin>
-                </Label>
-                <Label fx:id="mapLabel" text="&lt;Map&gt;">
-                  <graphic>
-                      <Label styleClass="icon" text="" />
-                  </graphic>
-                </Label>
-                <Label fx:id="numberOfPlayersLabel" text="&lt;Number of players&gt;">
-                  <graphic>
-                      <Label styleClass="icon" text="" />
-                  </graphic>
-                </Label>
-                <Label fx:id="hostLabel" text="&lt;Hoster&gt;">
-                  <VBox.margin>
-                    <Insets />
-                  </VBox.margin>
-                  <graphic>
-                      <Label styleClass="icon" text="" />
-                  </graphic>
-                </Label>
-                <VBox fx:id="teamListPane" maxWidth="1.7976931348623157E308">
-                  <VBox.margin>
-                    <Insets top="10.0" />
-                  </VBox.margin>
-                </VBox>
-              </children>
-              <padding>
-                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-              </padding>
-            </VBox>
+              <fx:include source="game_detail.fxml" fx:id="gameDetail"/>
           </content>
         </ScrollPane>
         <AnchorPane fx:id="gameViewContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.rowIndex="1" />

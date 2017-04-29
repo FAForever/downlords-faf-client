@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @EqualsAndHashCode(of = "id")
-@Type("achievementDefinition")
+@Type("achievement")
 public class AchievementDefinition {
 
   @Id

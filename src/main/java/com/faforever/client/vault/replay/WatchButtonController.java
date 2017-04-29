@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -49,7 +50,6 @@ public class WatchButtonController implements Controller<Node> {
   public void initialize() {
     delayTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> updateWatchButtonTimer()));
     delayTimeline.setCycleCount(Timeline.INDEFINITE);
-    delayTimeline.play();
 
     watchButton.setDisable(true);
   }
@@ -65,7 +65,7 @@ public class WatchButtonController implements Controller<Node> {
         .collect(Collectors.toList());
 
     watchButton.getItems().setAll(menuItems);
-    updateWatchButtonTimer();
+    delayTimeline.play();
   }
 
   @NotNull
@@ -77,6 +77,10 @@ public class WatchButtonController implements Controller<Node> {
   }
 
   private void updateWatchButtonTimer() {
+    Assert.notNull(game, "Game must not be null");
+    Assert.notNull(game.getStartTime(),
+        "Game's start time is null, in which case it shouldn't even be listed: " + game);
+
     java.time.Duration watchDelay = java.time.Duration.between(
         Instant.now(),
         game.getStartTime().plusSeconds(clientProperties.getReplay().getWatchDelaySeconds())

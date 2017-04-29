@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<GridPane xmlns:fx="http://javafx.com/fxml/1" hgap="20.0" minWidth="160.0" vgap="20.0"
+          xmlns="http://javafx.com/javafx/8.0.111" fx:controller="com.faforever.client.chat.PrivateUserInfoController">
+    <columnConstraints>
+        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+        <RowConstraints minHeight="1.0" vgrow="SOMETIMES"/>
+        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+    </rowConstraints>
+    <children>
+        <Label fx:id="usernameLabel" alignment="CENTER" contentDisplay="TOP" graphicTextGap="20.0"
+               maxWidth="1.7976931348623157E308" minWidth="-Infinity" styleClass="h1" text="username"
+               GridPane.columnSpan="2147483647">
+            <graphic>
+                <ImageView fx:id="userImageView" fitHeight="64.0" fitWidth="64.0" pickOnBounds="true"
+                           preserveRatio="true"/>
+            </graphic>
+        </Label>
+        <Label minWidth="0.0" text="%chat.privateMessage.globalRating" wrapText="true" GridPane.rowIndex="2"/>
+        <Label fx:id="countryLabel" graphicTextGap="10.0" maxWidth="1.7976931348623157E308" minWidth="0.0"
+               styleClass="private-chat-user-info-data" text="&lt;country&gt;" wrapText="true"
+               GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
+            <graphic>
+                <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true"
+                           preserveRatio="true"/>
+            </graphic>
+        </Label>
+        <Label fx:id="globalRatingLevel" minWidth="0.0" styleClass="private-chat-user-info-data"
+               text="&lt;global rating&gt;" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+        <Label minWidth="0.0" text="%chat.privateMessage.ladder1v1Rating" wrapText="true" GridPane.rowIndex="3"/>
+        <Label fx:id="leaderboardRatingLevel" minWidth="0.0" styleClass="private-chat-user-info-data"
+               text="&lt;ladder1v1 rating&gt;" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+        <Label minWidth="0.0" text="%chat.privateMessage.gamesPlayed" wrapText="true" GridPane.rowIndex="4"/>
+        <Label fx:id="gamesPlayedLabel" minWidth="0.0" styleClass="private-chat-user-info-data"
+               text="&lt;games played&gt;" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+        <VBox fx:id="gameDetailWrapper" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+              GridPane.columnSpan="2147483647" GridPane.rowIndex="7">
+            <children>
+                <fx:include fx:id="gameDetail" source="../play/game_detail.fxml"/>
+            </children>
+        </VBox>
+        <Separator prefWidth="200.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="6"/>
+        <Label text="%chat.privateMessage.achievements.unlocked" GridPane.rowIndex="5"/>
+        <Label fx:id="unlockedAchievementsLabel" maxWidth="1.7976931348623157E308" text="%notAvailable"
+               GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+    </children>
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+    </padding>
+</GridPane>

@@ -61,6 +61,10 @@ public class TeamCardController implements Controller<Node> {
   public void setPlayersInTeam(String team, List<Player> playerList, Function<Player, Rating> ratingProvider) {
     int totalRating = 0;
     for (Player player : playerList) {
+      // If the server wasn't bugged, this would never be the case.
+      if (player == null) {
+        continue;
+      }
       PlayerCardTooltipController playerCardTooltipController = uiService.loadFxml("theme/player_card_tooltip.fxml");
       playerCardTooltipController.setPlayer(player);
 

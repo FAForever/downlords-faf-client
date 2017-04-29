@@ -260,7 +260,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     StageHolder.getStage().focusedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
     getRoot().selectedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
 
-    autoCompletionHelper.bindTo(getMessageTextField());
+    autoCompletionHelper.bindTo(messageTextField());
   }
 
   /**
@@ -272,7 +272,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       if (newValue) {
         // Since a tab is marked as "selected" before it's rendered, the text field can't be selected yet.
         // So let's schedule the focus to be executed afterwards
-        Platform.runLater(getMessageTextField()::requestFocus);
+        Platform.runLater(messageTextField()::requestFocus);
       }
     });
 
@@ -282,21 +282,21 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       }
       stageFocusedListener = (window, windowFocusOld, windowFocusNew) -> {
         if (newTabPane.isVisible()) {
-          getMessageTextField().requestFocus();
+          messageTextField().requestFocus();
         }
       };
       StageHolder.getStage().focusedProperty().addListener(new WeakChangeListener<>(stageFocusedListener));
 
       newTabPane.focusedProperty().addListener((focusedTabPane, oldTabPaneFocus, newTabPaneFocus) -> {
         if (newTabPaneFocus) {
-          getMessageTextField().requestFocus();
+          messageTextField().requestFocus();
         }
       });
     });
   }
 
   private void addImagePasteListener() {
-    TextInputControl messageTextField = getMessageTextField();
+    TextInputControl messageTextField = messageTextField();
     messageTextField.setOnKeyReleased(event -> {
       if (isPaste(event)
           && Clipboard.getSystemClipboard().hasImage()) {
@@ -305,7 +305,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     });
   }
 
-  protected abstract TextInputControl getMessageTextField();
+  protected abstract TextInputControl messageTextField();
 
   private boolean isPaste(KeyEvent event) {
     return (event.getCode() == KeyCode.V && event.isShortcutDown())
@@ -313,7 +313,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   private void pasteImage() {
-    TextInputControl messageTextField = getMessageTextField();
+    TextInputControl messageTextField = messageTextField();
     int currentCaretPosition = messageTextField.getCaretPosition();
 
     messageTextField.setDisable(true);
@@ -460,7 +460,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   public void onSendMessage() {
-    TextInputControl messageTextField = getMessageTextField();
+    TextInputControl messageTextField = messageTextField();
 
     String text = messageTextField.getText();
     if (StringUtils.isEmpty(text)) {
@@ -481,7 +481,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   private void sendMessage() {
-    TextInputControl messageTextField = getMessageTextField();
+    TextInputControl messageTextField = messageTextField();
     messageTextField.setDisable(true);
 
     final String text = messageTextField.getText();
@@ -704,7 +704,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    * Subclasses may override in order to perform actions when the view is being displayed.
    */
   protected void onDisplay() {
-    getMessageTextField().requestFocus();
+    messageTextField().requestFocus();
   }
 
   /**

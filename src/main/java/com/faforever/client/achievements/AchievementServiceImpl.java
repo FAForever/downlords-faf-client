@@ -5,7 +5,6 @@ import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
@@ -23,8 +22,8 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.net.URL;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import static com.github.nocatch.NoCatch.noCatch;
@@ -58,19 +57,13 @@ public class AchievementServiceImpl implements AchievementService {
   }
 
   @Override
-  public CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(String username) {
-    if (userService.getUsername().equalsIgnoreCase(username)) {
+  public CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(Integer playerId) {
+    if (Objects.equals(userService.getUserId(), playerId)) {
       if (readOnlyPlayerAchievements.isEmpty()) {
         reloadAchievements();
       }
       return CompletableFuture.completedFuture(readOnlyPlayerAchievements);
     }
-
-    Player playerForUsername = playerService.getPlayerForUsername(username);
-    if (playerForUsername == null) {
-      return CompletableFuture.completedFuture(Collections.emptyList());
-    }
-    int playerId = playerForUsername.getId();
 
     return fafService.getPlayerAchievements(playerId);
   }

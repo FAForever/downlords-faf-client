@@ -1,5 +1,6 @@
 package com.faforever.client.achievements;
 
+import com.faforever.client.api.dto.AchievementDefinition;
 import com.faforever.client.api.dto.AchievementState;
 import com.faforever.client.api.dto.PlayerAchievement;
 
@@ -18,7 +19,7 @@ public class PlayerAchievementBuilder {
   }
 
   public PlayerAchievementBuilder defaultValues() {
-    playerAchievement.setAchievementId("1-2-3");
+    playerAchievement.setAchievement(new AchievementDefinition().setId("1-2-3"));
     playerAchievement.setState(AchievementState.REVEALED);
     playerAchievement.setCreateTime(Instant.now());
     playerAchievement.setUpdateTime(Instant.now());
@@ -36,7 +37,7 @@ public class PlayerAchievementBuilder {
   }
 
   public PlayerAchievementBuilder achievementId(String achievementId) {
-    playerAchievement.setAchievementId(achievementId);
+    playerAchievement.setAchievement(new AchievementDefinition().setId(achievementId));
     return this;
   }
 

@@ -26,7 +26,6 @@ import java.util.List;
 @SpringBootApplication(exclude = {
     JmxAutoConfiguration.class,
     SecurityAutoConfiguration.class,
-
 })
 @EnableConfigurationProperties({ClientProperties.class})
 public class FafClientApplication extends Application {

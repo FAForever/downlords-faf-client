@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="EntryPointsManager">
-    <entry_points version="2.0" />
-    <list size="2">
+    <list size="3">
       <item index="0" class="java.lang.String" itemvalue="com.google.common.eventbus.Subscribe" />
       <item index="1" class="java.lang.String" itemvalue="org.junit.Test" />
+      <item index="2" class="java.lang.String" itemvalue="org.springframework.stereotype.Service" />
     </list>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">

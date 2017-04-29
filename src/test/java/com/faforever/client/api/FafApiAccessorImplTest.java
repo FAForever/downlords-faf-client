@@ -1,6 +1,7 @@
 package com.faforever.client.api;
 
 import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.api.dto.Event;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
@@ -86,10 +87,10 @@ public class FafApiAccessorImplTest {
   public void testGetPlayerAchievements() throws Exception {
     PlayerAchievement playerAchievement1 = new PlayerAchievement();
     playerAchievement1.setId("1");
-    playerAchievement1.setAchievementId("1-2-3");
+    playerAchievement1.setAchievement(new AchievementDefinition().setId("1-2-3"));
     PlayerAchievement playerAchievement2 = new PlayerAchievement();
     playerAchievement2.setId("2");
-    playerAchievement2.setAchievementId("2-3-4");
+    playerAchievement2.setAchievement(new AchievementDefinition().setId("2-3-4"));
     List<PlayerAchievement> result = Arrays.asList(playerAchievement1, playerAchievement2);
 
     when(restOperations.getForObject(anyString(), eq(List.class)))
@@ -98,8 +99,7 @@ public class FafApiAccessorImplTest {
 
     assertThat(instance.getPlayerAchievements(123), is(result));
 
-    verify(restOperations).getForObject("/data/playerAchievement?filter=playerAchievement.player.id==\"123\"&page[size]=10000&page[number]=1", List.class);
-    verify(restOperations).getForObject("/data/playerAchievement?filter=playerAchievement.player.id==\"123\"&page[size]=10000&page[number]=2", List.class);
+    verify(restOperations).getForObject("/data/playerAchievement?filter=player.id==\"123\"&page[size]=10000&page[number]=1", List.class);
   }
 
   @Test
@@ -133,11 +133,11 @@ public class FafApiAccessorImplTest {
   public void testGetPlayerEvents() throws Exception {
     PlayerEvent playerEvent1 = new PlayerEvent();
     playerEvent1.setId("1");
-    playerEvent1.setEventId("1-1-1");
+    playerEvent1.setEvent(new Event().setId("1-1-1"));
     playerEvent1.setCount(11);
     PlayerEvent playerEvent2 = new PlayerEvent();
     playerEvent2.setId("2");
-    playerEvent2.setEventId("2-2-2");
+    playerEvent2.setEvent(new Event().setId("2-2-2"));
     playerEvent2.setCount(22);
     List<PlayerEvent> result = Arrays.asList(playerEvent1, playerEvent2);
 
@@ -148,7 +148,7 @@ public class FafApiAccessorImplTest {
     assertThat(instance.getPlayerEvents(123), is(result));
 
     verify(restOperations).getForObject("/data/playerEvent" +
-        "?filter=playerEvent.player.id==\"123\"" +
+        "?filter=player.id==\"123\"" +
         "&page[size]=10000" +
         "&page[number]=1", List.class);
   }
@@ -210,7 +210,7 @@ public class FafApiAccessorImplTest {
 
     assertThat(result, is(gamePlayerStats));
     verify(restOperations).getForObject("/data/gamePlayerStats" +
-        "?filter=gamePlayerStats.player.id==\"123\";gamePlayerStats.game.featuredMod.technicalName==\"faf\"" +
+        "?filter=player.id==\"123\";game.featuredMod.technicalName==\"faf\"" +
         "&page[size]=10000" +
         "&page[number]=1", List.class);
   }
@@ -228,7 +228,7 @@ public class FafApiAccessorImplTest {
 
     assertThat(result, is(gamePlayerStats));
     verify(restOperations).getForObject("/data/gamePlayerStats" +
-        "?filter=gamePlayerStats.player.id==\"123\";gamePlayerStats.game.featuredMod.technicalName==\"ladder1v1\"" +
+        "?filter=player.id==\"123\";game.featuredMod.technicalName==\"ladder1v1\"" +
         "&page[size]=10000" +
         "&page[number]=1", List.class);
   }

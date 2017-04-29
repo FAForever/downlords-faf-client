@@ -21,7 +21,7 @@ faf-client:
     remote-host: lobby.faforever.com
 
   api:
-    base-url: https://japi.faforever.com
+    base-url: https://api.dev.faforever.com
     access-token-uri: ${faf-client.api.base-url}/oauth/token
     client-id: 3bc8282c-7730-11e5-8bcf-feff819cdc9f
     client-secret: 6035bd78-7730-11e5-8bcf-feff819cdc9f

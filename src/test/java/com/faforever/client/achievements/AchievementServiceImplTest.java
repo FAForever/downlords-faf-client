@@ -1,12 +1,10 @@
 package com.faforever.client.achievements;
 
 import com.faforever.client.achievements.AchievementService.AchievementState;
-import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.dto.AchievementDefinition;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
@@ -45,6 +43,7 @@ public class AchievementServiceImplTest {
 
   private static final int PLAYER_ID = 123;
   private static final String USERNAME = "junit";
+
   @Rule
   public TemporaryFolder preferencesDirectory = new TemporaryFolder();
   @Rule
@@ -73,7 +72,6 @@ public class AchievementServiceImplTest {
     instance = new AchievementServiceImpl(userService, fafService, notificationService, i18n, playerService, uiService, assetService);
 
     when(userService.getUserId()).thenReturn(PLAYER_ID);
-    when(userService.getUsername()).thenReturn(USERNAME);
 
     instance.postConstruct();
   }
@@ -83,21 +81,19 @@ public class AchievementServiceImplTest {
     when(fafService.getPlayerAchievements(userService.getUserId()))
         .thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
 
-    instance.getPlayerAchievements(USERNAME);
+    instance.getPlayerAchievements(PLAYER_ID);
     verifyZeroInteractions(playerService);
   }
 
   @Test
   public void testGetPlayerAchievementsForAnotherUser() throws Exception {
     List<PlayerAchievement> achievements = Arrays.asList(new PlayerAchievement(), new PlayerAchievement());
-    when(playerService.getPlayerForUsername("foobar")).thenReturn(PlayerBuilder.create("foobar").id(PLAYER_ID).get());
     when(fafService.getPlayerAchievements(PLAYER_ID)).thenReturn(CompletableFuture.completedFuture(achievements));
 
-    List<PlayerAchievement> playerAchievements = instance.getPlayerAchievements("foobar").toCompletableFuture().get(5, TimeUnit.SECONDS);
+    List<PlayerAchievement> playerAchievements = instance.getPlayerAchievements(PLAYER_ID).toCompletableFuture().get(5, TimeUnit.SECONDS);
 
     assertThat(playerAchievements, hasSize(2));
     assertThat(playerAchievements, is(achievements));
-    verify(playerService).getPlayerForUsername("foobar");
     verify(fafService).getPlayerAchievements(PLAYER_ID);
   }
 

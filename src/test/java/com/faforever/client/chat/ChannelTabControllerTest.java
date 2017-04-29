@@ -130,7 +130,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testGetMessageTextField() throws Exception {
-    assertNotNull(instance.getMessageTextField());
+    assertNotNull(instance.messageTextField());
   }
 
   @Test

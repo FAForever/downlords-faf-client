@@ -1,7 +1,6 @@
 package com.faforever.client.api.dto;
 
 import com.github.jasminb.jsonapi.annotations.Id;
-import com.github.jasminb.jsonapi.annotations.Relationship;
 import com.github.jasminb.jsonapi.annotations.Type;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -10,13 +9,16 @@ import lombok.Setter;
 @Getter
 @Setter
 @EqualsAndHashCode(of = "id")
-@Type("playerEvent")
-public class PlayerEvent {
+@Type("event")
+public class Event {
 
   @Id
   private String id;
-  private int count;
+  private String name;
+  private String imageUrl;
+  private Type type;
 
-  @Relationship("event")
-  private Event event;
+  public enum Type {
+    NUMERIC, TIME
+  }
 }

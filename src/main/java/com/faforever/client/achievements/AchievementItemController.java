@@ -77,7 +77,7 @@ public class AchievementItemController implements Controller<Node> {
     if (achievementDefinition == null) {
       throw new IllegalStateException("achievementDefinition needs to be set first");
     }
-    if (!Objects.equals(achievementDefinition.getId(), playerAchievement.getAchievementId())) {
+    if (!Objects.equals(achievementDefinition.getId(), playerAchievement.getAchievement().getId())) {
       throw new IllegalStateException("Achievement ID does not match");
     }
 

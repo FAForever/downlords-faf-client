@@ -1,13 +1,10 @@
 package com.faforever.client.game;
 
-import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapService;
-import com.faforever.client.mod.ModService;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.vault.replay.WatchButtonController;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -21,8 +18,6 @@ import static org.mockito.Mockito.when;
 
 public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
 
-  @Mock
-  I18n i18n;
   private CustomGamesController instance;
   @Mock
   private GameService gameService;
@@ -35,17 +30,15 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private GamesTableController gamesTableController;
   @Mock
-  private MapService mapService;
-  @Mock
-  private ModService modService;
-  @Mock
   private EventBus eventBus;
   @Mock
-  private PlayerService playerService;
+  private GameDetailController gameDetailController;
+  @Mock
+  private WatchButtonController watchButtonController;
 
   @Before
   public void setUp() throws Exception {
-    instance = new CustomGamesController(uiService, i18n, gameService, mapService, preferencesService, modService, eventBus, playerService);
+    instance = new CustomGamesController(uiService, gameService, preferencesService, eventBus);
 
     when(gameService.getGames()).thenReturn(FXCollections.observableArrayList());
     when(preferencesService.getPreferences()).thenReturn(preferences);
@@ -53,7 +46,15 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
     when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
     when(gamesTableController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
 
-    loadFxml("theme/play/custom_games.fxml", clazz -> instance);
+    loadFxml("theme/play/custom_games.fxml", clazz -> {
+      if (clazz == GameDetailController.class) {
+        return gameDetailController;
+      }
+      if (clazz == WatchButtonController.class) {
+        return watchButtonController;
+      }
+      return instance;
+    });
   }
 
   @Test

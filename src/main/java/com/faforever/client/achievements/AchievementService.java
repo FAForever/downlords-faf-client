@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 
 public interface AchievementService {
 
-  CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(String username);
+  CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(Integer playerId);
 
   CompletableFuture<List<AchievementDefinition>> getAchievementDefinitions();
 

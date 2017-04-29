@@ -15,7 +15,7 @@ public class FeaturedMod {
   private String id;
   private String description;
   private String displayName;
-  private int displayOrder;
+  private int order;
   private String gitBranch;
   private String gitUrl;
   private String technicalName;

@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="FAF Client Prod" type="Application" factoryName="Application" activateToolWindowBeforeRun="false" singleton="true">
+  <configuration default="false" name="FAF Client Prod" type="Application" factoryName="Application" singleton="true">
     <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea">
       <pattern>
         <option name="PATTERN" value=".*" />

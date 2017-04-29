@@ -7,12 +7,12 @@ import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
 
-public class GameStateTypeAdapter extends TypeAdapter<GameStatus> {
+public final class GameStateTypeAdapter extends TypeAdapter<GameStatus> {
 
   public static final GameStateTypeAdapter INSTANCE = new GameStateTypeAdapter();
 
   private GameStateTypeAdapter() {
-
+    throw new AssertionError("Not instantiatable");
   }
 
   @Override

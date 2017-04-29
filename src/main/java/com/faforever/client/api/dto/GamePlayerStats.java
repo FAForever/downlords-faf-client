@@ -7,6 +7,7 @@ import com.github.jasminb.jsonapi.annotations.Type;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.OffsetDateTime;
 
@@ -27,6 +28,7 @@ public class GamePlayerStats {
   private Float afterMean;
   private Float afterDeviation;
   private byte score;
+  @Nullable
   private OffsetDateTime scoreTime;
 
   @Relationship("replay")
