@@ -1,31 +1,39 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.preferences.Preferences;
+import com.faforever.client.fx.MouseEvents;
+import com.faforever.client.notification.Action.ActionCallback;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.google.common.eventbus.EventBus;
 import javafx.scene.image.Image;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mock;
+import org.junit.rules.ExpectedException;
 
+import static com.faforever.client.fx.MouseEvents.generateClick;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class TransientNotificationControllerTest extends AbstractPlainJavaFxTest {
 
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
   private TransientNotificationController instance;
 
-  @Mock
-  private PreferencesService preferencesService;
 
   @Before
   public void setUp() throws Exception {
+    PreferencesService preferencesService = new PreferencesService(mock(EventBus.class));
+    preferencesService.postConstruct();
     instance = new TransientNotificationController(preferencesService);
-
-    when(preferencesService.getPreferences()).thenReturn(new Preferences());
 
     loadFxml("theme/transient_notification.fxml", clazz -> instance);
   }
@@ -46,5 +54,22 @@ public class TransientNotificationControllerTest extends AbstractPlainJavaFxTest
   public void testGetRoot() throws Exception {
     Assert.assertThat(instance.getRoot(), is(instance.transientNotificationRoot));
     Assert.assertThat(instance.getRoot().getParent(), is(nullValue()));
+  }
+
+  @Test
+  public void testOnRightClick() throws Exception {
+    expectedException.expectMessage("no timeline");
+    instance.onClicked(generateClick(MouseButton.SECONDARY, 1));
+  }
+
+  @Test
+  public void testOnLeftClick() throws Exception {
+    TransientNotification notificationMock = mock(TransientNotification.class);
+    ActionCallback actionMock = mock(ActionCallback.class);
+    when(notificationMock.getActionCallback()).thenReturn(actionMock);
+    instance.setNotification(notificationMock);
+    MouseEvent mouseEvent = MouseEvents.generateClick(MouseButton.PRIMARY, 1);
+    instance.onClicked(mouseEvent);
+    verify(actionMock).call(mouseEvent);
   }
 }
