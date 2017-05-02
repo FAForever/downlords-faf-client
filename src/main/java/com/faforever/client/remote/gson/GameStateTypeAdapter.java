@@ -12,7 +12,7 @@ public final class GameStateTypeAdapter extends TypeAdapter<GameStatus> {
   public static final GameStateTypeAdapter INSTANCE = new GameStateTypeAdapter();
 
   private GameStateTypeAdapter() {
-    throw new AssertionError("Not instantiatable");
+    // private
   }
 
   @Override
