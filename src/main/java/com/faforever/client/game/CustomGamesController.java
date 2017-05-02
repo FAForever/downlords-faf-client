@@ -42,6 +42,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 import static javafx.beans.binding.Bindings.createObjectBinding;
@@ -85,6 +89,9 @@ public class CustomGamesController implements Controller<Node> {
   public Label gameTypeLabel;
   public ScrollPane gameDetailPane;
   private FilteredList<Game> filteredItems;
+  private long refreshTime = 2;
+  private ScheduledExecutorService refreshService = new ScheduledThreadPoolExecutor(1);
+  private ScheduledFuture<?> schedule;
 
   private Game currentGame;
   private InvalidationListener teamsChangeListener;
@@ -176,6 +183,13 @@ public class CustomGamesController implements Controller<Node> {
       Node root = gamesTableController.getRoot();
       populateContainer(root);
     });
+    if (schedule != null) {
+      schedule.cancel(true);
+    }
+    schedule = refreshService.scheduleWithFixedDelay(() ->
+            gamesTableController.updateTable(gameService.getGames()),
+        refreshTime, refreshTime, TimeUnit.MINUTES);
+
   }
 
   private void populateContainer(Node root) {
@@ -196,6 +210,13 @@ public class CustomGamesController implements Controller<Node> {
       Node root = gamesTilesContainerController.getRoot();
       populateContainer(root);
     });
+    if (schedule != null) {
+      schedule.cancel(true);
+    }
+    schedule = refreshService.scheduleWithFixedDelay(() ->
+            gamesTilesContainerController.updateTiles(gameService.getGames()),
+        refreshTime, refreshTime, TimeUnit.MINUTES);
+
   }
 
   @VisibleForTesting

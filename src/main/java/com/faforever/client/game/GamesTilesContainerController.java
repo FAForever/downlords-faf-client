@@ -24,6 +24,7 @@ import java.util.Map;
 @Component
 public class GamesTilesContainerController implements Controller<Node> {
 
+
   private final UiService uiService;
   private final ListChangeListener<Game> gameListChangeListener;
   public FlowPane tiledFlowPane;
@@ -48,6 +49,20 @@ public class GamesTilesContainerController implements Controller<Node> {
 
   ReadOnlyObjectProperty<Game> selectedGameProperty() {
     return this.selectedGame;
+  }
+
+
+  public void updateTiles(ObservableList<Game> games) {
+    Platform.runLater(() ->
+    {
+      Game selectedGameBean = selectedGame.get();
+      createTiledFlowPane(games);
+      if (games.contains(selectedGameBean)) {
+        selectedGame.set(selectedGameBean);
+      }
+
+
+    });
   }
 
   void createTiledFlowPane(ObservableList<Game> games) {

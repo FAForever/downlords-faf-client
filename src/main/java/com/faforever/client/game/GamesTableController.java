@@ -64,6 +64,17 @@ public class GamesTableController implements Controller<Node> {
     this.selectedGame = new SimpleObjectProperty<>();
   }
 
+  public void updateTable(ObservableList<Game> games) {
+    Platform.runLater(() -> {
+      SortedList<Game> sortedList = new SortedList<>(games);
+      sortedList.comparatorProperty().bind(gamesTable.comparatorProperty());
+      gamesTable.setRowFactory(param1 -> gamesRowFactory());
+      gamesTable.setItems(sortedList);
+      sortedList.addListener((Observable observable) -> selectFirstGame());
+    });
+
+  }
+
   public ObjectProperty<Game> selectedGameProperty() {
     return selectedGame;
   }
