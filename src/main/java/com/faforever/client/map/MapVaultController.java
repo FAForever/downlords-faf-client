@@ -14,6 +14,7 @@ import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
@@ -66,6 +67,7 @@ public class MapVaultController extends AbstractViewController<Node> {
   public Pane mostPlayedPane;
   public Pane mostLikedPane;
   public Pane mapVaultRoot;
+  public ScrollPane scrollPane;
   private boolean initialized;
   private MapDetailController mapDetailController;
 
@@ -81,6 +83,8 @@ public class MapVaultController extends AbstractViewController<Node> {
   @Override
   public void initialize() {
     super.initialize();
+    JavaFxUtil.fixScrollSpeed(scrollPane);
+
     loadingPane.managedProperty().bind(loadingPane.visibleProperty());
     showroomGroup.managedProperty().bind(showroomGroup.visibleProperty());
     searchResultGroup.managedProperty().bind(searchResultGroup.visibleProperty());
