@@ -1232,11 +1232,12 @@
 
 .chat-user-item {
   -fx-pref-height: 3em;
-  -fx-padding: 0 1em;
+  -fx-padding: 0.5em 1em;
 }
 
 .chat-user-item-status {
   -fx-font-size: 0.8em;
+  -fx-text-fill: -secondary-text-color;
 }
 
 .chat-user-item:hover {

@@ -137,7 +137,7 @@ public class ChatUserItemController implements Controller<Node> {
     contextMenuController.getContextMenu().show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
   }
 
-  public void onUsernameClicked(MouseEvent mouseEvent) {
+  public void onItemClicked(MouseEvent mouseEvent) {
     if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
       eventBus.post(new InitiatePrivateChatEvent(player.getUsername()));
     }

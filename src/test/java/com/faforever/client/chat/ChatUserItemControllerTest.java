@@ -177,7 +177,7 @@ public class ChatUserItemControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSingleClickDoesNotInitiatePrivateChat() throws Exception {
-    instance.onUsernameClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 1));
+    instance.onItemClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 1));
 
     verify(eventBus, never()).post(CoreMatchers.any(InitiatePrivateChatEvent.class));
   }
@@ -187,7 +187,7 @@ public class ChatUserItemControllerTest extends AbstractPlainJavaFxTest {
     instance.setPlayer(PlayerBuilder.create("junit").defaultValues().get());
     WaitForAsyncUtils.waitForFxEvents();
 
-    instance.onUsernameClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 2));
+    instance.onItemClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 2));
 
     ArgumentCaptor<InitiatePrivateChatEvent> captor = ArgumentCaptor.forClass(InitiatePrivateChatEvent.class);
     verify(eventBus).post(captor.capture());

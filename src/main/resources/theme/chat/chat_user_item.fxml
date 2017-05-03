@@ -6,26 +6,31 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.text.Text?>
-<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="chatUserItemRoot" onContextMenuRequested="#onContextMenuRequested"
-          styleClass="chat-user-item" xmlns="http://javafx.com/javafx/8.0.60"
-          fx:controller="com.faforever.client.chat.ChatUserItemController">
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="chatUserItemRoot" onMouseClicked="#onItemClicked" hgap="5.0"
+          onContextMenuRequested="#onContextMenuRequested" styleClass="chat-user-item"
+          xmlns="http://javafx.com/javafx/8.0.111" fx:controller="com.faforever.client.chat.ChatUserItemController">
    <columnConstraints>
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-       <ColumnConstraints hgrow="SOMETIMES" minWidth="1.0" />
+       <ColumnConstraints hgrow="SOMETIMES" minWidth="0.0"/>
        <ColumnConstraints hgrow="NEVER" minWidth="1.0" />
       <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="10.0" />
        <ColumnConstraints maxWidth="1.7976931348623157E308" minWidth="10.0"/>
    </columnConstraints>
    <rowConstraints>
        <RowConstraints vgrow="ALWAYS" />
-      <RowConstraints vgrow="NEVER" />
+       <RowConstraints vgrow="ALWAYS"/>
    </rowConstraints>
    <children>
-       <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true"/>
+       <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true"
+                  GridPane.halignment="CENTER" GridPane.rowSpan="2147483647" GridPane.valignment="CENTER"/>
        <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1" GridPane.valignment="CENTER" />
        <Label fx:id="clanLabel" minWidth="0.0" styleClass="chat-user-item-clan" GridPane.columnIndex="2" />
-       <Label fx:id="usernameLabel" maxWidth="1.7976931348623157E308" minWidth="50.0" onMouseClicked="#onUsernameClicked" onMouseEntered="#onMouseEnterUsername" styleClass="chat-user-item-username" text="&lt;Username&gt;" GridPane.columnIndex="3" GridPane.valignment="CENTER" />
-      <Label fx:id="statusLabel" maxWidth="1.7976931348623157E308" styleClass="chat-user-item-status" text="Label" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
+       <Label fx:id="usernameLabel" maxWidth="1.7976931348623157E308" minWidth="50.0" onMouseClicked="#onItemClicked"
+              onMouseEntered="#onMouseEnterUsername" styleClass="chat-user-item-username" text="&lt;Username&gt;"
+              GridPane.columnIndex="3"/>
+       <Label fx:id="statusLabel" maxWidth="1.7976931348623157E308" styleClass="chat-user-item-status" text="Label"
+              GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="1"
+              GridPane.valignment="TOP"/>
        <Text fx:id="presenceStatusIndicator" strokeType="OUTSIDE" strokeWidth="0.0"
              styleClass="presence-status-indicator,icon" text="" GridPane.columnIndex="4" GridPane.halignment="RIGHT"
              GridPane.rowSpan="2147483647"/>
