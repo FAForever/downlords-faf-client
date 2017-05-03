@@ -234,10 +234,12 @@ public final class JavaFxUtil {
    */
   public static <T> void attachListToMap(ObservableList<T> list, ObservableMap<?, T> map) {
     map.addListener((MapChangeListener<Object, T>) change -> {
-      if (change.wasRemoved()) {
-        list.remove(change.getValueRemoved());
-      } else if (change.wasAdded()) {
-        list.add(change.getValueAdded());
+      synchronized (list) {
+        if (change.wasRemoved()) {
+          list.remove(change.getValueRemoved());
+        } else if (change.wasAdded()) {
+          list.add(change.getValueAdded());
+        }
       }
     });
   }
