@@ -29,7 +29,7 @@ public class CountryFlagServiceImpl implements CountryFlagService {
   @Cacheable(COUNTRY_FLAGS)
   public Optional<Image> loadCountryFlag(final String country) {
     if (country == null) {
-      return null;
+      return Optional.empty();
     }
 
     return getCountryFlagUrl(country)
