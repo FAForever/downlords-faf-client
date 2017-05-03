@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.theme.UiService;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
@@ -44,6 +45,10 @@ public class GamesTilesContainerController implements Controller<Node> {
         }
       }
     });
+  }
+
+  public void initialize() {
+    JavaFxUtil.fixScrollSpeed(tiledScrollPane);
   }
 
   ReadOnlyObjectProperty<Game> selectedGameProperty() {
