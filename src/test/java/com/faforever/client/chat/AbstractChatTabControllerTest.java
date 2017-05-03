@@ -97,6 +97,8 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   private ReportingService reportingService;
   @Mock
   private EventBus eventBus;
+  @Mock
+  private CountryFlagService countryFlagService;
 
   private Preferences preferences;
   private AbstractChatTabController instance;
