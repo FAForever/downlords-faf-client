@@ -41,10 +41,13 @@ a {
   word-wrap: break-word;
 }
 
-img.avatar {
+img.avatar,
+img.country-flag {
   margin-right: 0.2em;
 }
-img.avatar[src=""] {
+
+img.avatar[src=""],
+img.country-flag[src=""] {
   display: none;
   padding: 0;
   margin: 0;
@@ -52,7 +55,6 @@ img.avatar[src=""] {
 
 .chat-section-head {
   margin-bottom: 0.2em;
-  display: table;
 }
 
 .chat-section .clan-tag:empty {
@@ -60,8 +62,9 @@ img.avatar[src=""] {
 }
 
 .chat-section .avatar,
+.chat-section .country-flag,
 .chat-section .author {
-  display: table-cell;
+  display: inline-block;
   vertical-align: middle;
 }
 

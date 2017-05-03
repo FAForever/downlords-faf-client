@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import javafx.scene.image.Image;
+import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
@@ -8,10 +9,11 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Optional;
 
 import static com.faforever.client.config.CacheNames.COUNTRY_FLAGS;
 
@@ -25,11 +27,21 @@ public class CountryFlagServiceImpl implements CountryFlagService {
 
   @Override
   @Cacheable(COUNTRY_FLAGS)
-  public Image loadCountryFlag(final String country) {
+  public Optional<Image> loadCountryFlag(final String country) {
     if (country == null) {
       return null;
     }
 
+    return getCountryFlagUrl(country)
+        .map(url -> new Image(url.toString(), true));
+  }
+
+  @Override
+  @SneakyThrows
+  public Optional<URL> getCountryFlagUrl(String country) {
+    if (country == null) {
+      return Optional.empty();
+    }
     String imageName;
     if (NON_COUNTRY_CODES.contains(country)) {
       imageName = "earth";
@@ -38,11 +50,10 @@ public class CountryFlagServiceImpl implements CountryFlagService {
     }
 
     String path = "/images/flags/" + imageName + ".png";
-    try {
-      return new Image(new ClassPathResource(path).getURL().toString(), true);
-    } catch (IOException e) {
-      logger.warn("Could not display country flag", e);
-      return null;
+    ClassPathResource classPathResource = new ClassPathResource(path);
+    if (!classPathResource.exists()) {
+      return Optional.empty();
     }
+    return Optional.of(classPathResource.getURL());
   }
 }

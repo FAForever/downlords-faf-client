@@ -69,6 +69,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.invoke.MethodHandles;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -135,6 +136,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   protected final AutoCompletionHelper autoCompletionHelper;
   protected final EventBus eventBus;
   protected final WebViewConfigurer webViewConfigurer;
+  private final CountryFlagService countryFlagService;
+
   /**
    * Messages that arrived before the web view was ready. Those are appended as soon as it is ready.
    */
@@ -162,7 +165,14 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private ChatMessage lastMessage;
 
   @Inject
-  public AbstractChatTabController(UserService userService, ChatService chatService, PlatformService platformService, PreferencesService preferencesService, PlayerService playerService, AudioService audioService, TimeService timeService, I18n i18n, ImageUploadService imageUploadService, UrlPreviewResolver urlPreviewResolver, NotificationService notificationService, ReportingService reportingService, UiService uiService, AutoCompletionHelper autoCompletionHelper, EventBus eventBus, WebViewConfigurer webViewConfigurer) {
+  // TODO cut dependencies
+  public AbstractChatTabController(UserService userService, ChatService chatService, PlatformService platformService,
+                                   PreferencesService preferencesService, PlayerService playerService,
+                                   AudioService audioService, TimeService timeService, I18n i18n,
+                                   ImageUploadService imageUploadService, UrlPreviewResolver urlPreviewResolver,
+                                   NotificationService notificationService, ReportingService reportingService,
+                                   UiService uiService, AutoCompletionHelper autoCompletionHelper, EventBus eventBus,
+                                   WebViewConfigurer webViewConfigurer, CountryFlagService countryFlagService) {
     this.userService = userService;
     this.chatService = chatService;
     this.platformService = platformService;
@@ -179,7 +189,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     this.autoCompletionHelper = autoCompletionHelper;
     this.eventBus = eventBus;
     this.webViewConfigurer = webViewConfigurer;
-    
+    this.countryFlagService = countryFlagService;
+
     waitingMessages = new ArrayList<>();
     unreadMessagesCount = new SimpleIntegerProperty();
     resetUnreadMessagesListener = (observable, oldValue, newValue) -> {
@@ -595,8 +606,12 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
       String avatarUrl = "";
       String clanTag = "";
+      String countryFlagUrl = "";
       if (player != null) {
         avatarUrl = player.getAvatarUrl();
+        countryFlagUrl = countryFlagService.getCountryFlagUrl(player.getCountry())
+            .map(URL::toString)
+            .orElse("");
 
         if (StringUtils.isNotEmpty(player.getClan())) {
           clanTag = i18n.get("chat.clanTagFormat", player.getClan());
@@ -608,6 +623,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
           .replace("{avatar}", StringUtils.defaultString(avatarUrl))
           .replace("{username}", login)
           .replace("{clan-tag}", clanTag)
+          .replace("{country-flag}", StringUtils.defaultString(countryFlagUrl))
           .replace("{section-id}", String.valueOf(++lastEntryId));
 
       Collection<String> cssClasses = new ArrayList<>();

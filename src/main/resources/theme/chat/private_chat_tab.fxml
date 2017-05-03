@@ -19,7 +19,7 @@
                                  AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
                     </AnchorPane>
                     <ScrollPane fx:id="gameDetailScrollPane" fitToWidth="true" maxHeight="1.7976931348623157E308"
-                                maxWidth="1.7976931348623157E308">
+                                maxWidth="1.7976931348623157E308" SplitPane.resizableWithParent="false">
                         <content>
                             <fx:include fx:id="privateUserInfo" source="private_user_info.fxml"/>
                         </content>

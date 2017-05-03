@@ -99,13 +99,15 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   private ReportingService reportingService;
   @Mock
   private EventBus eventBus;
+  @Mock
+  private CountryFlagService countryFlagService;
 
   @Before
   public void setUp() throws Exception {
     instance = new ChannelTabController(
         userService, chatService, platformService, preferencesService, playerService, audioService, timeService, i18n,
         imageUploadService, urlPreviewResolver, notificationService, reportingService, uiService,
-        autoCompletionHelper, eventBus, webViewConfigurer, threadPoolExecutor, taskScheduler);
+        autoCompletionHelper, eventBus, webViewConfigurer, threadPoolExecutor, taskScheduler, countryFlagService);
 
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
     when(userService.getUsername()).thenReturn(USER_NAME);

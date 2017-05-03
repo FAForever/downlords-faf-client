@@ -283,8 +283,10 @@ public class ChatUserItemController implements Controller<Node> {
     if (StringUtils.isEmpty(country)) {
       countryImageView.setVisible(false);
     } else {
-      countryImageView.setImage(countryFlagService.loadCountryFlag(country));
-      countryImageView.setVisible(true);
+      countryFlagService.loadCountryFlag(country).ifPresent(image -> {
+        countryImageView.setImage(image);
+        countryImageView.setVisible(true);
+      });
     }
   }
 

@@ -34,7 +34,7 @@ public class PlayerCardTooltipController implements Controller<Node> {
     if (player == null) {
       return;
     }
-    countryImageView.setImage(countryFlagService.loadCountryFlag(player.getCountry()));
+    countryFlagService.loadCountryFlag(player.getCountry()).ifPresent(image -> countryImageView.setImage(image));
 
     String playerInfoLocalized = i18n.get("userInfo.tooltipFormat", player.getUsername(), RatingUtil.getRoundedGlobalRating(player));
     playerInfo.setText(playerInfoLocalized);

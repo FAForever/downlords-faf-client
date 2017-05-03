@@ -11,6 +11,7 @@ import com.faforever.client.util.RatingUtil;
 import com.neovisionaries.i18n.CountryCode;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
@@ -62,7 +63,7 @@ public class PrivateUserInfoController {
 
     usernameLabel.setText(player.getUsername());
     userImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
-    countryImageView.setImage(countryFlagService.loadCountryFlag(player.getCountry()));
+    countryFlagService.loadCountryFlag(player.getCountry()).ifPresent(image -> countryImageView.setImage(image));
     countryLabel.setText(countryCode == null ? player.getCountry() : countryCode.getName());
 
     player.globalRatingMeanProperty().addListener((observable) -> loadReceiverGlobalRatingInformation(player));
@@ -73,7 +74,7 @@ public class PrivateUserInfoController {
     player.leaderboardRatingDeviationProperty().addListener((observable) -> loadReceiverLadderRatingInformation(player));
     loadReceiverLadderRatingInformation(player);
 
-    player.gameProperty().addListener(gameInvalidationListener);
+    player.gameProperty().addListener(new WeakInvalidationListener(gameInvalidationListener));
     gameInvalidationListener.invalidated(player.gameProperty());
 
     gamesPlayedLabel.textProperty().bind(player.numberOfGamesProperty().asString());

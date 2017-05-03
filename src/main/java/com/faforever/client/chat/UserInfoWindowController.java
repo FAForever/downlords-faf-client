@@ -201,7 +201,7 @@ public class UserInfoWindowController implements Controller<Node> {
     this.player = player;
 
     usernameLabel.setText(player.getUsername());
-    countryImageView.setImage(countryFlagService.loadCountryFlag(player.getCountry()));
+    countryFlagService.loadCountryFlag(player.getCountry()).ifPresent(image -> countryImageView.setImage(image));
     avatarImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
     gamesPlayedLabel.setText(i18n.number(player.getNumberOfGames()));
     ratingLabelGlobal.setText(i18n.number(RatingUtil.getGlobalRating(player)));

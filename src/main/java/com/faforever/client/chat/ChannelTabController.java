@@ -101,6 +101,7 @@ public class ChannelTabController extends AbstractChatTabController {
   private ChangeListener<ChatColorMode> chatColorModeChangeListener;
   private UserFilterController userFilterController;
 
+  // TODO cut dependencies
   @Inject
   public ChannelTabController(UserService userService, ChatService chatService, PlatformService platformService,
                               PreferencesService preferencesService, PlayerService playerService,
@@ -109,10 +110,10 @@ public class ChannelTabController extends AbstractChatTabController {
                               NotificationService notificationService, ReportingService reportingService,
                               UiService uiService, AutoCompletionHelper autoCompletionHelper, EventBus eventBus,
                               WebViewConfigurer webViewConfigurer, ThreadPoolExecutor threadPoolExecutor,
-                              TaskScheduler taskScheduler) {
+                              TaskScheduler taskScheduler, CountryFlagService countryFlagService) {
     super(userService, chatService, platformService, preferencesService, playerService, audioService, timeService, i18n,
         imageUploadService, urlPreviewResolver, notificationService, reportingService, uiService, autoCompletionHelper,
-        eventBus, webViewConfigurer);
+        eventBus, webViewConfigurer, countryFlagService);
 
     userToChatUserControls = FXCollections.observableMap(new ConcurrentHashMap<>());
     this.threadPoolExecutor = threadPoolExecutor;

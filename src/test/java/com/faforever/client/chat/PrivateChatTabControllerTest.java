@@ -97,7 +97,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
         userService, platformService, preferencesService, playerService,
         timeService, i18n, imageUploadService, urlPreviewResolver, notificationService,
         reportingService, uiService, autoCompletionHelper, eventBus, audioService,
-        chatService, mapService, webViewConfigurer
+        chatService, mapService, webViewConfigurer, countryFlagService
     );
 
     playerName = "testUser";

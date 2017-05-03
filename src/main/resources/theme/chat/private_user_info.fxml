@@ -53,6 +53,7 @@
         <VBox fx:id="gameDetailWrapper" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
               GridPane.columnSpan="2147483647" GridPane.rowIndex="7">
             <children>
+                <Label text="%chat.privateMessage.currentlyPlaying"/>
                 <fx:include fx:id="gameDetail" source="../play/game_detail.fxml"/>
             </children>
         </VBox>

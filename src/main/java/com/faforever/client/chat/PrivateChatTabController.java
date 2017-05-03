@@ -62,10 +62,11 @@ public class PrivateChatTabController extends AbstractChatTabController {
                                   AudioService audioService,
                                   ChatService chatService,
                                   MapService mapService,
-                                  WebViewConfigurer webViewConfigurer) {
+                                  WebViewConfigurer webViewConfigurer,
+                                  CountryFlagService countryFlagService) {
     super(userService, chatService, platformService, preferencesService, playerService, audioService, timeService, i18n,
         imageUploadService, urlPreviewResolver, notificationService, reportingService, uiService, autoCompletionHelper,
-        eventBus, webViewConfigurer);
+        eventBus, webViewConfigurer, countryFlagService);
   }
 
   boolean isUserOffline() {
