@@ -504,17 +504,19 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    * Called from JavaScript when user hovers over an URL.
    */
   public void previewUrl(String urlString) {
-    Preview preview = urlPreviewResolver.resolvePreview(urlString);
-    if (preview == null) {
-      return;
-    }
-
-    linkPreviewTooltip = new Tooltip(preview.getDescription());
-    linkPreviewTooltip.setAutoHide(true);
-    linkPreviewTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
-    linkPreviewTooltip.setGraphic(preview.getNode());
-    linkPreviewTooltip.setContentDisplay(ContentDisplay.TOP);
-    linkPreviewTooltip.show(getRoot().getTabPane(), lastMouseX + 20, lastMouseY);
+    urlPreviewResolver.resolvePreview(urlString)
+        .thenAccept(optionalPreview -> {
+          if (!optionalPreview.isPresent()) {
+            return;
+          }
+          Preview preview = optionalPreview.get();
+          linkPreviewTooltip = new Tooltip(preview.getDescription());
+          linkPreviewTooltip.setAutoHide(true);
+          linkPreviewTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
+          linkPreviewTooltip.setGraphic(preview.getNode());
+          linkPreviewTooltip.setContentDisplay(ContentDisplay.TOP);
+          linkPreviewTooltip.show(getRoot().getTabPane(), lastMouseX + 20, lastMouseY);
+        });
   }
 
   /**

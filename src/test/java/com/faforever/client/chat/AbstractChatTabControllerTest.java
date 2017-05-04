@@ -54,6 +54,7 @@ import static com.faforever.client.chat.SocialStatus.FRIEND;
 import static com.faforever.client.chat.SocialStatus.OTHER;
 import static com.faforever.client.chat.SocialStatus.SELF;
 import static java.util.Collections.singletonList;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
@@ -150,7 +151,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     Clan clan = new Clan();
     clan.setId(1234);
 
-    when(clanService.getClanByTag(sampleClanTag)).thenReturn(CompletableFuture.completedFuture(Optional.of(clan)));
+    when(clanService.getClanByTag(sampleClanTag)).thenReturn(completedFuture(Optional.of(clan)));
     when(uiService.loadFxml("theme/chat/clan_tooltip.fxml")).thenReturn(mock(ClanTooltipController.class));
     when(uiService.getThemeFileUrl(any())).thenReturn(getClass().getResource("/theme/chat/chat_section.html"));
     when(timeService.asShortTime(any())).thenReturn("123");
@@ -173,7 +174,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     String message = "Some message";
     instance.messageTextField().setText(message);
     instance.setReceiver(receiver);
-    when(chatService.sendMessageInBackground(eq(receiver), any())).thenReturn(CompletableFuture.completedFuture(message));
+    when(chatService.sendMessageInBackground(eq(receiver), any())).thenReturn(completedFuture(message));
 
     instance.onSendMessage();
 
@@ -232,7 +233,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     String message = "/me is happy";
     instance.messageTextField().setText(message);
     instance.setReceiver(receiver);
-    when(chatService.sendActionInBackground(eq(receiver), any())).thenReturn(CompletableFuture.completedFuture(message));
+    when(chatService.sendActionInBackground(eq(receiver), any())).thenReturn(completedFuture(message));
 
     instance.onSendMessage();
 
@@ -301,6 +302,8 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void testPreviewUrlReturnsNull() throws Exception {
     String url = "http://www.example.com";
 
+    when(urlPreviewResolver.resolvePreview(url)).thenReturn(completedFuture(null));
+
     instance.previewUrl(url);
 
     verify(urlPreviewResolver).resolvePreview(url);
@@ -310,7 +313,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void testPreviewUrlReturnsPreview() throws Exception {
     String url = "http://www.example.com";
     UrlPreviewResolver.Preview preview = mock(UrlPreviewResolver.Preview.class);
-    when(urlPreviewResolver.resolvePreview(url)).thenReturn(preview);
+    when(urlPreviewResolver.resolvePreview(url)).thenReturn(completedFuture(Optional.of(preview)));
 
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.previewUrl(url));
 
@@ -327,7 +330,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void testHideUrlPreview() throws Exception {
     String url = "http://www.example.com";
     UrlPreviewResolver.Preview preview = mock(UrlPreviewResolver.Preview.class);
-    when(urlPreviewResolver.resolvePreview(url)).thenReturn(preview);
+    when(urlPreviewResolver.resolvePreview(url)).thenReturn(completedFuture(Optional.of(preview)));
 
     WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       instance.previewUrl(url);
@@ -374,7 +377,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     Image image = new Image(getClass().getResourceAsStream("/theme/images/close.png"));
 
     String url = "http://www.example.com/fake.png";
-    when(imageUploadService.uploadImageInBackground(any())).thenReturn(CompletableFuture.completedFuture(url));
+    when(imageUploadService.uploadImageInBackground(any())).thenReturn(completedFuture(url));
 
     WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       ClipboardContent clipboardContent = new ClipboardContent();
@@ -394,7 +397,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     Image image = new Image(getClass().getResourceAsStream("/theme/images/close.png"));
 
     String url = "http://www.example.com/fake.png";
-    when(imageUploadService.uploadImageInBackground(any())).thenReturn(CompletableFuture.completedFuture(url));
+    when(imageUploadService.uploadImageInBackground(any())).thenReturn(completedFuture(url));
 
     WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       ClipboardContent clipboardContent = new ClipboardContent();
