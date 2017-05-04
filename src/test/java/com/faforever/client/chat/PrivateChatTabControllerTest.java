@@ -24,7 +24,6 @@ import com.faforever.client.vault.replay.WatchButtonController;
 import com.google.common.eventbus.EventBus;
 import com.sun.javafx.scene.control.skin.TabPaneSkin;
 import javafx.scene.control.TabPane;
-import javafx.stage.Stage;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -78,8 +77,6 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   private ReportingService reportingService;
   @Mock
   private EventBus eventBus;
-  @Mock
-  private Stage stage;
   @Mock
   private Preferences preferences;
   @Mock

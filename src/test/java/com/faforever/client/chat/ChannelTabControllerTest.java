@@ -18,7 +18,6 @@ import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.MapChangeListener.Change;
@@ -27,7 +26,6 @@ import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
-import javafx.stage.Stage;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -107,12 +105,8 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private CountryFlagService countryFlagService;
 
-  private Stage stage;
-
   @Before
   public void setUp() throws Exception {
-    Platform.runLater(() -> stage = new Stage());
-    WaitForAsyncUtils.waitForFxEvents();
     instance = new ChannelTabController(clanService, userService, chatService,
         platformService, preferencesService, playerService,
         audioService, timeService, i18n, imageUploadService,
