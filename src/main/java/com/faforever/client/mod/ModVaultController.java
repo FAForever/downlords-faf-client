@@ -57,6 +57,7 @@ public class ModVaultController extends AbstractViewController<Node> {
   private final PreferencesService preferencesService;
   private final EventBus eventBus;
   private final UiService uiService;
+
   public Pane searchResultGroup;
   public Pane searchResultPane;
   public Pane showroomGroup;

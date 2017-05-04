@@ -13,6 +13,7 @@ import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
@@ -63,7 +64,6 @@ public class ReviewsController implements Controller<Pane> {
   private ObservableList<Review> reviews;
   private InvalidationListener onReviewsChangedListener;
   private Optional<Review> ownReview;
-  private Player currentPlayer;
   private List<List<Review>> reviewPages;
   private int currentReviewPage;
 
@@ -72,6 +72,7 @@ public class ReviewsController implements Controller<Pane> {
     this.uiService = uiService;
     this.playerService = playerService;
     onReviewsChangedListener = observable -> Platform.runLater(this::onReviewsChanged);
+    ownReview = Optional.empty();
   }
 
   public void initialize() {
@@ -86,6 +87,7 @@ public class ReviewsController implements Controller<Pane> {
     // Prevent flickering
     setReviews(FXCollections.emptyObservableList());
     createReviewButton.managedProperty().bind(createReviewButton.visibleProperty());
+    createReviewButton.setVisible(false);
 
     ownReviewLabel.managedProperty().bind(ownReviewLabel.visibleProperty());
     ownReviewLabel.setVisible(false);
@@ -93,9 +95,6 @@ public class ReviewsController implements Controller<Pane> {
     pageLeftButton.managedProperty().bind(pageLeftButton.visibleProperty());
     reviewsPagination.managedProperty().bind(reviewsPagination.visibleProperty());
     pageRightButton.managedProperty().bind(pageRightButton.visibleProperty());
-
-    currentPlayer = playerService.getCurrentPlayer()
-        .orElseThrow(() -> new IllegalStateException("No current player available"));
   }
 
   private void onDeleteReview(Review review) {
@@ -123,10 +122,14 @@ public class ReviewsController implements Controller<Pane> {
 
   public void setReviews(ObservableList<Review> reviews) {
     this.reviews = reviews;
-    reviews.addListener(onReviewsChangedListener);
-    reviews.filtered(review -> review.getPlayer().equals(currentPlayer));
 
-    reviewPages = Lists.newArrayList(Iterables.partition(reviews, REVIEWS_PER_PAGE));
+    Player currentPlayer = playerService.getCurrentPlayer()
+        .orElseThrow(() -> new IllegalStateException("No current player available"));
+
+    reviews.addListener(onReviewsChangedListener);
+    FilteredList<Review> onlyOtherReplays = reviews.filtered(review -> !review.getPlayer().equals(currentPlayer));
+
+    reviewPages = Lists.newArrayList(Iterables.partition(onlyOtherReplays, REVIEWS_PER_PAGE));
     currentReviewPage = Math.max(0, Math.min(0, reviewPages.size() - 1));
     reviewsPagination.setVisible(!reviewPages.isEmpty());
     displayReviewsPage(0);
@@ -137,6 +140,10 @@ public class ReviewsController implements Controller<Pane> {
     } else {
       Platform.runLater(this::onReviewsChanged);
     }
+  }
+
+  public void setCanWriteReview(boolean canWriteReview) {
+    createReviewButton.setVisible(canWriteReview);
   }
 
   private void displayReviewsPage(int page) {

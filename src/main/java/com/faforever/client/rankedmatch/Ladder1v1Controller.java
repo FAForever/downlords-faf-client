@@ -243,15 +243,15 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
   private void updateRatingHint(int rating) {
     // TODO remove/rethink rating hint
 //    if (rating < environment.getProperty("rating.low", int.class)) {
-//      ratingHintLabel.setText(i18n.get("ranked1v1.ratingHint.low"));
+//      ratingHintLabel.setText(i18n.valueOf("ranked1v1.ratingHint.low"));
 //    } else if (rating < environment.getProperty("rating.moderate", int.class)) {
-//      ratingHintLabel.setText(i18n.get("ranked1v1.ratingHint.moderate"));
+//      ratingHintLabel.setText(i18n.valueOf("ranked1v1.ratingHint.moderate"));
 //    } else if (rating < environment.getProperty("rating.good", int.class)) {
-//      ratingHintLabel.setText(i18n.get("ranked1v1.ratingHint.good"));
+//      ratingHintLabel.setText(i18n.valueOf("ranked1v1.ratingHint.good"));
 //    } else if (rating < environment.getProperty("rating.high", int.class)) {
-//      ratingHintLabel.setText(i18n.get("ranked1v1.ratingHint.high"));
+//      ratingHintLabel.setText(i18n.valueOf("ranked1v1.ratingHint.high"));
 //    } else if (rating < environment.getProperty("rating.top", int.class)) {
-//      ratingHintLabel.setText(i18n.get("ranked1v1.ratingHint.top"));
+//      ratingHintLabel.setText(i18n.valueOf("ranked1v1.ratingHint.top"));
 //    }
   }
 

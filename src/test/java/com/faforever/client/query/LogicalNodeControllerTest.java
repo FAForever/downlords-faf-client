@@ -31,7 +31,7 @@ public class LogicalNodeControllerTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     instance = new LogicalNodeController(i18n);
 
-    loadFxml("theme/query/logical_node.fxml", clazz -> {
+    loadFxml("theme/vault/search/logical_node.fxml", clazz -> {
       if (clazz == instance.getClass()) {
         return instance;
       } else if (clazz == SpecificationController.class) {

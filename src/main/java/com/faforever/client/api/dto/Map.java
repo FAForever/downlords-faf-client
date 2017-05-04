@@ -18,11 +18,14 @@ public class Map {
 
   @Id
   private String id;
-  private String author;
   private String battleType;
   private OffsetDateTime createTime;
+  private OffsetDateTime updateTime;
   private String displayName;
   private String mapType;
+
+  @Relationship("author")
+  private Player author;
 
   @Relationship("statistics")
   private MapStatistics statistics;

@@ -15,8 +15,6 @@ import com.faforever.client.theme.UiService;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
-import org.apache.lucene.analysis.core.SimpleAnalyzer;
-import org.apache.lucene.store.RAMDirectory;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.Before;
 import org.junit.Rule;
@@ -89,7 +87,7 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
     ClientProperties clientProperties = new ClientProperties();
     clientProperties.getVault().setMapPreviewUrlFormat("http://127.0.0.1:65534/preview/%s/%s");
 
-    instance = new MapServiceImpl(preferencesService, taskService, applicationContext, new RAMDirectory(), new SimpleAnalyzer(),
+    instance = new MapServiceImpl(preferencesService, taskService, applicationContext,
         fafService, assetService, i18n, uiService, clientProperties);
 
     mapsDirectory = gameDirectory.newFolder("maps").toPath();
@@ -131,7 +129,7 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(mapBean, notNullValue());
     assertThat(mapBean.getFolderName(), is("SCMP_001"));
     assertThat(mapBean.getDisplayName(), is("Burial Mounds"));
-    assertThat(mapBean.getSize(), equalTo(new MapSize(20, 20)));
+    assertThat(mapBean.getSize(), equalTo(MapSize.valueOf(1024, 1024)));
   }
 
   @Test
@@ -160,7 +158,7 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(mapBean, notNullValue());
     assertThat(mapBean.getId(), isEmptyOrNullString());
     assertThat(mapBean.getDescription(), startsWith("Initial scans of the planet"));
-    assertThat(mapBean.getSize(), is(new MapSize(20, 20)));
+    assertThat(mapBean.getSize(), is(MapSize.valueOf(1024, 1024)));
     assertThat(mapBean.getVersion(), is(new ComparableVersion("1")));
     assertThat(mapBean.getFolderName(), is("SCMP_001"));
   }

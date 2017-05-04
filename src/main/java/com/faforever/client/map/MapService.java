@@ -9,6 +9,7 @@ import javafx.scene.image.Image;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -40,15 +41,11 @@ public interface MapService {
 
   CompletableFuture<Void> downloadAndInstallMap(MapBean map, DoubleProperty progressProperty, StringProperty titleProperty);
 
-  CompletableFuture<List<MapBean>> lookupMap(String string, int maxResults);
+  CompletableFuture<List<MapBean>> getHighestRatedMaps(int count, int page);
 
-  CompletableFuture<List<MapBean>> getMostDownloadedMaps(int count);
+  CompletableFuture<List<MapBean>> getNewestMaps(int count, int page);
 
-  CompletableFuture<List<MapBean>> getMostLikedMaps(int count);
-
-  CompletableFuture<List<MapBean>> getNewestMaps(int count);
-
-  CompletableFuture<List<MapBean>> getMostPlayedMaps(int count);
+  CompletableFuture<List<MapBean>> getMostPlayedMaps(int count, int page);
 
   Image loadPreview(MapBean map, PreviewSize previewSize);
 
@@ -67,5 +64,11 @@ public interface MapService {
    */
   CompletableFuture<Optional<MapBean>> findByMapFolderName(String folderName);
 
-  CompletableFuture<Boolean> hasPlayedMap(int playerId, int mapVersionId);
+  CompletableFuture<Boolean> hasPlayedMap(int playerId, String mapVersionId);
+
+  CompletableFuture<Integer> getFileSize(URL downloadUrl);
+
+  CompletableFuture<List<MapBean>> findByQuery(String query, int page, int maxSearchResults);
+
+  Optional<MapBean> findMap(String id);
 }

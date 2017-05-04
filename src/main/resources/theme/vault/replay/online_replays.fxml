@@ -2,19 +2,17 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="replayVaultRoot" xmlns="http://javafx.com/javafx/8.0.60"
+<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="replayVaultRoot" xmlns="http://javafx.com/javafx/8.0.111"
            fx:controller="com.faforever.client.replay.OnlineReplayVaultController">
     <children>
         <ScrollPane fx:id="scrollPane" fitToWidth="true" maxHeight="1.7976931348623157E308"
@@ -22,34 +20,8 @@
             <content>
                 <VBox fx:id="contentPane" spacing="10.0">
                     <children>
-                        <VBox fx:id="criteriaPane">
-                            <children>
-                                <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                    <children>
-                                        <fx:include fx:id="initialLogicalNode" source="../../query/logical_node.fxml"/>
-                                    </children>
-                        </HBox>
-                            </children>
-                        </VBox>
-                        <HBox alignment="CENTER_LEFT" spacing="10.0">
-                            <children>
-                                <Button maxHeight="1.7976931348623157E308" mnemonicParsing="false"
-                                        onAction="#onAddCriteriaButtonClicked" text="%query.addCriteria"/>
-                                <Button layoutX="10.0" layoutY="10.0" maxHeight="1.7976931348623157E308"
-                                        mnemonicParsing="false" onAction="#onResetButtonClicked" text="%reset"/>
-                                <Button fx:id="searchButton" defaultButton="true" mnemonicParsing="false"
-                                        onAction="#onSearchButtonClicked" styleClass="button-raised" text="%search">
-                                    <graphic>
-                                        <Label styleClass="icon" text=""/>
-                                    </graphic>
-                                </Button>
-                                <CheckBox fx:id="displayQueryCheckBox" mnemonicParsing="false"
-                                          text="%vault.replays.displayQuery"/>
-                            </children>
-                        </HBox>
-                        <TextField fx:id="queryTextField" maxWidth="1.7976931348623157E308"
-                                   promptText="%vault.replays.queryPrompt"/>
-                        <Separator prefWidth="200.0"/>
+                        <fx:include fx:id="search" source="../search/search.fxml"/>
+                        <Separator maxWidth="1.7976931348623157E308"/>
                         <HBox spacing="10.0">
                             <children>
                                 <Button fx:id="backButton" mnemonicParsing="false" onAction="#onBackButtonClicked"

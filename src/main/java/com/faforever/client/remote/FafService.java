@@ -70,21 +70,17 @@ public interface FafService {
 
   void notifyGameEnded();
 
-  CompletableFuture<List<MapBean>> getMaps();
-
   CompletableFuture<List<Mod>> getMods();
 
   CompletableFuture<Mod> getMod(String uid);
 
   void reconnect();
 
-  CompletableFuture<List<MapBean>> getMostDownloadedMaps(int count);
+  CompletableFuture<List<MapBean>> getMostPlayedMaps(int count, int page);
 
-  CompletableFuture<List<MapBean>> getMostPlayedMaps(int count);
+  CompletableFuture<List<MapBean>> getMostLikedMaps(int count, int page);
 
-  CompletableFuture<List<MapBean>> getMostLikedMaps(int count);
-
-  CompletableFuture<List<MapBean>> getNewestMaps(int count);
+  CompletableFuture<List<MapBean>> getNewestMaps(int count, int page);
 
   CompletableFuture<List<CoopMission>> getCoopMaps();
 
@@ -124,6 +120,8 @@ public interface FafService {
 
   CompletableFuture<List<Replay>> findReplaysByQuery(String condition, int maxResults);
 
+  CompletableFuture<List<MapBean>> findMapsByQuery(String query, int page, int maxSearchResults);
+
   CompletableFuture<Optional<MapBean>> findMapByFolderName(String folderName);
 
   CompletableFuture<List<Player>> getPlayersByIds(Collection<Integer> playerIds);
@@ -132,11 +130,15 @@ public interface FafService {
 
   CompletableFuture<Void> saveModVersionReview(Review review, int modVersionId);
 
-  CompletableFuture<Void> saveMapVersionReview(Review review, int mapVersionId);
+  CompletableFuture<Void> saveMapVersionReview(Review review, String mapVersionId);
 
-  CompletableFuture<Optional<Replay>> getLastGameOnMap(int playerId, int mapVersionId);
+  CompletableFuture<Optional<Replay>> getLastGameOnMap(int playerId, String mapVersionId);
 
   CompletableFuture<Void> deleteGameReview(Review review);
 
   CompletableFuture<Optional<Clan>> getClanByTag(String tag);
+
+  Optional<MapBean> findMapById(String id);
+
+  CompletableFuture<Void> deleteMapVersionReview(Review review);
 }

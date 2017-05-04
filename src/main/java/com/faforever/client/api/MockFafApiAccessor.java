@@ -13,13 +13,13 @@ import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.GlobalLeaderboardEntry;
 import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
 import com.faforever.client.api.dto.Map;
+import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.game.KnownFeaturedMod;
-import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.commons.io.ByteCountListener;
 import org.springframework.context.annotation.Lazy;
@@ -115,32 +115,22 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<Map> getAllMaps() {
+  public List<Map> getMostPlayedMaps(int count, int page) {
     return Collections.emptyList();
   }
 
   @Override
-  public List<Map> getMostDownloadedMaps(int count) {
+  public List<Map> getHighestRatedMaps(int count, int page) {
     return Collections.emptyList();
   }
 
   @Override
-  public List<Map> getMostPlayedMaps(int count) {
+  public List<Map> getNewestMaps(int count, int page) {
     return Collections.emptyList();
   }
 
   @Override
-  public List<Map> getHighestRatedMaps(int count) {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public List<Map> getNewestMaps(int count) {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public List<Game> getLastGamesOnMap(int playerId, int mapVersionId, int count) {
+  public List<Game> getLastGamesOnMap(int playerId, String mapVersionId, int count) {
     return Collections.emptyList();
   }
 
@@ -190,7 +180,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public Optional<MapBean> findMapByFolderName(String folderName) {
+  public Optional<MapVersion> findMapByFolderName(String folderName) {
     return Optional.empty();
   }
 
@@ -238,6 +228,21 @@ public class MockFafApiAccessor implements FafApiAccessor {
   @Override
   public Optional<Clan> getClanByTag(String tag) {
     return null;
+  }
+
+  @Override
+  public List<Map> findMapsByQuery(String query, int page, int maxResults) {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public Optional<MapVersion> findMapVersionById(String id) {
+    return null;
+  }
+
+  @Override
+  public void deleteMapVersionReview(Integer id) {
+
   }
 
   @Override

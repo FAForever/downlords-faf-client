@@ -66,7 +66,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
     initializeGameTable(gameService.getGames().filtered(game -> game.getStatus() == GameStatus.PLAYING));
   }
 
-  public void initializeGameTable(ObservableList<Game> games) {
+  private void initializeGameTable(ObservableList<Game> games) {
     SortedList<Game> sortedList = new SortedList<>(games);
     sortedList.comparatorProperty().bind(liveReplayControllerRoot.comparatorProperty());
 

@@ -42,4 +42,20 @@ public class SearchableProperties {
       .put("mapVersion.map.displayName", "game.map.displayName")
 
       .build();
+
+  public static final Map<String, String> MAP_PROPERTIES = ImmutableMap.<String, String>builder()
+      .put("displayName", "map.name")
+      .put("author.login", "map.author")
+
+      .put("latestVersion.createTime", "map.uploadedDateTime")
+      .put("latestVersion.updateTime", "map.updatedDateTime")
+      .put("latestVersion.description", "map.description")
+      .put("latestVersion.maxPlayers", "map.maxPlayers")
+      .put("latestVersion.width", "map.width")
+      .put("latestVersion.height", "map.height")
+      .put("latestVersion.version", "map.version")
+      .put("latestVersion.folderName", "map.folderName")
+      .put("latestVersion.ranked", "map.ranked")
+
+      .build();
 }

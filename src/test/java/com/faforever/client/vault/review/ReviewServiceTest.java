@@ -36,10 +36,10 @@ public class ReviewServiceTest {
   @Test
   public void createMapVersionReview() throws Exception {
     Review review = createReview();
-    when(fafService.saveMapVersionReview(review, 2)).thenReturn(CompletableFuture.completedFuture(null));
+    when(fafService.saveMapVersionReview(review, "2")).thenReturn(CompletableFuture.completedFuture(null));
 
-    instance.createMapVersionReview(review, 2);
-    verify(fafService).saveMapVersionReview(review, 2);
+    instance.saveMapVersionReview(review, "2");
+    verify(fafService).saveMapVersionReview(review, "2");
   }
 
   @Test
@@ -54,7 +54,7 @@ public class ReviewServiceTest {
   private Review createReview() {
     Review review = new Review();
     review.setText("something");
-    review.setScore((byte) 3);
+    review.setScore(3);
     return review;
   }
 }

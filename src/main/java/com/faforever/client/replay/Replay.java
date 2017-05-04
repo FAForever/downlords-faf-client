@@ -93,7 +93,7 @@ public class Replay {
     replay.setTitle(dto.getName());
     replay.setStartTime(dto.getStartTime());
     Optional.ofNullable(dto.getEndTime()).ifPresent(replay::setEndTime);
-    Optional.ofNullable(dto.getMapVersion()).ifPresent(mapVersion -> replay.setMap(MapBean.fromMap(dto.getMapVersion())));
+    Optional.ofNullable(dto.getMapVersion()).ifPresent(mapVersion -> replay.setMap(MapBean.fromMapVersionDto(dto.getMapVersion())));
 //    replay.setViews(dto.getViews());
     replay.setTeams(teams(dto));
     replay.setTeamPlayerStats(teamPlayerStats(dto));

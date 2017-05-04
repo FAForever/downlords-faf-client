@@ -15,7 +15,7 @@ public class MapBuilder {
   public MapBuilder defaultValues() {
     return displayName("Map name")
         .folderName("map_name.v001")
-        .mapSize(new MapSize(10, 10));
+        .mapSize(MapSize.valueOf(512, 512));
   }
 
   public MapBuilder mapSize(MapSize mapSize) {

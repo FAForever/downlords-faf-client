@@ -24,6 +24,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.faforever.client.chat.SocialStatus.OTHER;
@@ -139,7 +140,7 @@ public class Player {
 
   @Override
   public int hashCode() {
-    return username.hashCode();
+    return Objects.hash(id.get(), username.get());
   }
 
   @Override

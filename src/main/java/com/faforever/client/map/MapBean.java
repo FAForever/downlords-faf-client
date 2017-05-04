@@ -1,14 +1,18 @@
 package com.faforever.client.map;
 
 import com.faforever.client.api.dto.MapVersion;
-import com.faforever.client.api.dto.Review;
+import com.faforever.client.vault.review.Review;
+import javafx.beans.Observable;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,13 +20,14 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class MapBean implements Comparable<MapBean> {
 
   private final StringProperty folderName;
   private final StringProperty displayName;
-  private final SimpleFloatProperty rating;
-  private final IntegerProperty plays;
+  private final IntegerProperty numberOfPlays;
   private final StringProperty description;
   private final IntegerProperty downloads;
   private final IntegerProperty players;
@@ -35,61 +40,74 @@ public class MapBean implements Comparable<MapBean> {
   private final ObjectProperty<URL> largeThumbnailUrl;
   private final ObjectProperty<LocalDateTime> createTime;
   private final ObjectProperty<Type> type;
+  private final ListProperty<Review> reviews;
 
   public MapBean() {
-    this.id = new SimpleStringProperty();
-    this.displayName = new SimpleStringProperty();
-    this.folderName = new SimpleStringProperty();
-    this.description = new SimpleStringProperty();
-    this.plays = new SimpleIntegerProperty();
-    this.downloads = new SimpleIntegerProperty();
-    this.rating = new SimpleFloatProperty();
-    this.players = new SimpleIntegerProperty();
-    this.size = new SimpleObjectProperty<>();
-    this.version = new SimpleObjectProperty<>();
-    this.smallThumbnailUrl = new SimpleObjectProperty<>();
-    this.largeThumbnailUrl = new SimpleObjectProperty<>();
-    this.downloadUrl = new SimpleObjectProperty<>();
-    this.author = new SimpleStringProperty();
-    this.createTime = new SimpleObjectProperty<>();
-    this.type = new SimpleObjectProperty<>();
+    id = new SimpleStringProperty();
+    displayName = new SimpleStringProperty();
+    folderName = new SimpleStringProperty();
+    description = new SimpleStringProperty();
+    numberOfPlays = new SimpleIntegerProperty();
+    downloads = new SimpleIntegerProperty();
+    players = new SimpleIntegerProperty();
+    size = new SimpleObjectProperty<>();
+    version = new SimpleObjectProperty<>();
+    smallThumbnailUrl = new SimpleObjectProperty<>();
+    largeThumbnailUrl = new SimpleObjectProperty<>();
+    downloadUrl = new SimpleObjectProperty<>();
+    author = new SimpleStringProperty();
+    createTime = new SimpleObjectProperty<>();
+    type = new SimpleObjectProperty<>();
+    reviews = new SimpleListProperty<>(FXCollections.observableArrayList(param
+        -> new Observable[]{param.scoreProperty(), param.textProperty()}));
   }
 
-  public static MapBean fromMap(com.faforever.client.api.dto.Map map) {
+  public static MapBean fromMapDto(com.faforever.client.api.dto.Map map) {
     MapVersion mapVersion = map.getLatestVersion();
-    
+
     MapBean mapBean = new MapBean();
+    Optional.ofNullable(map.getAuthor()).ifPresent(author -> mapBean.setAuthor(author.getLogin()));
     mapBean.setDescription(mapVersion.getDescription());
     mapBean.setDisplayName(map.getDisplayName());
     mapBean.setFolderName(mapVersion.getFolderName());
-    mapBean.setSize(new MapSize(mapVersion.getWidth(), mapVersion.getHeight()));
+    mapBean.setSize(MapSize.valueOf(mapVersion.getWidth(), mapVersion.getHeight()));
     mapBean.setDownloads(map.getStatistics().getDownloads());
     mapBean.setId(mapVersion.getId());
     mapBean.setPlayers(mapVersion.getMaxPlayers());
-    mapBean.setRating((float) mapVersion.getReviews().stream().mapToInt(Review::getScore).average().orElse(0d));
     mapBean.setVersion(mapVersion.getVersion());
     mapBean.setDownloadUrl(mapVersion.getDownloadUrl());
     mapBean.setSmallThumbnailUrl(mapVersion.getThumbnailUrlSmall());
     mapBean.setLargeThumbnailUrl(mapVersion.getThumbnailUrlLarge());
     mapBean.setCreateTime(mapVersion.getCreateTime().toLocalDateTime());
+    mapBean.setNumberOfPlays(map.getStatistics().getPlays());
+    mapBean.getReviews().setAll(
+        map.getVersions().stream()
+            .filter(v -> v.getReviews() != null)
+            .flatMap(v -> v.getReviews().parallelStream())
+            .map(Review::fromDto)
+            .collect(Collectors.toList()));
     return mapBean;
   }
 
-  public static MapBean fromMap(com.faforever.client.api.dto.MapVersion mapVersion) {
+  public static MapBean fromMapVersionDto(com.faforever.client.api.dto.MapVersion mapVersion) {
     MapBean mapBean = new MapBean();
+    Optional.ofNullable(mapVersion.getMap().getAuthor()).ifPresent(author -> mapBean.setAuthor(author.getLogin()));
     mapBean.setDescription(mapVersion.getDescription());
     mapBean.setDisplayName(mapVersion.getMap().getDisplayName());
     mapBean.setFolderName(mapVersion.getFolderName());
-    mapBean.setSize(new MapSize(mapVersion.getWidth(), mapVersion.getHeight()));
+    mapBean.setSize(MapSize.valueOf(mapVersion.getWidth(), mapVersion.getHeight()));
     mapBean.setDownloads(mapVersion.getMap().getStatistics().getDownloads());
     mapBean.setId(mapVersion.getId());
     mapBean.setPlayers(mapVersion.getMaxPlayers());
-    mapBean.setRating((float) mapVersion.getReviews().stream().mapToInt(Review::getScore).average().orElse(0d));
     mapBean.setVersion(mapVersion.getVersion());
     mapBean.setDownloadUrl(mapVersion.getDownloadUrl());
     mapBean.setSmallThumbnailUrl(mapVersion.getThumbnailUrlSmall());
     mapBean.setLargeThumbnailUrl(mapVersion.getThumbnailUrlLarge());
     mapBean.setCreateTime(mapVersion.getCreateTime().toLocalDateTime());
+    mapBean.setNumberOfPlays(mapVersion.getMap().getStatistics().getPlays());
+    mapBean.getReviews().setAll(mapVersion.getReviews().parallelStream()
+        .map(Review::fromDto)
+        .collect(Collectors.toList()));
     return mapBean;
   }
 
@@ -133,16 +151,16 @@ public class MapBean implements Comparable<MapBean> {
     return description;
   }
 
-  public int getPlays() {
-    return plays.get();
+  public int getNumberOfPlays() {
+    return numberOfPlays.get();
   }
 
-  public void setPlays(int plays) {
-    this.plays.set(plays);
+  public void setNumberOfPlays(int plays) {
+    this.numberOfPlays.set(plays);
   }
 
-  public IntegerProperty playsProperty() {
-    return plays;
+  public IntegerProperty numberOfPlaysProperty() {
+    return numberOfPlays;
   }
 
   public int getDownloads() {
@@ -155,18 +173,6 @@ public class MapBean implements Comparable<MapBean> {
 
   public IntegerProperty downloadsProperty() {
     return downloads;
-  }
-
-  public float getRating() {
-    return rating.get();
-  }
-
-  public void setRating(float rating) {
-    this.rating.set(rating);
-  }
-
-  public SimpleFloatProperty ratingProperty() {
-    return rating;
   }
 
   public MapSize getSize() {
@@ -288,6 +294,14 @@ public class MapBean implements Comparable<MapBean> {
 
   public ObjectProperty<Type> typeProperty() {
     return type;
+  }
+
+  public ObservableList<Review> getReviews() {
+    return reviews.get();
+  }
+
+  public ListProperty<Review> reviewsProperty() {
+    return reviews;
   }
 
   public enum Type {

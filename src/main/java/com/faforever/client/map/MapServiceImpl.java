@@ -19,9 +19,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
-import org.apache.lucene.store.Directory;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,6 +30,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -54,9 +52,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 import static com.faforever.client.util.LuaUtil.loadFile;
 import static com.github.nocatch.NoCatch.noCatch;
@@ -72,14 +67,10 @@ import static java.util.stream.Collectors.toCollection;
 public class MapServiceImpl implements MapService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final float MAP_SIZE_FACTOR = 51.2f;
-  private static final Lock LOOKUP_LOCK = new ReentrantLock();
 
   private final PreferencesService preferencesService;
   private final TaskService taskService;
   private final ApplicationContext applicationContext;
-  private final Directory directory;
-  private final Analyzer analyzer;
   private final FafService fafService;
   private final AssetService assetService;
   private final I18n i18n;
@@ -89,7 +80,6 @@ public class MapServiceImpl implements MapService {
   private final String mapPreviewUrlFormat;
 
   private Map<Path, MapBean> pathToMap;
-  private AnalyzingInfixSuggester suggester;
   private Path customMapsDirectory;
   private ObservableList<MapBean> installedSkirmishMaps;
   private Map<String, MapBean> mapsByFolderName;
@@ -97,14 +87,12 @@ public class MapServiceImpl implements MapService {
 
   @Inject
   public MapServiceImpl(PreferencesService preferencesService, TaskService taskService,
-                        ApplicationContext applicationContext, Directory directory, Analyzer analyzer,
+                        ApplicationContext applicationContext,
                         FafService fafService, AssetService assetService,
                         I18n i18n, UiService uiService, ClientProperties clientProperties) {
     this.preferencesService = preferencesService;
     this.taskService = taskService;
     this.applicationContext = applicationContext;
-    this.directory = directory;
-    this.analyzer = analyzer;
     this.fafService = fafService;
     this.assetService = assetService;
     this.i18n = i18n;
@@ -144,8 +132,6 @@ public class MapServiceImpl implements MapService {
     preferencesService.getPreferences().getForgedAlliance().pathProperty().addListener(observable -> tryLoadMaps());
     preferencesService.getPreferences().getForgedAlliance().customMapsDirectoryProperty().addListener(observable -> tryLoadMaps());
     tryLoadMaps();
-
-    suggester = new AnalyzingInfixSuggester(directory, analyzer);
   }
 
   private void tryLoadMaps() {
@@ -251,10 +237,7 @@ public class MapServiceImpl implements MapService {
       mapBean.setDescription(scenarioInfo.get("description").tojstring().replaceAll("<LOC .*?>", ""));
       mapBean.setVersion(new ComparableVersion(scenarioInfo.get("map_version").tojstring()));
       mapBean.setType(Type.fromString(scenarioInfo.get("type").toString()));
-      mapBean.setSize(new MapSize(
-          (int) (size.get(1).toint() / MAP_SIZE_FACTOR),
-          (int) (size.get(2).toint() / MAP_SIZE_FACTOR))
-      );
+      mapBean.setSize(MapSize.valueOf(size.get(1).toint(), size.get(2).toint()));
       mapBean.setPlayers(scenarioInfo.get("Configurations").get("standard").get("teams").get(1).get("armies").length());
       return mapBean;
     } catch (LuaError e) {
@@ -308,44 +291,18 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  public CompletableFuture<List<MapBean>> lookupMap(String string, int maxResults) {
-    return fafService.getMaps().thenApply(mapBeans -> {
-      try {
-        LOOKUP_LOCK.lock();
-        MapInfoBeanIterator iterator = new MapInfoBeanIterator(mapBeans.iterator());
-        suggester.build(iterator);
-        return suggester.lookup(string, maxResults, true, false).stream()
-            .map(lookupResult -> iterator.deserialize(lookupResult.payload.bytes))
-            .collect(Collectors.toList());
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      } finally {
-        LOOKUP_LOCK.unlock();
-      }
-    }).exceptionally(throwable -> {
-      logger.warn("Lookup failed", throwable);
-      return null;
-    });
+  public CompletableFuture<List<MapBean>> getHighestRatedMaps(int count, int page) {
+    return fafService.getMostLikedMaps(count, page);
   }
 
   @Override
-  public CompletableFuture<List<MapBean>> getMostDownloadedMaps(int count) {
-    return fafService.getMostDownloadedMaps(count);
+  public CompletableFuture<List<MapBean>> getNewestMaps(int count, int page) {
+    return fafService.getNewestMaps(count, page);
   }
 
   @Override
-  public CompletableFuture<List<MapBean>> getMostLikedMaps(int count) {
-    return fafService.getMostLikedMaps(count);
-  }
-
-  @Override
-  public CompletableFuture<List<MapBean>> getNewestMaps(int count) {
-    return fafService.getNewestMaps(count);
-  }
-
-  @Override
-  public CompletableFuture<List<MapBean>> getMostPlayedMaps(int count) {
-    return fafService.getMostPlayedMaps(count);
+  public CompletableFuture<List<MapBean>> getMostPlayedMaps(int count, int page) {
+    return fafService.getMostPlayedMaps(count, page);
   }
 
   @Override
@@ -416,9 +373,27 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  public CompletableFuture<Boolean> hasPlayedMap(int playerId, int mapVersionId) {
+  public CompletableFuture<Boolean> hasPlayedMap(int playerId, String mapVersionId) {
     return fafService.getLastGameOnMap(playerId, mapVersionId)
         .thenApply(Optional::isPresent);
+  }
+
+  @Override
+  @Async
+  public CompletableFuture<Integer> getFileSize(URL downloadUrl) {
+    return CompletableFuture.completedFuture(noCatch(() -> downloadUrl
+        .openConnection()
+        .getContentLength()));
+  }
+
+  @Override
+  public CompletableFuture<List<MapBean>> findByQuery(String query, int page, int maxSearchResults) {
+    return fafService.findMapsByQuery(query, page, maxSearchResults);
+  }
+
+  @Override
+  public Optional<MapBean> findMap(String id) {
+    return fafService.findMapById(id);
   }
 
   private CompletableFuture<Void> downloadAndInstallMap(String folderName, URL downloadUrl, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {

@@ -232,7 +232,7 @@ public class CreateGameController implements Controller<Pane> {
         new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false))));
 
     MapSize mapSize = newValue.getSize();
-    mapSizeLabel.setText(i18n.get("mapPreview.size", mapSize.getWidth(), mapSize.getHeight()));
+    mapSizeLabel.setText(i18n.get("mapPreview.size", mapSize.getWidthInPixels(), mapSize.getHeightInPixels()));
     mapNameLabel.setText(newValue.getDisplayName());
     mapPlayersLabel.setText(i18n.number(newValue.getPlayers()));
     mapDescriptionLabel.setText(newValue.getDescription());

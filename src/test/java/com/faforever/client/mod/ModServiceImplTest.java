@@ -16,8 +16,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
-import org.apache.lucene.analysis.core.SimpleAnalyzer;
-import org.apache.lucene.store.RAMDirectory;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -104,7 +102,7 @@ public class ModServiceImplTest {
   @Before
   public void setUp() throws Exception {
     instance = new ModServiceImpl(taskService, fafService, preferencesService, applicationContext,
-        new SimpleAnalyzer(), new RAMDirectory(), notificationService, i18n, platformService, assetService);
+        notificationService, i18n, platformService, assetService);
 
     gamePrefsPath = faDataDirectory.getRoot().toPath().resolve("game.prefs");
 
@@ -436,22 +434,6 @@ public class ModServiceImplTest {
     List<Mod> mods = instance.getMostLikedUiMods(1).toCompletableFuture().get();
     assertThat(mods, hasSize(1));
     assertThat(mods.get(0).getId(), is("1"));
-  }
-
-  @Test
-  public void testLookupMod() throws Exception {
-    when(fafService.getMods()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
-        ModInfoBeanBuilder.create().defaultValues().uid("1").name("Test mod 1").get(),
-        ModInfoBeanBuilder.create().defaultValues().uid("2").name("Mod test").get(),
-        ModInfoBeanBuilder.create().defaultValues().uid("3").name("Another mod").get()
-    )));
-
-    List<Mod> mods = instance.lookupMod("test", 3).toCompletableFuture().get();
-    assertThat(mods, hasSize(2));
-    assertThat(mods.get(0).getId(), is("1"));
-    assertThat(mods.get(0).getVersion(), is(new ComparableVersion("1")));
-    assertThat(mods.get(1).getId(), is("2"));
-    assertThat(mods.get(1).getVersion(), is(new ComparableVersion("1")));
   }
 
   private InstallModTask stubInstallModTask() {

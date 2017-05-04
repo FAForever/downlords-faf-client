@@ -11,13 +11,13 @@ import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.GlobalLeaderboardEntry;
 import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
 import com.faforever.client.api.dto.Map;
+import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.game.KnownFeaturedMod;
-import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.commons.io.ByteCountListener;
 
@@ -56,17 +56,13 @@ public interface FafApiAccessor {
 
   List<GamePlayerStats> getGamePlayerStats(int playerId, KnownFeaturedMod knownFeaturedMod);
 
-  List<Map> getAllMaps();
+  List<Map> getMostPlayedMaps(int count, int page);
 
-  List<Map> getMostDownloadedMaps(int count);
+  List<Map> getHighestRatedMaps(int count, int page);
 
-  List<Map> getMostPlayedMaps(int count);
+  List<Map> getNewestMaps(int count, int page);
 
-  List<Map> getHighestRatedMaps(int count);
-
-  List<Map> getNewestMaps(int count);
-
-  List<Game> getLastGamesOnMap(int playerId, int mapVersionId, int count);
+  List<Game> getLastGamesOnMap(int playerId, String mapVersionId, int count);
 
   void uploadMod(Path file, ByteCountListener listener);
 
@@ -90,7 +86,7 @@ public interface FafApiAccessor {
 
   List<Game> findReplaysByQuery(String condition, int maxResults);
 
-  Optional<MapBean> findMapByFolderName(String folderName);
+  Optional<MapVersion> findMapByFolderName(String folderName);
 
   List<com.faforever.client.api.dto.Player> getPlayersByIds(Collection<Integer> playerIds);
 
@@ -109,4 +105,10 @@ public interface FafApiAccessor {
   void deleteGameReview(int id);
 
   Optional<Clan> getClanByTag(String tag);
+
+  List<Map> findMapsByQuery(String query, int page, int maxResults);
+
+  Optional<MapVersion> findMapVersionById(String id);
+
+  void deleteMapVersionReview(Integer id);
 }

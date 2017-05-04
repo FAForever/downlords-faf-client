@@ -48,7 +48,10 @@ public class WatchButtonController implements Controller<Node> {
   }
 
   public void initialize() {
-    delayTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> updateWatchButtonTimer()));
+    delayTimeline = new Timeline(
+        new KeyFrame(Duration.ZERO, event -> updateWatchButtonTimer()),
+        new KeyFrame(Duration.seconds(1))
+    );
     delayTimeline.setCycleCount(Timeline.INDEFINITE);
 
     watchButton.setDisable(true);
@@ -56,6 +59,7 @@ public class WatchButtonController implements Controller<Node> {
 
   public void setGame(Game game) {
     this.game = game;
+    Assert.notNull(game.getStartTime(), "The game's start must not be null: " + game);
 
     List<MenuItem> menuItems = game.getTeams().values().stream()
         .flatMap(Collection::stream)
@@ -85,7 +89,7 @@ public class WatchButtonController implements Controller<Node> {
         Instant.now(),
         game.getStartTime().plusSeconds(clientProperties.getReplay().getWatchDelaySeconds())
     );
-    if (watchDelay.isNegative()) {
+    if (watchDelay.isZero() || watchDelay.isNegative()) {
       delayTimeline.stop();
       delayTimeline = null;
       watchButton.setText(i18n.get("game.watch"));

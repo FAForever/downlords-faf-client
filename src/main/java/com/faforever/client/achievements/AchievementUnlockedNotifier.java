@@ -52,7 +52,7 @@ public class AchievementUnlockedNotifier {
         .forEachOrdered(updatedAchievement -> achievementService.getAchievementDefinition(updatedAchievement.getAchievementId())
             .thenAccept(this::notifyAboutUnlockedAchievement)
             .exceptionally(throwable -> {
-              logger.warn("Could not get achievement definition for achievement: {}", updatedAchievement.getAchievementId(), throwable);
+              logger.warn("Could not valueOf achievement definition for achievement: {}", updatedAchievement.getAchievementId(), throwable);
               return null;
             })
         );

@@ -100,9 +100,9 @@ public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
 //    LoadLocalReplaysTask task = mock(LoadLocalReplaysTask.class);
 //    when(applicationContext.getBean(LoadLocalReplaysTask.class)).thenReturn(task);
 //    when(replayService.getOnlineReplays()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
-//        ReplayInfoBeanBuilder.create().get(),
-//        ReplayInfoBeanBuilder.create().get(),
-//        ReplayInfoBeanBuilder.create().get()
+//        ReplayInfoBeanBuilder.create().valueOf(),
+//        ReplayInfoBeanBuilder.create().valueOf(),
+//        ReplayInfoBeanBuilder.create().valueOf()
 //    )));
 //
 //    CountDownLatch loadedLatch = new CountDownLatch(1);

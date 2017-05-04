@@ -1,9 +1,13 @@
 package com.faforever.client.map;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.query.LogicalNodeController;
+import com.faforever.client.query.SpecificationController;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.vault.search.SearchController;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.Observable;
 import javafx.scene.layout.Pane;
@@ -21,6 +25,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -39,12 +44,20 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
   @Mock
   private PreferencesService preferencesService;
+  @Mock
+  private NotificationService notificationService;
+  @Mock
+  private SearchController searchController;
+  @Mock
+  private LogicalNodeController logicalNodeController;
+  @Mock
+  private SpecificationController specificationController;
 
   private MapVaultController instance;
 
   @Before
   public void setUp() throws Exception {
-    instance = new MapVaultController(mapService, i18n, eventBus, preferencesService, uiService);
+    instance = new MapVaultController(mapService, i18n, eventBus, preferencesService, uiService, notificationService);
 
     doAnswer(invocation -> {
       MapDetailController controller = mock(MapDetailController.class);
@@ -58,7 +71,18 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
       return controller;
     }).when(uiService).loadFxml("theme/vault/map/map_card.fxml");
 
-    loadFxml("theme/vault/map/map_vault.fxml", clazz -> instance);
+    loadFxml("theme/vault/map/map_vault.fxml", clazz -> {
+      if (clazz == SearchController.class) {
+        return searchController;
+      }
+      if (clazz == LogicalNodeController.class) {
+        return logicalNodeController;
+      }
+      if (clazz == SpecificationController.class) {
+        return specificationController;
+      }
+      return instance;
+    });
   }
 
   @Test
@@ -85,9 +109,9 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
       );
     }
 
-    when(mapService.getMostLikedMaps(anyInt())).thenReturn(CompletableFuture.completedFuture(maps));
-    when(mapService.getNewestMaps(anyInt())).thenReturn(CompletableFuture.completedFuture(maps));
-    when(mapService.getMostPlayedMaps(anyInt())).thenReturn(CompletableFuture.completedFuture(maps));
+    when(mapService.getHighestRatedMaps(anyInt(), eq(1))).thenReturn(CompletableFuture.completedFuture(maps));
+    when(mapService.getNewestMaps(anyInt(), eq(1))).thenReturn(CompletableFuture.completedFuture(maps));
+    when(mapService.getMostPlayedMaps(anyInt(), eq(1))).thenReturn(CompletableFuture.completedFuture(maps));
 
     CountDownLatch latch = new CountDownLatch(3);
     waitUntilInitialized(instance.mostLikedPane, latch);
