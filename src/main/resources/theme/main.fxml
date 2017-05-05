@@ -30,6 +30,10 @@
                                 <SeparatorMenuItem mnemonicParsing="false"/>
                                 <MenuItem disable="true" text="%menu.feedback"/>
                                 <SeparatorMenuItem mnemonicParsing="false"/>
+                                <MenuItem onAction="#onRevealLogFolder" text="%menu.revealLogFolder" />
+                                <MenuItem onAction="#onRevealMapFolder" text="%menu.revealMapFolder" />
+                                <MenuItem onAction="#onRevealModFolder" text="%menu.revealModFolder" />
+                                <SeparatorMenuItem mnemonicParsing="false"/>
                                 <MenuItem onAction="#onExitItemSelected" text="%menu.exit"/>
                             </items>
                             <styleClass>

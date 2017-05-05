@@ -4,6 +4,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -60,6 +61,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -91,6 +93,7 @@ public class MainController implements Controller<Node> {
   private final EventBus eventBus;
   private final String mainWindowTitle;
   private final int ratingBeta;
+  private final PlatformService platformService;
   public Pane mainHeaderPane;
   public Labeled notificationsBadge;
   public Pane contentPane;
@@ -111,7 +114,7 @@ public class MainController implements Controller<Node> {
   @Inject
   public MainController(PreferencesService preferencesService, I18n i18n, NotificationService notificationService,
                         PlayerService playerService, GameService gameService, ClientUpdateService clientUpdateService,
-                        UiService uiService, EventBus eventBus, ClientProperties clientProperties) {
+                        UiService uiService, EventBus eventBus, ClientProperties clientProperties, PlatformService platformService) {
     this.preferencesService = preferencesService;
     this.i18n = i18n;
     this.notificationService = notificationService;
@@ -123,7 +126,8 @@ public class MainController implements Controller<Node> {
 
     this.mainWindowTitle = clientProperties.getMainWindowTitle();
     this.ratingBeta = clientProperties.getTrueSkill().getBeta();
-    
+    this.platformService = platformService;
+
     this.viewCache = CacheBuilder.newBuilder().build();
   }
 
@@ -456,5 +460,20 @@ public class MainController implements Controller<Node> {
 
   private AbstractViewController<?> loadView(NavigationItem item) {
     return noCatch(() -> viewCache.get(item, () -> uiService.loadFxml(item.getFxmlFile())));
+  }
+
+  public void onRevealMapFolder() {
+    Path mapPath = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
+    this.platformService.reveal(mapPath);
+  }
+
+  public void onRevealModFolder() {
+    Path modPath = preferencesService.getPreferences().getForgedAlliance().getModsDirectory();
+    this.platformService.reveal(modPath);
+  }
+
+  public void onRevealLogFolder() {
+    Path logPath = preferencesService.getFafLogDirectory();
+    this.platformService.reveal(logPath);
   }
 }
