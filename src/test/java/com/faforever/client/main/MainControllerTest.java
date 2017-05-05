@@ -2,6 +2,7 @@ package com.faforever.client.main;
 
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -45,6 +46,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -66,11 +69,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class MainControllerTest extends AbstractPlainJavaFxTest {
-
   @Mock
   private PersistentNotificationsController persistentNotificationsController;
   @Mock
   private PreferencesService preferencesService;
+  @Mock
+  private PlatformService platformService;
   @Mock
   private LeaderboardController leaderboardController;
   @Mock
@@ -119,7 +123,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
         .setInitialStandardDeviation(500);
 
     instance = new MainController(preferencesService, i18n, notificationService, playerService, gameService, clientUpdateService,
-        uiService, eventBus, clientProperties);
+        uiService, eventBus, clientProperties, platformService);
 
     gameRunningProperty = new SimpleBooleanProperty();
 
@@ -307,5 +311,31 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     Window window = instance.getRoot().getScene().getWindow();
     Rectangle2D bounds = new Rectangle2D(window.getX(), window.getY(), window.getWidth(), window.getHeight());
     assertTrue(Screen.getPrimary().getBounds().contains(bounds));
+  }
+
+  @Test
+  public void testOnRevealMapFolder() throws Exception {
+    Path expectedPath = Paths.get("C:\\test\\path_map");
+    when(forgedAlliancePrefs.getCustomMapsDirectory()).thenReturn(expectedPath);
+    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
+    instance.onRevealMapFolder();
+    verify(platformService).reveal(expectedPath);
+  }
+
+  @Test
+  public void testOnRevealModFolder() throws Exception {
+    Path expectedPath = Paths.get("C:\\test\\path_mod");
+    when(forgedAlliancePrefs.getModsDirectory()).thenReturn(expectedPath);
+    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
+    instance.onRevealModFolder();
+    verify(platformService).reveal(expectedPath);
+  }
+
+  @Test
+  public void testOnRevealLogFolder() throws Exception {
+    Path expectedPath = Paths.get("C:\\test\\path_log");
+    when(preferencesService.getFafLogDirectory()).thenReturn(expectedPath);
+    instance.onRevealLogFolder();
+    verify(platformService).reveal(expectedPath);
   }
 }
