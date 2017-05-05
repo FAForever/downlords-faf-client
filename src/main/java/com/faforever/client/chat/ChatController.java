@@ -11,7 +11,6 @@ import com.faforever.client.util.ProgrammingError;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
 import javafx.collections.ListChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
@@ -41,8 +40,9 @@ public class ChatController extends AbstractViewController<Node> {
   public Node chatRoot;
   public TabPane tabPane;
   public Pane connectingProgressPane;
-  public VBox noOpenTabsContainer;
+  public VBox newChannelJoinRoot;
   public TextField channelNameTextField;
+  private Tab newChannel;
 
   @Inject
   public ChatController(ChatService chatService, UiService uiService, UserService userService, EventBus eventBus) {
@@ -65,19 +65,16 @@ public class ChatController extends AbstractViewController<Node> {
   private void onDisconnected() {
     connectingProgressPane.setVisible(true);
     tabPane.setVisible(false);
-    noOpenTabsContainer.setVisible(false);
   }
 
   private void onConnected() {
     connectingProgressPane.setVisible(false);
     tabPane.setVisible(true);
-    noOpenTabsContainer.setVisible(false);
   }
 
   private void onConnecting() {
     connectingProgressPane.setVisible(true);
     tabPane.setVisible(false);
-    noOpenTabsContainer.setVisible(false);
   }
 
   private void onLoggedOut() {
@@ -106,6 +103,16 @@ public class ChatController extends AbstractViewController<Node> {
     JavaFxUtil.assertApplicationThread();
     nameToChatTabController.put(playerOrChannelName, tabController);
     tabPane.getTabs().add(tabController.getRoot());
+    tabPane.getTabs().sort((o1, o2) -> {
+      if (o1.equals(newChannel)) {
+        return 1;
+      } else if (o2.equals(newChannel)) {
+        return -1;
+      } else {
+        return 0;
+      }
+    });
+    tabPane.getSelectionModel().select(tabController.getRoot());
   }
 
   @Override
@@ -113,8 +120,14 @@ public class ChatController extends AbstractViewController<Node> {
     super.initialize();
     eventBus.register(this);
 
-    tabPane.getTabs().addListener((InvalidationListener) observable ->
-        noOpenTabsContainer.setVisible(tabPane.getTabs().isEmpty()));
+    NewChannelController newChannelController = uiService.loadFxml("theme/chat/newChannel.fxml");
+    newChannelJoinRoot = (VBox) newChannelController.getRoot();
+    channelNameTextField = newChannelController.getChannelNameTextField();
+    channelNameTextField.setOnAction(event -> onJoinChannelButtonClicked());
+
+    newChannel = new Tab("+", newChannelJoinRoot);
+    newChannel.setClosable(false);
+    tabPane.getTabs().add(newChannel);
 
     chatService.addChannelsListener(change -> {
       if (change.wasRemoved()) {
@@ -240,7 +253,7 @@ public class ChatController extends AbstractViewController<Node> {
   @Override
   protected void onDisplay() {
     super.onDisplay();
-    if (!tabPane.getTabs().isEmpty()) {
+    if (tabPane.getTabs().size() > 1) {
       Tab tab = tabPane.getSelectionModel().getSelectedItem();
       nameToChatTabController.get(tab.getId()).onDisplay();
     }
