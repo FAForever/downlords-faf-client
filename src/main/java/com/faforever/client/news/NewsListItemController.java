@@ -35,7 +35,7 @@ public class NewsListItemController implements Controller<Node> {
 
   public void initialize() {
     // TODO only use this if there's no thumbnail. However, there's never a thumbnail ATM.
-    imageView.setImage(uiService.getThemeImage(UiService.DEFAULT_NEWS_IMAGE));
+    imageView.setImage(uiService.getThemeImage(newsItem.getNewsCategory().getImagePath()));
   }
 
   @Override
