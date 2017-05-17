@@ -12,6 +12,17 @@ import java.util.Collection;
 public interface UiService {
 
   String UNKNOWN_MAP_IMAGE = "theme/images/unknown_map.png";
+  //TODO: Create Images for News Categories
+  String SERVER_UPDATE_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  String TOURNAMENT_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  String FA_UPDATE_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  String LOBBY_UPDATE_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  String BALANCE_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  String WEBSITE_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  String CAST_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  String PODCAST_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  String FEATURED_MOD_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  String DEVELOPMENT_NEWS_IMAGE = "theme/images/news_fallback.jpg";
   String DEFAULT_NEWS_IMAGE = "theme/images/news_fallback.jpg";
   String STYLE_CSS = "theme/style.css";
   String WEBVIEW_CSS_FILE = "theme/style-webview.css";

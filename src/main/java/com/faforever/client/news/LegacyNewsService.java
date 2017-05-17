@@ -4,6 +4,7 @@ import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.preferences.PreferencesService;
 import com.google.common.eventbus.EventBus;
+import com.rometools.rome.feed.synd.SyndCategory;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
@@ -82,7 +83,14 @@ public class LegacyNewsService implements NewsService {
       String content = syndEntry.getContents().get(0).getValue();
       Date publishedDate = syndEntry.getPublishedDate();
 
-      result.add(new NewsItem(author, link, title, content, publishedDate));
+      NewsCategory newsCategory = syndEntry.getCategories().stream()
+          .filter(Objects::nonNull)
+          .findFirst()
+          .map(SyndCategory::getName)
+          .map(NewsCategory::fromString)
+          .orElse(NewsCategory.UNCATEGORIZED);
+
+      result.add(new NewsItem(author, link, title, content, publishedDate, newsCategory));
     }
 
     return result;
