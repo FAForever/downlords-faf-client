@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import javax.inject.Inject;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -38,7 +39,7 @@ public class TimeServiceImpl implements TimeService {
       return "";
     }
 
-    Duration ago = Duration.between(temporal, Instant.now());
+    Duration ago = Duration.between(temporal, OffsetDateTime.now());
 
     if (Duration.ofMinutes(1).compareTo(ago) > 0) {
       return i18n.getQuantized("secondAgo", "secondsAgo", ago.getSeconds());
@@ -65,7 +66,7 @@ public class TimeServiceImpl implements TimeService {
       return "";
     }
 
-    Duration ago = Duration.between(temporal, Instant.now());
+    Duration ago = Duration.between(temporal, OffsetDateTime.now());
 
     if (ago.compareTo(Duration.ofDays(1)) <= 0) {
       return timeAgo(temporal);

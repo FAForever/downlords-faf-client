@@ -17,7 +17,7 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
-import com.google.common.annotations.VisibleForTesting;
+import com.faforever.client.vault.map.MapPreviewTableCellController;
 import com.google.common.base.Joiner;
 import javafx.application.Platform;
 import javafx.beans.binding.StringBinding;
@@ -25,12 +25,11 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeTableCell;
-import javafx.scene.control.TreeTableColumn;
-import javafx.scene.control.TreeTableRow;
-import javafx.scene.control.TreeTableView;
-import javafx.scene.control.cell.TextFieldTreeTableCell;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.ImageView;
 import javafx.util.StringConverter;
 import org.jetbrains.annotations.NotNull;
@@ -70,16 +69,14 @@ public class ReplayVaultController implements Controller<Node> {
   private final ApplicationContext applicationContext;
   private final UiService uiService;
 
-  public TreeTableView<Replay> replayVaultRoot;
-  public TreeTableColumn<Replay, Number> idColumn;
-  public TreeTableColumn<Replay, String> titleColumn;
-  public TreeTableColumn<Replay, String> playersColumn;
-  public TreeTableColumn<Replay, Temporal> timeColumn;
-  public TreeTableColumn<Replay, Duration> durationColumn;
-  public TreeTableColumn<Replay, String> gameTypeColumn;
-  public TreeTableColumn<Replay, MapBean> mapColumn;
-  @VisibleForTesting
-  TreeItem<Replay> localReplaysRoot;
+  public TableView<Replay> replayVaultRoot;
+  public TableColumn<Replay, Number> idColumn;
+  public TableColumn<Replay, String> titleColumn;
+  public TableColumn<Replay, String> playersColumn;
+  public TableColumn<Replay, Temporal> timeColumn;
+  public TableColumn<Replay, Duration> durationColumn;
+  public TableColumn<Replay, String> gameTypeColumn;
+  public TableColumn<Replay, MapBean> mapColumn;
 
   @Inject
   // TODO reduce dependencies
@@ -97,38 +94,35 @@ public class ReplayVaultController implements Controller<Node> {
 
   @SuppressWarnings("unchecked")
   public void initialize() {
-    localReplaysRoot = new TreeItem<>();
-    localReplaysRoot.setExpanded(true);
 
-    TreeItem<Replay> tableRoot = new TreeItem<>(new Replay("invisibleRootItem"));
-
-    replayVaultRoot.setRoot(tableRoot);
     replayVaultRoot.setRowFactory(param -> replayRowFactory());
     replayVaultRoot.getSortOrder().setAll(Collections.singletonList(timeColumn));
 
-    idColumn.setCellValueFactory(param -> param.getValue().getValue().idProperty());
+    idColumn.setCellValueFactory(param -> param.getValue().idProperty());
     idColumn.setCellFactory(this::idCellFactory);
 
-    titleColumn.setCellValueFactory(param -> param.getValue().getValue().titleProperty());
+    titleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
 
-    timeColumn.setCellValueFactory(param -> param.getValue().getValue().startTimeProperty());
+    timeColumn.setCellValueFactory(param -> param.getValue().startTimeProperty());
     timeColumn.setCellFactory(this::timeCellFactory);
-    timeColumn.setSortType(TreeTableColumn.SortType.DESCENDING);
+    timeColumn.setSortType(TableColumn.SortType.DESCENDING);
 
-    gameTypeColumn.setCellValueFactory(param -> param.getValue().getValue().getFeaturedMod().displayNameProperty());
+    gameTypeColumn.setCellValueFactory(param -> param.getValue().getFeaturedMod().displayNameProperty());
 
-    mapColumn.setCellValueFactory(param -> param.getValue().getValue().mapProperty());
+    mapColumn.setCellValueFactory(param -> param.getValue().mapProperty());
     mapColumn.setCellFactory(this::mapCellFactory);
 
     playersColumn.setCellValueFactory(this::playersValueFactory);
 
     durationColumn.setCellValueFactory(this::durationCellValueFactory);
     durationColumn.setCellFactory(this::durationCellFactory);
+
+    loadLocalReplaysInBackground();
   }
 
   @NotNull
-  private TreeTableRow<Replay> replayRowFactory() {
-    TreeTableRow<Replay> row = new TreeTableRow<>();
+  private TableRow<Replay> replayRowFactory() {
+    TableRow<Replay> row = new TableRow();
     row.setOnMouseClicked(event -> {
       // If ID == 0, this isn't an entry but root node
       if (event.getClickCount() == 2 && !row.isEmpty() && row.getItem().getId() != 0) {
@@ -138,11 +132,11 @@ public class ReplayVaultController implements Controller<Node> {
     return row;
   }
 
-  private ObservableValue<String> playersValueFactory(TreeTableColumn.CellDataFeatures<Replay, String> features) {
+  private ObservableValue<String> playersValueFactory(TableColumn.CellDataFeatures<Replay, String> features) {
     return new StringBinding() {
       @Override
       protected String computeValue() {
-        Replay replay = features.getValue().getValue();
+        Replay replay = features.getValue();
 
         ObservableMap<String, List<String>> teams = replay.getTeams();
         if (teams.isEmpty()) {
@@ -160,8 +154,8 @@ public class ReplayVaultController implements Controller<Node> {
     };
   }
 
-  private TreeTableCell<Replay, Temporal> timeCellFactory(TreeTableColumn<Replay, Temporal> column) {
-    TextFieldTreeTableCell<Replay, Temporal> cell = new TextFieldTreeTableCell<>();
+  private TableCell<Replay, Temporal> timeCellFactory(TableColumn<Replay, Temporal> column) {
+    TextFieldTableCell<Replay, Temporal> cell = new TextFieldTableCell<>();
     cell.setConverter(new StringConverter<Temporal>() {
       @Override
       public String toString(Temporal object) {
@@ -176,10 +170,11 @@ public class ReplayVaultController implements Controller<Node> {
     return cell;
   }
 
-  private TreeTableCell<Replay, MapBean> mapCellFactory(TreeTableColumn<Replay, MapBean> column) {
-    final ImageView imageVew = uiService.loadFxml("theme/vault/map/map_preview_table_cell.fxml");
+  private TableCell<Replay, MapBean> mapCellFactory(TableColumn<Replay, MapBean> column) {
+    MapPreviewTableCellController controller = uiService.loadFxml("theme/vault/map/map_preview_table_cell.fxml");
+    final ImageView imageView = controller.getRoot();
 
-    TreeTableCell<Replay, MapBean> cell = new TreeTableCell<Replay, MapBean>() {
+    TableCell<Replay, MapBean> cell = new TableCell<Replay, MapBean>() {
 
       @Override
       protected void updateItem(MapBean map, boolean empty) {
@@ -189,19 +184,19 @@ public class ReplayVaultController implements Controller<Node> {
           setText(null);
           setGraphic(null);
         } else {
-          imageVew.setImage(mapService.loadPreview(map, PreviewSize.SMALL));
-          setGraphic(imageVew);
+          imageView.setImage(mapService.loadPreview(map.getFolderName(), PreviewSize.SMALL));
+          setGraphic(imageView);
           setText(map.getDisplayName());
         }
       }
     };
-    cell.setGraphic(imageVew);
+    cell.setGraphic(imageView);
 
     return cell;
   }
 
-  private TreeTableCell<Replay, Number> idCellFactory(TreeTableColumn<Replay, Number> column) {
-    TextFieldTreeTableCell<Replay, Number> cell = new TextFieldTreeTableCell<>();
+  private TableCell<Replay, Number> idCellFactory(TableColumn<Replay, Number> column) {
+    TextFieldTableCell<Replay, Number> cell = new TextFieldTableCell<>();
     cell.setConverter(new StringConverter<Number>() {
       @Override
       public String toString(Number object) {
@@ -219,8 +214,8 @@ public class ReplayVaultController implements Controller<Node> {
     return cell;
   }
 
-  private TreeTableCell<Replay, Duration> durationCellFactory(TreeTableColumn<Replay, Duration> column) {
-    TextFieldTreeTableCell<Replay, Duration> cell = new TextFieldTreeTableCell<>();
+  private TableCell<Replay, Duration> durationCellFactory(TableColumn<Replay, Duration> column) {
+    TextFieldTableCell<Replay, Duration> cell = new TextFieldTableCell<>();
     cell.setConverter(new StringConverter<Duration>() {
       @Override
       public String toString(Duration object) {
@@ -239,8 +234,8 @@ public class ReplayVaultController implements Controller<Node> {
   }
 
   @NotNull
-  private ObservableValue<Duration> durationCellValueFactory(TreeTableColumn.CellDataFeatures<Replay, Duration> param) {
-    Replay replay = param.getValue().getValue();
+  private ObservableValue<Duration> durationCellValueFactory(TableColumn.CellDataFeatures<Replay, Duration> param) {
+    Replay replay = param.getValue();
     Temporal startTime = replay.getStartTime();
     Temporal endTime = replay.getEndTime();
 
@@ -255,7 +250,7 @@ public class ReplayVaultController implements Controller<Node> {
     // TODO use replay service
     LoadLocalReplaysTask task = applicationContext.getBean(LoadLocalReplaysTask.class);
 
-    localReplaysRoot.getChildren().clear();
+    replayVaultRoot.getItems().clear();
     return taskService.submitTask(task).getFuture()
         .thenAccept(this::addLocalReplays)
         .exceptionally(throwable -> {
@@ -270,9 +265,9 @@ public class ReplayVaultController implements Controller<Node> {
   }
 
   private void addLocalReplays(Collection<Replay> result) {
-    Collection<TreeItem<Replay>> items = result.stream()
-        .map(TreeItem::new).collect(Collectors.toCollection(ArrayList::new));
-    Platform.runLater(() -> localReplaysRoot.getChildren().addAll(items));
+    Collection<Replay> items = result.stream()
+        .collect(Collectors.toCollection(ArrayList::new));
+    Platform.runLater(() -> replayVaultRoot.getItems().addAll(items));
   }
 
 //  public void loadOnlineReplaysInBackground() {
@@ -290,8 +285,8 @@ public class ReplayVaultController implements Controller<Node> {
 //  }
 
 //  private void addOnlineReplays(Collection<ReplayInfoBean> result) {
-//    Collection<TreeItem<ReplayInfoBean>> items = result.stream()
-//        .map(TreeItem::new).collect(Collectors.toCollection(ArrayList::new));
+//    Collection<Item<ReplayInfoBean>> items = result.stream()
+//        .map(Item::new).collect(Collectors.toCollection(ArrayList::new));
 //    Platform.runLater(() -> onlineReplaysRoot.getChildren().addAll(items));
 //  }
 

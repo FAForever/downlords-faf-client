@@ -12,6 +12,7 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import javafx.beans.InvalidationListener;
+import javafx.scene.control.TableView;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -24,11 +25,12 @@ import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -61,6 +63,8 @@ public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     instance = new ReplayVaultController(notificationService, replayService, mapService, taskService, i18n, timeService,
         reportingService, applicationContext, uiService);
 
+    doReturn(new LoadLocalReplaysTask(replayService, i18n)).when(applicationContext).getBean(eq(LoadLocalReplaysTask.class));
+
     doAnswer(invocation -> invocation.getArgument(0)).when(taskService).submitTask(any());
 
     loadFxml("theme/vault/replay/replay_vault.fxml", clazz -> instance);
@@ -84,12 +88,12 @@ public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     when(applicationContext.getBean(LoadLocalReplaysTask.class)).thenReturn(task);
 
     CountDownLatch loadedLatch = new CountDownLatch(1);
-    instance.localReplaysRoot.getChildren().addListener((InvalidationListener) observable -> loadedLatch.countDown());
+    ((TableView) instance.getRoot()).getItems().addListener((InvalidationListener) observable -> loadedLatch.countDown());
 
     instance.loadLocalReplaysInBackground();
 
     assertTrue(loadedLatch.await(5000, TimeUnit.MILLISECONDS));
-    assertThat(instance.localReplaysRoot.getChildren(), hasSize(3));
+    assertThat(((TableView) instance.getRoot()).getItems().size(), is(3));
 
     verify(taskService).submitTask(task);
     verifyZeroInteractions(notificationService);
