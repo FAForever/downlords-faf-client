@@ -1,6 +1,8 @@
 package com.faforever.client.ui.statusbar;
 
 import com.faforever.client.chat.ChatService;
+import com.faforever.client.connectivity.ConnectivityService;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.remote.FafService;
@@ -33,15 +35,20 @@ public class StatusBarControllerTest extends AbstractPlainJavaFxTest {
   private ChatService chatService;
   @Mock
   private TaskService taskService;
+  @Mock
+  private ConnectivityService connectivityService;
+  @Mock
+  private PlatformService platformService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new StatusBarController(fafService, i18n, chatService, taskService);
+    instance = new StatusBarController(fafService, i18n, chatService, taskService, connectivityService, platformService);
 
     connectionStateProperty = new SimpleObjectProperty<>();
     when(taskService.getActiveWorkers()).thenReturn(FXCollections.emptyObservableList());
     when(fafService.connectionStateProperty()).thenReturn(connectionStateProperty);
     when(chatService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
+    when(connectivityService.connectivityStateProperty()).thenReturn(new SimpleObjectProperty<>());
 
     loadFxml("theme/statusbar/status_bar.fxml", param -> instance);
   }

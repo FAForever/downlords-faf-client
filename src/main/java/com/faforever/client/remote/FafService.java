@@ -48,6 +48,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import javax.inject.Inject;
+import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
@@ -66,6 +67,8 @@ public class FafService {
   private final FafServerAccessor fafServerAccessor;
   private final FafApiAccessor fafApiAccessor;
   private final EventBus eventBus;
+  private InetSocketAddress relayAddress;
+  private int externalSocketPort;
 
   @Inject
   public FafService(FafServerAccessor fafServerAccessor, FafApiAccessor fafApiAccessor, EventBus eventBus) {
@@ -84,7 +87,10 @@ public class FafService {
   }
 
   public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
-    return fafServerAccessor.requestHostGame(newGameInfo);
+    return fafServerAccessor.requestHostGame(newGameInfo,
+        relayAddress,
+        externalSocketPort
+    );
   }
 
   public ReadOnlyObjectProperty<ConnectionState> connectionStateProperty() {
@@ -92,15 +98,21 @@ public class FafService {
   }
 
   public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password) {
-    return fafServerAccessor.requestJoinGame(gameId, password);
+    return fafServerAccessor.requestJoinGame(gameId, password,
+        relayAddress,
+        externalSocketPort);
   }
 
   public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction, int port) {
-    return fafServerAccessor.startSearchLadder1v1(faction);
+    return fafServerAccessor.startSearchLadder1v1(faction, port, relayAddress);
   }
 
   public void stopSearchingRanked() {
     fafServerAccessor.stopSearchingRanked();
+  }
+
+  public void initConnectivityTest(int port) {
+    fafServerAccessor.initConnectivityTest(port);
   }
 
   public void sendGpgGameMessage(GpgGameMessage message) {
@@ -447,5 +459,13 @@ public class FafService {
         .stream()
         .map(TournamentBean::fromTournamentDto)
         .collect(toList()));
+  }
+
+  public void setRelayAddress(InetSocketAddress relayAddress) {
+    this.relayAddress = relayAddress;
+  }
+
+  public void setExternalSocketPort(int externalSocketPort) {
+    this.externalSocketPort = externalSocketPort;
   }
 }
