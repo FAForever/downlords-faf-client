@@ -46,6 +46,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import javax.inject.Inject;
+import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
@@ -64,6 +65,8 @@ public class FafServiceImpl implements FafService {
   private final FafServerAccessor fafServerAccessor;
   private final FafApiAccessor fafApiAccessor;
   private final EventBus eventBus;
+  private InetSocketAddress relayAddress;
+  private int externalSocketPort;
 
   @Inject
   public FafServiceImpl(FafServerAccessor fafServerAccessor, FafApiAccessor fafApiAccessor, EventBus eventBus) {
@@ -85,7 +88,10 @@ public class FafServiceImpl implements FafService {
 
   @Override
   public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
-    return fafServerAccessor.requestHostGame(newGameInfo);
+    return fafServerAccessor.requestHostGame(newGameInfo,
+        relayAddress,
+        externalSocketPort
+    );
   }
 
   @Override
@@ -95,17 +101,24 @@ public class FafServiceImpl implements FafService {
 
   @Override
   public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password) {
-    return fafServerAccessor.requestJoinGame(gameId, password);
+    return fafServerAccessor.requestJoinGame(gameId, password,
+        relayAddress,
+        externalSocketPort);
   }
 
   @Override
   public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction, int port) {
-    return fafServerAccessor.startSearchLadder1v1(faction);
+    return fafServerAccessor.startSearchLadder1v1(faction, port, relayAddress);
   }
 
   @Override
   public void stopSearchingRanked() {
     fafServerAccessor.stopSearchingRanked();
+  }
+
+  @Override
+  public void initConnectivityTest(int port) {
+    fafServerAccessor.initConnectivityTest(port);
   }
 
   @Override
@@ -476,5 +489,15 @@ public class FafServiceImpl implements FafService {
   @Override
   public void sendIceMessage(int remotePlayerId, Object message) {
     fafServerAccessor.sendGpgMessage(new IceMessage(remotePlayerId, message));
+  }
+
+  @Override
+  public void setRelayAddress(InetSocketAddress relayAddress) {
+    this.relayAddress = relayAddress;
+  }
+
+  @Override
+  public void setExternalSocketPort(int externalSocketPort) {
+    this.externalSocketPort = externalSocketPort;
   }
 }
