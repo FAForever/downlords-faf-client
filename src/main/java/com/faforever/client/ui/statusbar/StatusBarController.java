@@ -1,18 +1,23 @@
 package com.faforever.client.ui.statusbar;
 
 import com.faforever.client.chat.ChatService;
+import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.update.Version;
 import com.google.common.base.Strings;
+import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.concurrent.Worker;
 import javafx.css.PseudoClass;
+import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.Pane;
@@ -28,6 +33,10 @@ import static javafx.application.Platform.runLater;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class StatusBarController implements Controller<Node> {
+  private static final PseudoClass CONNECTIVITY_PUBLIC_PSEUDO_CLASS = PseudoClass.getPseudoClass("public");
+  private static final PseudoClass CONNECTIVITY_STUN_PSEUDO_CLASS = PseudoClass.getPseudoClass("stun");
+  private static final PseudoClass CONNECTIVITY_BLOCKED_PSEUDO_CLASS = PseudoClass.getPseudoClass("blocked");
+  private static final PseudoClass CONNECTIVITY_UNKNOWN_PSEUDO_CLASS = PseudoClass.getPseudoClass("unknown");
   private static final PseudoClass CONNECTIVITY_CONNECTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("connected");
   private static final PseudoClass CONNECTIVITY_DISCONNECTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("disconnected");
 
@@ -35,6 +44,8 @@ public class StatusBarController implements Controller<Node> {
   private final I18n i18n;
   private final ChatService chatService;
   private final TaskService taskService;
+  private final ConnectivityService connectivityService;
+  private final PlatformService platformService;
 
   public Label chatConnectionStatusIcon;
   public Label fafConnectionStatusIcon;
@@ -44,13 +55,18 @@ public class StatusBarController implements Controller<Node> {
   public Pane taskPane;
   public Label taskProgressLabel;
   public Label versionLabel;
+  public Label portCheckStatusIcon;
+  public Labeled portCheckStatusButton;
 
   @Inject
-  public StatusBarController(FafService fafService, I18n i18n, ChatService chatService, TaskService taskService) {
+  public StatusBarController(FafService fafService, I18n i18n, ChatService chatService, TaskService taskService,
+                             ConnectivityService connectivityService, PlatformService platformService) {
     this.fafService = fafService;
     this.i18n = i18n;
     this.chatService = chatService;
     this.taskService = taskService;
+    this.connectivityService = connectivityService;
+    this.platformService = platformService;
   }
 
   public void initialize() {
@@ -94,6 +110,38 @@ public class StatusBarController implements Controller<Node> {
           break;
       }
     }));
+    connectivityService.connectivityStateProperty().addListener((observable, oldValue, newValue) -> {
+      Platform.runLater(() -> {
+        portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_PUBLIC_PSEUDO_CLASS, false);
+        portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_STUN_PSEUDO_CLASS, false);
+        portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_BLOCKED_PSEUDO_CLASS, false);
+        portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_UNKNOWN_PSEUDO_CLASS, false);
+        switch (newValue) {
+          case PUBLIC:
+            portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_PUBLIC_PSEUDO_CLASS, true);
+            portCheckStatusButton.setText(i18n.get("statusBar.connectivityPublic"));
+            break;
+          case STUN:
+            portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_STUN_PSEUDO_CLASS, true);
+            portCheckStatusButton.setText(i18n.get("statusBar.connectivityStun"));
+            break;
+          case BLOCKED:
+            portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_BLOCKED_PSEUDO_CLASS, true);
+            portCheckStatusButton.setText(i18n.get("statusBar.portUnreachable"));
+            break;
+          case RUNNING:
+            portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_UNKNOWN_PSEUDO_CLASS, true);
+            portCheckStatusButton.setText(i18n.get("statusBar.checkingPort"));
+            break;
+          case UNKNOWN:
+            portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_UNKNOWN_PSEUDO_CLASS, true);
+            portCheckStatusButton.setText(i18n.get("statusBar.connectivityUnknown"));
+            break;
+          default:
+            throw new AssertionError("Uncovered value: " + newValue);
+        }
+      });
+    });
 
     taskService.getActiveWorkers().addListener((Observable observable) -> {
       Collection<Worker<?>> runningWorkers = taskService.getActiveWorkers();
@@ -144,5 +192,13 @@ public class StatusBarController implements Controller<Node> {
 
   public void onChatReconnectClicked() {
     chatService.reconnect();
+  }
+
+  public void onPortCheckRetryClicked() {
+    connectivityService.checkConnectivity();
+  }
+
+  public void onPortCheckHelpClicked(ActionEvent actionEvent) {
+    platformService.showDocument("http://wiki.faforever.com/index.php?title=Connection_issues_and_solutions");
   }
 }
