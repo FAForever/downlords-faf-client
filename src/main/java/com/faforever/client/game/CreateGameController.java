@@ -1,5 +1,7 @@
 package com.faforever.client.game;
 
+import com.faforever.client.connectivity.ConnectivityService;
+import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.fa.FaStrings;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
@@ -76,6 +78,7 @@ public class CreateGameController implements Controller<Pane> {
   private final NotificationService notificationService;
   private final ReportingService reportingService;
   private final FafService fafService;
+  private final ConnectivityService connectivityService;
   public Label mapSizeLabel;
   public Label mapPlayersLabel;
   public Label mapDescriptionLabel;
@@ -96,7 +99,10 @@ public class CreateGameController implements Controller<Pane> {
   FilteredList<MapBean> filteredMapBeans;
 
   @Inject
-  public CreateGameController(FafService fafService, MapService mapService, ModService modService, GameService gameService, PreferencesService preferencesService, I18n i18n, NotificationService notificationService, ReportingService reportingService) {
+  public CreateGameController(FafService fafService, MapService mapService, ModService modService,
+                              GameService gameService, PreferencesService preferencesService, I18n i18n,
+                              NotificationService notificationService, ReportingService reportingService,
+                              ConnectivityService connectivityService) {
     this.mapService = mapService;
     this.modService = modService;
     this.gameService = gameService;
@@ -105,6 +111,7 @@ public class CreateGameController implements Controller<Pane> {
     this.notificationService = notificationService;
     this.reportingService = reportingService;
     this.fafService = fafService;
+    this.connectivityService = connectivityService;
   }
 
   public void initialize() {
@@ -194,12 +201,23 @@ public class CreateGameController implements Controller<Pane> {
       } else if (featuredModListView.getSelectionModel().getSelectedItem() == null) {
         return i18n.get("game.create.featuredModMissing");
       }
-      return i18n.get("game.create.create");
+      switch (connectivityService.getConnectivityState()) {
+        case BLOCKED:
+          return i18n.get("game.create.portUnreachable");
+        case RUNNING:
+        case UNKNOWN:
+          return i18n.get("game.create.connectivityCheckPending");
+        default:
+          return i18n.get("game.create.create");
+      }
     }, titleTextField.textProperty(), featuredModListView.getSelectionModel().selectedItemProperty(), fafService.connectionStateProperty()));
 
     createGameButton.disableProperty().bind(
         titleTextField.textProperty().isEmpty()
-            .or(featuredModListView.getSelectionModel().selectedItemProperty().isNull().or(fafService.connectionStateProperty().isNotEqualTo(CONNECTED)))
+            .or(featuredModListView.getSelectionModel().selectedItemProperty().isNull())
+            .or(fafService.connectionStateProperty().isNotEqualTo(CONNECTED))
+            .or(connectivityService.connectivityStateProperty().isEqualTo(ConnectivityState.BLOCKED))
+            .or(connectivityService.connectivityStateProperty().isEqualTo(ConnectivityState.UNKNOWN))
     );
   }
 

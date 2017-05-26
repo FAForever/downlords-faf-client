@@ -9,7 +9,9 @@ import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import org.jetbrains.annotations.Nullable;
 
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -30,9 +32,9 @@ public interface FafServerAccessor {
 
   CompletableFuture<LoginMessage> connectAndLogIn(String username, String password);
 
-  CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo);
+  CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo, @Nullable InetSocketAddress relayAddress, int externalPort);
 
-  CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password);
+  CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password, @Nullable InetSocketAddress relayAddress, int externalPort);
 
   void disconnect();
 
@@ -42,11 +44,13 @@ public interface FafServerAccessor {
 
   void addFoe(int playerId);
 
-  CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction);
+  CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction, int gamePort, @Nullable InetSocketAddress relayAddress);
 
   void stopSearchingRanked();
 
   void sendGpgMessage(GpgGameMessage message);
+
+  void initConnectivityTest(int port);
 
   void removeFriend(int playerId);
 

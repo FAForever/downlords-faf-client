@@ -1122,12 +1122,18 @@
   -fx-font-size: 0.7em;
 }
 
-.connection-status:connected .text {
+.connection-status:connected .text,
+.connection-status:public .text {
   -fx-fill: -good;
 }
 
-.connection-status:disconnected .text {
+.connection-status:disconnected .text,
+.connection-status:blocked.text {
   -fx-fill: -bad;
+}
+
+.connection-status:stun .text {
+  -fx-fill: REVIEW_SCORE_2;
 }
 
 /***************** Tabs *****************/
