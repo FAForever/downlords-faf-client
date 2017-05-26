@@ -65,7 +65,6 @@ public class GameTileController implements Controller<Node> {
     modsLabel.visibleProperty().bind(modsLabel.textProperty().isNotEmpty());
     gameTypeLabel.managedProperty().bind(gameTypeLabel.visibleProperty());
     lockIconLabel.managedProperty().bind(lockIconLabel.visibleProperty());
-    joinGameHelper.setParentNode(getRoot());
   }
 
   public Node getRoot() {
@@ -130,6 +129,7 @@ public class GameTileController implements Controller<Node> {
 
     if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
       mouseEvent.consume();
+      joinGameHelper.setParentNode(getRoot());
       joinGameHelper.join(game);
     }
   }

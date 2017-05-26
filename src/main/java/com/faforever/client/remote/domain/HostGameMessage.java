@@ -2,11 +2,15 @@ package com.faforever.client.remote.domain;
 
 import com.faforever.client.game.GameVisibility;
 
+import java.net.InetSocketAddress;
+
 /**
- * Data sent from the client to the FAF server to tell it about a preferences to be hosted.
+ * Data sent from the client to the FAF server to tell it about a game to be hosted.
  */
 public class HostGameMessage extends ClientMessage {
 
+  private final int port;
+  private int gameport;
   private String mapname;
   private String title;
   private String mod;
@@ -15,17 +19,28 @@ public class HostGameMessage extends ClientMessage {
   private Integer version;
   private String password;
   private GameVisibility visibility;
+  private InetSocketAddress relayAddress;
 
-  public HostGameMessage(GameAccess gameAccess, String mapName, String title, boolean[] options, String mod, String password, Integer version) {
+  public HostGameMessage(GameAccess gameAccess, String mapName, String title, int port, boolean[] options, String mod, String password, Integer version, InetSocketAddress relayAddress) {
     super(ClientMessageType.HOST_GAME);
     access = gameAccess;
     this.mapname = mapName;
     this.title = title;
+    this.port = port;
     this.options = options;
     this.mod = mod;
     this.password = password;
     this.version = version;
+    this.relayAddress = relayAddress;
     this.visibility = GameVisibility.PUBLIC;
+  }
+
+  public int getGameport() {
+    return gameport;
+  }
+
+  public void setGameport(int gameport) {
+    this.gameport = gameport;
   }
 
   public String getMapname() {
@@ -90,5 +105,13 @@ public class HostGameMessage extends ClientMessage {
 
   public void setVisibility(GameVisibility visibility) {
     this.visibility = visibility;
+  }
+
+  public InetSocketAddress getRelayAddress() {
+    return relayAddress;
+  }
+
+  public void setRelayAddress(InetSocketAddress relayAddress) {
+    this.relayAddress = relayAddress;
   }
 }
