@@ -8,9 +8,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum GpgClientCommand {
+  PROCESS_NAT_PACKET("ProcessNatPacket"),
   DISCONNECTED("Disconnected"),
   CONNECTED("Connected"),
   GAME_STATE("GameState"),
+  BOTTLENECK("Bottleneck"),
+  BOTTLENECK_CLEARED("BottleneckCleared"),
   GAME_OPTION("GameOption"),
   GAME_MODS("GameMods"),
   PLAYER_OPTION("PlayerOption"),
@@ -23,6 +26,7 @@ public enum GpgClientCommand {
   JSON_STATS("JsonStats"),
   REHOST("Rehost"),
   DESYNC("Desync"),
+  INIT_CONNECTIVITY_TEST("InitiateTest"),
   GAME_FULL("GameFull"),
   ENDED("Ended"),
   ICE_MESSAGE("IceMsg"),
