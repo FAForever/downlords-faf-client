@@ -294,6 +294,7 @@ dependencies {
   compile("com.github.rutledgepaulv:q-builders:${qBuildersVersion}")
   compile("com.github.nsp:JSkills:${jSkillsVersion}")
   compile("com.github.jasminb:jsonapi-converter:${jsonapiConverterVersion}")
+  compile("org.opentelecoms.ice:ice4j-fork:1.0+f.4")
   compile("com.github.Brutus5000:BiReUS-JCL:${bireusVersion}")
 
   testCompile 'junit:junit:4.11'
