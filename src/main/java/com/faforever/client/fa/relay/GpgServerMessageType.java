@@ -1,5 +1,10 @@
 package com.faforever.client.fa.relay;
 
+import com.faforever.client.relay.ConnectivityStateMessage;
+import com.faforever.client.relay.CreateLobbyServerMessage;
+import com.faforever.client.relay.CreatePermissionMessage;
+import com.faforever.client.relay.GameOptionMessage;
+import com.faforever.client.relay.SendNatPacketMessage;
 import com.faforever.client.remote.domain.IceServerMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.remote.domain.ServerMessageType;
@@ -15,7 +20,15 @@ public enum GpgServerMessageType implements ServerMessageType {
   JOIN_GAME("JoinGame", JoinGameMessage.class),
   CONNECT_TO_PEER("ConnectToPeer", ConnectToPeerMessage.class),
   ICE_MESSAGE("IceMsg", IceServerMessage.class),
-  DISCONNECT_FROM_PEER("DisconnectFromPeer", DisconnectFromPeerMessage.class);
+  DISCONNECT_FROM_PEER("DisconnectFromPeer", DisconnectFromPeerMessage.class),
+  CONNECTIVITY_STATE("ConnectivityState", ConnectivityStateMessage.class),
+  CREATE_LOBBY("CreateLobby", CreateLobbyServerMessage.class),
+  SEND_NAT_PACKET("SendNatPacket", SendNatPacketMessage.class),
+  /**
+   * Requests the creation of a TURN permission.
+   */
+  CREATE_PERMISSION("CreatePermission", CreatePermissionMessage.class),
+  GAME_OPTION("GameOption", GameOptionMessage.class);
 
 
   private static final Map<String, GpgServerMessageType> fromString;
