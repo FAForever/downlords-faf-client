@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
@@ -26,6 +27,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
+import com.faforever.client.relay.LocalRelayServer;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
@@ -94,6 +96,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 public class GameService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final boolean ICE_ADAPTER_ENABLED = false;
 
   @VisibleForTesting
   final BooleanProperty gameRunning;
@@ -123,6 +126,8 @@ public class GameService {
   private final ModService modService;
   private final PlatformService platformService;
   private final String faWindowTitle;
+  private final ConnectivityService connectivityService;
+  private final LocalRelayServer localRelayServer;
 
   //TODO: circular reference
   @Inject
@@ -137,11 +142,13 @@ public class GameService {
 
   @Inject
   public GameService(ClientProperties clientProperties, FafService fafService,
-                     ForgedAllianceService forgedAllianceService, MapService mapService,
-                     PreferencesService preferencesService, GameUpdater gameUpdater,
-                     NotificationService notificationService, I18n i18n, Executor executor,
-                     PlayerService playerService, ReportingService reportingService, EventBus eventBus,
-                     IceAdapter iceAdapter, ModService modService, PlatformService platformService) {
+                         ForgedAllianceService forgedAllianceService, MapService mapService,
+                         PreferencesService preferencesService, GameUpdater gameUpdater,
+                         NotificationService notificationService, I18n i18n, Executor executor,
+                         PlayerService playerService, ReportingService reportingService, EventBus eventBus,
+                         IceAdapter iceAdapter, ModService modService, PlatformService platformService,
+                         ConnectivityService connectivityService, LocalRelayServer localRelayServer) {
+
     this.fafService = fafService;
     this.forgedAllianceService = forgedAllianceService;
     this.mapService = mapService;
@@ -158,6 +165,8 @@ public class GameService {
     this.platformService = platformService;
 
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
+    this.connectivityService = connectivityService;
+    this.localRelayServer = localRelayServer;
     uidToGameInfoBean = FXCollections.observableMap(new ConcurrentHashMap<>());
     searching1v1 = new SimpleBooleanProperty();
     gameRunning = new SimpleBooleanProperty();
@@ -219,6 +228,8 @@ public class GameService {
 
     return updateGameIfNecessary(newGameInfo.getFeaturedMod(), null, emptyMap(), newGameInfo.getSimMods())
         .thenCompose(aVoid -> downloadMapIfNecessary(newGameInfo.getMap()))
+        .thenRun(connectivityService::connect)
+        .thenRun(() -> localRelayServer.start(connectivityService))
         .thenCompose(aVoid -> fafService.requestHostGame(newGameInfo))
         .thenAccept(gameLaunchMessage -> startGame(gameLaunchMessage, null, RatingMode.GLOBAL));
   }
@@ -246,6 +257,8 @@ public class GameService {
           }
         })
         .thenCompose(aVoid -> downloadMapIfNecessary(game.getMapFolderName()))
+        .thenRun(connectivityService::connect)
+        .thenRun(() -> localRelayServer.start(connectivityService))
         .thenCompose(aVoid -> fafService.requestJoinGame(game.getId(), password))
         .thenAccept(gameLaunchMessage -> {
           synchronized (currentGame) {
@@ -362,6 +375,8 @@ public class GameService {
 
     return modService.getFeaturedMod(LADDER_1V1.getTechnicalName())
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
+        .thenRun(connectivityService::connect)
+        .thenRun(() -> localRelayServer.start(connectivityService))
         .thenCompose(aVoid -> fafService.startSearchLadder1v1(faction, port))
         .thenAccept((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapname())
             .thenRun(() -> {
@@ -438,12 +453,22 @@ public class GameService {
     replayService.startReplayServer(gameLaunchMessage.getUid())
         .thenCompose(port -> {
           localReplayPort = port;
+          // FIXME clean up when ICE gets enabled
+          if (!ICE_ADAPTER_ENABLED) {
+            return CompletableFuture.completedFuture(0);
+          }
           return iceAdapter.start();
         })
         .thenAccept(adapterPort -> {
+          int port;
+          if (!ICE_ADAPTER_ENABLED) {
+            port = localRelayServer.getPort();
+          } else {
+            port = adapterPort;
+          }
           List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
           process = noCatch(() -> forgedAllianceService.startGame(gameLaunchMessage.getUid(), faction, args, ratingMode,
-              adapterPort, localReplayPort, rehostRequested, getCurrentPlayer()));
+              port, localReplayPort, rehostRequested, getCurrentPlayer()));
           setGameRunning(true);
 
           this.ratingMode = ratingMode;
@@ -507,6 +532,7 @@ public class GameService {
 
         synchronized (gameRunning) {
           gameRunning.set(false);
+          localRelayServer.close();
           fafService.notifyGameEnded();
           replayService.stopReplayServer();
           iceAdapter.stop();
