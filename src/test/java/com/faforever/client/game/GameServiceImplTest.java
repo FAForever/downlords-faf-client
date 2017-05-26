@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
@@ -16,6 +17,7 @@ import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.relay.LocalRelayServer;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
@@ -116,9 +118,14 @@ public class GameServiceImplTest {
   private ReportingService reportingService;
   @Mock
   private PlatformService platformService;
+  @Mock
+  private ConnectivityService connectivityService;
+  @Mock
+  private LocalRelayServer localRelayServer;
 
   @Captor
   private ArgumentCaptor<Consumer<GameInfoMessage>> gameInfoMessageListenerCaptor;
+  ;
 
   @Before
   public void setUp() throws Exception {
@@ -127,7 +134,7 @@ public class GameServiceImplTest {
 
     instance = new GameServiceImpl(clientProperties, fafService, forgedAllianceService, mapService,
         preferencesService, gameUpdater, notificationService, i18n, executor, playerService,
-        reportingService, eventBus, iceAdapter, modService, platformService);
+        reportingService, eventBus, iceAdapter, modService, platformService, connectivityService, localRelayServer);
     instance.replayService = replayService;
 
     Preferences preferences = new Preferences();
@@ -211,10 +218,12 @@ public class GameServiceImplTest {
     });
 
     CountDownLatch processLatch = new CountDownLatch(1);
+    when(localRelayServer.getPort()).thenReturn(1234);
 
     instance.hostGame(newGameInfo).toCompletableFuture().get(TIMEOUT, TIME_UNIT);
     gameStartedLatch.await(TIMEOUT, TIME_UNIT);
     processLatch.countDown();
+
 
     gameTerminatedLatch.await(TIMEOUT, TIME_UNIT);
     verify(forgedAllianceService).startGame(

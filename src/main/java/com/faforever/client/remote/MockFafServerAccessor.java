@@ -30,6 +30,7 @@ import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -38,6 +39,7 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
@@ -195,7 +197,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
+  public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo, @Nullable InetSocketAddress relayAddress, int externalPort) {
     return taskService.submitTask(new CompletableTask<GameLaunchMessage>(HIGH) {
       @Override
       protected GameLaunchMessage call() throws Exception {
@@ -211,7 +213,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password) {
+  public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password, @Nullable InetSocketAddress relayAddress, int externalPort) {
     return taskService.submitTask(new CompletableTask<GameLaunchMessage>(HIGH) {
       @Override
       protected GameLaunchMessage call() throws Exception {
@@ -247,7 +249,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction) {
+  public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction, int gamePort, @Nullable InetSocketAddress relayAddress) {
     logger.debug("Searching 1v1 match with faction: {}", faction);
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setUid(123);
@@ -262,6 +264,11 @@ public class MockFafServerAccessor implements FafServerAccessor {
 
   @Override
   public void sendGpgMessage(GpgGameMessage message) {
+
+  }
+
+  @Override
+  public void initConnectivityTest(int port) {
 
   }
 
