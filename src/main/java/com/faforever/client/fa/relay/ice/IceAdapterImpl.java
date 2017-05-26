@@ -1,7 +1,5 @@
 package com.faforever.client.fa.relay.ice;
 
-import com.faforever.client.fa.relay.ConnectToPeerMessage;
-import com.faforever.client.fa.relay.DisconnectFromPeerMessage;
 import com.faforever.client.fa.relay.GpgClientCommand;
 import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.fa.relay.HostGameMessage;
@@ -16,7 +14,6 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameLaunchMessage;
-import com.faforever.client.remote.domain.IceServerMessage;
 import com.faforever.client.remote.domain.IceServersServerMessage;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -58,6 +55,7 @@ import static java.util.Arrays.asList;
 public class IceAdapterImpl implements IceAdapter {
 
   private static final int CONNECTION_ATTEMPTS = 5;
+  private static final boolean ICE_ADAPTER_ENABLED = false;
 
   private final ApplicationContext applicationContext;
   private final PlayerService playerService;
@@ -86,10 +84,9 @@ public class IceAdapterImpl implements IceAdapter {
     eventBus.register(this);
     fafService.addOnMessageListener(JoinGameMessage.class, message -> iceAdapterProxy.joinGame(message.getUsername(), message.getPeerUid()));
     fafService.addOnMessageListener(HostGameMessage.class, message -> iceAdapterProxy.hostGame(message.getMap()));
-    fafService.addOnMessageListener(ConnectToPeerMessage.class, message -> iceAdapterProxy.connectToPeer(message.getUsername(), message.getPeerUid(), message.isOffer()));
+    // FIXME add when enabling ICE
+//      fafService.addOnMessageListener(ConnectToPeerMessage.class, (message) -> iceAdapterProxy.connectToPeer(message.getUsername(), message.getPeerUid(), message.isOffer()));
     fafService.addOnMessageListener(GameLaunchMessage.class, this::updateLobbyModeFromGameInfo);
-    fafService.addOnMessageListener(DisconnectFromPeerMessage.class, message -> iceAdapterProxy.disconnectFromPeer(message.getUid()));
-    fafService.addOnMessageListener(IceServerMessage.class, message -> iceAdapterProxy.iceMsg(message.getSender(), message.getRecord()));
   }
 
   @SneakyThrows
