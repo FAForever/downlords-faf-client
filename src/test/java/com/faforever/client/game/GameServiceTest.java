@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
@@ -19,6 +20,7 @@ import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.relay.LocalRelayServer;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
@@ -122,6 +124,11 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   private ReportingService reportingService;
   @Mock
   private PlatformService platformService;
+  @Mock
+  private ConnectivityService connectivityService;
+  @Mock
+  private LocalRelayServer localRelayServer;
+
   @Captor
   private ArgumentCaptor<Consumer<GameInfoMessage>> gameInfoMessageListenerCaptor;
   @Captor
@@ -137,7 +144,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     instance = new GameService(clientProperties, fafService, forgedAllianceService, mapService,
         preferencesService, gameUpdater, notificationService, i18n, executor, playerService,
-        reportingService, eventBus, iceAdapter, modService, platformService);
+        reportingService, eventBus, iceAdapter, modService, platformService, connectivityService, localRelayServer);
     instance.replayService = replayService;
 
     Preferences preferences = new Preferences();
@@ -146,7 +153,6 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     when(replayService.startReplayServer(anyInt())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
-    when(iceAdapter.start()).thenReturn(CompletableFuture.completedFuture(GPG_PORT));
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(junitPlayer));
 
     doAnswer(invocation -> {
@@ -244,10 +250,12 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     });
 
     CountDownLatch processLatch = new CountDownLatch(1);
+    when(localRelayServer.getPort()).thenReturn(1234);
 
     instance.hostGame(newGameInfo).toCompletableFuture().get(TIMEOUT, TIME_UNIT);
     gameStartedLatch.await(TIMEOUT, TIME_UNIT);
     processLatch.countDown();
+
 
     gameTerminatedLatch.await(TIMEOUT, TIME_UNIT);
     verify(forgedAllianceService).startGame(

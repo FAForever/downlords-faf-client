@@ -14,6 +14,7 @@ public class ClientProperties {
   private ForgedAlliance forgedAlliance = new ForgedAlliance();
   private Irc irc = new Irc();
   private Server server = new Server();
+  private Ice ice = new Ice();
   private Vault vault = new Vault();
   private Replay replay = new Replay();
   private GitHub gitHub = new GitHub();
@@ -63,6 +64,23 @@ public class ClientProperties {
   public static class Server {
     private String host;
     private int port = 8001;
+  }
+
+  @Data
+  public static class Ice {
+    private Turn turn = new Turn();
+    private Stun stun = new Stun();
+
+    @Data
+    public static class Turn {
+      private String host;
+      private int port = 3478;
+    }
+
+    @Data
+    public static class Stun {
+      private String host;
+    }
   }
 
   @Data
