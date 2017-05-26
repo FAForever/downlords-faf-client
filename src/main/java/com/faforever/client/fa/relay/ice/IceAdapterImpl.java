@@ -1,6 +1,8 @@
 package com.faforever.client.fa.relay.ice;
 
 import com.faforever.client.fa.relay.ConnectToPeerMessage;
+import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.Ice;
 import com.faforever.client.fa.relay.DisconnectFromPeerMessage;
 import com.faforever.client.fa.relay.GpgClientCommand;
 import com.faforever.client.fa.relay.GpgGameMessage;
@@ -57,6 +59,7 @@ import static java.util.Arrays.asList;
 public class IceAdapterImpl implements IceAdapter {
 
   private static final int CONNECTION_ATTEMPTS = 5;
+  private static final boolean ICE_ADAPTER_ENABLED = false;
 
   private final ApplicationContext applicationContext;
   private final PlayerService playerService;
@@ -87,8 +90,6 @@ public class IceAdapterImpl implements IceAdapter {
     fafService.addOnMessageListener(HostGameMessage.class, message -> iceAdapterProxy.hostGame(message.getMap()));
     fafService.addOnMessageListener(ConnectToPeerMessage.class, message -> iceAdapterProxy.connectToPeer(message.getUsername(), message.getPeerUid(), message.isOffer()));
     fafService.addOnMessageListener(GameLaunchMessage.class, this::updateLobbyModeFromGameInfo);
-    fafService.addOnMessageListener(DisconnectFromPeerMessage.class, message -> iceAdapterProxy.disconnectFromPeer(message.getUid()));
-    fafService.addOnMessageListener(IceServerMessage.class, message -> iceAdapterProxy.iceMsg(message.getSender(), message.getRecord()));
   }
 
   @SneakyThrows

@@ -29,6 +29,7 @@ import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.io.ByteCountListener;
 import javafx.beans.property.ReadOnlyObjectProperty;
 
+import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
@@ -54,6 +55,8 @@ public interface FafService {
   CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction, int port);
 
   void stopSearchingRanked();
+
+  void initConnectivityTest(int port);
 
   void sendGpgGameMessage(GpgGameMessage message);
 
@@ -144,6 +147,10 @@ public interface FafService {
   CompletableFuture<Void> deleteMapVersionReview(Review review);
 
   CompletableFuture<List<ModVersion>> findModsByQuery(SearchConfig query, int page, int count);
+
+  void setRelayAddress(InetSocketAddress relayAddress);
+
+  void setExternalSocketPort(int externalSocketPort);
 
   CompletableFuture<Void> deleteModVersionReview(Review review);
 

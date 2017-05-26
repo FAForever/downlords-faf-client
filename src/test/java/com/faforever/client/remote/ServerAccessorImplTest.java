@@ -283,7 +283,7 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
   public void startSearchLadder1v1WithAeon() throws Exception {
     connectAndLogIn();
 
-    CompletableFuture<GameLaunchMessage> future = instance.startSearchLadder1v1(Faction.AEON).toCompletableFuture();
+    CompletableFuture<GameLaunchMessage> future = instance.startSearchLadder1v1(Faction.AEON, 1234, null).toCompletableFuture();
 
     String clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     SearchLadder1v1ClientMessage searchRanked1v1Message = gson.fromJson(clientMessage, SearchLadder1v1ClientMessage.class);

@@ -1,5 +1,7 @@
 package com.faforever.client.game;
 
+import com.faforever.client.connectivity.ConnectivityService;
+import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapBuilder;
@@ -14,7 +16,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.theme.UiService;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -69,19 +71,22 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private I18n i18n;
   @Mock
-  private UiService uiService;
-  @Mock
   private FafService fafService;
+  @Mock
+  private ConnectivityService connectivityService;
 
   private Preferences preferences;
   private CreateGameController instance;
   private ObservableList<MapBean> mapList;
+  private ReadOnlyObjectProperty<ConnectivityState> connectivityState;
 
   @Before
   public void setUp() throws Exception {
-    instance = new CreateGameController(fafService, mapService, modService, gameService, preferencesService, i18n, notificationService, reportingService);
+    instance = new CreateGameController(fafService, mapService, modService, gameService, preferencesService, i18n,
+        notificationService, reportingService, connectivityService);
 
     mapList = FXCollections.observableArrayList();
+    connectivityState = new SimpleObjectProperty<>(ConnectivityState.UNKNOWN);
 
     preferences = new Preferences();
     preferences.getForgedAlliance().setPath(Paths.get("."));
@@ -91,6 +96,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     when(modService.getInstalledModVersions()).thenReturn(FXCollections.observableList(emptyList()));
     when(mapService.loadPreview(anyString(), any())).thenReturn(new Image("/theme/images/close.png"));
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
+    when(connectivityService.connectivityStateProperty()).thenReturn(connectivityState);
 
     loadFxml("theme/play/create_game.fxml", clazz -> instance);
   }
@@ -236,7 +242,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testInitGameTypeComboBoxEmpty() throws Exception {
-    instance = new CreateGameController(fafService, mapService, modService, gameService, preferencesService, i18n, notificationService, reportingService);
+    instance = new CreateGameController(fafService, mapService, modService, gameService, preferencesService, i18n,
+        notificationService, reportingService, connectivityService);
     loadFxml("theme/play/create_game.fxml", clazz -> instance);
 
     assertThat(instance.featuredModListView.getItems(), empty());

@@ -4,6 +4,7 @@ import com.faforever.client.FafClientApplication;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Server;
+import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.fa.relay.GpgClientMessageSerializer;
 import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.fa.relay.GpgServerMessageType;
@@ -54,9 +55,12 @@ import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.remote.domain.SessionMessage;
 import com.faforever.client.remote.domain.VictoryCondition;
 import com.faforever.client.remote.gson.ClientMessageTypeTypeAdapter;
+import com.faforever.client.remote.gson.ConnectivityStateTypeAdapter;
 import com.faforever.client.remote.gson.GameAccessTypeAdapter;
 import com.faforever.client.remote.gson.GameStateTypeAdapter;
 import com.faforever.client.remote.gson.GpgServerMessageTypeTypeAdapter;
+import com.faforever.client.remote.gson.InetSocketAddressTypeAdapter;
+import com.faforever.client.remote.gson.InitConnectivityTestMessage;
 import com.faforever.client.remote.gson.MessageTargetTypeAdapter;
 import com.faforever.client.remote.gson.RatingRangeTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeAdapter;
@@ -77,6 +81,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Task;
 import org.apache.commons.compress.utils.IOUtils;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
@@ -91,6 +96,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
 import java.util.Collection;
@@ -158,6 +164,8 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
         .registerTypeAdapter(GpgServerMessageType.class, GpgServerMessageTypeTypeAdapter.INSTANCE)
         .registerTypeAdapter(MessageTarget.class, MessageTargetTypeAdapter.INSTANCE)
         .registerTypeAdapter(ServerMessage.class, ServerMessageTypeAdapter.INSTANCE)
+        .registerTypeAdapter(ConnectivityState.class, ConnectivityStateTypeAdapter.INSTANCE)
+        .registerTypeAdapter(InetSocketAddress.class, InetSocketAddressTypeAdapter.INSTANCE)
         .registerTypeAdapter(RatingRange.class, RatingRangeTypeAdapter.INSTANCE)
         .create();
 
@@ -273,15 +281,17 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
+  public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo, @Nullable InetSocketAddress relayAddress, int externalPort) {
     HostGameMessage hostGameMessage = new HostGameMessage(
         StringUtils.isEmpty(newGameInfo.getPassword()) ? GameAccess.PUBLIC : GameAccess.PASSWORD,
         newGameInfo.getMap(),
         newGameInfo.getTitle(),
+        externalPort,
         new boolean[0],
         newGameInfo.getFeaturedMod().getTechnicalName(),
         newGameInfo.getPassword(),
-        null
+        null,
+        relayAddress
     );
 
     gameLaunchFuture = new CompletableFuture<>();
@@ -290,8 +300,12 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password) {
-    JoinGameMessage joinGameMessage = new JoinGameMessage(gameId, password);
+  public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password, @Nullable InetSocketAddress relayAddress, int externalPort) {
+    JoinGameMessage joinGameMessage = new JoinGameMessage(
+        gameId,
+        externalPort,
+        password,
+        relayAddress);
 
     gameLaunchFuture = new CompletableFuture<>();
     writeToServer(joinGameMessage);
@@ -322,9 +336,9 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction) {
+  public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction, int gamePort, @Nullable InetSocketAddress relayAddress) {
     gameLaunchFuture = new CompletableFuture<>();
-    writeToServer(new SearchLadder1v1ClientMessage(faction));
+    writeToServer(new SearchLadder1v1ClientMessage(gamePort, faction, relayAddress));
     return gameLaunchFuture;
   }
 
@@ -337,6 +351,11 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   @Override
   public void sendGpgMessage(GpgGameMessage message) {
     writeToServer(message);
+  }
+
+  @Override
+  public void initConnectivityTest(int port) {
+    writeToServer(new InitConnectivityTestMessage(port));
   }
 
   @Override

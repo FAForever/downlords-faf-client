@@ -11,6 +11,9 @@ import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import org.slf4j.Logger;
@@ -30,6 +33,7 @@ public class UserServiceImpl implements UserService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final StringProperty username;
+  private final BooleanProperty loggedIn;
 
   private final FafService fafService;
   private final PreferencesService preferencesService;
@@ -44,11 +48,17 @@ public class UserServiceImpl implements UserService {
   @Inject
   public UserServiceImpl(FafService fafService, PreferencesService preferencesService, EventBus eventBus, ApplicationContext applicationContext, TaskService taskService) {
     username = new SimpleStringProperty();
+    loggedIn = new SimpleBooleanProperty();
     this.fafService = fafService;
     this.preferencesService = preferencesService;
     this.eventBus = eventBus;
     this.applicationContext = applicationContext;
     this.taskService = taskService;
+  }
+
+  @Override
+  public BooleanProperty loggedInProperty() {
+    return loggedIn;
   }
 
   @Override
