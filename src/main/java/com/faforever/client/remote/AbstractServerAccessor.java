@@ -57,4 +57,5 @@ public abstract class AbstractServerAccessor {
     stopped = true;
     IOUtils.closeQuietly(dataInput);
   }
+
 }

@@ -30,6 +30,7 @@ import com.faforever.client.remote.gson.MessageTargetTypeAdapter;
 import com.faforever.client.remote.gson.RatingRangeTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.io.QDataInputStream;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.hash.Hashing;
 import com.google.gson.FieldNamingPolicy;
@@ -102,6 +103,8 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
   private NotificationService notificationService;
   @Mock
   private I18n i18n;
+  @Mock
+  private ReportingService reportingService;
 
   private FafServerAccessorImpl instance;
   private ServerSocket fafLobbyServerSocket;
@@ -123,7 +126,7 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
         .setHost(LOOPBACK_ADDRESS.getHostAddress())
         .setPort(fafLobbyServerSocket.getLocalPort());
 
-    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, clientProperties);
+    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, clientProperties, reportingService);
 
     LoginPrefs loginPrefs = new LoginPrefs();
     loginPrefs.setUsername("junit");
@@ -305,5 +308,11 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
     StopSearchLadder1v1ClientMessage stopSearchRanked1v1Message = gson.fromJson(clientMessage, StopSearchLadder1v1ClientMessage.class);
     assertThat(stopSearchRanked1v1Message, instanceOf(StopSearchLadder1v1ClientMessage.class));
     assertThat(stopSearchRanked1v1Message.getCommand(), is(ClientMessageType.GAME_MATCH_MAKING));
+  }
+
+  @Test
+  public void onUIDNotFound() throws Exception {
+    instance.onUIDNotExecuted(new Exception("UID not found"));
+    verify(notificationService).addNotification(any(ImmediateNotification.class));
   }
 }
