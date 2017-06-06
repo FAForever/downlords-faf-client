@@ -1,6 +1,7 @@
 package com.faforever.client.os;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Scanner;
@@ -15,9 +16,9 @@ public final class OsUtils {
     throw new AssertionError("Not instantiable");
   }
 
-  public static String execAndGetOutput(String cmd) {
+  public static String execAndGetOutput(String cmd) throws IOException {
     Scanner scanner = new Scanner(
-        noCatch(() -> Runtime.getRuntime().exec(cmd)).getInputStream(), UTF_8.name()
+        Runtime.getRuntime().exec(cmd).getInputStream(), UTF_8.name()
     ).useDelimiter("\\A");
     return scanner.hasNext() ? scanner.next().trim() : "";
   }
