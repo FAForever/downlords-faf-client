@@ -6,7 +6,6 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotificationsController;
@@ -18,7 +17,6 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.preferences.ToastPosition;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
@@ -31,7 +29,6 @@ import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -59,6 +56,7 @@ import java.util.function.Consumer;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
@@ -82,8 +80,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private PreferencesService preferencesService;
   @Mock
   private PlatformService platformService;
-  @Mock
-  private LeaderboardController leaderboardController;
   @Mock
   private PlayerService playerService;
   @Mock
@@ -137,8 +133,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(uiService.loadFxml("theme/window.fxml")).thenReturn(windowController);
     when(preferences.getMainWindow()).thenReturn(mainWindowPrefs);
     when(preferences.getNotification()).thenReturn(notificationPrefs);
-    when(notificationPrefs.toastPositionProperty()).thenReturn(new SimpleObjectProperty<>(ToastPosition.BOTTOM_RIGHT));
-    when(notificationPrefs.getToastPosition()).thenReturn(ToastPosition.BOTTOM_RIGHT);
     when(gameService.gameRunningProperty()).thenReturn(gameRunningProperty);
     when(uiService.loadFxml("theme/persistent_notifications.fxml")).thenReturn(persistentNotificationsController);
     when(uiService.loadFxml("theme/transient_notifications.fxml")).thenReturn(transientNotificationsController);
@@ -160,6 +154,12 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
       mainControllerInitializedLatch.countDown();
       return null;
     }).when(clientUpdateService).checkForUpdateInBackground();
+  }
+
+  @Test
+  public void testHideNotifications() throws Exception {
+    Platform.runLater(() -> instance.new ToastDisplayer(transientNotificationsController).invalidated(mock(SimpleBooleanProperty.class)));
+    assertFalse(instance.transientNotificationsPopup.isShowing());
   }
 
   @Test
