@@ -1,6 +1,7 @@
 package com.faforever.client.fx;
 
 import com.faforever.client.theme.UiService;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
@@ -53,6 +54,10 @@ public class WindowController implements Controller<Node> {
   private Point2D dragOffset;
   private EnumSet<ResizeDirection> resizeDirections;
   private boolean isResizing;
+  private double initialX;
+  private double initialY;
+  private Runnable closureRunnable;
+  private boolean movable = false;
 
   @Inject
   public WindowController(UiService uiService) {
@@ -82,7 +87,14 @@ public class WindowController implements Controller<Node> {
   }
 
   public void onCloseButtonClicked() {
+    if (closureRunnable != null) {
+      Platform.runLater(closureRunnable);
+    }
     stage.close();
+  }
+
+  public void setOnClose(Runnable runnable) {
+    closureRunnable = runnable;
   }
 
   public void onRestoreButtonClicked() {
@@ -357,6 +369,58 @@ public class WindowController implements Controller<Node> {
 
   public void onMouseExited() {
     windowRoot.setCursor(Cursor.DEFAULT);
+  }
+
+  public void configure(Scene scene, Stage stage, boolean resizable, WindowButtonType... buttons) {
+    if (this.stage != null) {
+      throw new IllegalStateException("Already configured");
+    }
+
+    this.stage = stage;
+    this.resizable = resizable;
+    Region content = (Region) scene.getRoot();
+    scene.setRoot(windowRoot);
+
+    stage.setScene(scene);
+    uiService.registerScene(scene);
+
+    // Configure these only once per stage
+    if (!stage.getProperties().containsKey(PROPERTY_WINDOW_DECORATOR)) {
+      stage.getProperties().put(PROPERTY_WINDOW_DECORATOR, this);
+      stage.iconifiedProperty().addListener((observable, oldValue, newValue) -> {
+        if (!newValue && stage.isMaximized()) {
+          maximize();
+        }
+      });
+    }
+
+    maximizeButton.managedProperty().bind(maximizeButton.visibleProperty());
+    restoreButton.managedProperty().bind(restoreButton.visibleProperty());
+
+    List<WindowButtonType> buttonList = Arrays.asList(buttons);
+
+    if (!resizable) {
+      maximizeButton.setVisible(false);
+      restoreButton.setVisible(false);
+    } else if (buttonList.contains(MAXIMIZE_RESTORE)) {
+      maximizeButton.visibleProperty().bind(stage.maximizedProperty().not());
+      restoreButton.visibleProperty().bind(stage.maximizedProperty());
+    } else {
+      maximizeButton.setVisible(false);
+      restoreButton.setVisible(false);
+    }
+
+    minimizeButton.setVisible(buttonList.contains(MINIMIZE));
+    closeButton.setVisible(buttonList.contains(CLOSE));
+    resizeDirections = EnumSet.noneOf(ResizeDirection.class);
+
+    if (stage.isMaximized()) {
+      maximize();
+    } else {
+      restore();
+    }
+
+    setContent(content);
   }
 
   public enum WindowButtonType {

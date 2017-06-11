@@ -3,6 +3,9 @@ package com.faforever.client.chat;
 import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.WindowController;
+import com.faforever.client.fx.WindowController.WindowButtonType;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
@@ -10,20 +13,40 @@ import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.util.ProgrammingError;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.sun.glass.ui.Robot;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.collections.ListChangeListener;
+import javafx.geometry.Insets;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
+import javafx.scene.image.WritableImage;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DataFormat;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
+import javafx.scene.transform.Transform;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -38,18 +61,25 @@ public class ChatController extends AbstractViewController<Node> {
   private final UiService uiService;
   private final UserService userService;
   private final EventBus eventBus;
+  private final I18n i18n;
+  private final Robot robot;
   public Node chatRoot;
   public TabPane tabPane;
   public Pane connectingProgressPane;
   public VBox noOpenTabsContainer;
   public TextField channelNameTextField;
+  public ArrayList<String> outSourcedChannels;
 
   @Inject
-  public ChatController(ChatService chatService, UiService uiService, UserService userService, EventBus eventBus) {
+  public ChatController(ChatService chatService, UiService uiService, UserService userService, EventBus eventBus, I18n i18n) {
     this.chatService = chatService;
     this.uiService = uiService;
+    this.i18n = i18n;
     this.userService = userService;
     this.eventBus = eventBus;
+
+    robot =
+        com.sun.glass.ui.Application.GetApplication().createRobot();
 
     nameToChatTabController = new HashMap<>();
   }
@@ -105,14 +135,83 @@ public class ChatController extends AbstractViewController<Node> {
   private void addTab(String playerOrChannelName, AbstractChatTabController tabController) {
     JavaFxUtil.assertApplicationThread();
     nameToChatTabController.put(playerOrChannelName, tabController);
-    tabPane.getTabs().add(tabController.getRoot());
+    Tab newTab = tabController.getRoot();
+    MenuItem menuItem = new MenuItem(i18n.get("chat.popOutTab"));
+    ContextMenu menu = new ContextMenu(menuItem);
+    menu.setOnAction(event -> showSeperateWindow(newTab));
+    newTab.setContextMenu(menu);
+    tabPane.getTabs().add(newTab);
+  }
+
+  private void showSeperateWindow(Tab newTab) {
+    Stage stage = new Stage(StageStyle.UNDECORATED);
+    outSourcedChannels.add(newTab.getId());
+    Pane content = (Pane) newTab.getContent();
+    tabPane.getTabs().remove(newTab);
+    newTab.setContent(null);
+    final Scene scene = new Scene(new Pane(content), content.getWidth(), content.getHeight());
+    stage.setScene(scene);
+    stage.setTitle(newTab.getText());
+
+    Screen screen = Screen.getScreensForRectangle(robot.getMouseX(), robot.getMouseY(), 1, 1).get(0);
+    stage.setX(screen.getVisualBounds().getMinX());
+    stage.setY(screen.getVisualBounds().getMinY());
+
+    assureCorrectLayout(content, scene);
+
+    WindowController windowController = uiService.loadFxml("theme/window.fxml");
+    windowController.configure(scene, stage, true, WindowButtonType.CLOSE, WindowButtonType.MAXIMIZE_RESTORE, WindowButtonType.MINIMIZE);
+    windowController.setOnClose(this.new closureHandler(newTab, content, stage));
+
+    stage.show();
+  }
+
+  public void detectDrages() {
+    tabPane.setOnDragDetected(
+        event -> {
+          Tab selectedTab = ((TabPane) event.getSource()).getSelectionModel().getSelectedItem();
+          if (((Text) event.getTarget()).getText().equals(selectedTab.getText())) {
+            tabPane.setCursor(Cursor.MOVE);
+            Pane root = (Pane) tabPane.getScene().getRoot();
+            root.setOnDragOver((DragEvent event1) -> {
+              event1.acceptTransferModes(TransferMode.ANY);
+              event1.consume();
+            });
+            SnapshotParameters snapshotParams = new SnapshotParameters();
+            snapshotParams.setTransform(Transform.scale(0.4, 0.4));
+            WritableImage snapshot = selectedTab.getContent().snapshot(snapshotParams, null);
+            Dragboard db = tabPane.startDragAndDrop(TransferMode.MOVE);
+            ClipboardContent clipboardContent = new ClipboardContent();
+            clipboardContent.put(DataFormat.PLAIN_TEXT, "");
+            db.setDragView(snapshot, 40, 40);
+            db.setContent(clipboardContent);
+          }
+          event.consume();
+        }
+    );
+
+    tabPane.setOnDragDone(
+        (DragEvent event) -> {
+          showSeperateWindow(((TabPane) event.getSource()).getSelectionModel().getSelectedItem());
+          tabPane.setCursor(Cursor.DEFAULT);
+          event.consume();
+        }
+    );
+  }
+
+  private void assureCorrectLayout(Region content, Scene scene) {
+    content.setPadding(new Insets(20));
+    content.setPrefWidth(scene.getWidth());
+    content.setPrefHeight(scene.getHeight());
+    scene.widthProperty().addListener((observable, oldValue, newValue) -> content.setPrefWidth((Double) newValue));
+    scene.heightProperty().addListener((observable, oldValue, newValue) -> content.setPrefHeight((Double) newValue));
   }
 
   @Override
   public void initialize() {
     super.initialize();
     eventBus.register(this);
-
+    outSourcedChannels = new ArrayList<String>();
     tabPane.getTabs().addListener((InvalidationListener) observable ->
         noOpenTabsContainer.setVisible(tabPane.getTabs().isEmpty()));
 
@@ -130,14 +229,23 @@ public class ChatController extends AbstractViewController<Node> {
 
     tabPane.getTabs().addListener((ListChangeListener<Tab>) change -> {
       while (change.next()) {
-        change.getRemoved().forEach(tab -> nameToChatTabController.remove(tab.getId()));
+        change.getRemoved().forEach(tab -> {
+          if (!outSourcedChannels.contains(tab.getId())) {
+            nameToChatTabController.remove(tab.getId());
+          }
+        });
       }
     });
+    detectDrages();
   }
 
   @Subscribe
   public void onLoggedOutEvent(LoggedOutEvent event) {
     onLoggedOut();
+  }
+
+  private void sortTabs() {
+    //TODO: sort so that the + tab is at the end again, can only be done after merging of the other branch
   }
 
   private void onConnectionStateChange(ConnectionState newValue) {
@@ -252,6 +360,28 @@ public class ChatController extends AbstractViewController<Node> {
     if (!tabPane.getTabs().isEmpty()) {
       Tab tab = tabPane.getSelectionModel().getSelectedItem();
       Optional.ofNullable(nameToChatTabController.get(tab.getId())).ifPresent(AbstractChatTabController::onHide);
+    }
+  }
+
+  protected class closureHandler implements Runnable {
+    private Stage stage;
+    private Pane content;
+    private Tab newTab;
+
+    protected closureHandler(Tab newTab, Pane content, Stage stage) {
+      this.newTab = newTab;
+      this.content = content;
+      this.stage = stage;
+    }
+
+    @Override
+    public void run() {
+      content.setPadding(Insets.EMPTY);
+      newTab.setContent(content);
+      tabPane.getTabs().add(newTab);
+      sortTabs();
+      outSourcedChannels.remove(newTab.getId());
+      stage.close();
     }
   }
 }

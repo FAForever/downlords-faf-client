@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.chat.event.ChatMessageEvent;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
@@ -56,6 +57,8 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   private ChatService chatService;
   @Mock
   private EventBus eventBus;
+  @Mock
+  private I18n i18n;
   @Captor
   private ArgumentCaptor<MapChangeListener<String, Channel>> channelsListener;
   @Captor
@@ -66,7 +69,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ChatController(chatService, uiService, userService, eventBus);
+    instance = new ChatController(chatService, uiService, userService, eventBus, i18n);
 
     connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
 

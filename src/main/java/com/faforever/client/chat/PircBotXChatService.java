@@ -37,6 +37,7 @@ import org.pircbotx.PircBotX;
 import org.pircbotx.User;
 import org.pircbotx.UserHostmask;
 import org.pircbotx.UtilSSLSocketFactory;
+import org.pircbotx.exception.DaoException;
 import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.Event;
 import org.pircbotx.hooks.events.ActionEvent;
@@ -498,7 +499,11 @@ public class PircBotXChatService implements ChatService {
 
   @Override
   public void leaveChannel(String channelName) {
-    pircBotX.getUserChannelDao().getChannel(channelName).send().part();
+    try {
+      pircBotX.getUserChannelDao().getChannel(channelName).send().part();
+    } catch (DaoException e) {
+      logger.warn("Channel did not exist: ", e);
+    }
   }
 
   @Override
