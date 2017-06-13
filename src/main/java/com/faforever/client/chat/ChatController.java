@@ -82,7 +82,6 @@ public class ChatController extends AbstractViewController<Node> {
 
     Platform.runLater(() -> robot = com.sun.glass.ui.Application.GetApplication().createRobot());
 
-
     nameToChatTabController = new HashMap<>();
   }
 
@@ -167,7 +166,7 @@ public class ChatController extends AbstractViewController<Node> {
     stage.show();
   }
 
-  public void detectDrages() {
+  private void detectDrages() {
     tabPane.setOnDragDetected(
         event -> {
           Tab selectedTab = ((TabPane) event.getSource()).getSelectionModel().getSelectedItem();
@@ -364,7 +363,8 @@ public class ChatController extends AbstractViewController<Node> {
     }
   }
 
-  public int getIndexOfTab(Tab tab) {
+  @VisibleForTesting
+  protected int getIndexOfTab(Tab tab) {
     int i = 0;
     for (String tabId : nameToChatTabController.keySet()) {
       if (tab.getId() == (tabId)) {
@@ -376,12 +376,12 @@ public class ChatController extends AbstractViewController<Node> {
     return tabPane.getTabs().size() - 1;
   }
 
-  protected class closureHandler implements Runnable {
+  private class closureHandler implements Runnable {
     private Stage stage;
     private Pane content;
     private Tab newTab;
 
-    protected closureHandler(Tab newTab, Pane content, Stage stage) {
+    private closureHandler(Tab newTab, Pane content, Stage stage) {
       this.newTab = newTab;
       this.content = content;
       this.stage = stage;
