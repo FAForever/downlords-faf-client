@@ -11,6 +11,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.util.ProgrammingError;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.sun.glass.ui.Robot;
@@ -36,7 +37,6 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
 import javafx.scene.transform.Transform;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -56,19 +56,21 @@ import java.util.Optional;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ChatController extends AbstractViewController<Node> {
 
-  private final Map<String, AbstractChatTabController> nameToChatTabController;
+  @VisibleForTesting
+  protected final Map<String, AbstractChatTabController> nameToChatTabController;
   private final ChatService chatService;
   private final UiService uiService;
   private final UserService userService;
   private final EventBus eventBus;
   private final I18n i18n;
-  private final Robot robot;
   public Node chatRoot;
   public TabPane tabPane;
   public Pane connectingProgressPane;
-  public VBox noOpenTabsContainer;
+  public VBox openNewChannelContainer;
   public TextField channelNameTextField;
   public ArrayList<String> outSourcedChannels;
+  private Robot robot;
+  private Tab addChannelTab;
 
   @Inject
   public ChatController(ChatService chatService, UiService uiService, UserService userService, EventBus eventBus, I18n i18n) {
@@ -78,8 +80,8 @@ public class ChatController extends AbstractViewController<Node> {
     this.userService = userService;
     this.eventBus = eventBus;
 
-    robot =
-        com.sun.glass.ui.Application.GetApplication().createRobot();
+    Platform.runLater(() -> robot = com.sun.glass.ui.Application.GetApplication().createRobot());
+
 
     nameToChatTabController = new HashMap<>();
   }
@@ -95,19 +97,16 @@ public class ChatController extends AbstractViewController<Node> {
   private void onDisconnected() {
     connectingProgressPane.setVisible(true);
     tabPane.setVisible(false);
-    noOpenTabsContainer.setVisible(false);
   }
 
   private void onConnected() {
     connectingProgressPane.setVisible(false);
     tabPane.setVisible(true);
-    noOpenTabsContainer.setVisible(false);
   }
 
   private void onConnecting() {
     connectingProgressPane.setVisible(true);
     tabPane.setVisible(false);
-    noOpenTabsContainer.setVisible(false);
   }
 
   private void onLoggedOut() {
@@ -132,7 +131,8 @@ public class ChatController extends AbstractViewController<Node> {
     return nameToChatTabController.get(channelName);
   }
 
-  private void addTab(String playerOrChannelName, AbstractChatTabController tabController) {
+  @VisibleForTesting
+  protected void addTab(String playerOrChannelName, AbstractChatTabController tabController) {
     JavaFxUtil.assertApplicationThread();
     nameToChatTabController.put(playerOrChannelName, tabController);
     Tab newTab = tabController.getRoot();
@@ -140,7 +140,8 @@ public class ChatController extends AbstractViewController<Node> {
     ContextMenu menu = new ContextMenu(menuItem);
     menu.setOnAction(event -> showSeperateWindow(newTab));
     newTab.setContextMenu(menu);
-    tabPane.getTabs().add(newTab);
+    tabPane.getTabs().add(tabPane.getTabs().size() - 1, newTab);
+    tabPane.getSelectionModel().select(newTab);
   }
 
   private void showSeperateWindow(Tab newTab) {
@@ -170,7 +171,7 @@ public class ChatController extends AbstractViewController<Node> {
     tabPane.setOnDragDetected(
         event -> {
           Tab selectedTab = ((TabPane) event.getSource()).getSelectionModel().getSelectedItem();
-          if (((Text) event.getTarget()).getText().equals(selectedTab.getText())) {
+          if (event.getSource().equals(tabPane) && !selectedTab.equals(addChannelTab)) {
             tabPane.setCursor(Cursor.MOVE);
             Pane root = (Pane) tabPane.getScene().getRoot();
             root.setOnDragOver((DragEvent event1) -> {
@@ -211,9 +212,8 @@ public class ChatController extends AbstractViewController<Node> {
   public void initialize() {
     super.initialize();
     eventBus.register(this);
-    outSourcedChannels = new ArrayList<String>();
+    outSourcedChannels = new ArrayList<>();
     tabPane.getTabs().addListener((InvalidationListener) observable ->
-        noOpenTabsContainer.setVisible(tabPane.getTabs().isEmpty()));
 
     chatService.addChannelsListener(change -> {
       if (change.wasRemoved()) {
@@ -222,7 +222,12 @@ public class ChatController extends AbstractViewController<Node> {
       if (change.wasAdded()) {
         onChannelJoined(change.getValueAdded());
       }
-    });
+    }));
+    addChannelTab = new Tab("+");
+    tabPane.getTabs().add(tabPane.getTabs().size(), addChannelTab);
+    addChannelTab.setContent(openNewChannelContainer);
+    addChannelTab.setClosable(false);
+
 
     chatService.connectionStateProperty().addListener((observable, oldValue, newValue) -> onConnectionStateChange(newValue));
     onConnectionStateChange(chatService.connectionStateProperty().get());
@@ -242,10 +247,6 @@ public class ChatController extends AbstractViewController<Node> {
   @Subscribe
   public void onLoggedOutEvent(LoggedOutEvent event) {
     onLoggedOut();
-  }
-
-  private void sortTabs() {
-    //TODO: sort so that the + tab is at the end again, can only be done after merging of the other branch
   }
 
   private void onConnectionStateChange(ConnectionState newValue) {
@@ -347,9 +348,9 @@ public class ChatController extends AbstractViewController<Node> {
 
   @Override
   protected void onDisplay() {
+    Tab tab = tabPane.getSelectionModel().getSelectedItem();
     super.onDisplay();
-    if (!tabPane.getTabs().isEmpty()) {
-      Tab tab = tabPane.getSelectionModel().getSelectedItem();
+    if ((tabPane.getTabs().size() > 1) && !addChannelTab.equals(tab)) {
       nameToChatTabController.get(tab.getId()).onDisplay();
     }
   }
@@ -361,6 +362,18 @@ public class ChatController extends AbstractViewController<Node> {
       Tab tab = tabPane.getSelectionModel().getSelectedItem();
       Optional.ofNullable(nameToChatTabController.get(tab.getId())).ifPresent(AbstractChatTabController::onHide);
     }
+  }
+
+  public int getIndexOfTab(Tab tab) {
+    int i = 0;
+    for (String tabId : nameToChatTabController.keySet()) {
+      if (tab.getId() == (tabId)) {
+        return i;
+      } else {
+        i++;
+      }
+    }
+    return tabPane.getTabs().size() - 1;
   }
 
   protected class closureHandler implements Runnable {
@@ -378,8 +391,8 @@ public class ChatController extends AbstractViewController<Node> {
     public void run() {
       content.setPadding(Insets.EMPTY);
       newTab.setContent(content);
-      tabPane.getTabs().add(newTab);
-      sortTabs();
+      tabPane.getTabs().add(getIndexOfTab(newTab), newTab);
+      tabPane.getSelectionModel().select(newTab);
       outSourcedChannels.remove(newTab.getId());
       stage.close();
     }

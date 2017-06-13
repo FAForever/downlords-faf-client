@@ -54,10 +54,7 @@ public class WindowController implements Controller<Node> {
   private Point2D dragOffset;
   private EnumSet<ResizeDirection> resizeDirections;
   private boolean isResizing;
-  private double initialX;
-  private double initialY;
   private Runnable closureRunnable;
-  private boolean movable = false;
 
   @Inject
   public WindowController(UiService uiService) {
