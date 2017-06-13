@@ -32,7 +32,6 @@ import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
@@ -201,7 +200,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     verify(windowController).configure(
         any(), eq(root), eq(true), eq(WindowController.WindowButtonType.CLOSE)
     );
-    verify(windowController).setOnHiding(any(EventHandler.class));
+    verify(windowController).setOnClose(any(Runnable.class));
   }
 
   @Test
@@ -296,7 +295,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     doAnswer(invocation -> {
       getRoot().getChildren().setAll((Region) invocation.getArgument(1));
       return null;
-    }).when(windowController).configure(any(), any(), anyBoolean(), anyVararg());
+    }).when(windowController).configure(any(), any(Region.class), anyBoolean(), anyVararg());
 
     CountDownLatch latch = new CountDownLatch(1);
     Platform.runLater(() -> {
@@ -306,7 +305,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
     assertTrue(latch.await(5, TimeUnit.SECONDS));
 
-    verify(windowController).configure(any(), any(), anyBoolean(), anyVararg());
+    verify(windowController).configure(any(), any(Region.class), anyBoolean(), anyVararg());
 
     Window window = instance.getRoot().getScene().getWindow();
     Rectangle2D bounds = new Rectangle2D(window.getX(), window.getY(), window.getWidth(), window.getHeight());

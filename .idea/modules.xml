@@ -4,7 +4,9 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/downlords-faf-client.iml" filepath="$PROJECT_DIR$/.idea/modules/downlords-faf-client.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/downlords-faf-client_main.iml" filepath="$PROJECT_DIR$/.idea/modules/downlords-faf-client_main.iml" group="downlords-faf-client" />
+      <module fileurl="file://C:\Users\trostorff\IdeaProjects\downlords-faf-client\.idea\modules\downlords-faf-client_main.iml" filepath="C:\Users\trostorff\IdeaProjects\downlords-faf-client\.idea\modules\downlords-faf-client_main.iml" group="downlords-faf-client" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/downlords-faf-client_test.iml" filepath="$PROJECT_DIR$/.idea/modules/downlords-faf-client_test.iml" group="downlords-faf-client" />
+      <module fileurl="file://C:\Users\trostorff\IdeaProjects\downlords-faf-client\.idea\modules\downlords-faf-client_test.iml" filepath="C:\Users\trostorff\IdeaProjects\downlords-faf-client\.idea\modules\downlords-faf-client_test.iml" group="downlords-faf-client" />
     </modules>
   </component>
 </project>
