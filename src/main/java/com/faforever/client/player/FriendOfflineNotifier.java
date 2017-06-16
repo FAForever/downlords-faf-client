@@ -26,7 +26,8 @@ public class FriendOfflineNotifier {
   private final PlayerServiceImpl playerService;
 
   @Inject
-  public FriendOfflineNotifier(NotificationService notificationService, I18n i18n, EventBus eventBus, AudioService audioService, PlayerServiceImpl playerService) {
+  public FriendOfflineNotifier(NotificationService notificationService, I18n i18n, EventBus eventBus,
+                               AudioService audioService, PlayerServiceImpl playerService) {
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.eventBus = eventBus;
@@ -40,7 +41,7 @@ public class FriendOfflineNotifier {
   }
 
   @Subscribe
-  public void onUserOnline(UserOnlineEvent event) {
+  public void onUserOnline(UserOfflineEvent event) {
     String username = event.getUsername();
     Player player = playerService.getPlayerForUsername(username);
     if (player != null && player.getSocialStatus() == SocialStatus.FRIEND) {

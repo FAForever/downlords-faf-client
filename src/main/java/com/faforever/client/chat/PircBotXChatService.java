@@ -6,6 +6,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
+import com.faforever.client.player.UserOfflineEvent;
 import com.faforever.client.player.UserOnlineEvent;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
@@ -284,15 +285,21 @@ public class PircBotXChatService implements ChatService {
 
   private void onUserJoinedChannel(String channelName, ChatUser chatUser) {
     getOrCreateChannel(channelName).addUser(chatUser);
-    // This should actually be posted by the player service, but since the server doesn't tell us about users leaving,
-    // we have to rely on IRC for that. To keep things consistent,
-    eventBus.post(new UserOnlineEvent(chatUser.getUsername()));
+    // This should actually be posted by the player service, but since the server doesn't yet tell us about users
+    // leaving, have to rely on IRC for that. To keep things consistent (and avoid redundant events) we chose to rely
+    // on IRC, for now. As soon as the server informs about leaving users, we'll rely on the server instead.
+    if (defaultChannelName.equals(channelName)) {
+      eventBus.post(new UserOnlineEvent(chatUser.getUsername()));
+    }
   }
 
   private void onChatUserLeftChannel(String channelName, String username) {
     getOrCreateChannel(channelName).removeUser(username);
     if (userService.getUsername().equalsIgnoreCase(username)) {
       channels.remove(channelName);
+    }
+    if (defaultChannelName.equals(channelName)) {
+      eventBus.post(new UserOfflineEvent(username));
     }
   }
 

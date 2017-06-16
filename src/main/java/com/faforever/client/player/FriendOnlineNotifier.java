@@ -27,7 +27,8 @@ public class FriendOnlineNotifier {
   private final PlayerServiceImpl playerService;
 
   @Inject
-  public FriendOnlineNotifier(NotificationService notificationService, I18n i18n, EventBus eventBus, AudioService audioService, PlayerServiceImpl playerService) {
+  public FriendOnlineNotifier(NotificationService notificationService, I18n i18n, EventBus eventBus,
+                              AudioService audioService, PlayerServiceImpl playerService) {
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.eventBus = eventBus;
