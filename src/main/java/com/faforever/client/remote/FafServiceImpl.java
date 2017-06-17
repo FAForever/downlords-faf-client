@@ -156,14 +156,6 @@ public class FafServiceImpl implements FafService {
 
   @Override
   @Async
-  public CompletableFuture<List<MapBean>> getMaps() {
-    return CompletableFuture.completedFuture(fafApiAccessor.getAllMaps().parallelStream()
-        .map(MapBean::fromMap)
-        .collect(toList()));
-  }
-
-  @Override
-  @Async
   public CompletableFuture<List<Mod>> getMods() {
     return CompletableFuture.completedFuture(fafApiAccessor.getMods().stream()
         .map(Mod::fromModInfo)
@@ -183,33 +175,25 @@ public class FafServiceImpl implements FafService {
 
   @Override
   @Async
-  public CompletableFuture<List<MapBean>> getMostDownloadedMaps(int count) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getMostDownloadedMaps(count).stream()
-        .map(MapBean::fromMap)
+  public CompletableFuture<List<MapBean>> getMostPlayedMaps(int count, int page) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getMostPlayedMaps(count, page).stream()
+        .map(MapBean::fromMapDto)
         .collect(toList()));
   }
 
   @Override
   @Async
-  public CompletableFuture<List<MapBean>> getMostPlayedMaps(int count) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getMostPlayedMaps(count).stream()
-        .map(MapBean::fromMap)
+  public CompletableFuture<List<MapBean>> getMostLikedMaps(int count, int page) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getHighestRatedMaps(count, page).stream()
+        .map(MapBean::fromMapDto)
         .collect(toList()));
   }
 
   @Override
   @Async
-  public CompletableFuture<List<MapBean>> getMostLikedMaps(int count) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getHighestRatedMaps(count).stream()
-        .map(MapBean::fromMap)
-        .collect(toList()));
-  }
-
-  @Override
-  @Async
-  public CompletableFuture<List<MapBean>> getNewestMaps(int count) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getNewestMaps(count).stream()
-        .map(MapBean::fromMap)
+  public CompletableFuture<List<MapBean>> getNewestMaps(int count, int page) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getNewestMaps(count, page).stream()
+        .map(MapBean::fromMapDto)
         .collect(toList()));
   }
 
@@ -352,8 +336,18 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
+  @Async
+  public CompletableFuture<List<MapBean>> findMapsByQuery(String query, int page, int maxSearchResults) {
+    return CompletableFuture.completedFuture(fafApiAccessor.findMapsByQuery(query, page, maxSearchResults)
+        .parallelStream()
+        .map(MapBean::fromMapDto)
+        .collect(toList()));
+  }
+
+  @Override
   public CompletableFuture<Optional<MapBean>> findMapByFolderName(String folderName) {
-    return CompletableFuture.completedFuture(fafApiAccessor.findMapByFolderName(folderName));
+    return CompletableFuture.completedFuture(fafApiAccessor.findMapByFolderName(folderName)
+        .map(MapBean::fromMapVersionDto));
   }
 
   @Override
@@ -367,7 +361,7 @@ public class FafServiceImpl implements FafService {
   @Async
   public CompletableFuture<Void> saveGameReview(Review review, int gameId) {
     GameReview gameReview = (GameReview) new GameReview()
-        .setScore((byte) review.getScore())
+        .setScore(review.getScore().byteValue())
         .setText(review.getText());
 
     if (review.getId() == null) {
@@ -388,7 +382,7 @@ public class FafServiceImpl implements FafService {
   @Async
   public CompletableFuture<Void> saveModVersionReview(Review review, int modVersionId) {
     ModVersionReview modVersionReview = (ModVersionReview) new ModVersionReview()
-        .setScore((byte) review.getScore())
+        .setScore(review.getScore().byteValue())
         .setText(review.getText());
 
     if (review.getId() == null) {
@@ -408,16 +402,16 @@ public class FafServiceImpl implements FafService {
 
   @Override
   @Async
-  public CompletableFuture<Void> saveMapVersionReview(Review review, int mapVersionId) {
+  public CompletableFuture<Void> saveMapVersionReview(Review review, String mapVersionId) {
     MapVersionReview mapVersionReview = (MapVersionReview) new MapVersionReview()
-        .setScore((byte) review.getScore())
+        .setScore(review.getScore().byteValue())
         .setText(review.getText());
 
     if (review.getId() == null) {
       Assert.notNull(review.getPlayer(), "Player ID must be set");
       MapVersionReview updatedReview = fafApiAccessor.createMapVersionReview(
           (MapVersionReview) mapVersionReview
-              .setMapVersion(new MapVersion().setId(String.valueOf(mapVersionId)))
+              .setMapVersion(new MapVersion().setId(mapVersionId))
               .setId(String.valueOf(review.getId()))
               .setPlayer(new com.faforever.client.api.dto.Player().setId(String.valueOf(review.getPlayer().getId())))
       );
@@ -431,7 +425,7 @@ public class FafServiceImpl implements FafService {
 
   @Override
   @Async
-  public CompletableFuture<Optional<Replay>> getLastGameOnMap(int playerId, int mapVersionId) {
+  public CompletableFuture<Optional<Replay>> getLastGameOnMap(int playerId, String mapVersionId) {
     return CompletableFuture.completedFuture(fafApiAccessor.getLastGamesOnMap(playerId, mapVersionId, 1).stream()
         .map(Replay::fromDto)
         .findFirst());
@@ -446,9 +440,22 @@ public class FafServiceImpl implements FafService {
 
   @Override
   @Async
+  public CompletableFuture<Void> deleteMapVersionReview(Review review) {
+    fafApiAccessor.deleteMapVersionReview(review.getId());
+    return CompletableFuture.completedFuture(null);
+  }
+
+  @Override
+  @Async
   public CompletableFuture<Optional<Clan>> getClanByTag(String tag) {
     return CompletableFuture.completedFuture(fafApiAccessor.getClanByTag(tag)
         .map(Clan::fromDto));
+  }
+
+  @Override
+  public Optional<MapBean> findMapById(String id) {
+    return fafApiAccessor.findMapVersionById(id)
+        .map(MapBean::fromMapVersionDto);
   }
 
   @Override

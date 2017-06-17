@@ -7,19 +7,18 @@ import com.faforever.client.query.LogicalNodeController;
 import com.faforever.client.query.SpecificationController;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
-import com.github.rutledgepaulv.qbuilders.conditions.Condition;
-import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ComboBox;
+import com.faforever.client.vault.search.SearchController;
 import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -32,6 +31,7 @@ import static org.mockito.Mockito.when;
 
 public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   private static final int MAX_RESULTS = 100;
+
   private OnlineReplayVaultController instance;
 
   @Mock
@@ -48,19 +48,14 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   private NotificationService notificationService;
   @Mock
   private I18n i18n;
+  @Mock
+  private SearchController searchController;
+
+  @Captor
+  private ArgumentCaptor<Consumer<String>> searchListenerCaptor;
 
   @Before
   public void setUp() throws Exception {
-    when(uiService.loadFxml("theme/query/logical_node.fxml")).thenAnswer(invocation -> {
-      LogicalNodeController controller = mock(LogicalNodeController.class);
-      controller.logicalOperatorField = new ChoiceBox<>();
-      controller.specificationController = mock(SpecificationController.class);
-      controller.specificationController.propertyField = new ComboBox<>();
-      controller.specificationController.operationField = new ChoiceBox<>();
-      controller.specificationController.valueField = new ComboBox<>();
-      when(controller.getRoot()).thenReturn(new Pane());
-      return controller;
-    });
     when(uiService.loadFxml("theme/vault/replay/replay_card.fxml")).thenAnswer(invocation -> {
       ReplayCardController controller = mock(ReplayCardController.class);
       when(controller.getRoot()).thenReturn(new Pane());
@@ -70,6 +65,9 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     instance = new OnlineReplayVaultController(replayService, uiService, notificationService, i18n);
 
     loadFxml("theme/vault/replay/online_replays.fxml", clazz -> {
+      if (SearchController.class.isAssignableFrom(clazz)) {
+        return searchController;
+      }
       if (SpecificationController.class.isAssignableFrom(clazz)) {
         return specificationController;
       }
@@ -78,6 +76,8 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
       }
       return instance;
     });
+
+    verify(searchController).setSearchListener(searchListenerCaptor.capture());
   }
 
   @Test
@@ -102,11 +102,11 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnSearchButtonClicked() throws Exception {
-    instance.queryTextField.setText("query");
+    Consumer<String> searchListener = searchListenerCaptor.getValue();
     when(replayService.findByQuery("query", MAX_RESULTS))
         .thenReturn(CompletableFuture.completedFuture(Arrays.asList(new Replay(), new Replay())));
 
-    instance.onSearchButtonClicked();
+    searchListener.accept("query");
 
     assertThat(instance.showroomGroup.isVisible(), is(false));
     assertThat(instance.searchResultGroup.isVisible(), is(true));
@@ -115,28 +115,13 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnSearchButtonClickedHandlesException() throws Exception {
-    instance.queryTextField.setText("query");
+    Consumer<String> searchListener = searchListenerCaptor.getValue();
     CompletableFuture<List<Replay>> completableFuture = new CompletableFuture<>();
     completableFuture.completeExceptionally(new RuntimeException("JUnit test exception"));
     when(replayService.findByQuery("query", MAX_RESULTS)).thenReturn(completableFuture);
 
-    instance.onSearchButtonClicked();
+    searchListener.accept("query");
 
     verify(notificationService).addNotification(any(ImmediateNotification.class));
-  }
-
-  @Test
-  public void testBuildQuery() throws Exception {
-    instance.onAddCriteriaButtonClicked();
-
-    Condition condition = mock(Condition.class);
-    when(specificationController.appendTo(any())).thenReturn(Optional.of(condition));
-    when(condition.query(any(RSQLVisitor.class))).thenReturn("name==JUnit");
-
-    specificationController.propertyField.setValue("name");
-    specificationController.operationField.getSelectionModel().select(0);
-    specificationController.valueField.setValue("JUnit");
-
-    assertThat(instance.queryTextField.getText(), is("name==JUnit"));
   }
 }

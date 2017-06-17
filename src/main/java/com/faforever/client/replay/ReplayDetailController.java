@@ -28,7 +28,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Separator;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -85,7 +84,6 @@ public class ReplayDetailController implements Controller<Node> {
   public TableColumn<GameOption, String> optionValueColumn;
   public Button downloadMoreInfoButton;
   public Pane moreInformationPane;
-  public Separator ratingSeparator;
   public ImageView mapThumbnailImageView;
   public Button watchButton;
   public TextField replayIdField;
@@ -196,7 +194,7 @@ public class ReplayDetailController implements Controller<Node> {
   }
 
   private void onDeleteReview(Review review) {
-    reviewService.deleteReview(review)
+    reviewService.deleteGameReview(review)
         .thenRun(() -> Platform.runLater(() -> {
           replay.getReviews().remove(review);
           reviewsController.setOwnReview(Optional.empty());

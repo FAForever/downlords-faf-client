@@ -333,7 +333,7 @@ public class ChannelTabController extends AbstractChatTabController {
     Platform.runLater(() -> getJsObject().call("updateUserMessageDisplay", String.format(USER_CSS_CLASS_FORMAT, player.getUsername()), display));
   }
 
-  private void onUserJoinedChannel(ChatUser chatUser) {
+  private synchronized void onUserJoinedChannel(ChatUser chatUser) {
     JavaFxUtil.assertBackgroundThread();
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();

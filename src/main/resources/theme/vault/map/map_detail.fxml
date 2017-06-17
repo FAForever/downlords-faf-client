@@ -6,8 +6,6 @@
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.Tab?>
-<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -15,79 +13,118 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
-<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mapDetailRoot" onMouseClicked="#onDimmerClicked"
-            maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="dimmer"
-            xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.map.MapDetailController">
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mapDetailRoot" maxHeight="1.7976931348623157E308"
+            maxWidth="1.7976931348623157E308" onMouseClicked="#onDimmerClicked" styleClass="dimmer"
+            xmlns="http://javafx.com/javafx/8.0.111" fx:controller="com.faforever.client.map.MapDetailController">
   <children>
-      <AnchorPane onMouseClicked="#onContentPaneClicked" styleClass="modal-popup" AnchorPane.bottomAnchor="100.0"
-                  AnchorPane.leftAnchor="100.0" AnchorPane.rightAnchor="100.0" AnchorPane.topAnchor="100.0">
+      <AnchorPane onMouseClicked="#onContentPaneClicked" styleClass="modal-popup" AnchorPane.bottomAnchor="50.0"
+                  AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="50.0">
       <children>
-        <Button cancelButton="true" focusTraversable="false" onAction="#onCloseButtonClicked" AnchorPane.rightAnchor="0.0"
-                AnchorPane.topAnchor="0.0">
-          <styleClass>
-            <String fx:value="window-button"/>
-            <String fx:value="close-button"/>
-          </styleClass>
-        </Button>
-        <GridPane hgap="10.0" vgap="10.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0"
-                  AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="30.0">
-          <columnConstraints>
-            <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
-            <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
-            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-            <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
-          </columnConstraints>
-          <rowConstraints>
-            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-            <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
-          </rowConstraints>
-          <children>
-            <Label fx:id="nameLabel" maxWidth="1.7976931348623157E308" styleClass="h1" text="&lt;Name&gt;"
-                   GridPane.columnIndex="1" GridPane.columnSpan="2"/>
-            <ImageView fx:id="thumbnailImageView" fitHeight="128.0" fitWidth="128.0" pickOnBounds="true"
-                       preserveRatio="true"
-                       GridPane.rowSpan="2"/>
-            <Label fx:id="authorLabel" text="&lt;Author&gt;" GridPane.columnIndex="1" GridPane.rowIndex="1"
-                   GridPane.valignment="TOP"/>
-            <Button fx:id="uninstallButton" mnemonicParsing="false" onAction="#onUninstallButtonClicked"
-                    text="%mapVault.uninstall" GridPane.columnIndex="3" GridPane.halignment="RIGHT"/>
-            <Button fx:id="installButton" mnemonicParsing="false" onAction="#onInstallButtonClicked"
-                    text="%mapVault.install" GridPane.columnIndex="3"
-                    GridPane.halignment="RIGHT"/>
-            <VBox alignment="CENTER_LEFT" maxWidth="300.0" GridPane.columnIndex="2" GridPane.columnSpan="2"
-                  GridPane.halignment="RIGHT" GridPane.rowIndex="1">
-              <children>
-                  <Label fx:id="progressLabel"/>
-                <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308" progress="0.0"/>
-              </children>
-            </VBox>
-            <TabPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" tabClosingPolicy="UNAVAILABLE"
-                     GridPane.columnSpan="2147483647" GridPane.rowIndex="3">
-              <tabs>
-                <Tab text="%map.description">
-                  <content>
-                    <VBox>
+          <ScrollPane fx:id="scrollPane" fitToWidth="true" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0"
+                      AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="20.0">
+              <content>
+                  <VBox alignment="TOP_CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                        spacing="20.0">
                       <children>
-                        <Label fx:id="mapDescriptionLabel" text="Label"/>
+                          <GridPane hgap="20.0" vgap="10.0">
+                              <columnConstraints>
+                                  <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
+                                  <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
+                                  <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
+                                  <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
+                                  <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
+                                  <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+                              </columnConstraints>
+                              <rowConstraints>
+                                  <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+                                  <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+                                  <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+                                  <RowConstraints fillHeight="false" minHeight="10.0"/>
+                                  <RowConstraints fillHeight="false" minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS"/>
+                              </rowConstraints>
+                              <children>
+                                  <ImageView fx:id="thumbnailImageView" fitHeight="256.0" fitWidth="256.0"
+                                             pickOnBounds="true" preserveRatio="true" GridPane.halignment="CENTER"
+                                             GridPane.rowSpan="2147483647" GridPane.valignment="TOP"/>
+                                  <Label fx:id="nameLabel" maxWidth="1.7976931348623157E308" styleClass="h1"
+                                         text="&lt;Title&gt;" GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
+                                         GridPane.valignment="TOP"/>
+                                  <Label fx:id="dimensionsLabel" text="Label" GridPane.columnIndex="1"
+                                         GridPane.rowIndex="2">
+                                      <graphic>
+                                          <Label styleClass="icon" text=""/>
+                                      </graphic>
+                                  </Label>
+                                  <Label fx:id="maxPlayersLabel" graphicTextGap="10.0" text="&lt;Max Players&gt;"
+                                         GridPane.columnIndex="2" GridPane.rowIndex="2">
+                                      <graphic>
+                                          <Label styleClass="icon" text=""/>
+                                      </graphic>
+                                  </Label>
+                                  <Label fx:id="dateLabel" graphicTextGap="10.0" text="&lt;Date&gt;"
+                                         GridPane.columnIndex="3" GridPane.rowIndex="2">
+                                      <graphic>
+                                          <Label styleClass="icon" text=""/>
+                                      </graphic>
+                                  </Label>
+                                  <Label fx:id="timeLabel" graphicTextGap="10.0" text="&lt;Time&gt;"
+                                         GridPane.columnIndex="4" GridPane.rowIndex="2">
+                                      <graphic>
+                                          <Label styleClass="icon" text=""/>
+                                      </graphic>
+                                  </Label>
+                                  <Button fx:id="uninstallButton" mnemonicParsing="false"
+                                          onAction="#onUninstallButtonClicked" text="%mapVault.uninstall"
+                                          GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
+                                          GridPane.halignment="RIGHT" GridPane.valignment="TOP"/>
+                                  <Button fx:id="installButton" defaultButton="true" mnemonicParsing="false"
+                                          onAction="#onInstallButtonClicked" text="%mapVault.installButtonFormat"
+                                          GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
+                                          GridPane.halignment="RIGHT" GridPane.valignment="TOP"/>
+                                  <VBox alignment="CENTER_LEFT" maxWidth="300.0" GridPane.columnIndex="1"
+                                        GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT"
+                                        GridPane.valignment="TOP">
+                                      <children>
+                                          <Label fx:id="progressLabel"/>
+                                          <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308"
+                                                       progress="0.0"/>
+                                      </children>
+                                  </VBox>
+                                  <Label fx:id="authorLabel" styleClass="secondary" text="&lt;Author&gt;"
+                                         GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="1"
+                                         GridPane.valignment="TOP"/>
+                                  <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%map.description"
+                                         GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
+                                         GridPane.hgrow="ALWAYS" GridPane.rowIndex="3"/>
+                                  <Label fx:id="mapDescriptionLabel" maxWidth="1.7976931348623157E308" minWidth="0.0"
+                                         text="&lt;Description&gt;" wrapText="true" GridPane.columnIndex="1"
+                                         GridPane.columnSpan="2147483647" GridPane.rowIndex="4"
+                                         GridPane.valignment="TOP"/>
+                              </children>
+                              <VBox.margin>
+                                  <Insets/>
+                              </VBox.margin>
+                          </GridPane>
+                          <Separator layoutX="10.0" layoutY="251.0" maxWidth="1.7976931348623157E308"/>
+                          <VBox alignment="TOP_CENTER" maxWidth="640.0">
+                              <children>
+                                  <fx:include fx:id="reviews" source="../review/reviews.fxml"/>
+                              </children>
+                          </VBox>
                       </children>
                       <padding>
-                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                          <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
                       </padding>
-                    </VBox>
-                  </content>
-                </Tab>
-                <Tab text="%map.reviews">
-                  <content>
-                    <ScrollPane prefHeight="200.0" prefWidth="200.0"/>
-                  </content>
-                </Tab>
-              </tabs>
-            </TabPane>
-            <Separator prefWidth="200.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="2"/>
-          </children>
-        </GridPane>
+                  </VBox>
+              </content>
+          </ScrollPane>
+          <Button cancelButton="true" focusTraversable="false" onAction="#onCloseButtonClicked"
+                  AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+              <styleClass>
+                  <String fx:value="window-button"/>
+                  <String fx:value="close-button"/>
+              </styleClass>
+          </Button>
       </children>
     </AnchorPane>
   </children>

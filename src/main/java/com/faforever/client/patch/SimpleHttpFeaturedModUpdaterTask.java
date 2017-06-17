@@ -105,6 +105,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
       logger.trace("Downloading {}", url);
       ByteCopier.from(inputStream)
           .to(outputStream)
+          .listener(this::updateProgress)
           .totalBytes(httpURLConnection.getContentLength())
           .copy();
     } finally {

@@ -119,7 +119,7 @@ public class Game {
       }
     }
 
-    // TODO this can be removed as soon as we get server side support. Until then, let's be hacky
+    // TODO this can be removed as soon as we valueOf server side support. Until then, let's be hacky
     String titleString = title.get();
     Matcher matcher = BETWEEN_RATING_PATTERN.matcher(titleString);
     if (matcher.find()) {
@@ -394,5 +394,14 @@ public class Game {
 
   public ObjectProperty<Instant> startTimeProperty() {
     return startTime;
+  }
+
+  @Override
+  public String toString() {
+    return "Game{" +
+        "title=" + title.get() +
+        ", id=" + id.get() +
+        ", status=" + status.get() +
+        '}';
   }
 }

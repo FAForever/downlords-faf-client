@@ -1,9 +1,14 @@
 package com.faforever.client.map;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.util.IdenticonUtil;
-import com.faforever.client.util.TimeService;
+import com.faforever.client.vault.review.Review;
+import com.faforever.client.vault.review.StarsController;
+import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.WeakListChangeListener;
@@ -16,6 +21,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 @Component
@@ -23,22 +29,28 @@ import java.util.function.Consumer;
 public class MapCardController implements Controller<Node> {
 
   private final MapService mapService;
-  private final TimeService timeService;
-  public Label updatedDateLabel;
-  public Label downloadsLabel;
+  private final I18n i18n;
+
   public ImageView thumbnailImageView;
   public Label nameLabel;
-  public Label playsLabel;
   public Node mapTileRoot;
   public Label authorLabel;
+  public StarsController starsController;
+  public Label numberOfReviewsLabel;
+  public Label numberOfPlaysLabel;
+  public Label sizeLabel;
+  public Label maxPlayersLabel;
+
   private MapBean map;
   private Consumer<MapBean> onOpenDetailListener;
   private ListChangeListener<MapBean> installedMapsChangeListener;
+  private InvalidationListener reviewsChangedListener;
 
   @Inject
-  public MapCardController(MapService mapService, TimeService timeService) {
+  public MapCardController(MapService mapService, I18n i18n) {
     this.mapService = mapService;
-    this.timeService = timeService;
+    this.i18n = i18n;
+    reviewsChangedListener = observable -> populateReviews();
   }
 
   public void initialize() {
@@ -70,15 +82,27 @@ public class MapCardController implements Controller<Node> {
     }
     thumbnailImageView.setImage(image);
     nameLabel.setText(map.getDisplayName());
-    playsLabel.setText(String.format("%d", map.getPlays()));
-    downloadsLabel.setText(String.format("%d", map.getDownloads()));
-    updatedDateLabel.setText(timeService.asDate(map.getCreateTime()));
-    authorLabel.setText(map.getAuthor());
+    authorLabel.setText(Optional.ofNullable(map.getAuthor()).orElse(i18n.get("map.unknownAuthor")));
+    numberOfPlaysLabel.setText(i18n.number(map.getNumberOfPlays()));
+
+    MapSize size = map.getSize();
+    sizeLabel.setText(i18n.get("mapPreview.size", size.getWidthInKm(), size.getHeightInKm()));
+    maxPlayersLabel.setText(i18n.number(map.getPlayers()));
 
     ObservableList<MapBean> installedMaps = mapService.getInstalledMaps();
-    synchronized (installedMaps) {
-      installedMaps.addListener(new WeakListChangeListener<>(installedMapsChangeListener));
-    }
+    installedMaps.addListener(new WeakListChangeListener<>(installedMapsChangeListener));
+
+    ObservableList<Review> reviews = map.getReviews();
+    reviews.addListener(new WeakInvalidationListener(reviewsChangedListener));
+    reviewsChangedListener.invalidated(reviews);
+  }
+
+  private void populateReviews() {
+    ObservableList<Review> reviews = map.getReviews();
+    Platform.runLater(() -> {
+      numberOfReviewsLabel.setText(i18n.number(reviews.size()));
+      starsController.setValue((float) reviews.stream().mapToInt(Review::getScore).average().orElse(0d));
+    });
   }
 
   private void setInstalled(boolean installed) {

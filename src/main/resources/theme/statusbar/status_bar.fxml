@@ -14,6 +14,7 @@
       fx:controller="com.faforever.client.ui.statusbar.StatusBarController">
 
     <children>
+        <Label fx:id="versionLabel" text="&lt;Version&gt;"/>
         <HBox fx:id="taskPane" alignment="CENTER_LEFT" spacing="20.0" HBox.hgrow="ALWAYS">
             <children>
                 <Pane HBox.hgrow="SOMETIMES"/>

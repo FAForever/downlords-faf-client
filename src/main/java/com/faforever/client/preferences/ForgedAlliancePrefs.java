@@ -56,9 +56,9 @@ public class ForgedAlliancePrefs {
   public ForgedAlliancePrefs() {
     port = new SimpleIntegerProperty(6112);
     path = new SimpleObjectProperty<>();
-    customMapsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("maps"));
-    officialMapsDirectory = new SimpleObjectProperty<>(STEAM_FA_PATH.resolve("maps"));
-    modsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("mods"));
+    customMapsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("Maps"));
+    officialMapsDirectory = new SimpleObjectProperty<>(STEAM_FA_PATH.resolve("Maps"));
+    modsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("Mods"));
     preferencesFile = new SimpleObjectProperty<>(LOCAL_FA_DATA_PATH.resolve("Game.prefs"));
     autoDownloadMaps = new SimpleBooleanProperty(true);
     executableDecorator = new SimpleStringProperty("\"%s\"");

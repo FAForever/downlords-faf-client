@@ -71,7 +71,8 @@ public class GameUpdaterImpl implements GameUpdater {
           .thenAccept(patchResults::add);
     }
 
-    future.thenCompose(aVoid -> updateGameBinaries(patchResults.get(patchResults.size() - 1).getVersion()))
+    return future
+        .thenCompose(aVoid -> updateGameBinaries(patchResults.get(patchResults.size() - 1).getVersion()))
         .thenRun(() -> {
           List<MountInfo> mountPoints = patchResults.stream()
               .flatMap(patchResult -> patchResult.getMountInfos().stream())
@@ -83,8 +84,6 @@ public class GameUpdaterImpl implements GameUpdater {
 
           faInitGenerator.generateInitFile(mountPoints, hookDirectories);
         });
-
-    return future;
   }
 
   @Override

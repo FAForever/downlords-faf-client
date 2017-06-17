@@ -8,22 +8,14 @@ import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.query.LogicalNodeController;
 import com.faforever.client.query.SearchableProperties;
-import com.faforever.client.query.SpecificationController;
 import com.faforever.client.theme.UiService;
-import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
-import com.github.rutledgepaulv.qbuilders.conditions.Condition;
-import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
+import com.faforever.client.vault.search.SearchController;
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -35,10 +27,8 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -48,10 +38,12 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   private static final int TOP_ELEMENT_COUNT = 10;
   private static final int TOP_MORE_ELEMENT_COUNT = 100;
   private static final int MAX_SEARCH_RESULTS = 100;
+
   private final ReplayService replayService;
   private final UiService uiService;
   private final NotificationService notificationService;
   private final I18n i18n;
+
   public Pane replayVaultRoot;
   public Pane newestPane;
   public Pane highestRatedPane;
@@ -61,19 +53,11 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   public Pane showroomGroup;
   public VBox loadingPane;
   public VBox contentPane;
-  public TextField queryTextField;
-  public Pane criteriaPane;
-  public CheckBox displayQueryCheckBox;
-  /**
-   * The first query element.
-   */
-  public LogicalNodeController initialLogicalNodeController;
   public Button backButton;
-  public Button searchButton;
   public ScrollPane scrollPane;
+  public SearchController searchController;
+
   private ReplayDetailController replayDetailController;
-  private List<LogicalNodeController> queryNodes;
-  private InvalidationListener queryInvalidationListener;
 
   @Inject
   public OnlineReplayVaultController(ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n) {
@@ -81,7 +65,6 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     this.uiService = uiService;
     this.notificationService = notificationService;
     this.i18n = i18n;
-    queryNodes = new ArrayList<>();
   }
 
   public void initialize() {
@@ -90,41 +73,11 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     loadingPane.managedProperty().bind(loadingPane.visibleProperty());
     showroomGroup.managedProperty().bind(showroomGroup.visibleProperty());
     searchResultGroup.managedProperty().bind(searchResultGroup.visibleProperty());
-    queryTextField.managedProperty().bind(queryTextField.visibleProperty());
-    queryTextField.visibleProperty().bind(displayQueryCheckBox.selectedProperty());
     backButton.managedProperty().bind(backButton.visibleProperty());
-    initialLogicalNodeController.logicalOperatorField.managedProperty()
-        .bind(initialLogicalNodeController.logicalOperatorField.visibleProperty());
-    initialLogicalNodeController.removeCriteriaButton.managedProperty()
-        .bind(initialLogicalNodeController.removeCriteriaButton.visibleProperty());
 
-    initialLogicalNodeController.logicalOperatorField.setValue(null);
-    initialLogicalNodeController.logicalOperatorField.setDisable(true);
-    initialLogicalNodeController.logicalOperatorField.setVisible(false);
-    initialLogicalNodeController.removeCriteriaButton.setVisible(false);
-    initialLogicalNodeController.specificationController.setRootType(Game.class);
-    initialLogicalNodeController.specificationController.setProperties(SearchableProperties.GAME_PROPERTIES.keySet());
-    queryInvalidationListener = observable -> queryTextField.setText(buildQuery(initialLogicalNodeController.specificationController, queryNodes));
-    addInvalidationListener(initialLogicalNodeController);
-
-    searchButton.disableProperty().bind(queryTextField.textProperty().isEmpty());
-  }
-
-  private void addInvalidationListener(LogicalNodeController logicalNodeController) {
-    logicalNodeController.specificationController.propertyField.valueProperty().addListener(queryInvalidationListener);
-    logicalNodeController.specificationController.operationField.valueProperty().addListener(queryInvalidationListener);
-    logicalNodeController.specificationController.valueField.valueProperty().addListener(queryInvalidationListener);
-    logicalNodeController.specificationController.valueField.getEditor().textProperty()
-        .addListener(observable -> {
-          if (!logicalNodeController.specificationController.valueField.valueProperty().isBound()) {
-            logicalNodeController.specificationController.valueField.setValue(logicalNodeController.specificationController.valueField.getEditor().getText());
-          }
-        });
-    logicalNodeController.specificationController.valueField.setOnKeyReleased(event -> {
-      if (event.getCode() == KeyCode.ENTER) {
-        searchButton.fire();
-      }
-    });
+    searchController.setRootType(Game.class);
+    searchController.setSearchListener(this::onSearch);
+    searchController.setSearchableProperties(SearchableProperties.GAME_PROPERTIES);
   }
 
   private void displaySearchResult(List<Replay> replays) {
@@ -194,9 +147,9 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     backButton.setVisible(false);
   }
 
-  public void onSearchButtonClicked() {
+  private void onSearch(String query) {
     enterSearchingState();
-    replayService.findByQuery(queryTextField.getText(), MAX_SEARCH_RESULTS)
+    replayService.findByQuery(query, MAX_SEARCH_RESULTS)
         .thenAccept(this::displaySearchResult)
         .exceptionally(e -> {
           notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
@@ -206,55 +159,8 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
         });
   }
 
-  /**
-   * Builds the query string if possible, returns empty string if not. A query string can not be built if the user
-   * selected no or invalid values.
-   */
-  private String buildQuery(SpecificationController initialSpecification, List<LogicalNodeController> queryNodes) {
-    QBuilder qBuilder = new QBuilder();
-
-    Optional<Condition> condition = initialSpecification.appendTo(qBuilder);
-    if (!condition.isPresent()) {
-      return "";
-    }
-    for (LogicalNodeController queryNode : queryNodes) {
-      Optional<Condition> currentCondition = queryNode.appendTo(condition.get());
-      if (!currentCondition.isPresent()) {
-        break;
-      }
-      condition = currentCondition;
-    }
-    return (String) condition.get().query(new RSQLVisitor());
-  }
-
-  public void onAddCriteriaButtonClicked() {
-    LogicalNodeController controller = uiService.loadFxml("theme/query/logical_node.fxml");
-    controller.logicalOperatorField.valueProperty().addListener(queryInvalidationListener);
-    controller.specificationController.setRootType(Game.class);
-    controller.specificationController.setProperties(SearchableProperties.GAME_PROPERTIES.keySet());
-    controller.setRemoveCriteriaButtonListener(() -> {
-      criteriaPane.getChildren().remove(controller.getRoot());
-      queryNodes.remove(controller);
-      if (queryNodes.isEmpty()) {
-        initialLogicalNodeController.logicalOperatorField.setVisible(false);
-      }
-    });
-    addInvalidationListener(controller);
-
-    criteriaPane.getChildren().add(controller.getRoot());
-    queryNodes.add(controller);
-    initialLogicalNodeController.logicalOperatorField.setVisible(true);
-  }
-
   public void onBackButtonClicked() {
     enterShowroomState();
-  }
-
-  public void onResetButtonClicked() {
-    new ArrayList<>(queryNodes).forEach(logicalNodeController -> logicalNodeController.removeCriteriaButton.fire());
-    initialLogicalNodeController.specificationController.propertyField.getSelectionModel().select(0);
-    initialLogicalNodeController.specificationController.operationField.getSelectionModel().select(0);
-    initialLogicalNodeController.specificationController.valueField.setValue(null);
   }
 
   public void onRefreshButtonClicked() {

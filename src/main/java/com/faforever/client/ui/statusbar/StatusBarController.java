@@ -5,6 +5,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.update.Version;
 import com.google.common.base.Strings;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
@@ -42,6 +43,7 @@ public class StatusBarController implements Controller<Node> {
   public ProgressBar taskProgressBar;
   public Pane taskPane;
   public Label taskProgressLabel;
+  public Label versionLabel;
 
   @Inject
   public StatusBarController(FafService fafService, I18n i18n, ChatService chatService, TaskService taskService) {
@@ -53,6 +55,7 @@ public class StatusBarController implements Controller<Node> {
 
   public void initialize() {
     setCurrentWorkerInStatusBar(null);
+    versionLabel.setText(Version.VERSION);
 
     fafService.connectionStateProperty().addListener((observable, oldValue, newValue) -> runLater(() -> {
       switch (newValue) {

@@ -12,6 +12,7 @@ import com.faforever.client.api.dto.GlobalLeaderboardEntry;
 import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
 import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapStatistics;
+import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersionReview;
@@ -23,7 +24,6 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Api;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.io.CountingFileSystemResource;
-import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
@@ -68,7 +68,6 @@ import java.util.stream.Collectors;
 
 @Component
 @Profile("!offline")
-// TODO use RSQL builder for all filters
 public class FafApiAccessorImpl implements FafApiAccessor {
 
   private static final String MAP_ENDPOINT = "/data/map";
@@ -210,25 +209,9 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @Override
   @Cacheable(CacheNames.MAPS)
-  public List<Map> getAllMaps() {
-    return getAll(MAP_ENDPOINT);
-  }
-
-  @Override
-  @Cacheable(CacheNames.MAPS)
-  public List<Map> getMostDownloadedMaps(int count) {
-    return this.<MapStatistics>getMany("/data/mapStatistics", count, ImmutableMap.of(
-        "include", "map,map.latestVersion",
-        "sort", "-downloads")).stream()
-        .map(MapStatistics::getMap)
-        .collect(Collectors.toList());
-  }
-
-  @Override
-  @Cacheable(CacheNames.MAPS)
-  public List<Map> getMostPlayedMaps(int count) {
-    return this.<MapStatistics>getMany("/data/mapStatistics", count, ImmutableMap.of(
-        "include", "map,map.latestVersion",
+  public List<Map> getMostPlayedMaps(int count, int page) {
+    return this.<MapStatistics>getPage("/data/mapStatistics", count, page, ImmutableMap.of(
+        "include", "map,map.latestVersion,map.author,map.versions.reviews",
         "sort", "-plays")).stream()
         .map(MapStatistics::getMap)
         .collect(Collectors.toList());
@@ -236,22 +219,26 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @Override
   @Cacheable(CacheNames.MAPS)
-  public List<Map> getHighestRatedMaps(int count) {
-    throw new UnsupportedOperationException("Not yet supported");
+  public List<Map> getHighestRatedMaps(int count, int page) {
+    return this.<MapStatistics>getPage("/data/mapStatistics", count, page, ImmutableMap.of(
+        "include", "map,map.latestVersion,map.author,map.versions.reviews",
+        "sort", "-plays")).stream()
+        .map(MapStatistics::getMap)
+        .collect(Collectors.toList());
   }
 
   @Override
-  public List<Map> getNewestMaps(int count) {
-    return getMany("/data/map", count, ImmutableMap.of(
-        "include", "latestVersion",
+  public List<Map> getNewestMaps(int count, int page) {
+    return getPage(MAP_ENDPOINT, count, page, ImmutableMap.of(
+        "include", "latestVersion,author,versions.reviews",
         "sort", "-updateTime"));
   }
 
   @Override
-  public List<Game> getLastGamesOnMap(int playerId, int mapVersionId, int count) {
+  public List<Game> getLastGamesOnMap(int playerId, String mapVersionId, int count) {
     return getMany("/data/game", count, ImmutableMap.of(
         "filter", rsql(qBuilder()
-            .intNum("mapVersion.id").eq(mapVersionId)
+            .string("mapVersion.id").eq(mapVersionId)
             .and()
             .intNum("playerStats.player.id").eq(playerId)),
         "sort", "-endTime"
@@ -325,9 +312,9 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public Optional<MapBean> findMapByFolderName(String folderName) {
-    List<MapBean> maps = getMany("/data/map", 1, ImmutableMap.of(
-        "include", "latestVersion",
+  public Optional<MapVersion> findMapByFolderName(String folderName) {
+    List<MapVersion> maps = getMany(MAP_ENDPOINT, 1, ImmutableMap.of(
+        "include", "latestVersion,author",
         "sort", "-updateTime"));
     if (maps.isEmpty()) {
       return Optional.empty();
@@ -381,6 +368,11 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
+  public void deleteMapVersionReview(Integer id) {
+    delete("/data/mapVersionReview/" + id);
+  }
+
+  @Override
   public Optional<Clan> getClanByTag(String tag) {
     List<Clan> clans = getMany("/data/clan", 1, ImmutableMap.of(
         "include", "leader",
@@ -390,6 +382,20 @@ public class FafApiAccessorImpl implements FafApiAccessor {
       return Optional.empty();
     }
     return Optional.ofNullable(clans.get(0));
+  }
+
+  @Override
+  public List<Map> findMapsByQuery(String query, int page, int maxResults) {
+    return getPage(MAP_ENDPOINT, maxResults, page, ImmutableMap.of(
+        "filter", query,
+        "include", "latestVersion,latestVersion.reviews,author,statistics"
+    ));
+  }
+
+  @Override
+  public Optional<MapVersion> findMapVersionById(String id) {
+    // TODO check what is returned if map does not exist
+    return Optional.ofNullable(getOne(MAP_ENDPOINT + "/" + id, MapVersion.class));
   }
 
   @Override

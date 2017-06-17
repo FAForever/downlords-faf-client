@@ -1,23 +1,23 @@
 package com.faforever.client.vault.review;
 
 import com.faforever.client.player.Player;
-import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+
+import java.util.Optional;
 
 public class Review {
   private final ObjectProperty<Integer> id;
   private final StringProperty text;
   private final ObjectProperty<Player> player;
-  private final IntegerProperty score;
+  private final ObjectProperty<Integer> score;
 
   public Review() {
     id = new SimpleObjectProperty<>();
     text = new SimpleStringProperty();
-    score = new SimpleIntegerProperty();
+    score = new SimpleObjectProperty<>();
     player = new SimpleObjectProperty<>();
   }
 
@@ -25,7 +25,7 @@ public class Review {
     Review review = new Review();
     review.setId(Integer.parseInt(dto.getId()));
     review.setText(dto.getText());
-    review.setScore(dto.getScore());
+    review.setScore(Optional.ofNullable(dto.getScore()).map(Byte::intValue).orElse(0));
     review.setPlayer(Player.fromDto(dto.getPlayer()));
     return review;
   }
@@ -66,15 +66,15 @@ public class Review {
     return player;
   }
 
-  public int getScore() {
+  public Integer getScore() {
     return score.get();
   }
 
-  public void setScore(int score) {
+  public void setScore(Integer score) {
     this.score.set(score);
   }
 
-  public IntegerProperty scoreProperty() {
+  public ObjectProperty<Integer> scoreProperty() {
     return score;
   }
 }

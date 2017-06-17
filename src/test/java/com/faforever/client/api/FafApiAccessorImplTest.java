@@ -326,7 +326,7 @@ public class FafApiAccessorImplTest {
         .thenReturn(Collections.singletonList(new Game()))
         .thenReturn(emptyList());
 
-    instance.getLastGamesOnMap(4, 42, 3);
+    instance.getLastGamesOnMap(4, "42", 3);
 
     verify(restOperations).getForObject("/data/game?filter=mapVersion.id==\"42\";playerStats.player.id==\"4\"&sort=-endTime&page[size]=3&page[number]=1", List.class);
   }

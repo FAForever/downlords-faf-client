@@ -76,7 +76,7 @@ public class FafServiceImplTest {
     when(fafApiAccessor.createMapVersionReview(any()))
         .thenReturn((MapVersionReview) new MapVersionReview().setPlayer(player()).setId("1").setScore((byte) 1));
 
-    instance.saveMapVersionReview(review, 5);
+    instance.saveMapVersionReview(review, "5");
     verify(fafApiAccessor).createMapVersionReview(any());
   }
 
@@ -95,7 +95,7 @@ public class FafServiceImplTest {
     Review review = new Review();
     review.setId(id);
     review.setText(text);
-    review.setScore((byte) rating);
+    review.setScore(rating);
     Optional.ofNullable(playerId)
         .map(String::valueOf)
         .ifPresent(s -> {

@@ -92,6 +92,7 @@ public class SpecificationController implements Controller<Node> {
   public HBox specificationRoot;
   public DatePicker datePicker;
   private Class<?> rootType;
+  private Map<String, String> properties;
 
   public SpecificationController(I18n i18n) {
     this.i18n = i18n;
@@ -121,7 +122,7 @@ public class SpecificationController implements Controller<Node> {
     propertyField.setConverter(new StringConverter<String>() {
       @Override
       public String toString(String object) {
-        return i18n.get(SearchableProperties.GAME_PROPERTIES.get(object));
+        return i18n.get(properties.get(object));
       }
 
       @Override
@@ -191,8 +192,9 @@ public class SpecificationController implements Controller<Node> {
    *
    * @see #setRootType(Class)
    */
-  public void setProperties(Collection<String> properties) {
-    propertyField.setItems(FXCollections.observableList(new ArrayList<>(properties)));
+  public void setProperties(Map<String, String> properties) {
+    this.properties = properties;
+    propertyField.setItems(FXCollections.observableList(new ArrayList<>(properties.keySet())));
     propertyField.getSelectionModel().select(0);
     operationField.getSelectionModel().select(0);
   }

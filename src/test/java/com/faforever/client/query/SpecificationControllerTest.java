@@ -9,6 +9,7 @@ import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
+import com.google.common.collect.ImmutableMap;
 import javafx.collections.FXCollections;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -18,7 +19,6 @@ import org.mockito.Mock;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.hasItems;
@@ -38,7 +38,7 @@ public class SpecificationControllerTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     instance = new SpecificationController(i18n);
 
-    loadFxml("theme/query/specification.fxml", clazz -> {
+    loadFxml("theme/vault/search/specification.fxml", clazz -> {
       if (clazz == instance.getClass()) {
         return instance;
       }
@@ -56,7 +56,10 @@ public class SpecificationControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSomething() throws Exception {
-    instance.setProperties(Arrays.asList("name", "startTime"));
+    instance.setProperties(ImmutableMap.of(
+        "name", "i18n.name",
+        "startTime", "i18n.startTime"
+    ));
 
     assertThat(instance.propertyField.getItems(), hasItems("name", "startTime"));
   }

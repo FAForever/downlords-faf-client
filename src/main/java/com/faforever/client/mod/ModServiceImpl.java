@@ -20,9 +20,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import lombok.SneakyThrows;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
-import org.apache.lucene.store.Directory;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,7 +35,6 @@ import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.nio.file.DirectoryStream;
@@ -55,8 +51,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -66,6 +60,7 @@ import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
@@ -77,14 +72,11 @@ public class ModServiceImpl implements ModService {
 
   private static final Pattern ACTIVE_MODS_PATTERN = Pattern.compile("active_mods\\s*=\\s*\\{.*?}", Pattern.DOTALL);
   private static final Pattern ACTIVE_MOD_PATTERN = Pattern.compile("\\['(.*?)']\\s*=\\s*(true|false)", Pattern.DOTALL);
-  private static final Lock LOOKUP_LOCK = new ReentrantLock();
 
   private final FafService fafService;
   private final PreferencesService preferencesService;
   private final TaskService taskService;
   private final ApplicationContext applicationContext;
-  private final Analyzer analyzer;
-  private final Directory directory;
   private final NotificationService notificationService;
   private final I18n i18n;
   private final PlatformService platformService;
@@ -95,14 +87,13 @@ public class ModServiceImpl implements ModService {
   private Map<Path, Mod> pathToMod;
   private ObservableList<Mod> installedMods;
   private ObservableList<Mod> readOnlyInstalledMods;
-  private AnalyzingInfixSuggester suggester;
   private Thread directoryWatcherThread;
 
   @Inject
   // TODO divide and conquer
   public ModServiceImpl(TaskService taskService, FafService fafService, PreferencesService preferencesService,
-                        ApplicationContext applicationContext, Analyzer analyzer,
-                        Directory directory, NotificationService notificationService, I18n i18n,
+                        ApplicationContext applicationContext,
+                        NotificationService notificationService, I18n i18n,
                         PlatformService platformService, AssetService assetService) {
     pathToMod = new HashMap<>();
     modReader = new ModReader();
@@ -112,8 +103,6 @@ public class ModServiceImpl implements ModService {
     this.fafService = fafService;
     this.preferencesService = preferencesService;
     this.applicationContext = applicationContext;
-    this.analyzer = analyzer;
-    this.directory = directory;
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.platformService = platformService;
@@ -132,8 +121,6 @@ public class ModServiceImpl implements ModService {
     if (modsDirectory != null) {
       onModDirectoryReady();
     }
-
-    suggester = new AnalyzingInfixSuggester(directory, analyzer);
   }
 
   private void onModDirectoryReady() {
@@ -276,11 +263,7 @@ public class ModServiceImpl implements ModService {
 
   @Override
   public CompletableFuture<List<Mod>> getAvailableMods() {
-    return fafService.getMods().thenApply(mods -> {
-      ModInfoBeanIterator iterator = new ModInfoBeanIterator(mods.iterator());
-      noCatch(() -> suggester.build(iterator));
-      return mods;
-    });
+    return fafService.getMods();
   }
 
   @Override
@@ -314,23 +297,8 @@ public class ModServiceImpl implements ModService {
 
   @Override
   public CompletableFuture<List<Mod>> lookupMod(String string, int maxResults) {
-    return fafService.getMods().thenApply(mods -> {
-      try {
-        LOOKUP_LOCK.lock();
-        ModInfoBeanIterator iterator = new ModInfoBeanIterator(mods.iterator());
-        suggester.build(iterator);
-        return suggester.lookup(string, maxResults, true, false).stream()
-            .map(lookupResult -> iterator.deserialize(lookupResult.payload.bytes))
-            .collect(Collectors.toList());
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      } finally {
-        LOOKUP_LOCK.unlock();
-      }
-    }).exceptionally(throwable -> {
-      logger.warn("Lookup failed", throwable);
-      return null;
-    });
+    // FIXME remove
+    return CompletableFuture.completedFuture(emptyList());
   }
 
   @NotNull

@@ -5,17 +5,22 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.event.MapUploadedEvent;
+import com.faforever.client.notification.DismissAction;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.query.SearchableProperties;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.vault.search.SearchController;
 import com.google.common.collect.Iterators;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
+import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.DirectoryChooser;
@@ -32,22 +37,25 @@ import javax.inject.Inject;
 import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+// TODO I'd like to avoid the additional "getMost*" methods and always use the map query function instead, however,
+// this is currently not viable since Elide can't yet sort by relationship attributes. Once it supports that
+// (see https://github.com/yahoo/elide/issues/353), this can be refactored.
 public class MapVaultController extends AbstractViewController<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int TOP_ELEMENT_COUNT = 7;
-  private static final int MAX_SUGGESTIONS = 10;
-  private static final int LOAD_MORE_COUNT = 200;
+  private static final int LOAD_MORE_COUNT = 100;
+  private static final int MAX_SEARCH_RESULTS = 100;
   /**
    * How many mod cards should be badged into one UI thread runnable.
    */
@@ -58,26 +66,37 @@ public class MapVaultController extends AbstractViewController<Node> {
   private final EventBus eventBus;
   private final PreferencesService preferencesService;
   private final UiService uiService;
+  private final NotificationService notificationService;
+
   public Pane searchResultGroup;
   public Pane searchResultPane;
   public Pane showroomGroup;
-  public Pane loadingPane;
-  public TextField searchTextField;
+  public Node loadingLabel;
   public Pane newestPane;
   public Pane mostPlayedPane;
   public Pane mostLikedPane;
   public Pane mapVaultRoot;
   public ScrollPane scrollPane;
+  public Button backButton;
+  public SearchController searchController;
+  public Button moreButton;
+
   private boolean initialized;
   private MapDetailController mapDetailController;
+  private State state;
+  private String query;
+  private int currentPage;
+  private Supplier<CompletableFuture<List<MapBean>>> currentSupplier;
 
   @Inject
-  public MapVaultController(MapService mapService, I18n i18n, EventBus eventBus, PreferencesService preferencesService, UiService uiService) {
+  public MapVaultController(MapService mapService, I18n i18n, EventBus eventBus, PreferencesService preferencesService,
+                            UiService uiService, NotificationService notificationService) {
     this.mapService = mapService;
     this.i18n = i18n;
     this.eventBus = eventBus;
     this.preferencesService = preferencesService;
     this.uiService = uiService;
+    this.notificationService = notificationService;
   }
 
   @Override
@@ -85,9 +104,12 @@ public class MapVaultController extends AbstractViewController<Node> {
     super.initialize();
     JavaFxUtil.fixScrollSpeed(scrollPane);
 
-    loadingPane.managedProperty().bind(loadingPane.visibleProperty());
+    loadingLabel.managedProperty().bind(loadingLabel.visibleProperty());
     showroomGroup.managedProperty().bind(showroomGroup.visibleProperty());
     searchResultGroup.managedProperty().bind(searchResultGroup.visibleProperty());
+    backButton.managedProperty().bind(backButton.visibleProperty());
+    moreButton.managedProperty().bind(moreButton.visibleProperty());
+
     mapDetailController = uiService.loadFxml("theme/vault/map/map_detail.fxml");
     Node mapDetailRoot = mapDetailController.getRoot();
     mapVaultRoot.getChildren().add(mapDetailRoot);
@@ -98,6 +120,17 @@ public class MapVaultController extends AbstractViewController<Node> {
     mapDetailRoot.setVisible(false);
 
     eventBus.register(this);
+
+    searchController.setRootType(com.faforever.client.api.dto.Map.class);
+    searchController.setSearchListener(this::searchByQuery);
+    searchController.setSearchableProperties(SearchableProperties.MAP_PROPERTIES);
+  }
+
+  private void searchByQuery(String query) {
+    this.query = query;
+    currentPage = 0;
+    enterLoadingState();
+    displayMapsFromSupplier(() -> mapService.findByQuery(query, ++currentPage, MAX_SEARCH_RESULTS));
   }
 
   @Override
@@ -108,15 +141,13 @@ public class MapVaultController extends AbstractViewController<Node> {
     initialized = true;
 
     displayShowroomMaps();
-
-    JavaFxUtil.makeSuggestionField(searchTextField, this::createMapSuggestions, aVoid -> onSearchMapButtonClicked());
   }
 
   private void displayShowroomMaps() {
     enterLoadingState();
-    mapService.getMostPlayedMaps(TOP_ELEMENT_COUNT).thenAccept(maps -> populateMaps(maps, mostPlayedPane))
-        .thenCompose(aVoid -> mapService.getMostLikedMaps(TOP_ELEMENT_COUNT)).thenAccept(maps -> populateMaps(maps, mostLikedPane))
-        .thenCompose(aVoid -> mapService.getNewestMaps(TOP_ELEMENT_COUNT)).thenAccept(maps -> populateMaps(maps, newestPane))
+    mapService.getMostPlayedMaps(TOP_ELEMENT_COUNT, 1).thenAccept(maps -> replaceSearchResult(maps, mostPlayedPane))
+        .thenCompose(aVoid -> mapService.getHighestRatedMaps(TOP_ELEMENT_COUNT, 1)).thenAccept(maps -> replaceSearchResult(maps, mostLikedPane))
+        .thenCompose(aVoid -> mapService.getNewestMaps(TOP_ELEMENT_COUNT, 1)).thenAccept(maps -> replaceSearchResult(maps, newestPane))
         .thenRun(this::enterShowroomState)
         .exceptionally(throwable -> {
           logger.warn("Could not populate maps", throwable);
@@ -124,99 +155,42 @@ public class MapVaultController extends AbstractViewController<Node> {
         });
   }
 
-  public void onSearchMapButtonClicked() {
-    if (searchTextField.getText().isEmpty()) {
-      onResetButtonClicked();
-      return;
-    }
-    enterLoadingState();
-    mapService.lookupMap(searchTextField.getText(), 100)
-        .thenAccept(this::displaySearchResult);
-  }
-
-  private void populateMaps(List<MapBean> maps, Pane pane) {
-    JavaFxUtil.assertBackgroundThread();
-
-    ObservableList<Node> children = pane.getChildren();
-    Platform.runLater(children::clear);
-
-    List<MapCardController> controllers = maps.parallelStream()
-        .map(map -> {
-          MapCardController controller = uiService.loadFxml("theme/vault/map/map_card.fxml");
-          controller.setMap(map);
-          controller.setOnOpenDetailListener(this::onShowMapDetail);
-          return controller;
-        }).collect(Collectors.toList());
-
-    Iterators.partition(controllers.iterator(), BATCH_SIZE).forEachRemaining(mapCardControllers -> Platform.runLater(() -> {
-      for (MapCardController mapCardController : mapCardControllers) {
-        children.add(mapCardController.getRoot());
-      }
-    }));
+  private void replaceSearchResult(List<MapBean> maps, Pane pane) {
+    Platform.runLater(() -> pane.getChildren().clear());
+    appendSearchResult(maps, pane);
   }
 
   private void enterLoadingState() {
+    state = State.LOADING;
     showroomGroup.setVisible(false);
     searchResultGroup.setVisible(false);
-    loadingPane.setVisible(true);
-  }
-
-  public void onResetButtonClicked() {
-    searchTextField.clear();
-    showroomGroup.setVisible(true);
-    searchResultGroup.setVisible(false);
+    loadingLabel.setVisible(true);
+    backButton.setVisible(true);
+    moreButton.setVisible(false);
   }
 
   private void enterSearchResultState() {
+    state = State.SEARCH_RESULT;
     showroomGroup.setVisible(false);
     searchResultGroup.setVisible(true);
-    loadingPane.setVisible(false);
-  }
-
-  private CompletableFuture<Set<Label>> createMapSuggestions(String string) {
-    return mapService.lookupMap(string, MAX_SUGGESTIONS)
-        .thenApply(new Function<List<MapBean>, Set<Label>>() {
-          @Override
-          public Set<Label> apply(List<MapBean> mapBeans) {
-            return mapBeans.stream()
-                .map(result -> {
-                  String name = result.getDisplayName();
-                  Label item = new Label(name) {
-                    @Override
-                    public int hashCode() {
-                      return getText().hashCode();
-                    }
-
-                    @Override
-                    public boolean equals(Object obj) {
-                      return obj != null
-                          && obj.getClass() == getClass()
-                          && getText().equals(((Label) obj).getText());
-                    }
-                  };
-                  item.setUserData(name);
-                  return item;
-                })
-                .collect(Collectors.toSet());
-          }
-        });
+    loadingLabel.setVisible(false);
+    backButton.setVisible(true);
+    moreButton.setVisible(searchResultPane.getChildren().size() % MAX_SEARCH_RESULTS == 0);
   }
 
   private void enterShowroomState() {
+    state = State.SHOWROOM;
     showroomGroup.setVisible(true);
     searchResultGroup.setVisible(false);
-    loadingPane.setVisible(false);
+    loadingLabel.setVisible(false);
+    backButton.setVisible(false);
+    moreButton.setVisible(false);
   }
 
   private void onShowMapDetail(MapBean map) {
     mapDetailController.setMap(map);
     mapDetailController.getRoot().setVisible(true);
     mapDetailController.getRoot().requestFocus();
-  }
-
-  private void displaySearchResult(List<MapBean> maps) {
-    populateMaps(maps, searchResultPane);
-    enterSearchResultState();
   }
 
   public void onUploadMapButtonClicked() {
@@ -251,28 +225,101 @@ public class MapVaultController extends AbstractViewController<Node> {
     mapUploadWindow.show();
   }
 
-  public void onRefreshClicked() {
+  public void onRefreshButtonClicked() {
     mapService.evictCache();
-    displayShowroomMaps();
+    switch (state) {
+      case SHOWROOM:
+        displayShowroomMaps();
+        break;
+      case SEARCH_RESULT:
+        displayMapsFromSupplier(() -> mapService.findByQuery(query, 1, MAX_SEARCH_RESULTS));
+        break;
+      default:
+        // Do nothing
+    }
+  }
+
+  public void onBackButtonClicked() {
+    enterShowroomState();
   }
 
   @Subscribe
   public void onMapUploaded(MapUploadedEvent event) {
-    onRefreshClicked();
+    onRefreshButtonClicked();
   }
 
-  public void showMoreMostLikedMaps() {
+  public void showMoreHighestRatedMaps() {
     enterLoadingState();
-    mapService.getMostLikedMaps(LOAD_MORE_COUNT).thenAccept(this::displaySearchResult);
+    displayMapsFromSupplier(() -> mapService.getHighestRatedMaps(LOAD_MORE_COUNT, ++currentPage));
   }
 
-  public void showMoreNewestMaps() {
+  public void showMoreMostRecentMaps() {
     enterLoadingState();
-    mapService.getNewestMaps(LOAD_MORE_COUNT).thenAccept(this::displaySearchResult);
+    displayMapsFromSupplier(() -> mapService.getNewestMaps(LOAD_MORE_COUNT, ++currentPage));
   }
 
   public void showMoreMostPlayedMaps() {
     enterLoadingState();
-    mapService.getMostPlayedMaps(LOAD_MORE_COUNT).thenAccept(this::displaySearchResult);
+    displayMapsFromSupplier(() -> mapService.getMostPlayedMaps(LOAD_MORE_COUNT, ++currentPage));
+  }
+
+  private void appendSearchResult(List<MapBean> maps, Pane pane) {
+    JavaFxUtil.assertBackgroundThread();
+
+    ObservableList<Node> children = pane.getChildren();
+    List<MapCardController> controllers = maps.parallelStream()
+        .map(map -> {
+          MapCardController controller = uiService.loadFxml("theme/vault/map/map_card.fxml");
+          controller.setMap(map);
+          controller.setOnOpenDetailListener(this::onShowMapDetail);
+          return controller;
+        }).collect(Collectors.toList());
+
+    Iterators.partition(controllers.iterator(), BATCH_SIZE).forEachRemaining(mapCardControllers -> Platform.runLater(() -> {
+      for (MapCardController mapCardController : mapCardControllers) {
+        children.add(mapCardController.getRoot());
+      }
+    }));
+  }
+
+  private void displayMapsFromSupplier(Supplier<CompletableFuture<List<MapBean>>> mapsSupplier) {
+    this.currentSupplier = mapsSupplier;
+    mapsSupplier.get()
+        .thenAccept(this::displayMaps)
+        .exceptionally(e -> {
+          notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
+              i18n.get("vault.replays.searchError"), Severity.ERROR, e,
+              Collections.singletonList(new DismissAction(i18n))));
+          enterShowroomState();
+          return null;
+        });
+  }
+
+  private void displayMaps(List<MapBean> maps) {
+    Platform.runLater(() -> searchResultPane.getChildren().clear());
+    appendSearchResult(maps, searchResultPane);
+    Platform.runLater(this::enterSearchResultState);
+  }
+
+  public void onLoadMoreButtonClicked() {
+    moreButton.setVisible(false);
+    loadingLabel.setVisible(true);
+
+    currentSupplier.get()
+        .thenAccept(maps -> {
+          appendSearchResult(maps, searchResultPane);
+          enterSearchResultState();
+        })
+        .exceptionally(e -> {
+          notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
+              i18n.get("vault.replays.searchError"), Severity.ERROR, e,
+              Collections.singletonList(new DismissAction(i18n))));
+          enterShowroomState();
+          return null;
+        });
+  }
+
+  private enum State {
+    LOADING, SHOWROOM, SEARCH_RESULT
   }
 }

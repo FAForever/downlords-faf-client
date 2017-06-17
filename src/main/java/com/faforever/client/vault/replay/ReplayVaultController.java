@@ -281,9 +281,9 @@ public class ReplayVaultController implements Controller<Node> {
 //        .exceptionally(throwable -> {
 //          logger.warn("Error while loading online replays", throwable);
 //          notificationService.addNotification(new PersistentNotification(
-//              i18n.get("replays.loadingOnlineTask.failed"),
+//              i18n.valueOf("replays.loadingOnlineTask.failed"),
 //              Severity.ERROR,
-//              Collections.singletonList(new Action(i18n.get("report"), event -> reportingService.reportError(throwable)))
+//              Collections.singletonList(new Action(i18n.valueOf("report"), event -> reportingService.reportError(throwable)))
 //          ));
 //          return null;
 //        });

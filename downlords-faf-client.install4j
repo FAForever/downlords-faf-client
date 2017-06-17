@@ -35,10 +35,10 @@
       <executable name="downlords-faf-client" type="1" iconSet="true" iconFile="" executableDir="" redirectStderr="true" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="false" workingDirectory="bin" singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="true" globalSingleInstance="false" singleInstanceActivate="true" dpiAware="true">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
       </executable>
-      <splashScreen show="true" width="618" height="386" bitmapFile="./splash-screen.png" windowsNative="true" textOverlay="true">
+      <splashScreen show="true" width="640" height="400" bitmapFile="./src/media/splash/splash.png" windowsNative="true" textOverlay="true">
         <text>
-          <statusLine x="11" y="362" text="Loading..." fontSize="10" fontColor="255,255,255" bold="false" />
-          <versionLine x="370" y="273" text="v${compiler:sys.version}" fontSize="16" fontColor="255,255,255" bold="true" />
+          <statusLine x="11" y="378" text="" fontSize="10" fontColor="255,255,255" bold="false" />
+          <versionLine x="539" y="378" text="v${compiler:sys.version}" fontSize="16" fontColor="255,255,255" bold="true" />
         </text>
       </splashScreen>
       <java mainClass="com.faforever.client.Main" vmParameters="-DnativeDir=lib -Dprism.dirtyopts=false" arguments="" allowVMPassthroughParameters="true" preferredVM="client" bundleRuntime="true">
