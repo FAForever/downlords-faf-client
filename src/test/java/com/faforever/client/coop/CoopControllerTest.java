@@ -35,7 +35,6 @@ import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
@@ -82,6 +81,7 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
         mapService, preferencesService, uiService, timeService, webViewConfigurer, modService);
 
     when(coopService.getLeaderboard(any(), anyInt())).thenReturn(CompletableFuture.completedFuture(emptyList()));
+    when(coopService.getMissions()).thenReturn(CompletableFuture.completedFuture(emptyList()));
     when(modService.getFeaturedMod(COOP.getTechnicalName())).thenReturn(CompletableFuture.completedFuture(FeaturedModBeanBuilder.create().defaultValues().technicalName("coop").get()));
     when(gameService.getGames()).thenReturn(FXCollections.emptyObservableList());
     when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
@@ -95,20 +95,9 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void setUpIfNecessary() throws Exception {
-    when(coopService.getMissions()).thenReturn(completedFuture(singletonList(new CoopMission())));
-
-    instance.setUpIfNecessary();
-    WaitForAsyncUtils.waitForFxEvents();
-
-    verify(coopService).getMissions();
-    assertThat(instance.missionComboBox.getItems(), hasSize(1));
-  }
-
-  @Test
   public void onPlayButtonClicked() throws Exception {
     when(coopService.getMissions()).thenReturn(completedFuture(singletonList(new CoopMission())));
-    instance.setUpIfNecessary();
+    instance.initialize();
 
     WaitForAsyncUtils.waitForFxEvents();
     instance.onPlayButtonClicked();

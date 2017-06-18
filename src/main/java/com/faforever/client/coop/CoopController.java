@@ -170,6 +170,18 @@ public class CoopController implements Controller<Node> {
 
     Node root = gamesTableController.getRoot();
     populateContainer(root);
+
+    coopService.getMissions().thenAccept(coopMaps -> {
+      Platform.runLater(() -> missionComboBox.setItems(observableList(coopMaps)));
+
+      SingleSelectionModel<CoopMission> selectionModel = missionComboBox.getSelectionModel();
+      if (selectionModel.isEmpty()) {
+        Platform.runLater(selectionModel::selectFirst);
+      }
+    }).exceptionally(throwable -> {
+      notificationService.addPersistentErrorNotification(throwable, "coop.couldNotLoad", throwable.getLocalizedMessage());
+      return null;
+    });
   }
 
   private void onReplayButtonClicked(ActionEvent actionEvent) {
@@ -239,21 +251,6 @@ public class CoopController implements Controller<Node> {
   private void populateContainer(Node root) {
     gameViewContainer.getChildren().setAll(root);
     JavaFxUtil.setAnchors(gameViewContainer, 0d);
-  }
-
-  // FIXME call before display
-  public void setUpIfNecessary() {
-    coopService.getMissions().thenAccept(coopMaps -> {
-      Platform.runLater(() -> missionComboBox.setItems(observableList(coopMaps)));
-
-      SingleSelectionModel<CoopMission> selectionModel = missionComboBox.getSelectionModel();
-      if (selectionModel.isEmpty()) {
-        Platform.runLater(selectionModel::selectFirst);
-      }
-    }).exceptionally(throwable -> {
-      notificationService.addPersistentErrorNotification(throwable, "coop.couldNotLoad", throwable.getLocalizedMessage());
-      return null;
-    });
   }
 
   public void onPlayButtonClicked() {
