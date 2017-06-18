@@ -10,6 +10,8 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
+import javafx.scene.control.TableColumn.SortType;
+import javafx.util.Pair;
 
 import static javafx.collections.FXCollections.observableArrayList;
 
@@ -35,6 +37,7 @@ public class Preferences {
   private final Ladder1v1Prefs ladder1v1;
   private final NewsPrefs news;
   private final DeveloperPrefs developer;
+  private final ListProperty<Pair<String, SortType>> gameListSorting;
 
   public Preferences() {
     chat = new ChatPrefs();
@@ -55,6 +58,7 @@ public class Preferences {
     gamesViewMode = new SimpleStringProperty();
     news = new NewsPrefs();
     developer = new DeveloperPrefs();
+    gameListSorting = new SimpleListProperty<>(observableArrayList());
   }
 
   public String getGamesViewMode() {
@@ -199,5 +203,13 @@ public class Preferences {
 
   public DeveloperPrefs getDeveloper() {
     return developer;
+  }
+
+  public void setGameListSorting(ObservableList<Pair<String, SortType>> gameListSorting) {
+    this.gameListSorting.set(gameListSorting);
+  }
+
+  public ObservableList<Pair<String, SortType>> getGameListSorting() {
+    return gameListSorting.get();
   }
 }

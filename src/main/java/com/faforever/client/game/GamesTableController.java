@@ -5,6 +5,7 @@ import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
@@ -20,19 +21,24 @@ import javafx.collections.transformation.SortedList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.SortEvent;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
+import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
+import javafx.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
@@ -45,6 +51,7 @@ public class GamesTableController implements Controller<Node> {
   private final JoinGameHelper joinGameHelper;
   private final I18n i18n;
   private final UiService uiService;
+  private PreferencesService preferencesService;
   public TableView<Game> gamesTable;
   public TableColumn<Game, Image> mapPreviewColumn;
   public TableColumn<Game, String> gameTitleColumn;
@@ -55,11 +62,12 @@ public class GamesTableController implements Controller<Node> {
   public TableColumn<Game, Boolean> passwordProtectionColumn;
 
   @Inject
-  public GamesTableController(MapService mapService, JoinGameHelper joinGameHelper, I18n i18n, UiService uiService) {
+  public GamesTableController(MapService mapService, JoinGameHelper joinGameHelper, I18n i18n, UiService uiService, PreferencesService preferencesService) {
     this.mapService = mapService;
     this.joinGameHelper = joinGameHelper;
     this.i18n = i18n;
     this.uiService = uiService;
+    this.preferencesService = preferencesService;
 
     this.selectedGame = new SimpleObjectProperty<>();
   }
@@ -82,6 +90,10 @@ public class GamesTableController implements Controller<Node> {
     gamesTable.setPlaceholder(new Label(i18n.get("games.noGamesAvailable")));
     gamesTable.setRowFactory(param1 -> gamesRowFactory());
     gamesTable.setItems(sortedList);
+
+    applyLastSorting(gamesTable);
+    gamesTable.setOnSort(this::onColumnSorted);
+
     sortedList.addListener((Observable observable) -> selectFirstGame());
     selectFirstGame();
 
@@ -109,6 +121,29 @@ public class GamesTableController implements Controller<Node> {
 
     gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue)
         -> Platform.runLater(() -> selectedGame.set(newValue)));
+  }
+
+  private void applyLastSorting(TableView<Game> gamesTable) {
+    final Map<String, SortType> lookup = new HashMap<>();
+    final ObservableList<TableColumn<Game, ?>> sortOrder = gamesTable.getSortOrder();
+    preferencesService.getPreferences().getGameListSorting().forEach(sorting -> lookup.put(sorting.getKey(), sorting.getValue()));
+    sortOrder.clear();
+    gamesTable.getColumns().forEach(gameTableColumn -> {
+      if (lookup.containsKey(gameTableColumn.getId())) {
+        gameTableColumn.setSortType(lookup.get(gameTableColumn.getId()));
+        sortOrder.add(gameTableColumn);
+      }
+    });
+  }
+
+  private void onColumnSorted(@NotNull SortEvent<TableView<Game>> event) {
+    List<Pair<String, SortType>> sorters = event.getSource().getSortOrder()
+        .stream()
+        .map(column -> new Pair<>(column.getId(), column.getSortType()))
+        .collect(Collectors.toList());
+
+    preferencesService.getPreferences().getGameListSorting().setAll(sorters);
+    preferencesService.storeInBackground();
   }
 
   @NotNull
