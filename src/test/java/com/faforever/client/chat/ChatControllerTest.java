@@ -1,12 +1,14 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.chat.event.ChatMessageEvent;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.MapChangeListener;
@@ -26,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 import static com.natpryce.hamcrest.reflection.HasAnnotationMatcher.hasAnnotation;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
@@ -56,6 +57,8 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   private ChatService chatService;
   @Mock
   private EventBus eventBus;
+  @Mock
+  private I18n i18n;
   @Captor
   private ArgumentCaptor<MapChangeListener<String, Channel>> channelsListener;
   @Captor
@@ -66,7 +69,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ChatController(chatService, uiService, userService, eventBus);
+    instance = new ChatController(chatService, uiService, userService, eventBus, i18n);
 
     connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
 
@@ -143,7 +146,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testOnJoinChannelButtonClicked() throws Exception {
-    assertThat(instance.tabPane.getTabs(), is(empty()));
+    assertThat(instance.tabPane.getTabs(), hasSize(1));
 
     Tab tab = new Tab();
     tab.setId(TEST_CHANNEL_NAME);
@@ -154,7 +157,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
       MapChangeListener.Change<? extends String, ? extends Channel> change = mock(MapChangeListener.Change.class);
       when(change.wasAdded()).thenReturn(true);
       // Error here is caused by a bug in IntelliJ
-      when(change.getValueAdded()).thenReturn(new Channel(invocation.getArgument(0)));
+      when(change.getValueAdded()).then(invocation1 -> new Channel(invocation.getArgument(0)));
       channelsListener.getValue().onChanged(change);
       return null;
     }).when(chatService).joinChannel(anyString());
@@ -168,14 +171,14 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
     MapChangeListener.Change<? extends String, ? extends ChatUser> change = mock(MapChangeListener.Change.class);
     when(change.wasAdded()).thenReturn(true);
     // Error here is caused by a bug in IntelliJ
-    when(change.getValueAdded()).thenReturn(new ChatUser(TEST_USER_NAME, null));
+    when(change.getValueAdded()).then(invocation -> new ChatUser(TEST_USER_NAME, null));
     onUsersListenerCaptor.getValue().onChanged(change);
 
     CountDownLatch tabAddedLatch = new CountDownLatch(1);
     instance.tabPane.getTabs().addListener((InvalidationListener) observable -> tabAddedLatch.countDown());
     tabAddedLatch.await(2, TimeUnit.SECONDS);
 
-    assertThat(instance.tabPane.getTabs(), hasSize(1));
+    assertThat(instance.tabPane.getTabs(), hasSize(2));
     assertThat(instance.tabPane.getTabs().get(0).getId(), is(TEST_CHANNEL_NAME));
   }
 
@@ -184,5 +187,23 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
     assertThat(ReflectionUtils.findMethod(
         instance.getClass(), "onInitiatePrivateChatEvent", InitiatePrivateChatEvent.class),
         hasAnnotation(Subscribe.class));
+  }
+
+  @Test
+  public void testGetIndexOfTab() {
+    Tab tab = new Tab("test");
+    instance.nameToChatTabController.put(tab.getId(), mock(PrivateChatTabController.class));
+    assertThat(instance.getIndexOfTab(tab), is(0));
+  }
+
+  @Test
+  public void focusAddedTabTest() {
+    when(privateChatTabController.getRoot()).then(invocation -> new Tab("test"));
+    Platform.runLater(() -> instance.addTab("test", privateChatTabController));
+    WaitForAsyncUtils.waitForFxEvents();
+    assertThat(instance.tabPane.getTabs(), hasSize(2));
+    assertThat(instance.tabPane.getSelectionModel().getSelectedIndex(), is(0));
+    assertThat(instance.tabPane.getTabs().get(0).getText(), is("test"));
+    assertThat(instance.tabPane.getTabs().get(1).getText(), is("+"));
   }
 }
