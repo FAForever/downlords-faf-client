@@ -17,6 +17,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -85,5 +86,9 @@ public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
     instance.gamesTable.getSortOrder().add(column);
 
     assertThat(preferencesService.getPreferences().getGameListSorting(), hasSize(1));
+    assertThat(
+        preferencesService.getPreferences().getGameListSorting().get(0),
+        equalTo(new Pair<>("passwordProtectionColumn", SortType.ASCENDING))
+    );
   }
 }
