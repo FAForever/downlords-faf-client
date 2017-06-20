@@ -76,6 +76,8 @@
                                         </VBox>
                                         <Label styleClass="h3" text="%settings.chat.foes" />
                                         <CheckBox fx:id="hideFoeCheckBox" mnemonicParsing="false" text="%settings.chat.hideFoe" />
+                                        <Label styleClass="h3" text="%settings.chat.notifications" />
+                                        <CheckBox fx:id="notifyOnAtMention" mnemonicParsing="false" text="%settings.chat.notifyOnAtMention" />
                                         <Label text="%settings.chat.timeFormat"/>
                                         <ComboBox fx:id="timeComboBox" onAction="#onTimeFormatSelected"/>
                                     </children>

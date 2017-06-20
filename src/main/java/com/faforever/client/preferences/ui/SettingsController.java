@@ -105,6 +105,7 @@ public class SettingsController implements Controller<Node> {
   public ComboBox<TimeInfo> timeComboBox;
   public Label passwordChangeErrorLabel;
   public Label passwordChangeSuccessLabel;
+  public CheckBox notifyOnAtMention;
   private ChangeListener<Theme> themeChangeListener;
 
   @Inject
@@ -222,6 +223,7 @@ public class SettingsController implements Controller<Node> {
     playFriendPlaysGameSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendPlaysGameSoundEnabledProperty());
     playPmReceivedSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().privateMessageSoundEnabledProperty());
 
+    notifyOnAtMention.selectedProperty().bindBidirectional(preferences.getNotification().notifyOnAtMentionEnabledProperty());
     enableSoundsCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().soundsEnabledProperty());
     gamePortTextField.textProperty().bindBidirectional(preferences.getForgedAlliance().portProperty(), new NumberStringConverter(integerNumberFormat));
     gameLocationTextField.textProperty().bindBidirectional(preferences.getForgedAlliance().pathProperty(), PATH_STRING_CONVERTER);
