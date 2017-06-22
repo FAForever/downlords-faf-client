@@ -4,6 +4,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -12,6 +13,7 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
+@Slf4j
 public class LoginPrefs {
 
   private static final String KEY;
@@ -50,7 +52,13 @@ public class LoginPrefs {
 
   public String getPassword() {
     // FIXME remove poor man's security once refresh tokens are implemented
-    return deObfuscate(password.get());
+    try {
+      return deObfuscate(password.get());
+    } catch (Exception e) {
+      log.warn("Could not deobfuscate password", e);
+      setAutoLogin(false);
+      return null;
+    }
   }
 
   public LoginPrefs setPassword(String password) {

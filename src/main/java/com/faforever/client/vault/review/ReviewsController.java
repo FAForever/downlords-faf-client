@@ -127,7 +127,7 @@ public class ReviewsController implements Controller<Pane> {
         .orElseThrow(() -> new IllegalStateException("No current player available"));
 
     reviews.addListener(onReviewsChangedListener);
-    FilteredList<Review> onlyOtherReplays = reviews.filtered(review -> !review.getPlayer().equals(currentPlayer));
+    FilteredList<Review> onlyOtherReplays = reviews.filtered(review -> review.getPlayer().getId() != currentPlayer.getId());
 
     reviewPages = Lists.newArrayList(Iterables.partition(onlyOtherReplays, REVIEWS_PER_PAGE));
     currentReviewPage = Math.max(0, Math.min(0, reviewPages.size() - 1));

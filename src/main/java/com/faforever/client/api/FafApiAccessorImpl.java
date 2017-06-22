@@ -220,6 +220,9 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   @Cacheable(CacheNames.MAPS)
   public List<Map> getHighestRatedMaps(int count, int page) {
+    // FIXME https://github.com/FAForever/downlords-faf-client/issues/547
+    // In order to be able to sort by rating, the database and API need to be extended
+    // I (Downlord) already started the DB part locally
     return this.<MapStatistics>getPage("/data/mapStatistics", count, page, ImmutableMap.of(
         "include", "map,map.latestVersion,map.author,map.versions.reviews",
         "sort", "-plays")).stream()

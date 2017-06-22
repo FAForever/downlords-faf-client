@@ -161,7 +161,7 @@ public class MapDetailController implements Controller<Node> {
     reviewsController.setOnDeleteReviewListener(this::onDeleteReview);
     reviewsController.setReviews(map.getReviews());
     reviewsController.setOwnReview(map.getReviews().stream()
-        .filter(review -> review.getPlayer().equals(player))
+        .filter(review -> review.getPlayer().getId() == player.getId())
         .findFirst());
 
     mapService.getFileSize(map.getDownloadUrl())
