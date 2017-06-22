@@ -58,7 +58,7 @@ public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testKeepsSorting() {
-    preferencesService.getPreferences().setGameListSorting(FXCollections.observableArrayList(
+    preferencesService.getPreferences().getGameListSorting().setAll(FXCollections.observableArrayList(
         new Pair<>("hostColumn", SortType.DESCENDING)
     ));
 
