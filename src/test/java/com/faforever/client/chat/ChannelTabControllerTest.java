@@ -35,6 +35,7 @@ import org.mockito.Mock;
 import org.springframework.scheduling.TaskScheduler;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.time.Instant;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
@@ -47,6 +48,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -222,5 +224,37 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     assertThat(player.usernameProperty().isBound(), is(true));
     assertThat(player.getUsername(), is("junit"));
     assertThat(instance.userSearchTextField.getPromptText(), is("1 Players"));
+  }
+
+  @Test
+  public void testAtMentionTriggersNotification() {
+    this.getRoot().setVisible(false);
+    preferencesService.getPreferences().getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(false);
+    instance.onMention(new ChatMessage("junit", Instant.now(), "junit", "hello @" + USER_NAME + "!!"));
+    verify(audioService).playChatMentionSound();
+  }
+
+  @Test
+  public void testAtMentionTriggersNotificationWhenFlagIsEnabled() {
+    this.getRoot().setVisible(false);
+    preferencesService.getPreferences().getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(true);
+    instance.onMention(new ChatMessage("junit", Instant.now(), "junit", "hello @" + USER_NAME + "!!"));
+    verify(audioService).playChatMentionSound();
+  }
+
+  @Test
+  public void testNormalMentionTriggersNotification() {
+    this.getRoot().setVisible(false);
+    preferencesService.getPreferences().getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(false);
+    instance.onMention(new ChatMessage("junit", Instant.now(), "junit", "hello " + USER_NAME + "!!"));
+    verify(audioService).playChatMentionSound();
+  }
+
+  @Test
+  public void testNormalMentionDoesNotTriggerNotificationWhenFlagIsEnabled() {
+    this.getRoot().setVisible(false);
+    preferencesService.getPreferences().getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(true);
+    instance.onMention(new ChatMessage("junit", Instant.now(), "junit", "hello " + USER_NAME + "!!"));
+    verify(audioService, never()).playChatMentionSound();
   }
 }
