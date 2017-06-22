@@ -205,10 +205,6 @@ public class Preferences {
     return developer;
   }
 
-  public void setGameListSorting(ObservableList<Pair<String, SortType>> gameListSorting) {
-    this.gameListSorting.set(gameListSorting);
-  }
-
   public ObservableList<Pair<String, SortType>> getGameListSorting() {
     return gameListSorting.get();
   }

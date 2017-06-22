@@ -51,7 +51,7 @@ public class GamesTableController implements Controller<Node> {
   private final JoinGameHelper joinGameHelper;
   private final I18n i18n;
   private final UiService uiService;
-  private PreferencesService preferencesService;
+  private final PreferencesService preferencesService;
   public TableView<Game> gamesTable;
   public TableColumn<Game, Image> mapPreviewColumn;
   public TableColumn<Game, String> gameTitleColumn;
