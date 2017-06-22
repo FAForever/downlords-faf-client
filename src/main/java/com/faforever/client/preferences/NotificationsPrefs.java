@@ -26,7 +26,7 @@ public class NotificationsPrefs {
   private final BooleanProperty privateMessageSoundEnabled;
   private final BooleanProperty privateMessageToastEnabled;
   private final BooleanProperty friendJoinsGameToastEnabled;
-  private final BooleanProperty notifyOnAtMentionEnabled;
+  private final BooleanProperty notifyOnAtMentionOnlyEnabled;
   private final ObjectProperty<ToastPosition> toastPosition;
   private final IntegerProperty toastScreen;
   private final IntegerProperty toastDisplayTime;
@@ -50,7 +50,7 @@ public class NotificationsPrefs {
     friendJoinsGameToastEnabled = new SimpleBooleanProperty(true);
     privateMessageSoundEnabled = new SimpleBooleanProperty(true);
     privateMessageToastEnabled = new SimpleBooleanProperty(true);
-    notifyOnAtMentionEnabled = new SimpleBooleanProperty(false);
+    notifyOnAtMentionOnlyEnabled = new SimpleBooleanProperty(false);
     toastScreen = new SimpleIntegerProperty(0);
     toastDisplayTime = new SimpleIntegerProperty(5000);
   }
@@ -295,11 +295,11 @@ public class NotificationsPrefs {
     return toastDisplayTime;
   }
 
-  public boolean isNotifyOnAtMentionEnabled() {
-    return notifyOnAtMentionEnabled.get();
+  public boolean getNotifyOnAtMentionOnlyEnabled() {
+    return notifyOnAtMentionOnlyEnabled.get();
   }
 
-  public BooleanProperty notifyOnAtMentionEnabledProperty() {
-    return notifyOnAtMentionEnabled;
+  public BooleanProperty notifyOnAtMentionOnlyEnabledProperty() {
+    return notifyOnAtMentionOnlyEnabled;
   }
 }

@@ -229,7 +229,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testAtMentionTriggersNotification() {
     this.getRoot().setVisible(false);
-    preferencesService.getPreferences().getNotification().notifyOnAtMentionEnabledProperty().setValue(false);
+    preferencesService.getPreferences().getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(false);
     instance.onMention(new ChatMessage("junit", Instant.now(), "junit", "hello @" + USER_NAME + "!!"));
     verify(audioService).playChatMentionSound();
   }
@@ -237,7 +237,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testAtMentionTriggersNotificationWhenFlagIsEnabled() {
     this.getRoot().setVisible(false);
-    preferencesService.getPreferences().getNotification().notifyOnAtMentionEnabledProperty().setValue(true);
+    preferencesService.getPreferences().getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(true);
     instance.onMention(new ChatMessage("junit", Instant.now(), "junit", "hello @" + USER_NAME + "!!"));
     verify(audioService).playChatMentionSound();
   }
@@ -245,7 +245,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testNormalMentionTriggersNotification() {
     this.getRoot().setVisible(false);
-    preferencesService.getPreferences().getNotification().notifyOnAtMentionEnabledProperty().setValue(false);
+    preferencesService.getPreferences().getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(false);
     instance.onMention(new ChatMessage("junit", Instant.now(), "junit", "hello " + USER_NAME + "!!"));
     verify(audioService).playChatMentionSound();
   }
@@ -253,7 +253,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testNormalMentionDoesNotTriggerNotificationWhenFlagIsEnabled() {
     this.getRoot().setVisible(false);
-    preferencesService.getPreferences().getNotification().notifyOnAtMentionEnabledProperty().setValue(true);
+    preferencesService.getPreferences().getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(true);
     instance.onMention(new ChatMessage("junit", Instant.now(), "junit", "hello " + USER_NAME + "!!"));
     verify(audioService, never()).playChatMentionSound();
   }
