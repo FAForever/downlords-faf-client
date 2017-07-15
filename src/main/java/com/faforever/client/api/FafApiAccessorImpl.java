@@ -257,6 +257,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   public void uploadMap(Path file, boolean isRanked, ByteCountListener listener) {
     MultiValueMap<String, Object> multipartContent = createFileMultipart(file, listener);
+    multipartContent.add("metadata", ImmutableMap.of("isRanked", isRanked));
     post("/maps/upload", multipartContent);
   }
 
@@ -273,7 +274,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @Override
   public Mod getMod(String uid) {
-    return getOne("/mod/" + uid, Mod.class, ImmutableMap.of(
+    return getOne("/data/mod/" + uid, Mod.class, ImmutableMap.of(
         "include", "latestVersion"));
   }
 
