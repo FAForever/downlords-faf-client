@@ -103,7 +103,7 @@ public class CoopController implements Controller<Node> {
   public TableColumn<CoopResult, Integer> playerCountColumn;
   public TableColumn<CoopResult, String> playerNamesColumn;
   public TableColumn<CoopResult, Boolean> secondaryObjectivesColumn;
-  public TableColumn<CoopResult, Integer> timeColumn;
+  public TableColumn<CoopResult, Duration> timeColumn;
   public TableColumn<CoopResult, String> replayColumn;
 
   @Inject
@@ -146,7 +146,7 @@ public class CoopController implements Controller<Node> {
     secondaryObjectivesColumn.setCellFactory(param -> new StringCell<>(aBoolean -> aBoolean ? i18n.get("yes") : i18n.get("no")));
 
     timeColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue().getDuration()));
-    timeColumn.setCellFactory(param -> new StringCell<>(seconds -> timeService.shortDuration(Duration.ofSeconds(seconds))));
+    timeColumn.setCellFactory(param -> new StringCell<>(timeService::shortDuration));
 
     replayColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getId()));
     replayColumn.setCellFactory(param -> new NodeTableCell<>((replayId) -> {
