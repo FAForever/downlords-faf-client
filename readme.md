@@ -15,4 +15,5 @@ Please take a look at the [contribution guidelines](https://github.com/FAForever
 1. Clone the project with git
 1. Import the project into IntelliJ as "Gradle Project"
 1. Make sure you have the IntelliJ [Lombok plugin](https://plugins.jetbrains.com/idea/plugin/6317-lombok-plugin) installed
+1. Make sure you have `Enable annotation processing` enabled in the settings
 1. For some reasons, IntelliJ deletes launch configurations after import. Please revert such deleted files first (Version Control (Alt+F9) -> Local Changes)
