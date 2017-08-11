@@ -131,7 +131,7 @@ public class MapVaultController extends AbstractViewController<Node> {
   }
 
   private void searchByQuery(SearchConfig searchConfig) {
-    this.query = searchConfig.getSearchQuerry();
+    this.query = searchConfig.getSearchQuery();
     this.sortConfig = searchConfig.getSortConfig();
     enterLoadingState();
     displayMapsFromSupplier(() -> mapService.findByQuery(query, ++currentPage, MAX_SEARCH_RESULTS, sortConfig));

@@ -3,15 +3,20 @@ package com.faforever.client.mod;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.mod.Mod.ModType;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.query.SearchableProperties;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.IdenticonUtil;
+import com.faforever.client.vault.search.SearchController.SearchConfig;
+import com.faforever.client.vault.search.SearchController.SortConfig;
+import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.mod.ModLoadException;
 import com.faforever.commons.mod.ModReader;
 import javafx.beans.property.DoubleProperty;
@@ -25,10 +30,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -45,7 +51,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -63,7 +68,6 @@ import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
@@ -215,7 +219,7 @@ public class ModServiceImpl implements ModService {
   @Override
   public Set<String> getInstalledUiModsUids() {
     return getInstalledMods().stream()
-        .filter(Mod::getUiOnly)
+        .filter(mod -> mod.getModType() == ModType.UI)
         .map(Mod::getUid)
         .collect(Collectors.toSet());
   }
@@ -263,43 +267,8 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public CompletableFuture<List<Mod>> getAvailableMods() {
-    return fafService.getMods();
-  }
-
-  @Override
-  public CompletableFuture<List<Mod>> getMostDownloadedMods(int count) {
-    return getTopElements(Mod.DOWNLOADS_COMPARATOR.reversed(), count);
-  }
-
-  @Override
-  public CompletableFuture<List<Mod>> getMostLikedMods(int count) {
-    return getTopElements(Mod.LIKES_COMPARATOR.reversed(), count);
-  }
-
-  @Override
-  public CompletableFuture<List<Mod>> getMostPlayedMods(int count) {
-    return getTopElements(Mod.TIMES_PLAYED_COMPARATOR.reversed(), count);
-  }
-
-  @Override
-  public CompletableFuture<List<Mod>> getNewestMods(int count) {
-    return getTopElements(Mod.PUBLISH_DATE_COMPARATOR.reversed(), count);
-  }
-
-  @Override
-  public CompletableFuture<List<Mod>> getMostLikedUiMods(int count) {
-    return getAvailableMods().thenApply(mods -> mods.stream()
-        .filter(Mod::getUiOnly)
-        .sorted(Mod.LIKES_COMPARATOR.reversed())
-        .limit(count)
-        .collect(Collectors.toList()));
-  }
-
-  @Override
-  public CompletableFuture<List<Mod>> lookupMod(String string, int maxResults) {
-    // FIXME remove
-    return CompletableFuture.completedFuture(emptyList());
+  public CompletableFuture<List<Mod>> getNewestMods(int count, int page) {
+    return findByQuery(new SearchConfig(new SortConfig(SearchableProperties.NEWEST_MOD_KEY, SortOrder.DESC), ""), page, count);
   }
 
   @NotNull
@@ -332,10 +301,10 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  @Cacheable(value = CacheNames.MOD_THUMBNAIL, unless = "#result == null")
   public Image loadThumbnail(Mod mod) {
+    //FIXME: reintroduce correct caching
     URL url = mod.getThumbnailUrl();
-    return assetService.loadAndCacheImage(url, Paths.get("mods"), () -> IdenticonUtil.createIdenticon(mod.getName()));
+    return assetService.loadAndCacheImage(url, Paths.get("mods"), () -> IdenticonUtil.createIdenticon(mod.getDisplayName()));
   }
 
   @Override
@@ -378,6 +347,28 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
+  public CompletableFuture<List<Mod>> findByQuery(SearchConfig searchConfig, int page, int count) {
+    return fafService.findModsByQuery(searchConfig, page, count);
+  }
+
+  @Override
+  @CacheEvict(CacheNames.MODS)
+  public void evictCache() {
+    // Nothing to see here
+  }
+
+  @Override
+  @Async
+  public CompletableFuture<List<Mod>> getHighestRatedUiMods(int count, int page) {
+    return fafService.findModsByQuery(new SearchConfig(new SortConfig(SearchableProperties.HIGHEST_RATED_MOD_KEY, SortOrder.DESC), "latestVersion.type==UI"), page, count);
+  }
+
+  @Override
+  public CompletableFuture<List<Mod>> getHighestRatedMods(int count, int page) {
+    return fafService.findModsByQuery(new SearchConfig(new SortConfig(SearchableProperties.HIGHEST_RATED_MOD_KEY, SortOrder.DESC), ""), page, count);
+  }
+
+  @Override
   public List<Mod> getActivatedSimAndUIMods() throws IOException {
     Map<String, Boolean> modStates = readModStates();
     return getInstalledMods().parallelStream()
@@ -389,13 +380,6 @@ public class ModServiceImpl implements ModService {
   public void overrideActivatedMods(List<Mod> mods) throws IOException {
     Map<String, Boolean> modStates = mods.parallelStream().collect(Collectors.toMap(Mod::getUid, o -> true));
     writeModStates(modStates);
-  }
-
-  private CompletableFuture<List<Mod>> getTopElements(Comparator<? super Mod> comparator, int count) {
-    return getAvailableMods().thenApply(mods -> mods.stream()
-        .sorted(comparator)
-        .limit(count)
-        .collect(Collectors.toList()));
   }
 
   private Map<String, Boolean> readModStates() throws IOException {

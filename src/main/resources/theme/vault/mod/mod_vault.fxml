@@ -5,7 +5,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
@@ -13,123 +13,94 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import java.lang.String?>
-<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="modVaultRoot" xmlns="http://javafx.com/javafx/8.0.60"
+<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="modVaultRoot" xmlns="http://javafx.com/javafx/8.0.111"
            fx:controller="com.faforever.client.mod.ModVaultController">
-   <children>
-      <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
-         <content>
-            <VBox alignment="TOP_CENTER">
-               <children>
-                   <HBox maxWidth="1.7976931348623157E308" spacing="10.0">
-                       <children>
-                           <StackPane HBox.hgrow="ALWAYS">
-                               <children>
-                                   <TextField fx:id="searchTextField" promptText="%modVault.searchPrompt"/>
-                                   <Button maxHeight="1.7976931348623157E308" mnemonicParsing="false"
-                                           onAction="#onResetButtonClicked" text="" StackPane.alignment="CENTER_RIGHT">
-                                       <padding>
-                                           <Insets left="20.0" right="20.0"/>
-                                       </padding>
-                                       <styleClass>
-                                           <String fx:value="icon"/>
-                                           <String fx:value="reset-text-field-button"/>
-                                       </styleClass>
-                                   </Button>
-                               </children>
-                           </StackPane>
-                           <Button defaultButton="true" maxHeight="1.7976931348623157E308" mnemonicParsing="false"
-                                   onAction="#onSearchModButtonClicked" styleClass="icon" text="">
-                               <padding>
-                                   <Insets left="20.0" right="20.0"/>
-                               </padding>
-                           </Button>
-                       </children>
-                       <padding>
-                           <Insets bottom="10.0" top="10.0"/>
-                       </padding>
-                   </HBox>
-                   <HBox spacing="10.0">
-                       <children>
-                           <Button mnemonicParsing="false" onAction="#onUploadModButtonClicked" text="%modVault.upload">
-                               <graphic>
-                                   <Label styleClass="icon" text=""/>
-                               </graphic>
-                           </Button>
-                           <Button mnemonicParsing="false" onAction="#onRefreshClicked" text="%refresh">
-                               <graphic>
-                                   <Label styleClass="icon" text=""/>
-                               </graphic>
-                           </Button>
-                       </children>
-                       <padding>
-                           <Insets bottom="10.0" top="10.0"/>
-                       </padding>
-                   </HBox>
-                   <GridPane fx:id="showroomGroup" vgap="10.0">
-                       <columnConstraints>
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
-                       </columnConstraints>
-                       <rowConstraints>
-                           <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                           <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                           <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                           <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                           <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                           <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                           <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                           <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                       </rowConstraints>
-                       <children>
-                           <Label styleClass="h2" text="%modVault.recommendedUidMods"/>
-                           <Button mnemonicParsing="false" onAction="#showMoreRecommendedUiMods"
-                                   styleClass="button-raised" text="%more" GridPane.columnIndex="1"/>
-                           <FlowPane fx:id="recommendedUiModsPane" hgap="10.0" maxWidth="1.7976931348623157E308"
-                                     prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
-                                     GridPane.rowIndex="1"/>
-                           <Label styleClass="h2" text="%modVault.newestMods" GridPane.rowIndex="2"/>
-                           <Button mnemonicParsing="false" onAction="#showMoreNewestMods" styleClass="button-raised"
-                                   text="%more" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-                           <FlowPane fx:id="newestModsPane" hgap="10.0" maxWidth="1.7976931348623157E308"
-                                     prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
-                                     GridPane.rowIndex="3"/>
-                           <Label styleClass="h2" text="%modVault.popularMods" GridPane.rowIndex="4"/>
-                           <Button mnemonicParsing="false" onAction="#showMorePopularMods" styleClass="button-raised"
-                                   text="%more" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
-                           <FlowPane fx:id="popularModsPane" hgap="10.0" maxWidth="1.7976931348623157E308"
-                                     prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
-                                     GridPane.rowIndex="5"/>
-                           <Label styleClass="h2" text="%modVault.mostLikedMods" GridPane.rowIndex="6"/>
-                           <Button mnemonicParsing="false" onAction="#showMoreMostLikedMods" styleClass="button-raised"
-                                   text="%more" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
-                           <FlowPane fx:id="mostLikedModsPane" hgap="10.0" maxWidth="1.7976931348623157E308"
-                                     prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
-                                     GridPane.rowIndex="7"/>
-                       </children>
-                   </GridPane>
-                   <VBox fx:id="searchResultGroup" spacing="10.0">
-                       <children>
-                           <Label styleClass="h2" text="%searchResult"/>
-                           <FlowPane fx:id="searchResultPane" hgap="10.0" vgap="10.0"/>
-                       </children>
-                  </VBox>
-                   <VBox fx:id="loadingPane" alignment="CENTER" maxHeight="1.7976931348623157E308"
-                         maxWidth="1.7976931348623157E308" spacing="10.0">
-                       <children>
-                           <Label contentDisplay="TOP" text="%modVault.loadingMods">
-                               <graphic>
-                                   <ProgressIndicator/>
-                               </graphic>
-                           </Label>
-                       </children>
-                   </VBox>
-               </children>
-                <padding>
-                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
-                </padding>
-            </VBox>
-         </content>
-      </ScrollPane>
-   </children>
+    <children>
+        <ScrollPane fx:id="scrollPane" fitToWidth="true" maxHeight="1.7976931348623157E308"
+                    maxWidth="1.7976931348623157E308">
+            <content>
+                <VBox spacing="10.0">
+                    <children>
+                        <fx:include fx:id="search" source="../search/search.fxml"/>
+                        <Separator maxWidth="1.7976931348623157E308"/>
+                        <HBox spacing="10.0">
+                            <children>
+                                <Button fx:id="backButton" mnemonicParsing="false" onAction="#onBackButtonClicked"
+                                        text="%back">
+                                    <graphic>
+                                        <Label styleClass="icon" text=""/>
+                                    </graphic>
+                                </Button>
+                                <Button mnemonicParsing="false" onAction="#onRefreshButtonClicked" text="%refresh">
+                                    <graphic>
+                                        <Label styleClass="icon" text=""/>
+                                    </graphic>
+                                </Button>
+                                <Button mnemonicParsing="false" onAction="#onUploadModButtonClicked"
+                                        text="%modVault.upload">
+                                    <graphic>
+                                        <Label styleClass="icon" text=""/>
+                                    </graphic>
+                                </Button>
+                            </children>
+                        </HBox>
+                        <GridPane fx:id="showroomGroup" vgap="10.0">
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                            </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                            </rowConstraints>
+                            <children>
+                                <Label styleClass="h2" text="%modVault.highestRatedUiMods"/>
+                                <Button mnemonicParsing="false" onAction="#showMoreHighestRatedUiMods"
+                                        styleClass="button-raised" text="%more" GridPane.columnIndex="1"/>
+                                <FlowPane fx:id="highestRatedUiPane" hgap="10.0" maxWidth="1.7976931348623157E308"
+                                          prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
+                                          GridPane.rowIndex="1"/>
+                                <Label styleClass="h2" text="%modVault.newestMods" GridPane.rowIndex="2"/>
+                                <Button mnemonicParsing="false" onAction="#showMoreNewestMods"
+                                        styleClass="button-raised"
+                                        text="%more" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                                <FlowPane fx:id="newestPane" hgap="10.0" maxWidth="1.7976931348623157E308"
+                                          prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
+                                          GridPane.rowIndex="3"/>
+                                <Label styleClass="h2" text="%modVault.highestRated" GridPane.rowIndex="6"/>
+                                <Button mnemonicParsing="false" onAction="#showMoreHighestRatedMods"
+                                        styleClass="button-raised"
+                                        text="%more" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+                                <FlowPane fx:id="highestRatedPane" hgap="10.0" maxWidth="1.7976931348623157E308"
+                                          prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
+                                          GridPane.rowIndex="7"/>
+                            </children>
+                        </GridPane>
+                        <VBox fx:id="searchResultGroup" alignment="TOP_CENTER" spacing="10.0">
+                            <children>
+                                <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%searchResult"/>
+                                <FlowPane fx:id="searchResultPane" hgap="10.0" vgap="10.0"/>
+                                <Button fx:id="moreButton" mnemonicParsing="false" onAction="#onLoadMoreButtonClicked"
+                                        text="%vault.more"/>
+                            </children>
+                        </VBox>
+                        <Label fx:id="loadingLabel" alignment="CENTER" contentDisplay="TOP"
+                               maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                               text="%modVault.loadingMods" VBox.vgrow="ALWAYS">
+                            <graphic>
+                                <ProgressIndicator/>
+                            </graphic>
+                        </Label>
+                    </children>
+                    <padding>
+                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+                    </padding>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </children>
 </StackPane>

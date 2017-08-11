@@ -1,6 +1,5 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.api.dto.ModType;
 import com.faforever.client.api.dto.ModVersion;
 import com.faforever.client.vault.review.Review;
 import com.faforever.commons.mod.MountInfo;
@@ -17,6 +16,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import lombok.Getter;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,17 +24,12 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class Mod {
-  public static final Comparator<? super Mod> TIMES_PLAYED_COMPARATOR = Comparator.comparingInt(Mod::getPlayed);
-  public static final Comparator<? super Mod> LIKES_COMPARATOR = Comparator.comparingInt(Mod::getLikes);
-  public static final Comparator<? super Mod> PUBLISH_DATE_COMPARATOR = Comparator.comparing(Mod::getPublishDate);
-  public static final Comparator<? super Mod> DOWNLOADS_COMPARATOR = Comparator.comparingInt(Mod::getDownloads);
-
-  private final StringProperty name;
+  private final StringProperty displayName;
   private final ObjectProperty<Path> imagePath;
   /**
    * Entity ID as provided by the API (DB primary key).
@@ -45,36 +40,39 @@ public class Mod {
    */
   private final StringProperty uid;
   private final StringProperty description;
-  private final StringProperty author;
+  private final StringProperty uploader;
   private final BooleanProperty selectable;
-  private final BooleanProperty uiOnly;
   private final ObjectProperty<ComparableVersion> version;
   private final ObjectProperty<URL> thumbnailUrl;
   private final ListProperty<String> comments;
   private final BooleanProperty selected;
   private final IntegerProperty likes;
   private final IntegerProperty played;
-  private final ObjectProperty<LocalDateTime> publishDate;
+  private final ObjectProperty<LocalDateTime> createTime;
+  private final ObjectProperty<LocalDateTime> updateTime;
   private final IntegerProperty downloads;
   private final ObjectProperty<URL> downloadUrl;
   private final ListProperty<MountInfo> mountPoints;
   private final ListProperty<String> hookDirectories;
   private final ListProperty<Review> reviews;
+  private final ObjectProperty<ReviewsSummary> reviewsSummary;
+  private final ObjectProperty<ModType> modType;
 
   public Mod() {
-    name = new SimpleStringProperty();
+    displayName = new SimpleStringProperty();
     imagePath = new SimpleObjectProperty<>();
     id = new SimpleStringProperty();
     uid = new SimpleStringProperty();
     description = new SimpleStringProperty();
-    author = new SimpleStringProperty();
+    uploader = new SimpleStringProperty();
     selectable = new SimpleBooleanProperty();
-    uiOnly = new SimpleBooleanProperty();
     version = new SimpleObjectProperty<>();
     selected = new SimpleBooleanProperty();
     likes = new SimpleIntegerProperty();
     played = new SimpleIntegerProperty();
-    publishDate = new SimpleObjectProperty<>();
+    createTime = new SimpleObjectProperty<>();
+    updateTime = new SimpleObjectProperty<>();
+    reviewsSummary = new SimpleObjectProperty<>();
     downloads = new SimpleIntegerProperty();
     thumbnailUrl = new SimpleObjectProperty<>();
     comments = new SimpleListProperty<>(FXCollections.observableArrayList());
@@ -83,6 +81,7 @@ public class Mod {
     hookDirectories = new SimpleListProperty<>(FXCollections.observableArrayList());
     reviews = new SimpleListProperty<>(FXCollections.observableArrayList(param
         -> new Observable[]{param.scoreProperty(), param.textProperty()}));
+    modType = new SimpleObjectProperty<>();
   }
 
   /**
@@ -91,12 +90,12 @@ public class Mod {
   static Mod fromModInfo(com.faforever.commons.mod.Mod modInfo, Path basePath) {
     Mod mod = new Mod();
     mod.setUid(modInfo.getUid());
-    mod.setName(modInfo.getName());
+    mod.setDisplayName(modInfo.getName());
     mod.setDescription(modInfo.getDescription());
-    mod.setAuthor(modInfo.getAuthor());
+    mod.setUploader(modInfo.getAuthor());
     mod.setVersion(modInfo.getVersion());
     mod.setSelectable(modInfo.isSelectable());
-    mod.setUiOnly(modInfo.isUiOnly());
+    mod.setModType(modInfo.isUiOnly() ? ModType.UI : ModType.SIM);
     mod.getMountInfos().setAll(modInfo.getMountInfos());
     mod.getHookDirectories().setAll(modInfo.getHookDirectories());
     Optional.ofNullable(modInfo.getIcon())
@@ -110,13 +109,12 @@ public class Mod {
     ModVersion modVersion = mod.getLatestVersion();
 
     Mod modInfoBean = new Mod();
-    modInfoBean.setUiOnly(modVersion.getType() == ModType.UI);
-    modInfoBean.setName(mod.getDisplayName());
-    modInfoBean.setAuthor(mod.getAuthor());
+    modInfoBean.setDisplayName(mod.getDisplayName());
+    modInfoBean.setUploader(mod.getAuthor());
     modInfoBean.setVersion(new ComparableVersion(String.valueOf(modVersion.getVersion())));
 //    modInfoBean.setLikes(modVersion.getLikes());
 //    modInfoBean.setPlayed(mod.getPlayed());
-    modInfoBean.setPublishDate(modVersion.getCreateTime().toLocalDateTime());
+    modInfoBean.setCreateTime(modVersion.getCreateTime().toLocalDateTime());
     modInfoBean.setDescription(modVersion.getDescription());
     modInfoBean.setId(modVersion.getId());
     modInfoBean.setUid(modVersion.getUid());
@@ -124,6 +122,10 @@ public class Mod {
     modInfoBean.setThumbnailUrl(modVersion.getThumbnailUrl());
 //    modInfoBean.getComments().setAll(mod.getComments());
     modInfoBean.setDownloadUrl(modVersion.getDownloadUrl());
+    modInfoBean.setReviewsSummary(ReviewsSummary.fromDto(modVersion.getModVersionReviewsSummary()));
+    if (mod.getUpdateTime() != null) {
+      mod.setUpdateTime(mod.getUpdateTime());
+    }
     return modInfoBean;
   }
 
@@ -151,16 +153,34 @@ public class Mod {
     return selected;
   }
 
-  public String getAuthor() {
-    return author.get();
+  public static Mod fromModDto(com.faforever.client.api.dto.Mod dto) {
+    ModVersion modVersion = dto.getLatestVersion();
+
+    Mod mod = new Mod();
+    Optional.ofNullable(dto.getUploader()).ifPresent(uploader -> mod.setUploader(uploader.getLogin()));
+    mod.setDescription(modVersion.getDescription());
+    mod.setDisplayName(dto.getDisplayName());
+    mod.setId(modVersion.getId());
+    mod.setVersion(modVersion.getVersion());
+    mod.setDownloadUrl(modVersion.getDownloadUrl());
+    mod.setThumbnailUrl(modVersion.getThumbnailUrl());
+    mod.setCreateTime(modVersion.getCreateTime().toLocalDateTime());
+    mod.getReviews().setAll(
+        dto.getVersions().stream()
+            .filter(v -> v.getReviews() != null)
+            .flatMap(v -> v.getReviews().parallelStream())
+            .map(Review::fromDto)
+            .collect(Collectors.toList()));
+    mod.setModType(ModType.fromDto(modVersion.getType()));
+    return mod;
   }
 
-  public void setAuthor(String author) {
-    this.author.set(author);
+  public String getUploader() {
+    return uploader.get();
   }
 
-  public StringProperty authorProperty() {
-    return author;
+  public void setUploader(String uploader) {
+    this.uploader.set(uploader);
   }
 
   public boolean getSelectable() {
@@ -173,18 +193,6 @@ public class Mod {
 
   public BooleanProperty selectableProperty() {
     return selectable;
-  }
-
-  public boolean getUiOnly() {
-    return uiOnly.get();
-  }
-
-  public void setUiOnly(boolean uiOnly) {
-    this.uiOnly.set(uiOnly);
-  }
-
-  public BooleanProperty uiOnlyProperty() {
-    return uiOnly;
   }
 
   public String getDescription() {
@@ -223,16 +231,16 @@ public class Mod {
     return imagePath;
   }
 
-  public String getName() {
-    return name.get();
+  public StringProperty uploaderProperty() {
+    return uploader;
   }
 
-  public void setName(String name) {
-    this.name.set(name);
+  public String getDisplayName() {
+    return displayName.get();
   }
 
-  public StringProperty nameProperty() {
-    return name;
+  public void setDisplayName(String displayName) {
+    this.displayName.set(displayName);
   }
 
   /**
@@ -275,16 +283,16 @@ public class Mod {
     return played;
   }
 
-  public LocalDateTime getPublishDate() {
-    return publishDate.get();
+  public StringProperty displayNameProperty() {
+    return displayName;
   }
 
-  public void setPublishDate(LocalDateTime publishDate) {
-    this.publishDate.set(publishDate);
+  public LocalDateTime getCreateTime() {
+    return createTime.get();
   }
 
-  public ObjectProperty<LocalDateTime> publishDateProperty() {
-    return publishDate;
+  public void setCreateTime(LocalDateTime createTime) {
+    this.createTime.set(createTime);
   }
 
   public int getDownloads() {
@@ -322,6 +330,9 @@ public class Mod {
 
   @Override
   public boolean equals(Object o) {
+    if (o instanceof Mod && ((Mod) o).getUid() != null && getUid() != null) {
+      return ((Mod) o).getUid().equals(this.getUid());
+    }
     if (this == o) {
       return true;
     }
@@ -370,5 +381,61 @@ public class Mod {
 
   public StringProperty uidProperty() {
     return uid;
+  }
+
+  public ObjectProperty<LocalDateTime> createTimeProperty() {
+    return createTime;
+  }
+
+  public LocalDateTime getUpdateTime() {
+    return updateTime.get();
+  }
+
+  public void setUpdateTime(LocalDateTime updateTime) {
+    this.updateTime.set(updateTime);
+  }
+
+  public ObjectProperty<LocalDateTime> updateTimeProperty() {
+    return updateTime;
+  }
+
+  public ReviewsSummary getReviewsSummary() {
+    return reviewsSummary.get();
+  }
+
+  public void setReviewsSummary(ReviewsSummary reviewsSummary) {
+    this.reviewsSummary.set(reviewsSummary);
+  }
+
+  public ObjectProperty<ReviewsSummary> reviewsSummaryProperty() {
+    return reviewsSummary;
+  }
+
+  public ModType getModType() {
+    return modType.get();
+  }
+
+  public void setModType(ModType modType) {
+    this.modType.set(modType);
+  }
+
+  public ObjectProperty<ModType> modTypeProperty() {
+    return modType;
+  }
+
+  public enum ModType {
+    UI("modType.ui"),
+    SIM("modType.sim");
+
+    @Getter
+    private final String i18nKey;
+
+    ModType(String i18nKey) {
+      this.i18nKey = i18nKey;
+    }
+
+    public static ModType fromDto(com.faforever.client.api.dto.ModType modType) {
+      return modType == com.faforever.client.api.dto.ModType.UI ? UI : SIM;
+    }
   }
 }

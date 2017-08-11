@@ -35,6 +35,7 @@ import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.replay.Replay;
 import com.faforever.client.vault.review.Review;
+import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.io.ByteCountListener;
 import com.google.common.eventbus.EventBus;
@@ -184,7 +185,7 @@ public class FafServiceImpl implements FafService {
 
   @Override
   @Async
-  public CompletableFuture<List<MapBean>> getMostLikedMaps(int count, int page) {
+  public CompletableFuture<List<MapBean>> getHighestRatedMaps(int count, int page) {
     return CompletableFuture.completedFuture(fafApiAccessor.getHighestRatedMaps(count, page).stream()
         .map(MapBean::fromMapDto)
         .collect(toList()));
@@ -290,15 +291,6 @@ public class FafServiceImpl implements FafService {
   @Async
   public CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount, int page) {
     return CompletableFuture.completedFuture(fafApiAccessor.getHighestRatedReplays(topElementCount, page)
-        .parallelStream()
-        .map(Replay::fromDto)
-        .collect(toList()));
-  }
-
-  @Override
-  @Async
-  public CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount, int page) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getMostWatchedReplays(topElementCount, page)
         .parallelStream()
         .map(Replay::fromDto)
         .collect(toList()));
@@ -458,6 +450,15 @@ public class FafServiceImpl implements FafService {
   public CompletableFuture<Optional<Replay>> findReplayById(int id) {
     return CompletableFuture.completedFuture(fafApiAccessor.findReplayById(id)
         .map(Replay::fromDto));
+  }
+
+  @Async
+  @Override
+  public CompletableFuture<List<Mod>> findModsByQuery(SearchConfig query, int page, int count) {
+    return CompletableFuture.completedFuture(fafApiAccessor.findModsByQuery(query, page, count)
+        .parallelStream()
+        .map(Mod::fromModDto)
+        .collect(toList()));
   }
 
   @Override

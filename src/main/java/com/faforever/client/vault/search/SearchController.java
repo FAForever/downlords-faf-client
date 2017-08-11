@@ -248,7 +248,7 @@ public class SearchController implements Controller<Pane> {
     private String sortProperty;
     private SortOrder sortOrder;
 
-    public String toQuerry() {
+    public String toQuery() {
       return sortOrder.getQuery() + sortProperty;
     }
   }
@@ -257,6 +257,10 @@ public class SearchController implements Controller<Pane> {
   @AllArgsConstructor
   public static class SearchConfig {
     private SortConfig sortConfig;
-    private String searchQuerry;
+    private String searchQuery;
+
+    public boolean hasQuery() {
+      return searchQuery != null && !searchQuery.isEmpty();
+    }
   }
 }

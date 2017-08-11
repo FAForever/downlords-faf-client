@@ -2,6 +2,7 @@ package com.faforever.client.mod;
 
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.mod.Mod.ModType;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
@@ -41,9 +42,9 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.contains;
@@ -291,31 +292,31 @@ public class ModServiceImplTest {
     instance.loadInstalledMods();
 
     ArrayList<Mod> installedMods = new ArrayList<>(instance.getInstalledMods());
-    installedMods.sort(Comparator.comparing(Mod::getName));
+    installedMods.sort(Comparator.comparing(Mod::getDisplayName));
 
     Mod mod = installedMods.get(0);
 
-    assertThat(mod.getName(), is("BlackOps Global Icon Support Mod"));
+    assertThat(mod.getDisplayName(), is("BlackOps Global Icon Support Mod"));
     assertThat(mod.getVersion(), is(new ComparableVersion("5")));
-    assertThat(mod.getAuthor(), is("Exavier Macbeth, DeadMG"));
+    assertThat(mod.getUploader(), is("Exavier Macbeth, DeadMG"));
     assertThat(mod.getDescription(), is("Version 5.0. This mod provides global icon support for any mod that places their icons in the proper folder structure. See Readme"));
     assertThat(mod.getImagePath(), nullValue());
     assertThat(mod.getSelectable(), is(true));
     assertThat(mod.getId(), is(nullValue()));
     assertThat(mod.getUid(), is("9e8ea941-c306-4751-b367-f00000000005"));
-    assertThat(mod.getUiOnly(), is(false));
+    assertThat(mod.getModType(), equalTo(ModType.SIM));
 
     mod = installedMods.get(1);
 
-    assertThat(mod.getName(), is("BlackOps Unleashed"));
+    assertThat(mod.getDisplayName(), is("BlackOps Unleashed"));
     assertThat(mod.getVersion(), is(new ComparableVersion("8")));
-    assertThat(mod.getAuthor(), is("Lt_hawkeye"));
+    assertThat(mod.getUploader(), is("Lt_hawkeye"));
     assertThat(mod.getDescription(), is("Version 5.2. BlackOps Unleased Unitpack contains several new units and game changes. Have fun"));
     assertThat(mod.getImagePath(), is(modsDirectory.getRoot().toPath().resolve("BlackOpsUnleashed/icons/yoda_icon.bmp")));
     assertThat(mod.getSelectable(), is(true));
     assertThat(mod.getId(), is(nullValue()));
     assertThat(mod.getUid(), is("9e8ea941-c306-4751-b367-a11000000502"));
-    assertThat(mod.getUiOnly(), is(false));
+    assertThat(mod.getModType(), equalTo(ModType.SIM));
     assertThat(mod.getMountInfos(), hasSize(10));
     assertThat(mod.getMountInfos().get(3).getFile(), is(Paths.get("effects")));
     assertThat(mod.getMountInfos().get(3).getMountPoint(), is("/effects"));
@@ -323,15 +324,15 @@ public class ModServiceImplTest {
 
     mod = installedMods.get(2);
 
-    assertThat(mod.getName(), is("EcoManager"));
+    assertThat(mod.getDisplayName(), is("EcoManager"));
     assertThat(mod.getVersion(), is(new ComparableVersion("3")));
-    assertThat(mod.getAuthor(), is("Crotalus"));
+    assertThat(mod.getUploader(), is("Crotalus"));
     assertThat(mod.getDescription(), is("EcoManager v3, more efficient energy throttling"));
     assertThat(mod.getImagePath(), nullValue());
     assertThat(mod.getSelectable(), is(true));
     assertThat(mod.getId(), is(nullValue()));
     assertThat(mod.getUid(), is("b2cde810-15d0-4bfa-af66-ec2d6ecd561b"));
-    assertThat(mod.getUiOnly(), is(true));
+    assertThat(mod.getModType(), equalTo(ModType.UI));
   }
 
   @Test
@@ -400,28 +401,6 @@ public class ModServiceImplTest {
         .get();
     instance.loadThumbnail(mod);
     verify(assetService).loadAndCacheImage(eq(mod.getThumbnailUrl()), eq(Paths.get("mods")), any());
-  }
-
-  @Test
-  public void testGetAvailableMods() throws Exception {
-    when(fafService.getMods()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
-        ModInfoBeanBuilder.create().defaultValues().uid("1").get(),
-        ModInfoBeanBuilder.create().defaultValues().uid("2").get()
-    )));
-    List<Mod> modInfoBeen = instance.getAvailableMods().toCompletableFuture().get();
-    assertThat(modInfoBeen, hasSize(2));
-  }
-
-  @Test
-  public void testGetMostLikedUiMods() throws Exception {
-    when(fafService.getMods()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
-        ModInfoBeanBuilder.create().defaultValues().uid("1").uiMod(true).get(),
-        ModInfoBeanBuilder.create().defaultValues().uid("2").uiMod(false).get(),
-        ModInfoBeanBuilder.create().defaultValues().uid("3").uiMod(true).get()
-    )));
-    List<Mod> mods = instance.getMostLikedUiMods(1).toCompletableFuture().get();
-    assertThat(mods, hasSize(1));
-    assertThat(mods.get(0).getUid(), is("1"));
   }
 
   private InstallModTask stubInstallModTask() {

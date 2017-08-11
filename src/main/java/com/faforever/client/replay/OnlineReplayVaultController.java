@@ -168,7 +168,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
 
   private void onSearch(SearchConfig searchConfig) {
     enterSearchingState();
-    displayReplaysFromSupplier(() -> replayService.findByQuery(searchConfig.getSearchQuerry(), MAX_SEARCH_RESULTS, currentPage++, searchConfig.getSortConfig()));
+    displayReplaysFromSupplier(() -> replayService.findByQuery(searchConfig.getSearchQuery(), MAX_SEARCH_RESULTS, currentPage++, searchConfig.getSortConfig()));
   }
 
   private void displaySearchResult(List<Replay> replays) {
@@ -188,7 +188,6 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     replayService.getNewestReplays(TOP_ELEMENT_COUNT, 1)
         .thenAccept(replays -> populateReplays(replays, newestPane))
         .thenCompose(aVoid -> replayService.getHighestRatedReplays(TOP_ELEMENT_COUNT, 1).thenAccept(modInfoBeans -> populateReplays(modInfoBeans, highestRatedPane)))
-        .thenCompose(aVoid -> replayService.getMostWatchedReplays(TOP_ELEMENT_COUNT, 1).thenAccept(modInfoBeans -> populateReplays(modInfoBeans, mostWatchedPane)))
         .thenRun(this::enterShowroomState)
         .exceptionally(throwable -> {
           logger.warn("Could not populate replays", throwable);
@@ -204,11 +203,6 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   public void onMoreHighestRatedButtonClicked() {
     enterSearchingState();
     displayReplaysFromSupplier(() -> replayService.getHighestRatedReplays(TOP_MORE_ELEMENT_COUNT, currentPage++));
-  }
-
-  public void onMoreMostWatchedButtonClicked() {
-    enterSearchingState();
-    displayReplaysFromSupplier(() -> replayService.getMostWatchedReplays(TOP_MORE_ELEMENT_COUNT, currentPage++));
   }
 
   public void onLoadMoreButtonClicked(ActionEvent actionEvent) {

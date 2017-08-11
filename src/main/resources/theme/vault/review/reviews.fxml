@@ -34,7 +34,7 @@
         </AnchorPane>
         <Button fx:id="createReviewButton" graphicTextGap="10.0" mnemonicParsing="false"
                 onAction="#onCreateReviewButtonClicked" text="%reviews.create" GridPane.columnIndex="1"
-                GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="BOTTOM">
+                GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="BOTTOM" prefWidth="-Infinity">
             <graphic>
                 <Label styleClass="icon" text=""/>
             </graphic>

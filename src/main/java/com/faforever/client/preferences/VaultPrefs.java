@@ -8,10 +8,13 @@ import javafx.beans.property.SimpleObjectProperty;
 public class VaultPrefs {
   private final ObjectProperty<SortConfig> onlineReplaySortConfig;
   private final ObjectProperty<SortConfig> mapSortConfig;
+  private final ObjectProperty<SortConfig> modVaultConfig;
+
 
   public VaultPrefs() {
     onlineReplaySortConfig = new SimpleObjectProperty<>(new SortConfig("startTime", SortOrder.DESC));
     mapSortConfig = new SimpleObjectProperty<>(new SortConfig("latestVersion.createTime", SortOrder.DESC));
+    modVaultConfig = new SimpleObjectProperty<>(new SortConfig("latestVersion.createTime", SortOrder.DESC));
   }
 
   public SortConfig getOnlineReplaySortConfig() {
@@ -38,4 +41,15 @@ public class VaultPrefs {
     return mapSortConfig;
   }
 
+  public SortConfig getModVaultConfig() {
+    return modVaultConfig.get();
+  }
+
+  public void setModVaultConfig(SortConfig modVaultConfig) {
+    this.modVaultConfig.set(modVaultConfig);
+  }
+
+  public ObjectProperty<SortConfig> modVaultConfigProperty() {
+    return modVaultConfig;
+  }
 }

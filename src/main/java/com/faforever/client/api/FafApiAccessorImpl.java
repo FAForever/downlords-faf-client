@@ -28,6 +28,7 @@ import com.faforever.client.io.CountingFileSystemResource;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
+import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.io.ByteCountListener;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
@@ -37,6 +38,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.Cacheable;
@@ -68,14 +70,15 @@ import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @Profile("!offline")
 public class FafApiAccessorImpl implements FafApiAccessor {
 
   private static final String MAP_ENDPOINT = "/data/map";
-  private static final String REPLAY_INCLUDES = "featuredMod,playerStats,playerStats.player,reviews,reviews.player,mapVersion,mapVersion.map,mapVersion.reviews";
+  private static final String REPLAY_INCLUDES = "featuredMod,playerStats,playerStats.player,reviews,reviews.player,mapVersion,mapVersion.map,mapVersion.reviews,reviewsSummary";
   private static final String PLAYER_INCLUDES = "globalRating,ladder1v1Rating,names";
-
+  private static final String MOD_ENDPOINT = "/data/mod";
   private final EventBus eventBus;
   private final RestTemplateBuilder restTemplateBuilder;
   private final ClientProperties clientProperties;
@@ -159,7 +162,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Cacheable(CacheNames.MODS)
   public List<Mod> getMods() {
     return getAll("/data/mod", ImmutableMap.of(
-        "include", "latestVersion"));
+        "include", "latestVersion,latestVersion.reviewsSummary"));
   }
 
   @Override
@@ -220,21 +223,17 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Cacheable(CacheNames.MAPS)
   public List<Map> getMostPlayedMaps(int count, int page) {
     return this.<MapStatistics>getPage("/data/mapStatistics", count, page, ImmutableMap.of(
-        "include", "map,map.latestVersion,map.author,map.versions.reviews",
+        "include", "map,map.latestVersion,map.author,map.versions.reviews,map.versions.reviews.player",
         "sort", "-plays")).stream()
         .map(MapStatistics::getMap)
         .collect(Collectors.toList());
   }
 
   @Override
-  @Cacheable(CacheNames.MAPS)
   public List<Map> getHighestRatedMaps(int count, int page) {
-    // FIXME https://github.com/FAForever/downlords-faf-client/issues/547
-    // In order to be able to sort by rating, the database and API need to be extended
-    // I (Downlord) already started the DB part locally
     return this.<MapStatistics>getPage("/data/mapStatistics", count, page, ImmutableMap.of(
-        "include", "map,map.latestVersion,map.author,map.versions.reviews",
-        "sort", "-plays")).stream()
+        "include", "map,map.latestVersion,map.author,map.versions.reviews,map.versions.reviews.player,map.latestVersion.reviewsSummary",
+        "sort", "-map.latestVersion.reviewsSummary.lowerBound")).stream()
         .map(MapStatistics::getMap)
         .collect(Collectors.toList());
   }
@@ -242,7 +241,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   public List<Map> getNewestMaps(int count, int page) {
     return getPage(MAP_ENDPOINT, count, page, ImmutableMap.of(
-        "include", "latestVersion,author,versions.reviews",
+        "include", "latestVersion,author,versions.reviews,versions.reviews.player",
         "sort", "-updateTime"));
   }
 
@@ -285,7 +284,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   public Mod getMod(String uid) {
     List<ModVersion> answer = getMany("/data/modVersion/", 1, ImmutableMap.of(
         "filter", rsql(qBuilder().string("uid").eq(uid)),
-        "include", "mod,mod.latestVersion"));
+        "include", "mod,mod.latestVersion,latestVersion.reviewsSummary"));
     return answer.get(0).getMod();
   }
 
@@ -308,14 +307,11 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @Override
   public List<Game> getHighestRatedReplays(int count, int page) {
-    // FIXME implement once supported by API
-    return Collections.emptyList();
-  }
-
-  @Override
-  public List<Game> getMostWatchedReplays(int count, int page) {
-    // FIXME implement once supported by API
-    return Collections.emptyList();
+    return getPage("/data/game", count, page, ImmutableMap.of(
+        "sort", "-reviewsSummary.lowerBound",
+        "include", REPLAY_INCLUDES,
+        "filter", "endTime=isnull=false"
+    ));
   }
 
   @Override
@@ -323,7 +319,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     return getPage("/data/game", maxResults, page, ImmutableMap.of(
         "filter", "(" + query + ");endTime=isnull=false",
         "include", REPLAY_INCLUDES,
-        "sort", sortConfig.toQuerry()
+        "sort", sortConfig.toQuery()
     ));
   }
 
@@ -389,6 +385,17 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
+  public List<Mod> findModsByQuery(SearchConfig searchConfig, int page, int count) {
+    MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
+    if (searchConfig.hasQuery()) {
+      parameterMap.add("filter", searchConfig.getSearchQuery());
+    }
+    parameterMap.add("include", "latestVersion,latestVersion.reviews,latestVersion.reviews.player,latestVersion.reviewsSummary");
+    parameterMap.add("sort", searchConfig.getSortConfig().toQuery());
+    return getPage(MOD_ENDPOINT, count, page, parameterMap);
+  }
+
+  @Override
   public void deleteModVersionReview(String id) {
     delete("/data/modVersionReview/" + id);
   }
@@ -414,8 +421,8 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   public List<Map> findMapsByQuery(String query, int page, int maxResults, SortConfig sortConfig) {
     return getPage(MAP_ENDPOINT, maxResults, page, ImmutableMap.of(
         "filter", query,
-        "include", "latestVersion,latestVersion.reviews,author,statistics",
-        "sort", sortConfig.toQuerry()
+        "include", "latestVersion,latestVersion.reviews,latestVersion.reviews.player,author,statistics",
+        "sort", sortConfig.toQuery()
     ));
   }
 

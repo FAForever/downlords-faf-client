@@ -4,6 +4,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="modTileRoot" hgap="10.0" onMouseClicked="#onShowModDetail"
           prefWidth="200.0" styleClass="card,pointable" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.60"
@@ -20,23 +21,25 @@
       <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
   </rowConstraints>
   <children>
-      <ImageView fx:id="thumbnailImageView" fitHeight="128.0" fitWidth="128.0"
-                 pickOnBounds="true" preserveRatio="true" GridPane.columnSpan="2" GridPane.halignment="CENTER"/>
-      <Label fx:id="nameLabel" text="Label" GridPane.columnSpan="2147483647"
-             GridPane.rowIndex="1"/>
-      <Label fx:id="authorLabel" styleClass="secondary" text="Label" GridPane.columnSpan="2147483647"
-             GridPane.rowIndex="2"/>
-    <Label fx:id="commentsLabel" text="1" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
-      <graphic>
-          <Label styleClass="icon" text=""/>
-      </graphic>
-    </Label>
-    <Label fx:id="likesLabel" text="1" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
-      <graphic>
-          <Label styleClass="icon" text=""/>
-      </graphic>
-    </Label>
-      <Label text="%map.updated" GridPane.rowIndex="4"/>
-      <Label fx:id="updatedDateLabel" text="&lt;Updated&gt;" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+      <ImageView fx:id="thumbnailImageView" fitHeight="128.0" fitWidth="128.0" pickOnBounds="true" preserveRatio="true"
+                 GridPane.columnSpan="2147483647" GridPane.halignment="CENTER"/>
+      <Label fx:id="nameLabel" alignment="TOP_LEFT" maxWidth="1.7976931348623157E308"
+             text="Long text to test whether it's being wrapped" wrapText="true" GridPane.columnSpan="2147483647"
+             GridPane.rowIndex="1" GridPane.valignment="TOP"/>
+      <Label fx:id="authorLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="secondary" text="Label"
+             wrapText="true" GridPane.columnSpan="2147483647" GridPane.rowIndex="2" GridPane.valignment="TOP"/>
+      <Label fx:id="numberOfReviewsLabel" text="12345" GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
+             GridPane.halignment="RIGHT" GridPane.rowIndex="3">
+          <graphic>
+              <HBox styleClass="small-stars">
+                  <children>
+                      <fx:include fx:id="stars" source="../review/stars.fxml"/>
+                  </children>
+              </HBox>
+          </graphic>
+      </Label>
+      <Label fx:id="typeLabel" text="Type" GridPane.rowIndex="3"/>
+      <Label text="%map.created" GridPane.rowIndex="4"/>
+      <Label fx:id="createdLabel" text="&lt;Updated&gt;" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
   </children>
 </GridPane>

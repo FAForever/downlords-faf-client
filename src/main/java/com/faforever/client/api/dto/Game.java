@@ -38,4 +38,7 @@ public class Game {
 
   @Relationship("mapVersion")
   private MapVersion mapVersion;
+
+  @Relationship("reviewsSummary")
+  private GameReviewsSummary gameReviewsSummary;
 }

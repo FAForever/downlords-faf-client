@@ -182,7 +182,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.asyncFx(() -> instance.onCloseButtonClicked());
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertThat(instance.modDetailRoot.getParent(), is(nullValue()));
+    assertThat(instance.modDetailRoot.isVisible(), is(false));
   }
 
   @Test

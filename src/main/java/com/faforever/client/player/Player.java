@@ -158,7 +158,8 @@ public class Player {
   public boolean equals(Object obj) {
     return obj != null
         && (obj.getClass() == Player.class)
-        && getUsername().equalsIgnoreCase(((Player) obj).getUsername());
+        && (getId() == ((Player) obj).getId() && getId() != 0 ||
+        getUsername().equalsIgnoreCase(((Player) obj).getUsername()));
   }
 
   public String getUsername() {

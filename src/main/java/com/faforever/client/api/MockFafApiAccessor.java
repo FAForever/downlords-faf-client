@@ -16,11 +16,14 @@ import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
 import com.faforever.client.api.dto.Mod;
+import com.faforever.client.api.dto.ModVersion;
 import com.faforever.client.api.dto.ModVersionReview;
+import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.mod.FeaturedMod;
+import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.io.ByteCountListener;
 import org.springframework.context.annotation.Lazy;
@@ -72,16 +75,21 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public List<Mod> getMods() {
+    Player uploader = new Player();
     return Arrays.asList(
-        new com.faforever.client.api.dto.Mod("1-1-1", "Mod Number One", "Mock", OffsetDateTime.now()),
-        new com.faforever.client.api.dto.Mod("2-2-2", "Mod Number Two", "Mock", OffsetDateTime.now()),
-        new com.faforever.client.api.dto.Mod("3-3-3", "Mod Number Three", "Mock", OffsetDateTime.now()),
-        new com.faforever.client.api.dto.Mod("4-4-4", "Mod Number Four", "Mock", OffsetDateTime.now()),
-        new com.faforever.client.api.dto.Mod("5-5-5", "Mod Number Five", "Mock", OffsetDateTime.now()),
-        new com.faforever.client.api.dto.Mod("6-6-6", "Mod Number Six", "Mock", OffsetDateTime.now()),
-        new com.faforever.client.api.dto.Mod("7-7-7", "Mod Number Seven", "Mock", OffsetDateTime.now()),
-        new com.faforever.client.api.dto.Mod("8-8-8", "Mod Number Eight", "Mock", OffsetDateTime.now())
+        new com.faforever.client.api.dto.Mod("1-1-1", "Mod Number One", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, Collections.emptyList(), mod()),
+        new com.faforever.client.api.dto.Mod("2-2-2", "Mod Number Two", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, Collections.emptyList(), mod()),
+        new com.faforever.client.api.dto.Mod("3-3-3", "Mod Number Three", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, Collections.emptyList(), mod()),
+        new com.faforever.client.api.dto.Mod("4-4-4", "Mod Number Four", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, Collections.emptyList(), mod()),
+        new com.faforever.client.api.dto.Mod("5-5-5", "Mod Number Five", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, Collections.emptyList(), mod()),
+        new com.faforever.client.api.dto.Mod("6-6-6", "Mod Number Six", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, Collections.emptyList(), mod()),
+        new com.faforever.client.api.dto.Mod("7-7-7", "Mod Number Seven", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, Collections.emptyList(), mod()),
+        new com.faforever.client.api.dto.Mod("8-8-8", "Mod Number Eight", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, Collections.emptyList(), mod())
     );
+  }
+
+  private ModVersion mod() {
+    return new ModVersion();
   }
 
   @Override
@@ -171,11 +179,6 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<Game> getMostWatchedReplays(int count, int page) {
-    return Collections.emptyList();
-  }
-
-  @Override
   public List<Game> findReplaysByQuery(String query, int maxResults, int page, SortConfig sortConfig) {
     return Collections.emptyList();
   }
@@ -192,7 +195,6 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public GameReview createGameReview(GameReview review) {
-
     return null;
   }
 
@@ -253,7 +255,12 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public Optional<Game> findReplayById(int id) {
-    return null;
+    return Optional.empty();
+  }
+
+  @Override
+  public List<Mod> findModsByQuery(SearchConfig query, int page, int maxResults) {
+    return Collections.emptyList();
   }
 
   @Override

@@ -30,8 +30,6 @@ public interface ReplayService {
 
   CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount, int page);
 
-  CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount, int page);
-
   CompletableFuture<List<Replay>> findByQuery(String condition, int maxResults, int page, SortConfig sortConfig);
 
   CompletableFuture<Optional<Replay>> findById(int id);
