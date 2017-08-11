@@ -38,7 +38,7 @@ public class UninstallModTask extends CompletableTask<Void> {
   protected Void call() throws Exception {
     Objects.requireNonNull(mod, "mod has not been set");
 
-    logger.info("Uninstalling mod '{}' ({})", mod.getName(), mod.getUid());
+    logger.info("Uninstalling mod '{}' ({})", mod.getDisplayName(), mod.getUid());
     Path modPath = modService.getPathForMod(mod);
 
     FileUtils.deleteRecursively(modPath);

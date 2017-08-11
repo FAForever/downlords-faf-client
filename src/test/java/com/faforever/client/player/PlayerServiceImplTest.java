@@ -150,7 +150,6 @@ public class PlayerServiceImplTest {
     verify(fafService).addFriend(player1);
 
     instance.addFriend(player2);
-    verify(fafService).addFriend(player1);
     verify(fafService).addFriend(player2);
 
     instance.removeFriend(player1);

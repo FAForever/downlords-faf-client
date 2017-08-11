@@ -62,12 +62,6 @@
                                         GridPane.rowIndex="2"/>
                                 <VBox fx:id="highestRatedPane" spacing="10.0" GridPane.columnSpan="2147483647"
                                       GridPane.rowIndex="3"/>
-                                <Label styleClass="h2" text="%vault.replays.mostWatched" GridPane.rowIndex="4"/>
-                                <Button mnemonicParsing="false" onAction="#onMoreMostWatchedButtonClicked"
-                                        styleClass="button-raised" text="%more" GridPane.columnIndex="1"
-                                        GridPane.rowIndex="4"/>
-                                <VBox fx:id="mostWatchedPane" spacing="10.0" GridPane.columnSpan="2147483647"
-                                      GridPane.rowIndex="5"/>
                             </children>
                         </GridPane>
                         <VBox fx:id="searchResultGroup" spacing="10.0">

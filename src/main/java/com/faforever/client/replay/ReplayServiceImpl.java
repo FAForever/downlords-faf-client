@@ -286,11 +286,6 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount, int page) {
-    return fafService.getMostWatchedReplays(topElementCount, page);
-  }
-
-  @Override
   public CompletableFuture<List<Replay>> findByQuery(String query, int maxResults, int page, SortConfig sortConfig) {
     return fafService.findReplaysByQuery(query, maxResults, page, sortConfig);
   }

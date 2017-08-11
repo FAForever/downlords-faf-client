@@ -1,15 +1,22 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.mod.Mod.ModType;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.query.LogicalNodeController;
+import com.faforever.client.query.SpecificationController;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.vault.search.SearchController;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.Observable;
 import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,8 +26,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;
@@ -43,10 +50,20 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
   @Mock
   private PreferencesService preferencesService;
+  @Mock
+  private NotificationService notificationService;
+  @Mock
+  private LogicalNodeController logicalNodeController;
+  @Mock
+  private SearchController searchController;
+  @Mock
+  private SpecificationController specificationController;
+  private ModDetailController modDetailController;
 
   @Before
   public void setUp() throws Exception {
-    instance = new ModVaultController(modService, i18n, preferencesService, eventBus, uiService);
+    when(preferencesService.getPreferences()).thenReturn(new Preferences());
+    instance = new ModVaultController(modService, i18n, eventBus, preferencesService, uiService, notificationService);
 
     doAnswer(invocation -> {
       ModCardController modCardController = mock(ModCardController.class);
@@ -54,7 +71,29 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
       return modCardController;
     }).when(uiService).loadFxml("theme/vault/mod/mod_card.fxml");
 
-    loadFxml("theme/vault/mod/mod_vault.fxml", clazz -> instance);
+    doAnswer(invocation -> {
+      modDetailController = mock(ModDetailController.class);
+      when(modDetailController.getRoot()).then(invocation1 -> new Pane());
+      return modDetailController;
+    }).when(uiService).loadFxml("theme/vault/mod/mod_detail.fxml");
+
+    Mod mod = ModInfoBeanBuilder.create().defaultValues().get();
+    when(modService.getHighestRatedMods(100, 1)).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(mod)));
+
+    when(modService.getNewestMods(100, 1)).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(mod)));
+
+    loadFxml("theme/vault/mod/mod_vault.fxml", clazz -> {
+      if (clazz == LogicalNodeController.class) {
+        return logicalNodeController;
+      }
+      if (clazz == SearchController.class) {
+        return searchController;
+      }
+      if (clazz == SpecificationController.class) {
+        return specificationController;
+      }
+      return instance;
+    });
   }
 
   @Test
@@ -72,20 +111,17 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
               .defaultValues()
               .name("Mod " + i)
               .uid(String.valueOf(i))
-              .uiMod(i < 2)
+              .modType(i < 2 ? ModType.UI : ModType.SIM)
               .get()
       );
     }
 
-    when(modService.getMostDownloadedMods(anyInt())).thenReturn(CompletableFuture.completedFuture(mods));
-    when(modService.getMostLikedUiMods(anyInt())).thenReturn(CompletableFuture.completedFuture(mods));
-    when(modService.getNewestMods(anyInt())).thenReturn(CompletableFuture.completedFuture(mods));
-    when(modService.getMostLikedMods(anyInt())).thenReturn(CompletableFuture.completedFuture(mods));
+    when(modService.getNewestMods(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(mods));
+    when(modService.getHighestRatedMods(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(mods));
 
-    CountDownLatch latch = new CountDownLatch(3);
-    waitUntilInitialized(instance.recommendedUiModsPane, latch);
-    waitUntilInitialized(instance.newestModsPane, latch);
-    waitUntilInitialized(instance.popularModsPane, latch);
+    CountDownLatch latch = new CountDownLatch(2);
+    waitUntilInitialized(instance.newestPane, latch);
+    waitUntilInitialized(instance.highestRatedPane, latch);
 
     instance.onDisplay();
 
@@ -102,54 +138,44 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testShowModDetail() throws Exception {
-    ModDetailController modDetailController = mock(ModDetailController.class);
-    when(uiService.loadFxml("theme/vault/mod/mod_detail.fxml")).thenReturn(modDetailController);
-    when(modDetailController.getRoot()).thenReturn(new Pane());
-
     Mod mod = ModInfoBeanBuilder.create().defaultValues().get();
     instance.onShowModDetail(mod);
 
     verify(modDetailController).setMod(mod);
-    assertThat(modDetailController.getRoot().getParent(), is(notNullValue()));
+    assertThat(modDetailController.getRoot().isVisible(), is(true));
   }
 
   @Test
-  public void showMoreRecommendedUiMods() throws Exception {
-    when(modService.getMostLikedUiMods(200)).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
-    instance.showMoreRecommendedUiMods();
+  public void showMoreHighestRatedMods() throws Exception {
+    when(modService.getHighestRatedMods(100, 1)).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
+    instance.showMoreHighestRatedMods();
 
-    verify(modService).getMostLikedUiMods(200);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(modService).getHighestRatedMods(100, 1);
     assertThat(instance.showroomGroup.isVisible(), is(false));
     assertThat(instance.searchResultGroup.isVisible(), is(true));
   }
 
   @Test
   public void showMoreNewestMods() throws Exception {
-    when(modService.getNewestMods(200)).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
+    when(modService.getNewestMods(100, 1)).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
     instance.showMoreNewestMods();
 
-    verify(modService).getNewestMods(200);
-    assertThat(instance.showroomGroup.isVisible(), is(false));
-    assertThat(instance.searchResultGroup.isVisible(), is(true));
-  }
+    WaitForAsyncUtils.waitForFxEvents();
 
-  @Test
-  public void showMorePopularMods() throws Exception {
-    when(modService.getMostPlayedMods(200)).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
-    instance.showMorePopularMods();
-
-    verify(modService).getMostPlayedMods(200);
-    assertThat(instance.showroomGroup.isVisible(), is(false));
-    assertThat(instance.searchResultGroup.isVisible(), is(true));
+    verify(modService).getNewestMods(100, 1);
+    assertFalse(instance.showroomGroup.isVisible());
+    assertTrue(instance.searchResultGroup.isVisible());
   }
 
   @Test
   public void showMoreMostLikedMods() throws Exception {
-    when(modService.getMostLikedMods(200)).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
-    instance.showMoreMostLikedMods();
+    instance.showMoreHighestRatedMods();
 
-    verify(modService).getMostLikedMods(200);
-    assertThat(instance.showroomGroup.isVisible(), is(false));
-    assertThat(instance.searchResultGroup.isVisible(), is(true));
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertFalse(instance.showroomGroup.isVisible());
+    assertTrue(instance.searchResultGroup.isVisible());
   }
 }

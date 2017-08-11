@@ -294,7 +294,7 @@ public class MapServiceImpl implements MapService {
 
   @Override
   public CompletableFuture<List<MapBean>> getHighestRatedMaps(int count, int page) {
-    return fafService.getMostLikedMaps(count, page);
+    return fafService.getHighestRatedMaps(count, page);
   }
 
   @Override

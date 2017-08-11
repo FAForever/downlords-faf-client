@@ -106,13 +106,11 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     List<Replay> replays = Arrays.asList(new Replay(), new Replay());
     when(replayService.getNewestReplays(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(replays));
     when(replayService.getHighestRatedReplays(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(replays));
-    when(replayService.getMostWatchedReplays(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(replays));
 
     instance.onDisplay();
 
     verify(replayService).getNewestReplays(anyInt(), eq(1));
     verify(replayService).getHighestRatedReplays(anyInt(), eq(1));
-    verify(replayService).getMostWatchedReplays(anyInt(), eq(1));
     assertThat(instance.moreButton.isVisible(), is(false));
   }
 

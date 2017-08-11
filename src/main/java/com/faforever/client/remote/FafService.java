@@ -23,6 +23,7 @@ import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.replay.Replay;
 import com.faforever.client.vault.review.Review;
+import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.io.ByteCountListener;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -79,7 +80,7 @@ public interface FafService {
 
   CompletableFuture<List<MapBean>> getMostPlayedMaps(int count, int page);
 
-  CompletableFuture<List<MapBean>> getMostLikedMaps(int count, int page);
+  CompletableFuture<List<MapBean>> getHighestRatedMaps(int count, int page);
 
   CompletableFuture<List<MapBean>> getNewestMaps(int count, int page);
 
@@ -106,8 +107,6 @@ public interface FafService {
   CompletableFuture<List<Replay>> getNewestReplays(int topElementCount, int page);
 
   CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount, int page);
-
-  CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount, int page);
 
   void uploadMod(Path modFile, ByteCountListener byteListener);
 
@@ -142,6 +141,8 @@ public interface FafService {
   Optional<MapBean> findMapById(String id);
 
   CompletableFuture<Void> deleteMapVersionReview(Review review);
+
+  CompletableFuture<List<Mod>> findModsByQuery(SearchConfig query, int page, int count);
 
   CompletableFuture<Void> deleteModVersionReview(Review review);
 

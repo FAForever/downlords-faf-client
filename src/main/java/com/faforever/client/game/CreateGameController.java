@@ -296,7 +296,7 @@ public class CreateGameController implements Controller<Pane> {
   @NotNull
   private Callback<ListView<Mod>, ListCell<Mod>> modListCellFactory() {
     return param -> {
-      ListCell<Mod> cell = new StringListCell<>(Mod::getName);
+      ListCell<Mod> cell = new StringListCell<>(Mod::getDisplayName);
       cell.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
         modListView.requestFocus();
         MultipleSelectionModel<Mod> selectionModel = modListView.getSelectionModel();

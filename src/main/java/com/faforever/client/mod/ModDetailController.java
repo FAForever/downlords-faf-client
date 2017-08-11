@@ -26,7 +26,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -93,6 +92,7 @@ public class ModDetailController implements Controller<Node> {
     progressBar.visibleProperty().bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
     progressLabel.managedProperty().bind(progressLabel.visibleProperty());
     progressLabel.visibleProperty().bind(progressBar.visibleProperty());
+    getRoot().managedProperty().bind(getRoot().visibleProperty());
 
     modDetailRoot.setOnKeyPressed(keyEvent -> {
       if (keyEvent.getCode() == KeyCode.ESCAPE) {
@@ -103,13 +103,13 @@ public class ModDetailController implements Controller<Node> {
     installStatusChangeListener = change -> {
       while (change.next()) {
         for (Mod mod : change.getAddedSubList()) {
-          if (this.mod.getUid().equals(mod.getUid())) {
+          if (this.mod.equals(mod)) {
             setInstalled(true);
             return;
           }
         }
         for (Mod mod : change.getRemoved()) {
-          if (this.mod.getUid().equals(mod.getUid())) {
+          if (this.mod.equals(mod)) {
             setInstalled(false);
             return;
           }
@@ -125,7 +125,7 @@ public class ModDetailController implements Controller<Node> {
   }
 
   public void onCloseButtonClicked() {
-    ((Pane) modDetailRoot.getParent()).getChildren().remove(modDetailRoot);
+    getRoot().setVisible(false);
   }
 
   private void setInstalled(boolean installed) {
@@ -140,8 +140,8 @@ public class ModDetailController implements Controller<Node> {
   public void setMod(Mod mod) {
     this.mod = mod;
     thumbnailImageView.setImage(modService.loadThumbnail(mod));
-    nameLabel.setText(mod.getName());
-    authorLabel.setText(mod.getAuthor());
+    nameLabel.setText(mod.getDisplayName());
+    authorLabel.setText(mod.getUploader());
 
     boolean modInstalled = modService.isModInstalled(mod.getUid());
     installButton.setVisible(!modInstalled);
@@ -151,7 +151,7 @@ public class ModDetailController implements Controller<Node> {
     modService.getInstalledMods().addListener(new WeakListChangeListener<>(installStatusChangeListener));
     setInstalled(modService.isModInstalled(mod.getUid()));
 
-    updatedLabel.setText(timeService.asDate(mod.getPublishDate()));
+    updatedLabel.setText(timeService.asDate(mod.getUpdateTime()));
     sizeLabel.setText(Bytes.formatSize(getModSize(), i18n.getUserSpecificLocale()));
     installationsLabel.setText(String.format(i18n.getUserSpecificLocale(), "%d", mod.getDownloads()));
     versionLabel.setText(mod.getVersion().toString());
@@ -212,7 +212,7 @@ public class ModDetailController implements Controller<Node> {
         .exceptionally(throwable -> {
           notificationService.addNotification(new ImmediateNotification(
               i18n.get("errorTitle"),
-              i18n.get("modVault.installationFailed", mod.getName(), throwable.getLocalizedMessage()),
+              i18n.get("modVault.installationFailed", mod.getDisplayName(), throwable.getLocalizedMessage()),
               Severity.ERROR, throwable, singletonList(new ReportAction(i18n, reportingService, throwable))));
           return null;
         });
@@ -226,7 +226,7 @@ public class ModDetailController implements Controller<Node> {
     modService.uninstallMod(mod).exceptionally(throwable -> {
       notificationService.addNotification(new ImmediateNotification(
           i18n.get("errorTitle"),
-          i18n.get("modVault.couldNotDeleteMod", mod.getName(), throwable.getLocalizedMessage()),
+          i18n.get("modVault.couldNotDeleteMod", mod.getDisplayName(), throwable.getLocalizedMessage()),
           Severity.ERROR, throwable, singletonList(new ReportAction(i18n, reportingService, throwable))));
       return null;
     });

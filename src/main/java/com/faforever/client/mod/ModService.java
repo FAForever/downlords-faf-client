@@ -1,6 +1,7 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.task.CompletableTask;
+import com.faforever.client.vault.search.SearchController.SearchConfig;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
@@ -42,22 +43,11 @@ public interface ModService {
 
   Path getPathForMod(Mod mod);
 
-  /**
-   * Returns mods available on the server.
-   */
-  CompletableFuture<List<Mod>> getAvailableMods();
+  CompletableFuture<List<Mod>> getHighestRatedUiMods(int count, int page);
 
-  CompletableFuture<List<Mod>> getMostDownloadedMods(int count);
+  CompletableFuture<List<Mod>> getHighestRatedMods(int count, int page);
 
-  CompletableFuture<List<Mod>> getMostLikedMods(int count);
-
-  CompletableFuture<List<Mod>> getMostPlayedMods(int count);
-
-  CompletableFuture<List<Mod>> getNewestMods(int count);
-
-  CompletableFuture<List<Mod>> getMostLikedUiMods(int count);
-
-  CompletableFuture<List<Mod>> lookupMod(String string, int maxSuggestions);
+  CompletableFuture<List<Mod>> getNewestMods(int count, int page);
 
   @NotNull
   Mod extractModInfo(Path path);
@@ -85,4 +75,8 @@ public interface ModService {
   List<Mod> getActivatedSimAndUIMods() throws IOException;
 
   void overrideActivatedMods(List<Mod> mods) throws IOException;
+
+  CompletableFuture<List<Mod>> findByQuery(SearchConfig searchConfig, int page, int maxSearchResults);
+
+  void evictCache();
 }

@@ -77,6 +77,9 @@ public class TimeServiceImpl implements TimeService {
 
   @Override
   public String asDate(TemporalAccessor temporalAccessor) {
+    if (temporalAccessor == null) {
+      return i18n.get("noDateAvailable");
+    }
     return DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
         .withLocale(getCurrentTimeLocale())
         .withZone(TimeZone.getDefault().toZoneId())

@@ -43,6 +43,7 @@ logging:
   level:
     org.springframework.beans: warn
     org.springframework.http.client.support: info
+    org.springframework.web.client: debug
     org.springframework.security.oauth2: info
     org.springframework.security.oauth2.client.token.grant: off
     faf-ice-adapter:
@@ -52,7 +53,7 @@ logging:
     org.pircbotx: warn
 
     com.faforever.client.FafClientApplication: info
-    com.faforever.client.api: info
+    com.faforever.client.api: trace
     com.faforever.client.connectivity: info
     com.faforever.client.preferences: info
     com.faforever.client.map: info
