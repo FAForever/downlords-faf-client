@@ -1,37 +1,49 @@
 package com.faforever.client.player;
 
-import com.faforever.client.chat.PlayerInfoBean;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 public interface PlayerService {
+
+  boolean isOnline(Integer playerId);
 
   /**
    * Returns the PlayerInfoBean for the specified username. Returns null if no such player is known.
    */
   @Nullable
-  PlayerInfoBean getPlayerForUsername(@Nullable String username);
+  // TODO Use Optional
+  Player getPlayerForUsername(@Nullable String username);
+
+  /**
+   * Returns the PlayerInfoBean for the specified id. Returns null if no such player is known.
+   */
+  Optional<Player> getPlayerForId(int id);
 
   /**
    * Gets a player for the given username. A new user is created and registered if it does not yet exist.
    */
-  PlayerInfoBean createAndGetPlayerForUsername(@NotNull String username);
+  Player createAndGetPlayerForUsername(@NotNull String username);
 
   Set<String> getPlayerNames();
 
-  void addFriend(PlayerInfoBean player);
+  void addFriend(Player player);
 
-  void removeFriend(PlayerInfoBean user);
+  void removeFriend(Player user);
 
-  void addFoe(PlayerInfoBean username);
+  void addFoe(Player username);
 
-  void removeFoe(PlayerInfoBean player);
+  void removeFoe(Player player);
 
-  PlayerInfoBean getCurrentPlayer();
+  Optional<Player> getCurrentPlayer();
 
-  ReadOnlyObjectProperty<PlayerInfoBean> currentPlayerProperty();
+  ReadOnlyObjectProperty<Player> currentPlayerProperty();
 
+  CompletableFuture<List<Player>> getPlayersByIds(Collection<Integer> playerId);
 }

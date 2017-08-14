@@ -1,9 +1,13 @@
 package com.faforever.client.game;
 
+import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
+import com.faforever.client.map.MapServiceImpl.PreviewSize;
+import com.faforever.client.mod.ModService;
+import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
-import javafx.fxml.FXML;
+import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -11,108 +15,102 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.util.Objects;
 import java.util.function.Consumer;
 
 import static javafx.beans.binding.Bindings.createObjectBinding;
 import static javafx.beans.binding.Bindings.createStringBinding;
 
-public class GameTileController {
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
+public class GameTileController implements Controller<Node> {
 
-  @FXML
-  Label lockIconLabel;
-  @FXML
-  Label gameTypeLabel;
-  @FXML
-  Node gameTileRoot;
-  @FXML
-  Label gameMapLabel;
-  @FXML
-  Label gameTitleLabel;
-  @FXML
-  Label numberOfPlayersLabel;
-  @FXML
-  Label hostLabel;
-  @FXML
-  Label modsLabel;
-  @FXML
-  ImageView mapImageView;
+  private final MapService mapService;
+  private final I18n i18n;
+  private final JoinGameHelper joinGameHelper;
+  private final ModService modService;
+  private final UiService uiService;
+  public Label lockIconLabel;
+  public Label gameTypeLabel;
+  public Node gameCardRoot;
+  public Label gameMapLabel;
+  public Label gameTitleLabel;
+  public Label numberOfPlayersLabel;
+  public Label hostLabel;
+  public Label modsLabel;
+  public ImageView mapImageView;
+  private Consumer<Game> onSelectedListener;
+  private Game game;
 
-  @Resource
-  MapService mapService;
-  @Resource
-  I18n i18n;
-  @Resource
-  ApplicationContext applicationContext;
-  @Resource
-  GameService gameService;
-  @Resource
-  JoinGameHelper joinGameHelper;
-  private Consumer<GameInfoBean> onSelectedListener;
-  private GameInfoBean gameInfoBean;
+  @Inject
+  public GameTileController(MapService mapService, I18n i18n, JoinGameHelper joinGameHelper, ModService modService, UiService uiService) {
+    this.mapService = mapService;
+    this.i18n = i18n;
+    this.joinGameHelper = joinGameHelper;
+    this.modService = modService;
+    this.uiService = uiService;
+  }
 
-  public void setOnSelectedListener(Consumer<GameInfoBean> onSelectedListener) {
+  public void setOnSelectedListener(Consumer<Game> onSelectedListener) {
     this.onSelectedListener = onSelectedListener;
   }
 
-  @FXML
-  void initialize() {
+  public void initialize() {
     modsLabel.managedProperty().bind(modsLabel.visibleProperty());
     modsLabel.visibleProperty().bind(modsLabel.textProperty().isNotEmpty());
     gameTypeLabel.managedProperty().bind(gameTypeLabel.visibleProperty());
     lockIconLabel.managedProperty().bind(lockIconLabel.visibleProperty());
-  }
-
-  @PostConstruct
-  void postConstruct() {
     joinGameHelper.setParentNode(getRoot());
   }
 
   public Node getRoot() {
-    return gameTileRoot;
+    return gameCardRoot;
   }
 
-  public void setGameInfoBean(GameInfoBean gameInfoBean) {
-    this.gameInfoBean = gameInfoBean;
+  public void setGame(Game game) {
+    this.game = game;
 
-    GameTypeBean gameType = gameService.getGameTypeByString(gameInfoBean.getFeaturedMod());
-    String fullName = gameType != null ? gameType.getFullName() : null;
-    gameTypeLabel.setText(StringUtils.defaultString(fullName));
+    modService.getFeaturedMod(game.getFeaturedMod())
+        .thenAccept(featuredModBean -> Platform.runLater(() -> gameTypeLabel.setText(StringUtils.defaultString(featuredModBean.getDisplayName()))));
 
-    gameTitleLabel.setText(gameInfoBean.getTitle());
-    hostLabel.setText(gameInfoBean.getHost());
+    gameTitleLabel.textProperty().bind(game.titleProperty());
+    hostLabel.setText(game.getHost());
 
-    gameMapLabel.textProperty().bind(gameInfoBean.mapFolderNameProperty());
+    gameMapLabel.textProperty().bind(game.mapFolderNameProperty());
     numberOfPlayersLabel.textProperty().bind(createStringBinding(
-        () -> i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()),
-        gameInfoBean.numPlayersProperty(),
-        gameInfoBean.maxPlayersProperty()
+        () -> i18n.get("game.players.format", game.getNumPlayers(), game.getMaxPlayers()),
+        game.numPlayersProperty(),
+        game.maxPlayersProperty()
     ));
-    mapImageView.imageProperty().bind(createObjectBinding(() -> mapService.loadSmallPreview(gameInfoBean.getMapFolderName()), gameInfoBean.mapFolderNameProperty()));
+    mapImageView.imageProperty().bind(createObjectBinding(
+        () -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE),
+        game.mapFolderNameProperty()
+    ));
 
     modsLabel.textProperty().bind(createStringBinding(
-        () -> Joiner.on(i18n.get("textSeparator")).join(gameInfoBean.getSimMods().values()),
-        gameInfoBean.getSimMods()
+        () -> Joiner.on(i18n.get("textSeparator")).join(game.getSimMods().values()),
+        game.getSimMods()
     ));
 
     // TODO display "unknown map" image first since loading may take a while
     mapImageView.imageProperty().bind(createObjectBinding(
-        () -> mapService.loadSmallPreview(gameInfoBean.getMapFolderName()),
-        gameInfoBean.mapFolderNameProperty()
+        () -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL),
+        game.mapFolderNameProperty()
     ));
 
-    lockIconLabel.visibleProperty().bind(gameInfoBean.passwordProtectedProperty());
+    lockIconLabel.visibleProperty().bind(game.passwordProtectedProperty());
 
     Tooltip tooltip = new Tooltip();
-    Tooltip.install(gameTileRoot, tooltip);
+    Tooltip.install(gameCardRoot, tooltip);
     tooltip.activatedProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue) {
-        GameTooltipController gameTooltipController = applicationContext.getBean(GameTooltipController.class);
-        gameTooltipController.setGameInfoBean(gameInfoBean);
+        GameTooltipController gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
+        gameTooltipController.setGameInfoBean(game);
         tooltip.setGraphic(gameTooltipController.getRoot());
       }
     });
@@ -123,17 +121,16 @@ public class GameTileController {
     });
   }
 
-  @FXML
-  void onClick(MouseEvent mouseEvent) {
+  public void onClick(MouseEvent mouseEvent) {
     Objects.requireNonNull(onSelectedListener, "onSelectedListener has not been set");
-    Objects.requireNonNull(gameInfoBean, "gameInfoBean has not been set");
+    Objects.requireNonNull(game, "gameInfoBean has not been set");
 
-    gameTileRoot.requestFocus();
-    onSelectedListener.accept(gameInfoBean);
+    gameCardRoot.requestFocus();
+    onSelectedListener.accept(game);
 
     if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
       mouseEvent.consume();
-      joinGameHelper.join(gameInfoBean);
+      joinGameHelper.join(game);
     }
   }
 }

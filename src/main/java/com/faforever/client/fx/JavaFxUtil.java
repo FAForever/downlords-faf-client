@@ -1,44 +1,51 @@
 package com.faforever.client.fx;
 
-import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.theme.ThemeService;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Bounds;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.SneakyThrows;
 
-import java.lang.invoke.MethodHandles;
+import java.awt.image.BufferedImage;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static com.github.nocatch.NoCatch.noCatch;
+import static java.nio.file.Files.createDirectories;
+import static javax.imageio.ImageIO.write;
 
 /**
  * Utility class to fix some annoying JavaFX shortcomings.
@@ -62,15 +69,13 @@ public final class JavaFxUtil {
       return Paths.get(string);
     }
   };
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final double ZOOM_STEP = 0.2d;
 
   private JavaFxUtil() {
     throw new AssertionError("Not instantiatable");
   }
 
   public static void makeSuggestionField(TextField textField,
-                                         Function<String, CompletionStage<Set<Label>>> itemsFactory,
+                                         Function<String, CompletableFuture<Set<Label>>> itemsFactory,
                                          Consumer<Void> onAction) {
     ListView<Label> listView = new ListView<>();
     listView.prefWidthProperty().bind(textField.widthProperty());
@@ -136,10 +141,6 @@ public final class JavaFxUtil {
         }
       }));
     });
-  }
-
-  public static void makeNumericTextField(TextField textField) {
-    makeNumericTextField(textField, -1);
   }
 
   public static void makeNumericTextField(TextField textField, int maxLength) {
@@ -209,28 +210,6 @@ public final class JavaFxUtil {
     }
   }
 
-  public static void configureWebView(WebView webView, PreferencesService preferencesService, ThemeService themeService) {
-    webView.setContextMenuEnabled(false);
-    webView.setOnScroll(event -> {
-      if (event.isControlDown()) {
-        if (event.getDeltaY() > 0) {
-          webView.setZoom(webView.getZoom() + ZOOM_STEP);
-        } else {
-          webView.setZoom(webView.getZoom() - ZOOM_STEP);
-        }
-      }
-    });
-    webView.setOnKeyPressed(event -> {
-      if (event.isControlDown() && (event.getCode() == KeyCode.DIGIT0 || event.getCode() == KeyCode.NUMPAD0)) {
-        webView.setZoom(1);
-      }
-    });
-
-    WebEngine engine = webView.getEngine();
-    engine.setUserDataDirectory(preferencesService.getCacheDirectory().toFile());
-    themeService.registerWebView(webView);
-  }
-
   public static boolean isVisibleRecursively(Node node) {
     if (!node.isVisible()) {
       return false;
@@ -248,5 +227,73 @@ public final class JavaFxUtil {
         (int) (color.getRed() * 255),
         (int) (color.getGreen() * 255),
         (int) (color.getBlue() * 255));
+  }
+
+  /**
+   * Updates the specified list with any changes made to the specified map, but not vice versa.
+   */
+  public static <T> void attachListToMap(ObservableList<T> list, ObservableMap<?, T> map) {
+    map.addListener((MapChangeListener<Object, T>) change -> {
+      synchronized (list) {
+        if (change.wasRemoved()) {
+          list.remove(change.getValueRemoved());
+        } else if (change.wasAdded()) {
+          list.add(change.getValueAdded());
+        }
+      }
+    });
+  }
+
+  public static void persistImage(Image image, Path path, String format) {
+    if (image == null) {
+      return;
+    }
+    if (image.isBackgroundLoading() && image.getProgress() < 1) {
+      // Let's hope that loading doesn't finish before the listener is added
+      image.progressProperty().addListener(new ChangeListener<Number>() {
+        @Override
+        public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+          if (newValue.intValue() >= 1) {
+            writeImage(image, path, format);
+            image.progressProperty().removeListener(this);
+          }
+        }
+      });
+    } else {
+      writeImage(image, path, format);
+    }
+  }
+
+  @SneakyThrows
+  private static void writeImage(Image image, Path path, String format) {
+    if (image == null) {
+      return;
+    }
+    if (path.getParent() != null) {
+      createDirectories(path.getParent());
+    }
+    BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
+    if (bufferedImage == null) {
+      return;
+    }
+    write(bufferedImage, format, path.toFile());
+  }
+
+  public static void setAnchors(Pane pane, double value) {
+    AnchorPane.setBottomAnchor(pane, value);
+    AnchorPane.setLeftAnchor(pane, value);
+    AnchorPane.setRightAnchor(pane, value);
+    AnchorPane.setTopAnchor(pane, value);
+  }
+
+  public static void fixScrollSpeed(ScrollPane scrollPane) {
+    Node content = scrollPane.getContent();
+    content.setOnScroll(event -> {
+      double deltaY = event.getDeltaY() * 3;
+      double height = scrollPane.getContent().getBoundsInLocal().getHeight();
+      double vvalue = scrollPane.getVvalue();
+      // deltaY/height to make the scrolling equally fast regardless of the actual height of the component
+      scrollPane.setVvalue(vvalue + -deltaY / height);
+    });
   }
 }

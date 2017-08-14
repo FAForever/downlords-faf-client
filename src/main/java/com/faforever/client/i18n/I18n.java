@@ -6,5 +6,13 @@ public interface I18n {
 
   String get(String key, Object... args);
 
-  Locale getLocale();
+  String getQuantized(String singularKey, String pluralKey, long arg);
+
+  Locale getUserSpecificLocale();
+
+  String number(int number);
+
+  String number(double number);
+
+  String rounded(double number, int digits);
 }

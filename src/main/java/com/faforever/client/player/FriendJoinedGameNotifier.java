@@ -1,9 +1,7 @@
 package com.faforever.client.player;
 
-import com.faforever.client.audio.AudioController;
-import com.faforever.client.chat.PlayerInfoBean;
-import com.faforever.client.game.GameInfoBean;
-import com.faforever.client.game.GameService;
+import com.faforever.client.audio.AudioService;
+import com.faforever.client.game.Game;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -14,29 +12,35 @@ import com.faforever.client.util.IdenticonUtil;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.scene.Node;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 
 /**
- * Displays a notification whenever a friend joins a game (if enabled in settings).
+ * Displays a notification whenever a friend joins a preferences (if enabled in settings).
  */
+@Lazy
+@Component
 public class FriendJoinedGameNotifier {
 
-  @Resource
-  NotificationService notificationService;
-  @Resource
-  I18n i18n;
-  @Resource
-  EventBus eventBus;
-  @Resource
-  JoinGameHelper joinGameHelper;
-  @Resource
-  GameService gameService;
-  @Resource
-  PreferencesService preferencesService;
-  @Resource
-  AudioController audioController;
+  private final NotificationService notificationService;
+  private final I18n i18n;
+  private final EventBus eventBus;
+  private final JoinGameHelper joinGameHelper;
+  private final PreferencesService preferencesService;
+  private final AudioService audioService;
+
+  @Inject
+  public FriendJoinedGameNotifier(NotificationService notificationService, I18n i18n, EventBus eventBus, JoinGameHelper joinGameHelper, PreferencesService preferencesService, AudioService audioService) {
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.eventBus = eventBus;
+    this.joinGameHelper = joinGameHelper;
+    this.preferencesService = preferencesService;
+    this.audioService = audioService;
+  }
 
   @PostConstruct
   void postConstruct() {
@@ -45,10 +49,10 @@ public class FriendJoinedGameNotifier {
 
   @Subscribe
   public void onFriendJoinedGame(FriendJoinedGameEvent event) {
-    PlayerInfoBean player = event.getPlayerInfoBean();
-    GameInfoBean game = gameService.getByUid(player.getGameUid());
+    Player player = event.getPlayer();
+    Game game = player.getGame();
 
-    audioController.playFriendJoinsGameSound();
+    audioService.playFriendJoinsGameSound();
 
     if (preferencesService.getPreferences().getNotification().isFriendJoinsGameToastEnabled()) {
       notificationService.addNotification(new TransientNotification(
@@ -57,7 +61,7 @@ public class FriendJoinedGameNotifier {
           IdenticonUtil.createIdenticon(player.getId()),
           event1 -> {
             joinGameHelper.setParentNode((Node) event1.getTarget());
-            joinGameHelper.join(player.getGameUid());
+            joinGameHelper.join(player.getGame());
           }
       ));
     }

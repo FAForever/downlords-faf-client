@@ -1,44 +1,60 @@
 package com.faforever.client.notification;
 
-import javafx.fxml.FXML;
+import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.WebViewConfigurer;
+import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.Region;
+import javafx.scene.web.WebView;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
+import javax.inject.Inject;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-public class ImmediateNotificationController {
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class ImmediateNotificationController implements Controller<Node> {
 
-  @FXML
-  Node exceptionPane;
-  @FXML
-  TextArea exceptionTextArea;
-  @FXML
-  Label messageLabel;
-  @FXML
-  Label titleLabel;
-  @FXML
-  ButtonBar buttonBar;
-  @FXML
-  Region notificationRoot;
+  private final WebViewConfigurer webViewConfigurer;
+  public WebView errorMessageView;
+  public Label exceptionAreaTitleLabel;
+  public TextArea exceptionTextArea;
+  public Label titleLabel;
+  public ButtonBar buttonBar;
+  public Region notificationRoot;
+
+  @Inject
+  public ImmediateNotificationController(WebViewConfigurer webViewConfigurer) {
+    this.webViewConfigurer = webViewConfigurer;
+  }
+
+  public void initialize() {
+    exceptionAreaTitleLabel.managedProperty().bind(exceptionAreaTitleLabel.visibleProperty());
+    exceptionAreaTitleLabel.visibleProperty().bind(exceptionTextArea.visibleProperty());
+    exceptionTextArea.managedProperty().bind(exceptionTextArea.visibleProperty());
+    webViewConfigurer.configureWebView(errorMessageView);
+  }
 
   public void setNotification(ImmediateNotification notification) {
     StringWriter writer = new StringWriter();
     Throwable throwable = notification.getThrowable();
     if (throwable != null) {
       throwable.printStackTrace(new PrintWriter(writer));
-      exceptionPane.setVisible(true);
+      exceptionTextArea.setVisible(true);
       exceptionTextArea.setText(writer.toString());
     } else {
-      exceptionPane.setVisible(false);
+      exceptionTextArea.setVisible(false);
     }
 
     titleLabel.setText(notification.getTitle());
-    messageLabel.setText(notification.getText());
+    Platform.runLater(() -> errorMessageView.getEngine().loadContent(notification.getText()));
 
     if (notification.getActions() != null) {
       for (Action action : notification.getActions()) {

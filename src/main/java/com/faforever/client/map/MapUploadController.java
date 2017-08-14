@@ -1,6 +1,7 @@
 package com.faforever.client.map;
 
-import com.faforever.client.api.ApiException;
+import com.faforever.client.api.dto.ApiException;
+import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.event.MapUploadedEvent;
 import com.faforever.client.notification.Action;
@@ -10,9 +11,10 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.CompletableTask;
+import com.faforever.commons.map.PreviewGenerator;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.Bindings;
-import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
@@ -22,8 +24,11 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.concurrent.CancellationException;
@@ -33,62 +38,48 @@ import java.util.concurrent.ThreadPoolExecutor;
 import static com.faforever.client.notification.Severity.ERROR;
 import static java.util.Arrays.asList;
 
-public class MapUploadController {
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class MapUploadController implements Controller<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  @FXML
-  Label rankedLabel;
-  @FXML
-  Label uploadTaskMessageLabel;
-  @FXML
-  Label uploadTaskTitleLabel;
-  @FXML
-  Label sizeLabel;
-  @FXML
-  Label playersLabel;
-  @FXML
-  Pane parseProgressPane;
-  @FXML
-  Pane uploadProgressPane;
-  @FXML
-  Pane uploadCompletePane;
-  @FXML
-  ProgressBar uploadProgressBar;
-  @FXML
-  Pane mapInfoPane;
-  @FXML
-  Label mapNameLabel;
-  @FXML
-  Label descriptionLabel;
-  @FXML
-  Label versionLabel;
-  @FXML
-  ImageView thumbnailImageView;
-  @FXML
-  Region mapUploadRoot;
-  @FXML
-  CheckBox rankedCheckbox;
-
-  @Resource
-  MapService mapService;
-  @Resource
-  ThreadPoolExecutor threadPoolExecutor;
-  @Resource
-  NotificationService notificationService;
-  @Resource
-  ReportingService reportingService;
-  @Resource
-  I18n i18n;
-  @Resource
-  EventBus eventBus;
-
+  private final MapService mapService;
+  private final ThreadPoolExecutor threadPoolExecutor;
+  private final NotificationService notificationService;
+  private final ReportingService reportingService;
+  private final I18n i18n;
+  private final EventBus eventBus;
+  public Label rankedLabel;
+  public Label uploadTaskMessageLabel;
+  public Label uploadTaskTitleLabel;
+  public Label sizeLabel;
+  public Label playersLabel;
+  public Pane parseProgressPane;
+  public Pane uploadProgressPane;
+  public Pane uploadCompletePane;
+  public ProgressBar uploadProgressBar;
+  public Pane mapInfoPane;
+  public Label mapNameLabel;
+  public Label descriptionLabel;
+  public Label versionLabel;
+  public ImageView thumbnailImageView;
+  public Region mapUploadRoot;
+  public CheckBox rankedCheckbox;
   private Path mapPath;
   private MapBean mapInfo;
   private CompletableTask<Void> uploadMapTask;
 
-  @FXML
-  void initialize() {
+  @Inject
+  public MapUploadController(MapService mapService, ThreadPoolExecutor threadPoolExecutor, NotificationService notificationService, ReportingService reportingService, I18n i18n, EventBus eventBus) {
+    this.mapService = mapService;
+    this.threadPoolExecutor = threadPoolExecutor;
+    this.notificationService = notificationService;
+    this.reportingService = reportingService;
+    this.i18n = i18n;
+    this.eventBus = eventBus;
+  }
+
+  public void initialize() {
     mapInfoPane.managedProperty().bind(mapInfoPane.visibleProperty());
     uploadProgressPane.managedProperty().bind(uploadProgressPane.visibleProperty());
     parseProgressPane.managedProperty().bind(parseProgressPane.visibleProperty());
@@ -130,7 +121,7 @@ public class MapUploadController {
     sizeLabel.textProperty().bind(Bindings.createStringBinding(
         () -> {
           MapSize mapSize = mapInfo.getSize();
-          return i18n.get("mapVault.upload.sizeFormat", mapSize.getWidth(), mapSize.getHeight());
+          return i18n.get("mapVault.upload.sizeFormat", mapSize.getWidthInPixels(), mapSize.getHeightInPixels());
         }, mapInfo.sizeProperty())
     );
     playersLabel.textProperty().bind(Bindings.createStringBinding(
@@ -148,8 +139,7 @@ public class MapUploadController {
     uploadCompletePane.setVisible(false);
   }
 
-  @FXML
-  void onCancelUploadClicked() {
+  public void onCancelUploadClicked() {
     uploadMapTask.cancel(true);
     enterMapInfoState();
   }
@@ -176,8 +166,7 @@ public class MapUploadController {
     }
   }
 
-  @FXML
-  void onUploadClicked() {
+  public void onUploadClicked() {
     enterUploadingState();
 
     uploadProgressPane.setVisible(true);
@@ -211,8 +200,7 @@ public class MapUploadController {
     uploadCompletePane.setVisible(true);
   }
 
-  @FXML
-  void onCancelClicked() {
+  public void onCancelClicked() {
     getRoot().getScene().getWindow().hide();
   }
 

@@ -27,7 +27,8 @@
         <ImageView fx:id="imageView" fitHeight="64.0" fitWidth="64.0" pickOnBounds="true" preserveRatio="true"
                    GridPane.rowSpan="2147483647"/>
         <Label fx:id="titleLabel" styleClass="h3" text="&lt;Title&gt;" GridPane.columnIndex="1"/>
-        <Label fx:id="messageLabel" text="&lt;Message&gt;" GridPane.columnIndex="1" GridPane.rowIndex="1"
+        <Label fx:id="messageLabel" text="&lt;Message&gt;" wrapText="true" minHeight="-Infinity"
+               GridPane.columnIndex="1" GridPane.rowIndex="1"
                GridPane.valignment="TOP"/>
       </children>
       <padding>

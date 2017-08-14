@@ -1,14 +1,21 @@
 package com.faforever.client.game;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 import java.util.HashMap;
+import java.util.Map;
 
 public enum Faction {
-  UEF("uef"),
+  // Order is crucial
   AEON("aeon"),
   CYBRAN("cybran"),
-  SERAPHIM("seraphim");
+  UEF("uef"),
+  SERAPHIM("seraphim"),
+  NOMAD("nomad"),
+  CIVILIAN("civilian");
 
-  private static final HashMap<String, Faction> fromString;
+  private static final Map<String, Faction> fromString;
 
   static {
     fromString = new HashMap<>();
@@ -17,17 +24,26 @@ public enum Faction {
     }
   }
 
-  private String string;
+  private final String string;
 
   Faction(String string) {
     this.string = string;
   }
 
-  public String getString() {
-    return string;
+  @JsonCreator
+  public static Faction fromFaValue(int value) {
+    return Faction.values()[value - 1];
   }
 
   public static Faction fromString(String string) {
     return fromString.get(string);
+  }
+
+  /**
+   * Returns the faction value used as in "Forged Alliance Forever".
+   */
+  @JsonValue
+  public int toFaValue() {
+    return ordinal() + 1;
   }
 }

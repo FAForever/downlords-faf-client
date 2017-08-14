@@ -1,16 +1,18 @@
 package com.faforever.client.game;
 
-import com.faforever.client.fx.FxmlLoader;
+import com.faforever.client.fx.Controller;
+import com.faforever.client.theme.UiService;
 import javafx.scene.control.TableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
-public class MapPreviewTableCell extends TableCell<GameInfoBean, Image> {
+public class MapPreviewTableCell extends TableCell<Game, Image> {
 
   private final ImageView imageVew;
 
-  public MapPreviewTableCell(FxmlLoader fxmlLoader) {
-    imageVew = fxmlLoader.loadAndGetRoot("map_preview_table_cell.fxml", this);
+  public MapPreviewTableCell(UiService uiService) {
+    Controller<ImageView> controller = uiService.loadFxml("theme/vault/map/map_preview_table_cell.fxml");
+    imageVew = controller.getRoot();
     setGraphic(imageVew);
   }
 

@@ -1,10 +1,13 @@
 package com.faforever.client.notification;
 
+import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.scene.control.Button;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Collections;
 
@@ -13,15 +16,19 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest {
+
+  @Mock
+  private WebViewConfigurer webViewConfigurer;
 
   private ImmediateNotificationController instance;
 
   @Before
   public void setUp() throws Exception {
-    instance = loadController("immediate_notification.fxml");
+    instance = new ImmediateNotificationController(webViewConfigurer);
+    loadFxml("theme/immediate_notification.fxml", clazz -> instance);
   }
 
   @Test
@@ -29,8 +36,10 @@ public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest
     ImmediateNotification notification = new ImmediateNotification("title", "text", Severity.INFO);
     instance.setNotification(notification);
 
+    WaitForAsyncUtils.waitForFxEvents();
+
     assertEquals("title", instance.titleLabel.getText());
-    assertEquals("text", instance.messageLabel.getText());
+    assertEquals("text", instance.errorMessageView.getEngine().getDocument().getDocumentElement().getTextContent());
     assertThat(instance.buttonBar.getButtons(), empty());
   }
 
@@ -42,8 +51,10 @@ public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest
         ));
     instance.setNotification(notification);
 
+    WaitForAsyncUtils.waitForFxEvents();
+
     assertEquals("title", instance.titleLabel.getText());
-    assertEquals("text", instance.messageLabel.getText());
+    assertEquals("text", instance.errorMessageView.getEngine().getDocument().getDocumentElement().getTextContent());
     assertThat(instance.buttonBar.getButtons(), hasSize(1));
     assertEquals("actionTitle", ((Button) instance.buttonBar.getButtons().get(0)).getText());
   }

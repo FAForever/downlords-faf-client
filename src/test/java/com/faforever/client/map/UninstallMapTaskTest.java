@@ -1,6 +1,6 @@
 package com.faforever.client.map;
 
-import com.faforever.client.io.ByteCopier;
+import com.faforever.commons.io.ByteCopier;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -17,7 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
 public class UninstallMapTaskTest {
@@ -38,8 +38,7 @@ public class UninstallMapTaskTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new com.faforever.client.map.UninstallMapTask();
-    instance.mapService = mapService;
+    instance = new com.faforever.client.map.UninstallMapTask(mapService);
   }
 
   @Test

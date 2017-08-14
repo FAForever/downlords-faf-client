@@ -1,73 +1,84 @@
 package com.faforever.client.game;
 
+import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.theme.UiService;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.fxml.FXML;
+import javafx.collections.WeakListChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.FlowPane;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GamesTilesContainerController {
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
+public class GamesTilesContainerController implements Controller<Node> {
 
-  @FXML
+  private final UiService uiService;
+  private final ListChangeListener<Game> gameListChangeListener;
   public FlowPane tiledFlowPane;
-  @FXML
   public ScrollPane tiledScrollPane;
-
-  @Resource
-  ApplicationContext applicationContext;
-
   private Map<Integer, Node> uidToGameCard;
-  private ObjectProperty<GameInfoBean> selectedGame;
+  private ObjectProperty<Game> selectedGame;
 
-  public GamesTilesContainerController() {
+  @Inject
+  public GamesTilesContainerController(UiService uiService) {
+    this.uiService = uiService;
     selectedGame = new SimpleObjectProperty<>();
-  }
 
-  public ReadOnlyObjectProperty<GameInfoBean> selectedGameProperty() {
-    return this.selectedGame;
-  }
-
-  public void createTiledFlowPane(ObservableList<GameInfoBean> gameInfoBeans) {
-    uidToGameCard = new HashMap<>();
-    gameInfoBeans.forEach(this::addGameCard);
-
-    gameInfoBeans.addListener((ListChangeListener<GameInfoBean>) change -> Platform.runLater(() -> {
+    gameListChangeListener = change -> Platform.runLater(() -> {
       synchronized (change.getList()) {
         while (change.next()) {
-          change.getRemoved().forEach(gameInfoBean -> tiledFlowPane.getChildren().remove(uidToGameCard.remove(gameInfoBean.getUid())));
+          change.getRemoved().forEach(gameInfoBean -> tiledFlowPane.getChildren().remove(uidToGameCard.remove(gameInfoBean.getId())));
           change.getAddedSubList().forEach(GamesTilesContainerController.this::addGameCard);
         }
       }
-    }));
+    });
+  }
+
+  public void initialize() {
+    JavaFxUtil.fixScrollSpeed(tiledScrollPane);
+  }
+
+  ReadOnlyObjectProperty<Game> selectedGameProperty() {
+    return this.selectedGame;
+  }
+
+  void createTiledFlowPane(ObservableList<Game> games) {
+    uidToGameCard = new HashMap<>();
+    games.forEach(this::addGameCard);
+
+    games.addListener(new WeakListChangeListener<>(gameListChangeListener));
     selectFirstGame();
   }
 
   private void selectFirstGame() {
     ObservableList<Node> cards = tiledFlowPane.getChildren();
     if (!cards.isEmpty()) {
-      selectedGame.set((GameInfoBean) cards.get(0).getUserData());
+      selectedGame.set((Game) cards.get(0).getUserData());
     }
   }
 
-  private void addGameCard(GameInfoBean gameInfoBean) {
-    GameTileController gameTileController = applicationContext.getBean(GameTileController.class);
-    gameTileController.setGameInfoBean(gameInfoBean);
-    gameTileController.setOnSelectedListener(gameInfoBean1 -> selectedGame.set(gameInfoBean1));
+  private void addGameCard(Game game) {
+    GameTileController gameTileController = uiService.loadFxml("theme/play/game_card.fxml");
+    gameTileController.setGame(game);
+    gameTileController.setOnSelectedListener(selection -> selectedGame.set(selection));
 
     Node root = gameTileController.getRoot();
-    root.setUserData(gameInfoBean);
+    root.setUserData(game);
     tiledFlowPane.getChildren().add(root);
-    uidToGameCard.put(gameInfoBean.getUid(), root);
+    uidToGameCard.put(game.getId(), root);
   }
 
   public Node getRoot() {

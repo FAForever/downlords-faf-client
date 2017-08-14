@@ -1,7 +1,7 @@
 package com.faforever.client.task;
 
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
+import javafx.concurrent.Worker;
 
 /**
  * Enqueues and runs tasks in background. Services that need to run a task (tasks that finish, not long-running
@@ -16,7 +16,7 @@ public interface TaskService {
    * @param <T> the task's result type
    * @param task the task to execute
    */
-  <T extends CompletableTask> T submitTask(T task);
+  <T extends PrioritizedCompletableTask> T submitTask(T task);
 
-  ObservableList<Task<?>> getActiveTasks();
+  ObservableList<Worker<?>> getActiveWorkers();
 }

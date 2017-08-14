@@ -1,37 +1,54 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.api.Ranked1v1Stats;
+import com.faforever.client.FafClientApplication;
+import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.remote.FafService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
-import java.lang.invoke.MethodHandles;
+import javax.inject.Inject;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
+
+@Lazy
+@Service
+@Profile("!" + FafClientApplication.POFILE_OFFLINE)
 public class LeaderboardServiceImpl implements LeaderboardService {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private final FafService fafService;
 
-  @Resource
-  FafService fafService;
-
-  @Override
-  public CompletionStage<List<Ranked1v1EntryBean>> getRanked1v1Entries() {
-    logger.debug("Fetching ranked 1v1 leaderboard from API");
-    return fafService.getRanked1v1Entries();
+  @Inject
+  public LeaderboardServiceImpl(FafService fafService) {
+    this.fafService = fafService;
   }
 
   @Override
-  public CompletionStage<Ranked1v1Stats> getRanked1v1Stats() {
-    logger.debug("Fetching ranked 1v1 stats from API");
-    return fafService.getRanked1v1Stats();
+  public CompletableFuture<List<RatingStat>> getLadder1v1Stats() {
+    return fafService.getLadder1v1Leaderboard()
+        .thenApply(entries -> entries.stream()
+            .collect(Collectors.groupingBy(leaderboardEntry -> (int) leaderboardEntry.getRating() / 100 * 100, Collectors.counting()))
+            .entrySet().stream()
+            .map(entry -> new RatingStat(entry.getKey(), entry.getValue().intValue()))
+            .collect(Collectors.toList()));
   }
 
   @Override
-  public CompletionStage<Ranked1v1EntryBean> getEntryForPlayer(int playerId) {
-    logger.debug("Fetching ranked 1v1 entry for player: {}", playerId);
-    return fafService.getRanked1v1EntryForPlayer(playerId);
+  public CompletableFuture<LeaderboardEntry> getEntryForPlayer(int playerId) {
+    return fafService.getLadder1v1EntryForPlayer(playerId);
+  }
+
+  @Override
+  public CompletableFuture<List<LeaderboardEntry>> getEntries(KnownFeaturedMod ratingType) {
+    switch (ratingType) {
+      case FAF:
+        return fafService.getGlobalLeaderboard();
+      case LADDER_1V1:
+        return fafService.getLadder1v1Leaderboard();
+      default:
+        throw new IllegalArgumentException("Not supported: " + ratingType);
+    }
   }
 }

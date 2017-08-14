@@ -1,106 +1,103 @@
 package com.faforever.client.achievements;
 
-import com.faforever.client.api.AchievementDefinition;
-import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.api.PlayerAchievement;
-import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.UpdatedAchievementsMessage;
-import com.faforever.client.theme.ThemeService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
-import com.google.common.base.Strings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import java.util.Collections;
+import javax.inject.Inject;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ThreadPoolExecutor;
 
+import static com.github.nocatch.NoCatch.noCatch;
+
+
+@Lazy
+@Service
 public class AchievementServiceImpl implements AchievementService {
 
   private static final int ACHIEVEMENT_IMAGE_SIZE = 128;
   private final ObservableList<PlayerAchievement> readOnlyPlayerAchievements;
   private final ObservableList<PlayerAchievement> playerAchievements;
 
-  @Resource
-  UserService userService;
-  @Resource
-  FafApiAccessor fafApiAccessor;
-  @Resource
-  FafService fafService;
-  @Resource
-  NotificationService notificationService;
-  @Resource
-  I18n i18n;
-  @Resource
-  PlayerService playerService;
-  @Resource
-  ThemeService themeService;
-  @Resource
-  ThreadPoolExecutor threadPoolExecutor;
+  private final UserService userService;
+  private final FafService fafService;
+  private final PlayerService playerService;
+  private final AssetService assetService;
 
-  public AchievementServiceImpl() {
+  @Inject
+  // TODO cut dependencies if possible
+  public AchievementServiceImpl(UserService userService, FafService fafService,
+                                NotificationService notificationService, I18n i18n, PlayerService playerService,
+                                UiService uiService, AssetService assetService) {
+    this.userService = userService;
+    this.fafService = fafService;
+    this.playerService = playerService;
+    this.assetService = assetService;
+
     playerAchievements = FXCollections.observableArrayList();
     readOnlyPlayerAchievements = FXCollections.unmodifiableObservableList(playerAchievements);
   }
 
   @Override
-  public CompletionStage<List<PlayerAchievement>> getPlayerAchievements(String username) {
-    if (userService.getUsername().equalsIgnoreCase(username)) {
+  public CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(Integer playerId) {
+    if (Objects.equals(userService.getUserId(), playerId)) {
       if (readOnlyPlayerAchievements.isEmpty()) {
         reloadAchievements();
       }
       return CompletableFuture.completedFuture(readOnlyPlayerAchievements);
     }
 
-    PlayerInfoBean playerForUsername = playerService.getPlayerForUsername(username);
-    if (playerForUsername == null) {
-      return CompletableFuture.completedFuture(Collections.emptyList());
-    }
-    int playerId = playerForUsername.getId();
-    return CompletableFuture.supplyAsync(() -> FXCollections.observableList(fafApiAccessor.getPlayerAchievements(playerId)), threadPoolExecutor);
+    return fafService.getPlayerAchievements(playerId);
   }
 
   @Override
-  public CompletionStage<List<AchievementDefinition>> getAchievementDefinitions() {
-    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getAchievementDefinitions(), threadPoolExecutor);
+  public CompletableFuture<List<AchievementDefinition>> getAchievementDefinitions() {
+    return fafService.getAchievementDefinitions();
   }
 
   @Override
-  public CompletionStage<AchievementDefinition> getAchievementDefinition(String achievementId) {
-    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getAchievementDefinition(achievementId), threadPoolExecutor);
+  public CompletableFuture<AchievementDefinition> getAchievementDefinition(String achievementId) {
+    return fafService.getAchievementDefinition(achievementId);
   }
 
   @Override
   @Cacheable(CacheNames.ACHIEVEMENT_IMAGES)
-  public Image getRevealedIcon(AchievementDefinition achievementDefinition) {
-    if (Strings.isNullOrEmpty(achievementDefinition.getRevealedIconUrl())) {
-      return themeService.getThemeImage(ThemeService.DEFAULT_ACHIEVEMENT_IMAGE);
+  public Image getImage(AchievementDefinition achievementDefinition, AchievementState achievementState) {
+    URL url;
+    switch (achievementState) {
+      case REVEALED:
+        url = noCatch(() -> new URL(achievementDefinition.getRevealedIconUrl()));
+        break;
+      case UNLOCKED:
+        url = noCatch(() -> new URL(achievementDefinition.getUnlockedIconUrl()));
+        break;
+      default:
+        throw new UnsupportedOperationException("Not yet implemented");
     }
-    return new Image(achievementDefinition.getRevealedIconUrl(), ACHIEVEMENT_IMAGE_SIZE, ACHIEVEMENT_IMAGE_SIZE, true, true, true);
-  }
-
-  @Override
-  @Cacheable(CacheNames.ACHIEVEMENT_IMAGES)
-  public Image getUnlockedIcon(AchievementDefinition achievementDefinition) {
-    if (Strings.isNullOrEmpty(achievementDefinition.getUnlockedIconUrl())) {
-      return themeService.getThemeImage(ThemeService.DEFAULT_ACHIEVEMENT_IMAGE);
-    }
-    return new Image(achievementDefinition.getUnlockedIconUrl(), ACHIEVEMENT_IMAGE_SIZE, ACHIEVEMENT_IMAGE_SIZE, true, true, true);
+    return assetService.loadAndCacheImage(url, Paths.get("achievements").resolve(achievementState.name().toLowerCase()),
+        null, ACHIEVEMENT_IMAGE_SIZE, ACHIEVEMENT_IMAGE_SIZE);
   }
 
   private void reloadAchievements() {
-    playerAchievements.setAll(fafApiAccessor.getPlayerAchievements(userService.getUid()));
+    fafService.getPlayerAchievements(userService.getUserId()).thenAccept(playerAchievements::setAll);
   }
 
   @PostConstruct

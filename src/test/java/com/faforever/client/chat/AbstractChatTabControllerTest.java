@@ -1,20 +1,25 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.audio.AudioController;
+import com.faforever.client.audio.AudioService;
+import com.faforever.client.clan.Clan;
+import com.faforever.client.clan.ClanService;
+import com.faforever.client.clan.ClanTooltipController;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.PlayerCardTooltipController;
+import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.os.OperatingSystem;
-import com.faforever.client.player.PlayerInfoBeanBuilder;
+import com.faforever.client.player.Player;
+import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
+import com.google.common.eventbus.EventBus;
 import javafx.concurrent.Worker;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -25,12 +30,12 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
+import org.bridj.Platform;
+import org.hamcrest.CoreMatchers;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -39,38 +44,39 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 
 import static com.faforever.client.chat.AbstractChatTabController.CSS_CLASS_CHAT_ONLY;
-import static com.faforever.client.chat.SocialStatus.*;
-import static java.util.Collections.emptyList;
+import static com.faforever.client.chat.SocialStatus.FOE;
+import static com.faforever.client.chat.SocialStatus.FRIEND;
+import static com.faforever.client.chat.SocialStatus.OTHER;
+import static com.faforever.client.chat.SocialStatus.SELF;
 import static java.util.Collections.singletonList;
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.core.Is.is;
-import static org.hamcrest.text.IsEmptyString.isEmptyString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   private static final long TIMEOUT = 5000;
+  private static final String sampleClanTag = "xyz";
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
-  @Mock
-  PlayerCardTooltipController playerCardTooltipController;
   @Mock
   private ChatService chatService;
   @Mock
   private UserService userService;
   @Mock
   private PreferencesService preferencesService;
-  @Mock
-  private Preferences preferences;
-  @Mock
-  private ChatPrefs chatPrefs;
   @Mock
   private PlayerService playerService;
   @Mock
@@ -80,7 +86,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private TimeService timeService;
   @Mock
-  private AudioController audioController;
+  private AudioService audioService;
   @Mock
   private ImageUploadService imageUploadService;
   @Mock
@@ -89,15 +95,33 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   private NotificationService notificationService;
   @Mock
   private AutoCompletionHelper autoCompletionHelper;
+  @Mock
+  private UiService uiService;
+  @Mock
+  private ClanService clanService;
+  @Mock
+  private WebViewConfigurer webViewConfigurer;
+  @Mock
+  private ReportingService reportingService;
+  @Mock
+  private EventBus eventBus;
+  @Mock
+  private CountryFlagService countryFlagService;
 
+
+
+  private Preferences preferences;
   private AbstractChatTabController instance;
   private CountDownLatch chatReadyLatch;
 
   @Override
   public void start(Stage stage) throws Exception {
     super.start(stage);
-
-    instance = new AbstractChatTabController() {
+    instance = new AbstractChatTabController(clanService, webViewConfigurer, userService,
+        chatService, platformService, preferencesService, playerService,
+        audioService, timeService, i18n, imageUploadService,
+        urlPreviewResolver, notificationService, reportingService,
+        uiService, autoCompletionHelper, eventBus, countryFlagService) {
       private final Tab root = new Tab();
       private final WebView webView = new WebView();
       private final TextInputControl messageTextField = new TextField();
@@ -108,7 +132,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
       }
 
       @Override
-      protected TextInputControl getMessageTextField() {
+      protected TextInputControl messageTextField() {
         return messageTextField;
       }
 
@@ -117,30 +141,22 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
         return webView;
       }
     };
-    instance.chatService = chatService;
-    instance.userService = userService;
-    instance.preferencesService = preferencesService;
-    instance.playerService = playerService;
-    instance.playerCardTooltipController = playerCardTooltipController;
-    instance.platformService = platformService;
-    instance.urlPreviewResolver = urlPreviewResolver;
-    instance.timeService = timeService;
-    instance.audioController = audioController;
-    instance.imageUploadService = imageUploadService;
-    instance.notificationService = notificationService;
-    instance.i18n = i18n;
-    instance.stage = stage;
-    instance.autoCompletionHelper = autoCompletionHelper;
+
 
     TabPane tabPane = new TabPane(instance.getRoot());
     getRoot().getChildren().setAll(tabPane);
 
+    preferences = new Preferences();
+
+    Clan clan = new Clan();
+    clan.setId(1234);
+
+    when(clanService.getClanByTag(sampleClanTag)).thenReturn(completedFuture(Optional.of(clan)));
+    when(uiService.loadFxml("theme/chat/clan_tooltip.fxml")).thenReturn(mock(ClanTooltipController.class));
+    when(uiService.getThemeFileUrl(any())).thenReturn(getClass().getResource("/theme/chat/chat_section.html"));
     when(timeService.asShortTime(any())).thenReturn("123");
     when(userService.getUsername()).thenReturn("junit");
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferencesService.getCacheDirectory()).thenReturn(tempDir.getRoot().toPath());
-    when(preferences.getThemeName()).thenReturn("default");
-    when(preferences.getChat()).thenReturn(chatPrefs);
 
     chatReadyLatch = new CountDownLatch(1);
     instance.getMessagesWebView().getEngine().getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
@@ -149,29 +165,29 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
       }
     });
 
-    instance.postConstruct();
+    instance.initialize();
   }
 
   @Test
   public void testOnSendMessageSuccessful() throws Exception {
     String receiver = "receiver";
     String message = "Some message";
-    instance.getMessageTextField().setText(message);
+    instance.messageTextField().setText(message);
     instance.setReceiver(receiver);
-    when(chatService.sendMessageInBackground(eq(receiver), any())).thenReturn(CompletableFuture.completedFuture(message));
+    when(chatService.sendMessageInBackground(eq(receiver), any())).thenReturn(completedFuture(message));
 
     instance.onSendMessage();
 
     verify(chatService).sendMessageInBackground(eq(receiver), eq(message));
-    assertThat(instance.getMessageTextField().getText(), isEmptyString());
-    assertThat(instance.getMessageTextField().isDisable(), is(false));
+    assertThat(instance.messageTextField().getText(), is(emptyString()));
+    assertThat(instance.messageTextField().isDisable(), is(false));
   }
 
   @Test
   public void testOnSendMessageFailed() throws Exception {
     String receiver = "receiver";
     String message = "Some message";
-    instance.getMessageTextField().setText(message);
+    instance.messageTextField().setText(message);
     instance.setReceiver(receiver);
 
     CompletableFuture<String> future = new CompletableFuture<>();
@@ -181,31 +197,56 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.onSendMessage();
 
     verify(chatService).sendMessageInBackground(receiver, message);
-    assertThat(instance.getMessageTextField().getText(), is(message));
-    assertThat(instance.getMessageTextField().isDisable(), is(false));
+    assertThat(instance.messageTextField().getText(), is(message));
+    assertThat(instance.messageTextField().isDisable(), is(false));
+  }
+
+  @Test
+  public void testHideClanInfo() throws Exception {
+    instance.clanInfo(sampleClanTag);
+    instance.hideClanInfo();
+    assertThat(instance.clanInfoPopup, is(CoreMatchers.nullValue()));
+  }
+
+  @Test
+  public void testShowClanInfo() throws Exception {
+    instance.clanInfo(sampleClanTag);
+    WaitForAsyncUtils.waitForFxEvents();
+    assertThat(instance.clanInfoPopup, CoreMatchers.notNullValue());
+  }
+
+  @Test
+  public void testShowClanWebsite() throws Exception {
+    Clan clan = new Clan();
+    clan.setId(1234);
+    clan.setWebsiteUrl("http://example.com");
+    instance.showClanWebsite(sampleClanTag);
+
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(platformService).showDocument(any());
   }
 
   @Test
   public void testOnSendMessageSendActionSuccessful() throws Exception {
     String receiver = "receiver";
     String message = "/me is happy";
-    instance.getMessageTextField().setText(message);
+    instance.messageTextField().setText(message);
     instance.setReceiver(receiver);
-    when(timeService.asShortTime(any())).thenReturn("123");
-    when(chatService.sendActionInBackground(eq(receiver), any())).thenReturn(CompletableFuture.completedFuture(message));
+    when(chatService.sendActionInBackground(eq(receiver), any())).thenReturn(completedFuture(message));
 
     instance.onSendMessage();
 
     verify(chatService).sendActionInBackground(eq(receiver), eq("is happy"));
-    assertThat(instance.getMessageTextField().getText(), isEmptyString());
-    assertThat(instance.getMessageTextField().isDisable(), is(false));
+    assertThat(instance.messageTextField().getText(), is(emptyString()));
+    assertThat(instance.messageTextField().isDisable(), is(false));
   }
 
   @Test
   public void testOnSendMessageSendActionFailed() throws Exception {
     String receiver = "receiver";
     String message = "/me is happy";
-    instance.getMessageTextField().setText(message);
+    instance.messageTextField().setText(message);
     instance.setReceiver(receiver);
 
     CompletableFuture<String> future = new CompletableFuture<>();
@@ -215,22 +256,19 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.onSendMessage();
 
     verify(chatService).sendActionInBackground(receiver, "is happy");
-    assertThat(instance.getMessageTextField().getText(), is(message));
-    assertThat(instance.getMessageTextField().isDisable(), is(false));
+    assertThat(instance.messageTextField().getText(), is(message));
+    assertThat(instance.messageTextField().isDisable(), is(false));
   }
 
-  @Ignore("Wanted but not invoked: playerCardTooltipController.setPlayer(com.faforever.client.chat.PlayerInfoBean);")
   @Test
   public void testPlayerInfo() throws Exception {
     String playerName = "somePlayer";
-    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
-    when(playerCardTooltipController.getRoot()).thenReturn(new Pane());
+    Player player = new Player(playerName);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(player);
 
     WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> instance.playerInfo(playerName));
 
     verify(playerService).getPlayerForUsername(playerName);
-    verify(playerCardTooltipController).setPlayer(eq(playerInfoBean));
   }
 
   @Test
@@ -241,9 +279,8 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testHidePlayerInfo() throws Exception {
     String playerName = "somePlayer";
-    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
-    when(playerCardTooltipController.getRoot()).thenReturn(new Pane());
+    Player player = new Player(playerName);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(player);
 
     WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       instance.playerInfo(playerName);
@@ -265,6 +302,8 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void testPreviewUrlReturnsNull() throws Exception {
     String url = "http://www.example.com";
 
+    when(urlPreviewResolver.resolvePreview(url)).thenReturn(completedFuture(null));
+
     instance.previewUrl(url);
 
     verify(urlPreviewResolver).resolvePreview(url);
@@ -274,7 +313,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void testPreviewUrlReturnsPreview() throws Exception {
     String url = "http://www.example.com";
     UrlPreviewResolver.Preview preview = mock(UrlPreviewResolver.Preview.class);
-    when(urlPreviewResolver.resolvePreview(url)).thenReturn(preview);
+    when(urlPreviewResolver.resolvePreview(url)).thenReturn(completedFuture(Optional.of(preview)));
 
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.previewUrl(url));
 
@@ -291,19 +330,13 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void testHideUrlPreview() throws Exception {
     String url = "http://www.example.com";
     UrlPreviewResolver.Preview preview = mock(UrlPreviewResolver.Preview.class);
-    when(urlPreviewResolver.resolvePreview(url)).thenReturn(preview);
+    when(urlPreviewResolver.resolvePreview(url)).thenReturn(completedFuture(Optional.of(preview)));
 
     WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       instance.previewUrl(url);
       instance.hideUrlPreview();
     });
     // I don't see what could be verified here
-  }
-
-
-  @NotNull
-  private KeyEvent keyEvent(KeyCode keyCode) {
-    return keyEvent(keyCode, emptyList());
   }
 
   @NotNull
@@ -335,86 +368,84 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testPasteImageCtrlV() throws Exception {
     KeyCode modifier;
-    switch (OperatingSystem.current()) {
-      case MAC:
-        modifier = KeyCode.META;
-        break;
-      default:
-        modifier = KeyCode.CONTROL;
+    if (Platform.isMacOSX()) {
+      modifier = KeyCode.META;
+    } else {
+      modifier = KeyCode.CONTROL;
     }
 
-    Image image = new Image(getClass().getResourceAsStream("/theme/images/tray_icon.png"));
+    Image image = new Image(getClass().getResourceAsStream("/theme/images/close.png"));
 
     String url = "http://www.example.com/fake.png";
-    when(imageUploadService.uploadImageInBackground(any())).thenReturn(CompletableFuture.completedFuture(url));
+    when(imageUploadService.uploadImageInBackground(any())).thenReturn(completedFuture(url));
 
     WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       ClipboardContent clipboardContent = new ClipboardContent();
       clipboardContent.putImage(image);
       Clipboard.getSystemClipboard().setContent(clipboardContent);
 
-      instance.getMessageTextField().getOnKeyReleased().handle(
+      instance.messageTextField().getOnKeyReleased().handle(
           keyEvent(KeyCode.V, singletonList(modifier))
       );
     });
 
-    assertThat(instance.getMessageTextField().getText(), is(url));
+    assertThat(instance.messageTextField().getText(), is(url));
   }
 
   @Test
   public void testPasteImageShiftInsert() throws Exception {
-    Image image = new Image(getClass().getResourceAsStream("/theme/images/tray_icon.png"));
+    Image image = new Image(getClass().getResourceAsStream("/theme/images/close.png"));
 
     String url = "http://www.example.com/fake.png";
-    when(imageUploadService.uploadImageInBackground(any())).thenReturn(CompletableFuture.completedFuture(url));
+    when(imageUploadService.uploadImageInBackground(any())).thenReturn(completedFuture(url));
 
     WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       ClipboardContent clipboardContent = new ClipboardContent();
       clipboardContent.putImage(image);
       Clipboard.getSystemClipboard().setContent(clipboardContent);
 
-      instance.getMessageTextField().getOnKeyReleased().handle(
+      instance.messageTextField().getOnKeyReleased().handle(
           keyEvent(KeyCode.INSERT, singletonList(KeyCode.SHIFT))
       );
     });
 
-    assertThat(instance.getMessageTextField().getText(), is(url));
+    assertThat(instance.messageTextField().getText(), is(url));
   }
 
   @Test
   public void getMessageCssClassFriend() throws Exception {
     String playerName = "somePlayer";
-    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
-    playerInfoBean.setSocialStatus(FRIEND);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
+    Player player = new Player(playerName);
+    player.setSocialStatus(FRIEND);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(player);
     assertEquals(instance.getMessageCssClass(playerName), SocialStatus.FRIEND.getCssClass());
   }
 
   @Test
   public void getMessageCssClassFoe() throws Exception {
     String playerName = "somePlayer";
-    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
-    playerInfoBean.setSocialStatus(FOE);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
+    Player player = new Player(playerName);
+    player.setSocialStatus(FOE);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(player);
     assertEquals(instance.getMessageCssClass(playerName), SocialStatus.FOE.getCssClass());
   }
 
   @Test
   public void getMessageCssClassChatOnly() throws Exception {
     String playerName = "somePlayer";
-    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
-    playerInfoBean.setSocialStatus(OTHER);
-    playerInfoBean.setChatOnly(true);
+    Player player = new Player(playerName);
+    player.setSocialStatus(OTHER);
+    player.setChatOnly(true);
     assertEquals(instance.getMessageCssClass(playerName), CSS_CLASS_CHAT_ONLY);
   }
 
   @Test
   public void getMessageCssClassSelf() throws Exception {
     String playerName = "junit";
-    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
-    playerInfoBean.setSocialStatus(SELF);
-    playerInfoBean.setChatOnly(false);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
+    Player player = new Player(playerName);
+    player.setSocialStatus(SELF);
+    player.setChatOnly(false);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(player);
     assertEquals(instance.getMessageCssClass(playerName), SocialStatus.SELF.getCssClass());
   }
 
@@ -430,13 +461,13 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     String colorStyle = instance.createInlineStyleFromColor(color);
     ChatUser chatUser = new ChatUser("somePlayer", color);
 
-    when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.CUSTOM);
+    preferences.getChat().setChatColorMode(ChatColorMode.CUSTOM);
     when(chatService.getOrCreateChatUser("somePlayer")).thenReturn(chatUser);
-    when(chatPrefs.getHideFoeMessages()).thenReturn(false);
+    preferences.getChat().setHideFoeMessages(false);
 
-    String shouldBe = String.format("style=\"%s%s\"", colorStyle, "");
+    String expected = String.format("%s%s", colorStyle, "");
     String result = instance.getInlineStyle("somePlayer");
-    assertEquals(shouldBe, result);
+    assertEquals(expected, result);
   }
 
   @Test
@@ -445,13 +476,13 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     Color color = ColorGeneratorUtil.generateRandomColor();
 
     ChatUser chatUser = new ChatUser(somePlayer, color);
-    when(playerService.getPlayerForUsername(somePlayer)).thenReturn(PlayerInfoBeanBuilder.create(somePlayer).chatOnly(true).get());
+    when(playerService.getPlayerForUsername(somePlayer)).thenReturn(PlayerBuilder.create(somePlayer).chatOnly(true).get());
 
-    when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
+    preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
     when(chatService.getOrCreateChatUser(somePlayer)).thenReturn(chatUser);
-    when(chatPrefs.getHideFoeMessages()).thenReturn(false);
+    preferences.getChat().setHideFoeMessages(false);
 
-    String expected = String.format("style=\"%s\"", instance.createInlineStyleFromColor(color));
+    String expected = instance.createInlineStyleFromColor(color);
     String result = instance.getInlineStyle(somePlayer);
     assertEquals(expected, result);
   }
@@ -462,13 +493,13 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     String somePlayer = "somePlayer";
 
     ChatUser chatUser = new ChatUser(somePlayer, color);
-    when(playerService.getPlayerForUsername(somePlayer)).thenReturn(PlayerInfoBeanBuilder.create(somePlayer).chatOnly(true).get());
+    when(playerService.getPlayerForUsername(somePlayer)).thenReturn(PlayerBuilder.create(somePlayer).chatOnly(true).get());
 
-    when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
+    preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
     when(chatService.getOrCreateChatUser(somePlayer)).thenReturn(chatUser);
-    when(chatPrefs.getHideFoeMessages()).thenReturn(false);
+    preferences.getChat().setHideFoeMessages(false);
 
-    String expected = String.format("style=\"%s\"", instance.createInlineStyleFromColor(color));
+    String expected = instance.createInlineStyleFromColor(color);
     String result = instance.getInlineStyle(somePlayer);
     assertEquals(expected, result);
   }
@@ -477,28 +508,27 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void getInlineStyleRandomFoeHide() throws Exception {
     String playerName = "playerName";
     ChatUser chatUser = new ChatUser(playerName, null);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(PlayerInfoBeanBuilder.create(playerName).socialStatus(FOE).get());
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(PlayerBuilder.create(playerName).socialStatus(FOE).get());
 
-    when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
+    preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
     when(chatService.getOrCreateChatUser(playerName)).thenReturn(chatUser);
-    when(chatPrefs.getHideFoeMessages()).thenReturn(true);
+    preferences.getChat().setHideFoeMessages(true);
 
     String result = instance.getInlineStyle(playerName);
-    assertEquals("style=\"display: none;\"", result);
+    assertEquals("display: none;", result);
   }
 
   @Test
   public void getInlineStyleRandomFoeShow() throws Exception {
     String playerName = "somePlayer";
     ChatUser chatUser = new ChatUser(playerName, null);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(PlayerInfoBeanBuilder.create(playerName).socialStatus(FOE).get());
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(PlayerBuilder.create(playerName).socialStatus(FOE).get());
 
-    when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
+    preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
     when(chatService.getOrCreateChatUser(playerName)).thenReturn(chatUser);
-    when(chatPrefs.getHideFoeMessages()).thenReturn(false);
+    preferences.getChat().setHideFoeMessages(false);
 
-    String shouldBe = "style=\"\"";
     String result = instance.getInlineStyle(playerName);
-    assertEquals(shouldBe, result);
+    assertEquals("", result);
   }
 }

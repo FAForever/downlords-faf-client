@@ -1,10 +1,12 @@
 package com.faforever.client.chat;
 
 import java.time.Instant;
+import java.util.Objects;
 
 public class ChatMessage {
 
   private final String source;
+  // TODO change to LocalTime?
   private final Instant time;
   private final String username;
   private final String message;
@@ -45,4 +47,9 @@ public class ChatMessage {
   public boolean isAction() {
     return action;
   }
+
+  public boolean isPrivate() {
+    return !Objects.toString(source, "").startsWith("#");
+  }
+
 }

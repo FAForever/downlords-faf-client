@@ -1,13 +1,21 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.config.ClientProperties;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
-import com.faforever.client.game.GameType;
+import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapBeanBuilder;
+import com.faforever.client.map.MapService;
+import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.FafService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
+import com.faforever.commons.replay.ReplayData;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -16,16 +24,17 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
 
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static org.hamcrest.Matchers.empty;
@@ -78,42 +87,41 @@ public class ReplayServiceImplTest {
   @Mock
   private I18n i18n;
   @Mock
-  private Environment environment;
-  @Mock
   private PreferencesService preferencesService;
   @Mock
   private ReplayFileReader replayFileReader;
   @Mock
   private NotificationService notificationService;
   @Mock
-  private ReplayServerAccessor replayServerAccessor;
-  @Mock
   private ApplicationContext applicationContext;
   @Mock
   private TaskService taskService;
   @Mock
   private GameService gameService;
+  @Mock
+  private FafService fafService;
+  @Mock
+  private ReportingService reportingService;
+  @Mock
+  private PlatformService platformService;
+  @Mock
+  private ReplayServer replayServer;
+  @Mock
+  private ModService modService;
+  @Mock
+  private MapService mapService;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new ReplayServiceImpl();
-    instance.i18n = i18n;
-    instance.environment = environment;
-    instance.preferencesService = preferencesService;
-    instance.replayFileReader = replayFileReader;
-    instance.notificationService = notificationService;
-    instance.replayServerAccessor = replayServerAccessor;
-    instance.applicationContext = applicationContext;
-    instance.taskService = taskService;
-    instance.gameService = gameService;
+    instance = new ReplayServiceImpl(new ClientProperties(), preferencesService, replayFileReader, notificationService, gameService,
+        taskService, i18n, reportingService, applicationContext, platformService, replayServer, fafService, modService, mapService);
 
     when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath());
     when(preferencesService.getCorruptedReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath().resolve("corrupt"));
     when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory.getRoot().toPath());
-    when(environment.getProperty("replayFileGlob")).thenReturn("*.fafreplay");
-    doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
+    doAnswer(invocation -> invocation.getArgument(0)).when(taskService).submitTask(any());
   }
 
   @Test
@@ -134,7 +142,7 @@ public class ReplayServiceImplTest {
   public void testGuessModByFileNameModIsMissing() throws Exception {
     String mod = ReplayServiceImpl.guessModByFileName("110621-2128 Saltrock Colony.SCFAReplay");
 
-    assertEquals(GameType.DEFAULT.getString(), mod);
+    assertEquals(KnownFeaturedMod.DEFAULT.getTechnicalName(), mod);
   }
 
   @Test
@@ -149,15 +157,15 @@ public class ReplayServiceImplTest {
     Path file1 = replayDirectory.newFile("replay.fafreplay").toPath();
     Path file2 = replayDirectory.newFile("replay2.fafreplay").toPath();
 
-    doThrow(new IOException("Junit test exception")).when(replayFileReader).readReplayInfo(file1);
-    doThrow(new IOException("Junit test exception")).when(replayFileReader).readReplayInfo(file2);
+    doThrow(new RuntimeException("Junit test exception")).when(replayFileReader).parseMetaData(file1);
+    doThrow(new RuntimeException("Junit test exception")).when(replayFileReader).parseMetaData(file2);
 
-    Collection<ReplayInfoBean> localReplays = instance.getLocalReplays();
+    Collection<Replay> localReplays = instance.getLocalReplays();
 
     assertThat(localReplays, empty());
 
-    verify(replayFileReader).readReplayInfo(file1);
-    verify(replayFileReader).readReplayInfo(file2);
+    verify(replayFileReader).parseMetaData(file1);
+    verify(replayFileReader).parseMetaData(file2);
     verify(notificationService, times(2)).addNotification(any(PersistentNotification.class));
 
     assertThat(Files.exists(file1), is(false));
@@ -172,9 +180,11 @@ public class ReplayServiceImplTest {
     localReplayInfo.setUid(123);
     localReplayInfo.setTitle("title");
 
-    when(replayFileReader.readReplayInfo(file1)).thenReturn(localReplayInfo);
+    when(replayFileReader.parseMetaData(file1)).thenReturn(localReplayInfo);
+    when(modService.getFeaturedMod(any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(mapService.findByMapFolderName(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(MapBeanBuilder.create().defaultValues().get())));
 
-    Collection<ReplayInfoBean> localReplays = instance.getLocalReplays();
+    Collection<Replay> localReplays = instance.getLocalReplays();
 
     assertThat(localReplays, hasSize(1));
     assertThat(localReplays.iterator().next().getId(), is(123));
@@ -182,17 +192,11 @@ public class ReplayServiceImplTest {
   }
 
   @Test
-  public void testGetOnlineReplays() throws Exception {
-    instance.getOnlineReplays();
-    verify(replayServerAccessor).requestOnlineReplays();
-  }
-
-  @Test
   public void testRunFafReplayFile() throws Exception {
     Path replayFile = replayDirectory.newFile("replay.fafreplay").toPath();
 
-    ReplayInfoBean replayInfoBean = new ReplayInfoBean();
-    replayInfoBean.setReplayFile(replayFile);
+    Replay replay = new Replay();
+    replay.setReplayFile(replayFile);
 
     LocalReplayInfo replayInfo = new LocalReplayInfo();
     replayInfo.setUid(123);
@@ -201,10 +205,10 @@ public class ReplayServiceImplTest {
     replayInfo.setFeaturedMod("faf");
     replayInfo.setMapname(TEST_MAP_NAME);
 
-    when(replayFileReader.readReplayInfo(replayFile)).thenReturn(replayInfo);
-    when(replayFileReader.readReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
+    when(replayFileReader.parseMetaData(replayFile)).thenReturn(replayInfo);
+    when(replayFileReader.readRawReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
 
-    instance.runReplay(replayInfoBean);
+    instance.runReplay(replay);
 
     verify(gameService).runWithReplay(any(), eq(123), eq("faf"), eq(3599), eq(emptyMap()), eq(emptySet()), eq(TEST_MAP_NAME));
     verifyZeroInteractions(notificationService);
@@ -214,12 +218,12 @@ public class ReplayServiceImplTest {
   public void testRunScFaReplayFile() throws Exception {
     Path replayFile = replayDirectory.newFile("replay.scfareplay").toPath();
 
-    ReplayInfoBean replayInfoBean = new ReplayInfoBean();
-    replayInfoBean.setReplayFile(replayFile);
+    Replay replay = new Replay();
+    replay.setReplayFile(replayFile);
 
-    when(replayFileReader.readReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
+    when(replayFileReader.readRawReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
 
-    instance.runReplay(replayInfoBean);
+    instance.runReplay(replay);
 
     verify(gameService).runWithReplay(any(), eq(null), eq("faf"), eq(3599), eq(emptyMap()), eq(emptySet()), eq(TEST_MAP_NAME));
     verifyZeroInteractions(notificationService);
@@ -229,31 +233,29 @@ public class ReplayServiceImplTest {
   public void testRunReplayFileExceptionTriggersNotification() throws Exception {
     Path replayFile = replayDirectory.newFile("replay.scfareplay").toPath();
 
-    doThrow(new RuntimeException("Junit test exception")).when(replayFileReader).readReplayData(replayFile);
+    doThrow(new RuntimeException("Junit test exception")).when(replayFileReader).readRawReplayData(replayFile);
 
-    ReplayInfoBean replayInfoBean = new ReplayInfoBean();
-    replayInfoBean.setReplayFile(replayFile);
+    Replay replay = new Replay();
+    replay.setReplayFile(replayFile);
 
     expectedException.expect(RuntimeException.class);
     expectedException.expectMessage("Junit test exception");
 
-    instance.runReplay(replayInfoBean);
+    instance.runReplay(replay);
   }
 
   @Test
-  public void testRunFafReplayFileExceptionTriggersNotification() throws Exception {
+  public void testRunFafReplayFileExceptionPropagates() throws Exception {
     Path replayFile = replayDirectory.newFile("replay.fafreplay").toPath();
 
-    doThrow(new IOException("Junit test exception")).when(replayFileReader).readReplayInfo(replayFile);
-    when(replayFileReader.readReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
+    doThrow(new RuntimeException("Junit test exception")).when(replayFileReader).parseMetaData(replayFile);
+    when(replayFileReader.readRawReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
 
-    ReplayInfoBean replayInfoBean = new ReplayInfoBean();
-    replayInfoBean.setReplayFile(replayFile);
+    Replay replay = new Replay();
+    replay.setReplayFile(replayFile);
 
-    instance.runReplay(replayInfoBean);
-
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
-    verifyNoMoreInteractions(gameService);
+    expectedException.expectMessage("Junit test exception");
+    instance.runReplay(replay);
   }
 
   @Test
@@ -263,7 +265,7 @@ public class ReplayServiceImplTest {
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
     when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
-    ReplayInfoBean replayInfoBean = new ReplayInfoBean();
+    Replay replay = new Replay();
 
     LocalReplayInfo replayInfo = new LocalReplayInfo();
     replayInfo.setUid(123);
@@ -272,10 +274,10 @@ public class ReplayServiceImplTest {
     replayInfo.setFeaturedMod("faf");
     replayInfo.setMapname(TEST_MAP_NAME);
 
-    when(replayFileReader.readReplayInfo(replayFile)).thenReturn(replayInfo);
-    when(replayFileReader.readReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
+    when(replayFileReader.parseMetaData(replayFile)).thenReturn(replayInfo);
+    when(replayFileReader.readRawReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
 
-    instance.runReplay(replayInfoBean);
+    instance.runReplay(replay);
 
     verify(taskService).submitTask(replayDownloadTask);
     verify(gameService).runWithReplay(any(), eq(123), eq("faf"), eq(3599), eq(emptyMap()), eq(emptySet()), eq(TEST_MAP_NAME));
@@ -290,11 +292,11 @@ public class ReplayServiceImplTest {
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
 
     when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
-    ReplayInfoBean replayInfoBean = new ReplayInfoBean();
+    Replay replay = new Replay();
 
-    when(replayFileReader.readReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
+    when(replayFileReader.readRawReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
 
-    instance.runReplay(replayInfoBean);
+    instance.runReplay(replay);
 
     verify(taskService).submitTask(replayDownloadTask);
     verify(gameService).runWithReplay(replayFile, null, "faf", 3599, emptyMap(), emptySet(), TEST_MAP_NAME);
@@ -304,14 +306,14 @@ public class ReplayServiceImplTest {
   @Test
   public void testRunScFaOnlineReplayExceptionTriggersNotification() throws Exception {
     Path replayFile = replayDirectory.newFile("replay.scfareplay").toPath();
-    doThrow(new IOException("Junit test exception")).when(replayFileReader).readReplayInfo(replayFile);
+    doThrow(new RuntimeException("Junit test exception")).when(replayFileReader).parseMetaData(replayFile);
 
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
     when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
-    ReplayInfoBean replayInfoBean = new ReplayInfoBean();
+    Replay replay = new Replay();
 
-    instance.runReplay(replayInfoBean);
+    instance.runReplay(replay);
 
     verify(notificationService).addNotification(any(ImmediateNotification.class));
     verifyNoMoreInteractions(gameService);
@@ -325,5 +327,15 @@ public class ReplayServiceImplTest {
     instance.runLiveReplay(new URI("faflive://example.com/123/456.scfareplay?mod=faf&map=map%20name"));
 
     verify(gameService).runWithLiveReplay(new URI("gpgnet://example.com/123/456.scfareplay"), 123, "faf", "map name");
+  }
+
+  @Test
+  public void testEnrich() throws Exception {
+    Path path = Paths.get("foo.bar");
+    when(replayFileReader.parseReplay(path)).thenReturn(new ReplayData(emptyList(), emptyList()));
+
+    instance.enrich(new Replay(), path);
+
+    verify(replayFileReader).parseReplay(path);
   }
 }

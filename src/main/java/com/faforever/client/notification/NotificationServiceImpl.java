@@ -1,24 +1,43 @@
 package com.faforever.client.notification;
 
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.reporting.ReportingService;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import static com.faforever.client.notification.Severity.ERROR;
+import static java.util.Collections.singletonList;
 import static javafx.collections.FXCollections.observableSet;
 import static javafx.collections.FXCollections.synchronizedObservableSet;
 
+
+@Lazy
+@Service
+// TODO instead of being required an called explicitly, this service should listen for application events only
 public class NotificationServiceImpl implements NotificationService {
 
   private final ObservableSet<PersistentNotification> persistentNotifications;
   private final List<OnTransientNotificationListener> onTransientNotificationListeners;
   private final List<OnImmediateNotificationListener> onImmediateNotificationListeners;
+  private final ReportingService reportingService;
 
-  public NotificationServiceImpl() {
+  // TODO fix circular reference
+  @Inject
+  private I18n i18n;
+
+  @Inject
+  public NotificationServiceImpl(ReportingService reportingService) {
+    this.reportingService = reportingService;
+
     persistentNotifications = synchronizedObservableSet(observableSet(new TreeSet<>()));
     onTransientNotificationListeners = new ArrayList<>();
     onImmediateNotificationListeners = new ArrayList<>();
@@ -62,5 +81,10 @@ public class NotificationServiceImpl implements NotificationService {
   @Override
   public void addImmediateNotificationListener(OnImmediateNotificationListener listener) {
     onImmediateNotificationListeners.add(listener);
+  }
+
+  @Override
+  public void addPersistentErrorNotification(Throwable throwable, String messageKey, Object... args) {
+    addNotification(new PersistentNotification(i18n.get(messageKey, args), ERROR, singletonList(new ReportAction(i18n, reportingService, throwable))));
   }
 }

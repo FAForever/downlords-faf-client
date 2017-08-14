@@ -1,13 +1,31 @@
 package com.faforever.client.api;
 
-import com.faforever.client.io.ByteCountListener;
-import com.faforever.client.leaderboard.Ranked1v1EntryBean;
-import com.faforever.client.map.MapBean;
-import com.faforever.client.mod.ModInfoBean;
+import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.api.dto.Clan;
+import com.faforever.client.api.dto.CoopMission;
+import com.faforever.client.api.dto.CoopResult;
+import com.faforever.client.api.dto.FeaturedModFile;
+import com.faforever.client.api.dto.Game;
+import com.faforever.client.api.dto.GamePlayerStats;
+import com.faforever.client.api.dto.GameReview;
+import com.faforever.client.api.dto.GlobalLeaderboardEntry;
+import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
+import com.faforever.client.api.dto.Map;
+import com.faforever.client.api.dto.MapVersion;
+import com.faforever.client.api.dto.MapVersionReview;
+import com.faforever.client.api.dto.Mod;
+import com.faforever.client.api.dto.ModVersionReview;
+import com.faforever.client.api.dto.PlayerAchievement;
+import com.faforever.client.api.dto.PlayerEvent;
+import com.faforever.client.game.KnownFeaturedMod;
+import com.faforever.client.mod.FeaturedMod;
+import com.faforever.commons.io.ByteCountListener;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Provides access to the FAF REST API. Services should not access this class directly, but use {@link
@@ -24,31 +42,73 @@ public interface FafApiAccessor {
 
   AchievementDefinition getAchievementDefinition(String achievementId);
 
-  void authorize(int playerId);
+  void authorize(int playerId, String username, String password);
 
-  List<ModInfoBean> getMods();
+  List<Mod> getMods();
 
-  MapBean findMapByName(String mapId);
+  List<com.faforever.client.api.dto.FeaturedMod> getFeaturedMods();
 
-  List<Ranked1v1EntryBean> getRanked1v1Entries();
+  List<Ladder1v1LeaderboardEntry> getLadder1v1Leaderboard();
 
-  Ranked1v1Stats getRanked1v1Stats();
+  List<GlobalLeaderboardEntry> getGlobalLeaderboard();
 
-  Ranked1v1EntryBean getRanked1v1EntryForPlayer(int playerId);
+  Ladder1v1LeaderboardEntry getLadder1v1EntryForPlayer(int playerId);
 
-  History getRatingHistory(RatingType ratingType, int playerId);
+  List<GamePlayerStats> getGamePlayerStats(int playerId, KnownFeaturedMod knownFeaturedMod);
 
-  List<MapBean> getMaps();
+  List<Map> getMostPlayedMaps(int count, int page);
 
-  List<MapBean> getMostDownloadedMaps(int count);
+  List<Map> getHighestRatedMaps(int count, int page);
 
-  List<MapBean> getMostPlayedMaps(int count);
+  List<Map> getNewestMaps(int count, int page);
 
-  List<MapBean> getBestRatedMaps(int count);
+  List<Game> getLastGamesOnMap(int playerId, String mapVersionId, int count);
 
-  List<MapBean> getNewestMaps(int count);
-
-  void uploadMod(Path file, ByteCountListener listener) throws IOException;
+  void uploadMod(Path file, ByteCountListener listener);
 
   void uploadMap(Path file, boolean isRanked, ByteCountListener listener) throws IOException;
+
+  List<CoopMission> getCoopMissions();
+
+  List<CoopResult> getCoopLeaderboard(String missionId, int numberOfPlayers);
+
+  void changePassword(String username, String currentPasswordHash, String newPasswordHash) throws IOException;
+
+  Mod getMod(String uid);
+
+  List<FeaturedModFile> getFeaturedModFiles(FeaturedMod featuredMod, Integer version);
+
+  List<Game> getNewestReplays(int count);
+
+  List<Game> getHighestRatedReplays(int count);
+
+  List<Game> getMostWatchedReplays(int count);
+
+  List<Game> findReplaysByQuery(String condition, int maxResults);
+
+  Optional<MapVersion> findMapByFolderName(String folderName);
+
+  List<com.faforever.client.api.dto.Player> getPlayersByIds(Collection<Integer> playerIds);
+
+  GameReview createGameReview(GameReview review);
+
+  void updateGameReview(GameReview review);
+
+  ModVersionReview createModVersionReview(ModVersionReview review);
+
+  void updateModVersionReview(ModVersionReview review);
+
+  MapVersionReview createMapVersionReview(MapVersionReview review);
+
+  void updateMapVersionReview(MapVersionReview review);
+
+  void deleteGameReview(int id);
+
+  Optional<Clan> getClanByTag(String tag);
+
+  List<Map> findMapsByQuery(String query, int page, int maxResults);
+
+  Optional<MapVersion> findMapVersionById(String id);
+
+  void deleteMapVersionReview(Integer id);
 }

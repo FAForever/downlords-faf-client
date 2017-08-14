@@ -1,56 +1,49 @@
 package com.faforever.client.achievements;
 
-import com.faforever.client.api.AchievementDefinition;
-import com.faforever.client.api.AchievementState;
-import com.faforever.client.api.AchievementType;
-import com.faforever.client.api.PlayerAchievement;
+import com.faforever.client.achievements.AchievementService.AchievementState;
+import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.api.dto.AchievementType;
+import com.faforever.client.api.dto.PlayerAchievement;
+import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.PreferencesService;
 import com.google.common.base.MoreObjects;
 import javafx.application.Platform;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
-import java.util.Locale;
+import javax.inject.Inject;
 import java.util.Objects;
 
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+// TODO this class should not use API objects
+public class AchievementItemController implements Controller<Node> {
 
-public class AchievementItemController {
-
-  @FXML
-  GridPane achievementItemRoot;
-  @FXML
-  Label nameLabel;
-  @FXML
-  Label descriptionLabel;
-  @FXML
-  Label pointsLabel;
-  @FXML
-  ProgressBar progressBar;
-  @FXML
-  Label progressLabel;
-  @FXML
-  ImageView imageView;
-
-  @Resource
-  Locale locale;
-  @Resource
-  I18n i18n;
-  @Resource
-  PreferencesService preferencesService;
-  @Resource
-  AchievementService achievementService;
-
+  private final I18n i18n;
+  private final AchievementService achievementService;
+  public GridPane achievementItemRoot;
+  public Label nameLabel;
+  public Label descriptionLabel;
+  public Label pointsLabel;
+  public ProgressBar progressBar;
+  public Label progressLabel;
+  public ImageView imageView;
   private AchievementDefinition achievementDefinition;
 
-  @FXML
-  void initialize() {
+  @Inject
+  public AchievementItemController(I18n i18n, AchievementService achievementService) {
+    this.i18n = i18n;
+    this.achievementService = achievementService;
+  }
+
+  public void initialize() {
     progressBar.managedProperty().bind(progressBar.visibleProperty());
     progressLabel.managedProperty().bind(progressLabel.visibleProperty());
   }
@@ -64,8 +57,8 @@ public class AchievementItemController {
 
     nameLabel.setText(achievementDefinition.getName());
     descriptionLabel.setText(achievementDefinition.getDescription());
-    pointsLabel.setText(String.format(locale, "%d", achievementDefinition.getExperiencePoints()));
-    imageView.setImage(achievementService.getRevealedIcon(achievementDefinition));
+    pointsLabel.setText(i18n.number(achievementDefinition.getExperiencePoints()));
+    imageView.setImage(achievementService.getImage(achievementDefinition, AchievementService.AchievementState.REVEALED));
     progressLabel.setText(i18n.get("achievement.stepsFormat", 0, achievementDefinition.getTotalSteps()));
     progressBar.setProgress(0);
 
@@ -84,12 +77,12 @@ public class AchievementItemController {
     if (achievementDefinition == null) {
       throw new IllegalStateException("achievementDefinition needs to be set first");
     }
-    if (!Objects.equals(achievementDefinition.getId(), playerAchievement.getAchievementId())) {
+    if (!Objects.equals(achievementDefinition.getId(), playerAchievement.getAchievement().getId())) {
       throw new IllegalStateException("Achievement ID does not match");
     }
 
-    if (AchievementState.UNLOCKED == playerAchievement.getState()) {
-      imageView.setImage(achievementService.getUnlockedIcon(achievementDefinition));
+    if (AchievementState.UNLOCKED == AchievementState.valueOf(playerAchievement.getState().name())) {
+      imageView.setImage(achievementService.getImage(achievementDefinition, AchievementState.UNLOCKED));
       imageView.setOpacity(1);
       imageView.setEffect(null);
     }

@@ -23,6 +23,17 @@ function link(input) {
       }
   );
 }
+function showClanInfo(node) {
+  chatTab.clanInfo(node.textContent);
+}
+
+function hideClanInfo() {
+  chatTab.hideClanInfo();
+}
+
+function showClanWebsite(node) {
+  chatTab.showClanWebsite(node.textContent);
+}
 
 function showPlayerInfo(node) {
   chatTab.playerInfo(node.textContent);

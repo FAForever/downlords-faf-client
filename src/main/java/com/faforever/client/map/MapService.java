@@ -1,58 +1,55 @@
 package com.faforever.client.map;
 
+import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.task.CompletableTask;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public interface MapService {
 
   @Nullable
   MapBean readMap(Path mapPath);
 
-  Image loadSmallPreview(String mapName);
-
-  Image loadLargePreview(String mapName);
+  /**
+   * Loads the preview of a map or returns a "unknown map" image.
+   */
+  @NotNull
+  Image loadPreview(String mapName, PreviewSize previewSize);
 
   ObservableList<MapBean> getInstalledMaps();
 
   MapBean getMapBeanLocallyFromName(String mapName);
 
-  MapBean findMapByName(String mapId);
-
   boolean isOfficialMap(String mapName);
 
   /**
    * Returns {@code true} if the given map is available locally, {@code false} otherwise.
-   * @param mapFolderName
    */
   boolean isInstalled(String mapFolderName);
 
-  CompletionStage<Void> download(String technicalMapName);
+  CompletableFuture<Void> download(String technicalMapName);
 
-  CompletionStage<Void> downloadAndInstallMap(MapBean map, DoubleProperty progressProperty, StringProperty titleProperty);
+  CompletableFuture<Void> downloadAndInstallMap(MapBean map, DoubleProperty progressProperty, StringProperty titleProperty);
 
-  CompletionStage<List<MapBean>> lookupMap(String string, int maxResults);
+  CompletableFuture<List<MapBean>> getHighestRatedMaps(int count, int page);
 
-  CompletionStage<List<MapBean>> getMostDownloadedMaps(int count);
+  CompletableFuture<List<MapBean>> getNewestMaps(int count, int page);
 
-  CompletionStage<List<MapBean>> getMostLikedMaps(int count);
+  CompletableFuture<List<MapBean>> getMostPlayedMaps(int count, int page);
 
-  CompletionStage<List<MapBean>> getNewestMaps(int count);
+  Image loadPreview(MapBean map, PreviewSize previewSize);
 
-  CompletionStage<List<MapBean>> getMostPlayedMaps(int count);
-
-  Image loadSmallPreview(MapBean map);
-
-  Image loadLargePreview(MapBean map);
-
-  CompletionStage<Void> uninstallMap(MapBean map);
+  CompletableFuture<Void> uninstallMap(MapBean map);
 
   Path getPathForMap(MapBean map);
 
@@ -61,4 +58,17 @@ public interface MapService {
   CompletableTask<Void> uploadMap(Path mapPath, boolean ranked);
 
   void evictCache();
+
+  /**
+   * Tries to find a map my its folder name, first locally then on the server.
+   */
+  CompletableFuture<Optional<MapBean>> findByMapFolderName(String folderName);
+
+  CompletableFuture<Boolean> hasPlayedMap(int playerId, String mapVersionId);
+
+  CompletableFuture<Integer> getFileSize(URL downloadUrl);
+
+  CompletableFuture<List<MapBean>> findByQuery(String query, int page, int maxSearchResults);
+
+  Optional<MapBean> findMap(String id);
 }

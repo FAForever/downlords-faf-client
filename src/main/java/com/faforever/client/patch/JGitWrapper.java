@@ -1,61 +1,72 @@
 package com.faforever.client.patch;
 
+import com.faforever.client.task.ResourceLocks;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.Ref;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.eclipse.jgit.lib.ProgressMonitor;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 
+import static org.eclipse.jgit.api.Git.cloneRepository;
+import static org.eclipse.jgit.api.Git.open;
+
+@Lazy
+@Component
+@Slf4j
 public class JGitWrapper implements GitWrapper {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
   @Override
-  public void clone(String repositoryUri, Path targetDirectory) {
-    logger.debug("Cloning {} into {}", repositoryUri, targetDirectory);
-
+  @SneakyThrows
+  public void clone(String repositoryUri, Path targetDirectory, ProgressMonitor progressMonitor) {
+    ResourceLocks.acquireDownloadLock();
+    ResourceLocks.acquireDiskLock();
     try {
-      Git.cloneRepository()
+      log.debug("Cloning {} into {}", repositoryUri, targetDirectory);
+      cloneRepository()
+          .setProgressMonitor(progressMonitor)
           .setURI(repositoryUri)
           .setDirectory(targetDirectory.toFile())
           .call();
-    } catch (GitAPIException e) {
-      throw new RuntimeException(e);
+    } finally {
+      ResourceLocks.freeDiskLock();
+      ResourceLocks.freeDownloadLock();
     }
   }
 
   @Override
-  public String getRemoteHead(Path repoDirectory) throws IOException {
-    Git git = Git.open(repoDirectory.toFile());
-    String remoteHead = null;
+  @SneakyThrows
+  public void fetch(Path repoDirectory, PropertiesProgressMonitor progressMonitor) {
+    ResourceLocks.acquireDownloadLock();
+    ResourceLocks.acquireDiskLock();
     try {
-      for (Ref ref : git.lsRemote().call()) {
-        if (Constants.HEAD.equals(ref.getName())) {
-          remoteHead = ref.getObjectId().name();
-          break;
-        }
+      log.debug("Fetching into {}", repoDirectory);
+      try (Git git = open(repoDirectory.toFile())) {
+        git.fetch()
+            .setProgressMonitor(progressMonitor)
+            .call();
       }
-    } catch (GitAPIException e) {
-      throw new IOException(e);
+    } finally {
+      ResourceLocks.freeDiskLock();
+      ResourceLocks.freeDownloadLock();
     }
-    return remoteHead;
   }
 
   @Override
-  public String getLocalHead(Path repoDirectory) throws IOException {
-    Git git = Git.open(repoDirectory.toFile());
-
-    ObjectId head = git.getRepository().resolve(Constants.HEAD);
-    if (head == null) {
-      return null;
+  @SneakyThrows
+  public void checkoutRef(Path repoDirectory, String ref) {
+    ResourceLocks.acquireDiskLock();
+    try {
+      try (Git git = open(repoDirectory.toFile())) {
+        git.checkout()
+            .setForce(true)
+            .setName(ref)
+            .call();
+      }
+    } finally {
+      ResourceLocks.freeDiskLock();
     }
-
-    return head.name();
   }
 }

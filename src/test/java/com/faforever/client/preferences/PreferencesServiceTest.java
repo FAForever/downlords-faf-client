@@ -1,10 +1,12 @@
 package com.faforever.client.preferences;
 
-import com.faforever.client.os.OperatingSystem;
+import com.google.common.eventbus.EventBus;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
+import org.bridj.Platform;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,11 +17,14 @@ import static org.junit.Assert.assertThat;
 
 public class PreferencesServiceTest {
 
+  @Mock
   private PreferencesService instance;
+  @Mock
+  private EventBus eventBus;
 
   @Before
   public void setUp() throws Exception {
-    instance = new PreferencesService();
+    instance = new PreferencesService(eventBus);
   }
 
   @Test
@@ -34,24 +39,16 @@ public class PreferencesServiceTest {
 
   @Test
   public void testGetFafDataDirectory() throws Exception {
-    switch (OperatingSystem.current()) {
-      case WINDOWS:
-        assertThat(instance.getFafDataDirectory(), is(Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever")));
-        break;
-
-      default:
-        assertThat(instance.getFafDataDirectory(), is(Paths.get(System.getProperty("user.home")).resolve(".faforever")));
+    if (Platform.isWindows()) {
+      assertThat(instance.getFafDataDirectory(), is(Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever")));
+    } else {
+      assertThat(instance.getFafDataDirectory(), is(Paths.get(System.getProperty("user.home")).resolve(".faforever")));
     }
   }
 
   @Test
   public void testGetFafReposDirectory() throws Exception {
-    assertThat(instance.getFafReposDirectory(), is(instance.getFafDataDirectory().resolve("repos")));
-  }
-
-  @Test
-  public void testAddUpdateListener() throws Exception {
-
+    assertThat(instance.getGitReposDirectory(), is(instance.getFafDataDirectory().resolve("repos")));
   }
 
   @Test
@@ -74,10 +71,5 @@ public class PreferencesServiceTest {
   @Test
   public void testGetFafLogDirectory() throws Exception {
     assertThat(instance.getFafLogDirectory(), is(instance.getFafDataDirectory().resolve("logs")));
-  }
-
-  @Test
-  public void testConfigureLogging() throws Exception {
-    PreferencesService.configureLogging();
   }
 }

@@ -1,10 +1,14 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.GameInfoBean;
+import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
-import com.faforever.client.game.GameType;
+import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapService;
+import com.faforever.client.mod.FeaturedMod;
+import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
@@ -13,26 +17,31 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.FafService;
+import com.faforever.client.replay.Replay.ChatMessage;
+import com.faforever.client.replay.Replay.GameOption;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
+import com.faforever.commons.replay.ReplayData;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.net.UrlEscapers;
 import com.google.common.primitives.Bytes;
+import lombok.SneakyThrows;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
+import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,15 +51,24 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static com.faforever.client.notification.Severity.WARN;
+import static com.github.nocatch.NoCatch.noCatch;
+import static java.net.URLDecoder.decode;
 import static java.nio.charset.StandardCharsets.US_ASCII;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.createDirectories;
+import static java.nio.file.Files.move;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 
+
+@Lazy
+@Service
 public class ReplayServiceImpl implements ReplayService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -66,30 +84,43 @@ public class ReplayServiceImpl implements ReplayService {
   private static final String GPGNET_SCHEME = "gpgnet";
   private static final String TEMP_SCFA_REPLAY_FILE_NAME = "temp.scfareplay";
 
-  @Resource
-  Environment environment;
-  @Resource
-  PreferencesService preferencesService;
-  @Resource
-  ReplayFileReader replayFileReader;
-  @Resource
-  NotificationService notificationService;
-  @Resource
-  GameService gameService;
-  @Resource
-  TaskService taskService;
-  @Resource
-  I18n i18n;
-  @Resource
-  ReportingService reportingService;
-  @Resource
-  ReplayServerAccessor replayServerAccessor;
-  @Resource
-  ApplicationContext applicationContext;
-  @Resource
-  PlatformService platformService;
-  @Resource
-  ReplayServer replayServer;
+  private final ClientProperties clientProperties;
+  private final PreferencesService preferencesService;
+  private final ReplayFileReader replayFileReader;
+  private final NotificationService notificationService;
+  private final GameService gameService;
+  private final TaskService taskService;
+  private final I18n i18n;
+  private final ReportingService reportingService;
+  private final ApplicationContext applicationContext;
+  private final PlatformService platformService;
+  private final ReplayServer replayServer;
+  private final FafService fafService;
+  private final ModService modService;
+  private final MapService mapService;
+
+  @Inject
+  public ReplayServiceImpl(ClientProperties clientProperties, PreferencesService preferencesService,
+                           ReplayFileReader replayFileReader, NotificationService notificationService,
+                           GameService gameService, TaskService taskService, I18n i18n,
+                           ReportingService reportingService, ApplicationContext applicationContext,
+                           PlatformService platformService, ReplayServer replayServer, FafService fafService,
+                           ModService modService, MapService mapService) {
+    this.clientProperties = clientProperties;
+    this.preferencesService = preferencesService;
+    this.replayFileReader = replayFileReader;
+    this.notificationService = notificationService;
+    this.gameService = gameService;
+    this.taskService = taskService;
+    this.i18n = i18n;
+    this.reportingService = reportingService;
+    this.applicationContext = applicationContext;
+    this.platformService = platformService;
+    this.replayServer = replayServer;
+    this.fafService = fafService;
+    this.modService = modService;
+    this.mapService = mapService;
+  }
 
   @VisibleForTesting
   static Integer parseSupComVersion(byte[] rawReplayBytes) {
@@ -110,24 +141,38 @@ public class ReplayServiceImpl implements ReplayService {
     if (splitFileName.length > 2) {
       return splitFileName[splitFileName.length - 2];
     }
-    return GameType.DEFAULT.getString();
+    return KnownFeaturedMod.DEFAULT.getTechnicalName();
   }
 
   @Override
-  public Collection<ReplayInfoBean> getLocalReplays() throws IOException {
-    Collection<ReplayInfoBean> replayInfos = new ArrayList<>();
+  @SneakyThrows
+  public Collection<Replay> getLocalReplays() {
+    Collection<Replay> replayInfos = new ArrayList<>();
 
-    String replayFileGlob = environment.getProperty("replayFileGlob");
+    String replayFileGlob = clientProperties.getReplay().getReplayFileGlob();
 
     Path replaysDirectory = preferencesService.getReplaysDirectory();
     if (!Files.notExists(replaysDirectory)) {
-      Files.createDirectories(replaysDirectory);
+      noCatch(() -> createDirectories(replaysDirectory));
     }
     try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(replaysDirectory, replayFileGlob)) {
       for (Path replayFile : directoryStream) {
         try {
-          LocalReplayInfo replayInfo = replayFileReader.readReplayInfo(replayFile);
-          replayInfos.add(new ReplayInfoBean(replayInfo, replayFile));
+          LocalReplayInfo replayInfo = replayFileReader.parseMetaData(replayFile);
+          FeaturedMod featuredMod = modService.getFeaturedMod(replayInfo.getFeaturedMod()).getNow(FeaturedMod.UNKNOWN);
+
+          mapService.findByMapFolderName(replayInfo.getMapname())
+              .thenAccept(mapBean -> {
+                if (!mapBean.isPresent()) {
+                  notificationService.addNotification(new ImmediateNotification(
+                      i18n.get("errorTitle"),
+                      i18n.get("mapNotFound", replayInfo.getMapname()),
+                      WARN
+                  ));
+                  return;
+                }
+                replayInfos.add(new Replay(replayInfo, replayFile, featuredMod, mapBean.get()));
+              });
         } catch (Exception e) {
           logger.warn("Could not read replay file {} ({})", replayFile, e.getMessage());
           moveCorruptedReplayFile(replayFile);
@@ -138,15 +183,15 @@ public class ReplayServiceImpl implements ReplayService {
     return replayInfos;
   }
 
-  private void moveCorruptedReplayFile(Path replayFile) throws IOException {
+  private void moveCorruptedReplayFile(Path replayFile) {
     Path corruptedReplaysDirectory = preferencesService.getCorruptedReplaysDirectory();
-    Files.createDirectories(corruptedReplaysDirectory);
+    noCatch(() -> createDirectories(corruptedReplaysDirectory));
 
     Path target = corruptedReplaysDirectory.resolve(replayFile.getFileName());
 
     logger.debug("Moving corrupted replay file from {} to {}", replayFile, target);
 
-    Files.move(replayFile, target);
+    noCatch(() -> move(replayFile, target));
 
     notificationService.addNotification(new PersistentNotification(
         i18n.get("corruptedReplayFiles.notification"), WARN,
@@ -157,12 +202,7 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public CompletionStage<List<ReplayInfoBean>> getOnlineReplays() {
-    return replayServerAccessor.requestOnlineReplays();
-  }
-
-  @Override
-  public void runReplay(ReplayInfoBean item) {
+  public void runReplay(Replay item) {
     if (item.getReplayFile() != null) {
       runReplayFile(item.getReplayFile());
     } else {
@@ -171,28 +211,25 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public void runLiveReplay(int gameId, int playerId) throws IOException {
-    GameInfoBean gameInfoBean = gameService.getByUid(gameId);
-    if (gameInfoBean == null) {
+  public void runLiveReplay(int gameId, int playerId) {
+    Game game = gameService.getByUid(gameId);
+    if (game == null) {
       throw new RuntimeException("There's no game with ID: " + gameId);
     }
 
     URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setScheme(FAF_LIFE_PROTOCOL);
-    uriBuilder.setHost(environment.getProperty("lobby.host"));
+    // TODO check if this host is correct
+    uriBuilder.setHost(clientProperties.getReplay().getRemoteHost());
     uriBuilder.setPath("/" + gameId + "/" + playerId + SUP_COM_REPLAY_FILE_ENDING);
-    uriBuilder.addParameter("map", UrlEscapers.urlFragmentEscaper().escape(gameInfoBean.getMapFolderName()));
-    uriBuilder.addParameter("mod", gameInfoBean.getFeaturedMod());
+    uriBuilder.addParameter("map", UrlEscapers.urlFragmentEscaper().escape(game.getMapFolderName()));
+    uriBuilder.addParameter("mod", game.getFeaturedMod());
 
-    try {
-      runLiveReplay(uriBuilder.build());
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
+    noCatch(() -> runLiveReplay(uriBuilder.build()));
   }
 
   @Override
-  public void runLiveReplay(URI uri) throws IOException {
+  public void runLiveReplay(URI uri) {
     logger.debug("Running replay from URL: {}", uri);
     if (!uri.getScheme().equals(FAF_LIFE_PROTOCOL)) {
       throw new IllegalArgumentException("Invalid protocol: " + uri.getScheme());
@@ -201,7 +238,7 @@ public class ReplayServiceImpl implements ReplayService {
     Map<String, String> queryParams = Splitter.on('&').trimResults().withKeyValueSeparator("=").split(uri.getQuery());
 
     String gameType = queryParams.get("mod");
-    String mapName = URLDecoder.decode(queryParams.get("map"), StandardCharsets.UTF_8.name());
+    String mapName = noCatch(() -> decode(queryParams.get("map"), UTF_8.name()));
     Integer gameId = Integer.parseInt(uri.getPath().split("/")[1]);
 
     try {
@@ -222,8 +259,8 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public void startReplayServer(int gameUid) {
-    replayServer.start(gameUid);
+  public CompletableFuture<Void> startReplayServer(int gameUid) {
+    return replayServer.start(gameUid);
   }
 
   @Override
@@ -231,31 +268,76 @@ public class ReplayServiceImpl implements ReplayService {
     replayServer.stop();
   }
 
+  @Override
+  public void runReplay(Integer replayId) {
+    runOnlineReplay(replayId);
+  }
+
+  @Override
+  public CompletableFuture<List<Replay>> getNewestReplays(int topElementCount) {
+    return fafService.getNewestReplays(topElementCount);
+  }
+
+  @Override
+  public CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount) {
+    return fafService.getHighestRatedReplays(topElementCount);
+  }
+
+  @Override
+  public CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount) {
+    return fafService.getMostWatchedReplays(topElementCount);
+  }
+
+  @Override
+  public CompletableFuture<List<Replay>> findByQuery(String query, int maxResults) {
+    return fafService.findReplaysByQuery(query, maxResults);
+  }
+
+  @Override
+  public CompletableFuture<Path> downloadReplay(int id) {
+    ReplayDownloadTask task = applicationContext.getBean(ReplayDownloadTask.class);
+    task.setReplayId(id);
+    return taskService.submitTask(task).getFuture();
+  }
+
+  @Override
+  public void enrich(Replay replay, Path path) {
+    ReplayData replayData = replayFileReader.parseReplay(path);
+    replay.getChatMessages().setAll(replayData.getChatMessages().stream()
+        .map(chatMessage -> new ChatMessage(chatMessage.getTime(), chatMessage.getSender(), chatMessage.getMessage()))
+        .collect(Collectors.toList())
+    );
+    replay.getGameOptions().setAll(replayData.getGameOptions().stream()
+        .map(gameOption -> new GameOption(gameOption.getKey(), gameOption.getValue()))
+        .collect(Collectors.toList())
+    );
+  }
+
+  @Override
+  @SneakyThrows
+  public CompletableFuture<Integer> getSize(int id) {
+    return CompletableFuture.supplyAsync(() -> noCatch(() -> new URL(String.format(clientProperties.getVault().getReplayDownloadUrlFormat(), id))
+        .openConnection()
+        .getContentLength()));
+  }
+
+  @SneakyThrows
   private void runReplayFile(Path path) {
-    try {
-      String fileName = path.getFileName().toString();
-      if (fileName.endsWith(FAF_REPLAY_FILE_ENDING)) {
-        runFafReplayFile(path);
-      } else if (fileName.endsWith(SUP_COM_REPLAY_FILE_ENDING)) {
-        runSupComReplayFile(path);
-      }
-    } catch (IOException e) {
-      logger.warn("Replay could not be started", e);
-      notificationService.addNotification(new ImmediateNotification(
-          i18n.get("errorTitle"),
-          i18n.get("replayCouldNotBeStarted", path.getFileName()),
-          WARN, e, singletonList(new ReportAction(i18n, reportingService, e))
-      ));
+    String fileName = path.getFileName().toString();
+    if (fileName.endsWith(FAF_REPLAY_FILE_ENDING)) {
+      runFafReplayFile(path);
+    } else if (fileName.endsWith(SUP_COM_REPLAY_FILE_ENDING)) {
+      runSupComReplayFile(path);
     }
   }
 
   private void runOnlineReplay(int replayId) {
-    downloadReplayToTemporaryDirectory(replayId)
+    downloadReplay(replayId)
         .thenAccept(this::runReplayFile)
         .exceptionally(throwable -> {
           notificationService.addNotification(new ImmediateNotification(
               i18n.get("errorTitle"),
-              i18n.get("replayCouldNotBeDownloaded", replayId),
+              i18n.get("replayCouldNotBeStarted", replayId),
               Severity.ERROR, throwable,
               singletonList(new ReportAction(i18n, reportingService, throwable)))
           );
@@ -265,14 +347,14 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   private void runFafReplayFile(Path path) throws IOException {
-    byte[] rawReplayBytes = replayFileReader.readReplayData(path);
+    byte[] rawReplayBytes = replayFileReader.readRawReplayData(path);
 
     Path tempSupComReplayFile = preferencesService.getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
 
-    Files.createDirectories(tempSupComReplayFile.getParent());
+    createDirectories(tempSupComReplayFile.getParent());
     Files.copy(new ByteArrayInputStream(rawReplayBytes), tempSupComReplayFile, StandardCopyOption.REPLACE_EXISTING);
 
-    LocalReplayInfo replayInfo = replayFileReader.readReplayInfo(path);
+    LocalReplayInfo replayInfo = replayFileReader.parseMetaData(path);
     String gameType = replayInfo.getFeaturedMod();
     Integer replayId = replayInfo.getUid();
     Map<String, Integer> modVersions = replayInfo.getFeaturedModVersions();
@@ -286,7 +368,7 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   private void runSupComReplayFile(Path path) {
-    byte[] rawReplayBytes = replayFileReader.readReplayData(path);
+    byte[] rawReplayBytes = replayFileReader.readRawReplayData(path);
 
     Integer version = parseSupComVersion(rawReplayBytes);
     String mapName = parseMapName(rawReplayBytes);
@@ -294,11 +376,5 @@ public class ReplayServiceImpl implements ReplayService {
     String gameType = guessModByFileName(fileName);
 
     gameService.runWithReplay(path, null, gameType, version, emptyMap(), emptySet(), mapName);
-  }
-
-  private CompletionStage<Path> downloadReplayToTemporaryDirectory(int replayId) {
-    ReplayDownloadTask task = applicationContext.getBean(ReplayDownloadTask.class);
-    task.setReplayId(replayId);
-    return taskService.submitTask(task).getFuture();
   }
 }

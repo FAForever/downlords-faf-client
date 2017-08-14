@@ -1,22 +1,24 @@
 package com.faforever.client.game;
 
+import com.faforever.client.mod.FeaturedMod;
+
 import java.util.Set;
 
 public class NewGameInfo {
 
   private String title;
   private String password;
-  private String gameType;
+  private FeaturedMod featuredMod;
   private String map;
   private Set<String> simMods;
 
   public NewGameInfo() {
   }
 
-  public NewGameInfo(String title, String password, String mod, String map, Set<String> simMods) {
+  public NewGameInfo(String title, String password, FeaturedMod featuredMod, String map, Set<String> simMods) {
     this.title = title;
     this.password = password;
-    this.gameType = mod;
+    this.featuredMod = featuredMod;
     this.map = map;
     this.simMods = simMods;
   }
@@ -45,12 +47,12 @@ public class NewGameInfo {
     this.map = map;
   }
 
-  public String getGameType() {
-    return gameType;
+  public FeaturedMod getFeaturedMod() {
+    return featuredMod;
   }
 
-  public void setGameType(String gameType) {
-    this.gameType = gameType;
+  public void setFeaturedMod(FeaturedMod featuredMod) {
+    this.featuredMod = featuredMod;
   }
 
   public Set<String> getSimMods() {

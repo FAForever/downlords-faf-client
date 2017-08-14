@@ -1,24 +1,29 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.audio.AudioController;
+import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.UrlPreviewResolver.Preview;
+import com.faforever.client.clan.ClanService;
+import com.faforever.client.clan.ClanTooltipController;
+import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.PlayerCardTooltipController;
+import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.io.ByteCopier;
-import com.faforever.client.main.MainController;
+import com.faforever.client.main.NavigateEvent;
+import com.faforever.client.main.NavigationItem;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.theme.ThemeService;
+import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.StageHolder;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.IdenticonUtil;
@@ -29,6 +34,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.io.CharStreams;
 import com.sun.javafx.scene.control.skin.TabPaneSkin;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ChangeListener;
@@ -36,9 +42,9 @@ import javafx.beans.value.WeakChangeListener;
 import javafx.concurrent.Worker;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputControl;
@@ -53,6 +59,7 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
+import javafx.stage.PopupWindow.AnchorLocation;
 import javafx.stage.Stage;
 import netscape.javascript.JSObject;
 import org.apache.commons.lang3.StringUtils;
@@ -60,27 +67,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import java.io.ByteArrayOutputStream;
+import javax.inject.Inject;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.invoke.MethodHandles;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.chat.SocialStatus.FRIEND;
 import static com.faforever.client.chat.SocialStatus.SELF;
+import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
+import static com.faforever.client.theme.UiService.CHAT_ENTRY;
+import static com.faforever.client.theme.UiService.CHAT_TEXT;
+import static com.faforever.client.util.RatingUtil.getGlobalRating;
+import static com.faforever.client.util.RatingUtil.getLeaderboardRating;
+import static com.github.nocatch.NoCatch.noCatch;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
+import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static javafx.scene.AccessibleAttribute.ITEM_AT_INDEX;
 
@@ -89,21 +100,17 @@ import static javafx.scene.AccessibleAttribute.ITEM_AT_INDEX;
  * selectable, but text within a WebView is. This comes with some ugly implications; some of the logic has to be
  * performed in interaction with JavaScript, like when the user clicks a link.
  */
-public abstract class AbstractChatTabController {
+public abstract class AbstractChatTabController implements Controller<Tab> {
 
-  protected static final String CSS_CLASS_CHAT_ONLY = "chat_only";
-  protected static final String MESSAGE_CONTAINER_ID = "chat-container";
-  protected static final String MESSAGE_ITEM_CLASS = "chat-message";
-  protected static final String CHANNEL_TOPIC_CONTAINER_ID = "channel-topic";
-  protected static final String CHANNEL_TOPIC_SHADOW_CONTAINER_ID = "channel-topic-shadow";
+  static final String CSS_CLASS_CHAT_ONLY = "chat_only";
+  private static final String MESSAGE_CONTAINER_ID = "chat-container";
+  private static final String MESSAGE_ITEM_CLASS = "chat-section";
   private static final PseudoClass UNREAD_PSEUDO_STATE = PseudoClass.getPseudoClass("unread");
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final org.springframework.core.io.Resource CHAT_HTML_RESOURCE = new ClassPathResource("/theme/chat_container.html");
   private static final org.springframework.core.io.Resource CHAT_JS_RESOURCE = new ClassPathResource("/js/chat_container.js");
   private static final org.springframework.core.io.Resource AUTOLINKER_JS_RESOURCE = new ClassPathResource("/js/Autolinker.min.js");
   private static final org.springframework.core.io.Resource JQUERY_JS_RESOURCE = new ClassPathResource("js/jquery-2.1.4.min.js");
   private static final org.springframework.core.io.Resource JQUERY_HIGHLIGHT_JS_RESOURCE = new ClassPathResource("js/jquery.highlight-5.closure.js");
-  private static final org.springframework.core.io.Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/theme/chat_message.html");
   /**
    * This is the member name within the JavaScript code that provides access to this chat tab instance.
    */
@@ -116,51 +123,34 @@ public abstract class AbstractChatTabController {
    */
   private static final String ACTION_CSS_CLASS = "action";
   private static final String MESSAGE_CSS_CLASS = "message";
+  protected final UserService userService;
+  protected final ChatService chatService;
+  protected final PlatformService platformService;
+  protected final PreferencesService preferencesService;
+  protected final PlayerService playerService;
+  protected final AudioService audioService;
+  protected final TimeService timeService;
+  protected final I18n i18n;
+  protected final NotificationService notificationService;
+  protected final ReportingService reportingService;
+  protected final UiService uiService;
+  protected final EventBus eventBus;
+  protected final WebViewConfigurer webViewConfigurer;
+  protected final ImageUploadService imageUploadService;
+  protected final UrlPreviewResolver urlPreviewResolver;
+  protected final AutoCompletionHelper autoCompletionHelper;
+  protected final ClanService clanService;
+  private final CountryFlagService countryFlagService;
+
   /**
    * Messages that arrived before the web view was ready. Those are appended as soon as it is ready.
    */
   private final List<ChatMessage> waitingMessages;
   private final IntegerProperty unreadMessagesCount;
   private final ChangeListener<Boolean> resetUnreadMessagesListener;
-  @Resource
-  UserService userService;
-  @Resource
-  ChatService chatService;
-  @Resource
-  PlatformService platformService;
-  @Resource
-  PreferencesService preferencesService;
-  @Resource
-  PlayerService playerService;
-  @Resource
-  AudioController audioController;
-  @Resource
-  TimeService timeService;
-  @Resource
-  PlayerCardTooltipController playerCardTooltipController;
-  @Resource
-  ChatController chatController;
-  @Resource
-  I18n i18n;
-  @Resource
-  ImageUploadService imageUploadService;
-  @Resource
-  UrlPreviewResolver urlPreviewResolver;
-  @Resource
-  NotificationService notificationService;
-  @Resource
-  ReportingService reportingService;
-  @Resource
-  Stage stage;
-  @Resource
-  MainController mainController;
-  @Resource
-  ThemeService themeService;
-  @Resource
-  AutoCompletionHelper autoCompletionHelper;
-  @Resource
-  EventBus eventBus;
-
+  @VisibleForTesting
+  Popup clanInfoPopup;
+  private int lastEntryId;
   private boolean isChatReady;
   private WebEngine engine;
   private double lastMouseX;
@@ -173,13 +163,42 @@ public abstract class AbstractChatTabController {
    * Either a channel like "#aeolus" or a user like "Visionik".
    */
   private String receiver;
-
   private Pattern mentionPattern;
-  private Popup playerCardTooltip;
   private Tooltip linkPreviewTooltip;
   private ChangeListener<Boolean> stageFocusedListener;
+  private Popup playerInfoPopup;
+  private ChatMessage lastMessage;
 
-  public AbstractChatTabController() {
+  @Inject
+  // TODO cut dependencies
+  public AbstractChatTabController(ClanService clanService, WebViewConfigurer webViewConfigurer,
+                                   UserService userService, ChatService chatService,
+                                   PlatformService platformService, PreferencesService preferencesService,
+                                   PlayerService playerService, AudioService audioService,
+                                   TimeService timeService, I18n i18n,
+                                   ImageUploadService imageUploadService, UrlPreviewResolver urlPreviewResolver,
+                                   NotificationService notificationService, ReportingService reportingService, UiService uiService,
+                                   AutoCompletionHelper autoCompletionHelper, EventBus eventBus, CountryFlagService countryFlagService) {
+
+    this.webViewConfigurer = webViewConfigurer;
+    this.clanService = clanService;
+    this.uiService = uiService;
+    this.chatService = chatService;
+    this.userService = userService;
+    this.platformService = platformService;
+    this.preferencesService = preferencesService;
+    this.playerService = playerService;
+    this.audioService = audioService;
+    this.timeService = timeService;
+    this.i18n = i18n;
+    this.imageUploadService = imageUploadService;
+    this.urlPreviewResolver = urlPreviewResolver;
+    this.notificationService = notificationService;
+    this.reportingService = reportingService;
+    this.autoCompletionHelper = autoCompletionHelper;
+    this.eventBus = eventBus;
+    this.countryFlagService = countryFlagService;
+
     waitingMessages = new ArrayList<>();
     unreadMessagesCount = new SimpleIntegerProperty();
     resetUnreadMessagesListener = (observable, oldValue, newValue) -> {
@@ -246,8 +265,7 @@ public abstract class AbstractChatTabController {
     this.receiver = receiver;
   }
 
-  @PostConstruct
-  void postConstruct() {
+  public void initialize() {
     mentionPattern = Pattern.compile("\\b(" + Pattern.quote(userService.getUsername()) + ")\\b", CASE_INSENSITIVE);
 
     Platform.runLater(this::initChatView);
@@ -258,22 +276,22 @@ public abstract class AbstractChatTabController {
     unreadMessagesCount.addListener((observable, oldValue, newValue) ->
         chatService.incrementUnreadMessagesCount(newValue.intValue() - oldValue.intValue())
     );
-    stage.focusedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
+    StageHolder.getStage().focusedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
     getRoot().selectedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
 
-    autoCompletionHelper.bindTo(getMessageTextField());
+    autoCompletionHelper.bindTo(messageTextField());
   }
 
   /**
    * Registers listeners necessary to focus the message input field when changing to another message tab, changing from
    * another tab to the "chat" tab or re-focusing the window.
    */
-  private void addFocusListeners() {
+  protected void addFocusListeners() {
     getRoot().selectedProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue) {
         // Since a tab is marked as "selected" before it's rendered, the text field can't be selected yet.
         // So let's schedule the focus to be executed afterwards
-        Platform.runLater(getMessageTextField()::requestFocus);
+        Platform.runLater(messageTextField()::requestFocus);
       }
     });
 
@@ -283,21 +301,21 @@ public abstract class AbstractChatTabController {
       }
       stageFocusedListener = (window, windowFocusOld, windowFocusNew) -> {
         if (newTabPane.isVisible()) {
-          getMessageTextField().requestFocus();
+          messageTextField().requestFocus();
         }
       };
-      stage.focusedProperty().addListener(new WeakChangeListener<>(stageFocusedListener));
+      StageHolder.getStage().focusedProperty().addListener(new WeakChangeListener<>(stageFocusedListener));
 
       newTabPane.focusedProperty().addListener((focusedTabPane, oldTabPaneFocus, newTabPaneFocus) -> {
         if (newTabPaneFocus) {
-          getMessageTextField().requestFocus();
+          messageTextField().requestFocus();
         }
       });
     });
   }
 
   private void addImagePasteListener() {
-    TextInputControl messageTextField = getMessageTextField();
+    TextInputControl messageTextField = messageTextField();
     messageTextField.setOnKeyReleased(event -> {
       if (isPaste(event)
           && Clipboard.getSystemClipboard().hasImage()) {
@@ -306,7 +324,7 @@ public abstract class AbstractChatTabController {
     });
   }
 
-  protected abstract TextInputControl getMessageTextField();
+  protected abstract TextInputControl messageTextField();
 
   private boolean isPaste(KeyEvent event) {
     return (event.getCode() == KeyCode.V && event.isShortcutDown())
@@ -314,7 +332,7 @@ public abstract class AbstractChatTabController {
   }
 
   private void pasteImage() {
-    TextInputControl messageTextField = getMessageTextField();
+    TextInputControl messageTextField = messageTextField();
     int currentCaretPosition = messageTextField.getCaretPosition();
 
     messageTextField.setDisable(true);
@@ -335,8 +353,7 @@ public abstract class AbstractChatTabController {
 
   private void initChatView() {
     WebView messagesWebView = getMessagesWebView();
-    JavaFxUtil.configureWebView(messagesWebView, preferencesService, themeService);
-    themeService.registerWebView(messagesWebView);
+    webViewConfigurer.configureWebView(messagesWebView);
 
     messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
     messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {
@@ -354,7 +371,7 @@ public abstract class AbstractChatTabController {
     engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
       if (Worker.State.SUCCEEDED == newValue) {
         synchronized (waitingMessages) {
-          waitingMessages.forEach(AbstractChatTabController.this::appendMessage);
+          waitingMessages.forEach(AbstractChatTabController.this::addMessage);
           waitingMessages.clear();
           isChatReady = true;
           onWebViewLoaded();
@@ -362,16 +379,12 @@ public abstract class AbstractChatTabController {
       }
     });
 
-    try (InputStream inputStream = CHAT_HTML_RESOURCE.getInputStream()) {
-      ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-      ByteCopier.from(inputStream).to(byteArrayOutputStream).copy();
-
-      String chatContainerHtml = new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8)
+    try (Reader reader = new InputStreamReader(uiService.getThemeFileUrl(CHAT_CONTAINER).openStream())) {
+      String chatContainerHtml = CharStreams.toString(reader)
           .replace("{chat-container-js}", CHAT_JS_RESOURCE.getURL().toExternalForm())
           .replace("{auto-linker-js}", AUTOLINKER_JS_RESOURCE.getURL().toExternalForm())
           .replace("{jquery-js}", JQUERY_JS_RESOURCE.getURL().toExternalForm())
           .replace("{jquery-highlight-js}", JQUERY_HIGHLIGHT_JS_RESOURCE.getURL().toExternalForm());
-
 
       engine.loadContent(chatContainerHtml);
     } catch (IOException e) {
@@ -390,31 +403,87 @@ public abstract class AbstractChatTabController {
   }
 
   /**
+   * Called from JavaScript when user hovers over a clan tag.
+   */
+  public void clanInfo(String clanTag) {
+    String clanTagWithReplacement = removeBrackets(clanTag);
+    clanService.getClanByTag(clanTagWithReplacement).thenAccept(clan -> Platform.runLater(() -> {
+      if (!clan.isPresent() || clanTagWithReplacement.isEmpty()) {
+        return;
+      }
+      ClanTooltipController clanTooltipController = uiService.loadFxml("theme/chat/clan_tooltip.fxml");
+      clanTooltipController.setClan(clan.get());
+      clanInfoPopup = new Popup();
+      clanTooltipController.getRoot().getStyleClass().add("tooltip");
+      clanInfoPopup.getContent().setAll(clanTooltipController.getRoot());
+      clanInfoPopup.setAnchorLocation(AnchorLocation.CONTENT_TOP_LEFT);
+      clanInfoPopup.show(getRoot().getTabPane().getScene().getWindow(), lastMouseX, lastMouseY + 10);
+      clanInfoPopup.setAutoHide(true);
+
+    }));
+  }
+
+  /**
+   * Called from JavaScript when user no longer hovers over a clan tag.
+   */
+  public void hideClanInfo() {
+    if (clanInfoPopup == null) {
+      return;
+    }
+    clanInfoPopup.hide();
+    clanInfoPopup = null;
+  }
+
+  /**
+   * Called from JavaScript when user clicks on clan tag.
+   */
+  public void showClanWebsite(String decoratedClanTag) {
+    String clanTag = removeBrackets(decoratedClanTag);
+    clanService.getClanByTag(clanTag).thenAccept(clan -> {
+      if (!clan.isPresent()) {
+        return;
+      }
+      platformService.showDocument(clan.get().getWebsiteUrl());
+    });
+  }
+
+  private String removeBrackets(String tag) {
+    return tag.replaceAll("[\\[\\]]", "");
+  }
+
+  /**
    * Called from JavaScript when user hovers over a user name.
    */
   public void playerInfo(String username) {
-    PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(username);
-    if (playerInfoBean == null || playerInfoBean.isChatOnly()) {
+    Player player = playerService.getPlayerForUsername(username);
+    if (player == null || player.isChatOnly()) {
       return;
     }
 
-    playerCardTooltipController.setPlayer(playerInfoBean);
+    playerInfoPopup = new Popup();
+    Label label = new Label();
+    label.getStyleClass().add("tooltip");
+    playerInfoPopup.getContent().setAll(label);
 
-    playerCardTooltip = new Popup();
-    playerCardTooltip.getContent().setAll(playerCardTooltipController.getRoot());
-    playerCardTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
-    playerCardTooltip.show(getRoot().getTabPane(), lastMouseX, lastMouseY - 10);
+    label.textProperty().bind(Bindings.createStringBinding(
+        () -> i18n.get("userInfo.ratingFormat", getGlobalRating(player), getLeaderboardRating(player)),
+        player.leaderboardRatingMeanProperty(), player.leaderboardRatingDeviationProperty(),
+        player.globalRatingMeanProperty(), player.globalRatingDeviationProperty()
+    ));
+
+    playerInfoPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
+    playerInfoPopup.show(getRoot().getTabPane(), lastMouseX, lastMouseY - 10);
   }
 
   /**
    * Called from JavaScript when user no longer hovers over a user name.
    */
   public void hidePlayerInfo() {
-    if (playerCardTooltip == null) {
+    if (playerInfoPopup == null) {
       return;
     }
-    playerCardTooltip.hide();
-    playerCardTooltip = null;
+    playerInfoPopup.hide();
+    playerInfoPopup = null;
   }
 
   /**
@@ -435,17 +504,19 @@ public abstract class AbstractChatTabController {
    * Called from JavaScript when user hovers over an URL.
    */
   public void previewUrl(String urlString) {
-    Preview preview = urlPreviewResolver.resolvePreview(urlString);
-    if (preview == null) {
-      return;
-    }
-
-    linkPreviewTooltip = new Tooltip(preview.getDescription());
-    linkPreviewTooltip.setAutoHide(true);
-    linkPreviewTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
-    linkPreviewTooltip.setGraphic(preview.getNode());
-    linkPreviewTooltip.setContentDisplay(ContentDisplay.TOP);
-    linkPreviewTooltip.show(getRoot().getTabPane(), lastMouseX + 20, lastMouseY);
+    urlPreviewResolver.resolvePreview(urlString)
+        .thenAccept(optionalPreview -> {
+          if (!optionalPreview.isPresent()) {
+            return;
+          }
+          Preview preview = optionalPreview.get();
+          linkPreviewTooltip = new Tooltip(preview.getDescription());
+          linkPreviewTooltip.setAutoHide(true);
+          linkPreviewTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
+          linkPreviewTooltip.setGraphic(preview.getNode());
+          linkPreviewTooltip.setContentDisplay(ContentDisplay.TOP);
+          linkPreviewTooltip.show(getRoot().getTabPane(), lastMouseX + 20, lastMouseY);
+        });
   }
 
   /**
@@ -458,9 +529,8 @@ public abstract class AbstractChatTabController {
     }
   }
 
-  @FXML
-  void onSendMessage() {
-    TextInputControl messageTextField = getMessageTextField();
+  public void onSendMessage() {
+    TextInputControl messageTextField = messageTextField();
 
     String text = messageTextField.getText();
     if (StringUtils.isEmpty(text)) {
@@ -480,15 +550,8 @@ public abstract class AbstractChatTabController {
     }
   }
 
-  private String getWordBeforeCaret(TextInputControl messageTextField) {
-    messageTextField.selectPreviousWord();
-    String selectedText = messageTextField.getSelectedText();
-    messageTextField.positionCaret(messageTextField.getAnchor());
-    return selectedText;
-  }
-
   private void sendMessage() {
-    TextInputControl messageTextField = getMessageTextField();
+    TextInputControl messageTextField = messageTextField();
     messageTextField.setDisable(true);
 
     final String text = messageTextField.getText();
@@ -496,7 +559,6 @@ public abstract class AbstractChatTabController {
       messageTextField.clear();
       messageTextField.setDisable(false);
       messageTextField.requestFocus();
-      onChatMessage(new ChatMessage(null, Instant.now(), userService.getUsername(), message));
     }).exceptionally(throwable -> {
       logger.warn("Message could not be sent: {}", text, throwable);
       notificationService.addNotification(new ImmediateNotification(
@@ -519,14 +581,13 @@ public abstract class AbstractChatTabController {
           messageTextField.clear();
           messageTextField.setDisable(false);
           messageTextField.requestFocus();
-          onChatMessage(new ChatMessage(null, Instant.now(), userService.getUsername(), message, true));
-        }).exceptionally(throwable -> {
-
-      // TODO display error to user somehow
-      logger.warn("Message could not be sent: {}", text, throwable);
-      messageTextField.setDisable(false);
-      return null;
-    });
+        })
+        .exceptionally(throwable -> {
+          // TODO onDisplay error to user somehow
+          logger.warn("Message could not be sent: {}", text, throwable);
+          messageTextField.setDisable(false);
+          return null;
+        });
   }
 
   protected void onChatMessage(ChatMessage chatMessage) {
@@ -535,7 +596,7 @@ public abstract class AbstractChatTabController {
         waitingMessages.add(chatMessage);
       } else {
         Platform.runLater(() -> {
-          appendMessage(chatMessage);
+          addMessage(chatMessage);
           removeTopmostMessages();
           scrollToBottomIfDesired();
         });
@@ -557,23 +618,23 @@ public abstract class AbstractChatTabController {
     }
   }
 
-  private void appendMessage(ChatMessage chatMessage) {
-    PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(chatMessage.getUsername());
-
-    try (Reader reader = new InputStreamReader(MESSAGE_ITEM_HTML_RESOURCE.getInputStream())) {
-      String login = chatMessage.getUsername();
-      String html = CharStreams.toString(reader);
-
-      String avatarUrl = "";
-      String clanTag = "";
-      if (playerInfoBean != null) {
-        avatarUrl = playerInfoBean.getAvatarUrl();
-
-        if (StringUtils.isNotEmpty(playerInfoBean.getClan())) {
-          clanTag = i18n.get("chat.clanTagFormat", playerInfoBean.getClan());
-        }
+  /**
+   * Either inserts a new chat entry or, if the same user as before sent another message, appends it do the previous
+   * entry.
+   */
+  private void addMessage(ChatMessage chatMessage) {
+    noCatch(() -> {
+      if (lastMessage == null || !lastMessage.getUsername().equals(chatMessage.getUsername())
+          || lastMessage.getTime().isBefore(chatMessage.getTime().minus(1, MINUTES))) {
+        addChatSection(chatMessage);
       }
+      appendMessage(chatMessage);
+      lastMessage = chatMessage;
+    });
+  }
 
+  private void appendMessage(ChatMessage chatMessage) throws IOException {
+    try (Reader reader = new InputStreamReader(uiService.getThemeFileUrl(CHAT_TEXT).openStream())) {
       String text = htmlEscaper().escape(chatMessage.getMessage()).replace("\\", "\\\\");
       text = convertUrlsToHyperlinks(text);
 
@@ -582,35 +643,57 @@ public abstract class AbstractChatTabController {
         text = matcher.replaceAll("<span class='self'>" + matcher.group(1) + "</span>");
         onMention(chatMessage);
       }
-
-      String timeString = timeService.asShortTime(chatMessage.getTime());
-      html = html.replace("{time}", timeString)
-          .replace("{avatar}", StringUtils.defaultString(avatarUrl))
-          .replace("{username}", login)
-          .replace("{clan-tag}", clanTag)
-          .replace("{text}", text);
+      String html = CharStreams.toString(reader).replace("{text}", text);
 
       Collection<String> cssClasses = new ArrayList<>();
-      cssClasses.add(String.format("user-%s", chatMessage.getUsername()));
-
       if (chatMessage.isAction()) {
         cssClasses.add(ACTION_CSS_CLASS);
       } else {
         cssClasses.add(MESSAGE_CSS_CLASS);
       }
 
-      String messageColorClass = getMessageCssClass(login);
+      html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
+      addToMessageContainer(html, "chat-section-" + lastEntryId);
+    }
+  }
 
-      if (messageColorClass != null) {
-        cssClasses.add(messageColorClass);
+  private void addChatSection(ChatMessage chatMessage) throws IOException {
+    Player player = playerService.getPlayerForUsername(chatMessage.getUsername());
+    try (Reader reader = new InputStreamReader(uiService.getThemeFileUrl(CHAT_ENTRY).openStream())) {
+      String login = chatMessage.getUsername();
+      String html = CharStreams.toString(reader);
+
+      String avatarUrl = "";
+      String clanTag = "";
+      String countryFlagUrl = "";
+      if (player != null) {
+        avatarUrl = player.getAvatarUrl();
+        countryFlagUrl = countryFlagService.getCountryFlagUrl(player.getCountry())
+            .map(URL::toString)
+            .orElse("");
+
+        if (StringUtils.isNotEmpty(player.getClan())) {
+          clanTag = i18n.get("chat.clanTagFormat", player.getClan());
+        }
       }
+
+      String timeString = timeService.asShortTime(chatMessage.getTime());
+      html = html.replace("{time}", timeString)
+          .replace("{avatar}", StringUtils.defaultString(avatarUrl))
+          .replace("{username}", login)
+          .replace("{clan-tag}", clanTag)
+          .replace("{country-flag}", StringUtils.defaultString(countryFlagUrl))
+          .replace("{section-id}", String.valueOf(++lastEntryId));
+
+      Collection<String> cssClasses = new ArrayList<>();
+      cssClasses.add(String.format("user-%s", chatMessage.getUsername()));
+
+      Optional.ofNullable(getMessageCssClass(login)).ifPresent(cssClasses::add);
 
       html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
       html = html.replace("{inline-style}", getInlineStyle(login));
 
-      addToMessageContainer(html);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+      addToMessageContainer(html, MESSAGE_CONTAINER_ID);
     }
   }
 
@@ -619,11 +702,12 @@ public abstract class AbstractChatTabController {
   }
 
   protected void showNotificationIfNecessary(ChatMessage chatMessage) {
+    Stage stage = StageHolder.getStage();
     if (stage.isFocused() && stage.isShowing()) {
       return;
     }
 
-    PlayerInfoBean player = playerService.getPlayerForUsername(chatMessage.getUsername());
+    Player player = playerService.getPlayerForUsername(chatMessage.getUsername());
     String identiconSource = player != null ? String.valueOf(player.getId()) : chatMessage.getUsername();
 
     notificationService.addNotification(new TransientNotification(
@@ -631,7 +715,7 @@ public abstract class AbstractChatTabController {
         chatMessage.getMessage(),
         IdenticonUtil.createIdenticon(identiconSource),
         event -> {
-          mainController.selectChatTab();
+          eventBus.post(new NavigateEvent(NavigationItem.CHAT));
           stage.toFront();
           getRoot().getTabPane().getSelectionModel().select(getRoot());
         })
@@ -640,14 +724,14 @@ public abstract class AbstractChatTabController {
 
   protected String getMessageCssClass(String login) {
     String cssClass;
-    PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(login);
-    if (playerInfoBean == null) {
+    Player player = playerService.getPlayerForUsername(login);
+    if (player == null) {
       return CSS_CLASS_CHAT_ONLY;
     } else {
-      cssClass = playerInfoBean.getSocialStatus().getCssClass();
+      cssClass = player.getSocialStatus().getCssClass();
     }
 
-    if (cssClass.equals("") && playerInfoBean.isChatOnly()) {
+    if (cssClass.equals("") && player.isChatOnly()) {
       cssClass = CSS_CLASS_CHAT_ONLY;
     }
     return cssClass;
@@ -656,7 +740,7 @@ public abstract class AbstractChatTabController {
   @VisibleForTesting
   String getInlineStyle(String username) {
     ChatUser chatUser = chatService.getOrCreateChatUser(username);
-    PlayerInfoBean player = playerService.getPlayerForUsername(username);
+    Player player = playerService.getPlayerForUsername(username);
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     String color = "";
     String display = "";
@@ -673,7 +757,7 @@ public abstract class AbstractChatTabController {
       }
     }
 
-    return String.format("style=\"%s%s\"", color, display);
+    return String.format("%s%s", color, display);
   }
 
   @VisibleForTesting
@@ -685,8 +769,23 @@ public abstract class AbstractChatTabController {
     return (String) engine.executeScript("link('" + text.replace("'", "\\'") + "')");
   }
 
-  private void addToMessageContainer(String html) {
-    ((JSObject) engine.executeScript("document.getElementById('" + MESSAGE_CONTAINER_ID + "')"))
+  private void addToMessageContainer(String html, String containerId) {
+    ((JSObject) engine.executeScript("document.getElementById('" + containerId + "')"))
         .call("insertAdjacentHTML", "beforeend", html);
+    getMessagesWebView().requestLayout();
+  }
+
+  /**
+   * Subclasses may override in order to perform actions when the view is being displayed.
+   */
+  protected void onDisplay() {
+    messageTextField().requestFocus();
+  }
+
+  /**
+   * Subclasses may override in order to perform actions when the view is no longer being displayed.
+   */
+  protected void onHide() {
+
   }
 }

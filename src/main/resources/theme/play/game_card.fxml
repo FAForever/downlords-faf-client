@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="gameCardRoot" hgap="10.0" maxWidth="360.0" minWidth="360.0"
+          onMouseClicked="#onClick" prefWidth="360.0" styleClass="game-card,card,hoverable"
+          xmlns="http://javafx.com/javafx/8.0.111" fx:controller="com.faforever.client.game.GameTileController">
+    <columnConstraints>
+        <ColumnConstraints hgrow="NEVER"/>
+        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints fillHeight="false" vgrow="SOMETIMES"/>
+        <RowConstraints vgrow="SOMETIMES"/>
+        <RowConstraints vgrow="SOMETIMES"/>
+        <RowConstraints vgrow="SOMETIMES"/>
+        <RowConstraints vgrow="SOMETIMES"/>
+        <RowConstraints vgrow="SOMETIMES"/>
+        <RowConstraints minHeight="1.0" vgrow="ALWAYS"/>
+    </rowConstraints>
+    <children>
+        <Label fx:id="gameTitleLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+               minWidth="0.0" styleClass="game-card-title" text="&lt;Game Title&gt;" GridPane.columnIndex="1"/>
+        <Label fx:id="gameTypeLabel" minWidth="0.0" text="&lt;Game Type&gt;" GridPane.columnIndex="1"
+               GridPane.rowIndex="1"/>
+        <Label fx:id="gameMapLabel" minWidth="0.0" text="&lt;Game Map&gt;" GridPane.columnIndex="1"
+               GridPane.rowIndex="2">
+            <graphic>
+                <Label styleClass="icon" text=""/>
+            </graphic>
+        </Label>
+        <Label fx:id="numberOfPlayersLabel" minWidth="0.0" text="&lt;Number of Players&gt;" GridPane.columnIndex="1"
+               GridPane.rowIndex="3">
+            <graphic>
+                <Label styleClass="icon" text=""/>
+            </graphic>
+        </Label>
+        <Label fx:id="modsLabel" minWidth="0.0" text="&lt;Mods&gt;" GridPane.columnIndex="1" GridPane.rowIndex="4">
+            <graphic>
+                <Label styleClass="icon" text=""/>
+            </graphic>
+        </Label>
+        <Label fx:id="hostLabel" minWidth="0.0" text="&lt;Host&gt;" GridPane.columnIndex="1" GridPane.rowIndex="5">
+            <graphic>
+                <Label styleClass="icon" text=""/>
+            </graphic>
+        </Label>
+        <StackPane GridPane.rowSpan="2147483647" GridPane.valignment="TOP">
+            <children>
+                <ImageView fx:id="mapImageView" fitHeight="115.0" fitWidth="115.0" preserveRatio="true"
+                           StackPane.alignment="TOP_CENTER"/>
+                <Label fx:id="lockIconLabel" styleClass="lock-icon,icon" text="" StackPane.alignment="BOTTOM_RIGHT">
+                    <StackPane.margin>
+                        <Insets bottom="10.0" right="10.0"/>
+                    </StackPane.margin>
+        </Label>
+      </children>
+        </StackPane>
+    </children>
+    <padding>
+        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+    </padding>
+</GridPane>

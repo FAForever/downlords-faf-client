@@ -1,57 +1,59 @@
 package com.faforever.client.achievements;
 
-import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.api.PlayerAchievement;
+import com.faforever.client.achievements.AchievementService.AchievementState;
+import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.PlayerInfoBeanBuilder;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.UpdatedAchievementsMessage;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.theme.ThemeService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
-import com.google.api.client.json.JsonFactory;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
+import static com.faforever.client.achievements.AchievementService.AchievementState.HIDDEN;
+import static com.faforever.client.achievements.AchievementService.AchievementState.REVEALED;
+import static com.faforever.client.achievements.AchievementService.AchievementState.UNLOCKED;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
+@RunWith(MockitoJUnitRunner.class)
+public class AchievementServiceImplTest {
 
   private static final int PLAYER_ID = 123;
   private static final String USERNAME = "junit";
+
   @Rule
   public TemporaryFolder preferencesDirectory = new TemporaryFolder();
   @Rule
+  public TemporaryFolder cacheDirectory = new TemporaryFolder();
+  @Rule
   public ExpectedException expectedException = ExpectedException.none();
   @Mock
-  PlayerService playerService;
+  private PlayerService playerService;
   @Mock
   private AchievementServiceImpl instance;
-  @Mock
-  private PreferencesService preferencesService;
   @Mock
   private UserService userService;
   @Mock
@@ -59,65 +61,66 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private I18n i18n;
   @Mock
-  private JsonFactory jsonFactory;
-  @Mock
-  private FafApiAccessor fafApiAccessor;
-  @Mock
-  private ThemeService themeService;
+  private UiService uiService;
   @Mock
   private FafService fafService;
   @Mock
-  private ThreadPoolExecutor threadPoolExecutor;
-  @Captor
-  private ArgumentCaptor<Consumer<UpdatedAchievementsMessage>> onUpdatedAchievementsCaptor;
+  private AssetService assetService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new AchievementServiceImpl();
-    instance.userService = userService;
-    instance.notificationService = notificationService;
-    instance.i18n = i18n;
-    instance.fafApiAccessor = fafApiAccessor;
-    instance.fafService = fafService;
-    instance.playerService = playerService;
-    instance.threadPoolExecutor = threadPoolExecutor;
-    instance.themeService = themeService;
+    instance = new AchievementServiceImpl(userService, fafService, notificationService, i18n, playerService, uiService, assetService);
 
-    when(userService.getUid()).thenReturn(PLAYER_ID);
-    when(userService.getUsername()).thenReturn(USERNAME);
-
-    doAnswer(invocation -> {
-      invocation.getArgumentAt(0, Runnable.class).run();
-      return null;
-    }).when(threadPoolExecutor).execute(any(Runnable.class));
+    when(userService.getUserId()).thenReturn(PLAYER_ID);
 
     instance.postConstruct();
   }
 
   @Test
   public void testGetPlayerAchievementsForCurrentUser() throws Exception {
-    instance.getPlayerAchievements(USERNAME);
+    when(fafService.getPlayerAchievements(userService.getUserId()))
+        .thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
+
+    instance.getPlayerAchievements(PLAYER_ID);
     verifyZeroInteractions(playerService);
   }
 
   @Test
   public void testGetPlayerAchievementsForAnotherUser() throws Exception {
     List<PlayerAchievement> achievements = Arrays.asList(new PlayerAchievement(), new PlayerAchievement());
-    when(playerService.getPlayerForUsername("foobar")).thenReturn(PlayerInfoBeanBuilder.create("foobar").id(PLAYER_ID).get());
-    when(fafApiAccessor.getPlayerAchievements(PLAYER_ID)).thenReturn(achievements);
+    when(fafService.getPlayerAchievements(PLAYER_ID)).thenReturn(CompletableFuture.completedFuture(achievements));
 
-    List<PlayerAchievement> playerAchievements = instance.getPlayerAchievements("foobar").toCompletableFuture().get(5, TimeUnit.SECONDS);
+    List<PlayerAchievement> playerAchievements = instance.getPlayerAchievements(PLAYER_ID).toCompletableFuture().get(5, TimeUnit.SECONDS);
 
     assertThat(playerAchievements, hasSize(2));
     assertThat(playerAchievements, is(achievements));
-    verify(playerService).getPlayerForUsername("foobar");
-    verify(fafApiAccessor).getPlayerAchievements(PLAYER_ID);
+    verify(fafService).getPlayerAchievements(PLAYER_ID);
   }
 
   @Test
   public void testGetAchievementDefinitions() throws Exception {
     instance.getAchievementDefinitions();
-    verify(fafApiAccessor).getAchievementDefinitions();
-    verifyNoMoreInteractions(fafApiAccessor);
+    verify(fafService).getAchievementDefinitions();
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void testGetHiddenThrowsUnsupportedOperationException() throws Exception {
+    instance.getImage(null, HIDDEN);
+  }
+
+  @Test
+  public void testLoadAndCacheImageRevealed() throws Exception {
+    AchievementDefinition achievementDefinition = AchievementDefinitionBuilder.create().defaultValues().get();
+    Path cacheSubDir = Paths.get("achievements").resolve(AchievementState.REVEALED.name().toLowerCase());
+    instance.getImage(achievementDefinition, REVEALED);
+    verify(assetService).loadAndCacheImage(new URL(achievementDefinition.getRevealedIconUrl()), cacheSubDir, null, 128, 128);
+  }
+
+  @Test
+  public void testLoadAndCacheImageUnlocked() throws Exception {
+    AchievementDefinition achievementDefinition = AchievementDefinitionBuilder.create().defaultValues().get();
+    Path cacheSubDir = Paths.get("achievements").resolve(AchievementState.UNLOCKED.name().toLowerCase());
+    instance.getImage(achievementDefinition, UNLOCKED);
+    verify(assetService).loadAndCacheImage(new URL(achievementDefinition.getUnlockedIconUrl()), cacheSubDir, null, 128, 128);
   }
 }

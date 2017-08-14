@@ -1,11 +1,15 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.FafClientApplication;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
+import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.client.util.ConcurrentUtil;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
@@ -15,9 +19,12 @@ import javafx.collections.MapChangeListener;
 import javafx.concurrent.Task;
 import javafx.scene.paint.Color;
 import org.pircbotx.User;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,11 +33,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 
+@Lazy
+@Service
+@Profile(FafClientApplication.POFILE_OFFLINE)
 // NOSONAR
 public class MockChatService implements ChatService {
 
@@ -42,45 +52,39 @@ public class MockChatService implements ChatService {
   private final ObjectProperty<ConnectionState> connectionState;
   private final IntegerProperty unreadMessagesCount;
 
-  @Resource
-  UserService userService;
-  @Resource
-  TaskService taskService;
-  @Resource
-  I18n i18n;
+  private final UserService userService;
+  private final TaskService taskService;
+  private final I18n i18n;
+  private final EventBus eventBus;
 
-  public MockChatService() {
-    connectionState = new SimpleObjectProperty<>();
+  @Inject
+  public MockChatService(UserService userService, TaskService taskService, I18n i18n, EventBus eventBus) {
+    connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
     unreadMessagesCount = new SimpleIntegerProperty();
 
     onChatMessageListeners = new ArrayList<>();
     channelUserListListeners = new HashMap<>();
 
     timer = new Timer(true);
+    this.userService = userService;
+    this.taskService = taskService;
+    this.i18n = i18n;
+    this.eventBus = eventBus;
   }
 
   @PostConstruct
   void postConstruct() {
-    userService.loggedInProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue) {
-        connect();
-      }
-    });
+    eventBus.register(this);
+  }
+
+  @Subscribe
+  public void onLoginSuccessEvent(LoginSuccessEvent event) {
+    connect();
   }
 
   private void simulateConnectionEstablished() {
     connectionState.set(ConnectionState.CONNECTED);
     joinChannel("#mockChannel");
-  }
-
-  @Override
-  public void addOnMessageListener(Consumer<ChatMessage> listener) {
-    onChatMessageListeners.add(listener);
-  }
-
-  @Override
-  public void addOnPrivateChatMessageListener(Consumer<ChatMessage> listener) {
-
   }
 
   @Override
@@ -99,7 +103,7 @@ public class MockChatService implements ChatService {
   }
 
   @Override
-  public CompletionStage<String> sendMessageInBackground(String target, String message) {
+  public CompletableFuture<String> sendMessageInBackground(String target, String message) {
     return taskService.submitTask(new CompletableTask<String>(HIGH) {
       @Override
       protected String call() throws Exception {
@@ -149,7 +153,7 @@ public class MockChatService implements ChatService {
   }
 
   @Override
-  public CompletionStage<String> sendActionInBackground(String target, String action) {
+  public CompletableFuture<String> sendActionInBackground(String target, String action) {
     return sendMessageInBackground(target, action);
   }
 

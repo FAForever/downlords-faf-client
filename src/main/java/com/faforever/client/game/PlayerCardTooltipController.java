@@ -1,33 +1,42 @@
 package com.faforever.client.game;
 
 import com.faforever.client.chat.CountryFlagService;
-import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.player.Player;
 import com.faforever.client.util.RatingUtil;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 
 
-public class PlayerCardTooltipController {
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class PlayerCardTooltipController implements Controller<Node> {
 
-  @FXML
-  Label playerInfo;
-  @FXML
-  ImageView playerFlag;
+  private final CountryFlagService countryFlagService;
+  private final I18n i18n;
+  public Label playerInfo;
+  public ImageView countryImageView;
 
-  @Resource
-  CountryFlagService countryFlagService;
-  @Resource
-  I18n i18n;
+  @Inject
+  public PlayerCardTooltipController(CountryFlagService countryFlagService, I18n i18n) {
+    this.countryFlagService = countryFlagService;
+    this.i18n = i18n;
+  }
 
-  public void setPlayer(PlayerInfoBean playerInfoBean) {
-    playerFlag.setImage(countryFlagService.loadCountryFlag(playerInfoBean.getCountry()));
+  public void setPlayer(Player player) {
+    if (player == null) {
+      return;
+    }
+    countryFlagService.loadCountryFlag(player.getCountry()).ifPresent(image -> countryImageView.setImage(image));
 
-    String playerInfoLocalized = i18n.get("userInfo.tooltipFormat", playerInfoBean.getUsername(), RatingUtil.getRoundedGlobalRating(playerInfoBean));
+    String playerInfoLocalized = i18n.get("userInfo.tooltipFormat", player.getUsername(), RatingUtil.getRoundedGlobalRating(player));
     playerInfo.setText(playerInfoLocalized);
   }
 

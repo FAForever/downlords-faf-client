@@ -1,13 +1,14 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.io.ByteCopier;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.commons.io.ByteCopier;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
@@ -17,10 +18,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
-public class UninstallModTaskTest extends AbstractPlainJavaFxTest {
+@RunWith(MockitoJUnitRunner.class)
+public class UninstallModTaskTest {
 
   private static final ClassPathResource BLACKOPS_SUPPORT_MOD_INFO = new ClassPathResource("/mods/blackops_support_mod_info.lua");
   private static final ClassPathResource ECO_MANAGER_MOD_INFO = new ClassPathResource("/mods/eco_manager_mod_info.lua");
@@ -37,8 +39,7 @@ public class UninstallModTaskTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new UninstallModTask();
-    instance.modService = modService;
+    instance = new UninstallModTask(modService);
   }
 
   @Test
@@ -54,7 +55,7 @@ public class UninstallModTaskTest extends AbstractPlainJavaFxTest {
     copyMod("blackOpsSupport", BLACKOPS_SUPPORT_MOD_INFO);
     copyMod("ecoManager", ECO_MANAGER_MOD_INFO);
 
-    ModInfoBean mod = ModInfoBeanBuilder.create().uid("b2cde810-15d0-4bfa-af66-ec2d6ecd561b").get();
+    Mod mod = ModInfoBeanBuilder.create().uid("b2cde810-15d0-4bfa-af66-ec2d6ecd561b").get();
 
     Path ecoManagerPath = modsDirectory.getRoot().toPath().resolve("ecoManager");
     when(modService.getPathForMod(mod)).thenReturn(ecoManagerPath);

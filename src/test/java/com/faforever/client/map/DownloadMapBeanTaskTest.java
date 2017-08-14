@@ -4,21 +4,23 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.net.URL;
 import java.nio.file.Files;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
-public class DownloadMapBeanTaskTest extends AbstractPlainJavaFxTest {
+@RunWith(MockitoJUnitRunner.class)
+public class DownloadMapBeanTaskTest {
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -38,9 +40,7 @@ public class DownloadMapBeanTaskTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new DownloadMapTask();
-    instance.preferencesService = preferencesService;
-    instance.i18n = i18n;
+    instance = new DownloadMapTask(preferencesService, i18n);
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliance);
@@ -57,7 +57,7 @@ public class DownloadMapBeanTaskTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testCallWithoutTechnicalMapNameThrowsException() throws Exception {
+  public void testCallWithoutFolderNameThrowsException() throws Exception {
     expectedException.expectMessage("folderName");
     expectedException.expect(NullPointerException.class);
 

@@ -1,14 +1,14 @@
 package com.faforever.client.events;
 
-import com.faforever.client.api.PlayerEvent;
+import com.faforever.client.api.dto.PlayerEvent;
 
 import java.util.Map;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 
 public interface EventService {
 
   String EVENT_CUSTOM_GAMES_PLAYED = "cfa449a6-655b-48d5-9a27-6044804fe35c";
-  String EVENT_RANKED_1V1_GAMES_PLAYED = "4a929def-e347-45b4-b26d-4325a3115859";
+  String EVENT_LADDER_1V1_GAMES_PLAYED = "4a929def-e347-45b4-b26d-4325a3115859";
   String EVENT_LOST_ACUS = "d6a699b7-99bc-4a7f-b128-15e1e289a7b3";
   String EVENT_BUILT_AIR_UNITS = "3ebb0c4d-5e92-4446-bf52-d17ba9c5cd3c";
   String EVENT_LOST_AIR_UNITS = "225e9b2e-ae09-4ae1-a198-eca8780b0fcd";
@@ -36,6 +36,6 @@ public interface EventService {
   String EVENT_SERAPHIM_PLAYS = "fefcb392-848f-4836-9683-300b283bc308";
   String EVENT_SERAPHIM_WINS = "15b6c19a-6084-4e82-ada9-6c30e282191f";
 
-  CompletionStage<Map<String, PlayerEvent>> getPlayerEvents(String username);
+  CompletableFuture<Map<String, PlayerEvent>> getPlayerEvents(int playerId);
 
 }

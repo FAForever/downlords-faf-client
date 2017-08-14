@@ -1,25 +1,25 @@
 package com.faforever.client.user;
 
-import javafx.beans.property.BooleanProperty;
+import com.faforever.client.task.CompletableTask;
 import javafx.beans.property.ReadOnlyStringProperty;
 
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 
 public interface UserService {
 
-  BooleanProperty loggedInProperty();
-
-  CompletionStage<Void> login(String username, String password, boolean autoLogin);
+  CompletableFuture<Void> login(String username, String password, boolean autoLogin);
 
   String getUsername();
 
   String getPassword();
 
-  Integer getUid();
+  Integer getUserId();
 
   void cancelLogin();
 
   void logOut();
 
   ReadOnlyStringProperty currentUserProperty();
+
+  CompletableTask<Void> changePassword(String currentPassword, String newPassword);
 }

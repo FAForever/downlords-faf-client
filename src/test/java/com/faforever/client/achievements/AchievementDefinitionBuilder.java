@@ -1,8 +1,8 @@
 package com.faforever.client.achievements;
 
-import com.faforever.client.api.AchievementDefinition;
-import com.faforever.client.api.AchievementState;
-import com.faforever.client.api.AchievementType;
+import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.api.dto.AchievementState;
+import com.faforever.client.api.dto.AchievementType;
 
 public class AchievementDefinitionBuilder {
 
@@ -12,13 +12,17 @@ public class AchievementDefinitionBuilder {
     achievementDefinition = new AchievementDefinition();
   }
 
+  public static AchievementDefinitionBuilder create() {
+    return new AchievementDefinitionBuilder();
+  }
+
   public AchievementDefinitionBuilder defaultValues() {
     achievementDefinition.setId("1-2-3");
     achievementDefinition.setName("Name");
     achievementDefinition.setDescription("Description");
     achievementDefinition.setInitialState(AchievementState.REVEALED);
-    achievementDefinition.setUnlockedIconUrl("http://www.example.com/unlocked.png");
-    achievementDefinition.setRevealedIconUrl("http://www.example.com/revealed.png");
+    achievementDefinition.setUnlockedIconUrl("http://127.0.0.1:65354/unlocked/1-2-3.png");
+    achievementDefinition.setRevealedIconUrl("http://127.0.0.1:65354/revealed/1-2-3.png");
     achievementDefinition.setExperiencePoints(10);
     achievementDefinition.setTotalSteps(100);
     achievementDefinition.setType(AchievementType.INCREMENTAL);
@@ -37,9 +41,5 @@ public class AchievementDefinitionBuilder {
 
   public AchievementDefinition get() {
     return achievementDefinition;
-  }
-
-  public static AchievementDefinitionBuilder create() {
-    return new AchievementDefinitionBuilder();
   }
 }

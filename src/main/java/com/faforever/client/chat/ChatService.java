@@ -1,25 +1,20 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.net.ConnectionState;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.MapChangeListener;
 import org.pircbotx.User;
 
-import java.util.concurrent.CompletionStage;
-import java.util.function.Consumer;
+import java.util.concurrent.CompletableFuture;
 
 public interface ChatService {
-
-  void addOnMessageListener(Consumer<ChatMessage> listener);
-
-  void addOnPrivateChatMessageListener(Consumer<ChatMessage> listener);
 
   void connect();
 
   void disconnect();
 
-  CompletionStage<String> sendMessageInBackground(String target, String message);
+  CompletableFuture<String> sendMessageInBackground(String target, String message);
 
   /**
    * Gets the list of chat users for the given channel as soon as it is available. <p> <strong>IMPORTANT:</strong> All
@@ -39,7 +34,7 @@ public interface ChatService {
 
   void leaveChannel(String channelName);
 
-  CompletionStage<String> sendActionInBackground(String target, String action);
+  CompletableFuture<String> sendActionInBackground(String target, String action);
 
   void joinChannel(String channelName);
 
@@ -49,7 +44,7 @@ public interface ChatService {
 
   ChatUser getOrCreateChatUser(User user);
 
-  ObjectProperty<ConnectionState> connectionStateProperty();
+  ReadOnlyObjectProperty<ConnectionState> connectionStateProperty();
 
   void reconnect();
 

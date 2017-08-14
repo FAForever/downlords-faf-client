@@ -1,21 +1,39 @@
 package com.faforever.client.mod;
 
+
+import com.faforever.commons.mod.MountInfo;
+import org.apache.maven.artifact.versioning.ComparableVersion;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+
+import static com.github.nocatch.NoCatch.noCatch;
 
 public class ModInfoBeanBuilder {
 
-  private final ModInfoBean modInfo;
+  private final Mod modInfo;
 
   public ModInfoBeanBuilder() {
-    modInfo = new ModInfoBean();
+    modInfo = new Mod();
+  }
+
+  public static ModInfoBeanBuilder create() {
+    return new ModInfoBeanBuilder();
   }
 
   public ModInfoBeanBuilder defaultValues() {
     modInfo.setPublishDate(LocalDateTime.now());
+    name("Mod");
     uid(UUID.randomUUID().toString());
+    version(new ComparableVersion("1"));
+    return this;
+  }
+
+  public ModInfoBeanBuilder version(ComparableVersion version) {
+    modInfo.setVersion(version);
     return this;
   }
 
@@ -24,7 +42,7 @@ public class ModInfoBeanBuilder {
     return this;
   }
 
-  public ModInfoBean get() {
+  public Mod get() {
     return modInfo;
   }
 
@@ -49,11 +67,12 @@ public class ModInfoBeanBuilder {
   }
 
   public ModInfoBeanBuilder thumbnailUrl(String thumbnailUrl) {
-    modInfo.setThumbnailUrl(thumbnailUrl);
+    modInfo.setThumbnailUrl(noCatch(() -> thumbnailUrl == null ? null : new URL(thumbnailUrl)));
     return this;
   }
 
-  public static ModInfoBeanBuilder create() {
-    return new ModInfoBeanBuilder();
+  public ModInfoBeanBuilder mountPoints(List<MountInfo> mountPoints) {
+    modInfo.getMountInfos().setAll(mountPoints);
+    return this;
   }
 }

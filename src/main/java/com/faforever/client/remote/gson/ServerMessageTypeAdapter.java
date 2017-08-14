@@ -1,6 +1,6 @@
 package com.faforever.client.remote.gson;
 
-import com.faforever.client.relay.GpgServerMessageType;
+import com.faforever.client.fa.relay.GpgServerMessageType;
 import com.faforever.client.remote.domain.FafServerMessageType;
 import com.faforever.client.remote.domain.MessageTarget;
 import com.faforever.client.remote.domain.ServerMessage;

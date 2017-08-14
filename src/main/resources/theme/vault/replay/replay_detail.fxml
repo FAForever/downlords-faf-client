@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import java.lang.String?>
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="replayDetailRoot" onMouseClicked="#onDimmerClicked"
+            styleClass="dimmer" xmlns="http://javafx.com/javafx/8.0.111"
+            fx:controller="com.faforever.client.replay.ReplayDetailController">
+   <children>
+       <AnchorPane onMouseClicked="#onContentPaneClicked" styleClass="modal-popup" AnchorPane.bottomAnchor="50.0"
+                   AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="50.0">
+         <children>
+             <ScrollPane fx:id="scrollPane" fitToWidth="true" layoutX="21.0" layoutY="31.0"
+                         AnchorPane.bottomAnchor="10.0"
+                         AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="20.0">
+               <content>
+                   <VBox alignment="TOP_CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                         spacing="20.0">
+                     <children>
+                         <GridPane hgap="20.0" vgap="10.0">
+                           <columnConstraints>
+                               <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                               <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
+                               <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
+                               <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
+                               <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
+                               <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+                           </columnConstraints>
+                           <rowConstraints>
+                               <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                               <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                               <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                               <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                               <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                           </rowConstraints>
+                           <children>
+                               <ImageView fx:id="mapThumbnailImageView" fitHeight="128.0" fitWidth="128.0"
+                                          pickOnBounds="true" preserveRatio="true" GridPane.rowSpan="2147483647"
+                                          GridPane.valignment="TOP"/>
+                               <Label fx:id="titleLabel" maxWidth="1.7976931348623157E308" styleClass="h1"
+                                      text="&lt;Title&gt;" GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
+                                      GridPane.valignment="TOP"/>
+                               <Label fx:id="dateLabel" graphicTextGap="10.0" text="&lt;Date&gt;"
+                                      GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                 <graphic>
+                                     <Label styleClass="icon" text=""/>
+                                 </graphic>
+                              </Label>
+                               <Label fx:id="timeLabel" graphicTextGap="10.0" text="&lt;Time&gt;"
+                                      GridPane.columnIndex="2" GridPane.rowIndex="2">
+                                 <graphic>
+                                     <Label styleClass="icon" text=""/>
+                                 </graphic>
+                              </Label>
+                               <Label fx:id="modLabel" graphicTextGap="10.0" text="&lt;Mods&gt;"
+                                      GridPane.columnIndex="1" GridPane.rowIndex="3">
+                                 <graphic>
+                                     <Label styleClass="icon" text=""/>
+                                 </graphic>
+                              </Label>
+                               <Label fx:id="durationLabel" graphicTextGap="10.0" text="&lt;Duration&gt;"
+                                      GridPane.columnIndex="3" GridPane.rowIndex="2">
+                                 <graphic>
+                                     <Label styleClass="icon" text=""/>
+                                 </graphic>
+                              </Label>
+                               <Label fx:id="playerCountLabel" graphicTextGap="10.0" text="&lt;PlayerCount&gt;"
+                                      GridPane.columnIndex="2" GridPane.rowIndex="3">
+                                 <graphic>
+                                     <Label styleClass="icon" text=""/>
+                                 </graphic>
+                              </Label>
+                               <Label fx:id="ratingLabel" graphicTextGap="10.0" text="&lt;AvgRating&gt;"
+                                      GridPane.columnIndex="3" GridPane.rowIndex="3">
+                                 <graphic>
+                                     <Label styleClass="icon" text=""/>
+                                 </graphic>
+                              </Label>
+                               <Label fx:id="qualityLabel" graphicTextGap="10.0" text="&lt;Quality&gt;"
+                                      GridPane.columnIndex="4" GridPane.rowIndex="2">
+                                 <graphic>
+                                     <Label styleClass="icon" text=""/>
+                                 </graphic>
+                              </Label>
+                               <Button fx:id="watchButton" defaultButton="true" mnemonicParsing="false"
+                                       onAction="#onWatchButtonClicked" text="%game.watchButtonFormat"
+                                       GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT"
+                                       GridPane.rowIndex="4">
+                                 <graphic>
+                                     <Label styleClass="icon" text=""/>
+                                 </graphic>
+                              </Button>
+                               <Label fx:id="onMapLabel" styleClass="secondary" text="&lt;OnMap&gt;"
+                                      GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="1"
+                                      GridPane.valignment="TOP"/>
+                               <TextField fx:id="replayIdField" alignment="CENTER_RIGHT" editable="false"
+                                          maxWidth="100.0" promptText="&lt;ReplayID&gt;" text="#123456789"
+                                          GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
+                                          GridPane.halignment="RIGHT"/>
+                           </children>
+                           <VBox.margin>
+                               <Insets/>
+                           </VBox.margin>
+                        </GridPane>
+                         <Separator maxWidth="1.7976931348623157E308"/>
+                         <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%game.lineUp"/>
+                         <HBox fx:id="teamsContainer" alignment="TOP_CENTER" spacing="20.0"/>
+                         <Separator fx:id="ratingSeparator" layoutX="10.0" layoutY="251.0"
+                                    maxWidth="1.7976931348623157E308"/>
+                         <VBox alignment="TOP_CENTER" maxWidth="640.0">
+                             <children>
+                                 <fx:include fx:id="reviews" source="../review/reviews.fxml"/>
+                             </children>
+                         </VBox>
+                         <Separator layoutX="10.0" layoutY="254.0" maxWidth="1.7976931348623157E308"/>
+                         <Button fx:id="downloadMoreInfoButton" mnemonicParsing="false"
+                                 onAction="#onDownloadMoreInfoClicked" text="%game.downloadMoreInfo"/>
+                         <VBox fx:id="moreInformationPane" maxWidth="1.7976931348623157E308">
+                             <children>
+                                 <GridPane hgap="10.0" maxWidth="1.7976931348623157E308" vgap="10.0">
+                                     <columnConstraints>
+                                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                         <ColumnConstraints hgrow="NEVER" minWidth="1.0"/>
+                                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                     </columnConstraints>
+                                     <rowConstraints>
+                                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                                         <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                                     </rowConstraints>
+                                     <children>
+                                         <TableView fx:id="optionsTable" maxWidth="1.7976931348623157E308"
+                                                    GridPane.rowIndex="1">
+                                             <columns>
+                                                 <TableColumn fx:id="optionKeyColumn" editable="false" prefWidth="75.0"
+                                                              text="%game.optionKey"/>
+                                                 <TableColumn fx:id="optionValueColumn" editable="false"
+                                                              prefWidth="75.0" text="%game.optionValue"/>
+                                             </columns>
+                                             <columnResizePolicy>
+                                                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                                             </columnResizePolicy>
+                                         </TableView>
+                                         <TableView fx:id="chatTable" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                                             <columns>
+                                                 <TableColumn fx:id="chatGameTimeColumn" editable="false"
+                                                              maxWidth="1000.0" text="%game.chat.gameTime"/>
+                                                 <TableColumn fx:id="chatSenderColumn" editable="false"
+                                                              maxWidth="1000.0" sortable="false"
+                                                              text="%game.chat.sender"/>
+                                                 <TableColumn fx:id="chatMessageColumn" editable="false"
+                                                              prefWidth="200.0" sortable="false"
+                                                              text="%game.chat.message"/>
+                                             </columns>
+                                             <columnResizePolicy>
+                                                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                                             </columnResizePolicy>
+                                         </TableView>
+                                         <Label styleClass="h2" text="%game.options"/>
+                                         <Label styleClass="h2" text="%game.chat" GridPane.columnIndex="2"/>
+                                         <Separator orientation="VERTICAL" prefHeight="200.0" GridPane.columnIndex="1"
+                                                    GridPane.rowIndex="1"/>
+                                     </children>
+                                 </GridPane>
+                             </children>
+                         </VBox>
+                     </children>
+                     <padding>
+                         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+                     </padding>
+                  </VBox>
+               </content>
+            </ScrollPane>
+             <Button cancelButton="true" focusTraversable="false" onAction="#onCloseButtonClicked"
+                     AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+               <styleClass>
+                   <String fx:value="window-button"/>
+                   <String fx:value="close-button"/>
+               </styleClass>
+            </Button>
+         </children>
+      </AnchorPane>
+   </children>
+</AnchorPane>

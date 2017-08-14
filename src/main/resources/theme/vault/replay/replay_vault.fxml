@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<TableView xmlns:fx="http://javafx.com/fxml/1" fx:id="replayVaultRoot" prefHeight="200.0" prefWidth="200.0"
+           xmlns="http://javafx.com/javafx/8.0.40"
+           fx:controller="com.faforever.client.vault.replay.ReplayVaultController">
+  <columns>
+      <TableColumn fx:id="mapColumn" prefWidth="75.0" text="%game.map"/>
+      <TableColumn fx:id="titleColumn" prefWidth="75.0" text="%game.title"/>
+      <TableColumn fx:id="playersColumn" prefWidth="75.0" text="%game.players"/>
+      <TableColumn fx:id="timeColumn" prefWidth="75.0" text="%game.time"/>
+      <TableColumn fx:id="durationColumn" prefWidth="75.0" text="%game.duration"/>
+      <TableColumn fx:id="gameTypeColumn" prefWidth="75.0" text="%game.gameType"/>
+      <TableColumn fx:id="idColumn" prefWidth="75.0" text="%game.id"/>
+  </columns>
+  <columnResizePolicy>
+      <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+  </columnResizePolicy>
+</TableView>

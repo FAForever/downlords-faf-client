@@ -4,20 +4,28 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.uploader.ImageUploadService;
 import javafx.scene.image.Image;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
-import java.util.concurrent.CompletionStage;
+import javax.inject.Inject;
+import java.util.concurrent.CompletableFuture;
 
+
+@Lazy
+@Service
 public class ImgurImageUploadService implements ImageUploadService {
 
-  @Resource
-  TaskService taskService;
+  private final TaskService taskService;
+  private final ApplicationContext applicationContext;
 
-  @Resource
-  ApplicationContext applicationContext;
+  @Inject
+  public ImgurImageUploadService(TaskService taskService, ApplicationContext applicationContext) {
+    this.taskService = taskService;
+    this.applicationContext = applicationContext;
+  }
 
   @Override
-  public CompletionStage<String> uploadImageInBackground(Image image) {
+  public CompletableFuture<String> uploadImageInBackground(Image image) {
     ImgurUploadTask imgurUploadTask = applicationContext.getBean(ImgurUploadTask.class);
     imgurUploadTask.setImage(image);
     return taskService.submitTask(imgurUploadTask).getFuture();

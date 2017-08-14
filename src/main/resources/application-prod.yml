@@ -1,0 +1,30 @@
+faf-client:
+  server:
+    host: lobby.faforever.com
+
+  irc:
+    host: irc.faforever.com
+
+  ice:
+    turn:
+      host: faforever.com
+    stun:
+      host: faforever.com
+
+  vault:
+    base-url: http://content.faforever.com
+
+  news:
+    feed-url: http://direct.faforever.com/news/feed
+
+  replay:
+    remote-host: lobby.faforever.com
+
+  api:
+    base-url: https://api.dev.faforever.com
+    access-token-uri: ${faf-client.api.base-url}/oauth/token
+    client-id: 3bc8282c-7730-11e5-8bcf-feff819cdc9f
+    client-secret: 6035bd78-7730-11e5-8bcf-feff819cdc9f
+
+  forged-alliance:
+    exe-url: http://content.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe

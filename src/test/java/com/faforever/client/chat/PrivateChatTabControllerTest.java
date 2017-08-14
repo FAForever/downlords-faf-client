@@ -1,78 +1,148 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.audio.AudioController;
+import com.faforever.client.audio.AudioService;
+import com.faforever.client.clan.ClanService;
+import com.faforever.client.fx.PlatformService;
+import com.faforever.client.fx.WebViewConfigurer;
+import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.NavigationItem;
+import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.UiService;
+import com.faforever.client.uploader.ImageUploadService;
+import com.faforever.client.user.UserService;
+import com.faforever.client.util.TimeService;
+import com.faforever.client.vault.replay.WatchButtonController;
+import com.google.common.eventbus.EventBus;
 import com.sun.javafx.scene.control.skin.TabPaneSkin;
 import javafx.scene.control.TabPane;
-import javafx.stage.Stage;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
 import java.time.Instant;
 
+import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Mock
-  PreferencesService preferencesService;
+  private ChatService chatService;
   @Mock
-  Preferences preferences;
+  private UserService userService;
   @Mock
-  ChatPrefs chatPrefs;
+  private PreferencesService preferencesService;
   @Mock
-  PlayerService playerService;
+  private PlayerService playerService;
   @Mock
-  AudioController audioController;
+  private PlatformService platformService;
   @Mock
-  NotificationService notificationService;
+  private UrlPreviewResolver urlPreviewResolver;
   @Mock
-  I18n i18n;
+  private TimeService timeService;
+  @Mock
+  private AudioService audioService;
+  @Mock
+  private ImageUploadService imageUploadService;
+  @Mock
+  private I18n i18n;
+  @Mock
+  private NotificationService notificationService;
+  @Mock
+  private AutoCompletionHelper autoCompletionHelper;
+  @Mock
+  private UiService uiService;
+  @Mock
+  private WebViewConfigurer webViewConfigurer;
+  @Mock
+  private ClanService clanService;
+  @Mock
+  private ReportingService reportingService;
+  @Mock
+  private EventBus eventBus;
+  @Mock
+  private Preferences preferences;
+  @Mock
+  private CountryFlagService countryFlagService;
+  @Mock
+  private MapService mapService;
+  @Mock
+  private PrivateUserInfoController privateUserInfoController;
+  @Mock
+  private GameDetailController gameDetailController;
+  @Mock
+  private WatchButtonController watchButtonController;
+  @Mock
+  private ChatPrefs chatPrefs;
 
   private PrivateChatTabController instance;
   private String playerName;
 
   @Before
   public void setUp() throws IOException {
-    instance = loadController("private_chat_tab.fxml");
-    instance.preferencesService = preferencesService;
-    instance.playerService = playerService;
-    instance.audioController = audioController;
-    instance.notificationService = notificationService;
-    instance.i18n = i18n;
+    PreferencesService preferencesService = new PreferencesService(eventBus);
+    preferencesService.postConstruct();
+    preferencesService.getPreferences().getMainWindow().setLastView(NavigationItem.CHAT.name());
 
-    WaitForAsyncUtils.waitForAsyncFx(3000, () -> instance.stage = new Stage());
+    instance = new PrivateChatTabController(clanService,
+        userService, platformService, preferencesService, playerService,
+        timeService, i18n, imageUploadService, urlPreviewResolver, notificationService,
+        reportingService, uiService, autoCompletionHelper, eventBus, audioService,
+        chatService, mapService, webViewConfigurer, countryFlagService);
+
 
     playerName = "testUser";
-    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
-    instance.setReceiver(playerName);
+    Player player = new Player(playerName);
 
-    when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.getChat()).thenReturn(chatPrefs);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(player);
+    when(userService.getUsername()).thenReturn(playerName);
+    when(uiService.getThemeFileUrl(CHAT_CONTAINER)).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));
 
     TabPane tabPane = new TabPane();
     tabPane.setSkin(new TabPaneSkin(tabPane));
-    WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+
+    loadFxml("theme/chat/private_chat_tab.fxml", clazz -> {
+      if (clazz == PrivateUserInfoController.class) {
+        return privateUserInfoController;
+      }
+      if (clazz == GameDetailController.class) {
+        return gameDetailController;
+      }
+      if (clazz == WatchButtonController.class) {
+        return watchButtonController;
+      }
+      return instance;
+    });
+
+    instance.setReceiver(playerName);
+    WaitForAsyncUtils.asyncFx(() -> {
       getRoot().getChildren().setAll(tabPane);
       tabPane.getTabs().add(instance.getRoot());
     });
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(webViewConfigurer).configureWebView(instance.messagesWebView);
   }
 
   @Test
@@ -90,7 +160,6 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void onChatMessageTestNotFoeShowFoe() {
-    when(chatPrefs.getHideFoeMessages()).thenReturn(false);
     instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
   }
 

@@ -1,41 +1,52 @@
 package com.faforever.client.fa;
 
-import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.game.Faction;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
 
+import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANCE_EXE;
+
+@Lazy
+@Service
 public class ForgedAllianceServiceImpl implements ForgedAllianceService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Resource
-  PreferencesService preferencesService;
-  @Resource
-  PlayerService playerService;
+  private final PreferencesService preferencesService;
+  private final PlayerService playerService;
+
+  @Inject
+  public ForgedAllianceServiceImpl(PreferencesService preferencesService, PlayerService playerService) {
+    this.preferencesService = preferencesService;
+    this.playerService = playerService;
+  }
 
   @Override
-  public Process startGame(int uid, @NotNull String gameType, @Nullable Faction faction, @Nullable List<String> additionalArgs, RatingMode ratingMode, int gpgPort, boolean rehost) throws IOException {
+  public Process startGame(int uid, @Nullable Faction faction, @Nullable List<String> additionalArgs,
+                           RatingMode ratingMode, int gpgPort, int localReplayPort, boolean rehost) throws IOException {
     Path executable = getExecutable();
 
-    PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
+    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
 
     float deviation;
     float mean;
 
     switch (ratingMode) {
-      case RANKED_1V1:
+      case LADDER_1V1:
         deviation = currentPlayer.getLeaderboardRatingDeviation();
         mean = currentPlayer.getLeaderboardRatingMean();
         break;
@@ -47,7 +58,6 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
     List<String> launchCommand = LaunchCommandBuilder.create()
         .executableDecorator(preferencesService.getPreferences().getForgedAlliance().getExecutableDecorator())
         .executable(executable)
-        .gameType(gameType)
         .uid(uid)
         .faction(faction)
         .clan(currentPlayer.getClan())
@@ -58,6 +68,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
         .additionalArgs(additionalArgs)
         .logFile(preferencesService.getFafLogDirectory().resolve("game.log"))
         .localGpgPort(gpgPort)
+        .localReplayPort(localReplayPort)
         .rehost(rehost)
         .build();
 
@@ -65,7 +76,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   }
 
   @Override
-  public Process startReplay(Path path, @Nullable Integer replayId, @NotNull String gameType) throws IOException {
+  public Process startReplay(Path path, @Nullable Integer replayId) throws IOException {
     Path executable = getExecutable();
 
     List<String> launchCommand = LaunchCommandBuilder.create()
@@ -73,23 +84,21 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
         .replayFile(path)
         .replayId(replayId)
         .logFile(preferencesService.getFafLogDirectory().resolve("game.log"))
-        .gameType(gameType)
         .build();
 
     return launch(executable, launchCommand);
   }
 
   @Override
-  public Process startReplay(URI replayUri, Integer replayId, String gameType) throws IOException {
+  public Process startReplay(URI replayUri, Integer replayId) throws IOException {
     Path executable = getExecutable();
 
-    PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
+    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
     List<String> launchCommand = LaunchCommandBuilder.create()
         .executable(executable)
         .replayUri(replayUri)
         .replayId(replayId)
         .logFile(preferencesService.getFafLogDirectory().resolve("replay.log"))
-        .gameType(gameType)
         .username(currentPlayer.getUsername())
         .build();
 
@@ -97,7 +106,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   }
 
   private Path getExecutable() {
-    return preferencesService.getFafBinDirectory().resolve("ForgedAlliance.exe");
+    return preferencesService.getFafBinDirectory().resolve(FORGED_ALLIANCE_EXE);
   }
 
   @NotNull

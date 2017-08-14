@@ -1,19 +1,20 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.audio.AudioController;
+import com.faforever.client.audio.AudioService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.UiService;
 import javafx.collections.SetChangeListener;
 import javafx.collections.SetChangeListener.Change;
 import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.context.ApplicationContext;
+import org.mockito.Mock;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -24,22 +25,26 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
 
   private PersistentNotificationsController instance;
 
+  @Mock
+  private NotificationService notificationService;
+  @Mock
+  private AudioService audioService;
+  @Mock
+  private UiService uiService;
+
   @Before
   public void setUp() throws Exception {
-    instance = new PersistentNotificationsController();
-    instance.audioController = mock(AudioController.class);
-    instance.notificationService = mock(NotificationService.class);
-    instance.applicationContext = mock(ApplicationContext.class);
+    instance = new PersistentNotificationsController(notificationService, audioService, uiService);
     instance.persistentNotificationsRoot = new Pane();
 
-    instance.postConstruct();
+    loadFxml("theme/persistent_notifications.fxml", clazz -> instance);
   }
 
   @Test
   @SuppressWarnings("unchecked")
   public void testPostConstruct() throws Exception {
-    verify(instance.notificationService).getPersistentNotifications();
-    verify(instance.notificationService).addPersistentNotificationListener(any(SetChangeListener.class));
+    verify(notificationService).getPersistentNotifications();
+    verify(notificationService).addPersistentNotificationListener(any(SetChangeListener.class));
   }
 
   @Test
@@ -52,7 +57,7 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
     CompletableFuture<Void> future = new CompletableFuture<>();
     doAnswer(
         invocation -> future.complete(null)
-    ).when(instance.audioController).playInfoNotificationSound();
+    ).when(audioService).playInfoNotificationSound();
 
     onNotificationAdded(Severity.INFO);
 
@@ -64,10 +69,10 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
     PersistentNotificationController notificationController = mock(PersistentNotificationController.class);
     when(notificationController.getRoot()).thenReturn(new Pane());
 
-    when(instance.applicationContext.getBean(PersistentNotificationController.class)).thenReturn(notificationController);
+    when(uiService.loadFxml("theme/persistent_notification.fxml")).thenReturn(notificationController);
 
     ArgumentCaptor<SetChangeListener> argument = ArgumentCaptor.forClass(SetChangeListener.class);
-    verify(instance.notificationService).addPersistentNotificationListener(argument.capture());
+    verify(notificationService).addPersistentNotificationListener(argument.capture());
 
     SetChangeListener listener = argument.getValue();
 
@@ -88,7 +93,7 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
     CompletableFuture<Void> future = new CompletableFuture<>();
     doAnswer(
         invocation -> future.complete(null)
-    ).when(instance.audioController).playWarnNotificationSound();
+    ).when(audioService).playWarnNotificationSound();
 
     onNotificationAdded(Severity.WARN);
 
@@ -100,7 +105,7 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
     CompletableFuture<Void> future = new CompletableFuture<>();
     doAnswer(
         invocation -> future.complete(null)
-    ).when(instance.audioController).playErrorNotificationSound();
+    ).when(audioService).playErrorNotificationSound();
 
     onNotificationAdded(Severity.ERROR);
 

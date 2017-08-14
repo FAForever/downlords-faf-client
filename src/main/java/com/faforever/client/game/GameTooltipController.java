@@ -1,57 +1,59 @@
 package com.faforever.client.game;
 
 
+import com.faforever.client.fx.Controller;
+import com.faforever.client.player.PlayerService;
+import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
 import javafx.application.Platform;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.util.List;
-import java.util.Map;
 
-public class GameTooltipController {
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
+public class GameTooltipController implements Controller<Node> {
 
-  @FXML
+  private final UiService uiService;
+  private final PlayerService playerService;
+
   public TitledPane modsPane;
-  @FXML
   public Pane teamsPane;
-  @FXML
   public Label modsLabel;
-  @FXML
   public VBox gameTooltipRoot;
 
-  @Resource
-  ApplicationContext applicationContext;
+  @Inject
+  public GameTooltipController(UiService uiService, PlayerService playerService) {
+    this.uiService = uiService;
+    this.playerService = playerService;
+  }
 
-  @FXML
-  void initialize() {
+  public void initialize() {
     modsPane.managedProperty().bind(modsPane.visibleProperty());
   }
 
-  public void setGameInfoBean(GameInfoBean gameInfoBean) {
-    createTeams(gameInfoBean.getTeams());
-    createModsList(gameInfoBean.getSimMods());
-    gameInfoBean.getTeams().addListener((MapChangeListener<String, List<String>>) change -> createTeams(change.getMap()));
-    gameInfoBean.getSimMods().addListener((MapChangeListener<String, String>) change -> createModsList(change.getMap()));
+  public void setGameInfoBean(Game game) {
+    createTeams(game.getTeams());
+    createModsList(game.getSimMods());
+    game.getTeams().addListener((MapChangeListener<String, List<String>>) change -> createTeams(change.getMap()));
+    game.getSimMods().addListener((MapChangeListener<String, String>) change -> createModsList(change.getMap()));
   }
 
   private void createTeams(ObservableMap<? extends String, ? extends List<String>> teamsList) {
     Platform.runLater(() -> {
       synchronized (teamsList) {
         teamsPane.getChildren().clear();
-        for (Map.Entry<? extends String, ? extends List<String>> entry : teamsList.entrySet()) {
-          TeamCardController teamCardController = applicationContext.getBean(TeamCardController.class);
-          teamCardController.setPlayersInTeam(entry.getKey(), entry.getValue());
-          teamsPane.getChildren().add(teamCardController.getRoot());
-        }
+        TeamCardController.createAndAdd(teamsList, playerService, uiService, teamsPane);
       }
     });
   }

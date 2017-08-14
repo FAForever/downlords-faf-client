@@ -1,5 +1,6 @@
 package com.faforever.client.update;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.task.CompletableTask;
 import com.google.common.io.CharStreams;
@@ -10,9 +11,11 @@ import com.google.gson.GsonBuilder;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.invoke.MethodHandles;
@@ -22,14 +25,17 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final Gson gson;
 
-  @Resource
-  Environment environment;
-  @Resource
+  //TODO: switch to constructor injection, superclass CompletableTask<UpdateInfo> has no default constructor
+  @Inject
+  ClientProperties clientProperties;
+  @Inject
   I18n i18n;
 
   private ComparableVersion currentVersion;
@@ -46,8 +52,8 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
     updateTitle(i18n.get("clientUpdateCheckTask.title"));
     logger.info("Checking for client update");
 
-    String releasesUrl = environment.getProperty("github.releases.url");
-    int connectionTimeout = environment.getProperty("github.releases.timeout", int.class);
+    String releasesUrl = clientProperties.getGitHub().getReleasesUrl();
+    int connectionTimeout = clientProperties.getGitHub().getTimeout();
 
     URL url = new URL(releasesUrl);
     HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();

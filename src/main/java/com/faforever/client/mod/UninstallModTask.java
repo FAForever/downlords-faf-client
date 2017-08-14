@@ -2,29 +2,35 @@ package com.faforever.client.mod;
 
 import com.faforever.client.io.FileUtils;
 import com.faforever.client.task.CompletableTask;
-import com.faforever.client.task.ResourceLocks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.Objects;
 
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class UninstallModTask extends CompletableTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Resource
-  ModService modService;
+  private final ModService modService;
 
-  private ModInfoBean mod;
+  private Mod mod;
 
-  public UninstallModTask() {
+  @Inject
+  public UninstallModTask(ModService modService) {
     super(CompletableTask.Priority.LOW);
+
+    this.modService = modService;
   }
 
-  public void setMod(ModInfoBean mod) {
+  public void setMod(Mod mod) {
     this.mod = mod;
   }
 
@@ -35,12 +41,7 @@ public class UninstallModTask extends CompletableTask<Void> {
     logger.info("Uninstalling mod '{}' ({})", mod.getName(), mod.getId());
     Path modPath = modService.getPathForMod(mod);
 
-    ResourceLocks.acquireDiskLock();
-    try {
-      FileUtils.deleteRecursively(modPath);
-    } finally {
-      ResourceLocks.freeDiskLock();
-    }
+    FileUtils.deleteRecursively(modPath);
 
     return null;
   }

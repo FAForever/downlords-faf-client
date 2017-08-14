@@ -1,28 +1,30 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.io.ByteCopier;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.commons.io.ByteCopier;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
-import org.apache.lucene.analysis.core.SimpleAnalyzer;
-import org.apache.lucene.store.RAMDirectory;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 
@@ -35,13 +37,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.contains;
@@ -49,13 +51,14 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
 
-public class ModServiceImplTest extends AbstractPlainJavaFxTest {
+@RunWith(MockitoJUnitRunner.class)
+public class ModServiceImplTest {
 
   public static final String BLACK_OPS_UNLEASHED_DIRECTORY_NAME = "BlackOpsUnleashed";
   private static final ClassPathResource BLACKOPS_SUPPORT_MOD_INFO = new ClassPathResource("/mods/blackops_support_mod_info.lua");
@@ -87,21 +90,19 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
   private NotificationService notificationService;
   @Mock
   private I18n i18n;
+  @Mock
+  private AssetService assetService;
+  @Mock
+  private PlatformService platformService;
 
   private ModServiceImpl instance;
   private Path gamePrefsPath;
+  private Path blackopsSupportPath;
 
   @Before
   public void setUp() throws Exception {
-    instance = new ModServiceImpl();
-    instance.i18n = i18n;
-    instance.preferencesService = preferencesService;
-    instance.applicationContext = applicationContext;
-    instance.taskService = taskService;
-    instance.fafService = fafService;
-    instance.notificationService = notificationService;
-    instance.directory = new RAMDirectory();
-    instance.analyzer = new SimpleAnalyzer();
+    instance = new ModServiceImpl(taskService, fafService, preferencesService, applicationContext,
+        notificationService, i18n, platformService, assetService);
 
     gamePrefsPath = faDataDirectory.getRoot().toPath().resolve("game.prefs");
 
@@ -111,14 +112,14 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     when(forgedAlliancePrefs.getModsDirectory()).thenReturn(modsDirectory.getRoot().toPath());
     when(forgedAlliancePrefs.modsDirectoryProperty()).thenReturn(new SimpleObjectProperty<>(modsDirectory.getRoot().toPath()));
     // FIXME how did that happen... I see this line many times but it doesn't seem to do anything useful
-    doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
+    doAnswer(invocation -> invocation.getArgument(0)).when(taskService).submitTask(any());
 
-    copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);
+    blackopsSupportPath = copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);
 
     instance.postConstruct();
   }
 
-  private void copyMod(String directoryName, ClassPathResource classPathResource) throws IOException {
+  private Path copyMod(String directoryName, ClassPathResource classPathResource) throws IOException {
     Path targetDir = modsDirectory.getRoot().toPath().resolve(directoryName);
     Files.createDirectories(targetDir);
 
@@ -128,11 +129,12 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
           .to(outputStream)
           .copy();
     }
+    return targetDir;
   }
 
   @Test
   public void testPostConstructLoadInstalledMods() throws Exception {
-    ObservableList<ModInfoBean> installedMods = instance.getInstalledMods();
+    ObservableList<Mod> installedMods = instance.getInstalledMods();
 
     assertThat(installedMods.size(), is(1));
   }
@@ -165,8 +167,9 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
   public void testDownloadAndInstallMod() throws Exception {
     assertThat(instance.getInstalledMods().size(), is(1));
 
-    InstallModTask task = mock(InstallModTask.class, withSettings().useConstructor());
-    when(task.getFuture()).thenReturn(completedFuture(null));
+    InstallModTask task = stubInstallModTask();
+    task.getFuture().complete(null);
+
     when(applicationContext.getBean(InstallModTask.class)).thenReturn(task);
 
     URL modUrl = new URL("http://example.com/some/mod.zip");
@@ -176,7 +179,6 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
 
     instance.downloadAndInstallMod(modUrl).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
-    verify(task).setUrl(modUrl);
     assertThat(instance.getInstalledMods().size(), is(2));
   }
 
@@ -184,8 +186,9 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
   public void testDownloadAndInstallModWithProperties() throws Exception {
     assertThat(instance.getInstalledMods().size(), is(1));
 
-    InstallModTask task = mock(InstallModTask.class, withSettings().useConstructor());
-    when(task.getFuture()).thenReturn(completedFuture(null));
+    InstallModTask task = stubInstallModTask();
+    task.getFuture().complete(null);
+
     when(applicationContext.getBean(InstallModTask.class)).thenReturn(task);
 
     URL modUrl = new URL("http://example.com/some/mod.zip");
@@ -201,7 +204,6 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(stringProperty.isBound(), is(true));
     assertThat(doubleProperty.isBound(), is(true));
 
-    verify(task).setUrl(modUrl);
     assertThat(instance.getInstalledMods().size(), is(2));
   }
 
@@ -209,8 +211,9 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
   public void testDownloadAndInstallModInfoBeanWithProperties() throws Exception {
     assertThat(instance.getInstalledMods().size(), is(1));
 
-    InstallModTask task = mock(InstallModTask.class, withSettings().useConstructor());
-    when(task.getFuture()).thenReturn(completedFuture(null));
+    InstallModTask task = stubInstallModTask();
+    task.getFuture().complete(null);
+
     when(applicationContext.getBean(InstallModTask.class)).thenReturn(task);
 
     URL modUrl = new URL("http://example.com/some/mod.zip");
@@ -221,13 +224,12 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     StringProperty stringProperty = new SimpleStringProperty();
     DoubleProperty doubleProperty = new SimpleDoubleProperty();
 
-    ModInfoBean modInfoBean = ModInfoBeanBuilder.create().defaultValues().downloadUrl(modUrl).get();
-    instance.downloadAndInstallMod(modInfoBean, doubleProperty, stringProperty).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
+    Mod mod = ModInfoBeanBuilder.create().defaultValues().downloadUrl(modUrl).get();
+    instance.downloadAndInstallMod(mod, doubleProperty, stringProperty).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(stringProperty.isBound(), is(true));
     assertThat(doubleProperty.isBound(), is(true));
 
-    verify(task).setUrl(modUrl);
     assertThat(instance.getInstalledMods().size(), is(2));
   }
 
@@ -303,41 +305,45 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     copyMod("EM", ECO_MANAGER_MOD_INFO);
     instance.loadInstalledMods();
 
-    ArrayList<ModInfoBean> installedMods = new ArrayList<>(instance.getInstalledMods());
-    Collections.sort(installedMods, (lhs, rhs) -> lhs.getName().compareTo(rhs.getName()));
+    ArrayList<Mod> installedMods = new ArrayList<>(instance.getInstalledMods());
+    installedMods.sort(Comparator.comparing(Mod::getName));
 
-    ModInfoBean modInfoBean = installedMods.get(0);
+    Mod mod = installedMods.get(0);
 
-    assertThat(modInfoBean.getName(), is("BlackOps Global Icon Support Mod"));
-    assertThat(modInfoBean.getVersion(), is("5"));
-    assertThat(modInfoBean.getAuthor(), is("Exavier Macbeth, DeadMG"));
-    assertThat(modInfoBean.getDescription(), is("Version 5.0. This mod provides global icon support for any mod that places their icons in the proper folder structure. See Readme"));
-    assertThat(modInfoBean.getImagePath(), nullValue());
-    assertThat(modInfoBean.getSelectable(), is(true));
-    assertThat(modInfoBean.getId(), is("9e8ea941-c306-4751-b367-f00000000005"));
-    assertThat(modInfoBean.getUiOnly(), is(false));
+    assertThat(mod.getName(), is("BlackOps Global Icon Support Mod"));
+    assertThat(mod.getVersion(), is(new ComparableVersion("5")));
+    assertThat(mod.getAuthor(), is("Exavier Macbeth, DeadMG"));
+    assertThat(mod.getDescription(), is("Version 5.0. This mod provides global icon support for any mod that places their icons in the proper folder structure. See Readme"));
+    assertThat(mod.getImagePath(), nullValue());
+    assertThat(mod.getSelectable(), is(true));
+    assertThat(mod.getId(), is("9e8ea941-c306-4751-b367-f00000000005"));
+    assertThat(mod.getUiOnly(), is(false));
 
-    modInfoBean = installedMods.get(1);
+    mod = installedMods.get(1);
 
-    assertThat(modInfoBean.getName(), is("BlackOps Unleashed"));
-    assertThat(modInfoBean.getVersion(), is("8"));
-    assertThat(modInfoBean.getAuthor(), is("Lt_hawkeye"));
-    assertThat(modInfoBean.getDescription(), is("Version 5.2. BlackOps Unleased Unitpack contains several new units and game changes. Have fun"));
-    assertThat(modInfoBean.getImagePath(), is(modsDirectory.getRoot().toPath().resolve("BlackOpsUnleashed/icons/yoda_icon.bmp")));
-    assertThat(modInfoBean.getSelectable(), is(true));
-    assertThat(modInfoBean.getId(), is("9e8ea941-c306-4751-b367-a11000000502"));
-    assertThat(modInfoBean.getUiOnly(), is(false));
+    assertThat(mod.getName(), is("BlackOps Unleashed"));
+    assertThat(mod.getVersion(), is(new ComparableVersion("8")));
+    assertThat(mod.getAuthor(), is("Lt_hawkeye"));
+    assertThat(mod.getDescription(), is("Version 5.2. BlackOps Unleased Unitpack contains several new units and game changes. Have fun"));
+    assertThat(mod.getImagePath(), is(modsDirectory.getRoot().toPath().resolve("BlackOpsUnleashed/icons/yoda_icon.bmp")));
+    assertThat(mod.getSelectable(), is(true));
+    assertThat(mod.getId(), is("9e8ea941-c306-4751-b367-a11000000502"));
+    assertThat(mod.getUiOnly(), is(false));
+    assertThat(mod.getMountInfos(), hasSize(10));
+    assertThat(mod.getMountInfos().get(3).getFile(), is(Paths.get("effects")));
+    assertThat(mod.getMountInfos().get(3).getMountPoint(), is("/effects"));
+    assertThat(mod.getHookDirectories(), contains("/blackops"));
 
-    modInfoBean = installedMods.get(2);
+    mod = installedMods.get(2);
 
-    assertThat(modInfoBean.getName(), is("EcoManager"));
-    assertThat(modInfoBean.getVersion(), is("3"));
-    assertThat(modInfoBean.getAuthor(), is("Crotalus"));
-    assertThat(modInfoBean.getDescription(), is("EcoManager v3, more efficient energy throttling"));
-    assertThat(modInfoBean.getImagePath(), nullValue());
-    assertThat(modInfoBean.getSelectable(), is(true));
-    assertThat(modInfoBean.getId(), is("b2cde810-15d0-4bfa-af66-ec2d6ecd561b"));
-    assertThat(modInfoBean.getUiOnly(), is(true));
+    assertThat(mod.getName(), is("EcoManager"));
+    assertThat(mod.getVersion(), is(new ComparableVersion("3")));
+    assertThat(mod.getAuthor(), is("Crotalus"));
+    assertThat(mod.getDescription(), is("EcoManager v3, more efficient energy throttling"));
+    assertThat(mod.getImagePath(), nullValue());
+    assertThat(mod.getSelectable(), is(true));
+    assertThat(mod.getId(), is("b2cde810-15d0-4bfa-af66-ec2d6ecd561b"));
+    assertThat(mod.getUiOnly(), is(true));
   }
 
   @Test
@@ -381,7 +387,6 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGetPathForModUnknownModReturnsNull() throws Exception {
     assertThat(instance.getInstalledMods(), hasSize(1));
-
     assertThat(instance.getPathForMod(ModInfoBeanBuilder.create().uid("1").get()), Matchers.nullValue());
   }
 
@@ -396,9 +401,47 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     instance.uploadMod(modPath);
 
     verify(applicationContext).getBean(ModUploadTask.class);
-
     verify(modUploadTask).setModPath(modPath);
-
     verify(taskService).submitTask(modUploadTask);
+  }
+
+  @Test
+  public void testLoadThumbnail() throws Exception {
+    Mod mod = ModInfoBeanBuilder.create().defaultValues()
+        .thumbnailUrl("http://127.0.0.1:65534/thumbnail.png")
+        .get();
+    instance.loadThumbnail(mod);
+    verify(assetService).loadAndCacheImage(eq(mod.getThumbnailUrl()), eq(Paths.get("mods")), any());
+  }
+
+  @Test
+  public void testGetAvailableMods() throws Exception {
+    when(fafService.getMods()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
+        ModInfoBeanBuilder.create().defaultValues().uid("1").get(),
+        ModInfoBeanBuilder.create().defaultValues().uid("2").get()
+    )));
+    List<Mod> modInfoBeen = instance.getAvailableMods().toCompletableFuture().get();
+    assertThat(modInfoBeen, hasSize(2));
+  }
+
+  @Test
+  public void testGetMostLikedUiMods() throws Exception {
+    when(fafService.getMods()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
+        ModInfoBeanBuilder.create().defaultValues().uid("1").uiMod(true).get(),
+        ModInfoBeanBuilder.create().defaultValues().uid("2").uiMod(false).get(),
+        ModInfoBeanBuilder.create().defaultValues().uid("3").uiMod(true).get()
+    )));
+    List<Mod> mods = instance.getMostLikedUiMods(1).toCompletableFuture().get();
+    assertThat(mods, hasSize(1));
+    assertThat(mods.get(0).getId(), is("1"));
+  }
+
+  private InstallModTask stubInstallModTask() {
+    return new InstallModTask(preferencesService, i18n) {
+      @Override
+      protected Void call() throws Exception {
+        return null;
+      }
+    };
   }
 }

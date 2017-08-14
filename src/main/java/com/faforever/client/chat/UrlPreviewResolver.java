@@ -2,7 +2,12 @@ package com.faforever.client.chat;
 
 import javafx.scene.Node;
 
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+
 public interface UrlPreviewResolver {
+
+  CompletableFuture<Optional<Preview>> resolvePreview(String urlString);
 
   class Preview {
 
@@ -22,6 +27,4 @@ public interface UrlPreviewResolver {
       return description;
     }
   }
-
-  Preview resolvePreview(String urlString);
 }

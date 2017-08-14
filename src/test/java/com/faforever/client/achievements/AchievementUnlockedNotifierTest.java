@@ -1,8 +1,8 @@
 package com.faforever.client.achievements;
 
-import com.faforever.client.api.AchievementDefinition;
-import com.faforever.client.api.AchievementType;
-import com.faforever.client.audio.AudioController;
+import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.api.dto.AchievementType;
+import com.faforever.client.audio.AudioService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationServiceImpl;
 import com.faforever.client.notification.TransientNotification;
@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+import static com.faforever.client.achievements.AchievementService.AchievementState.REVEALED;
+import static com.faforever.client.achievements.AchievementService.AchievementState.UNLOCKED;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -42,7 +44,7 @@ public class AchievementUnlockedNotifierTest {
   @Mock
   private FafService fafService;
   @Mock
-  private AudioController audioController;
+  private AudioService audioService;
 
   @Captor
   private ArgumentCaptor<Consumer<UpdatedAchievementsMessage>> listenerCaptor;
@@ -51,13 +53,7 @@ public class AchievementUnlockedNotifierTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new AchievementUnlockedNotifier();
-    instance.achievementService = achievementService;
-    instance.audioController = audioController;
-    instance.fafService = fafService;
-    instance.i18n = i18n;
-    instance.notificationService = notificationService;
-
+    instance = new AchievementUnlockedNotifier(notificationService, i18n, achievementService, fafService, audioService);
     instance.postConstruct();
 
     verify(fafService).addOnMessageListener(eq(UpdatedAchievementsMessage.class), listenerCaptor.capture());
@@ -68,9 +64,11 @@ public class AchievementUnlockedNotifierTest {
     AchievementDefinition achievementDefinition = new AchievementDefinition();
     achievementDefinition.setType(AchievementType.STANDARD);
     achievementDefinition.setName("Test Achievement");
+    when(achievementService.getImage(achievementDefinition, UNLOCKED)).thenReturn(mock(Image.class));
+
     triggerUpdatedAchievementsMessage(achievementDefinition, true);
 
-    verify(audioController).playAchievementUnlockedSound();
+    verify(audioService).playAchievementUnlockedSound();
 
     ArgumentCaptor<TransientNotification> notificationCaptor = ArgumentCaptor.forClass(TransientNotification.class);
     verify(notificationService).addNotification(notificationCaptor.capture());
@@ -89,7 +87,7 @@ public class AchievementUnlockedNotifierTest {
     achievementDefinition.setName("Test Achievement");
     triggerUpdatedAchievementsMessage(achievementDefinition, false);
 
-    verifyZeroInteractions(audioController);
+    verifyZeroInteractions(audioService);
     verifyZeroInteractions(notificationService);
   }
 
@@ -97,7 +95,7 @@ public class AchievementUnlockedNotifierTest {
     when(achievementService.getAchievementDefinition("1234")).thenReturn(CompletableFuture.completedFuture(achievementDefinition));
 
     when(i18n.get("achievement.unlockedTitle")).thenReturn("Achievement unlocked");
-    when(achievementService.getRevealedIcon(achievementDefinition)).thenReturn(mock(Image.class));
+    when(achievementService.getImage(achievementDefinition, REVEALED)).thenReturn(mock(Image.class));
 
     UpdatedAchievementsMessage message = new UpdatedAchievementsMessage();
     UpdatedAchievement updatedAchievement = new UpdatedAchievement();

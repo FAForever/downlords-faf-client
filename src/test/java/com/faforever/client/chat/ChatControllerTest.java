@@ -1,13 +1,13 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.MapChangeListener;
 import javafx.scene.control.Tab;
@@ -16,15 +16,12 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationContext;
 import org.springframework.util.ReflectionUtils;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.Instant;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 import static com.natpryce.hamcrest.reflection.HasAnnotationMatcher.hasAnnotation;
 import static org.hamcrest.CoreMatchers.is;
@@ -36,6 +33,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -45,7 +43,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   public static final String TEST_USER_NAME = "junit";
   private static final String TEST_CHANNEL_NAME = "#testChannel";
   private static final long TIMEOUT = 1000;
-  private static final TimeUnit TIMEOUT_UNITS = TimeUnit.MILLISECONDS;
+
   @Mock
   private ChannelTabController channelTabController;
   @Mock
@@ -53,17 +51,13 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private UserService userService;
   @Mock
-  private ApplicationContext applicationContext;
+  private UiService uiService;
   @Mock
   private ChatService chatService;
   @Mock
   private EventBus eventBus;
   @Captor
   private ArgumentCaptor<MapChangeListener<String, Channel>> channelsListener;
-  @Captor
-  private ArgumentCaptor<Consumer<ChatMessage>> onChannelMessageListenerCaptor;
-  @Captor
-  private ArgumentCaptor<Consumer<ChatMessage>> onPrivateMessageListenerCaptor;
   @Captor
   private ArgumentCaptor<MapChangeListener<String, ChatUser>> onUsersListenerCaptor;
 
@@ -72,42 +66,30 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = loadController("chat.fxml");
-    instance.userService = userService;
-    instance.chatService = chatService;
-    instance.applicationContext = applicationContext;
-    instance.eventBus = eventBus;
+    instance = new ChatController(chatService, uiService, userService, eventBus);
 
-    connectionState = new SimpleObjectProperty<>();
-    BooleanProperty loggedInProperty = new SimpleBooleanProperty();
+    connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
 
-    when(applicationContext.getBean(PrivateChatTabController.class)).thenReturn(privateChatTabController);
-    when(applicationContext.getBean(ChannelTabController.class)).thenReturn(channelTabController);
+    when(uiService.loadFxml("theme/chat/private_chat_tab.fxml")).thenReturn(privateChatTabController);
+    when(uiService.loadFxml("theme/chat/channel_tab.fxml")).thenReturn(channelTabController);
     when(userService.getUsername()).thenReturn(TEST_USER_NAME);
-    when(userService.loggedInProperty()).thenReturn(loggedInProperty);
     when(chatService.connectionStateProperty()).thenReturn(connectionState);
 
-    instance.postConstruct();
+    loadFxml("theme/chat/chat.fxml", clazz -> instance);
+
     verify(chatService).addChannelsListener(channelsListener.capture());
   }
 
   @Test
   public void testOnMessageForChannel() throws Exception {
     when(channelTabController.getRoot()).thenReturn(new Tab());
+
     ChatMessage chatMessage = new ChatMessage(TEST_CHANNEL_NAME, Instant.now(), TEST_USER_NAME, "message");
-
-    CompletableFuture<ChatMessage> chatMessageCompletableFuture = new CompletableFuture<>();
-    doAnswer(invocation -> {
-      chatMessageCompletableFuture.complete((ChatMessage) invocation.getArguments()[0]);
-      return null;
-    }).when(channelTabController).onChatMessage(chatMessage);
-
-    verify(chatService).addOnMessageListener(onChannelMessageListenerCaptor.capture());
-    onChannelMessageListenerCaptor.getValue().accept(chatMessage);
-
-    chatMessageCompletableFuture.get(TIMEOUT, TIMEOUT_UNITS);
+    instance.onChatMessage(new ChatMessageEvent(chatMessage));
+    WaitForAsyncUtils.waitForFxEvents();
 
     verify(channelTabController).onChatMessage(chatMessage);
+    verify(privateChatTabController, never()).onChatMessage(chatMessage);
   }
 
   @Test
@@ -117,23 +99,19 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnPrivateMessage() throws Exception {
-    ChatMessage chatMessage = mock(ChatMessage.class);
+    when(privateChatTabController.getRoot()).thenReturn(new Tab());
+    ChatMessage chatMessage = new ChatMessage(null, Instant.now(), TEST_USER_NAME, "message");
+    instance.onChatMessage(new ChatMessageEvent(chatMessage));
+    WaitForAsyncUtils.waitForFxEvents();
 
-    verify(chatService).addOnPrivateChatMessageListener(onPrivateMessageListenerCaptor.capture());
-
-    onPrivateMessageListenerCaptor.getValue().accept(chatMessage);
-    // TODO assert something useful
+    verify(privateChatTabController).onChatMessage(chatMessage);
+    verify(channelTabController, never()).onChatMessage(chatMessage);
   }
 
   @Test
   public void testGetRoot() throws Exception {
     assertThat(instance.getRoot(), is(instance.chatRoot));
     assertThat(instance.getRoot().getParent(), is(nullValue()));
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void testOpenPrivateMessageTabForUserNotOnApplicationThread() throws Exception {
-    instance.onInitiatePrivateChatEvent(new InitiatePrivateChatEvent("user"));
   }
 
   @Test
@@ -145,14 +123,11 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOpenPrivateMessageTabForSelf() throws Exception {
-    when(privateChatTabController.getRoot()).thenReturn(new Tab());
     instance.onInitiatePrivateChatEvent(new InitiatePrivateChatEvent(TEST_USER_NAME));
   }
 
   @Test
   public void testOnChannelsJoinedRequest() throws Exception {
-    when(channelTabController.getRoot()).thenReturn(new Tab());
-
     channelJoined(TEST_CHANNEL_NAME);
     channelJoined(TEST_CHANNEL_NAME);
 
@@ -162,25 +137,24 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   @SuppressWarnings("unchecked")
   private void channelJoined(String channel) {
     MapChangeListener.Change<? extends String, ? extends Channel> testChannelChange = mock(MapChangeListener.Change.class);
-    when(testChannelChange.getKey()).thenReturn(channel);
     channelsListener.getValue().onChanged(testChannelChange);
   }
 
   @Test
   @SuppressWarnings("unchecked")
   public void testOnJoinChannelButtonClicked() throws Exception {
-    assertThat(instance.chatsTabPane.getTabs(), is(empty()));
+    assertThat(instance.tabPane.getTabs(), is(empty()));
 
     Tab tab = new Tab();
     tab.setId(TEST_CHANNEL_NAME);
 
     when(channelTabController.getRoot()).thenReturn(tab);
     when(userService.getUsername()).thenReturn(TEST_USER_NAME);
-    when(chatService.isDefaultChannel(TEST_CHANNEL_NAME)).thenReturn(false);
     doAnswer(invocation -> {
       MapChangeListener.Change<? extends String, ? extends Channel> change = mock(MapChangeListener.Change.class);
       when(change.wasAdded()).thenReturn(true);
-      when(change.getValueAdded()).thenReturn(new Channel(invocation.getArgumentAt(0, String.class)));
+      // Error here is caused by a bug in IntelliJ
+      when(change.getValueAdded()).thenReturn(new Channel(invocation.getArgument(0)));
       channelsListener.getValue().onChanged(change);
       return null;
     }).when(chatService).joinChannel(anyString());
@@ -193,21 +167,22 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
     MapChangeListener.Change<? extends String, ? extends ChatUser> change = mock(MapChangeListener.Change.class);
     when(change.wasAdded()).thenReturn(true);
+    // Error here is caused by a bug in IntelliJ
     when(change.getValueAdded()).thenReturn(new ChatUser(TEST_USER_NAME, null));
     onUsersListenerCaptor.getValue().onChanged(change);
 
     CountDownLatch tabAddedLatch = new CountDownLatch(1);
-    instance.chatsTabPane.getTabs().addListener((InvalidationListener) observable -> tabAddedLatch.countDown());
+    instance.tabPane.getTabs().addListener((InvalidationListener) observable -> tabAddedLatch.countDown());
     tabAddedLatch.await(2, TimeUnit.SECONDS);
 
-    assertThat(instance.chatsTabPane.getTabs(), hasSize(1));
-    assertThat(instance.chatsTabPane.getTabs().get(0).getId(), is(TEST_CHANNEL_NAME));
+    assertThat(instance.tabPane.getTabs(), hasSize(1));
+    assertThat(instance.tabPane.getTabs().get(0).getId(), is(TEST_CHANNEL_NAME));
   }
 
   @Test
   public void testSubscribeAnnotations() {
     assertThat(ReflectionUtils.findMethod(
-        ChatController.class, "onInitiatePrivateChatEvent", InitiatePrivateChatEvent.class),
+        instance.getClass(), "onInitiatePrivateChatEvent", InitiatePrivateChatEvent.class),
         hasAnnotation(Subscribe.class));
   }
 }

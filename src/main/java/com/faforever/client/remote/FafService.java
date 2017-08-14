@@ -1,29 +1,39 @@
 package com.faforever.client.remote;
 
-import com.faforever.client.api.Ranked1v1Stats;
-import com.faforever.client.api.RatingType;
-import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.api.dto.CoopResult;
+import com.faforever.client.api.dto.FeaturedModFile;
+import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.chat.avatar.AvatarBean;
-import com.faforever.client.config.CacheNames;
+import com.faforever.client.clan.Clan;
+import com.faforever.client.coop.CoopMission;
 import com.faforever.client.domain.RatingHistoryDataPoint;
+import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.game.Faction;
+import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.game.NewGameInfo;
-import com.faforever.client.leaderboard.Ranked1v1EntryBean;
+import com.faforever.client.leaderboard.LeaderboardEntry;
 import com.faforever.client.map.MapBean;
-import com.faforever.client.mod.ModInfoBean;
+import com.faforever.client.mod.FeaturedMod;
+import com.faforever.client.mod.Mod;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.relay.GpgClientMessage;
+import com.faforever.client.player.Player;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
+import com.faforever.client.replay.Replay;
+import com.faforever.client.vault.review.Review;
+import com.faforever.commons.io.ByteCountListener;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import org.springframework.cache.annotation.Cacheable;
 
+import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 
+// TODO divide and conquer
 public interface FafService {
 
   @SuppressWarnings("unchecked")
@@ -32,64 +42,103 @@ public interface FafService {
   @SuppressWarnings("unchecked")
   <T extends ServerMessage> void removeOnMessageListener(Class<T> type, Consumer<T> listener);
 
-  CompletionStage<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo);
+  CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo);
 
   ReadOnlyObjectProperty<ConnectionState> connectionStateProperty();
 
-  CompletionStage<GameLaunchMessage> requestJoinGame(int gameId, String password);
+  CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password);
 
-  CompletionStage<GameLaunchMessage> startSearchRanked1v1(Faction faction, int port);
+  CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction, int port);
 
   void stopSearchingRanked();
 
-  void initConnectivityTest(int port);
+  void sendGpgGameMessage(GpgGameMessage message);
 
-  void sendGpgMessage(GpgClientMessage message);
-
-  CompletionStage<LoginMessage> connectAndLogIn(String username, String password);
+  CompletableFuture<LoginMessage> connectAndLogIn(String username, String password);
 
   void disconnect();
 
-  void addFriend(PlayerInfoBean friendId);
+  void addFriend(Player friendId);
 
-  void addFoe(PlayerInfoBean foeId);
+  void addFoe(Player foeId);
 
-  void removeFriend(PlayerInfoBean friendId);
+  void removeFriend(Player friendId);
 
-  void removeFoe(PlayerInfoBean foeId);
+  void removeFoe(Player foeId);
 
-  Long getSessionId();
-
-  CompletionStage<List<Ranked1v1EntryBean>> getRanked1v1Entries();
-
-  CompletionStage<Ranked1v1Stats> getRanked1v1Stats();
-
-  CompletionStage<Ranked1v1EntryBean> getRanked1v1EntryForPlayer(int playerId);
+  CompletableFuture<LeaderboardEntry> getLadder1v1EntryForPlayer(int playerId);
 
   void notifyGameEnded();
 
-  List<MapBean> getMaps();
+  CompletableFuture<List<Mod>> getMods();
 
-  MapBean findMapByName(String mapName);
-
-  List<ModInfoBean> getMods();
+  CompletableFuture<Mod> getMod(String uid);
 
   void reconnect();
 
-  CompletionStage<List<MapBean>> getMostDownloadedMaps(int count);
+  CompletableFuture<List<MapBean>> getMostPlayedMaps(int count, int page);
 
-  CompletionStage<List<MapBean>> getMostPlayedMaps(int count);
+  CompletableFuture<List<MapBean>> getMostLikedMaps(int count, int page);
 
-  CompletionStage<List<MapBean>> getMostLikedMaps(int count);
+  CompletableFuture<List<MapBean>> getNewestMaps(int count, int page);
 
-  CompletionStage<List<MapBean>> getNewestMaps(int count);
+  CompletableFuture<List<CoopMission>> getCoopMaps();
 
-  CompletionStage<List<AvatarBean>> getAvailableAvatars();
+  CompletableFuture<List<AvatarBean>> getAvailableAvatars();
 
   void selectAvatar(AvatarBean avatar);
 
   void evictModsCache();
 
-  @Cacheable(CacheNames.RATING_HISTORY)
-  CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(RatingType ratingType, int playerId);
+  CompletableFuture<List<CoopResult>> getCoopLeaderboard(CoopMission mission, int numberOfPlayers);
+
+  CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(int playerId, KnownFeaturedMod knownFeaturedMod);
+
+  CompletableFuture<List<FeaturedMod>> getFeaturedMods();
+
+  CompletableFuture<List<FeaturedModFile>> getFeaturedModFiles(FeaturedMod featuredMod, Integer version);
+
+  CompletableFuture<List<LeaderboardEntry>> getLadder1v1Leaderboard();
+
+  CompletableFuture<List<LeaderboardEntry>> getGlobalLeaderboard();
+
+  CompletableFuture<List<Replay>> getNewestReplays(int topElementCount);
+
+  CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount);
+
+  CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount);
+
+  void uploadMod(Path modFile, ByteCountListener byteListener);
+
+  CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(int playerId);
+
+  CompletableFuture<List<AchievementDefinition>> getAchievementDefinitions();
+
+  CompletableFuture<AchievementDefinition> getAchievementDefinition(String achievementId);
+
+  void sendIceMessage(int remotePlayerId, Object message);
+
+  CompletableFuture<List<Replay>> findReplaysByQuery(String condition, int maxResults);
+
+  CompletableFuture<List<MapBean>> findMapsByQuery(String query, int page, int maxSearchResults);
+
+  CompletableFuture<Optional<MapBean>> findMapByFolderName(String folderName);
+
+  CompletableFuture<List<Player>> getPlayersByIds(Collection<Integer> playerIds);
+
+  CompletableFuture<Void> saveGameReview(Review review, int gameId);
+
+  CompletableFuture<Void> saveModVersionReview(Review review, int modVersionId);
+
+  CompletableFuture<Void> saveMapVersionReview(Review review, String mapVersionId);
+
+  CompletableFuture<Optional<Replay>> getLastGameOnMap(int playerId, String mapVersionId);
+
+  CompletableFuture<Void> deleteGameReview(Review review);
+
+  CompletableFuture<Optional<Clan>> getClanByTag(String tag);
+
+  Optional<MapBean> findMapById(String id);
+
+  CompletableFuture<Void> deleteMapVersionReview(Review review);
 }

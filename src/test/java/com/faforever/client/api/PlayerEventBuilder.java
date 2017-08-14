@@ -1,5 +1,8 @@
 package com.faforever.client.api;
 
+import com.faforever.client.api.dto.Event;
+import com.faforever.client.api.dto.PlayerEvent;
+
 public class PlayerEventBuilder extends PlayerEvent {
 
   private final PlayerEvent playerEvent;
@@ -8,8 +11,12 @@ public class PlayerEventBuilder extends PlayerEvent {
     playerEvent = new PlayerEvent();
   }
 
+  public static PlayerEventBuilder create() {
+    return new PlayerEventBuilder();
+  }
+
   public PlayerEventBuilder eventId(String eventId) {
-    playerEvent.setEventId(eventId);
+    playerEvent.setEvent(new Event().setId(eventId));
     return this;
   }
 
@@ -20,9 +27,5 @@ public class PlayerEventBuilder extends PlayerEvent {
 
   public PlayerEvent get() {
     return playerEvent;
-  }
-
-  public static PlayerEventBuilder create() {
-    return new PlayerEventBuilder();
   }
 }

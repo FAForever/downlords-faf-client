@@ -1,7 +1,7 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.game.GameInfoBean;
-import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.game.Game;
+import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.VictoryCondition;
 
 import java.util.List;
@@ -16,7 +16,7 @@ public class LocalReplayInfo {
   private Integer uid;
   private String title;
   private String mapname;
-  private GameState state;
+  private GameStatus state;
   private Boolean[] options;
   // FAF calls this "game_type" but it's actually the victory condition.
   private VictoryCondition gameType;
@@ -33,20 +33,20 @@ public class LocalReplayInfo {
   private double gameTime;
   private double launchedAt;
 
-  public void updateFromGameInfoBean(GameInfoBean gameInfoBean) {
-    host = gameInfoBean.getHost();
-    uid = gameInfoBean.getUid();
-    title = gameInfoBean.getTitle();
-    mapname = gameInfoBean.getMapFolderName();
-    state = gameInfoBean.getStatus();
-    gameType = gameInfoBean.getVictoryCondition();
-    featuredMod = gameInfoBean.getFeaturedMod();
-    maxPlayers = gameInfoBean.getMaxPlayers();
-    numPlayers = gameInfoBean.getNumPlayers();
-    simMods = gameInfoBean.getSimMods();
+  public void updateFromGameInfoBean(Game game) {
+    host = game.getHost();
+    uid = game.getId();
+    title = game.getTitle();
+    mapname = game.getMapFolderName();
+    state = game.getStatus();
+    gameType = game.getVictoryCondition();
+    featuredMod = game.getFeaturedMod();
+    maxPlayers = game.getMaxPlayers();
+    numPlayers = game.getNumPlayers();
+    simMods = game.getSimMods();
     // FIXME this (and all others here) should do a deep copy
-    teams = gameInfoBean.getTeams();
-    featuredModVersions = gameInfoBean.getFeaturedModVersions();
+    teams = game.getTeams();
+    featuredModVersions = game.getFeaturedModVersions();
   }
 
   public String getHost() {
@@ -81,11 +81,11 @@ public class LocalReplayInfo {
     this.mapname = mapname;
   }
 
-  public GameState getState() {
+  public GameStatus getState() {
     return state;
   }
 
-  public void setState(GameState state) {
+  public void setState(GameStatus state) {
     this.state = state;
   }
 
@@ -186,7 +186,7 @@ public class LocalReplayInfo {
   }
 
   /**
-   * If 0.0, then {@code launchedAt} should be available instead.
+   * Backwards compatibility: If 0.0, then {@code launchedAt} should be available instead.
    */
   public double getGameTime() {
     return gameTime;
@@ -197,7 +197,7 @@ public class LocalReplayInfo {
   }
 
   /**
-   * If 0.0, then {@code gameTime} should be available instead.
+   * Backwards compatibility: If 0.0, then {@code gameTime} should be available instead.
    */
   public double getLaunchedAt() {
     return launchedAt;

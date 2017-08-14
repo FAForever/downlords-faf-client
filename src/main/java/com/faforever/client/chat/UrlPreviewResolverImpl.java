@@ -1,23 +1,33 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.config.CacheNames;
-import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.theme.UiService;
 import com.google.common.net.MediaType;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import lombok.SneakyThrows;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.faforever.client.io.Bytes.formatSize;
+import static com.faforever.commons.io.Bytes.formatSize;
 
+
+@Lazy
+@Component
+// TODO reintroduce once it's working better
 public class UrlPreviewResolverImpl implements UrlPreviewResolver {
 
   private static final Pattern IMGUR_PATTERN = Pattern.compile("https?://imgur\\.com/gallery/(\\w+)");
@@ -25,11 +35,15 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
   private static final String IMGUR_PNG = "http://i.imgur.com/%s.png";
   private static final String IMGUR_GIF = "http://i.imgur.com/%s.gif";
 
-  @Resource
-  FxmlLoader fxmlLoader;
+  private final UiService uiService;
 
-  @Resource
-  I18n i18n;
+  private final I18n i18n;
+
+  @Inject
+  public UrlPreviewResolverImpl(UiService uiService, I18n i18n) {
+    this.uiService = uiService;
+    this.i18n = i18n;
+  }
 
   private static boolean testUrl(String urlString) {
     try {
@@ -41,39 +55,37 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
 
   @Override
   @Cacheable(CacheNames.URL_PREVIEW)
-  public Preview resolvePreview(String urlString) {
-    try {
-      String guessedUrl = guessUrl(urlString);
+  @Async
+  @SneakyThrows
+  public CompletableFuture<Optional<Preview>> resolvePreview(String urlString) {
+    String guessedUrl = guessUrl(urlString);
 
-      URL url = new URL(guessedUrl);
+    URL url = new URL(guessedUrl);
 
-      String protocol = url.getProtocol();
+    String protocol = url.getProtocol();
 
-      if (!"http".equals(protocol) && !"https".equals(protocol)) {
-        // TODO log unhandled protocol
-        return null;
-      }
-
-      HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-      connection.setInstanceFollowRedirects(true);
-
-      long contentLength = connection.getContentLengthLong();
-      String contentType = connection.getContentType();
-
-      Node root = fxmlLoader.loadAndGetRoot("image_preview.fxml");
-      ImageView imageView = (ImageView) root.lookup("#imageView");
-
-      if (MediaType.JPEG.toString().equals(contentType)
-          || MediaType.PNG.toString().equals(contentType)) {
-        imageView.setImage(new Image(guessedUrl));
-      }
-
-      String description = i18n.get("urlPreviewDescription", contentType, formatSize(contentLength, i18n.getLocale()));
-
-      return new Preview(imageView, description);
-    } catch (IOException e) {
-      return null;
+    if (!"http".equals(protocol) && !"https".equals(protocol)) {
+      // TODO log unhandled protocol
+      return CompletableFuture.completedFuture(Optional.empty());
     }
+
+    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+    connection.setInstanceFollowRedirects(true);
+
+    long contentLength = connection.getContentLengthLong();
+    String contentType = connection.getContentType();
+
+    Node root = uiService.loadFxml("theme/image_preview.fxml");
+    ImageView imageView = (ImageView) root.lookup("#imageView");
+
+    if (MediaType.JPEG.toString().equals(contentType)
+        || MediaType.PNG.toString().equals(contentType)) {
+      imageView.setImage(new Image(guessedUrl));
+    }
+
+    String description = i18n.get("urlPreviewDescription", contentType, formatSize(contentLength, i18n.getUserSpecificLocale()));
+
+    return CompletableFuture.completedFuture(Optional.of(new Preview(imageView, description)));
   }
 
   private String guessUrl(String urlString) {

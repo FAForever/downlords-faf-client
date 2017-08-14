@@ -1,451 +1,533 @@
 package com.faforever.client.api;
 
+import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.api.dto.Clan;
+import com.faforever.client.api.dto.CoopMission;
+import com.faforever.client.api.dto.CoopResult;
+import com.faforever.client.api.dto.FeaturedModFile;
+import com.faforever.client.api.dto.Game;
+import com.faforever.client.api.dto.GamePlayerStats;
+import com.faforever.client.api.dto.GameReview;
+import com.faforever.client.api.dto.GlobalLeaderboardEntry;
+import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
+import com.faforever.client.api.dto.Map;
+import com.faforever.client.api.dto.MapStatistics;
+import com.faforever.client.api.dto.MapVersion;
+import com.faforever.client.api.dto.MapVersionReview;
+import com.faforever.client.api.dto.Mod;
+import com.faforever.client.api.dto.ModVersionReview;
+import com.faforever.client.api.dto.Player;
+import com.faforever.client.api.dto.PlayerAchievement;
+import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.config.CacheNames;
-import com.faforever.client.io.ByteCountListener;
-import com.faforever.client.io.CountingFileContent;
-import com.faforever.client.leaderboard.Ranked1v1EntryBean;
-import com.faforever.client.map.MapBean;
-import com.faforever.client.mod.ModInfoBean;
-import com.faforever.client.net.UriUtil;
-import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.user.UserService;
-import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
-import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
-import com.google.api.client.auth.oauth2.BearerToken;
-import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.auth.oauth2.TokenResponse;
-import com.google.api.client.http.GenericUrl;
-import com.google.api.client.http.HttpHeaders;
-import com.google.api.client.http.HttpMediaType;
-import com.google.api.client.http.HttpRequest;
-import com.google.api.client.http.HttpRequestFactory;
-import com.google.api.client.http.HttpResponse;
-import com.google.api.client.http.HttpResponseException;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.MultipartContent;
-import com.google.api.client.http.json.JsonHttpContent;
-import com.google.api.client.json.GenericJson;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.JsonObjectParser;
-import com.google.api.client.json.JsonParser;
-import com.google.api.client.json.JsonToken;
-import com.google.api.client.util.store.FileDataStoreFactory;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
-import com.google.common.escape.Escaper;
-import com.google.common.net.MediaType;
-import com.google.common.net.UrlEscapers;
+import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.Api;
+import com.faforever.client.game.KnownFeaturedMod;
+import com.faforever.client.io.CountingFileSystemResource;
+import com.faforever.client.mod.FeaturedMod;
+import com.faforever.client.user.event.LoggedOutEvent;
+import com.faforever.client.user.event.LoginSuccessEvent;
+import com.faforever.commons.io.ByteCountListener;
+import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
+import com.github.rutledgepaulv.qbuilders.conditions.Condition;
+import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
+import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.client.ClientHttpRequest;
-import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.ReflectionUtils;
+import org.springframework.context.annotation.Profile;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.springframework.security.oauth2.client.token.grant.password.ResourceOwnerPasswordResourceDetails;
+import org.springframework.security.oauth2.common.AuthenticationScheme;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestOperations;
+import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Field;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
+import javax.inject.Inject;
+import java.io.Serializable;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Pattern;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
+@Component
+@Profile("!offline")
 public class FafApiAccessorImpl implements FafApiAccessor {
 
-  private static final String HTTP_LOCALHOST = "http://localhost:";
-  private static final String ENCODED_HTTP_LOCALHOST = HTTP_LOCALHOST.replace(":", "%3A").replace("/", "%2F");
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final String SCOPE_READ_ACHIEVEMENTS = "read_achievements";
-  private static final String SCOPE_READ_EVENTS = "read_events";
-  private static final String UPLOAD_MAP = "upload_map";
-  private static final String UPLOAD_MOD = "upload_mod";
+  private static final String MAP_ENDPOINT = "/data/map";
+  private static final String REPLAY_INCLUDES = "featuredMod,playerStats,playerStats.player,reviews,reviews.player,mapVersion,mapVersion.map";
+  private final EventBus eventBus;
+  private final RestTemplateBuilder restTemplateBuilder;
+  private final ClientProperties clientProperties;
+  private final HttpComponentsClientHttpRequestFactory requestFactory;
 
-  @Resource
-  JsonFactory jsonFactory;
-  @Resource
-  PreferencesService preferencesService;
-  @Resource
-  HttpTransport httpTransport;
-  @Resource
-  UserService userService;
-  @Resource
-  ClientHttpRequestFactory clientHttpRequestFactory;
+  private CountDownLatch authorizedLatch;
+  private RestOperations restOperations;
 
-  @Value("${api.baseUrl}")
-  String baseUrl;
-  @Value("${oauth.authUri}")
-  String oAuthUrl;
-  @Value("${oauth.tokenUri}")
-  String oAuthTokenServerUrl;
-  @Value("${oauth.clientId}")
-  String oAuthClientId;
-  @Value("${oauth.clientSecret}")
-  String oAuthClientSecret;
-  @Value("${oauth.loginUri}")
-  URI oAuthLoginUrl;
+  @Inject
+  public FafApiAccessorImpl(EventBus eventBus, RestTemplateBuilder restTemplateBuilder,
+                            ClientProperties clientProperties, JsonApiMessageConverter jsonApiMessageConverter,
+                            JsonApiErrorHandler jsonApiErrorHandler) {
+    this.eventBus = eventBus;
+    this.clientProperties = clientProperties;
+    authorizedLatch = new CountDownLatch(1);
 
-  @VisibleForTesting
-  Credential credential;
-  @VisibleForTesting
-  HttpRequestFactory requestFactory;
-  private FileDataStoreFactory dataStoreFactory;
+    requestFactory = new HttpComponentsClientHttpRequestFactory();
+    this.restTemplateBuilder = restTemplateBuilder
+        .requestFactory(requestFactory)
+        .additionalMessageConverters(jsonApiMessageConverter)
+        .errorHandler(jsonApiErrorHandler)
+        .rootUri(clientProperties.getApi().getBaseUrl());
+  }
+
+  private static String rsql(Condition<?> eq) {
+    return eq.query(new RSQLVisitor());
+  }
+
+  private static <T extends QBuilder<T>> QBuilder<T> qBuilder() {
+    return new QBuilder<>();
+  }
 
   @PostConstruct
-  void postConstruct() throws IOException {
-    Path playServicesDirectory = preferencesService.getPreferencesDirectory().resolve("oauth");
-    dataStoreFactory = new FileDataStoreFactory(playServicesDirectory.toFile());
+  void postConstruct() {
+    eventBus.register(this);
+  }
+
+  @Subscribe
+  public void onLoggedOutEvent(LoggedOutEvent event) {
+    authorizedLatch = new CountDownLatch(1);
+    restOperations = null;
+  }
+
+  @Subscribe
+  public void onLoginSuccessEvent(LoginSuccessEvent event) {
+    authorize(event.getUserId(), event.getUsername(), event.getPassword());
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public List<PlayerAchievement> getPlayerAchievements(int playerId) {
-    logger.debug("Loading achievements for player: {}", playerId);
-    return getMany("/players/" + playerId + "/achievements", PlayerAchievement.class, 1);
+    return getAll("/data/playerAchievement", ImmutableMap.of(
+        "filter", rsql(qBuilder().intNum("player.id").eq(playerId))
+    ));
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public List<PlayerEvent> getPlayerEvents(int playerId) {
-    logger.debug("Loading events for player: {}", playerId);
-    return getMany("/players/" + playerId + "/events", PlayerEvent.class, 1);
+    return getAll("/data/playerEvent", ImmutableMap.of(
+        "filter", rsql(qBuilder().intNum("player.id").eq(playerId))
+    ));
   }
 
   @Override
   @SuppressWarnings("unchecked")
   @Cacheable(CacheNames.ACHIEVEMENTS)
   public List<AchievementDefinition> getAchievementDefinitions() {
-    logger.debug("Loading achievement definitions");
-    return getMany("/achievements?sort=order", AchievementDefinition.class, 1);
+    return getAll("/data/achievement", ImmutableMap.of(
+        "sort", "order"
+    ));
   }
 
   @Override
   @Cacheable(CacheNames.ACHIEVEMENTS)
   public AchievementDefinition getAchievementDefinition(String achievementId) {
-    logger.debug("Getting definition for achievement {}", achievementId);
-    return getSingle("/achievements/" + achievementId, AchievementDefinition.class);
+    return getOne("/data/achievement/" + achievementId, AchievementDefinition.class);
   }
 
   @Override
-  public void authorize(int playerId) {
-    try {
-      AuthorizationCodeFlow flow = new AuthorizationCodeFlow.Builder(
-          BearerToken.authorizationHeaderAccessMethod(),
-          httpTransport,
-          jsonFactory,
-          new GenericUrl(oAuthTokenServerUrl),
-          new ClientParametersAuthentication(oAuthClientId, oAuthClientSecret),
-          oAuthClientId,
-          oAuthUrl)
-          .setDataStoreFactory(dataStoreFactory)
-          .setScopes(Arrays.asList(SCOPE_READ_ACHIEVEMENTS, SCOPE_READ_EVENTS, UPLOAD_MAP, UPLOAD_MOD))
-          .build();
-
-      credential = authorize(flow, String.valueOf(playerId));
-      requestFactory = httpTransport.createRequestFactory(credential);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  @Cacheable(CacheNames.MODS)
+  public List<Mod> getMods() {
+    return getAll("/data/mod", ImmutableMap.of(
+        "include", "latestVersion"));
   }
 
   @Override
-  public List<ModInfoBean> getMods() {
-    logger.debug("Loading available mods");
-    return getMany("/mods", Mod.class).stream()
-        .map(ModInfoBean::fromModInfo)
+  @Cacheable(CacheNames.FEATURED_MODS)
+  public List<com.faforever.client.api.dto.FeaturedMod> getFeaturedMods() {
+    return getMany("/data/featuredMod", 1000, ImmutableMap.of());
+  }
+
+  @Override
+  @Cacheable(CacheNames.GLOBAL_LEADERBOARD)
+  @SneakyThrows
+  @SuppressWarnings("unchecked")
+  public List<GlobalLeaderboardEntry> getGlobalLeaderboard() {
+    // This is not an ordinary JSON-API route and thus doesn't support paging, that's why it's called manually
+    authorizedLatch.await();
+    return restOperations.getForObject("/leaderboards/global", List.class,
+        ImmutableMap.of(
+            "sort", "-rating",
+            "include", "player",
+            "fields[globalRating]", "rating,numGames",
+            "fields[player]", "login"
+        ));
+  }
+
+  @Override
+  @Cacheable(CacheNames.LADDER_1V1_LEADERBOARD)
+  @SneakyThrows
+  @SuppressWarnings("unchecked")
+  public List<Ladder1v1LeaderboardEntry> getLadder1v1Leaderboard() {
+    // This is not an ordinary JSON-API route and thus doesn't support paging, that's why it's called manually
+    authorizedLatch.await();
+    return restOperations.getForObject("/leaderboards/ladder1v1", List.class,
+        ImmutableMap.of(
+            "sort", "-rating",
+            "include", "player",
+            "fields[ladder1v1Rating]", "rating,numGames,winGames",
+            "fields[player]", "login"
+        ));
+  }
+
+  @Override
+  public Ladder1v1LeaderboardEntry getLadder1v1EntryForPlayer(int playerId) {
+    return getOne("/leaderboards/ladder1v1/" + playerId, Ladder1v1LeaderboardEntry.class);
+  }
+
+  @Override
+  @Cacheable(CacheNames.RATING_HISTORY)
+  public List<GamePlayerStats> getGamePlayerStats(int playerId, KnownFeaturedMod knownFeaturedMod) {
+    return getAll("/data/gamePlayerStats", ImmutableMap.of(
+        "filter", rsql(qBuilder()
+            .intNum("player.id").eq(playerId)
+            .and()
+            .string("game.featuredMod.technicalName").eq(knownFeaturedMod.getTechnicalName())
+        )));
+  }
+
+  @Override
+  @Cacheable(CacheNames.MAPS)
+  public List<Map> getMostPlayedMaps(int count, int page) {
+    return this.<MapStatistics>getPage("/data/mapStatistics", count, page, ImmutableMap.of(
+        "include", "map,map.latestVersion,map.author,map.versions.reviews",
+        "sort", "-plays")).stream()
+        .map(MapStatistics::getMap)
         .collect(Collectors.toList());
   }
 
-  private <T> List<T> getMany(String endpointPath, Class<T> type) {
+  @Override
+  @Cacheable(CacheNames.MAPS)
+  public List<Map> getHighestRatedMaps(int count, int page) {
+    // FIXME https://github.com/FAForever/downlords-faf-client/issues/547
+    // In order to be able to sort by rating, the database and API need to be extended
+    // I (Downlord) already started the DB part locally
+    return this.<MapStatistics>getPage("/data/mapStatistics", count, page, ImmutableMap.of(
+        "include", "map,map.latestVersion,map.author,map.versions.reviews",
+        "sort", "-plays")).stream()
+        .map(MapStatistics::getMap)
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<Map> getNewestMaps(int count, int page) {
+    return getPage(MAP_ENDPOINT, count, page, ImmutableMap.of(
+        "include", "latestVersion,author,versions.reviews",
+        "sort", "-updateTime"));
+  }
+
+  @Override
+  public List<Game> getLastGamesOnMap(int playerId, String mapVersionId, int count) {
+    return getMany("/data/game", count, ImmutableMap.of(
+        "filter", rsql(qBuilder()
+            .string("mapVersion.id").eq(mapVersionId)
+            .and()
+            .intNum("playerStats.player.id").eq(playerId)),
+        "sort", "-endTime"
+    ));
+  }
+
+  @Override
+  public void uploadMod(Path file, ByteCountListener listener) {
+    MultiValueMap<String, Object> multipartContent = createFileMultipart(file, listener);
+    post("/mods/upload", multipartContent, false);
+  }
+
+  @Override
+  public void uploadMap(Path file, boolean isRanked, ByteCountListener listener) {
+    MultiValueMap<String, Object> multipartContent = createFileMultipart(file, listener);
+    multipartContent.add("metadata", ImmutableMap.of("isRanked", isRanked));
+    post("/maps/upload", multipartContent, false);
+  }
+
+  @Override
+  public void changePassword(String username, String currentPasswordHash, String newPasswordHash) {
+    java.util.Map<String, String> body = new HashMap<>();
+    // TODO this should not be necessary; we are oauthed so the server knows our username
+    body.put("name", username);
+    body.put("pw_hash_old", currentPasswordHash);
+    body.put("pw_hash_new", newPasswordHash);
+
+    post("/users/change_password", body, true);
+  }
+
+  @Override
+  public Mod getMod(String uid) {
+    return getOne("/data/mod/" + uid, Mod.class, ImmutableMap.of(
+        "include", "latestVersion"));
+  }
+
+  @Override
+  @Cacheable(CacheNames.FEATURED_MOD_FILES)
+  public List<FeaturedModFile> getFeaturedModFiles(FeaturedMod featuredMod, Integer version) {
+    String endpoint = String.format("/featuredMods/%s/files/%s", featuredMod.getId(),
+        Optional.ofNullable(version).map(String::valueOf).orElse("latest"));
+    return getMany(endpoint, 10_000, ImmutableMap.of());
+  }
+
+  @Override
+  public List<Game> getNewestReplays(int count) {
+    return getMany("/data/game", count, ImmutableMap.of(
+        "sort", "-endTime",
+        "include", REPLAY_INCLUDES,
+        "filter", "endTime=isnull=false"
+    ));
+  }
+
+  @Override
+  public List<Game> getHighestRatedReplays(int count) {
+    // FIXME implement once supported by API
+    return Collections.emptyList();
+  }
+
+  @Override
+  public List<Game> getMostWatchedReplays(int count) {
+    // FIXME implement once supported by API
+    return Collections.emptyList();
+  }
+
+  @Override
+  public List<Game> findReplaysByQuery(String query, int maxResults) {
+    return getMany("/data/game", maxResults, ImmutableMap.of(
+        "filter", "(" + query + ");endTime=isnull=false",
+        "include", REPLAY_INCLUDES
+    ));
+  }
+
+  @Override
+  public Optional<MapVersion> findMapByFolderName(String folderName) {
+    List<MapVersion> maps = getMany(MAP_ENDPOINT, 1, ImmutableMap.of(
+        "include", "latestVersion,author",
+        "sort", "-updateTime"));
+    if (maps.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(maps.get(0));
+  }
+
+  @Override
+  public List<Player> getPlayersByIds(Collection<Integer> playerIds) {
+    List<String> ids = playerIds.stream().map(String::valueOf).collect(Collectors.toList());
+
+    return getMany("/data/player", playerIds.size(), ImmutableMap.of(
+        "include", "globalRating,ladder1v1Rating",
+        "filter", rsql(qBuilder().string("id").in(ids))
+    ));
+  }
+
+  @Override
+  public GameReview createGameReview(GameReview review) {
+    return post("/data/game/" + review.getGame().getId() + "/reviews", review, GameReview.class);
+  }
+
+  @Override
+  public void updateGameReview(GameReview review) {
+    patch("/data/gameReview/" + review.getId(), review, Void.class);
+  }
+
+  @Override
+  public ModVersionReview createModVersionReview(ModVersionReview review) {
+    return post("/data/modVersion/" + review.getModVersion().getId() + "/reviews", review, ModVersionReview.class);
+  }
+
+  @Override
+  public void updateModVersionReview(ModVersionReview review) {
+    patch("/data/modVersionReview/" + review.getId(), review, Void.class);
+  }
+
+  @Override
+  public MapVersionReview createMapVersionReview(MapVersionReview review) {
+    return post("/data/mapVersion/" + review.getMapVersion().getId() + "/reviews", review, MapVersionReview.class);
+  }
+
+  @Override
+  public void updateMapVersionReview(MapVersionReview review) {
+    patch("/data/mapVersionReview/" + review.getId(), review, Void.class);
+  }
+
+  @Override
+  public void deleteGameReview(int id) {
+    delete("/data/gameReview/" + id);
+  }
+
+  @Override
+  public void deleteMapVersionReview(Integer id) {
+    delete("/data/mapVersionReview/" + id);
+  }
+
+  @Override
+  public Optional<Clan> getClanByTag(String tag) {
+    List<Clan> clans = getMany("/data/clan", 1, ImmutableMap.of(
+        "include", "leader",
+        "filter", rsql(qBuilder().string("tag").eq(tag))
+    ));
+    if (clans.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(clans.get(0));
+  }
+
+  @Override
+  public List<Map> findMapsByQuery(String query, int page, int maxResults) {
+    return getPage(MAP_ENDPOINT, maxResults, page, ImmutableMap.of(
+        "filter", query,
+        "include", "latestVersion,latestVersion.reviews,author,statistics"
+    ));
+  }
+
+  @Override
+  public Optional<MapVersion> findMapVersionById(String id) {
+    // TODO check what is returned if map does not exist
+    return Optional.ofNullable(getOne(MAP_ENDPOINT + "/" + id, MapVersion.class));
+  }
+
+  @Override
+  @Cacheable(CacheNames.COOP_MAPS)
+  public List<CoopMission> getCoopMissions() {
+    return this.getAll("/data/coopMission");
+  }
+
+  @Override
+  @Cacheable(CacheNames.COOP_LEADERBOARD)
+  public List<CoopResult> getCoopLeaderboard(String missionId, int numberOfPlayers) {
+    return getMany("/data/coopResult", numberOfPlayers, ImmutableMap.of(
+        "filter", rsql(qBuilder().intNum("playerCount").eq(numberOfPlayers)),
+        "sort", "-duration"
+    ));
+  }
+
+  @Override
+  @SneakyThrows
+  public void authorize(int playerId, String username, String password) {
+    Api apiProperties = clientProperties.getApi();
+
+    ResourceOwnerPasswordResourceDetails details = new ResourceOwnerPasswordResourceDetails();
+    details.setClientId(apiProperties.getClientId());
+    details.setClientSecret(apiProperties.getClientSecret());
+    details.setClientAuthenticationScheme(AuthenticationScheme.header);
+    details.setAccessTokenUri(apiProperties.getAccessTokenUri());
+    details.setUsername(username);
+    details.setPassword(password);
+
+    restOperations = restTemplateBuilder.configure(new OAuth2RestTemplate(details));
+
+    authorizedLatch.countDown();
+  }
+
+  @NotNull
+  private MultiValueMap<String, Object> createFileMultipart(Path file, ByteCountListener listener) {
+    MultiValueMap<String, Object> form = new LinkedMultiValueMap<>();
+    form.add("file", new CountingFileSystemResource(file, listener));
+    return form;
+  }
+
+  @SneakyThrows
+  private void post(String endpointPath, Object request, boolean bufferRequestBody) {
+    authorizedLatch.await();
+    requestFactory.setBufferRequestBody(bufferRequestBody);
+
+    try {
+      // Don't use Void.class here, otherwise Spring won't even try to deserialize error messages in the body
+      restOperations.postForEntity(endpointPath, request, String.class);
+    } finally {
+      requestFactory.setBufferRequestBody(true);
+    }
+  }
+
+  @SneakyThrows
+  private <T> T post(String endpointPath, Object request, Class<T> type) {
+    authorizedLatch.await();
+    ResponseEntity<T> entity = restOperations.postForEntity(endpointPath, request, type);
+    return entity.getBody();
+  }
+
+  @SneakyThrows
+  private <T> T patch(String endpointPath, Object request, Class<T> type) {
+    authorizedLatch.await();
+    return restOperations.patchForObject(endpointPath, request, type);
+  }
+
+  private void delete(String endpointPath) {
+    restOperations.delete(endpointPath);
+  }
+
+  @SuppressWarnings("unchecked")
+  @SneakyThrows
+  private <T> T getOne(String endpointPath, Class<T> type) {
+    return getOne(endpointPath, type, Collections.emptyMap());
+  }
+
+  @SuppressWarnings("unchecked")
+  @SneakyThrows
+  private <T> T getOne(String endpointPath, Class<T> type, java.util.Map<String, Serializable> params) {
+    authorizedLatch.await();
+    return restOperations.getForObject(endpointPath, type, params);
+  }
+
+  private <T> List<T> getAll(String endpointPath) {
+    return getAll(endpointPath, Collections.emptyMap());
+  }
+
+  private <T> List<T> getAll(String endpointPath, java.util.Map<String, Serializable> params) {
+    return getMany(endpointPath, clientProperties.getApi().getMaxPageSize(), params);
+  }
+
+  @SneakyThrows
+  private <T> List<T> getMany(String endpointPath, int count, java.util.Map<String, Serializable> params) {
     List<T> result = new LinkedList<>();
     List<T> current = null;
     int page = 1;
-    while (current == null || !current.isEmpty()) {
-      current = getMany(endpointPath, type, page++);
+    int maxPageSize = clientProperties.getApi().getMaxPageSize();
+    while ((current == null || current.size() >= maxPageSize) && result.size() < count) {
+      current = getPage(endpointPath, count, page++, params);
       result.addAll(current);
     }
     return result;
   }
 
-  @Override
-  public MapBean findMapByName(String mapId) {
-    logger.debug("Searching map: {}", mapId);
-    return MapBean.fromMap(getSingle("/maps/" + mapId, com.faforever.client.api.Map.class));
-  }
+  private <T> List<T> getPage(String endpointPath, int pageSize, int page, java.util.Map<String, Serializable> params) {
+    java.util.Map<String, List<String>> multiValues = params.entrySet().stream()
+        .collect(Collectors.toMap(Entry::getKey, entry -> Collections.singletonList(String.valueOf(entry.getValue()))));
 
-  @Override
-  @Cacheable(CacheNames.LEADERBOARD)
-  public List<Ranked1v1EntryBean> getRanked1v1Entries() {
-    return getMany("/leaderboards/1v1", LeaderboardEntry.class).stream()
-        .map(Ranked1v1EntryBean::fromLeaderboardEntry)
-        .collect(Collectors.toList());
-  }
-
-  @Override
-  public Ranked1v1Stats getRanked1v1Stats() {
-    return getSingle("/leaderboards/1v1/stats", Ranked1v1Stats.class);
-  }
-
-  @Override
-  public Ranked1v1EntryBean getRanked1v1EntryForPlayer(int playerId) {
-    return Ranked1v1EntryBean.fromLeaderboardEntry(getSingle("/leaderboards/1v1/" + playerId, LeaderboardEntry.class));
-  }
-
-  @Override
-  public History getRatingHistory(RatingType ratingType, int playerId) {
-    return getSingle(String.format("/players/%d/ratings/%s/history", playerId, ratingType.getString()), History.class);
-  }
-
-  @Override
-  @Cacheable(CacheNames.MAPS)
-  public List<MapBean> getMaps() {
-    logger.debug("Getting all maps");
-    // FIXME don't page 1
-    return requestMaps("/maps", 1);
-  }
-
-  @Override
-  @Cacheable(CacheNames.MAPS)
-  public List<MapBean> getMostDownloadedMaps(int count) {
-    logger.debug("Getting most downloaded maps");
-    return requestMaps(String.format("/maps?page[size]=%d&sort=-downloads", count), 1);
-  }
-
-  @Override
-  @Cacheable(CacheNames.MAPS)
-  public List<MapBean> getMostPlayedMaps(int count) {
-    logger.debug("Getting most played maps");
-    return requestMaps(String.format("/maps?page[size]=%d&sort=-times_played", count), 1);
-  }
-
-  @Override
-  @Cacheable(CacheNames.MAPS)
-  public List<MapBean> getBestRatedMaps(int count) {
-    logger.debug("Getting most liked maps");
-    return requestMaps(String.format("/maps?page[size]=%d&sort=-rating", count), 1);
-  }
-
-  @Override
-  public List<MapBean> getNewestMaps(int count) {
-    logger.debug("Getting most liked maps");
-    return requestMaps(String.format("/maps?page[size]=%d&sort=-create_time", count), 1);
-  }
-
-  @Override
-  public void uploadMod(Path file, ByteCountListener listener) throws IOException {
-    MultipartContent multipartContent = createFileMultipart(file, listener);
-    postMultipart("/mods/upload", multipartContent);
-  }
-
-  @Override
-  public void uploadMap(Path file, boolean isRanked, ByteCountListener listener) throws IOException {
-    MultipartContent multipartContent = createFileMultipart(file, listener);
-    multipartContent.addPart(new MultipartContent.Part(
-        new HttpHeaders().set("Content-Disposition", "form-data; name=\"metadata\";"),
-        new JsonHttpContent(jsonFactory, new GenericJson() {
-          {
-            set("is_ranked", isRanked);
-          }
-        })));
-
-    postMultipart("/maps/upload", multipartContent);
-  }
-
-  @NotNull
-  private MultipartContent createFileMultipart(Path file, ByteCountListener listener) {
-    HttpMediaType mediaType = new HttpMediaType("multipart/form-data").setParameter("boundary", "__END_OF_PART__");
-    MultipartContent multipartContent = new MultipartContent().setMediaType(mediaType);
-
-    String fileName = file.getFileName().toString();
-    CountingFileContent fileContent = new CountingFileContent(guessMediaType(fileName).toString(), file, listener);
-
-    HttpHeaders headers = new HttpHeaders().set("Content-Disposition", String.format("form-data; name=\"file\"; filename=\"%s\"", fileName));
-
-    return multipartContent.addPart(new MultipartContent.Part(headers, fileContent));
-  }
-
-  private void postMultipart(String endpointPath, MultipartContent multipartContent) throws IOException {
-    if (requestFactory == null) {
-      throw new IllegalStateException("authorize() must be called first");
-    }
-
-    String url = baseUrl + endpointPath;
-    logger.trace("Posting to: {}", url);
-    HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), multipartContent)
-        .setThrowExceptionOnExecuteError(false)
-        .setParser(new JsonObjectParser(jsonFactory));
-    credential.initialize(request);
-    HttpResponse httpResponse = request.execute();
-
-    if (httpResponse.getStatusCode() == 400) {
-      throw new ApiException(httpResponse.parseAs(ErrorResponse.class));
-    } else if (!httpResponse.isSuccessStatusCode()) {
-      throw new HttpResponseException(httpResponse);
-    }
-  }
-
-  @NotNull
-  private MediaType guessMediaType(String fileName) {
-    if (fileName.endsWith(".zip")) {
-      return MediaType.ZIP;
-    }
-    return MediaType.OCTET_STREAM;
-  }
-
-  private List<MapBean> requestMaps(String query, int page) {
-    logger.debug("Loading available maps");
-    return getMany(query, Map.class, page)
-        .stream()
-        .map(MapBean::fromMap)
-        .collect(Collectors.toList());
-  }
-
-  private Credential authorize(AuthorizationCodeFlow flow, String userId) throws IOException {
-    Credential credential = flow.loadCredential(userId);
-    if (credential != null && (credential.getRefreshToken() != null || credential.getExpiresInSeconds() > 60)) {
-      return credential;
-    }
-
-    // The redirect URI is irrelevant to this implementation, however the server requires one
-    String redirectUri = "http://localhost:1337";
-    AuthorizationCodeRequestUrl authorizationUrl = flow.newAuthorizationUrl().setRedirectUri(redirectUri);
-
-    // Google's GenericUrl does not escape ":" and "/", but Flask (FAF's OAuth) requires it.
-    URI fixedAuthorizationUri = UriUtil.fromString(authorizationUrl.build()
-        .replaceFirst("uri=" + Pattern.quote(HTTP_LOCALHOST), "uri=" + ENCODED_HTTP_LOCALHOST));
-
-    Escaper escaper = UrlEscapers.urlFormParameterEscaper();
-    byte[] postData = ("username=" + escaper.escape(userService.getUsername()) +
-        "&password=" + escaper.escape(userService.getPassword()) +
-        "&next=" + fixedAuthorizationUri).getBytes(StandardCharsets.UTF_8);
-    int postDataLength = postData.length;
-
-    ClientHttpRequest loginRequest = clientHttpRequestFactory.createRequest(oAuthLoginUrl, HttpMethod.POST);
-    loginRequest.getHeaders().add("Content-Length", Integer.toString(postDataLength));
-    try (DataOutputStream outputStream = new DataOutputStream(loginRequest.getBody())) {
-      outputStream.write(postData);
-    }
-    ClientHttpResponse loginResponse = loginRequest.execute();
-
-    if (!loginResponse.getStatusCode().is3xxRedirection()) {
-      throw new RuntimeException("Could not log in (" + loginResponse.getStatusCode() + ")");
-    }
-
-    String cookie = Joiner.on("").join(loginResponse.getHeaders().get("set-cookie"));
-
-    postData = "allow=yes".getBytes(StandardCharsets.UTF_8);
-    postDataLength = postData.length;
-
-    ClientHttpRequest authorizeRequest = clientHttpRequestFactory.createRequest(fixedAuthorizationUri, HttpMethod.POST);
-    authorizeRequest.getHeaders().add("Content-Length", Integer.toString(postDataLength));
-    authorizeRequest.getHeaders().add("Cookie", cookie);
-    try (DataOutputStream outputStream = new DataOutputStream(authorizeRequest.getBody())) {
-      outputStream.write(postData);
-    }
-    ClientHttpResponse authorizeResponse = authorizeRequest.execute();
-    URI redirectLocation = authorizeResponse.getHeaders().getLocation();
-
-    if (!authorizeResponse.getStatusCode().is3xxRedirection()
-        || !redirectLocation.toString().contains("code=")) {
-      throw new RuntimeException("Could not authorize (" + authorizeResponse.getStatusCode() + ")");
-    }
-
-    String code = UriComponentsBuilder.fromUri(redirectLocation).build().getQueryParams().get("code").get(0);
-
-    TokenResponse tokenResponse = flow.newTokenRequest(code).setRedirectUri(redirectUri).execute();
-
-    return flow.createAndStoreCredential(tokenResponse, userId);
+    return getPage(endpointPath, pageSize, page, CollectionUtils.toMultiValueMap(multiValues));
   }
 
   @SuppressWarnings("unchecked")
-  private <T> T getSingle(String endpointPath, Class<T> type) {
-    try (InputStream inputStream = executeGet(endpointPath)) {
-      JsonParser jsonParser = jsonFactory.createJsonParser(inputStream, StandardCharsets.UTF_8);
-      jsonParser.nextToken();
-      jsonParser.skipToKey("data");
+  @SneakyThrows
+  private <T> List<T> getPage(String endpointPath, int pageSize, int page, MultiValueMap<String, String> params) {
+    UriComponents uriComponents = UriComponentsBuilder.fromPath(endpointPath)
+        .queryParams(params)
+        .replaceQueryParam("page[size]", pageSize)
+        .replaceQueryParam("page[number]", page)
+        .build();
 
-      return extractObject(type, jsonParser);
-    } catch (IOException | IllegalAccessException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  private <T> List<T> getMany(String endpointPath, Class<T> type, int page) {
-    String innerEndpointPath = endpointPath;
-    if (page > 0) {
-      innerEndpointPath += endpointPath.contains("?") ? "&" : "?";
-      innerEndpointPath += "page[number]=" + page;
-    }
-
-    ArrayList<T> result = new ArrayList<>();
-    try (InputStream inputStream = executeGet(innerEndpointPath)) {
-      JsonParser jsonParser = jsonFactory.createJsonParser(inputStream, StandardCharsets.UTF_8);
-      jsonParser.nextToken();
-      jsonParser.skipToKey("data");
-
-      while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
-        T object = extractObject(type, jsonParser);
-        result.add(object);
-      }
-      return result;
-    } catch (IOException | IllegalAccessException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private InputStream executeGet(String endpointPath) throws IOException {
-    if (requestFactory == null) {
-      throw new IllegalStateException("authorize() must be called first");
-    }
-    String url = baseUrl + endpointPath;
-    logger.trace("Calling: {}", url);
-    HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(url));
-    credential.initialize(request);
-    return request.execute().getContent();
-  }
-
-  @Nullable
-  private <T> T extractObject(Class<T> type, JsonParser jsonParser) throws IOException, IllegalAccessException {
-    T object = null;
-    String id = null;
-    JsonToken currentToken = jsonParser.nextToken();
-    while (currentToken != null && currentToken != JsonToken.END_OBJECT) {
-      switch (jsonParser.getCurrentToken()) {
-        case START_OBJECT:
-          break;
-        case FIELD_NAME:
-          if ("attributes".equals(jsonParser.getCurrentName())) {
-            jsonParser.nextToken();
-            object = jsonParser.parse(type);
-          } else if ("id".equals(jsonParser.getCurrentName())) {
-            jsonParser.nextToken();
-            id = jsonParser.getText();
-          }
-          break;
-      }
-      currentToken = jsonParser.nextToken();
-    }
-    Field idField = ReflectionUtils.findField(type, "id");
-    if (idField != null) {
-      ReflectionUtils.makeAccessible(idField);
-      idField.set(object, id);
-    }
-    return object;
+    authorizedLatch.await();
+    return (List<T>) restOperations.getForObject(uriComponents.toUriString(), List.class);
   }
 }

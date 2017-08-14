@@ -1,7 +1,8 @@
 package com.faforever.client.achievements;
 
-import com.faforever.client.api.AchievementDefinition;
-import com.faforever.client.audio.AudioController;
+import com.faforever.client.achievements.AchievementService.AchievementState;
+import com.faforever.client.api.dto.AchievementDefinition;
+import com.faforever.client.audio.AudioService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationServiceImpl;
 import com.faforever.client.notification.TransientNotification;
@@ -10,27 +11,35 @@ import com.faforever.client.remote.UpdatedAchievement;
 import com.faforever.client.remote.UpdatedAchievementsMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 
+@Lazy
+@Component
 public class AchievementUnlockedNotifier {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Resource
-  NotificationServiceImpl notificationService;
-  @Resource
-  I18n i18n;
-  @Resource
-  AchievementService achievementService;
-  @Resource
-  FafService fafService;
-  @Resource
-  AudioController audioController;
+  private final NotificationServiceImpl notificationService;
+  private final I18n i18n;
+  private final AchievementService achievementService;
+  private final FafService fafService;
+  private final AudioService audioService;
 
   private long lastSoundPlayed;
+
+  @Inject
+  public AchievementUnlockedNotifier(NotificationServiceImpl notificationService, I18n i18n, AchievementService achievementService, FafService fafService, AudioService audioService) {
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.achievementService = achievementService;
+    this.fafService = fafService;
+    this.audioService = audioService;
+  }
 
   @PostConstruct
   void postConstruct() {
@@ -43,7 +52,7 @@ public class AchievementUnlockedNotifier {
         .forEachOrdered(updatedAchievement -> achievementService.getAchievementDefinition(updatedAchievement.getAchievementId())
             .thenAccept(this::notifyAboutUnlockedAchievement)
             .exceptionally(throwable -> {
-              logger.warn("Could not get achievement definition for achievement: {}", updatedAchievement.getAchievementId(), throwable);
+              logger.warn("Could not valueOf achievement definition for achievement: {}", updatedAchievement.getAchievementId(), throwable);
               return null;
             })
         );
@@ -51,13 +60,13 @@ public class AchievementUnlockedNotifier {
 
   private void notifyAboutUnlockedAchievement(AchievementDefinition achievementDefinition) {
     if (lastSoundPlayed < System.currentTimeMillis() - 1000) {
-      audioController.playAchievementUnlockedSound();
+      audioService.playAchievementUnlockedSound();
       lastSoundPlayed = System.currentTimeMillis();
     }
     notificationService.addNotification(new TransientNotification(
             i18n.get("achievement.unlockedTitle"),
             achievementDefinition.getName(),
-            achievementService.getRevealedIcon(achievementDefinition)
+        achievementService.getImage(achievementDefinition, AchievementState.UNLOCKED)
         )
     );
   }

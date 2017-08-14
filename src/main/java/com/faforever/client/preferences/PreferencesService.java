@@ -1,16 +1,14 @@
 package com.faforever.client.preferences;
 
 import com.faforever.client.game.Faction;
-import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.Action;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
-import com.faforever.client.notification.Severity;
-import com.faforever.client.os.OperatingSystem;
+import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.preferences.gson.ColorTypeAdapter;
 import com.faforever.client.preferences.gson.PathTypeAdapter;
 import com.faforever.client.preferences.gson.PropertyTypeAdapter;
 import com.faforever.client.remote.gson.FactionTypeAdapter;
+import com.faforever.client.ui.preferences.event.GameDirectoryChosenEvent;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.jna.platform.win32.Shell32Util;
@@ -20,9 +18,11 @@ import javafx.scene.paint.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -35,21 +35,21 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.CompletionStage;
 
-import static java.nio.charset.StandardCharsets.US_ASCII;
-
+@Lazy
+@Service
 public class PreferencesService {
+
+  public static final String FORGED_ALLIANCE_EXE = "ForgedAlliance.exe";
 
   /**
    * Points to the FAF data directory where log files, config files and others are held. The returned value varies
    * depending on the operating system.
    */
   private static final Path FAF_DATA_DIRECTORY;
+  private static final Logger logger;
   private static final long STORE_DELAY = 1000;
   private static final Charset CHARSET = StandardCharsets.UTF_8;
   private static final String PREFS_FILE_NAME = "client.prefs";
@@ -65,23 +65,19 @@ public class PreferencesService {
       Paths.get(System.getenv("ProgramFiles") + "\\Steam\\steamapps\\common\\supreme commander forged alliance"),
       Paths.get(System.getenv("ProgramFiles") + "\\Supreme Commander - Forged Alliance")
   );
-  private static final String FORGED_ALLIANCE_EXE = "ForgedAlliance.exe";
   private static final String SUPREME_COMMANDER_EXE = "SupremeCommander.exe";
-  private static final Logger logger;
 
   static {
-    switch (OperatingSystem.current()) {
-      case WINDOWS:
-        FAF_DATA_DIRECTORY = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever");
-        break;
-
-      default:
-        FAF_DATA_DIRECTORY = Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
+    if (org.bridj.Platform.isWindows()) {
+      FAF_DATA_DIRECTORY = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever");
+    } else {
+      FAF_DATA_DIRECTORY = Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
     }
-  }
 
-  static {
-    System.setProperty("logDirectory", PreferencesService.FAF_DATA_DIRECTORY.resolve("logs").toString());
+    System.setProperty("logging.file", PreferencesService.FAF_DATA_DIRECTORY
+        .resolve("logs")
+        .resolve("downlords-faf-client.log")
+        .toString());
 
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
@@ -97,15 +93,15 @@ public class PreferencesService {
    */
   private final Timer timer;
   private final Collection<PreferenceUpdateListener> updateListeners;
-  @Resource
-  I18n i18n;
-  @Resource
-  NotificationService notificationService;
+  private final EventBus eventBus;
+
   private Preferences preferences;
   private TimerTask storeInBackgroundTask;
-  private OnChooseGameDirectoryListener onChooseGameDirectoryListener;
 
-  public PreferencesService() {
+  @Inject
+  public PreferencesService(EventBus eventBus) {
+    this.eventBus = eventBus;
+
     updateListeners = new ArrayList<>();
     this.preferencesFilePath = getPreferencesDirectory().resolve(PREFS_FILE_NAME);
     timer = new Timer("PrefTimer", true);
@@ -118,22 +114,17 @@ public class PreferencesService {
         .create();
   }
 
-  public static void configureLogging() {
-    // This method call causes the class to be initialized (static initializers) which in turn causes the logger to initialize.
-  }
-
   public Path getPreferencesDirectory() {
-    switch (OperatingSystem.current()) {
-      case WINDOWS:
-        return Paths.get(System.getenv("APPDATA")).resolve(APP_DATA_SUB_FOLDER);
-
-      default:
-        return Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
+    if (org.bridj.Platform.isWindows()) {
+      return Paths.get(System.getenv("APPDATA")).resolve(APP_DATA_SUB_FOLDER);
     }
+    return Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
   }
 
   @PostConstruct
-  void postConstruct() throws IOException {
+  public void postConstruct() throws IOException {
+    eventBus.register(this);
+
     if (Files.exists(preferencesFilePath)) {
       deleteFileIfEmpty();
       readExistingFile(preferencesFilePath);
@@ -152,68 +143,28 @@ public class PreferencesService {
     if (path == null || Files.notExists(path)) {
       logger.info("Game path is not specified or non-existent, trying to detect");
       detectGamePath();
-    } else {
-      createFaPathLua(path);
     }
   }
 
-  private void detectGamePath() {
-    for (Path path : USUAL_GAME_PATHS) {
-      if (storeGamePathIfValid(path)) {
-        return;
-      }
-    }
-
-    logger.info("Game path could not be detected");
-    notifyMissingGamePath();
-  }
-
-  private void notifyMissingGamePath() {
-    List<Action> actions = Collections.singletonList(
-        new Action(i18n.get("missingGamePath.locate"), event -> letUserChooseGameDirectory())
-    );
-
-    notificationService.addNotification(new PersistentNotification(i18n.get("missingGamePath.notification"), Severity.WARN, actions));
+  public static void configureLogging() {
+    // Calling this method causes the class to be initialized (static initializers) which in turn causes the logger to initialize.
   }
 
   /**
-   * Completes the returned future with the game path selected by the user. Returns {@code null} if the user selected no
-   * path.
+   * Checks whether the chosen game path contains a ForgedAlliance.exe (either directly if the user selected the "bin"
+   * directory, or in the "bin" sub folder). If the path is valid, it is stored in the preferences.
    */
-  public CompletionStage<Path> letUserChooseGameDirectory() {
-    if (onChooseGameDirectoryListener == null) {
-      throw new IllegalStateException("No listener has been specified");
-    }
+  @Subscribe
+  public void onGameDirectoryChosenEvent(GameDirectoryChosenEvent event) {
+    Path path = event.getPath();
 
-    return onChooseGameDirectoryListener.onChooseGameDirectory().thenApply(path -> {
-      if (path == null) {
-        return null;
-      }
-      boolean isPathValid = storeGamePathIfValid(path);
-
-      if (!isPathValid) {
-        throw new RuntimeException("Invalid game path selected");
-      }
-      return path;
-    }).exceptionally(throwable -> {
-      logger.warn("Unexpected exception", throwable);
-      return null;
-    });
-  }
-
-  /**
-   * Checks whether the specified path contains a ForgedAlliance.exe (either directly if the user selected the "bin"
-   * directory, or in the "bin" subfolder). If the path is valid, it is stored in the preferences.
-   *
-   * @return {@code true} if the game path is valid, {@code false} otherwise.
-   */
-  private boolean storeGamePathIfValid(Path path) {
     if (path == null || !Files.isDirectory(path)) {
-      return false;
+      return;
     }
 
     if (!Files.isRegularFile(path.resolve(FORGED_ALLIANCE_EXE)) && !Files.isRegularFile(path.resolve(SUPREME_COMMANDER_EXE))) {
-      return storeGamePathIfValid(path.resolve("bin"));
+      onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(path.resolve("bin")));
+      return;
     }
 
     // At this point, path points to the "bin" directory
@@ -222,21 +173,6 @@ public class PreferencesService {
     logger.info("Found game path at {}", gamePath);
     preferences.getForgedAlliance().setPath(gamePath);
     storeInBackground();
-
-    createFaPathLua(gamePath);
-
-    return true;
-  }
-
-  private void createFaPathLua(Path gamePath) {
-    Path faPathFile = getFafDataDirectory().resolve("fa_path.lua");
-    try {
-      Files.createDirectories(faPathFile.getParent());
-      Files.write(faPathFile, String.format("fa_path = '%s'\n",
-          gamePath.toAbsolutePath().toString().replace("\\", "\\\\")).getBytes(US_ASCII));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   /**
@@ -256,7 +192,7 @@ public class PreferencesService {
     return FAF_DATA_DIRECTORY;
   }
 
-  public Path getFafReposDirectory() {
+  public Path getGitReposDirectory() {
     return getFafDataDirectory().resolve("repos");
   }
 
@@ -334,10 +270,6 @@ public class PreferencesService {
     return getFafDataDirectory().resolve(REPLAYS_SUB_FOLDER);
   }
 
-  public void setOnChooseGameDirectoryListener(OnChooseGameDirectoryListener onChooseGameDirectoryListener) {
-    this.onChooseGameDirectoryListener = onChooseGameDirectoryListener;
-  }
-
   public Path getCacheDirectory() {
     return getFafDataDirectory().resolve(CACHE_SUB_FOLDER);
   }
@@ -351,7 +283,10 @@ public class PreferencesService {
   }
 
   public boolean isGamePathValid() {
-    Path binPath = preferences.getForgedAlliance().getPath().resolve("bin");
+    return isGamePathValid(preferences.getForgedAlliance().getPath().resolve("bin"));
+  }
+
+  private boolean isGamePathValid(Path binPath) {
     return preferences.getForgedAlliance().getPath() != null
         && (Files.isRegularFile(binPath.resolve(FORGED_ALLIANCE_EXE))
         || Files.isRegularFile(binPath.resolve(SUPREME_COMMANDER_EXE))
@@ -360,5 +295,17 @@ public class PreferencesService {
 
   public Path getCacheStylesheetsDirectory() {
     return getFafDataDirectory().resolve(CACHE_STYLESHEETS_SUB_FOLDER);
+  }
+
+  private void detectGamePath() {
+    for (Path path : USUAL_GAME_PATHS) {
+      if (isGamePathValid(path)) {
+        onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(path));
+        return;
+      }
+    }
+
+    logger.info("Game path could not be detected");
+    eventBus.post(MissingGamePathEvent.INSTANCE);
   }
 }

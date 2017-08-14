@@ -1,36 +1,52 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.audio.AudioService;
+import com.faforever.client.clan.ClanService;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.player.Player;
+import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import com.google.common.eventbus.EventBus;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
+import javafx.collections.MapChangeListener.Change;
+import javafx.collections.ObservableMap;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
-import javafx.stage.Stage;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.springframework.scheduling.TaskScheduler;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
-import static org.junit.Assert.*;
+import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,24 +57,23 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
+
+  private ChannelTabController instance;
+
   @Mock
   private ChatService chatService;
   @Mock
   private UserService userService;
   @Mock
-  private ImageUploadService imageUploadService;
+  private PreferencesService preferencesService;
   @Mock
   private PlayerService playerService;
   @Mock
-  private TimeService timeService;
-  @Mock
-  private PreferencesService preferencesService;
-  @Mock
   private PlatformService platformService;
   @Mock
-  private Preferences preferences;
+  private TimeService timeService;
   @Mock
-  private ChatPrefs chatPrefs;
+  private ImageUploadService imageUploadService;
   @Mock
   private I18n i18n;
   @Mock
@@ -66,43 +81,49 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ThreadPoolExecutor threadPoolExecutor;
   @Mock
-  private FilterUserController filterUserController;
-  @Mock
-  private Stage stage;
+  private TaskScheduler taskScheduler;
   @Mock
   private AutoCompletionHelper autoCompletionHelper;
-
-  private ChannelTabController instance;
+  @Mock
+  private UiService uiService;
+  @Mock
+  private ClanService clanService;
+  @Mock
+  private UserFilterController userFilterController;
+  @Mock
+  private ChatUserItemController chatUserItemController;
+  @Mock
+  private WebViewConfigurer webViewConfigurer;
+  @Mock
+  private AudioService audioService;
+  @Mock
+  private UrlPreviewResolver urlPreviewResolver;
+  @Mock
+  private ReportingService reportingService;
+  @Mock
+  private EventBus eventBus;
+  @Mock
+  private CountryFlagService countryFlagService;
 
   @Before
   public void setUp() throws Exception {
-    instance = loadController("channel_tab.fxml");
-    instance.chatService = chatService;
-    instance.userService = userService;
-    instance.imageUploadService = imageUploadService;
-    instance.playerService = playerService;
-    instance.timeService = timeService;
-    instance.notificationService = notificationService;
-    instance.preferencesService = preferencesService;
-    instance.platformService = platformService;
-    instance.i18n = i18n;
-    instance.threadPoolExecutor = threadPoolExecutor;
-    instance.filterUserController = filterUserController;
-    instance.autoCompletionHelper = autoCompletionHelper;
-    instance.stage = getStage();
+    instance = new ChannelTabController(clanService, userService, chatService,
+        platformService, preferencesService, playerService,
+        audioService, timeService, i18n, imageUploadService,
+        urlPreviewResolver, notificationService, reportingService,
+        uiService, autoCompletionHelper,
+        eventBus, webViewConfigurer, threadPoolExecutor, taskScheduler,
+        countryFlagService);
 
-    ObjectProperty<ChatColorMode> chatColorModeProperty = new SimpleObjectProperty<>(ChatColorMode.DEFAULT);
-
-    when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferencesService.getCacheDirectory()).thenReturn(tempDir.getRoot().toPath());
-    when(preferences.getThemeName()).thenReturn("default");
-    when(preferences.getChat()).thenReturn(chatPrefs);
-    when(chatPrefs.getZoom()).thenReturn(1d);
+    when(preferencesService.getPreferences()).thenReturn(new Preferences());
     when(userService.getUsername()).thenReturn(USER_NAME);
-    when(chatPrefs.chatColorModeProperty()).thenReturn(chatColorModeProperty);
-    when(filterUserController.getRoot()).thenReturn(new Pane());
+    when(uiService.loadFxml("theme/chat/user_filter.fxml")).thenReturn(userFilterController);
+    when(uiService.loadFxml("theme/chat/chat_user_item.fxml")).thenReturn(chatUserItemController);
+    when(userFilterController.getRoot()).thenReturn(new Pane());
+    when(chatUserItemController.getRoot()).thenReturn(new Pane());
+    when(uiService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
 
-    instance.postConstruct();
+    loadFxml("theme/chat/channel_tab.fxml", clazz -> instance);
 
     TabPane tabPane = new TabPane();
     tabPane.getTabs().add(instance.getRoot());
@@ -117,7 +138,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testGetMessageTextField() throws Exception {
-    assertNotNull(instance.getMessageTextField());
+    assertNotNull(instance.messageTextField());
   }
 
   @Test
@@ -134,10 +155,10 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     Channel channel = new Channel(CHANNEL_NAME);
     String playerName = "junit";
 
-    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
-    playerInfoBean.moderatorForChannelsProperty().set(FXCollections.observableSet(CHANNEL_NAME));
+    Player player = new Player(playerName);
+    player.moderatorForChannelsProperty().set(FXCollections.observableSet(CHANNEL_NAME));
     instance.setChannel(channel);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(player);
     assertEquals(instance.getMessageCssClass(playerName), ChannelTabController.CSS_CLASS_MODERATOR);
   }
 
@@ -168,5 +189,38 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     assertEquals("", instance.searchField.getText());
     instance.onKeyReleased(keyEvent);
     assertTrue(!instance.searchField.isVisible());
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testOnUserJoinsChannel() throws Exception {
+    Channel channel = new Channel(CHANNEL_NAME);
+    instance.setChannel(channel);
+
+    ArgumentCaptor<MapChangeListener<String, ChatUser>> captor = ArgumentCaptor.forClass(MapChangeListener.class);
+    verify(chatService).addUsersListener(anyString(), captor.capture());
+
+    ChatUser chatUser = new ChatUser("junit", null);
+    ObservableMap<String, ChatUser> userMap = FXCollections.observableHashMap();
+    userMap.put("junit", chatUser);
+
+    Change<String, ChatUser> change = mock(Change.class);
+    when(change.wasAdded()).thenReturn(true);
+    when(change.getValueAdded()).thenReturn(chatUser);
+    when(change.getMap()).thenReturn(userMap);
+
+    Player player = PlayerBuilder.create("Hans").defaultValues().get();
+    when(playerService.createAndGetPlayerForUsername("junit")).thenReturn(player);
+
+    when(i18n.get("chat.userCount", 1)).thenReturn("1 Players");
+    when(chatUserItemController.getPlayer()).thenReturn(player);
+
+    // Actual test execution
+    captor.getValue().onChanged(change);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertThat(player.usernameProperty().isBound(), is(true));
+    assertThat(player.getUsername(), is("junit"));
+    assertThat(instance.userSearchTextField.getPromptText(), is("1 Players"));
   }
 }

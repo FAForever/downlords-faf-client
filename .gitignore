@@ -23,9 +23,6 @@
 .idea/gradle.xml
 .idea/libraries
 
-# Mongo Explorer plugin:
-# .idea/mongoSettings.xml
-
 ## File-based project format:
 *.ipr
 *.iws
@@ -47,3 +44,6 @@ gradle-app.setting
 
 # Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
 !gradle-wrapper.jar
+
+# Included binaries
+!src/main/native/*

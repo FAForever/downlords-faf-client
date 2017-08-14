@@ -1,5 +1,6 @@
 package com.faforever.client.update;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.io.CharStreams;
@@ -12,10 +13,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
@@ -23,8 +22,7 @@ import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-
-import static org.mockito.Mockito.when;
+import java.util.concurrent.CountDownLatch;
 
 public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
 
@@ -35,34 +33,35 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
   private CheckForUpdateTask instance;
 
   @Mock
-  private Environment environment;
-  @Mock
   private I18n i18n;
+
+  private CountDownLatch terminateLatch;
 
   @Before
   public void setUp() throws Exception {
     instance = new CheckForUpdateTask();
     instance.i18n = i18n;
-    instance.environment = environment;
+    instance.clientProperties = new ClientProperties();
+
+    terminateLatch = new CountDownLatch(1);
   }
 
   @After
   public void tearDown() throws Exception {
     IOUtils.closeQuietly(fakeGithubServerSocket);
+    terminateLatch.countDown();
   }
 
-  /**
-   * Never version is available on server.
-   */
   @Test
-  @Ignore("For some reason, this keeps failing on travis")
+  @Ignore("Still not sure why this fails on travis with SocketException")
   public void testIsNewer() throws Exception {
     instance.setCurrentVersion(new ComparableVersion("0.4.8-alpha"));
 
     startFakeGitHubApiServer();
     int port = fakeGithubServerSocket.getLocalPort();
-    when(environment.getProperty("github.releases.url")).thenReturn("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
-    when(environment.getProperty("github.releases.timeout", int.class)).thenReturn(3000);
+
+    instance.clientProperties.getGitHub().setReleasesUrl("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
+    instance.clientProperties.getGitHub().setTimeout(3000);
 
     instance.call();
   }
@@ -80,7 +79,7 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
         String response = CharStreams.toString(sampleReader);
 
         outputStreamWriter.write(response);
-      } catch (IOException e) {
+      } catch (Exception e) {
         logger.error("Exception in fake HTTP server", e);
         throw new RuntimeException(e);
       }
@@ -91,14 +90,14 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
    * There is no newer version on the server.
    */
   @Test
-  @Ignore("For some reason, this keeps failing on travis")
+  @Ignore("Still not sure why this fails on travis with SocketException")
   public void testGetUpdateIsCurrent() throws Exception {
     instance.setCurrentVersion(new ComparableVersion("0.4.8.1-alpha"));
 
     startFakeGitHubApiServer();
     int port = fakeGithubServerSocket.getLocalPort();
-    when(environment.getProperty("github.releases.url")).thenReturn("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
-    when(environment.getProperty("github.releases.timeout", int.class)).thenReturn(3000);
+    instance.clientProperties.getGitHub().setReleasesUrl("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
+    instance.clientProperties.getGitHub().setTimeout(3000);
 
     instance.call();
   }

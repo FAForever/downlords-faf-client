@@ -1,19 +1,13 @@
 package com.faforever.client.remote.io;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.Closeable;
 import java.io.DataInput;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.invoke.MethodHandles;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public class QDataInputStream extends InputStream {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final DataInput dataInput;
   private final Charset charset;
@@ -58,28 +52,6 @@ public class QDataInputStream extends InputStream {
    * Skip the "block size" bytes, since we just don't care.
    */
   public void skipBlockSize() throws IOException {
-    dataInput.skipBytes(Integer.SIZE / Byte.SIZE);
-  }
-
-  public int readShort() throws IOException {
-    return dataInput.readUnsignedShort();
-  }
-
-  /**
-   * @return the number of bytes read
-   */
-  public int readQByteArray(byte[] buffer) throws IOException {
-    // Skip first 4 bytes that tell us this is a QByteArray as well as the 1-byte null flag
-    dataInput.skipBytes(5);
-    int arraySize = dataInput.readInt();
-
-    logger.trace("Trying to read {} bytes", arraySize);
-
-    if (arraySize == 0xffffffff) {
-      // 0xffffffff means the array is null
-      return 0;
-    }
-    dataInput.readFully(buffer, 0, arraySize);
-    return arraySize;
+    dataInput.skipBytes(Integer.BYTES);
   }
 }

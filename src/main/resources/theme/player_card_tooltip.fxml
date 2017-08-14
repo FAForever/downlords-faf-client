@@ -7,6 +7,6 @@
        xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.game.PlayerCardTooltipController"
        styleClass="player-card-tooltip">
   <graphic>
-    <ImageView fx:id="playerFlag" pickOnBounds="true" preserveRatio="true"/>
+      <ImageView fx:id="countryImageView" pickOnBounds="true" preserveRatio="true"/>
   </graphic>
 </Label>

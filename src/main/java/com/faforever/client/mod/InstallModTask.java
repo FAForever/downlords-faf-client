@@ -1,15 +1,18 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.io.ByteCopier;
-import com.faforever.client.io.Unzipper;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
+import com.faforever.commons.io.ByteCopier;
+import com.faforever.commons.io.Unzipper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,20 +26,23 @@ import java.util.zip.ZipInputStream;
 
 import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class InstallModTask extends CompletableTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Resource
-  PreferencesService preferencesService;
-
-  @Resource
-  I18n i18n;
+  private final PreferencesService preferencesService;
+  private final I18n i18n;
 
   private URL url;
 
-  public InstallModTask() {
+  @Inject
+  public InstallModTask(PreferencesService preferencesService, I18n i18n) {
     super(HIGH);
+
+    this.preferencesService = preferencesService;
+    this.i18n = i18n;
   }
 
   @Override

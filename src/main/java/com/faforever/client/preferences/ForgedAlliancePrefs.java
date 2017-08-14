@@ -1,6 +1,5 @@
 package com.faforever.client.preferences;
 
-import com.faforever.client.os.OperatingSystem;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
 import javafx.beans.property.BooleanProperty;
@@ -20,20 +19,18 @@ public class ForgedAlliancePrefs {
   public static final Path GPG_FA_PATH;
   public static final Path STEAM_FA_PATH;
   public static final Path LOCAL_FA_DATA_PATH;
+  public static final String INIT_FILE_NAME = "init.lua";
 
   static {
-    switch (OperatingSystem.current()) {
-      case WINDOWS:
-        GPG_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
-        //If steam is every swapped to a 64x client, needs to be updated to proper directory or handling must be put in place.
-        STEAM_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PROGRAM_FILESX86), "Steam", "SteamApps", "common", "Supreme Commander Forged Alliance");
-        LOCAL_FA_DATA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_LOCAL_APPDATA), "Gas Powered Games", "Supreme Commander Forged Alliance");
-        break;
-
-      default:
-        GPG_FA_PATH = Paths.get(".");
-        STEAM_FA_PATH = Paths.get(".");
-        LOCAL_FA_DATA_PATH = Paths.get(".");
+    if (org.bridj.Platform.isWindows()) {
+      GPG_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
+      //If steam is every swapped to a 64x client, needs to be updated to proper directory or handling must be put in place.
+      STEAM_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PROGRAM_FILESX86), "Steam", "SteamApps", "common", "Supreme Commander Forged Alliance");
+      LOCAL_FA_DATA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_LOCAL_APPDATA), "Gas Powered Games", "Supreme Commander Forged Alliance");
+    } else {
+      GPG_FA_PATH = Paths.get(".");
+      STEAM_FA_PATH = Paths.get(".");
+      LOCAL_FA_DATA_PATH = Paths.get(".");
     }
   }
 
@@ -59,9 +56,9 @@ public class ForgedAlliancePrefs {
   public ForgedAlliancePrefs() {
     port = new SimpleIntegerProperty(6112);
     path = new SimpleObjectProperty<>();
-    customMapsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("maps"));
-    officialMapsDirectory = new SimpleObjectProperty<>(STEAM_FA_PATH.resolve("maps"));
-    modsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("mods"));
+    customMapsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("Maps"));
+    officialMapsDirectory = new SimpleObjectProperty<>(STEAM_FA_PATH.resolve("Maps"));
+    modsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("Mods"));
     preferencesFile = new SimpleObjectProperty<>(LOCAL_FA_DATA_PATH.resolve("Game.prefs"));
     autoDownloadMaps = new SimpleBooleanProperty(true);
     executableDecorator = new SimpleStringProperty("\"%s\"");

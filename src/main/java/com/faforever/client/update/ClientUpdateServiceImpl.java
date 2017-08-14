@@ -1,5 +1,6 @@
 package com.faforever.client.update;
 
+import com.faforever.client.FafClientApplication;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
@@ -11,41 +12,50 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
-import java.util.Arrays;
 
-import static com.faforever.client.io.Bytes.formatSize;
 import static com.faforever.client.notification.Severity.INFO;
 import static com.faforever.client.notification.Severity.WARN;
+import static com.faforever.commons.io.Bytes.formatSize;
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.StringUtils.defaultString;
 
+
+@Lazy
+@Service
+@Profile("!" + FafClientApplication.POFILE_OFFLINE)
 public class ClientUpdateServiceImpl implements ClientUpdateService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String DEVELOPMENT_VERSION_STRING = "dev";
 
-  @Resource
-  TaskService taskService;
-  @Resource
-  NotificationService notificationService;
-  @Resource
-  I18n i18n;
-  @Resource
-  PlatformService platformService;
-  @Resource
-  ApplicationContext applicationContext;
+  private final TaskService taskService;
+  private final NotificationService notificationService;
+  private final I18n i18n;
+  private final PlatformService platformService;
+  private final ApplicationContext applicationContext;
 
   @VisibleForTesting
   ComparableVersion currentVersion;
 
-  public ClientUpdateServiceImpl() {
+  @Inject
+  public ClientUpdateServiceImpl(TaskService taskService, NotificationService notificationService, I18n i18n, PlatformService platformService, ApplicationContext applicationContext) {
+    this.taskService = taskService;
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.platformService = platformService;
+    this.applicationContext = applicationContext;
+
     currentVersion = new ComparableVersion(
-        defaultString(getClass().getPackage().getImplementationVersion(), DEVELOPMENT_VERSION_STRING)
+        defaultString(Version.VERSION, DEVELOPMENT_VERSION_STRING)
     );
     logger.info("Current version: {}", currentVersion);
   }
@@ -55,30 +65,19 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
     CheckForUpdateTask task = applicationContext.getBean(CheckForUpdateTask.class);
     task.setCurrentVersion(currentVersion);
 
-    taskService.submitTask(task).getFuture()
-        .thenAccept(updateInfo -> {
-          if (updateInfo == null) {
-            return;
-          }
-
-          notificationService.addNotification(
-              new PersistentNotification(
-                  i18n.get("clientUpdateAvailable.notification", updateInfo.getName(), formatSize(updateInfo.getSize(), i18n.getLocale())),
-                  INFO,
-                  Arrays.asList(
-                      new Action(
-                          i18n.get("clientUpdateAvailable.downloadAndInstall"),
-                          event -> downloadAndInstallInBackground(updateInfo)
-                      ),
-                      new Action(
-                          i18n.get("clientUpdateAvailable.releaseNotes"),
-                          Action.Type.OK_STAY,
-                          event -> platformService.showDocument(updateInfo.getReleaseNotesUrl().toExternalForm())
-                      )
-                  )
-              )
-          );
-        }).exceptionally(throwable -> {
+    taskService.submitTask(task).getFuture().thenAccept(updateInfo -> {
+      if (updateInfo == null) {
+        return;
+      }
+      notificationService.addNotification(new PersistentNotification(
+          i18n.get("clientUpdateAvailable.notification", updateInfo.getName(), formatSize(updateInfo.getSize(), i18n.getUserSpecificLocale())),
+          INFO, asList(
+          new Action(i18n.get("clientUpdateAvailable.downloadAndInstall"), event -> downloadAndInstallInBackground(updateInfo)),
+          new Action(i18n.get("clientUpdateAvailable.releaseNotes"), Action.Type.OK_STAY,
+              event -> platformService.showDocument(updateInfo.getReleaseNotesUrl().toExternalForm())
+          )))
+      );
+    }).exceptionally(throwable -> {
       logger.warn("Client update check failed", throwable);
       return null;
     });
@@ -109,12 +108,9 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
         .exceptionally(throwable -> {
           logger.warn("Error while downloading client update", throwable);
           notificationService.addNotification(
-              new PersistentNotification(i18n.get("clientUpdateDownloadFailed.notification"),
-                  WARN,
-                  singletonList(
-                      new Action(i18n.get("clientUpdateDownloadFailed.retry"), event -> downloadAndInstallInBackground(updateInfo))
-                  )
-              )
+              new PersistentNotification(i18n.get("clientUpdateDownloadFailed.notification"), WARN, singletonList(
+                  new Action(i18n.get("clientUpdateDownloadFailed.retry"), event -> downloadAndInstallInBackground(updateInfo))
+              ))
           );
           return null;
         });

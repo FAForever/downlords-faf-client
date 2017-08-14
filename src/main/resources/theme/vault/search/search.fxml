@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="searchRoot" maxHeight="-Infinity" maxWidth="-Infinity"
+      minHeight="-Infinity" minWidth="-Infinity" spacing="10.0" xmlns="http://javafx.com/javafx/8.0.111"
+      fx:controller="com.faforever.client.vault.search.SearchController">
+    <children>
+        <VBox fx:id="criteriaPane">
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                    <children>
+                        <fx:include fx:id="initialLogicalNode" source="logical_node.fxml"/>
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+        <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Button maxHeight="1.7976931348623157E308" mnemonicParsing="false"
+                        onAction="#onAddCriteriaButtonClicked" text="%query.addCriteria"/>
+                <Button layoutX="10.0" layoutY="10.0" maxHeight="1.7976931348623157E308" mnemonicParsing="false"
+                        onAction="#onResetButtonClicked" text="%reset"/>
+                <Button fx:id="searchButton" defaultButton="true" mnemonicParsing="false"
+                        onAction="#onSearchButtonClicked" styleClass="button-raised" text="%search">
+                    <graphic>
+                        <Label styleClass="icon" text=""/>
+                    </graphic>
+                </Button>
+                <CheckBox fx:id="displayQueryCheckBox" mnemonicParsing="false" text="%vault.replays.displayQuery"/>
+            </children>
+        </HBox>
+        <TextField fx:id="queryTextField" maxWidth="1.7976931348623157E308" promptText="%vault.replays.queryPrompt"/>
+    </children>
+</VBox>

@@ -1,5 +1,7 @@
 package com.faforever.client.leaderboard;
 
+import com.faforever.client.game.KnownFeaturedMod;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -15,7 +17,8 @@ import java.util.concurrent.TimeUnit;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
@@ -29,25 +32,27 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
   private NotificationService notificationService;
   @Mock
   private ReportingService reportingService;
+  @Mock
+  private I18n i18n;
 
   @Before
   public void setUp() throws Exception {
-    instance = loadController("leaderboard.fxml");
-    instance.leaderboardService = leaderboardService;
-    instance.notificationService = notificationService;
-    instance.reportingService = reportingService;
+    instance = new LeaderboardController(leaderboardService, notificationService, i18n, reportingService);
+
+    loadFxml("theme/leaderboard/leaderboard.fxml", clazz -> instance);
   }
 
   @Test
-  public void testSetUpIfNecessary() throws Exception {
-    when(leaderboardService.getRanked1v1Entries()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
-        new Ranked1v1EntryBean(), new Ranked1v1EntryBean()
+  public void testOnDisplay() throws Exception {
+    when(leaderboardService.getEntries(KnownFeaturedMod.LADDER_1V1)).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
+        new LeaderboardEntry(), new LeaderboardEntry()
     )));
 
     CountDownLatch loadedLatch = new CountDownLatch(1);
     instance.ratingTable.itemsProperty().addListener(observable -> loadedLatch.countDown());
+    instance.setRatingType(KnownFeaturedMod.LADDER_1V1);
 
-    instance.setUpIfNecessary();
+    instance.onDisplay();
 
     assertTrue(loadedLatch.await(3, TimeUnit.SECONDS));
     verifyZeroInteractions(notificationService);
@@ -55,15 +60,16 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testFilterByNamePlayerExactMatch() throws Exception {
-    Ranked1v1EntryBean entry1 = new Ranked1v1EntryBean();
+    LeaderboardEntry entry1 = new LeaderboardEntry();
     entry1.setUsername("Aa");
-    Ranked1v1EntryBean entry2 = new Ranked1v1EntryBean();
+    LeaderboardEntry entry2 = new LeaderboardEntry();
     entry2.setUsername("Ab");
 
-    when(leaderboardService.getRanked1v1Entries()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
+    when(leaderboardService.getEntries(KnownFeaturedMod.LADDER_1V1)).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
         entry1, entry2
     )));
-    instance.setUpIfNecessary();
+    instance.setRatingType(KnownFeaturedMod.LADDER_1V1);
+    instance.onDisplay();
 
     assertThat(instance.ratingTable.getSelectionModel().getSelectedItem(), nullValue());
 
@@ -74,15 +80,16 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testFilterByNamePlayerPartialMatch() throws Exception {
-    Ranked1v1EntryBean entry1 = new Ranked1v1EntryBean();
+    LeaderboardEntry entry1 = new LeaderboardEntry();
     entry1.setUsername("Aa");
-    Ranked1v1EntryBean entry2 = new Ranked1v1EntryBean();
+    LeaderboardEntry entry2 = new LeaderboardEntry();
     entry2.setUsername("Ab");
 
-    when(leaderboardService.getRanked1v1Entries()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
+    when(leaderboardService.getEntries(KnownFeaturedMod.LADDER_1V1)).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
         entry1, entry2
     )));
-    instance.setUpIfNecessary();
+    instance.setRatingType(KnownFeaturedMod.LADDER_1V1);
+    instance.onDisplay();
 
     assertThat(instance.ratingTable.getSelectionModel().getSelectedItem(), nullValue());
 

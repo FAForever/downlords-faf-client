@@ -6,18 +6,22 @@ import javafx.event.EventHandler;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.util.Locale.US;
 
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class AutoCompletionHelper {
 
-  @Resource
-  PlayerService playerService;
+  private final PlayerService playerService;
 
   private List<String> possibleAutoCompletions;
   private int nextAutoCompleteIndex;
@@ -26,7 +30,10 @@ public class AutoCompletionHelper {
   private TextInputControl boundTextField;
   private EventHandler<KeyEvent> keyEventHandler;
 
-  public AutoCompletionHelper() {
+  @Inject
+  public AutoCompletionHelper(PlayerService playerService) {
+    this.playerService = playerService;
+
     keyEventHandler = keyEvent -> {
       if (!keyEvent.isControlDown() && keyEvent.getCode() == KeyCode.TAB) {
         keyEvent.consume();

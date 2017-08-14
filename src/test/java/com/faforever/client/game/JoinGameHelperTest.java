@@ -1,26 +1,29 @@
 package com.faforever.client.game;
 
-import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapService;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
+import com.google.common.eventbus.EventBus;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationContext;
+import org.mockito.Mockito;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -28,72 +31,57 @@ import static org.mockito.Mockito.when;
 
 public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
 
-  @Mock
-  ApplicationContext applicationContext;
-  @Mock
-  I18n i18n;
-  @Mock
-  PlayerService playerService;
-  @Mock
-  GameService gameService;
-  @Mock
-  MapService mapService;
-  @Mock
-  CreateGameController createGameController;
-  @Mock
-  EnterPasswordController enterPasswordController;
-  @Mock
-  PreferencesService preferencesService;
-  @Mock
-  NotificationService notificationService;
-  @Mock
-  ReportingService reportingService;
-  @Mock
-  PlayerInfoBean playerInfoBean;
-  @Mock
-  GameInfoBean gameInfoBean;
-  @Mock
-  ForgedAlliancePrefs forgedAlliancePrefs;
   private JoinGameHelper instance;
+
   @Mock
-  private Path path;
+  private I18n i18n;
   @Mock
-  private Preferences preferences;
+  private PlayerService playerService;
+  @Mock
+  private GameService gameService;
+  @Mock
+  private EnterPasswordController enterPasswordController;
+  @Mock
+  private PreferencesService preferencesService;
+  @Mock
+  private NotificationService notificationService;
+  @Mock
+  private ReportingService reportingService;
+  @Mock
+  private Player player;
+  @Mock
+  private Game game;
+  @Mock
+  private UiService uiService;
+  @Mock
+  private EventBus eventBus;
 
   @Before
   public void setUp() throws Exception {
-    instance = new JoinGameHelper();
-    instance.applicationContext = applicationContext;
-    instance.i18n = i18n;
-    instance.playerService = playerService;
-    instance.gameService = gameService;
-    instance.preferencesService = preferencesService;
-    instance.enterPasswordController = enterPasswordController;
-    instance.notificationService = notificationService;
+    instance = new JoinGameHelper(i18n, playerService, gameService, preferencesService, notificationService, reportingService, uiService, eventBus);
     instance.setParentNode(this.getRoot());
 
-    when(playerService.getCurrentPlayer()).thenReturn(playerInfoBean);
-    when(playerInfoBean.getGlobalRatingMean()).thenReturn(1000.0f);
-    when(playerInfoBean.getGlobalRatingDeviation()).thenReturn(0.0f);
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.ofNullable(player));
+    when(player.getGlobalRatingMean()).thenReturn(1000.0f);
+    when(player.getGlobalRatingDeviation()).thenReturn(0.0f);
 
-    when(gameInfoBean.getMinRating()).thenReturn(0);
-    when(gameInfoBean.getMaxRating()).thenReturn(1000);
+    when(game.getMinRating()).thenReturn(0);
+    when(game.getMaxRating()).thenReturn(1000);
+    when(uiService.loadFxml("theme/enter_password.fxml")).thenReturn(enterPasswordController);
 
-    when(gameService.joinGame(any(), any())).thenReturn(new CompletableFuture<Void>());
+    when(gameService.joinGame(any(), any())).thenReturn(new CompletableFuture<>());
 
     when(preferencesService.isGamePathValid()).thenReturn(true);
-
-    instance.postConstruct();
   }
 
 
   /**
-   * Ensure that a normal game is joined -> game path is set -> no password protection -> no rating notification
+   * Ensure that a normal preferences is joined -> preferences path is set -> no password protection -> no rating notification
    */
   @Test
   public void testJoinGameSuccess() throws Exception {
-    instance.join(gameInfoBean);
-    verify(gameService).joinGame(gameInfoBean, null);
+    instance.join(game);
+    verify(gameService).joinGame(game, null);
   }
 
   /**
@@ -102,11 +90,15 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
   @Test
   public void testJoinGameMissingGamePathUserSelectsValidPath() throws Exception {
     when(preferencesService.isGamePathValid()).thenReturn(false).thenReturn(true);
-    when(preferencesService.letUserChooseGameDirectory()).thenReturn(CompletableFuture.completedFuture(Paths.get("")));
 
-    instance.join(gameInfoBean);
+    doAnswer(invocation -> {
+      ((GameDirectoryChooseEvent) invocation.getArgument(0)).getFuture().ifPresent(future -> future.complete(Paths.get("")));
+      return null;
+    }).when(eventBus).post(any(GameDirectoryChooseEvent.class));
 
-    verify(preferencesService, times(1)).letUserChooseGameDirectory();
+    instance.join(game);
+
+    verify(eventBus, times(1)).post(Mockito.any(GameDirectoryChooseEvent.class));
     verify(gameService).joinGame(any(), any());
   }
 
@@ -118,13 +110,20 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
     when(preferencesService.isGamePathValid()).thenReturn(false);
 
     // First, user selects invalid path. Seconds, he aborts so we don't stay in an endless loop
-    when(preferencesService.letUserChooseGameDirectory())
-        .thenReturn(CompletableFuture.completedFuture(Paths.get("")))
-        .thenReturn(CompletableFuture.completedFuture(null));
+    AtomicInteger invocationCounter = new AtomicInteger();
+    doAnswer(invocation -> {
+      Optional<CompletableFuture<Path>> optional = ((GameDirectoryChooseEvent) invocation.getArgument(0)).getFuture();
+      if (invocationCounter.incrementAndGet() == 1) {
+        optional.ifPresent(future -> future.complete(Paths.get("")));
+      } else {
+        optional.ifPresent(future -> future.complete(null));
+      }
+      return null;
+    }).when(eventBus).post(any(GameDirectoryChooseEvent.class));
 
-    instance.join(gameInfoBean);
+    instance.join(game);
 
-    verify(preferencesService, times(2)).letUserChooseGameDirectory();
+    verify(eventBus, times(2)).post(Mockito.any(GameDirectoryChooseEvent.class));
     verify(gameService, never()).joinGame(any(), any());
   }
 
@@ -133,9 +132,9 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
    */
   @Test
   public void testJoinGamePasswordProtected() throws Exception {
-    when(gameInfoBean.getPasswordProtected()).thenReturn(true);
-    instance.join(gameInfoBean);
-    verify(instance.enterPasswordController).showPasswordDialog(getRoot().getScene().getWindow());
+    when(game.getPasswordProtected()).thenReturn(true);
+    instance.join(game);
+    verify(enterPasswordController).showPasswordDialog(getRoot().getScene().getWindow());
   }
 
   /**
@@ -143,11 +142,12 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
    */
   @Test
   public void testJoinGameIgnoreRatings() throws Exception {
-    when(gameInfoBean.getMinRating()).thenReturn(5000);
-    when(gameInfoBean.getMaxRating()).thenReturn(100);
-    instance.join(gameInfoBean, "haha", true);
-    verify(gameService).joinGame(gameInfoBean, "haha");
+    instance.join(game, "haha", true);
+    verify(gameService).joinGame(game, "haha");
     verify(notificationService, never()).addNotification(any(ImmediateNotification.class));
+
+    verify(game, never()).getMinRating();
+    verify(game, never()).getMaxRating();
   }
 
   /**
@@ -155,8 +155,8 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
    */
   @Test
   public void testJoinGameRatingToLow() throws Exception {
-    when(gameInfoBean.getMinRating()).thenReturn(5000);
-    instance.join(gameInfoBean);
+    when(game.getMinRating()).thenReturn(5000);
+    instance.join(game);
     verify(notificationService).addNotification(any(ImmediateNotification.class));
   }
 
@@ -165,8 +165,8 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
    */
   @Test
   public void testJoinGameRatingToHigh() throws Exception {
-    when(gameInfoBean.getMaxRating()).thenReturn(100);
-    instance.join(gameInfoBean);
+    when(game.getMaxRating()).thenReturn(100);
+    instance.join(game);
     verify(notificationService).addNotification(any(ImmediateNotification.class));
   }
 }

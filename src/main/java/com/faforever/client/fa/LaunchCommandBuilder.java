@@ -1,8 +1,10 @@
 package com.faforever.client.fa;
 
 import com.faforever.client.game.Faction;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import org.springframework.util.StringUtils;
 
+import java.net.Inet4Address;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -28,10 +30,10 @@ public class LaunchCommandBuilder {
   private Path replayFile;
   private Integer replayId;
   private URI replayUri;
-  private String gameType;
   private Faction faction;
   private String executableDecorator;
   private boolean rehost;
+  private Integer localReplayPort;
 
   private LaunchCommandBuilder() {
     executableDecorator = "\"%s\"";
@@ -52,6 +54,11 @@ public class LaunchCommandBuilder {
 
   public LaunchCommandBuilder localGpgPort(int localGpgPort) {
     this.localGpgPort = localGpgPort;
+    return this;
+  }
+
+  public LaunchCommandBuilder localReplayPort(int localReplayPort) {
+    this.localReplayPort = localReplayPort;
     return this;
   }
 
@@ -115,11 +122,6 @@ public class LaunchCommandBuilder {
     return this;
   }
 
-  public LaunchCommandBuilder gameType(String gameType) {
-    this.gameType = gameType;
-    return this;
-  }
-
   public LaunchCommandBuilder faction(Faction faction) {
     this.faction = faction;
     return this;
@@ -137,12 +139,6 @@ public class LaunchCommandBuilder {
     if (executable == null) {
       throw new IllegalStateException("executable has not been set");
     }
-    if (logFile == null) {
-      throw new IllegalStateException("logFile has not been set");
-    }
-    if (gameType == null) {
-      throw new IllegalStateException("gameType has not been set");
-    }
     if (replayUri != null && uid != null) {
       throw new IllegalStateException("uid and replayUri cannot be set at the same time");
     }
@@ -154,12 +150,12 @@ public class LaunchCommandBuilder {
     List<String> command = new ArrayList<>();
     command.addAll(split(String.format(executableDecorator, executable.toAbsolutePath().toString())));
     command.addAll(Arrays.asList(
-        "/init", String.format("init_%s.lua", gameType),
+        "/init", ForgedAlliancePrefs.INIT_FILE_NAME,
         "/nobugreport"
     ));
 
     if (faction != null) {
-      command.add(String.format("/%s", faction.getString()));
+      command.add(String.format("/%s", faction.toFaValue()));
     }
 
     if (logFile != null) {
@@ -167,9 +163,10 @@ public class LaunchCommandBuilder {
       command.add(logFile.toAbsolutePath().toString());
     }
 
+    String localIp = Inet4Address.getLoopbackAddress().getHostAddress();
     if (localGpgPort != null) {
       command.add("/gpgnet");
-      command.add("127.0.0.1:" + localGpgPort);
+      command.add(localIp + ":" + localGpgPort);
     }
 
     if (mean != null) {
@@ -190,9 +187,9 @@ public class LaunchCommandBuilder {
       command.add(replayUri.toASCIIString());
     }
 
-    if (uid != null) {
+    if (uid != null && localReplayPort != null) {
       command.add("/savereplay");
-      command.add("gpgnet://localhost/" + uid + "/" + username + ".SCFAreplay");
+      command.add("gpgnet://" + localIp + ":" + localReplayPort + "/" + uid + "/" + username + ".SCFAreplay");
     }
 
     if (country != null) {
