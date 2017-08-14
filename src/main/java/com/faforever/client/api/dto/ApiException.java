@@ -8,9 +8,9 @@ import java.util.stream.Collectors;
 
 public class ApiException extends RuntimeException {
 
-  private final List<? extends Error> errors;
+  private final List<Error> errors;
 
-  public ApiException(List<? extends Error> errors) {
+  public ApiException(List<Error> errors) {
     this.errors = errors;
   }
 

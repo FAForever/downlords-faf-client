@@ -30,6 +30,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 
 import java.nio.file.Files;
@@ -68,16 +69,20 @@ public class FafApiAccessorImplTest {
   private RestTemplateBuilder restTemplateBuilder;
   @Mock
   private JsonApiMessageConverter jsonApiMessageConverter;
+  @Mock
+  private JsonApiErrorHandler jsonApiErrorHandler;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
+    when(restTemplateBuilder.requestFactory(any(ClientHttpRequestFactory.class))).thenReturn(restTemplateBuilder);
     when(restTemplateBuilder.additionalMessageConverters(any(JsonApiMessageConverter.class))).thenReturn(restTemplateBuilder);
     when(restTemplateBuilder.rootUri(any())).thenReturn(restTemplateBuilder);
+    when(restTemplateBuilder.errorHandler(any())).thenReturn(restTemplateBuilder);
     when(restTemplateBuilder.configure(any(OAuth2RestTemplate.class))).thenReturn(restOperations);
 
-    instance = new FafApiAccessorImpl(eventBus, restTemplateBuilder, new ClientProperties(), jsonApiMessageConverter);
+    instance = new FafApiAccessorImpl(eventBus, restTemplateBuilder, new ClientProperties(), jsonApiMessageConverter, jsonApiErrorHandler);
     instance.postConstruct();
     instance.authorize(123, "junit", "42");
   }
@@ -235,28 +240,20 @@ public class FafApiAccessorImplTest {
 
   @Test
   public void testUploadMod() throws Exception {
-    ResponseEntity<Void> expected = new ResponseEntity<>(HttpStatus.OK);
-    when(restOperations.postForEntity(eq("/mods/upload"), anyMap(), eq(Void.class)))
-        .thenReturn(expected);
-
     Path file = Files.createTempFile("foo", null);
     instance.uploadMod(file, (written, total) -> {
     });
 
-    verify(restOperations).postForEntity(eq("/mods/upload"), anyMap(), eq(Void.class));
+    verify(restOperations).postForEntity(eq("/mods/upload"), anyMap(), eq(String.class));
   }
 
   @Test
   @SuppressWarnings("unchecked")
   public void testChangePassword() throws Exception {
-    ResponseEntity<Void> expected = new ResponseEntity<>(HttpStatus.OK);
-    when(restOperations.postForEntity(eq("/users/change_password"), anyMap(), eq(Void.class)))
-        .thenReturn(expected);
-
     instance.changePassword("junit", "currentPasswordHash", "newPasswordHash");
 
     ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
-    verify(restOperations).postForEntity(eq("/users/change_password"), captor.capture(), eq(Void.class));
+    verify(restOperations).postForEntity(eq("/users/change_password"), captor.capture(), eq(String.class));
 
     Map<String, String> body = captor.getValue();
     assertThat(body.get("name"), is("junit"));
