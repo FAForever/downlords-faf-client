@@ -155,7 +155,7 @@ public class LaunchCommandBuilder {
     ));
 
     if (faction != null) {
-      command.add(String.format("/%s", faction.toFaValue()));
+      command.add(String.format("/%s", faction.getString()));
     }
 
     if (logFile != null) {
