@@ -185,7 +185,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @SneakyThrows
   @SuppressWarnings("unchecked")
   public List<Ladder1v1LeaderboardEntry> getLadder1v1Leaderboard() {
-    // This is not an ordinary JSON-API route and thus doesn't support paging, that's why it's called manually
+    // This is not an ordinary JSON-API route and thus doesn't support paging, that's why it doesn't use getAll()
     authorizedLatch.await();
     return restOperations.getForObject("/leaderboards/ladder1v1", List.class,
         ImmutableMap.of(
