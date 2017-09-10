@@ -14,14 +14,16 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.commons.map.PreviewGenerator;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.Bindings;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -111,6 +113,11 @@ public class MapUploadController implements Controller<Node> {
     uploadCompletePane.setVisible(false);
   }
 
+  @SneakyThrows
+  private static WritableImage generatePreview(Path mapPath) {
+    return SwingFXUtils.toFXImage(PreviewGenerator.generatePreview(mapPath, 256, 256), new WritableImage(256, 256));
+  }
+
   private void setMapInfo(MapBean mapInfo) {
     this.mapInfo = mapInfo;
     enterMapInfoState();
@@ -128,8 +135,7 @@ public class MapUploadController implements Controller<Node> {
         () -> i18n.get("mapVault.upload.playersFormat", mapInfo.getPlayers()), mapInfo.playersProperty())
     );
 
-    Image image = PreviewGenerator.generatePreview(mapPath, 256, 256);
-    thumbnailImageView.setImage(image);
+    thumbnailImageView.setImage(generatePreview(mapPath));
   }
 
   private void enterMapInfoState() {

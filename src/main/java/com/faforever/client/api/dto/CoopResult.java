@@ -6,14 +6,16 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Duration;
+
 @Getter
 @Setter
 @EqualsAndHashCode(of = "id")
-@Type("coopLeaderboard")
+@Type("coopResult")
 public class CoopResult {
   @Id
   private String id;
-  private int duration;
+  private Duration duration;
   private String playerNames;
   private boolean secondaryObjectives;
   private int ranking;

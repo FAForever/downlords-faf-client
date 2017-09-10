@@ -48,8 +48,7 @@ public class PreferencesService {
    * Points to the FAF data directory where log files, config files and others are held. The returned value varies
    * depending on the operating system.
    */
-  public static final Path FAF_DATA_DIRECTORY;
-
+  private static final Path FAF_DATA_DIRECTORY;
   private static final Logger logger;
   private static final long STORE_DELAY = 1000;
   private static final Charset CHARSET = StandardCharsets.UTF_8;
@@ -75,7 +74,10 @@ public class PreferencesService {
       FAF_DATA_DIRECTORY = Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
     }
 
-    System.setProperty("logDirectory", PreferencesService.FAF_DATA_DIRECTORY.resolve("logs").toString());
+    System.setProperty("logging.file", PreferencesService.FAF_DATA_DIRECTORY
+        .resolve("logs")
+        .resolve("downlords-faf-client.log")
+        .toString());
 
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
@@ -144,16 +146,8 @@ public class PreferencesService {
     }
   }
 
-  private void detectGamePath() {
-    for (Path path : USUAL_GAME_PATHS) {
-      if (isGamePathValid(path) ) {
-        onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(path));
-        return;
-      }
-    }
-
-    logger.info("Game path could not be detected");
-    eventBus.post(MissingGamePathEvent.INSTANCE);
+  public static void configureLogging() {
+    // Calling this method causes the class to be initialized (static initializers) which in turn causes the logger to initialize.
   }
 
   /**
@@ -301,5 +295,17 @@ public class PreferencesService {
 
   public Path getCacheStylesheetsDirectory() {
     return getFafDataDirectory().resolve(CACHE_STYLESHEETS_SUB_FOLDER);
+  }
+
+  private void detectGamePath() {
+    for (Path path : USUAL_GAME_PATHS) {
+      if (isGamePathValid(path)) {
+        onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(path));
+        return;
+      }
+    }
+
+    logger.info("Game path could not be detected");
+    eventBus.post(MissingGamePathEvent.INSTANCE);
   }
 }

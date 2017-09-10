@@ -39,8 +39,8 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Profile;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.token.grant.password.ResourceOwnerPasswordResourceDetails;
 import org.springframework.security.oauth2.common.AuthenticationScheme;
@@ -75,19 +75,24 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   private final EventBus eventBus;
   private final RestTemplateBuilder restTemplateBuilder;
   private final ClientProperties clientProperties;
+  private final HttpComponentsClientHttpRequestFactory requestFactory;
 
   private CountDownLatch authorizedLatch;
   private RestOperations restOperations;
 
   @Inject
   public FafApiAccessorImpl(EventBus eventBus, RestTemplateBuilder restTemplateBuilder,
-                            ClientProperties clientProperties, JsonApiMessageConverter jsonApiMessageConverter) {
+                            ClientProperties clientProperties, JsonApiMessageConverter jsonApiMessageConverter,
+                            JsonApiErrorHandler jsonApiErrorHandler) {
     this.eventBus = eventBus;
     this.clientProperties = clientProperties;
     authorizedLatch = new CountDownLatch(1);
 
+    requestFactory = new HttpComponentsClientHttpRequestFactory();
     this.restTemplateBuilder = restTemplateBuilder
+        .requestFactory(requestFactory)
         .additionalMessageConverters(jsonApiMessageConverter)
+        .errorHandler(jsonApiErrorHandler)
         .rootUri(clientProperties.getApi().getBaseUrl());
   }
 
@@ -251,14 +256,14 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   public void uploadMod(Path file, ByteCountListener listener) {
     MultiValueMap<String, Object> multipartContent = createFileMultipart(file, listener);
-    post("/mods/upload", multipartContent);
+    post("/mods/upload", multipartContent, false);
   }
 
   @Override
   public void uploadMap(Path file, boolean isRanked, ByteCountListener listener) {
     MultiValueMap<String, Object> multipartContent = createFileMultipart(file, listener);
     multipartContent.add("metadata", ImmutableMap.of("isRanked", isRanked));
-    post("/maps/upload", multipartContent);
+    post("/maps/upload", multipartContent, false);
   }
 
   @Override
@@ -269,7 +274,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     body.put("pw_hash_old", currentPasswordHash);
     body.put("pw_hash_new", newPasswordHash);
 
-    post("/users/change_password", body);
+    post("/users/change_password", body, true);
   }
 
   @Override
@@ -443,11 +448,15 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @SneakyThrows
-  private void post(String endpointPath, Object request) {
+  private void post(String endpointPath, Object request, boolean bufferRequestBody) {
     authorizedLatch.await();
-    ResponseEntity<Void> entity = restOperations.postForEntity(endpointPath, request, Void.class);
-    if (!entity.getStatusCode().is2xxSuccessful()) {
-      throw new ApiWriteException(entity.getStatusCode());
+    requestFactory.setBufferRequestBody(bufferRequestBody);
+
+    try {
+      // Don't use Void.class here, otherwise Spring won't even try to deserialize error messages in the body
+      restOperations.postForEntity(endpointPath, request, String.class);
+    } finally {
+      requestFactory.setBufferRequestBody(true);
     }
   }
 
@@ -455,9 +464,6 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   private <T> T post(String endpointPath, Object request, Class<T> type) {
     authorizedLatch.await();
     ResponseEntity<T> entity = restOperations.postForEntity(endpointPath, request, type);
-    if (!entity.getStatusCode().is2xxSuccessful()) {
-      throw new ApiWriteException(entity.getStatusCode());
-    }
     return entity.getBody();
   }
 
@@ -523,13 +529,5 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
     authorizedLatch.await();
     return (List<T>) restOperations.getForObject(uriComponents.toUriString(), List.class);
-  }
-
-  public class ApiWriteException extends RuntimeException {
-
-    ApiWriteException(HttpStatus statusCode) {
-      super("Writing to API failed with status code: " + statusCode);
-    }
-
   }
 }

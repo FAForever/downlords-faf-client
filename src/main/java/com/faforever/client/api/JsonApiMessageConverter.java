@@ -1,6 +1,5 @@
 package com.faforever.client.api;
 
-import com.faforever.client.api.dto.ApiException;
 import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.github.jasminb.jsonapi.ReflectionUtils;
 import com.github.jasminb.jsonapi.ResourceConverter;
@@ -14,9 +13,6 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 import java.io.InputStream;
 import java.util.Collection;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Component
 public class JsonApiMessageConverter extends AbstractHttpMessageConverter<Object> {
@@ -36,6 +32,7 @@ public class JsonApiMessageConverter extends AbstractHttpMessageConverter<Object
 
   @Override
   @SneakyThrows
+  @SuppressWarnings("unchecked")
   protected Object readInternal(Class<?> clazz, HttpInputMessage inputMessage) {
     try (InputStream inputStream = inputMessage.getBody()) {
       JSONAPIDocument<?> document;
@@ -44,13 +41,6 @@ public class JsonApiMessageConverter extends AbstractHttpMessageConverter<Object
       } else {
         document = resourceConverter.readDocument(inputMessage.getBody(), Object.class);
       }
-
-      Optional.ofNullable(document.getErrors())
-          .map(Iterable::spliterator)
-          .map(spliterator -> StreamSupport.stream(spliterator, false).collect(Collectors.toList()))
-          .ifPresent(errors -> {
-            throw new ApiException(errors);
-          });
 
       return document.get();
     }

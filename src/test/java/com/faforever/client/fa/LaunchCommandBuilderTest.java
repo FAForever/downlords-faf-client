@@ -1,9 +1,12 @@
 package com.faforever.client.fa;
 
+import com.faforever.client.game.Faction;
 import org.junit.Test;
 
 import java.nio.file.Paths;
+import java.util.List;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -80,6 +83,12 @@ public class LaunchCommandBuilderTest {
   @Test(expected = IllegalStateException.class)
   public void testCommandFormatNullNotAllowed() throws Exception {
     defaultBuilder().executableDecorator(null).build();
+  }
+
+  @Test
+  public void testFactionAsString() throws Exception {
+    List<String> build = defaultBuilder().faction(Faction.SERAPHIM).build();
+    assertThat(build.get(4), is("/seraphim"));
   }
 
   @Test
