@@ -1,8 +1,11 @@
 package com.faforever.client.chat;
 
+import lombok.Data;
+
 import java.time.Instant;
 import java.util.Objects;
 
+@Data
 public class ChatMessage {
 
   private final String source;
@@ -26,26 +29,6 @@ public class ChatMessage {
     this.username = username;
     this.message = message;
     this.action = isAction;
-  }
-
-  public String getSource() {
-    return source;
-  }
-
-  public Instant getTime() {
-    return time;
-  }
-
-  public String getUsername() {
-    return username;
-  }
-
-  public String getMessage() {
-    return message;
-  }
-
-  public boolean isAction() {
-    return action;
   }
 
   public boolean isPrivate() {

@@ -382,6 +382,11 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
+  public Optional<Game> findReplayById(int id) {
+    return Optional.ofNullable(getOne("/data/game/" + id, Game.class, ImmutableMap.of("include", REPLAY_INCLUDES)));
+  }
+
+  @Override
   public Optional<Clan> getClanByTag(String tag) {
     List<Clan> clans = getMany("/data/clan", 1, ImmutableMap.of(
         "include", "leader",
@@ -480,14 +485,21 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @SuppressWarnings("unchecked")
   @SneakyThrows
   private <T> T getOne(String endpointPath, Class<T> type) {
-    return getOne(endpointPath, type, Collections.emptyMap());
+    return restOperations.getForObject(endpointPath, type, Collections.emptyMap());
   }
 
   @SuppressWarnings("unchecked")
   @SneakyThrows
   private <T> T getOne(String endpointPath, Class<T> type, java.util.Map<String, Serializable> params) {
+    java.util.Map<String, List<String>> multiValues = params.entrySet().stream()
+        .collect(Collectors.toMap(Entry::getKey, entry -> Collections.singletonList(String.valueOf(entry.getValue()))));
+
+    UriComponents uriComponents = UriComponentsBuilder.fromPath(endpointPath)
+        .queryParams(CollectionUtils.toMultiValueMap(multiValues))
+        .build();
+
     authorizedLatch.await();
-    return restOperations.getForObject(endpointPath, type, params);
+    return getOne(uriComponents.toUriString(), type);
   }
 
   private <T> List<T> getAll(String endpointPath) {

@@ -48,7 +48,7 @@ public class ReplayDownloadTask extends CompletableTask<Path> {
   protected Path call() throws Exception {
     updateTitle(i18n.get("mapReplayTask.title", replayId));
 
-    String replayUrl = getReplayUrl(replayId, clientProperties.getVault().getReplayDownloadUrlFormat());
+    String replayUrl = Replay.getReplayUrl(replayId, clientProperties.getVault().getReplayDownloadUrlFormat());
 
     logger.info("Downloading replay {} from {}", replayId, replayUrl);
 
@@ -73,9 +73,6 @@ public class ReplayDownloadTask extends CompletableTask<Path> {
     }
   }
 
-  private String getReplayUrl(int replayId, String baseUrl) {
-    return String.format(baseUrl, replayId);
-  }
 
   public void setReplayId(int replayId) {
     this.replayId = replayId;

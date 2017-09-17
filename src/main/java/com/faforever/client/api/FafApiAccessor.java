@@ -111,4 +111,7 @@ public interface FafApiAccessor {
   Optional<MapVersion> findMapVersionById(String id);
 
   void deleteMapVersionReview(Integer id);
+
+  Optional<Game> findReplayById(int id);
+
 }

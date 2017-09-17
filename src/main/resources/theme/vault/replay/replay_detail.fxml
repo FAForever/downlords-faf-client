@@ -17,15 +17,15 @@
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="replayDetailRoot" onMouseClicked="#onDimmerClicked"
-            styleClass="dimmer" xmlns="http://javafx.com/javafx/8.0.111"
+            styleClass="dimmer" xmlns="http://javafx.com/javafx/8.0.112"
             fx:controller="com.faforever.client.replay.ReplayDetailController">
    <children>
        <AnchorPane onMouseClicked="#onContentPaneClicked" styleClass="modal-popup" AnchorPane.bottomAnchor="50.0"
                    AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="50.0">
          <children>
              <ScrollPane fx:id="scrollPane" fitToWidth="true" layoutX="21.0" layoutY="31.0"
-                         AnchorPane.bottomAnchor="10.0"
-                         AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="20.0">
+                         AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+                         AnchorPane.topAnchor="20.0">
                <content>
                    <VBox alignment="TOP_CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                          spacing="20.0">
@@ -106,10 +106,15 @@
                                <Label fx:id="onMapLabel" styleClass="secondary" text="&lt;OnMap&gt;"
                                       GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="1"
                                       GridPane.valignment="TOP"/>
-                               <TextField fx:id="replayIdField" alignment="CENTER_RIGHT" editable="false"
-                                          maxWidth="100.0" promptText="&lt;ReplayID&gt;" text="#123456789"
-                                          GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
-                                          GridPane.halignment="RIGHT"/>
+                               <VBox alignment="TOP_RIGHT" prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="1"
+                                     GridPane.columnSpan="2147483647">
+                                   <children>
+                                       <TextField fx:id="replayIdField" alignment="CENTER_RIGHT" editable="false"
+                                                  maxWidth="100.0" promptText="&lt;ReplayID&gt;" text="#123456789"/>
+                                       <Button fx:id="copyButton" onAction="#copyLink" contentDisplay="RIGHT"
+                                               prefHeight="25.0" text="Copy link for chat"/>
+                                   </children>
+                               </VBox>
                            </children>
                            <VBox.margin>
                                <Insets/>

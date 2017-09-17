@@ -4,8 +4,11 @@ import com.faforever.client.audio.AudioService;
 import com.faforever.client.clan.Clan;
 import com.faforever.client.clan.ClanService;
 import com.faforever.client.clan.ClanTooltipController;
+import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.Vault;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
+import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
@@ -13,6 +16,9 @@ import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.replay.Replay;
+import com.faforever.client.replay.ReplayDetailController;
+import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
@@ -30,6 +36,8 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
@@ -69,6 +77,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   private static final long TIMEOUT = 5000;
   private static final String sampleClanTag = "xyz";
+  private static final String TEST_REPLAY_BASE_URL = "http://test.de/replay/%s/tester";
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
   @Mock
@@ -107,21 +116,48 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   private EventBus eventBus;
   @Mock
   private CountryFlagService countryFlagService;
-
-
+  @Mock
+  private ReplayService replayService;
+  @Mock
+  private ClientProperties clientProperties;
+  @Mock
+  private ReplayDetailController replayDetailController;
+  @Mock
+  private WindowController windowController;
 
   private Preferences preferences;
   private AbstractChatTabController instance;
   private CountDownLatch chatReadyLatch;
 
+
   @Override
   public void start(Stage stage) throws Exception {
     super.start(stage);
+
+    preferences = new Preferences();
+
+    Clan clan = new Clan();
+    clan.setId(1234);
+    Vault vault = new Vault();
+    vault.setReplayDownloadUrlFormat(TEST_REPLAY_BASE_URL);
+
+    when(replayService.findById(any(Integer.class))).thenReturn(completedFuture(Optional.of(new Replay())));
+    when(clanService.getClanByTag(sampleClanTag)).thenReturn(completedFuture(Optional.of(clan)));
+    when(uiService.loadFxml("theme/chat/clan_tooltip.fxml")).thenReturn(mock(ClanTooltipController.class));
+    when(uiService.getThemeFileUrl(any())).thenReturn(getClass().getResource("/theme/chat/chat_section.html"));
+    when(timeService.asShortTime(any())).thenReturn("123");
+    when(userService.getUsername()).thenReturn("junit");
+    when(preferencesService.getPreferences()).thenReturn(preferences);
+    when(clientProperties.getVault()).thenReturn(vault);
+    when(uiService.loadFxml("theme/vault/replay/replay_detail.fxml")).thenReturn(replayDetailController);
+    when(uiService.loadFxml("theme/window.fxml")).thenReturn(windowController);
+    when(replayDetailController.getRoot()).thenReturn(new AnchorPane(new VBox()));
+
     instance = new AbstractChatTabController(clanService, webViewConfigurer, userService,
         chatService, platformService, preferencesService, playerService,
         audioService, timeService, i18n, imageUploadService,
         urlPreviewResolver, notificationService, reportingService,
-        uiService, autoCompletionHelper, eventBus, countryFlagService) {
+        uiService, autoCompletionHelper, eventBus, countryFlagService, replayService, clientProperties) {
       private final Tab root = new Tab();
       private final WebView webView = new WebView();
       private final TextInputControl messageTextField = new TextField();
@@ -142,21 +178,8 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
       }
     };
 
-
     TabPane tabPane = new TabPane(instance.getRoot());
     getRoot().getChildren().setAll(tabPane);
-
-    preferences = new Preferences();
-
-    Clan clan = new Clan();
-    clan.setId(1234);
-
-    when(clanService.getClanByTag(sampleClanTag)).thenReturn(completedFuture(Optional.of(clan)));
-    when(uiService.loadFxml("theme/chat/clan_tooltip.fxml")).thenReturn(mock(ClanTooltipController.class));
-    when(uiService.getThemeFileUrl(any())).thenReturn(getClass().getResource("/theme/chat/chat_section.html"));
-    when(timeService.asShortTime(any())).thenReturn("123");
-    when(userService.getUsername()).thenReturn("junit");
-    when(preferencesService.getPreferences()).thenReturn(preferences);
 
     chatReadyLatch = new CountDownLatch(1);
     instance.getMessagesWebView().getEngine().getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
@@ -530,5 +553,12 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
     String result = instance.getInlineStyle(playerName);
     assertEquals("", result);
+  }
+
+
+  @Test
+  public void testOpenReplayUrl() throws Exception {
+    instance.openUrl(String.format(TEST_REPLAY_BASE_URL, Integer.toString(1234)));
+    verify(replayService).findById(1234);
   }
 }

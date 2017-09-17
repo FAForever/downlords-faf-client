@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
 import com.faforever.client.clan.ClanService;
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -13,6 +14,7 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
@@ -66,10 +68,12 @@ public class PrivateChatTabController extends AbstractChatTabController {
                                   ChatService chatService,
                                   MapService mapService,
                                   WebViewConfigurer webViewConfigurer,
-                                  CountryFlagService countryFlagService) {
+                                  CountryFlagService countryFlagService,
+                                  ReplayService replayService,
+                                  ClientProperties clientProperties) {
     super(clanService, webViewConfigurer, userService, chatService, platformService, preferencesService, playerService, audioService, timeService, i18n,
         imageUploadService, urlPreviewResolver, notificationService, reportingService, uiService, autoCompletionHelper,
-        eventBus, countryFlagService);
+        eventBus, countryFlagService, replayService, clientProperties);
   }
 
 
