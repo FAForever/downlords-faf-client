@@ -1,5 +1,6 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -66,10 +67,12 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   private StarsController starsController;
   @Mock
   private StarController starController;
+  @Mock
+  private ClientProperties clientProperties;
 
   @Before
   public void setUp() throws Exception {
-    instance = new ReplayDetailController(timeService, i18n, uiService, replayService, ratingService, mapService, playerService, reviewService);
+    instance = new ReplayDetailController(timeService, i18n, uiService, replayService, ratingService, mapService, playerService, reviewService, clientProperties);
 
     when(reviewsController.getRoot()).thenReturn(new Pane());
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(new Player("junit")));

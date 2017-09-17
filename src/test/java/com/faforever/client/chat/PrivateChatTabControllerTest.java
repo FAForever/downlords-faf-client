@@ -2,6 +2,8 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.clan.ClanService;
+import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.Vault;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameDetailController;
@@ -12,9 +14,9 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
@@ -94,13 +96,19 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private WatchButtonController watchButtonController;
   @Mock
-  private ChatPrefs chatPrefs;
+  private ReplayService replayService;
+  @Mock
+  private ClientProperties clientProperties;
 
   private PrivateChatTabController instance;
   private String playerName;
 
   @Before
   public void setUp() throws IOException {
+    Vault vault = new Vault();
+    vault.setReplayDownloadUrlFormat("test.de");
+    when(clientProperties.getVault()).thenReturn(vault);
+
     PreferencesService preferencesService = new PreferencesService(eventBus);
     preferencesService.postConstruct();
     preferencesService.getPreferences().getMainWindow().setLastView(NavigationItem.CHAT.name());
@@ -109,7 +117,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
         userService, platformService, preferencesService, playerService,
         timeService, i18n, imageUploadService, urlPreviewResolver, notificationService,
         reportingService, uiService, autoCompletionHelper, eventBus, audioService,
-        chatService, mapService, webViewConfigurer, countryFlagService);
+        chatService, mapService, webViewConfigurer, countryFlagService, replayService, clientProperties);
 
 
     playerName = "testUser";

@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -291,6 +292,12 @@ public class ReplayServiceImpl implements ReplayService {
   @Override
   public CompletableFuture<List<Replay>> findByQuery(String query, int maxResults, int page) {
     return fafService.findReplaysByQuery(query, maxResults, page);
+  }
+
+  @Override
+  public CompletableFuture<Optional<Replay>> findById(int id) {
+    return fafService.findReplayById(id);
+
   }
 
   @Override

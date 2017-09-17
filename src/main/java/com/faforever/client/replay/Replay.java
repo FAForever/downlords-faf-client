@@ -25,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 import java.time.Duration;
-import java.time.OffsetDateTime;
 import java.time.temporal.Temporal;
 import java.util.LinkedList;
 import java.util.List;
@@ -127,6 +126,11 @@ public class Replay {
     return teams;
   }
 
+
+  public static String getReplayUrl(int replayId, String baseUrlFormat) {
+    return String.format(baseUrlFormat, replayId);
+  }
+
   public Path getReplayFile() {
     return replayFile.get();
   }
@@ -180,10 +184,6 @@ public class Replay {
   }
 
   public void setStartTime(Temporal startTime) {
-    this.startTime.set(startTime);
-  }
-
-  public void setStartTime(OffsetDateTime startTime) {
     this.startTime.set(startTime);
   }
 
