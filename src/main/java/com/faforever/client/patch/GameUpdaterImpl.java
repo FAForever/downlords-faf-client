@@ -4,18 +4,21 @@ import com.faforever.client.game.FaInitGenerator;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.ProgrammingError;
 import com.faforever.commons.mod.MountInfo;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.context.ApplicationContext;
 
 import javax.inject.Inject;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +34,7 @@ import static com.faforever.client.game.KnownFeaturedMod.FAF_BETA;
 import static com.faforever.client.game.KnownFeaturedMod.FAF_DEVELOP;
 import static com.faforever.client.game.KnownFeaturedMod.LADDER_1V1;
 
+@Slf4j
 public class GameUpdaterImpl implements GameUpdater {
 
   private static final List<String> NAMES_OF_FEATURED_BASE_MODS = Stream.of(FAF, FAF_BETA, FAF_DEVELOP, BALANCE_TESTING, LADDER_1V1)
@@ -43,9 +47,12 @@ public class GameUpdaterImpl implements GameUpdater {
   private final TaskService taskService;
   private final FafService fafService;
   private final FaInitGenerator faInitGenerator;
+  private final NotificationService notificationService;
 
   @Inject
-  public GameUpdaterImpl(ModService modService, ApplicationContext applicationContext, TaskService taskService, FafService fafService, FaInitGenerator faInitGenerator) {
+  public GameUpdaterImpl(ModService modService, ApplicationContext applicationContext, TaskService taskService,
+                         FafService fafService, FaInitGenerator faInitGenerator, NotificationService notificationService) {
+    this.notificationService = notificationService;
     featuredModUpdaters = new ArrayList<>();
     this.modService = modService;
     this.applicationContext = applicationContext;
@@ -87,6 +94,11 @@ public class GameUpdaterImpl implements GameUpdater {
           } else {
             copyLegacyInitFile(patchResults);
           }
+        })
+        .exceptionally(throwable -> {
+          log.warn("Game could not be joined", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
+          return null;
         });
   }
 
@@ -106,7 +118,7 @@ public class GameUpdaterImpl implements GameUpdater {
   private void copyLegacyInitFile(List<PatchResult> patchResults) {
     Path initFile = Optional.ofNullable(patchResults.get(patchResults.size() - 1).getLegacyInitFile())
         .orElseThrow(() -> new ProgrammingError("No legacy init file is available"));
-    Files.copy(initFile, initFile.resolveSibling(ForgedAlliancePrefs.INIT_FILE_NAME));
+    Files.copy(initFile, initFile.resolveSibling(ForgedAlliancePrefs.INIT_FILE_NAME), StandardCopyOption.REPLACE_EXISTING);
   }
 
   /**
