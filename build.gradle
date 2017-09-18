@@ -294,6 +294,7 @@ dependencies {
   compile("com.github.rutledgepaulv:q-builders:${qBuildersVersion}")
   compile("com.github.nsp:JSkills:${jSkillsVersion}")
   compile("com.github.jasminb:jsonapi-converter:${jsonapiConverterVersion}")
+  compile("com.github.Brutus5000:BiReUS-JCL:${bireusVersion}")
 
   testCompile 'junit:junit:4.11'
   testCompile("org.testfx:testfx-core:4.0.+") {

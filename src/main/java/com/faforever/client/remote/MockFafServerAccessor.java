@@ -58,7 +58,7 @@ import static java.util.Collections.singletonList;
 
 @Lazy
 @Component
-@Profile(FafClientApplication.POFILE_OFFLINE)
+@Profile(FafClientApplication.PROFILE_OFFLINE)
 // NOSONAR
 public class MockFafServerAccessor implements FafServerAccessor {
 

@@ -148,21 +148,6 @@ public class ModServiceImplTest {
     assertThat(instance.getInstalledMods().size(), is(2));
   }
 
-
-  @Test
-  public void testLoadInstalledModsDoesntUnloadsMods() throws Exception {
-    assertThat(instance.getInstalledMods().size(), is(1));
-    copyMod("BlackopsSupport", BLACKOPS_SUPPORT_MOD_INFO);
-    instance.loadInstalledMods();
-    assertThat(instance.getInstalledMods().size(), is(2));
-
-    Path modDirectory = modsDirectory.getRoot().toPath().resolve("BlackOpsUnleashed");
-    Files.delete(modDirectory.resolve("mod_info.lua"));
-    Files.delete(modDirectory);
-
-    assertThat(instance.getInstalledMods().size(), is(2));
-  }
-
   @Test
   public void testDownloadAndInstallMod() throws Exception {
     assertThat(instance.getInstalledMods().size(), is(1));

@@ -31,7 +31,7 @@ import static org.apache.commons.lang3.StringUtils.defaultString;
 
 @Lazy
 @Service
-@Profile("!" + FafClientApplication.POFILE_OFFLINE)
+@Profile("!" + FafClientApplication.PROFILE_OFFLINE)
 public class ClientUpdateServiceImpl implements ClientUpdateService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());

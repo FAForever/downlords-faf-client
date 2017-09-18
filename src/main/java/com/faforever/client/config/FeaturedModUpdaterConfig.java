@@ -3,6 +3,7 @@ package com.faforever.client.config;
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.game.FaInitGenerator;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.patch.BireusFeaturedModUpdater;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.patch.GameUpdaterImpl;
 import com.faforever.client.patch.GitRepositoryFeaturedModUpdater;
@@ -14,30 +15,38 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
-import javax.inject.Inject;
-
 @Configuration
-@Profile("!" + FafClientApplication.POFILE_OFFLINE)
+@Profile("!" + FafClientApplication.PROFILE_OFFLINE)
 public class FeaturedModUpdaterConfig {
 
-  @Inject
-  private ModService modService;
-  @Inject
-  private ApplicationContext applicationContext;
-  @Inject
-  private TaskService taskService;
-  @Inject
-  private FafService fafService;
-  @Inject
-  private FaInitGenerator faInitGenerator;
-  @Inject
-  private GitRepositoryFeaturedModUpdater gitFeaturedModUpdater;
-  @Inject
-  private SimpleHttpFeaturedModUpdater httpFeaturedModUpdater;
+  private final ModService modService;
+  private final ApplicationContext applicationContext;
+  private final TaskService taskService;
+  private final FafService fafService;
+  private final FaInitGenerator faInitGenerator;
+  private final GitRepositoryFeaturedModUpdater gitFeaturedModUpdater;
+  private final SimpleHttpFeaturedModUpdater httpFeaturedModUpdater;
+  private final BireusFeaturedModUpdater bireusFeaturedModUpdater;
+
+  public FeaturedModUpdaterConfig(ModService modService, ApplicationContext applicationContext, TaskService taskService,
+                                  FafService fafService, FaInitGenerator faInitGenerator,
+                                  GitRepositoryFeaturedModUpdater gitFeaturedModUpdater,
+                                  SimpleHttpFeaturedModUpdater httpFeaturedModUpdater,
+                                  BireusFeaturedModUpdater bireusFeaturedModUpdater) {
+    this.modService = modService;
+    this.applicationContext = applicationContext;
+    this.taskService = taskService;
+    this.fafService = fafService;
+    this.faInitGenerator = faInitGenerator;
+    this.gitFeaturedModUpdater = gitFeaturedModUpdater;
+    this.httpFeaturedModUpdater = httpFeaturedModUpdater;
+    this.bireusFeaturedModUpdater = bireusFeaturedModUpdater;
+  }
 
   @Bean
   GameUpdater gameUpdater() {
     return new GameUpdaterImpl(modService, applicationContext, taskService, fafService, faInitGenerator)
+        .addFeaturedModUpdater(bireusFeaturedModUpdater)
         .addFeaturedModUpdater(gitFeaturedModUpdater)
         .addFeaturedModUpdater(httpFeaturedModUpdater);
   }

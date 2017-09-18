@@ -36,7 +36,7 @@ import java.util.Optional;
 
 @Lazy
 @Component
-@Profile(FafClientApplication.POFILE_OFFLINE)
+@Profile(FafClientApplication.PROFILE_OFFLINE)
 // NOSONAR
 public class MockFafApiAccessor implements FafApiAccessor {
 

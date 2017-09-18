@@ -2,9 +2,16 @@ package com.faforever.client.mod;
 
 import com.google.common.base.Strings;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+
+import java.net.URL;
+import java.util.Optional;
+
+import static com.github.nocatch.NoCatch.noCatch;
 
 public class FeaturedMod {
 
@@ -13,6 +20,7 @@ public class FeaturedMod {
   private final StringProperty technicalName;
   private final StringProperty displayName;
   private final StringProperty description;
+  private final ObjectProperty<URL> bireusUrl;
   private final StringProperty gitUrl;
   private final StringProperty gitBranch;
   private final BooleanProperty visible;
@@ -25,6 +33,7 @@ public class FeaturedMod {
     visible = new SimpleBooleanProperty();
     gitUrl = new SimpleStringProperty();
     gitBranch = new SimpleStringProperty();
+    bireusUrl = new SimpleObjectProperty<>();
   }
 
   public static FeaturedMod fromFeaturedMod(com.faforever.client.api.dto.FeaturedMod featuredMod) {
@@ -36,6 +45,7 @@ public class FeaturedMod {
     bean.visible.setValue(featuredMod.isVisible());
     bean.gitUrl.set(Strings.emptyToNull(featuredMod.getGitUrl()));
     bean.gitBranch.set(Strings.emptyToNull(featuredMod.getGitBranch()));
+    Optional.ofNullable(featuredMod.getBireusUrl()).ifPresent(url -> bean.bireusUrl.set(noCatch(() -> new URL(url + "/"))));
     return bean;
   }
 
@@ -121,5 +131,13 @@ public class FeaturedMod {
 
   public StringProperty idProperty() {
     return id;
+  }
+
+  public URL getBireusUrl() {
+    return bireusUrl.get();
+  }
+
+  public ObjectProperty<URL> bireusUrlProperty() {
+    return bireusUrl;
   }
 }

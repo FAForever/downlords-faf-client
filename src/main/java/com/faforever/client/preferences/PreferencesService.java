@@ -192,7 +192,7 @@ public class PreferencesService {
     return FAF_DATA_DIRECTORY;
   }
 
-  public Path getGitReposDirectory() {
+  public Path getPatchReposDirectory() {
     return getFafDataDirectory().resolve("repos");
   }
 

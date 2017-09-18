@@ -40,7 +40,7 @@ import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 
 @Lazy
 @Service
-@Profile(FafClientApplication.POFILE_OFFLINE)
+@Profile(FafClientApplication.PROFILE_OFFLINE)
 // NOSONAR
 public class MockChatService implements ChatService {
 
