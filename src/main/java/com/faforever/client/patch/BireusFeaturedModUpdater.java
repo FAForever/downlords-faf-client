@@ -9,27 +9,24 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.concurrent.CompletableFuture;
-
 
 @Lazy
 @Component
 @Profile("!" + FafClientApplication.PROFILE_OFFLINE)
-public class SimpleHttpFeaturedModUpdater implements FeaturedModUpdater {
+public class BireusFeaturedModUpdater implements FeaturedModUpdater {
 
   private final TaskService taskService;
   private final ApplicationContext applicationContext;
 
-  @Inject
-  public SimpleHttpFeaturedModUpdater(TaskService taskService, ApplicationContext applicationContext) {
+  public BireusFeaturedModUpdater(TaskService taskService, ApplicationContext applicationContext) {
     this.taskService = taskService;
     this.applicationContext = applicationContext;
   }
 
   @Override
   public CompletableFuture<PatchResult> updateMod(FeaturedMod featuredMod, @Nullable Integer version) {
-    SimpleHttpFeaturedModUpdaterTask task = applicationContext.getBean(SimpleHttpFeaturedModUpdaterTask.class);
+    BireusFeaturedModUpdateTask task = applicationContext.getBean(BireusFeaturedModUpdateTask.class);
     task.setVersion(version);
     task.setFeaturedMod(featuredMod);
 
@@ -38,6 +35,7 @@ public class SimpleHttpFeaturedModUpdater implements FeaturedModUpdater {
 
   @Override
   public boolean canUpdate(FeaturedMod featuredMod) {
-    return true;
+// FIXME check if index file exists
+    return featuredMod.getBireusUrl() != null;
   }
 }

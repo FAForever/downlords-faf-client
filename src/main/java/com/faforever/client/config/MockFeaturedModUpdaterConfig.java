@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Profile;
 import javax.inject.Inject;
 
 @Configuration
-@Profile(FafClientApplication.POFILE_OFFLINE)
+@Profile(FafClientApplication.PROFILE_OFFLINE)
 public class MockFeaturedModUpdaterConfig {
 
   @Inject

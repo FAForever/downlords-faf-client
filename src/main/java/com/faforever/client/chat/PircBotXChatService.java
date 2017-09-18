@@ -86,7 +86,7 @@ import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 
 @Lazy
 @Service
-@Profile("!" + FafClientApplication.POFILE_OFFLINE)
+@Profile("!" + FafClientApplication.PROFILE_OFFLINE)
 public class PircBotXChatService implements ChatService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());

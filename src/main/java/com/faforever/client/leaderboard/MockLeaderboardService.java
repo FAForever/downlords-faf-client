@@ -21,7 +21,7 @@ import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 
 @Lazy
 @Service
-@Profile(FafClientApplication.POFILE_OFFLINE)
+@Profile(FafClientApplication.PROFILE_OFFLINE)
 public class MockLeaderboardService implements LeaderboardService {
 
   private final TaskService taskService;

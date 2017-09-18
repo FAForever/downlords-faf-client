@@ -4,16 +4,22 @@ import com.faforever.client.game.FaInitGenerator;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.util.ProgrammingError;
 import com.faforever.commons.mod.MountInfo;
+import lombok.SneakyThrows;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.context.ApplicationContext;
 
 import javax.inject.Inject;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -71,19 +77,48 @@ public class GameUpdaterImpl implements GameUpdater {
           .thenAccept(patchResults::add);
     }
 
+    verifyUniformModFormat(patchResults);
+
     return future
         .thenCompose(aVoid -> updateGameBinaries(patchResults.get(patchResults.size() - 1).getVersion()))
         .thenRun(() -> {
-          List<MountInfo> mountPoints = patchResults.stream()
-              .flatMap(patchResult -> patchResult.getMountInfos().stream())
-              .collect(Collectors.toList());
-
-          Set<String> hookDirectories = patchResults.stream()
-              .flatMap(patchResult -> patchResult.getHookDirectories().stream())
-              .collect(Collectors.toSet());
-
-          faInitGenerator.generateInitFile(mountPoints, hookDirectories);
+          if (patchResults.get(0).getLegacyInitFile() == null) {
+            generateInitFile(patchResults);
+          } else {
+            copyLegacyInitFile(patchResults);
+          }
         });
+  }
+
+  private void generateInitFile(List<PatchResult> patchResults) {
+    List<MountInfo> mountPoints = patchResults.stream()
+        .flatMap(patchResult -> Optional.ofNullable(patchResult.getMountInfos()).orElseThrow(() -> new ProgrammingError("No mount infos where available")).stream())
+        .collect(Collectors.toList());
+
+    Set<String> hookDirectories = patchResults.stream()
+        .flatMap(patchResult -> Optional.ofNullable(patchResult.getHookDirectories()).orElseThrow(() -> new ProgrammingError("No mount infos where available")).stream())
+        .collect(Collectors.toSet());
+
+    faInitGenerator.generateInitFile(mountPoints, hookDirectories);
+  }
+
+  @SneakyThrows
+  private void copyLegacyInitFile(List<PatchResult> patchResults) {
+    Path initFile = Optional.ofNullable(patchResults.get(patchResults.size() - 1).getLegacyInitFile())
+        .orElseThrow(() -> new ProgrammingError("No legacy init file is available"));
+    Files.copy(initFile, initFile.resolveSibling(ForgedAlliancePrefs.INIT_FILE_NAME));
+  }
+
+  /**
+   * Older versions of featured mods didn't provide a mod info file but provided an init file instead. New featured mod
+   * versions provide an mod info file from which an init file is generated. Mixing these two kind of mods doesn't work,
+   * which is what this method ensures.
+   */
+  private void verifyUniformModFormat(List<PatchResult> patchResults) {
+    long modsWithLegacyInitFile = patchResults.stream().filter(patchResult -> patchResult.getLegacyInitFile() != null).count();
+    if (modsWithLegacyInitFile != 0 && modsWithLegacyInitFile != patchResults.size()) {
+      throw new IllegalStateException("Legacy and non-legacy mods can't be mixed.");
+    }
   }
 
   @Override

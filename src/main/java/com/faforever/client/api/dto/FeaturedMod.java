@@ -18,6 +18,7 @@ public class FeaturedMod {
   private int order;
   private String gitBranch;
   private String gitUrl;
+  private String bireusUrl;
   private String technicalName;
   private boolean visible;
 }

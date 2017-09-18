@@ -47,7 +47,7 @@ public class GitFeaturedModUpdateTaskImpl extends CompletableTask<PatchResult> i
   @Override
   protected PatchResult call() throws Exception {
     logger.info("Updating game files from {}@{}", gameRepositoryUrl, ref);
-    updateTitle(i18n.get("updater.git.taskTitle"));
+    updateTitle(i18n.get("updater.taskTitle"));
 
     checkout(repositoryDirectory, gameRepositoryUrl, ref);
 
@@ -59,7 +59,7 @@ public class GitFeaturedModUpdateTaskImpl extends CompletableTask<PatchResult> i
 
     try (InputStream inputStream = Files.newInputStream(modInfoLuaFile)) {
       Mod mod = modService.extractModInfo(inputStream, repositoryDirectory);
-      return new PatchResult(modService.readModVersion(repositoryDirectory), mod.getMountInfos(), mod.getHookDirectories());
+      return PatchResult.fromModInfo(modService.readModVersion(repositoryDirectory), mod.getMountInfos(), mod.getHookDirectories());
     }
   }
 

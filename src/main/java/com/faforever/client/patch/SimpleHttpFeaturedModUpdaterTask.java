@@ -91,7 +91,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
         .orElseThrow(() -> new IllegalStateException("No version found"));
 
     Mod mod = modFuture.get();
-    return new PatchResult(new ComparableVersion(String.valueOf(maxVersion)), mod.getMountInfos(), mod.getHookDirectories());
+    return PatchResult.fromModInfo(new ComparableVersion(String.valueOf(maxVersion)), mod.getMountInfos(), mod.getHookDirectories());
   }
 
   private void downloadFile(FeaturedModFile featuredModFile, Path targetPath) throws IOException {
