@@ -80,7 +80,8 @@
                                                   onAction="#onUninstallButtonClicked" text="%mapVault.uninstall"/>
                                       </children>
                                   </HBox>
-                                  <VBox alignment="CENTER_LEFT" maxWidth="300.0" GridPane.columnIndex="1"
+                                  <VBox fx:id="loadingContainer" alignment="CENTER_LEFT" maxWidth="300.0"
+                                        GridPane.columnIndex="1"
                                         GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT"
                                         GridPane.valignment="TOP">
                                       <children>
