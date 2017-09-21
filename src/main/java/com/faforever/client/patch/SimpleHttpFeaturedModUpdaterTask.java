@@ -3,7 +3,6 @@ package com.faforever.client.patch;
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.io.DownloadService;
 import com.faforever.client.mod.FeaturedMod;
-import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
@@ -16,7 +15,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.nio.file.Files;
@@ -31,19 +29,16 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
 
   private final FafService fafService;
   private final PreferencesService preferencesService;
-  private final ModService modService;
   private final DownloadService downloadService;
 
   private FeaturedMod featuredMod;
   private Integer version;
 
-  @Inject
-  public SimpleHttpFeaturedModUpdaterTask(FafService fafService, PreferencesService preferencesService, ModService modService, DownloadService downloadService) {
+  public SimpleHttpFeaturedModUpdaterTask(FafService fafService, PreferencesService preferencesService, DownloadService downloadService) {
     super(Priority.HIGH);
 
     this.fafService = fafService;
     this.preferencesService = preferencesService;
-    this.modService = modService;
     this.downloadService = downloadService;
   }
 
