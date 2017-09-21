@@ -33,7 +33,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -150,11 +149,10 @@ public class CoopController implements Controller<Node> {
 
     replayColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getId()));
     replayColumn.setCellFactory(param -> new NodeTableCell<>((replayId) -> {
-      Button button = uiService.loadFxml("theme/play/coop/replay_button.fxml");
-      button.setText(replayId);
-      button.setUserData(replayId);
-      button.setOnAction(this::onReplayButtonClicked);
-      return button;
+      ReplayButtonController button = uiService.loadFxml("theme/play/coop/replay_button.fxml");
+      button.setReplayId(replayId);
+      button.setOnClickedAction(this::onReplayButtonClicked);
+      return button.getRoot();
     }));
 
     webViewConfigurer.configureWebView(descriptionWebView);
@@ -184,8 +182,8 @@ public class CoopController implements Controller<Node> {
     });
   }
 
-  private void onReplayButtonClicked(ActionEvent actionEvent) {
-    String replayId = (String) ((Node) actionEvent.getSource()).getUserData();
+  private void onReplayButtonClicked(ReplayButtonController button) {
+    String replayId = button.getReplayId();
     replayService.runReplay(Integer.valueOf(replayId));
   }
 
