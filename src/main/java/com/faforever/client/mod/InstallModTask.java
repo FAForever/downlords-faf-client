@@ -59,9 +59,9 @@ public class InstallModTask extends CompletableTask<Void> {
     URLConnection urlConnection = url.openConnection();
     int contentLength = urlConnection.getContentLength();
 
+    ResourceLocks.acquireDownloadLock();
     try (InputStream inputStream = urlConnection.getInputStream();
          OutputStream outputStream = Files.newOutputStream(tempFile)) {
-      ResourceLocks.acquireDownloadLock();
 
       ByteCopier.from(inputStream)
           .to(outputStream)

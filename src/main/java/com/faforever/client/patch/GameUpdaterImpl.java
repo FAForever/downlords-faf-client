@@ -22,6 +22,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -89,7 +90,7 @@ public class GameUpdaterImpl implements GameUpdater {
     return future
         .thenCompose(aVoid -> updateGameBinaries(patchResults.get(patchResults.size() - 1).getVersion()))
         .thenRun(() -> {
-          if (patchResults.get(0).getLegacyInitFile() == null) {
+          if (patchResults.stream().noneMatch(patchResult -> patchResult.getLegacyInitFile() != null)) {
             generateInitFile(patchResults);
           } else {
             copyLegacyInitFile(patchResults);
@@ -116,8 +117,12 @@ public class GameUpdaterImpl implements GameUpdater {
 
   @SneakyThrows
   private void copyLegacyInitFile(List<PatchResult> patchResults) {
-    Path initFile = Optional.ofNullable(patchResults.get(patchResults.size() - 1).getLegacyInitFile())
+    Path initFile = patchResults.stream()
+        .map(PatchResult::getLegacyInitFile)
+        .filter(Objects::nonNull)
+        .findFirst()
         .orElseThrow(() -> new ProgrammingError("No legacy init file is available"));
+
     Files.copy(initFile, initFile.resolveSibling(ForgedAlliancePrefs.INIT_FILE_NAME), StandardCopyOption.REPLACE_EXISTING);
   }
 
