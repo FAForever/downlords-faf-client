@@ -91,7 +91,7 @@ public class NotificationServiceImpl implements NotificationService {
 
   @Override
   public void addImmediateErrorNotification(Throwable throwable, String messageKey, Object... args) {
-    addNotification(new ImmediateNotification(i18n.get("errorTitle"), i18n.get(messageKey, args), ERROR,
+    addNotification(new ImmediateNotification(i18n.get("errorTitle"), i18n.get(messageKey, args), ERROR, throwable,
         Arrays.asList(new DismissAction(i18n), new ReportAction(i18n, reportingService, throwable))));
   }
 }
