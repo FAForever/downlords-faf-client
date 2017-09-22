@@ -218,7 +218,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
           ranked1v1Stats.sort(Comparator.comparingInt(RatingStat::getRating));
           int totalPlayers = 0;
           for (RatingStat entry : ranked1v1Stats) {
-            totalPlayers += entry.getCount();
+            totalPlayers += entry.getTotalCount();
           }
           plotRatingDistributions(ranked1v1Stats, player);
           String rankingOutOfText = i18n.get("ranked1v1.rankingOutOf", totalPlayers);
@@ -261,10 +261,10 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
     XYChart.Series<String, Integer> series = new XYChart.Series<>();
     series.setName(i18n.get("ranked1v1.players", LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN ));
     series.getData().addAll(ratingStats.stream()
-        .sorted(Comparator.comparingInt(RatingStat::getRating).reversed())
+        .sorted(Comparator.comparingInt(RatingStat::getRating))
         .map(item -> {
           int rating = item.getRating();
-          XYChart.Data<String, Integer> data = new XYChart.Data<>(i18n.number(rating), item.getCount());
+          XYChart.Data<String, Integer> data = new XYChart.Data<>(i18n.number(rating), item.getCountWithEnoughGamesPlayed());
           int currentPlayerRating = RatingUtil.getLeaderboardRating(player);
           if (rating == (currentPlayerRating / 100) * 100) {
             data.nodeProperty().addListener((observable, oldValue, newValue)

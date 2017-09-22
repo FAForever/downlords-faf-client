@@ -5,5 +5,6 @@ import lombok.Data;
 @Data
 public class RatingStat {
   private final int rating;
-  private final int count;
+  private final int totalCount;
+  private final int countWithEnoughGamesPlayed;
 }
