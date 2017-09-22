@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 @Service
 @Profile("!" + FafClientApplication.PROFILE_OFFLINE)
 public class LeaderboardServiceImpl implements LeaderboardService {
-
   private final FafService fafService;
 
   @Inject
@@ -29,6 +28,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
   public CompletableFuture<List<RatingStat>> getLadder1v1Stats() {
     return fafService.getLadder1v1Leaderboard()
         .thenApply(entries -> entries.stream()
+            .filter(entry -> entry.gamesPlayedProperty().get() >= MINIMUM_GAMES_PLAYED_TO_BE_SHOWN)
             .collect(Collectors.groupingBy(leaderboardEntry -> (int) leaderboardEntry.getRating() / 100 * 100, Collectors.counting()))
             .entrySet().stream()
             .map(entry -> new RatingStat(entry.getKey(), entry.getValue().intValue()))

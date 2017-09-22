@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface LeaderboardService {
+  int MINIMUM_GAMES_PLAYED_TO_BE_SHOWN = 5;
 
   CompletableFuture<List<RatingStat>> getLadder1v1Stats();
 
