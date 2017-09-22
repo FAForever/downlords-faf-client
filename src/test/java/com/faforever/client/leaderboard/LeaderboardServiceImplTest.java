@@ -71,9 +71,12 @@ public class LeaderboardServiceImplTest {
     result.sort(Comparator.comparingInt(RatingStat::getRating));
 
     assertThat(result, hasSize(2));
-    assertThat(result.get(0).getCount(), is(2));
+    assertThat(result.get(0).getTotalCount(), is(2));
+    assertThat(result.get(0).getCountWithEnoughGamesPlayed(), is(2));
     assertThat(result.get(0).getRating(), is(100));
-    assertThat(result.get(1).getCount(), is(1));
+
+    assertThat(result.get(1).getTotalCount(), is(1));
+    assertThat(result.get(1).getCountWithEnoughGamesPlayed(), is(1));
     assertThat(result.get(1).getRating(), is(200));
   }
 
@@ -98,9 +101,14 @@ public class LeaderboardServiceImplTest {
     List<RatingStat> result = instance.getLadder1v1Stats().toCompletableFuture().get(2, TimeUnit.SECONDS);
     verify(fafService).getLadder1v1Leaderboard();
 
-    assertThat(result, hasSize(1));
-    assertThat(result.get(0).getCount(), is(1));
+    assertThat(result, hasSize(2));
+    assertThat(result.get(0).getTotalCount(), is(2));
+    assertThat(result.get(0).getCountWithEnoughGamesPlayed(), is(1));
     assertThat(result.get(0).getRating(), is(100));
+
+    assertThat(result.get(1).getTotalCount(), is(1));
+    assertThat(result.get(1).getCountWithEnoughGamesPlayed(), is(0));
+    assertThat(result.get(1).getRating(), is(200));
   }
 
   @Test

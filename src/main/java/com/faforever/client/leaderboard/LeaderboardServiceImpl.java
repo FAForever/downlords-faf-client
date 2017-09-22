@@ -9,8 +9,10 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 @Lazy
@@ -26,13 +28,25 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
   @Override
   public CompletableFuture<List<RatingStat>> getLadder1v1Stats() {
-    return fafService.getLadder1v1Leaderboard()
-        .thenApply(entries -> entries.stream()
-            .filter(entry -> entry.gamesPlayedProperty().get() >= MINIMUM_GAMES_PLAYED_TO_BE_SHOWN)
-            .collect(Collectors.groupingBy(leaderboardEntry -> (int) leaderboardEntry.getRating() / 100 * 100, Collectors.counting()))
-            .entrySet().stream()
-            .map(entry -> new RatingStat(entry.getKey(), entry.getValue().intValue()))
-            .collect(Collectors.toList()));
+    return fafService.getLadder1v1Leaderboard().thenApply(this::toRatingStats);
+  }
+
+  private List<RatingStat> toRatingStats(List<LeaderboardEntry> entries){
+    Map<Integer, Long> totalCount = countByRating(entries.stream());
+    Map<Integer, Long> countWithoutFewGames = countByRating(entries.stream()
+        .filter(entry -> entry.gamesPlayedProperty().get() >= MINIMUM_GAMES_PLAYED_TO_BE_SHOWN));
+
+    return totalCount.entrySet()
+        .stream()
+        .map(entry -> new RatingStat(
+            entry.getKey(),
+            entry.getValue().intValue(),
+            countWithoutFewGames.getOrDefault(entry.getKey(), 0L).intValue()))
+        .collect(Collectors.toList());
+  }
+
+  private Map<Integer, Long> countByRating(Stream<LeaderboardEntry> entries){
+    return entries.collect(Collectors.groupingBy(leaderboardEntry -> (int) leaderboardEntry.getRating() / 100 * 100, Collectors.counting()));
   }
 
   @Override
