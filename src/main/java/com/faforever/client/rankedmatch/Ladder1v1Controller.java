@@ -261,7 +261,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
     XYChart.Series<String, Integer> series = new XYChart.Series<>();
     series.setName(i18n.get("ranked1v1.players"));
     series.getData().addAll(ratingStats.stream()
-        .sorted(Comparator.comparingInt(RatingStat::getCount))
+        .sorted(Comparator.comparingInt(RatingStat::getRating).reversed())
         .map(item -> {
           int rating = item.getRating();
           XYChart.Data<String, Integer> data = new XYChart.Data<>(i18n.number(rating), item.getCount());
