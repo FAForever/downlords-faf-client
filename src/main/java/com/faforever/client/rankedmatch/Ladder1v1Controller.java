@@ -259,7 +259,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
   @SuppressWarnings("unchecked")
   private void plotRatingDistributions(List<RatingStat> ratingStats, Player player) {
     XYChart.Series<String, Integer> series = new XYChart.Series<>();
-    series.setName(i18n.get("ranked1v1.players"));
+    series.setName(i18n.get("ranked1v1.players", LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN ));
     series.getData().addAll(ratingStats.stream()
         .sorted(Comparator.comparingInt(RatingStat::getRating).reversed())
         .map(item -> {
