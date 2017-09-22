@@ -51,12 +51,15 @@ public class LeaderboardServiceImplTest {
   public void testGetLadder1v1Stats() throws Exception {
     LeaderboardEntry leaderboardEntry1 = new LeaderboardEntry();
     leaderboardEntry1.setRating(151);
+    leaderboardEntry1.setGamesPlayed(LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN);
 
     LeaderboardEntry leaderboardEntry2 = new LeaderboardEntry();
     leaderboardEntry2.setRating(121);
+    leaderboardEntry2.setGamesPlayed(LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN + 42);
 
     LeaderboardEntry leaderboardEntry3 = new LeaderboardEntry();
     leaderboardEntry3.setRating(221);
+    leaderboardEntry3.setGamesPlayed(LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN);
 
     when(fafService.getLadder1v1Leaderboard()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
         leaderboardEntry1, leaderboardEntry2, leaderboardEntry3
@@ -65,13 +68,39 @@ public class LeaderboardServiceImplTest {
     List<RatingStat> result = instance.getLadder1v1Stats().toCompletableFuture().get(2, TimeUnit.SECONDS);
     verify(fafService).getLadder1v1Leaderboard();
 
-    result.sort(Comparator.comparingInt(RatingStat::getCount));
+    result.sort(Comparator.comparingInt(RatingStat::getRating));
 
     assertThat(result, hasSize(2));
+    assertThat(result.get(0).getCount(), is(2));
+    assertThat(result.get(0).getRating(), is(100));
+    assertThat(result.get(1).getCount(), is(1));
+    assertThat(result.get(1).getRating(), is(200));
+  }
+
+  @Test
+  public void  testStatsOnlyShowsPlayersWithEnoughGamesPlayed() throws Exception {
+    LeaderboardEntry leaderboardEntry1 = new LeaderboardEntry();
+    leaderboardEntry1.setRating(151);
+    leaderboardEntry1.setGamesPlayed(LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN);
+
+    LeaderboardEntry leaderboardEntry2 = new LeaderboardEntry();
+    leaderboardEntry2.setRating(121);
+    leaderboardEntry2.setGamesPlayed(LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN -1);
+
+    LeaderboardEntry leaderboardEntry3 = new LeaderboardEntry();
+    leaderboardEntry3.setRating(221);
+    leaderboardEntry3.setGamesPlayed(LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN -1);
+
+    when(fafService.getLadder1v1Leaderboard()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
+        leaderboardEntry1, leaderboardEntry2, leaderboardEntry3
+    )));
+
+    List<RatingStat> result = instance.getLadder1v1Stats().toCompletableFuture().get(2, TimeUnit.SECONDS);
+    verify(fafService).getLadder1v1Leaderboard();
+
+    assertThat(result, hasSize(1));
     assertThat(result.get(0).getCount(), is(1));
-    assertThat(result.get(0).getRating(), is(200));
-    assertThat(result.get(1).getCount(), is(2));
-    assertThat(result.get(1).getRating(), is(100));
+    assertThat(result.get(0).getRating(), is(100));
   }
 
   @Test
