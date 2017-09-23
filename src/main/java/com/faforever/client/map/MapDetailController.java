@@ -1,8 +1,11 @@
 package com.faforever.client.map;
 
+import com.faforever.client.fa.FaStrings;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.NavigateEvent;
+import com.faforever.client.main.NavigationItem;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -17,7 +20,10 @@ import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.commons.io.Bytes;
+import com.google.common.base.Strings;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
 import javafx.collections.WeakListChangeListener;
 import javafx.scene.Node;
@@ -65,8 +71,8 @@ public class MapDetailController implements Controller<Node> {
   public Label dimensionsLabel;
   public Label maxPlayersLabel;
   public Label dateLabel;
-  public Label timeLabel;
   public ReviewsController reviewsController;
+  private final EventBus eventBus;
 
   private MapBean map;
   private ListChangeListener<MapBean> installStatusChangeListener;
@@ -74,7 +80,7 @@ public class MapDetailController implements Controller<Node> {
   @Inject
   public MapDetailController(MapService mapService, NotificationService notificationService, I18n i18n,
                              ReportingService reportingService, TimeService timeService, PlayerService playerService,
-                             ReviewService reviewService) {
+                             ReviewService reviewService, EventBus eventBus) {
     this.mapService = mapService;
     this.notificationService = notificationService;
     this.i18n = i18n;
@@ -82,6 +88,7 @@ public class MapDetailController implements Controller<Node> {
     this.timeService = timeService;
     this.playerService = playerService;
     this.reviewService = reviewService;
+    this.eventBus = eventBus;
   }
 
   public void initialize() {
@@ -148,7 +155,6 @@ public class MapDetailController implements Controller<Node> {
 
     LocalDateTime createTime = map.getCreateTime();
     dateLabel.setText(timeService.asDate(createTime));
-    timeLabel.setText(timeService.asIsoTime(createTime));
 
     boolean mapInstalled = mapService.isInstalled(map.getFolderName());
     installButton.setVisible(!mapInstalled);
@@ -176,7 +182,11 @@ public class MapDetailController implements Controller<Node> {
         }));
     uninstallButton.setVisible(mapInstalled);
 
-    mapDescriptionLabel.textProperty().bind(map.descriptionProperty());
+    mapDescriptionLabel.textProperty().bind(Bindings.createStringBinding(() -> Optional.ofNullable(map.getDescription())
+        .map(Strings::emptyToNull)
+        .map(FaStrings::removeLocalizationTag)
+        .orElseGet(() -> i18n.get("map.noDescriptionAvailable")), map.descriptionProperty()));
+
     mapService.getInstalledMaps().addListener(new WeakListChangeListener<>(installStatusChangeListener));
     setInstalled(mapService.isInstalled(map.getFolderName()));
   }
@@ -251,5 +261,10 @@ public class MapDetailController implements Controller<Node> {
 
   public void onContentPaneClicked(MouseEvent event) {
     event.consume();
+  }
+
+  public void onCreateGameButtonClicked() {
+    eventBus.post(new NavigateEvent(NavigationItem.PLAY));
+    eventBus.post(new HostMapInCustomGameEvent());
   }
 }

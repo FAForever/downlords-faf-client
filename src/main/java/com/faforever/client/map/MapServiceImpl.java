@@ -3,6 +3,7 @@ package com.faforever.client.map;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Vault;
+import com.faforever.client.fa.FaStrings;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean.Type;
 import com.faforever.client.preferences.PreferencesService;
@@ -234,7 +235,7 @@ public class MapServiceImpl implements MapService {
       MapBean mapBean = new MapBean();
       mapBean.setFolderName(mapFolder.getFileName().toString());
       mapBean.setDisplayName(scenarioInfo.get("name").toString());
-      mapBean.setDescription(scenarioInfo.get("description").tojstring().replaceAll("<LOC .*?>", ""));
+      mapBean.setDescription(FaStrings.removeLocalizationTag(scenarioInfo.get("description").tojstring()));
       mapBean.setVersion(new ComparableVersion(scenarioInfo.get("map_version").tojstring()));
       mapBean.setType(Type.fromString(scenarioInfo.get("type").toString()));
       mapBean.setSize(MapSize.valueOf(size.get(1).toint(), size.get(2).toint()));

@@ -1,12 +1,14 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.map.HostMapInCustomGameEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -97,6 +99,7 @@ public class CustomGamesController implements Controller<Node> {
     });
 
     setSelectedGame(null);
+    eventBus.register(this);
   }
 
   public void onShowPrivateGames(ActionEvent actionEvent) {
@@ -126,6 +129,11 @@ public class CustomGamesController implements Controller<Node> {
     AnchorPane.setBottomAnchor(createGameRoot, 0d);
     AnchorPane.setLeftAnchor(createGameRoot, 0d);
     createGameRoot.requestFocus();
+  }
+
+  @Subscribe
+  public void onHostMapInCustomGameEvent(HostMapInCustomGameEvent event) {
+    createGameButton.fire();
   }
 
   public Node getRoot() {

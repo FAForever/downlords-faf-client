@@ -7,6 +7,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import javafx.application.Platform;
@@ -127,9 +128,10 @@ public class ReviewsController implements Controller<Pane> {
         .orElseThrow(() -> new IllegalStateException("No current player available"));
 
     reviews.addListener(onReviewsChangedListener);
-    FilteredList<Review> onlyOtherReplays = reviews.filtered(review -> review.getPlayer().getId() != currentPlayer.getId());
+    FilteredList<Review> onlyOtherNonEmptyReviews = reviews
+        .filtered(review -> review.getPlayer().getId() != currentPlayer.getId() && !Strings.isNullOrEmpty(review.getText()));
 
-    reviewPages = Lists.newArrayList(Iterables.partition(onlyOtherReplays, REVIEWS_PER_PAGE));
+    reviewPages = Lists.newArrayList(Iterables.partition(onlyOtherNonEmptyReviews, REVIEWS_PER_PAGE));
     currentReviewPage = Math.max(0, Math.min(0, reviewPages.size() - 1));
     reviewsPagination.setVisible(!reviewPages.isEmpty());
     displayReviewsPage(0);

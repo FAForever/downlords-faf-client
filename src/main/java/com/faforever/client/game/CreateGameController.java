@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.fa.FaStrings;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringListCell;
@@ -52,6 +53,7 @@ import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -235,7 +237,10 @@ public class CreateGameController implements Controller<Pane> {
     mapSizeLabel.setText(i18n.get("mapPreview.size", mapSize.getWidthInPixels(), mapSize.getHeightInPixels()));
     mapNameLabel.setText(newValue.getDisplayName());
     mapPlayersLabel.setText(i18n.number(newValue.getPlayers()));
-    mapDescriptionLabel.setText(newValue.getDescription());
+    mapDescriptionLabel.setText(Optional.ofNullable(newValue.getDescription())
+        .map(Strings::emptyToNull)
+        .map(FaStrings::removeLocalizationTag)
+        .orElseGet(() -> i18n.get("map.noDescriptionAvailable")));
     versionLabel.setText(newValue.getVersion().toString());
   }
 
