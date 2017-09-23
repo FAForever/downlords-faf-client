@@ -260,15 +260,17 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
   private void plotRatingDistributions(List<RatingStat> ratingStats, Player player) {
     XYChart.Series<String, Integer> series = new XYChart.Series<>();
     series.setName(i18n.get("ranked1v1.players", LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN ));
+    int currentPlayerRating = (RatingUtil.getLeaderboardRating(player) / 100) * 100;
+
     series.getData().addAll(ratingStats.stream()
         .sorted(Comparator.comparingInt(RatingStat::getRating))
         .map(item -> {
           int rating = item.getRating();
           XYChart.Data<String, Integer> data = new XYChart.Data<>(i18n.number(rating), item.getCountWithEnoughGamesPlayed());
-          int currentPlayerRating = RatingUtil.getLeaderboardRating(player);
-          if (rating == (currentPlayerRating / 100) * 100) {
-            data.nodeProperty().addListener((observable, oldValue, newValue)
-                -> newValue.pseudoClassStateChanged(NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS, true));
+          if (rating == currentPlayerRating) {
+            data.nodeProperty().addListener((observable, oldValue, newValue) ->  {
+              newValue.pseudoClassStateChanged(NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS, true);
+            });
           }
           return data;
         })
