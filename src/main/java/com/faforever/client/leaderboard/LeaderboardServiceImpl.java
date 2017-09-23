@@ -36,8 +36,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     Map<Integer, Long> countWithoutFewGames = countByRating(entries.stream()
         .filter(entry -> entry.gamesPlayedProperty().get() >= MINIMUM_GAMES_PLAYED_TO_BE_SHOWN));
 
-    return totalCount.entrySet()
-        .stream()
+    return totalCount.entrySet().stream()
         .map(entry -> new RatingStat(
             entry.getKey(),
             entry.getValue().intValue(),

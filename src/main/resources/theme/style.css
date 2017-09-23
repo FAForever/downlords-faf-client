@@ -1494,10 +1494,14 @@
   -fx-font-size: 12em;
 }
 
-/***************** Axis (chart) *****************/
+/***************** Chart*****************/
 
 .axis {
   -fx-tick-label-font-size: 1em;
+}
+
+.default-color0.chart-bar:highlighted-bar {
+  -fx-bar-fill: #FFA500;
 }
 
 /***************** Hint *****************/
