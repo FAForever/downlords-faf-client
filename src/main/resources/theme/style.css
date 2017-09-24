@@ -1504,6 +1504,10 @@
   -fx-bar-fill: #FFA500;
 }
 
+#1v1-you-text {
+  -fx-fill: -primary-text-color;
+}
+
 /***************** Hint *****************/
 
 .hint {

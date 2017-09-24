@@ -17,6 +17,7 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
@@ -27,6 +28,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -81,6 +83,9 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
   public Label rankingLabel;
   public Label winLossRationLabel;
   public Label rankingOutOfLabel;
+
+  private Text youLabel;
+
   @VisibleForTesting
   HashMap<Faction, ToggleButton> factionsToButtons;
 
@@ -101,6 +106,9 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
     this.clientProperties = clientProperties;
 
     random = new Random();
+
+    youLabel = new Text(i18n.get("ranked1v1.you"));
+    youLabel.setId("1v1-you-text");
   }
 
   @Override
@@ -259,7 +267,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
   @SuppressWarnings("unchecked")
   private void plotRatingDistributions(List<RatingStat> ratingStats, Player player) {
     XYChart.Series<String, Integer> series = new XYChart.Series<>();
-    series.setName(i18n.get("ranked1v1.players", LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN ));
+    series.setName(i18n.get("ranked1v1.players", LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN));
     int currentPlayerRating = (RatingUtil.getLeaderboardRating(player) / 100) * 100;
 
     series.getData().addAll(ratingStats.stream()
@@ -268,8 +276,9 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
           int rating = item.getRating();
           XYChart.Data<String, Integer> data = new XYChart.Data<>(i18n.number(rating), item.getCountWithEnoughGamesPlayed());
           if (rating == currentPlayerRating) {
-            data.nodeProperty().addListener((observable, oldValue, newValue) ->  {
+            data.nodeProperty().addListener((observable, oldValue, newValue) -> {
               newValue.pseudoClassStateChanged(NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS, true);
+              addNodeOnTopOfBar(data, youLabel);
             });
           }
           return data;
@@ -277,5 +286,20 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
         .collect(Collectors.toList()));
 
     Platform.runLater(() -> ratingDistributionChart.getData().setAll(series));
+  }
+
+  private void addNodeOnTopOfBar(XYChart.Data<String, Integer> data, Node nodeToAdd) {
+    final Node node = data.getNode();
+    node.parentProperty().addListener((ov, oldParent, parent) -> {
+      Group parentGroup = (Group) parent;
+     if(!parentGroup.getChildren().contains(nodeToAdd)){
+       parentGroup.getChildren().add(nodeToAdd);
+     }
+    });
+
+    node.boundsInParentProperty().addListener((ov, oldBounds, bounds) -> {
+      nodeToAdd.setLayoutX(Math.round(bounds.getMinX() + bounds.getWidth() / 2 - nodeToAdd.prefWidth(-1) / 2));
+      nodeToAdd.setLayoutY( Math.round( bounds.getMinY() - nodeToAdd.prefHeight(-1) * 0.5));
+    });
   }
 }
