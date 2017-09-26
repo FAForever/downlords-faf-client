@@ -22,13 +22,13 @@ public interface ReplayService {
 
   void runReplay(Integer replayId);
 
-  CompletableFuture<List<Replay>> getNewestReplays(int topElementCount);
+  CompletableFuture<List<Replay>> getNewestReplays(int topElementCount, int page);
 
-  CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount);
+  CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount, int page);
 
-  CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount);
+  CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount, int page);
 
-  CompletableFuture<List<Replay>> findByQuery(String condition, int maxResults);
+  CompletableFuture<List<Replay>> findByQuery(String condition, int maxResults, int page);
 
   CompletableFuture<Path> downloadReplay(int id);
 
