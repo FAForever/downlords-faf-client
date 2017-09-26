@@ -64,6 +64,7 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -132,7 +133,6 @@ public class MainController implements Controller<Node> {
   }
 
   public void initialize() {
-
     newsButton.setUserData(NavigationItem.NEWS);
     chatButton.setUserData(NavigationItem.CHAT);
     playButton.setUserData(NavigationItem.PLAY);
@@ -176,6 +176,7 @@ public class MainController implements Controller<Node> {
       }
     });
 
+    updateNotificationsButton(Collections.emptyList());
     notificationService.addPersistentNotificationListener(change -> runLater(() -> updateNotificationsButton(change.getSet())));
     notificationService.addImmediateNotificationListener(notification -> runLater(() -> displayImmediateNotification(notification)));
     notificationService.addTransientNotificationListener(notification -> runLater(() -> transientNotificationsController.addNotification(notification)));
