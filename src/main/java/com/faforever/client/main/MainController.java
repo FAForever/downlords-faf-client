@@ -57,11 +57,13 @@ import javafx.stage.PopupWindow;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
@@ -78,6 +80,7 @@ import static javafx.application.Platform.runLater;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Slf4j
 // TODO divide and conquer
 public class MainController implements Controller<Node> {
   private static final PseudoClass NOTIFICATION_INFO_PSEUDO_CLASS = PseudoClass.getPseudoClass("info");
@@ -402,7 +405,16 @@ public class MainController implements Controller<Node> {
 
     clientUpdateService.checkForUpdateInBackground();
 
+    detectAndUpdateGamePath();
     restoreLastView();
+  }
+
+  private void detectAndUpdateGamePath() {
+    Path faPath = preferencesService.getPreferences().getForgedAlliance().getPath();
+    if (faPath == null || Files.notExists(faPath)) {
+      log.info("Game path is not specified or non-existent, trying to detect");
+      preferencesService.detectGamePath();
+    }
   }
 
   private void restoreLastView() {
