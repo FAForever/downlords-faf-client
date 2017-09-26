@@ -292,8 +292,8 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public List<Game> getNewestReplays(int count) {
-    return getMany("/data/game", count, ImmutableMap.of(
+  public List<Game> getNewestReplays(int count, int page) {
+    return getPage("/data/game", count, page, ImmutableMap.of(
         "sort", "-endTime",
         "include", REPLAY_INCLUDES,
         "filter", "endTime=isnull=false"
@@ -301,20 +301,20 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public List<Game> getHighestRatedReplays(int count) {
+  public List<Game> getHighestRatedReplays(int count, int page) {
     // FIXME implement once supported by API
     return Collections.emptyList();
   }
 
   @Override
-  public List<Game> getMostWatchedReplays(int count) {
+  public List<Game> getMostWatchedReplays(int count, int page) {
     // FIXME implement once supported by API
     return Collections.emptyList();
   }
 
   @Override
-  public List<Game> findReplaysByQuery(String query, int maxResults) {
-    return getMany("/data/game", maxResults, ImmutableMap.of(
+  public List<Game> findReplaysByQuery(String query, int maxResults, int page) {
+    return getPage("/data/game", maxResults, page, ImmutableMap.of(
         "filter", "(" + query + ");endTime=isnull=false",
         "include", REPLAY_INCLUDES
     ));

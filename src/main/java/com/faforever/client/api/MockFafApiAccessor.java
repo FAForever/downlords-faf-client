@@ -160,22 +160,22 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<Game> getNewestReplays(int count) {
+  public List<Game> getNewestReplays(int count, int page) {
     return Collections.emptyList();
   }
 
   @Override
-  public List<Game> getHighestRatedReplays(int count) {
+  public List<Game> getHighestRatedReplays(int count, int page) {
     return Collections.emptyList();
   }
 
   @Override
-  public List<Game> getMostWatchedReplays(int count) {
+  public List<Game> getMostWatchedReplays(int count, int page) {
     return Collections.emptyList();
   }
 
   @Override
-  public List<Game> findReplaysByQuery(String query, int maxResults) {
+  public List<Game> findReplaysByQuery(String query, int maxResults, int page) {
     return Collections.emptyList();
   }
 
