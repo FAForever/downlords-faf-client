@@ -67,9 +67,10 @@
                           mnemonicParsing="false" onAction="#loginButtonClicked" text="%login.button.login"/>
                   <HBox alignment="CENTER" spacing="10.0">
                       <children>
-                          <Button alignment="CENTER" disable="true" maxWidth="1.7976931348623157E308"
+                          <Button alignment="CENTER" maxWidth="1.7976931348623157E308" onAction="#forgotLoginClicked"
                                   mnemonicParsing="false" text="%login.forgot" HBox.hgrow="ALWAYS"/>
-                          <Button alignment="CENTER" disable="true" maxWidth="1.7976931348623157E308"
+                          <Button alignment="CENTER" maxWidth="1.7976931348623157E308"
+                                  onAction="#createNewAccountClicked"
                                   mnemonicParsing="false" text="%login.create" HBox.hgrow="ALWAYS"/>
                       </children>
                       <VBox.margin>
