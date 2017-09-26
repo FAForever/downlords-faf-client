@@ -22,6 +22,7 @@ public class ClientProperties {
   private TrueSkill trueSkill = new TrueSkill();
   private Api api = new Api();
   private UnitDatabase unitDatabase = new UnitDatabase();
+  private Website website = new Website();
 
   @Data
   public static class News {
@@ -130,6 +131,13 @@ public class ClientProperties {
     private int beta;
     private float dynamicFactor;
     private float drawProbability;
+  }
+
+  @Data
+  public static class Website {
+    private String baseUrl;
+    private String forgotPasswordUrl;
+    private String createAccountUrl;
   }
 
   @Data

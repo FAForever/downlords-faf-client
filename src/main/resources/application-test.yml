@@ -20,9 +20,11 @@ faf-client:
   replay:
     remote-host: test.faforever.com
 
+  website:
+    base-url: https://www.test.faforever.com
+
   api:
     base-url: https://japi.test.faforever.com
-    access-token-uri: ${faf-client.api.base-url}/oauth/token
     client-id: 3bc8282c-7730-11e5-8bcf-feff819cdc9f
     client-secret: 6035bd78-7730-11e5-8bcf-feff819cdc9f
 

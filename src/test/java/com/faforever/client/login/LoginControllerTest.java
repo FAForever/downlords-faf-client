@@ -1,9 +1,13 @@
 package com.faforever.client.login;
 
+import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.Website;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
+import javafx.event.ActionEvent;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -22,11 +26,21 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
   private PreferencesService preferencesService;
   @Mock
   private UserService userService;
+  @Mock
+  private PlatformService platformService;
+  @Mock
+  private ClientProperties clientProperties;
 
   @Before
   public void setUp() throws Exception {
-    instance = new LoginController(userService, preferencesService);
+    instance = new LoginController(userService, preferencesService, platformService, clientProperties);
     loadFxml("theme/login.fxml", param -> instance);
+
+    Website website = new Website();
+    website.setCreateAccountUrl("create");
+    website.setForgotPasswordUrl("forgot");
+
+    when(clientProperties.getWebsite()).thenReturn(website);
 
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
   }
@@ -49,5 +63,19 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     instance.loginButtonClicked();
 
     verify(userService).login("JUnit", "password", true);
+  }
+
+  @Test
+  public void testCreateAccountButtton() throws Exception {
+    instance.createNewAccountClicked(new ActionEvent());
+
+    verify(platformService).showDocument("create");
+  }
+
+  @Test
+  public void testForgotPasswordButtton() throws Exception {
+    instance.forgotLoginClicked(new ActionEvent());
+
+    verify(platformService).showDocument("forgot");
   }
 }

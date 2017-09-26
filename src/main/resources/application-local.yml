@@ -20,9 +20,11 @@ faf-client:
   replay:
     remote-host: localhost
 
+  website:
+    base-url: http://localhost:8020
+
   api:
     base-url: http://localhost:8010
-    access-token-uri: ${faf-client.api.base-url}/oauth/token
     client-id: 3bc8282c-7730-11e5-8bcf-feff819cdc9f
     client-secret: 6035bd78-7730-11e5-8bcf-feff819cdc9f
 
