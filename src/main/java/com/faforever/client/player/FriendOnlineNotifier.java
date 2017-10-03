@@ -4,6 +4,8 @@ import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.InitiatePrivateChatEvent;
 import com.faforever.client.chat.SocialStatus;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.NavigateEvent;
+import com.faforever.client.main.NavigationItem;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.util.IdenticonUtil;
@@ -52,7 +54,10 @@ public class FriendOnlineNotifier {
               i18n.get("friend.nowOnlineNotification.title", username),
               i18n.get("friend.nowOnlineNotification.action"),
               IdenticonUtil.createIdenticon(player.getId()),
-              actionEvent -> eventBus.post(new InitiatePrivateChatEvent(username))
+              actionEvent -> {
+                eventBus.post(new NavigateEvent(NavigationItem.CHAT));
+                eventBus.post(new InitiatePrivateChatEvent(username));
+              }
           ));
     }
   }
