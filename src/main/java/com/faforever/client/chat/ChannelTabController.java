@@ -12,6 +12,7 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.replay.ExternalReplayInfoGenerator;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
@@ -114,11 +115,12 @@ public class ChannelTabController extends AbstractChatTabController {
                               UiService uiService, AutoCompletionHelper autoCompletionHelper, EventBus eventBus,
                               WebViewConfigurer webViewConfigurer, ThreadPoolExecutor threadPoolExecutor,
                               TaskScheduler taskScheduler, CountryFlagService countryFlagService,
-                              ReplayService replayService, ClientProperties clientProperties) {
+                              ReplayService replayService, ClientProperties clientProperties,
+                              ExternalReplayInfoGenerator externalReplayInfoGenerator) {
 
     super(clanService, webViewConfigurer, userService, chatService, platformService, preferencesService, playerService,
         audioService, timeService, i18n, imageUploadService, urlPreviewResolver, notificationService, reportingService,
-        uiService, autoCompletionHelper, eventBus, countryFlagService, replayService, clientProperties);
+        uiService, autoCompletionHelper, eventBus, countryFlagService, replayService, clientProperties, externalReplayInfoGenerator);
 
     userToChatUserControls = FXCollections.observableMap(new ConcurrentHashMap<>());
     this.threadPoolExecutor = threadPoolExecutor;

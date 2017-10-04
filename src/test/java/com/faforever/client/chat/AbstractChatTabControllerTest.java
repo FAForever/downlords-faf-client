@@ -8,7 +8,6 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Vault;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
-import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
@@ -16,8 +15,8 @@ import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.replay.ExternalReplayInfoGenerator;
 import com.faforever.client.replay.Replay;
-import com.faforever.client.replay.ReplayDetailController;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -36,8 +35,6 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
@@ -121,9 +118,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ClientProperties clientProperties;
   @Mock
-  private ReplayDetailController replayDetailController;
-  @Mock
-  private WindowController windowController;
+  private ExternalReplayInfoGenerator externalReplayInfoGenerator;
 
   private Preferences preferences;
   private AbstractChatTabController instance;
@@ -149,15 +144,12 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(userService.getUsername()).thenReturn("junit");
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(clientProperties.getVault()).thenReturn(vault);
-    when(uiService.loadFxml("theme/vault/replay/replay_detail.fxml")).thenReturn(replayDetailController);
-    when(uiService.loadFxml("theme/window.fxml")).thenReturn(windowController);
-    when(replayDetailController.getRoot()).thenReturn(new AnchorPane(new VBox()));
 
     instance = new AbstractChatTabController(clanService, webViewConfigurer, userService,
         chatService, platformService, preferencesService, playerService,
         audioService, timeService, i18n, imageUploadService,
         urlPreviewResolver, notificationService, reportingService,
-        uiService, autoCompletionHelper, eventBus, countryFlagService, replayService, clientProperties) {
+        uiService, autoCompletionHelper, eventBus, countryFlagService, replayService, clientProperties, externalReplayInfoGenerator) {
       private final Tab root = new Tab();
       private final WebView webView = new WebView();
       private final TextInputControl messageTextField = new TextField();

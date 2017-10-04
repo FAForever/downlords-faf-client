@@ -14,6 +14,7 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.replay.ExternalReplayInfoGenerator;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
@@ -70,10 +71,11 @@ public class PrivateChatTabController extends AbstractChatTabController {
                                   WebViewConfigurer webViewConfigurer,
                                   CountryFlagService countryFlagService,
                                   ReplayService replayService,
-                                  ClientProperties clientProperties) {
+                                  ClientProperties clientProperties,
+                                  ExternalReplayInfoGenerator externalReplayInfoGenerator) {
     super(clanService, webViewConfigurer, userService, chatService, platformService, preferencesService, playerService, audioService, timeService, i18n,
         imageUploadService, urlPreviewResolver, notificationService, reportingService, uiService, autoCompletionHelper,
-        eventBus, countryFlagService, replayService, clientProperties);
+        eventBus, countryFlagService, replayService, clientProperties, externalReplayInfoGenerator);
   }
 
 
