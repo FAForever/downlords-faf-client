@@ -16,7 +16,9 @@ import com.faforever.client.notification.Action;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.ReportAction;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
@@ -26,6 +28,7 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameStatus;
+import com.faforever.client.replay.ExternalReplayInfoGenerator;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.google.common.annotations.VisibleForTesting;
@@ -33,6 +36,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.beans.Observable;
+import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -107,6 +111,7 @@ public class GameServiceImpl implements GameService {
   private final PlatformService platformService;
   private final String faWindowTitle;
   private final ClientProperties clientProperties;
+  private final ExternalReplayInfoGenerator externalReplayInfoGenerator;
 
   //TODO: circular reference
   @Inject
@@ -124,7 +129,8 @@ public class GameServiceImpl implements GameService {
                          PreferencesService preferencesService, GameUpdater gameUpdater,
                          NotificationService notificationService, I18n i18n, Executor executor,
                          PlayerService playerService, ReportingService reportingService, EventBus eventBus,
-                         IceAdapter iceAdapter, ModService modService, PlatformService platformService) {
+                         IceAdapter iceAdapter, ModService modService, PlatformService platformService,
+                         ExternalReplayInfoGenerator externalReplayInfoGenerator1) {
     this.clientProperties = clientProperties;
     this.fafService = fafService;
     this.forgedAllianceService = forgedAllianceService;
@@ -142,6 +148,7 @@ public class GameServiceImpl implements GameService {
     this.platformService = platformService;
 
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
+    this.externalReplayInfoGenerator = externalReplayInfoGenerator1;
     uidToGameInfoBean = FXCollections.observableHashMap();
     searching1v1 = new SimpleBooleanProperty();
     gameRunning = new SimpleBooleanProperty();
@@ -380,6 +387,7 @@ public class GameServiceImpl implements GameService {
 
           this.ratingMode = ratingMode;
           spawnTerminationListener(process);
+          setCurrentGameEndedListener(currentGame);
         })
         .exceptionally(throwable -> {
           logger.warn("Game could not be started", throwable);
@@ -391,6 +399,24 @@ public class GameServiceImpl implements GameService {
           setGameRunning(false);
           return null;
         });
+  }
+
+  @VisibleForTesting
+  protected void setCurrentGameEndedListener(final SimpleObjectProperty<Game> game) {
+    game.get().statusProperty().addListener(new WeakInvalidationListener(observable -> {
+      if (game.get().getStatus().equals(GameStatus.CLOSED)) {
+        onCurrentGameEnded(game);
+      }
+    }));
+  }
+
+  private void onCurrentGameEnded(SimpleObjectProperty<Game> game) {
+    notificationService.addNotification(new PersistentNotification(i18n.get("game.ended", game.get().getTitle()),
+        Severity.INFO,
+        singletonList(new Action(i18n.get("game.rate"), actionEvent -> {
+          replayService.findById(game.get().getId())
+              .thenAccept(replay -> externalReplayInfoGenerator.showExternalReplayInfo(replay, String.valueOf(game.get().getId())));
+        }))));
   }
 
   /**

@@ -16,6 +16,7 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.replay.ExternalReplayInfoGenerator;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -99,6 +100,8 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   private ReplayService replayService;
   @Mock
   private ClientProperties clientProperties;
+  @Mock
+  private ExternalReplayInfoGenerator externalReplayInfoGenerator;
 
   private PrivateChatTabController instance;
   private String playerName;
@@ -117,7 +120,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
         userService, platformService, preferencesService, playerService,
         timeService, i18n, imageUploadService, urlPreviewResolver, notificationService,
         reportingService, uiService, autoCompletionHelper, eventBus, audioService,
-        chatService, mapService, webViewConfigurer, countryFlagService, replayService, clientProperties);
+        chatService, mapService, webViewConfigurer, countryFlagService, replayService, clientProperties, externalReplayInfoGenerator);
 
 
     playerName = "testUser";

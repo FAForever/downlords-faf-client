@@ -13,6 +13,7 @@ import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.replay.ExternalReplayInfoGenerator;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -111,6 +112,8 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   private ReplayService replayService;
   @Mock
   private ClientProperties clientProperties;
+  @Mock
+  private ExternalReplayInfoGenerator externalReplayInfoGenerator;
 
   @Before
   public void setUp() throws Exception {
@@ -124,7 +127,8 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
         urlPreviewResolver, notificationService, reportingService,
         uiService, autoCompletionHelper,
         eventBus, webViewConfigurer, threadPoolExecutor, taskScheduler,
-        countryFlagService, replayService, clientProperties);
+        countryFlagService, replayService, clientProperties,
+        externalReplayInfoGenerator);
 
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
     when(userService.getUsername()).thenReturn(USER_NAME);
