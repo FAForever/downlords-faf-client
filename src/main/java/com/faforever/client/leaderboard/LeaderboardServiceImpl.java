@@ -27,6 +27,14 @@ public class LeaderboardServiceImpl implements LeaderboardService {
   }
 
   @Override
+  public int roundRatingToLowerHundred(double rating) {
+    if(rating < 0 ){
+      rating -= 100;
+    }
+    return (int)rating / 100 * 100;
+  }
+
+  @Override
   public CompletableFuture<List<RatingStat>> getLadder1v1Stats() {
     return fafService.getLadder1v1Leaderboard().thenApply(this::toRatingStats);
   }
@@ -45,7 +53,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
   }
 
   private Map<Integer, Long> countByRating(Stream<LeaderboardEntry> entries){
-    return entries.collect(Collectors.groupingBy(leaderboardEntry -> (int) leaderboardEntry.getRating() / 100 * 100, Collectors.counting()));
+    return entries.collect(Collectors.groupingBy(leaderboardEntry -> roundRatingToLowerHundred(leaderboardEntry.getRating()), Collectors.counting()));
   }
 
   @Override

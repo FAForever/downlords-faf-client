@@ -34,6 +34,11 @@ public class MockLeaderboardService implements LeaderboardService {
   }
 
   @Override
+  public int roundRatingToLowerHundred(double score) {
+    return (int)score;
+  }
+
+  @Override
   public CompletableFuture<List<RatingStat>> getLadder1v1Stats() {
     return CompletableFuture.completedFuture(Collections.emptyList());
   }

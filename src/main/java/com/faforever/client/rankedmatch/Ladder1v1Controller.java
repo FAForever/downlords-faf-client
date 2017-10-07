@@ -268,7 +268,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
   private void plotRatingDistributions(List<RatingStat> ratingStats, Player player) {
     XYChart.Series<String, Integer> series = new XYChart.Series<>();
     series.setName(i18n.get("ranked1v1.players", LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN));
-    int currentPlayerRating = (RatingUtil.getLeaderboardRating(player) / 100) * 100;
+    int currentPlayerRating = leaderboardService.roundRatingToLowerHundred(RatingUtil.getLeaderboardRating(player));
 
     series.getData().addAll(ratingStats.stream()
         .sorted(Comparator.comparingInt(RatingStat::getRating))

@@ -48,6 +48,23 @@ public class LeaderboardServiceImplTest {
   }
 
   @Test
+  public void testRoundRatings() {
+    assertThat(instance.roundRatingToLowerHundred(99.99), is(0));
+    assertThat(instance.roundRatingToLowerHundred(0.0), is(0));
+    assertThat(instance.roundRatingToLowerHundred(42.0), is(0));
+
+
+    assertThat(instance.roundRatingToLowerHundred(-99.99), is(-100));
+    assertThat(instance.roundRatingToLowerHundred(-1), is(-100));
+    assertThat(instance.roundRatingToLowerHundred(-100.1), is(-200));
+
+    assertThat(instance.roundRatingToLowerHundred(199.99), is(100));
+    assertThat(instance.roundRatingToLowerHundred(242), is(200));
+    assertThat(instance.roundRatingToLowerHundred(2000.1), is(2000));
+    assertThat(instance.roundRatingToLowerHundred(2099.9), is(2000));
+  }
+
+  @Test
   public void testGetLadder1v1Stats() throws Exception {
     LeaderboardEntry leaderboardEntry1 = new LeaderboardEntry();
     leaderboardEntry1.setRating(151);
