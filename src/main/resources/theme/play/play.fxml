@@ -8,11 +8,12 @@
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="playRoot" maxHeight="1.7976931348623157E308"
       xmlns="http://javafx.com/javafx/8.0.60" fx:controller="com.faforever.client.play.PlayController">
     <children>
-        <TabPane rotateGraphic="true" side="LEFT" styleClass="settings" tabClosingPolicy="UNAVAILABLE" tabMaxHeight="200.0" tabMinHeight="200.0" VBox.vgrow="ALWAYS">
+        <TabPane rotateGraphic="true" side="LEFT" tabClosingPolicy="UNAVAILABLE" tabMaxHeight="200.0"
+                 tabMinHeight="200.0" VBox.vgrow="ALWAYS">
             <tabs>
-                <Tab>
+                <Tab fx:id="customGamesTab">
                     <content>
-                        <fx:include source="custom_games.fxml" />
+                        <fx:include source="custom_games.fxml" fx:id="customGames"/>
                     </content>
                     <graphic>
                         <Group>

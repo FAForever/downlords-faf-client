@@ -8,13 +8,16 @@ import com.faforever.client.query.SpecificationController;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
+import javafx.event.ActionEvent;
 import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.testfx.util.WaitForAsyncUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -25,6 +28,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -89,28 +93,29 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnDisplayPopulatesReplays() throws Exception {
     List<Replay> replays = Arrays.asList(new Replay(), new Replay());
-    when(replayService.getNewestReplays(anyInt())).thenReturn(CompletableFuture.completedFuture(replays));
-    when(replayService.getHighestRatedReplays(anyInt())).thenReturn(CompletableFuture.completedFuture(replays));
-    when(replayService.getMostWatchedReplays(anyInt())).thenReturn(CompletableFuture.completedFuture(replays));
+    when(replayService.getNewestReplays(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(replays));
+    when(replayService.getHighestRatedReplays(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(replays));
+    when(replayService.getMostWatchedReplays(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(replays));
 
     instance.onDisplay();
 
-    verify(replayService).getNewestReplays(anyInt());
-    verify(replayService).getHighestRatedReplays(anyInt());
-    verify(replayService).getMostWatchedReplays(anyInt());
+    verify(replayService).getNewestReplays(anyInt(), eq(1));
+    verify(replayService).getHighestRatedReplays(anyInt(), eq(1));
+    verify(replayService).getMostWatchedReplays(anyInt(), eq(1));
+    assertThat(instance.moreButton.isVisible(), is(false));
   }
 
   @Test
   public void testOnSearchButtonClicked() throws Exception {
     Consumer<String> searchListener = searchListenerCaptor.getValue();
-    when(replayService.findByQuery("query", MAX_RESULTS))
+    when(replayService.findByQuery("query", MAX_RESULTS, 1))
         .thenReturn(CompletableFuture.completedFuture(Arrays.asList(new Replay(), new Replay())));
 
     searchListener.accept("query");
 
     assertThat(instance.showroomGroup.isVisible(), is(false));
     assertThat(instance.searchResultGroup.isVisible(), is(true));
-    verify(replayService).findByQuery("query", MAX_RESULTS);
+    verify(replayService).findByQuery("query", MAX_RESULTS, 1);
   }
 
   @Test
@@ -118,10 +123,32 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     Consumer<String> searchListener = searchListenerCaptor.getValue();
     CompletableFuture<List<Replay>> completableFuture = new CompletableFuture<>();
     completableFuture.completeExceptionally(new RuntimeException("JUnit test exception"));
-    when(replayService.findByQuery("query", MAX_RESULTS)).thenReturn(completableFuture);
+    when(replayService.findByQuery("query", MAX_RESULTS, 1)).thenReturn(completableFuture);
 
     searchListener.accept("query");
 
     verify(notificationService).addNotification(any(ImmediateNotification.class));
   }
+
+  @Test
+  public void testMoreButton() throws Exception {
+    Consumer<String> searchListener = searchListenerCaptor.getValue();
+    List<Replay> list = new ArrayList<>();
+    for (int i = 0; i != 100; i++) {
+      list.add(new Replay());
+    }
+    CompletableFuture<List<Replay>> completableFuture = new CompletableFuture<>();
+    completableFuture.complete(list);
+    when(replayService.findByQuery(eq("query"), eq(MAX_RESULTS), anyInt())).thenReturn(completableFuture);
+
+    searchListener.accept("query");
+
+    instance.onLoadMoreButtonClicked(new ActionEvent());
+
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(replayService).findByQuery("query", MAX_RESULTS, 1);
+    verify(replayService).findByQuery("query", MAX_RESULTS, 2);
+    assertThat(instance.moreButton.isVisible(), is(true));
+  }
+
 }

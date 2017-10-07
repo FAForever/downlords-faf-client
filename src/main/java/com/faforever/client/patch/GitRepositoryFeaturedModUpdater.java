@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Lazy
 @Component
-@Profile("!" + FafClientApplication.POFILE_OFFLINE)
+@Profile("!" + FafClientApplication.PROFILE_OFFLINE)
 public class GitRepositoryFeaturedModUpdater implements FeaturedModUpdater {
 
   private static final String NON_WORD_CHARACTER_PATTERN = "[^\\w]";
@@ -37,7 +37,7 @@ public class GitRepositoryFeaturedModUpdater implements FeaturedModUpdater {
   @SuppressWarnings("unchecked")
   public CompletableFuture<PatchResult> updateMod(FeaturedMod featuredMod, @Nullable Integer version) {
     String repoDirName = featuredMod.getGitUrl().replaceAll(NON_WORD_CHARACTER_PATTERN, "");
-    Path repositoryDirectory = preferencesService.getGitReposDirectory().resolve(repoDirName);
+    Path repositoryDirectory = preferencesService.getPatchReposDirectory().resolve(repoDirName);
 
     GitFeaturedModUpdateTask modUpdateTask = applicationContext.getBean(GitFeaturedModUpdateTask.class);
     modUpdateTask.setRepositoryDirectory(repositoryDirectory);

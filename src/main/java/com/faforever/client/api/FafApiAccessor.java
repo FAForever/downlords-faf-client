@@ -78,13 +78,13 @@ public interface FafApiAccessor {
 
   List<FeaturedModFile> getFeaturedModFiles(FeaturedMod featuredMod, Integer version);
 
-  List<Game> getNewestReplays(int count);
+  List<Game> getNewestReplays(int count, int page);
 
-  List<Game> getHighestRatedReplays(int count);
+  List<Game> getHighestRatedReplays(int count, int page);
 
-  List<Game> getMostWatchedReplays(int count);
+  List<Game> getMostWatchedReplays(int count, int page);
 
-  List<Game> findReplaysByQuery(String condition, int maxResults);
+  List<Game> findReplaysByQuery(String condition, int maxResults, int page);
 
   Optional<MapVersion> findMapByFolderName(String folderName);
 
@@ -111,4 +111,7 @@ public interface FafApiAccessor {
   Optional<MapVersion> findMapVersionById(String id);
 
   void deleteMapVersionReview(Integer id);
+
+  Optional<Game> findReplayById(int id);
+
 }

@@ -51,9 +51,8 @@ public class DownloadUpdateTask extends CompletableTask<Path> {
 
     Path tempFile = Files.createTempFile(targetFile.getParent(), "update", null);
 
-    try (InputStream inputStream = url.openStream();
-         OutputStream outputStream = Files.newOutputStream(tempFile)) {
       ResourceLocks.acquireDownloadLock();
+    try (InputStream inputStream = url.openStream(); OutputStream outputStream = Files.newOutputStream(tempFile)) {
       ByteCopier.from(inputStream)
           .to(outputStream)
           .totalBytes(updateInfo.getSize())

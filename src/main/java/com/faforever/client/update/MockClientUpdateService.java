@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 @Lazy
 @Service
-@Profile(FafClientApplication.POFILE_OFFLINE)
+@Profile(FafClientApplication.PROFILE_OFFLINE)
 public class MockClientUpdateService implements ClientUpdateService {
 
   @Override

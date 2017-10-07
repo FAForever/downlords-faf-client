@@ -192,7 +192,7 @@ public class PreferencesService {
     return FAF_DATA_DIRECTORY;
   }
 
-  public Path getGitReposDirectory() {
+  public Path getPatchReposDirectory() {
     return getFafDataDirectory().resolve("repos");
   }
 
@@ -297,7 +297,7 @@ public class PreferencesService {
     return getFafDataDirectory().resolve(CACHE_STYLESHEETS_SUB_FOLDER);
   }
 
-  private void detectGamePath() {
+  public void detectGamePath() {
     for (Path path : USUAL_GAME_PATHS) {
       if (isGamePathValid(path)) {
         onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(path));

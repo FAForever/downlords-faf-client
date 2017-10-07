@@ -71,7 +71,7 @@ import java.util.stream.Collectors;
 public class FafApiAccessorImpl implements FafApiAccessor {
 
   private static final String MAP_ENDPOINT = "/data/map";
-  private static final String REPLAY_INCLUDES = "featuredMod,playerStats,playerStats.player,reviews,reviews.player,mapVersion,mapVersion.map";
+  private static final String REPLAY_INCLUDES = "featuredMod,playerStats,playerStats.player,reviews,reviews.player,mapVersion,mapVersion.map,mapVersion.reviews";
   private final EventBus eventBus;
   private final RestTemplateBuilder restTemplateBuilder;
   private final ClientProperties clientProperties;
@@ -185,7 +185,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @SneakyThrows
   @SuppressWarnings("unchecked")
   public List<Ladder1v1LeaderboardEntry> getLadder1v1Leaderboard() {
-    // This is not an ordinary JSON-API route and thus doesn't support paging, that's why it's called manually
+    // This is not an ordinary JSON-API route and thus doesn't support paging, that's why it doesn't use getAll()
     authorizedLatch.await();
     return restOperations.getForObject("/leaderboards/ladder1v1", List.class,
         ImmutableMap.of(
@@ -292,8 +292,8 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public List<Game> getNewestReplays(int count) {
-    return getMany("/data/game", count, ImmutableMap.of(
+  public List<Game> getNewestReplays(int count, int page) {
+    return getPage("/data/game", count, page, ImmutableMap.of(
         "sort", "-endTime",
         "include", REPLAY_INCLUDES,
         "filter", "endTime=isnull=false"
@@ -301,20 +301,20 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public List<Game> getHighestRatedReplays(int count) {
+  public List<Game> getHighestRatedReplays(int count, int page) {
     // FIXME implement once supported by API
     return Collections.emptyList();
   }
 
   @Override
-  public List<Game> getMostWatchedReplays(int count) {
+  public List<Game> getMostWatchedReplays(int count, int page) {
     // FIXME implement once supported by API
     return Collections.emptyList();
   }
 
   @Override
-  public List<Game> findReplaysByQuery(String query, int maxResults) {
-    return getMany("/data/game", maxResults, ImmutableMap.of(
+  public List<Game> findReplaysByQuery(String query, int maxResults, int page) {
+    return getPage("/data/game", maxResults, page, ImmutableMap.of(
         "filter", "(" + query + ");endTime=isnull=false",
         "include", REPLAY_INCLUDES
     ));
@@ -379,6 +379,11 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   public void deleteMapVersionReview(Integer id) {
     delete("/data/mapVersionReview/" + id);
+  }
+
+  @Override
+  public Optional<Game> findReplayById(int id) {
+    return Optional.ofNullable(getOne("/data/game/" + id, Game.class, ImmutableMap.of("include", REPLAY_INCLUDES)));
   }
 
   @Override
@@ -480,14 +485,21 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @SuppressWarnings("unchecked")
   @SneakyThrows
   private <T> T getOne(String endpointPath, Class<T> type) {
-    return getOne(endpointPath, type, Collections.emptyMap());
+    return restOperations.getForObject(endpointPath, type, Collections.emptyMap());
   }
 
   @SuppressWarnings("unchecked")
   @SneakyThrows
   private <T> T getOne(String endpointPath, Class<T> type, java.util.Map<String, Serializable> params) {
+    java.util.Map<String, List<String>> multiValues = params.entrySet().stream()
+        .collect(Collectors.toMap(Entry::getKey, entry -> Collections.singletonList(String.valueOf(entry.getValue()))));
+
+    UriComponents uriComponents = UriComponentsBuilder.fromPath(endpointPath)
+        .queryParams(CollectionUtils.toMultiValueMap(multiValues))
+        .build();
+
     authorizedLatch.await();
-    return restOperations.getForObject(endpointPath, type, params);
+    return getOne(uriComponents.toUriString(), type);
   }
 
   private <T> List<T> getAll(String endpointPath) {

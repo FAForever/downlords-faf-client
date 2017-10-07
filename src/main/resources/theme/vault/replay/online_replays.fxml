@@ -74,6 +74,8 @@
                             <children>
                                 <Label styleClass="h2" text="%searchResult"/>
                                 <VBox fx:id="searchResultPane" spacing="10.0"/>
+                                <Button fx:id="moreButton" mnemonicParsing="false" onAction="#onLoadMoreButtonClicked"
+                                        text="%vault.more"/>
                             </children>
                         </VBox>
                     </children>

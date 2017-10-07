@@ -48,7 +48,7 @@ public class PreferencesServiceTest {
 
   @Test
   public void testGetFafReposDirectory() throws Exception {
-    assertThat(instance.getGitReposDirectory(), is(instance.getFafDataDirectory().resolve("repos")));
+    assertThat(instance.getPatchReposDirectory(), is(instance.getFafDataDirectory().resolve("repos")));
   }
 
   @Test

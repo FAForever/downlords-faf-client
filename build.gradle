@@ -39,7 +39,7 @@ apply plugin: 'distribution'
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-version = '0.7.3-alpha'
+version = '0.7.5-alpha'
 
 compileJava.dependsOn(processResources)
 processResources {
@@ -294,6 +294,7 @@ dependencies {
   compile("com.github.rutledgepaulv:q-builders:${qBuildersVersion}")
   compile("com.github.nsp:JSkills:${jSkillsVersion}")
   compile("com.github.jasminb:jsonapi-converter:${jsonapiConverterVersion}")
+  compile("com.github.Brutus5000:BiReUS-JCL:${bireusVersion}")
 
   testCompile 'junit:junit:4.11'
   testCompile("org.testfx:testfx-core:4.0.+") {

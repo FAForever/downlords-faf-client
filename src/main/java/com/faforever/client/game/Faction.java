@@ -46,4 +46,11 @@ public enum Faction {
   public int toFaValue() {
     return ordinal() + 1;
   }
+
+  /**
+   * Returns the string value of the faction, as used in the game and the server.
+   */
+  public String getString() {
+    return string;
+  }
 }

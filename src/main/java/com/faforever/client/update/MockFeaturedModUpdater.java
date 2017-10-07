@@ -14,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Lazy
 @Component
-@Profile(FafClientApplication.POFILE_OFFLINE)
+@Profile(FafClientApplication.PROFILE_OFFLINE)
 public class MockFeaturedModUpdater implements FeaturedModUpdater {
 
   @Override

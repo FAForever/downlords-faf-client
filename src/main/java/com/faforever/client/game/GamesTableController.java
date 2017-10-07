@@ -76,10 +76,6 @@ public class GamesTableController implements Controller<Node> {
     return selectedGame;
   }
 
-  public void initialize() {
-    joinGameHelper.setParentNode(getRoot());
-  }
-
   public Node getRoot() {
     return gamesTable;
   }

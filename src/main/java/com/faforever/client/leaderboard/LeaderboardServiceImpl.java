@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 @Lazy
 @Service
-@Profile("!" + FafClientApplication.POFILE_OFFLINE)
+@Profile("!" + FafClientApplication.PROFILE_OFFLINE)
 public class LeaderboardServiceImpl implements LeaderboardService {
 
   private final FafService fafService;

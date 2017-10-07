@@ -1,11 +1,14 @@
 package com.faforever.client.login;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import com.google.common.base.Strings;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -31,6 +34,8 @@ public class LoginController implements Controller<Node> {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final UserService userService;
   private final PreferencesService preferencesService;
+  private final PlatformService platformService;
+  private final ClientProperties clientProperties;
   public Pane loginFormPane;
   public Pane loginProgressPane;
   public CheckBox autoLoginCheckBox;
@@ -41,9 +46,11 @@ public class LoginController implements Controller<Node> {
   public Pane loginRoot;
 
   @Inject
-  public LoginController(UserService userService, PreferencesService preferencesService) {
+  public LoginController(UserService userService, PreferencesService preferencesService, PlatformService platformService, ClientProperties clientProperties) {
     this.userService = userService;
     this.preferencesService = preferencesService;
+    this.platformService = platformService;
+    this.clientProperties = clientProperties;
   }
 
   public void initialize() {
@@ -123,5 +130,13 @@ public class LoginController implements Controller<Node> {
 
   public Pane getRoot() {
     return loginRoot;
+  }
+
+  public void forgotLoginClicked(ActionEvent actionEvent) {
+    platformService.showDocument(clientProperties.getWebsite().getForgotPasswordUrl());
+  }
+
+  public void createNewAccountClicked(ActionEvent actionEvent) {
+    platformService.showDocument(clientProperties.getWebsite().getCreateAccountUrl());
   }
 }

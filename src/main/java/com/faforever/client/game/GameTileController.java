@@ -46,6 +46,7 @@ public class GameTileController implements Controller<Node> {
   public ImageView mapImageView;
   private Consumer<Game> onSelectedListener;
   private Game game;
+  private GameTooltipController gameTooltipController;
 
   @Inject
   public GameTileController(MapService mapService, I18n i18n, JoinGameHelper joinGameHelper, ModService modService, UiService uiService) {
@@ -65,7 +66,16 @@ public class GameTileController implements Controller<Node> {
     modsLabel.visibleProperty().bind(modsLabel.textProperty().isNotEmpty());
     gameTypeLabel.managedProperty().bind(gameTypeLabel.visibleProperty());
     lockIconLabel.managedProperty().bind(lockIconLabel.visibleProperty());
-    joinGameHelper.setParentNode(getRoot());
+
+    Tooltip tooltip = new Tooltip();
+    gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
+    tooltip.setGraphic(gameTooltipController.getRoot());
+    Tooltip.install(gameCardRoot, tooltip);
+    tooltip.showingProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue && game != null) {
+        gameTooltipController.setGameInfoBean(game);
+      }
+    });
   }
 
   public Node getRoot() {
@@ -104,21 +114,6 @@ public class GameTileController implements Controller<Node> {
     ));
 
     lockIconLabel.visibleProperty().bind(game.passwordProtectedProperty());
-
-    Tooltip tooltip = new Tooltip();
-    Tooltip.install(gameCardRoot, tooltip);
-    tooltip.activatedProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue) {
-        GameTooltipController gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
-        gameTooltipController.setGameInfoBean(game);
-        tooltip.setGraphic(gameTooltipController.getRoot());
-      }
-    });
-    tooltip.showingProperty().addListener((observable, oldValue, newValue) -> {
-      if (!newValue) {
-        tooltip.setGraphic(null);
-      }
-    });
   }
 
   public void onClick(MouseEvent mouseEvent) {

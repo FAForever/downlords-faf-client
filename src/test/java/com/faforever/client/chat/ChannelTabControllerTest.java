@@ -2,6 +2,8 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.clan.ClanService;
+import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.Vault;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
@@ -11,6 +13,7 @@ import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
@@ -104,16 +107,24 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   private EventBus eventBus;
   @Mock
   private CountryFlagService countryFlagService;
+  @Mock
+  private ReplayService replayService;
+  @Mock
+  private ClientProperties clientProperties;
 
   @Before
   public void setUp() throws Exception {
+    Vault vault = new Vault();
+    vault.setReplayDownloadUrlFormat("test.de");
+    when(clientProperties.getVault()).thenReturn(vault);
+
     instance = new ChannelTabController(clanService, userService, chatService,
         platformService, preferencesService, playerService,
         audioService, timeService, i18n, imageUploadService,
         urlPreviewResolver, notificationService, reportingService,
         uiService, autoCompletionHelper,
         eventBus, webViewConfigurer, threadPoolExecutor, taskScheduler,
-        countryFlagService);
+        countryFlagService, replayService, clientProperties);
 
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
     when(userService.getUsername()).thenReturn(USER_NAME);

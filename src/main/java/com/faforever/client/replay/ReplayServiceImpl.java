@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -274,23 +275,29 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public CompletableFuture<List<Replay>> getNewestReplays(int topElementCount) {
-    return fafService.getNewestReplays(topElementCount);
+  public CompletableFuture<List<Replay>> getNewestReplays(int topElementCount, int page) {
+    return fafService.getNewestReplays(topElementCount, page);
   }
 
   @Override
-  public CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount) {
-    return fafService.getHighestRatedReplays(topElementCount);
+  public CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount, int page) {
+    return fafService.getHighestRatedReplays(topElementCount, page);
   }
 
   @Override
-  public CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount) {
-    return fafService.getMostWatchedReplays(topElementCount);
+  public CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount, int page) {
+    return fafService.getMostWatchedReplays(topElementCount, page);
   }
 
   @Override
-  public CompletableFuture<List<Replay>> findByQuery(String query, int maxResults) {
-    return fafService.findReplaysByQuery(query, maxResults);
+  public CompletableFuture<List<Replay>> findByQuery(String query, int maxResults, int page) {
+    return fafService.findReplaysByQuery(query, maxResults, page);
+  }
+
+  @Override
+  public CompletableFuture<Optional<Replay>> findById(int id) {
+    return fafService.findReplayById(id);
+
   }
 
   @Override

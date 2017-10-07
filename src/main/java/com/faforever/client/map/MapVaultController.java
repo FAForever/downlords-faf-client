@@ -128,7 +128,6 @@ public class MapVaultController extends AbstractViewController<Node> {
 
   private void searchByQuery(String query) {
     this.query = query;
-    currentPage = 0;
     enterLoadingState();
     displayMapsFromSupplier(() -> mapService.findByQuery(query, ++currentPage, MAX_SEARCH_RESULTS));
   }
@@ -283,6 +282,7 @@ public class MapVaultController extends AbstractViewController<Node> {
   }
 
   private void displayMapsFromSupplier(Supplier<CompletableFuture<List<MapBean>>> mapsSupplier) {
+    currentPage = 0;
     this.currentSupplier = mapsSupplier;
     mapsSupplier.get()
         .thenAccept(this::displayMaps)

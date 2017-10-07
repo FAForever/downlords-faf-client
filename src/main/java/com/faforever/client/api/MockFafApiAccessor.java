@@ -36,7 +36,7 @@ import java.util.Optional;
 
 @Lazy
 @Component
-@Profile(FafClientApplication.POFILE_OFFLINE)
+@Profile(FafClientApplication.PROFILE_OFFLINE)
 // NOSONAR
 public class MockFafApiAccessor implements FafApiAccessor {
 
@@ -160,22 +160,22 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<Game> getNewestReplays(int count) {
+  public List<Game> getNewestReplays(int count, int page) {
     return Collections.emptyList();
   }
 
   @Override
-  public List<Game> getHighestRatedReplays(int count) {
+  public List<Game> getHighestRatedReplays(int count, int page) {
     return Collections.emptyList();
   }
 
   @Override
-  public List<Game> getMostWatchedReplays(int count) {
+  public List<Game> getMostWatchedReplays(int count, int page) {
     return Collections.emptyList();
   }
 
   @Override
-  public List<Game> findReplaysByQuery(String query, int maxResults) {
+  public List<Game> findReplaysByQuery(String query, int maxResults, int page) {
     return Collections.emptyList();
   }
 
@@ -243,6 +243,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
   @Override
   public void deleteMapVersionReview(Integer id) {
 
+  }
+
+  @Override
+  public Optional<Game> findReplayById(int id) {
+    return null;
   }
 
   @Override

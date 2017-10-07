@@ -35,4 +35,7 @@ public interface NotificationService {
   void addImmediateNotificationListener(OnImmediateNotificationListener listener);
 
   void addPersistentErrorNotification(Throwable throwable, String messageKey, Object... args);
+
+  // TODO refactor code to use this method where applicable
+  void addImmediateErrorNotification(Throwable throwable, String messageKey, Object... args);
 }

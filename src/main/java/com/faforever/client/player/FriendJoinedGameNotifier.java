@@ -11,7 +11,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.IdenticonUtil;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import javafx.scene.Node;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -59,10 +58,7 @@ public class FriendJoinedGameNotifier {
           i18n.get("friend.joinedGameNotification.title", player.getUsername(), game.getTitle()),
           i18n.get("friend.joinedGameNotification.action"),
           IdenticonUtil.createIdenticon(player.getId()),
-          event1 -> {
-            joinGameHelper.setParentNode((Node) event1.getTarget());
-            joinGameHelper.join(player.getGame());
-          }
+          event1 -> joinGameHelper.join(player.getGame())
       ));
     }
   }

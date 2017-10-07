@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -86,5 +87,11 @@ public class NotificationServiceImpl implements NotificationService {
   @Override
   public void addPersistentErrorNotification(Throwable throwable, String messageKey, Object... args) {
     addNotification(new PersistentNotification(i18n.get(messageKey, args), ERROR, singletonList(new ReportAction(i18n, reportingService, throwable))));
+  }
+
+  @Override
+  public void addImmediateErrorNotification(Throwable throwable, String messageKey, Object... args) {
+    addNotification(new ImmediateNotification(i18n.get("errorTitle"), i18n.get(messageKey, args), ERROR, throwable,
+        Arrays.asList(new DismissAction(i18n), new ReportAction(i18n, reportingService, throwable))));
   }
 }

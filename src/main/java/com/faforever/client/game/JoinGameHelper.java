@@ -12,18 +12,17 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.eventbus.EventBus;
-import javafx.scene.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -31,6 +30,7 @@ import static com.faforever.client.notification.Severity.ERROR;
 import static java.util.Arrays.asList;
 
 @Component
+@Scope
 public class JoinGameHelper {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -44,9 +44,6 @@ public class JoinGameHelper {
   private final UiService uiService;
   private final EventBus eventBus;
 
-  private Node parentNode;
-
-  @Inject
   public JoinGameHelper(I18n i18n, PlayerService playerService, GameService gameService, PreferencesService preferencesService, NotificationService notificationService, ReportingService reportingService, UiService uiService, EventBus eventBus) {
     this.i18n = i18n;
     this.playerService = playerService;
@@ -58,17 +55,11 @@ public class JoinGameHelper {
     this.eventBus = eventBus;
   }
 
-  public void setParentNode(Node parentNode) {
-    this.parentNode = parentNode;
-  }
-
   public void join(Game game) {
     this.join(game, null, false);
   }
 
   public void join(Game game, String password, boolean ignoreRating) {
-    Objects.requireNonNull(parentNode, "parentNode has not been set");
-
     Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
     int playerRating = RatingUtil.getRoundedGlobalRating(currentPlayer);
 
@@ -89,7 +80,7 @@ public class JoinGameHelper {
       enterPasswordController.setOnPasswordEnteredListener(this::join);
       enterPasswordController.setGame(game);
       enterPasswordController.setIgnoreRating(ignoreRating);
-      enterPasswordController.showPasswordDialog(parentNode.getScene().getWindow());
+      enterPasswordController.showPasswordDialog(StageHolder.getStage());
     } else {
       gameService.joinGame(game, password)
           .exceptionally(throwable -> {

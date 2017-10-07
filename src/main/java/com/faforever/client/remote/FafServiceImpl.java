@@ -278,8 +278,8 @@ public class FafServiceImpl implements FafService {
 
   @Override
   @Async
-  public CompletableFuture<List<Replay>> getNewestReplays(int topElementCount) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getNewestReplays(topElementCount)
+  public CompletableFuture<List<Replay>> getNewestReplays(int topElementCount, int page) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getNewestReplays(topElementCount, page)
         .parallelStream()
         .map(Replay::fromDto)
         .collect(toList()));
@@ -287,8 +287,8 @@ public class FafServiceImpl implements FafService {
 
   @Override
   @Async
-  public CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getHighestRatedReplays(topElementCount)
+  public CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount, int page) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getHighestRatedReplays(topElementCount, page)
         .parallelStream()
         .map(Replay::fromDto)
         .collect(toList()));
@@ -296,8 +296,8 @@ public class FafServiceImpl implements FafService {
 
   @Override
   @Async
-  public CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getMostWatchedReplays(topElementCount)
+  public CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount, int page) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getMostWatchedReplays(topElementCount, page)
         .parallelStream()
         .map(Replay::fromDto)
         .collect(toList()));
@@ -328,8 +328,8 @@ public class FafServiceImpl implements FafService {
 
   @Override
   @Async
-  public CompletableFuture<List<Replay>> findReplaysByQuery(String query, int maxResults) {
-    return CompletableFuture.completedFuture(fafApiAccessor.findReplaysByQuery(query, maxResults)
+  public CompletableFuture<List<Replay>> findReplaysByQuery(String query, int maxResults, int page) {
+    return CompletableFuture.completedFuture(fafApiAccessor.findReplaysByQuery(query, maxResults, page)
         .parallelStream()
         .map(Replay::fromDto)
         .collect(toList()));
@@ -443,6 +443,12 @@ public class FafServiceImpl implements FafService {
   public CompletableFuture<Void> deleteMapVersionReview(Review review) {
     fafApiAccessor.deleteMapVersionReview(review.getId());
     return CompletableFuture.completedFuture(null);
+  }
+
+  @Override
+  public CompletableFuture<Optional<Replay>> findReplayById(int id) {
+    return CompletableFuture.completedFuture(fafApiAccessor.findReplayById(id)
+        .map(Replay::fromDto));
   }
 
   @Override

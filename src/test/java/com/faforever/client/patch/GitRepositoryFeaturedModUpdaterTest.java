@@ -47,7 +47,7 @@ public class GitRepositoryFeaturedModUpdaterTest extends AbstractPlainJavaFxTest
   public void setUp() throws Exception {
     instance = new GitRepositoryFeaturedModUpdater(taskService, applicationContext, preferencesService);
 
-    when(preferencesService.getGitReposDirectory()).thenReturn(reposDirectory.getRoot().toPath());
+    when(preferencesService.getPatchReposDirectory()).thenReturn(reposDirectory.getRoot().toPath());
     doAnswer(invocation -> invocation.getArgument(0)).when(taskService).submitTask(any());
   }
 

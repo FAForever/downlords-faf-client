@@ -13,6 +13,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
@@ -29,6 +30,8 @@ import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -56,8 +59,11 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   public Button backButton;
   public ScrollPane scrollPane;
   public SearchController searchController;
+  public Button moreButton;
 
   private ReplayDetailController replayDetailController;
+  private int currentPage;
+  private Supplier<CompletableFuture<List<Replay>>> currentSupplier;
 
   @Inject
   public OnlineReplayVaultController(ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n) {
@@ -74,37 +80,43 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     showroomGroup.managedProperty().bind(showroomGroup.visibleProperty());
     searchResultGroup.managedProperty().bind(searchResultGroup.visibleProperty());
     backButton.managedProperty().bind(backButton.visibleProperty());
+    moreButton.managedProperty().bind(moreButton.visibleProperty());
 
     searchController.setRootType(Game.class);
     searchController.setSearchListener(this::onSearch);
     searchController.setSearchableProperties(SearchableProperties.GAME_PROPERTIES);
   }
 
-  private void displaySearchResult(List<Replay> replays) {
-    populateReplays(replays, searchResultPane);
-
+  private void displaySearchResult(List<Replay> replays, boolean append) {
     showroomGroup.setVisible(false);
     searchResultGroup.setVisible(true);
     loadingPane.setVisible(false);
     backButton.setVisible(true);
+    populateReplays(replays, searchResultPane, append);
+    moreButton.setVisible(replays.size() == MAX_SEARCH_RESULTS);
   }
 
-  private void populateReplays(List<Replay> replays, Pane pane) {
+  private void populateReplays(List<Replay> replays, Pane pane, boolean append) {
     ObservableList<Node> children = pane.getChildren();
     Platform.runLater(() -> {
-      children.clear();
-
+      if (!append) {
+        children.clear();
+      }
       replays.forEach(replay -> {
         ReplayCardController controller = uiService.loadFxml("theme/vault/replay/replay_card.fxml");
         controller.setReplay(replay);
         controller.setOnOpenDetailListener(this::onShowReplayDetail);
         children.add(controller.getRoot());
 
-        if (replays.size() == 1) {
+        if (replays.size() == 1 && !append) {
           onShowReplayDetail(replay);
         }
       });
     });
+  }
+
+  public void populateReplays(List<Replay> replays, Pane pane) {
+    populateReplays(replays, pane, false);
   }
 
   public void onShowReplayDetail(Replay replay) {
@@ -138,6 +150,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     searchResultGroup.setVisible(false);
     loadingPane.setVisible(true);
     backButton.setVisible(false);
+    moreButton.setVisible(false);
   }
 
   private void enterShowroomState() {
@@ -145,18 +158,16 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     searchResultGroup.setVisible(false);
     loadingPane.setVisible(false);
     backButton.setVisible(false);
+    moreButton.setVisible(false);
   }
 
   private void onSearch(String query) {
     enterSearchingState();
-    replayService.findByQuery(query, MAX_SEARCH_RESULTS)
-        .thenAccept(this::displaySearchResult)
-        .exceptionally(e -> {
-          notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
-              i18n.get("vault.replays.searchError"), Severity.ERROR, e,
-              Collections.singletonList(new DismissAction(i18n))));
-          return null;
-        });
+    displayReplaysFromSupplier(() -> replayService.findByQuery(query, MAX_SEARCH_RESULTS, currentPage++));
+  }
+
+  private void displaySearchResult(List<Replay> replays) {
+    displaySearchResult(replays, false);
   }
 
   public void onBackButtonClicked() {
@@ -169,10 +180,10 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
 
   private void refresh() {
     enterSearchingState();
-    replayService.getNewestReplays(TOP_ELEMENT_COUNT)
+    replayService.getNewestReplays(TOP_ELEMENT_COUNT, 1)
         .thenAccept(replays -> populateReplays(replays, newestPane))
-        .thenCompose(aVoid -> replayService.getHighestRatedReplays(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateReplays(modInfoBeans, highestRatedPane)))
-        .thenCompose(aVoid -> replayService.getMostWatchedReplays(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateReplays(modInfoBeans, mostWatchedPane)))
+        .thenCompose(aVoid -> replayService.getHighestRatedReplays(TOP_ELEMENT_COUNT, 1).thenAccept(modInfoBeans -> populateReplays(modInfoBeans, highestRatedPane)))
+        .thenCompose(aVoid -> replayService.getMostWatchedReplays(TOP_ELEMENT_COUNT, 1).thenAccept(modInfoBeans -> populateReplays(modInfoBeans, mostWatchedPane)))
         .thenRun(this::enterShowroomState)
         .exceptionally(throwable -> {
           logger.warn("Could not populate replays", throwable);
@@ -182,16 +193,36 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
 
   public void onMoreNewestButtonClicked() {
     enterSearchingState();
-    replayService.getNewestReplays(TOP_MORE_ELEMENT_COUNT).thenAccept(this::displaySearchResult);
+    displayReplaysFromSupplier(() -> replayService.getNewestReplays(TOP_MORE_ELEMENT_COUNT, currentPage++));
   }
 
   public void onMoreHighestRatedButtonClicked() {
     enterSearchingState();
-    replayService.getHighestRatedReplays(TOP_MORE_ELEMENT_COUNT).thenAccept(this::displaySearchResult);
+    displayReplaysFromSupplier(() -> replayService.getHighestRatedReplays(TOP_MORE_ELEMENT_COUNT, currentPage++));
   }
 
   public void onMoreMostWatchedButtonClicked() {
     enterSearchingState();
-    replayService.getMostWatchedReplays(TOP_MORE_ELEMENT_COUNT).thenAccept(this::displaySearchResult);
+    displayReplaysFromSupplier(() -> replayService.getMostWatchedReplays(TOP_MORE_ELEMENT_COUNT, currentPage++));
   }
+
+  public void onLoadMoreButtonClicked(ActionEvent actionEvent) {
+    currentSupplier.get()
+        .thenAccept(replays -> displaySearchResult(replays, true));
+  }
+
+  private void displayReplaysFromSupplier(Supplier<CompletableFuture<List<Replay>>> mapsSupplier) {
+    currentPage = 1;
+    this.currentSupplier = mapsSupplier;
+    mapsSupplier.get()
+        .thenAccept(this::displaySearchResult)
+        .exceptionally(e -> {
+          notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
+              i18n.get("vault.replays.searchError"), Severity.ERROR, e,
+              Collections.singletonList(new DismissAction(i18n))));
+          enterShowroomState();
+          return null;
+        });
+  }
+
 }

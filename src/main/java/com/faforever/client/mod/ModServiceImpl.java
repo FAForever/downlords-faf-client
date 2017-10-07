@@ -425,10 +425,12 @@ public class ModServiceImpl implements ModService {
   }
 
   private void removeMod(Path path) {
+    logger.debug("Removing mod: {}", path);
     installedMods.remove(pathToMod.remove(path));
   }
 
   private void addMod(Path path) {
+    logger.debug("Adding mod: {}", path);
     try {
       Mod mod = extractModInfo(path);
       pathToMod.put(path, mod);

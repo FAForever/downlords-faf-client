@@ -12,6 +12,14 @@ faf-client:
    replayDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/replay_vault/replay.php?id=%s
    modDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/maps/%s.zip
 
+  website:
+      forgot-password-url: ${faf-client.website.base-url}/account/password/reset
+      create-account-url: ${faf-client.website.base-url}/account/register
+
+  api:
+      access-token-uri: ${faf-client.api.base-url}/oauth/token
+
+
   imgur:
     upload:
       clientId: 141ee8a7030f16d

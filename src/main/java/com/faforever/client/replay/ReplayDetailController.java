@@ -1,5 +1,6 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
@@ -24,6 +25,7 @@ import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.commons.io.Bytes;
 import javafx.application.Platform;
 import javafx.collections.ObservableMap;
+import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -33,8 +35,11 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -62,9 +67,11 @@ public class ReplayDetailController implements Controller<Node> {
   private final RatingService ratingService;
   private final MapService mapService;
   private final PlayerService playerService;
+  private final ClientProperties clientProperties;
   private final ReviewService reviewService;
   public Pane replayDetailRoot;
   public Label titleLabel;
+  public Button copyButton;
   public Label dateLabel;
   public Label timeLabel;
   public Label modLabel;
@@ -88,11 +95,13 @@ public class ReplayDetailController implements Controller<Node> {
   public Button watchButton;
   public TextField replayIdField;
   public ScrollPane scrollPane;
+  @Setter
+  private Runnable onClosure;
   private Replay replay;
 
   public ReplayDetailController(TimeService timeService, I18n i18n, UiService uiService, ReplayService replayService,
                                 RatingService ratingService, MapService mapService, PlayerService playerService,
-                                ReviewService reviewService) {
+                                ReviewService reviewService, ClientProperties clientProperties) {
     this.timeService = timeService;
     this.i18n = i18n;
     this.uiService = uiService;
@@ -101,6 +110,7 @@ public class ReplayDetailController implements Controller<Node> {
     this.mapService = mapService;
     this.playerService = playerService;
     this.reviewService = reviewService;
+    this.clientProperties = clientProperties;
   }
 
   public void initialize() {
@@ -126,6 +136,9 @@ public class ReplayDetailController implements Controller<Node> {
     moreInformationPane.setVisible(false);
 
     reviewsController.getRoot().setMaxSize(Integer.MAX_VALUE, Integer.MAX_VALUE);
+
+    copyButton.setText(i18n.get("replay.copyLink"));
+    onClosure = () -> ((Pane) replayDetailRoot.getParent()).getChildren().remove(replayDetailRoot);
   }
 
   public void setReplay(Replay replay) {
@@ -268,7 +281,7 @@ public class ReplayDetailController implements Controller<Node> {
   }
 
   public void onCloseButtonClicked() {
-    ((Pane) replayDetailRoot.getParent()).getChildren().remove(replayDetailRoot);
+    onClosure.run();
   }
 
   public void onDimmerClicked() {
@@ -281,5 +294,12 @@ public class ReplayDetailController implements Controller<Node> {
 
   public void onWatchButtonClicked() {
     replayService.runReplay(replay);
+  }
+
+  public void copyLink(ActionEvent actionEvent) {
+    final Clipboard clipboard = Clipboard.getSystemClipboard();
+    final ClipboardContent content = new ClipboardContent();
+    content.putString(Replay.getReplayUrl(replay.getId(), clientProperties.getVault().getReplayDownloadUrlFormat()));
+    clipboard.setContent(content);
   }
 }

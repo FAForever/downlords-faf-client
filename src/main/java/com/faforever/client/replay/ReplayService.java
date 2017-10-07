@@ -1,9 +1,11 @@
 package com.faforever.client.replay;
 
+
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public interface ReplayService {
@@ -22,13 +24,15 @@ public interface ReplayService {
 
   void runReplay(Integer replayId);
 
-  CompletableFuture<List<Replay>> getNewestReplays(int topElementCount);
+  CompletableFuture<List<Replay>> getNewestReplays(int topElementCount, int page);
 
-  CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount);
+  CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount, int page);
 
-  CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount);
+  CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount, int page);
 
-  CompletableFuture<List<Replay>> findByQuery(String condition, int maxResults);
+  CompletableFuture<List<Replay>> findByQuery(String condition, int maxResults, int page);
+
+  CompletableFuture<Optional<Replay>> findById(int id);
 
   CompletableFuture<Path> downloadReplay(int id);
 

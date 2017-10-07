@@ -142,7 +142,6 @@ public class ChatUserItemController implements Controller<Node> {
     avatarChangeListener = (observable, oldValue, newValue) -> Platform.runLater(() -> setAvatarUrl(newValue));
     clanChangeListener = (observable, oldValue, newValue) -> Platform.runLater(() -> setClanTag(newValue));
     gameStatusChangeListener = (observable, oldValue, newValue) -> Platform.runLater(this::updateGameStatus);
-    joinGameHelper.setParentNode(getRoot());
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {

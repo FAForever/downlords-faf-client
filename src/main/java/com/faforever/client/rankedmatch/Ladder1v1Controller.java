@@ -215,6 +215,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
 
     leaderboardService.getLadder1v1Stats()
         .thenAccept(ranked1v1Stats -> {
+          ranked1v1Stats.sort(Comparator.comparingInt(RatingStat::getRating));
           int totalPlayers = 0;
           for (RatingStat entry : ranked1v1Stats) {
             totalPlayers += entry.getCount();

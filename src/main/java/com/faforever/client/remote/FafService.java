@@ -102,11 +102,11 @@ public interface FafService {
 
   CompletableFuture<List<LeaderboardEntry>> getGlobalLeaderboard();
 
-  CompletableFuture<List<Replay>> getNewestReplays(int topElementCount);
+  CompletableFuture<List<Replay>> getNewestReplays(int topElementCount, int page);
 
-  CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount);
+  CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount, int page);
 
-  CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount);
+  CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount, int page);
 
   void uploadMod(Path modFile, ByteCountListener byteListener);
 
@@ -118,7 +118,7 @@ public interface FafService {
 
   void sendIceMessage(int remotePlayerId, Object message);
 
-  CompletableFuture<List<Replay>> findReplaysByQuery(String condition, int maxResults);
+  CompletableFuture<List<Replay>> findReplaysByQuery(String condition, int maxResults, int page);
 
   CompletableFuture<List<MapBean>> findMapsByQuery(String query, int page, int maxSearchResults);
 
@@ -141,4 +141,6 @@ public interface FafService {
   Optional<MapBean> findMapById(String id);
 
   CompletableFuture<Void> deleteMapVersionReview(Review review);
+
+  CompletableFuture<Optional<Replay>> findReplayById(int id);
 }

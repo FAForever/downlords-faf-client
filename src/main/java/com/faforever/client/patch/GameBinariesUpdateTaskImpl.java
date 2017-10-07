@@ -94,8 +94,8 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
     if (Files.exists(exePath)) {
       return;
     }
+    ResourceLocks.acquireDownloadLock();
     try {
-      ResourceLocks.acquireDownloadLock();
       logger.debug("Downloading {} to {}", fafExeUrl, exePath);
       URLConnection urlConnection = new URL(fafExeUrl).openConnection();
       try (InputStream inputStream = urlConnection.getInputStream();
