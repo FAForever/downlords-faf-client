@@ -287,7 +287,7 @@ public class PreferencesService {
   }
 
   private boolean isGamePathValid(Path binPath) {
-    return preferences.getForgedAlliance().getPath() != null
+    return binPath != null
         && (Files.isRegularFile(binPath.resolve(FORGED_ALLIANCE_EXE))
         || Files.isRegularFile(binPath.resolve(SUPREME_COMMANDER_EXE))
     );
@@ -299,13 +299,14 @@ public class PreferencesService {
 
   public void detectGamePath() {
     for (Path path : USUAL_GAME_PATHS) {
-      if (isGamePathValid(path)) {
+      if (isGamePathValid(path.resolve("bin"))) {
         onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(path));
         return;
       }
     }
 
     logger.info("Game path could not be detected");
+    // TODO the handler for this event (MissingGamePathNotifier) is not registered on startup at this point
     eventBus.post(MissingGamePathEvent.INSTANCE);
   }
 }
