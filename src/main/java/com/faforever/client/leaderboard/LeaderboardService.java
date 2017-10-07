@@ -8,6 +8,8 @@ import java.util.concurrent.CompletableFuture;
 public interface LeaderboardService {
   int MINIMUM_GAMES_PLAYED_TO_BE_SHOWN = 10;
 
+  int roundRatingToLowerHundred(double score);
+
   CompletableFuture<List<RatingStat>> getLadder1v1Stats();
 
   CompletableFuture<LeaderboardEntry> getEntryForPlayer(int playerId);
