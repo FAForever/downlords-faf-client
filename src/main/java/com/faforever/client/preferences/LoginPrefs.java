@@ -6,10 +6,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.extern.slf4j.Slf4j;
 
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -19,11 +15,7 @@ public class LoginPrefs {
   private static final String KEY;
 
   static {
-    try {
-      KEY = new String(NetworkInterface.getByInetAddress(InetAddress.getLocalHost()).getHardwareAddress(), StandardCharsets.US_ASCII);
-    } catch (SocketException | UnknownHostException e) {
-      throw new UnsupportedOperationException("No socket available");
-    }
+    KEY = System.getProperty("user.name");
   }
 
   private final StringProperty username;

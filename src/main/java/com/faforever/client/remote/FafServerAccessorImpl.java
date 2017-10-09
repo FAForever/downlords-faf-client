@@ -26,8 +26,11 @@ import com.faforever.client.remote.domain.AddFriendMessage;
 import com.faforever.client.remote.domain.AuthenticationFailedMessage;
 import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.AvatarMessage;
+import com.faforever.client.remote.domain.BanPlayerMessage;
 import com.faforever.client.remote.domain.ClientMessage;
 import com.faforever.client.remote.domain.ClientMessageType;
+import com.faforever.client.remote.domain.ClosePlayersFAMessage;
+import com.faforever.client.remote.domain.ClosePlayersLobbyMessage;
 import com.faforever.client.remote.domain.FafServerMessageType;
 import com.faforever.client.remote.domain.GameAccess;
 import com.faforever.client.remote.domain.GameLaunchMessage;
@@ -38,8 +41,10 @@ import com.faforever.client.remote.domain.JoinGameMessage;
 import com.faforever.client.remote.domain.ListPersonalAvatarsMessage;
 import com.faforever.client.remote.domain.LoginClientMessage;
 import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.remote.domain.MakeBroadcastMessage;
 import com.faforever.client.remote.domain.MessageTarget;
 import com.faforever.client.remote.domain.NoticeMessage;
+import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.remote.domain.RemoveFoeMessage;
 import com.faforever.client.remote.domain.RemoveFriendMessage;
@@ -340,6 +345,26 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   @Override
   public void selectAvatar(URL url) {
     writeToServer(new SelectAvatarMessage(url));
+  }
+
+  @Override
+  public void banPlayer(int playerId, int duration, PeriodType periodType, String reason) {
+    writeToServer(new BanPlayerMessage(playerId, reason, duration, periodType.name()));
+  }
+
+  @Override
+  public void closePlayersGame(int playerId) {
+    writeToServer(new ClosePlayersFAMessage(playerId));
+  }
+
+  @Override
+  public void closePlayersLobby(int playerId) {
+    writeToServer(new ClosePlayersLobbyMessage(playerId));
+  }
+
+  @Override
+  public void broadcastMessage(String message) {
+    writeToServer(new MakeBroadcastMessage(message));
   }
 
   @Override

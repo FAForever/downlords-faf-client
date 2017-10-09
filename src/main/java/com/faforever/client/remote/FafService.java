@@ -20,6 +20,7 @@ import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.replay.Replay;
 import com.faforever.client.vault.review.Review;
@@ -143,4 +144,12 @@ public interface FafService {
   CompletableFuture<Void> deleteMapVersionReview(Review review);
 
   CompletableFuture<Optional<Replay>> findReplayById(int id);
+
+  void banPlayer(int playerId, int duration, PeriodType periodType, String reason);
+
+  void closePlayersGame(int playerId);
+
+  void closePlayersLobby(int playerId);
+
+  void broadcastMessage(String message);
 }
