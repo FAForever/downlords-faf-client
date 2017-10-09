@@ -50,7 +50,7 @@ logging:
     com.nbarraille.jjsonrpc: warn
     org.pircbotx: warn
 
-    com.faforever.client.FafClientApplication: debug
+    com.faforever.client.FafClientApplication: info
     com.faforever.client.api: info
     com.faforever.client.connectivity: info
     com.faforever.client.preferences: info
@@ -61,12 +61,12 @@ logging:
     com.faforever.client.patch: info
     com.faforever.client.events: info
     com.faforever.client.legacy: info
-    com.faforever.client.remote: debug
-    com.faforever.client.replay: debug
+    com.faforever.client.remote: info
+    com.faforever.client.replay: info
     com.faforever.client.relay: info
     com.faforever.client.chat: info
     com.faforever.client.game: info
     com.faforever.client.task: info
     com.faforever.client.theme: info
-    com.faforever.client.io: debug
-    com.faforever.client.fa.relay.ice: debug
+    com.faforever.client.io: info
+    com.faforever.client.fa.relay.ice: info
