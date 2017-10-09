@@ -541,6 +541,7 @@ public class PircBotXChatService implements ChatService {
   @PreDestroy
   public void close() {
     // TODO clean up disconnect() and close()
+    identifiedLatch.countDown();
     if (connectionTask != null) {
       connectionTask.cancel();
     }
