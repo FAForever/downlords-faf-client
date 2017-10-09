@@ -768,7 +768,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     instance.connectionState.set(ConnectionState.CONNECTED);
 
     String md5sha256Password = Hashing.md5().hashString(Hashing.sha256().hashString(password, UTF_8).toString(), UTF_8).toString();
-    verify(outputIrc, timeout(100)).message("NickServ", String.format("register %s junit@users.faforever.com", md5sha256Password));
+    verify(outputIrc, timeout(100)).message("nickserv", String.format("register %s junit@users.faforever.com", md5sha256Password));
   }
 
   @Test
