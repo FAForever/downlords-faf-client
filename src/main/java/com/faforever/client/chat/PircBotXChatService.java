@@ -123,7 +123,8 @@ public class PircBotXChatService implements ChatService {
    */
   private List<String> autoChannels;
   /**
-   * Indicates whether the "auto channels" already have been joined. This is needed because we don't want to auto join channels after a reconnect that the user left before the reconnect.
+   * Indicates whether the "auto channels" already have been joined. This is needed because we don't want to auto join
+   * channels after a reconnect that the user left before the reconnect.
    */
   private boolean autoChannelsJoined;
 
@@ -140,7 +141,6 @@ public class PircBotXChatService implements ChatService {
     this.pircBotXFactory = pircBotXFactory;
     this.threadPoolExecutor = threadPoolExecutor;
     this.eventBus = eventBus;
-
 
     Irc irc = clientProperties.getIrc();
     this.ircHost = irc.getHost();
@@ -235,7 +235,10 @@ public class PircBotXChatService implements ChatService {
       if (containsIgnoreCase(message, config.getNickservOnSuccess()) || containsIgnoreCase(message, "registered under your account")) {
         onIdentified();
       } else if (message.contains("isn't registered")) {
-        sendMessageInBackground("NickServ", format("register %s %s@users.faforever.com", getPassword(), userService.getUsername()));
+        pircBotX.sendIRC().message(config.getNickservNick(), format("register %s %s@users.faforever.com", getPassword(), userService.getUsername()));
+      } else if (message.contains("choose a different nick")) {
+        // The server didn't accept our IDENTIFY command, well then, let's send a private message to nickserv manually
+        pircBotX.sendIRC().message(config.getNickservNick(), format("identify %s", getPassword()));
       }
     }
   }
