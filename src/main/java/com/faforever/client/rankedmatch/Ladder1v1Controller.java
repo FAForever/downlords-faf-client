@@ -162,6 +162,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
     setSearching(false);
   }
 
+  @Override
   public Node getRoot() {
     return ladder1v1Root;
   }
@@ -264,11 +265,10 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
 //    }
   }
 
-  @SuppressWarnings("unchecked")
   private void plotRatingDistributions(List<RatingStat> ratingStats, Player player) {
     XYChart.Series<String, Integer> series = new XYChart.Series<>();
     series.setName(i18n.get("ranked1v1.players", LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN));
-    int currentPlayerRating = leaderboardService.roundRatingToLowerHundred(RatingUtil.getLeaderboardRating(player));
+    int currentPlayerRating = RatingUtil.roundRatingToNextLowest100(RatingUtil.getLeaderboardRating(player));
 
     series.getData().addAll(ratingStats.stream()
         .sorted(Comparator.comparingInt(RatingStat::getRating))
@@ -292,14 +292,14 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
     final Node node = data.getNode();
     node.parentProperty().addListener((ov, oldParent, parent) -> {
       Group parentGroup = (Group) parent;
-     if(!parentGroup.getChildren().contains(nodeToAdd)){
-       parentGroup.getChildren().add(nodeToAdd);
-     }
+      if (!parentGroup.getChildren().contains(nodeToAdd)) {
+        parentGroup.getChildren().add(nodeToAdd);
+      }
     });
 
     node.boundsInParentProperty().addListener((ov, oldBounds, bounds) -> {
       nodeToAdd.setLayoutX(Math.round(bounds.getMinX() + bounds.getWidth() / 2 - nodeToAdd.prefWidth(-1) / 2));
-      nodeToAdd.setLayoutY( Math.round( bounds.getMinY() - nodeToAdd.prefHeight(-1) * 0.5));
+      nodeToAdd.setLayoutY(Math.round(bounds.getMinY() - nodeToAdd.prefHeight(-1) * 0.5));
     });
   }
 }

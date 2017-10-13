@@ -48,23 +48,6 @@ public class LeaderboardServiceImplTest {
   }
 
   @Test
-  public void testRoundRatings() {
-    assertThat(instance.roundRatingToLowerHundred(99.99), is(0));
-    assertThat(instance.roundRatingToLowerHundred(0.0), is(0));
-    assertThat(instance.roundRatingToLowerHundred(42.0), is(0));
-
-
-    assertThat(instance.roundRatingToLowerHundred(-99.99), is(-100));
-    assertThat(instance.roundRatingToLowerHundred(-1), is(-100));
-    assertThat(instance.roundRatingToLowerHundred(-100.1), is(-200));
-
-    assertThat(instance.roundRatingToLowerHundred(199.99), is(100));
-    assertThat(instance.roundRatingToLowerHundred(242), is(200));
-    assertThat(instance.roundRatingToLowerHundred(2000.1), is(2000));
-    assertThat(instance.roundRatingToLowerHundred(2099.9), is(2000));
-  }
-
-  @Test
   public void testGetLadder1v1Stats() throws Exception {
     LeaderboardEntry leaderboardEntry1 = new LeaderboardEntry();
     leaderboardEntry1.setRating(151);
@@ -98,18 +81,18 @@ public class LeaderboardServiceImplTest {
   }
 
   @Test
-  public void  testStatsOnlyShowsPlayersWithEnoughGamesPlayed() throws Exception {
+  public void testStatsOnlyShowsPlayersWithEnoughGamesPlayed() throws Exception {
     LeaderboardEntry leaderboardEntry1 = new LeaderboardEntry();
     leaderboardEntry1.setRating(151);
     leaderboardEntry1.setGamesPlayed(LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN);
 
     LeaderboardEntry leaderboardEntry2 = new LeaderboardEntry();
     leaderboardEntry2.setRating(121);
-    leaderboardEntry2.setGamesPlayed(LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN -1);
+    leaderboardEntry2.setGamesPlayed(LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN - 1);
 
     LeaderboardEntry leaderboardEntry3 = new LeaderboardEntry();
     leaderboardEntry3.setRating(221);
-    leaderboardEntry3.setGamesPlayed(LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN -1);
+    leaderboardEntry3.setGamesPlayed(LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN - 1);
 
     when(fafService.getLadder1v1Leaderboard()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
         leaderboardEntry1, leaderboardEntry2, leaderboardEntry3

@@ -1,13 +1,17 @@
 package com.faforever.client.util;
 
 import com.faforever.client.domain.RatingHistoryDataPoint;
-
 import com.faforever.client.player.Player;
 
 public final class RatingUtil {
 
   private RatingUtil() {
     // Utility class
+  }
+
+  public static int roundRatingToNextLowest100(double rating) {
+    double ratingToBeRounded = rating < 0 ? rating - 100 : rating;
+    return (int) (ratingToBeRounded / 100) * 100;
   }
 
   public static int getRoundedGlobalRating(Player player) {

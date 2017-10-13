@@ -3,6 +3,7 @@ package com.faforever.client.leaderboard;
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.util.RatingUtil;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -27,19 +28,11 @@ public class LeaderboardServiceImpl implements LeaderboardService {
   }
 
   @Override
-  public int roundRatingToLowerHundred(double rating) {
-    if(rating < 0 ){
-      rating -= 100;
-    }
-    return (int)rating / 100 * 100;
-  }
-
-  @Override
   public CompletableFuture<List<RatingStat>> getLadder1v1Stats() {
     return fafService.getLadder1v1Leaderboard().thenApply(this::toRatingStats);
   }
 
-  private List<RatingStat> toRatingStats(List<LeaderboardEntry> entries){
+  private List<RatingStat> toRatingStats(List<LeaderboardEntry> entries) {
     Map<Integer, Long> totalCount = countByRating(entries.stream());
     Map<Integer, Long> countWithoutFewGames = countByRating(entries.stream()
         .filter(entry -> entry.gamesPlayedProperty().get() >= MINIMUM_GAMES_PLAYED_TO_BE_SHOWN));
@@ -52,8 +45,9 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         .collect(Collectors.toList());
   }
 
-  private Map<Integer, Long> countByRating(Stream<LeaderboardEntry> entries){
-    return entries.collect(Collectors.groupingBy(leaderboardEntry -> roundRatingToLowerHundred(leaderboardEntry.getRating()), Collectors.counting()));
+  private Map<Integer, Long> countByRating(Stream<LeaderboardEntry> entries) {
+    return entries.collect(Collectors.groupingBy(leaderboardEntry ->
+        RatingUtil.roundRatingToNextLowest100(leaderboardEntry.getRating()), Collectors.counting()));
   }
 
   @Override
