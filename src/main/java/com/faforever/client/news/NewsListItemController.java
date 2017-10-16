@@ -33,11 +33,6 @@ public class NewsListItemController implements Controller<Node> {
     this.uiService = uiService;
   }
 
-  public void initialize() {
-    // TODO only use this if there's no thumbnail. However, there's never a thumbnail ATM.
-    imageView.setImage(uiService.getThemeImage(newsItem.getNewsCategory().getImagePath()));
-  }
-
   @Override
   public Node getRoot() {
     return newsItemRoot;
@@ -49,6 +44,9 @@ public class NewsListItemController implements Controller<Node> {
 
   public void setNewsItem(NewsItem newsItem) {
     this.newsItem = newsItem;
+
+    // TODO only use this if there's no thumbnail. However, there's never a thumbnail ATM.
+    imageView.setImage(uiService.getThemeImage(newsItem.getNewsCategory().getImagePath()));
 
     titleLabel.setText(newsItem.getTitle());
     authoredLabel.setText(i18n.get("news.authoredFormat", newsItem.getAuthor(), newsItem.getDate()));
