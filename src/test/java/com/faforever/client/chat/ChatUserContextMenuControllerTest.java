@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.admin.AdminService;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.game.Game;
@@ -74,6 +75,8 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   private JoinGameHelper joinGameHelper;
   @Mock
   private AvatarService avatarService;
+  @Mock
+  private AdminService adminService;
 
   private ChatUserContextMenuController instance;
   private Player player;
@@ -81,7 +84,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     instance = new ChatUserContextMenuController(userService, chatService, preferencesService, playerService, gameService,
-        replayService, notificationService, i18n, eventBus, joinGameHelper, avatarService, uiService);
+        replayService, notificationService, i18n, eventBus, joinGameHelper, avatarService, uiService, adminService);
 
     Preferences preferences = mock(Preferences.class);
     ChatPrefs chatPrefs = mock(ChatPrefs.class);

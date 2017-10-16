@@ -32,6 +32,7 @@ import com.faforever.client.remote.domain.GameEndedMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.IceMessage;
 import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.replay.Replay;
 import com.faforever.client.vault.review.Review;
@@ -449,6 +450,26 @@ public class FafServiceImpl implements FafService {
   public CompletableFuture<Optional<Replay>> findReplayById(int id) {
     return CompletableFuture.completedFuture(fafApiAccessor.findReplayById(id)
         .map(Replay::fromDto));
+  }
+
+  @Override
+  public void banPlayer(int playerId, int duration, PeriodType periodType, String reason) {
+    fafServerAccessor.banPlayer(playerId, duration, periodType, reason);
+  }
+
+  @Override
+  public void closePlayersGame(int playerId) {
+    fafServerAccessor.closePlayersGame(playerId);
+  }
+
+  @Override
+  public void closePlayersLobby(int playerId) {
+    fafServerAccessor.closePlayersLobby(playerId);
+  }
+
+  @Override
+  public void broadcastMessage(String message) {
+    fafServerAccessor.broadcastMessage(message);
   }
 
   @Override
