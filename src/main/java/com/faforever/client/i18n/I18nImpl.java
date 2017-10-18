@@ -58,6 +58,11 @@ public class I18nImpl implements I18n {
   }
 
   @Override
+  public String numberWithSign(int number) {
+    return String.format(userSpecificLocale, "%+d", number);
+  }
+
+  @Override
   public String number(double number) {
     return String.format(userSpecificLocale, "%f", number);
   }

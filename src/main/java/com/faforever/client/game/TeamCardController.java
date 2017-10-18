@@ -5,12 +5,14 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.replay.Replay.PlayerStats;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Rating;
 import com.faforever.client.util.RatingUtil;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -18,6 +20,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -32,11 +35,14 @@ public class TeamCardController implements Controller<Node> {
   public Pane teamPaneRoot;
   public VBox teamPane;
   public Label teamNameLabel;
+  private final Map<Integer, RatingChangeLabelController> ratingChangeControllersByPlayerId;
+
 
   @Inject
   public TeamCardController(UiService uiService, I18n i18n) {
     this.uiService = uiService;
     this.i18n = i18n;
+    ratingChangeControllersByPlayerId = new HashMap<>();
   }
 
   /**
@@ -67,8 +73,10 @@ public class TeamCardController implements Controller<Node> {
       }
       PlayerCardTooltipController playerCardTooltipController = uiService.loadFxml("theme/player_card_tooltip.fxml");
       playerCardTooltipController.setPlayer(player);
-
-      teamPane.getChildren().add(playerCardTooltipController.getRoot());
+      RatingChangeLabelController ratingChangeLabelController = uiService.loadFxml("theme/rating_change_label.fxml");
+      ratingChangeControllersByPlayerId.put(player.getId(), ratingChangeLabelController);
+      HBox container = new HBox(playerCardTooltipController.getRoot(), ratingChangeLabelController.getRoot());
+      teamPane.getChildren().add(container);
       totalRating += RatingUtil.getRating(ratingProvider.apply(player));
     }
 
@@ -81,6 +89,13 @@ public class TeamCardController implements Controller<Node> {
       teamTitle = i18n.get("game.tooltip.teamTitle", Integer.valueOf(team) - 1, totalRating);
     }
     teamNameLabel.setText(teamTitle);
+  }
+
+  public void showRatingChange(Map<String, List<PlayerStats>> teams) {
+    teams.values().stream()
+        .flatMap(List::stream)
+        .filter(playerStats -> ratingChangeControllersByPlayerId.containsKey(playerStats.getPlayerId()))
+        .forEach(playerStats -> ratingChangeControllersByPlayerId.get(playerStats.getPlayerId()).setRatingChange(playerStats));
   }
 
   public Node getRoot() {

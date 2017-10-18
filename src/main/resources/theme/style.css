@@ -21,6 +21,9 @@
   -fx-font-family: 'Open Sans';
   -fx-font-size: 14px;
   -fx-disabled-opacity: 0.8;
+  /*Rating changed text color*/
+  -positive-label-color: -swatch-green-700;
+  -negative-label-color: -swatch-red-700;
 
   -base-color: -swatch-grey-900;
   -accent-color: -swatch-green-500;
@@ -1590,6 +1593,19 @@
 .game-card-title {
   -fx-font-weight: bold;
   -fx-font-size: 1.2em;
+}
+
+/*****************Rating change*****************/
+.rating-change-label {
+  -fx-font-size: 9px;
+}
+
+.rating-change-label:positive {
+  -fx-text-fill: -positive-label-color;
+}
+
+.rating-change-label:negative {
+  -fx-text-fill: -negative-label-color;
 }
 
 /***************** Review *****************/

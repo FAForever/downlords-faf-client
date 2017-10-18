@@ -12,6 +12,8 @@ public interface I18n {
 
   String number(int number);
 
+  String numberWithSign(int number);
+
   String number(double number);
 
   String rounded(double number, int digits);

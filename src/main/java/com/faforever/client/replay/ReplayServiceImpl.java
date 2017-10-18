@@ -328,6 +328,12 @@ public class ReplayServiceImpl implements ReplayService {
         .getContentLength()));
   }
 
+  @Override
+  public boolean replayChangedRating(Replay replay) {
+    return replay.getTeamPlayerStats().values().stream()
+        .flatMap(Collection::stream)
+        .anyMatch(playerStats -> playerStats.getAfterMean() != null && playerStats.getAfterDeviation() != null);
+  }
 
   @SneakyThrows
   private void runReplayFile(Path path) {

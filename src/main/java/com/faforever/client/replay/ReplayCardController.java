@@ -88,7 +88,7 @@ public class ReplayCardController implements Controller<Node> {
     qualityLabel.setText(i18n.number((int) ((ratingService.calculateQuality(replay) * 10) / 10)));
     replay.getTeamPlayerStats().values().stream()
         .flatMapToInt(playerStats -> playerStats.stream()
-            .mapToInt(stats -> RatingUtil.getRating(stats.getMean(), stats.getDeviation())))
+            .mapToInt(stats -> RatingUtil.getRating(stats.getBeforeMean(), stats.getBeforeDeviation())))
         .average()
         .ifPresent(averageRating -> ratingLabel.setText(i18n.number((int) averageRating)));
 

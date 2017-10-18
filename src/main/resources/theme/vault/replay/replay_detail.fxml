@@ -17,7 +17,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="replayDetailRoot" onMouseClicked="#onDimmerClicked"
-            styleClass="dimmer" xmlns="http://javafx.com/javafx/8.0.112"
+            styleClass="dimmer" xmlns="http://javafx.com/javafx/8.0.121"
             fx:controller="com.faforever.client.replay.ReplayDetailController">
    <children>
        <AnchorPane onMouseClicked="#onContentPaneClicked" styleClass="modal-popup" AnchorPane.bottomAnchor="50.0"
@@ -106,12 +106,12 @@
                                <Label fx:id="onMapLabel" styleClass="secondary" text="&lt;OnMap&gt;"
                                       GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="1"
                                       GridPane.valignment="TOP"/>
-                               <VBox alignment="TOP_RIGHT" prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="1"
+                               <VBox alignment="TOP_RIGHT" prefWidth="100.0" GridPane.columnIndex="1"
                                      GridPane.columnSpan="2147483647">
                                    <children>
                                        <TextField fx:id="replayIdField" alignment="CENTER_RIGHT" editable="false"
                                                   maxWidth="100.0" promptText="&lt;ReplayID&gt;" text="#123456789"/>
-                                       <Button fx:id="copyButton" onAction="#copyLink" contentDisplay="RIGHT"
+                                       <Button fx:id="copyButton" onAction="#copyLink"
                                                prefHeight="25.0" text="Copy link for chat"/>
                                    </children>
                                </VBox>
@@ -121,7 +121,14 @@
                            </VBox.margin>
                         </GridPane>
                          <Separator maxWidth="1.7976931348623157E308"/>
-                         <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%game.lineUp"/>
+                         <HBox>
+                             <children>
+                                 <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%game.lineUp"
+                                        HBox.hgrow="ALWAYS"/>
+                                 <Button fx:id="showRatingChangeButton" alignment="CENTER" mnemonicParsing="false"
+                                         onAction="#showRatingChange" text="%game.showRatingChange"/>
+                             </children>
+                         </HBox>
                          <HBox fx:id="teamsContainer" alignment="TOP_CENTER" spacing="20.0"/>
                          <Separator fx:id="ratingSeparator" layoutX="10.0" layoutY="251.0"
                                     maxWidth="1.7976931348623157E308"/>

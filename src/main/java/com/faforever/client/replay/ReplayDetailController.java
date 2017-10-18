@@ -1,5 +1,6 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.api.dto.Validity;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
@@ -25,7 +26,6 @@ import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.commons.io.Bytes;
 import javafx.application.Platform;
 import javafx.collections.ObservableMap;
-import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -48,6 +48,7 @@ import org.springframework.util.Assert;
 
 import java.time.Duration;
 import java.time.temporal.Temporal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -95,9 +96,12 @@ public class ReplayDetailController implements Controller<Node> {
   public Button watchButton;
   public TextField replayIdField;
   public ScrollPane scrollPane;
+  public Button showRatingChangeButton;
   @Setter
   private Runnable onClosure;
   private Replay replay;
+  private ArrayList<TeamCardController> teamCardControllers = new ArrayList<>();
+  private ObservableMap<String, List<PlayerStats>> teams;
 
   public ReplayDetailController(TimeService timeService, I18n i18n, UiService uiService, ReplayService replayService,
                                 RatingService ratingService, MapService mapService, PlayerService playerService,
@@ -171,7 +175,7 @@ public class ReplayDetailController implements Controller<Node> {
     qualityLabel.setText(i18n.number((int) ((ratingService.calculateQuality(replay) * 10) / 10)));
     replay.getTeamPlayerStats().values().stream()
         .flatMapToInt(playerStats -> playerStats.stream()
-            .mapToInt(stats -> RatingUtil.getRating(stats.getMean(), stats.getDeviation())))
+            .mapToInt(stats -> RatingUtil.getRating(stats.getBeforeMean(), stats.getBeforeDeviation())))
         .average()
         .ifPresent(averageRating -> ratingLabel.setText(i18n.number((int) averageRating)));
 
@@ -202,8 +206,8 @@ public class ReplayDetailController implements Controller<Node> {
     // These items are initially empty but will be populated in #onDownloadMoreInfoClicked()
     optionsTable.setItems(replay.getGameOptions());
     chatTable.setItems(replay.getChatMessages());
-
-    populateTeamsContainer(replay.getTeamPlayerStats());
+    teams = replay.getTeamPlayerStats();
+    populateTeamsContainer();
   }
 
   private void onDeleteReview(Review review) {
@@ -254,21 +258,30 @@ public class ReplayDetailController implements Controller<Node> {
         });
   }
 
-  private void populateTeamsContainer(ObservableMap<String, List<PlayerStats>> teams) {
+  private void populateTeamsContainer() {
+    if (!replay.getValidity().equals(Validity.VALID)) {
+      showRatingChangeButton.setDisable(true);
+      showRatingChangeButton.setText(i18n.get("game.notValid"));
+    } else if (!replayService.replayChangedRating(replay)) {
+      showRatingChangeButton.setDisable(true);
+      showRatingChangeButton.setText(i18n.get("game.notRatedYet"));
+    }
     Map<Integer, PlayerStats> statsByPlayerId = teams.values().stream()
         .flatMap(Collection::stream)
         .collect(Collectors.toMap(PlayerStats::getPlayerId, Function.identity()));
 
-    Platform.runLater(() -> teams.forEach((key, value) -> {
+    Platform.runLater(() -> teams.forEach((team, value) -> {
       List<Integer> playerIds = value.stream()
           .map(PlayerStats::getPlayerId)
           .collect(Collectors.toList());
 
+
       TeamCardController controller = uiService.loadFxml("theme/team_card.fxml");
+      teamCardControllers.add(controller);
       playerService.getPlayersByIds(playerIds)
-          .thenAccept(players -> controller.setPlayersInTeam(key, players, player -> {
+          .thenAccept(players -> controller.setPlayersInTeam(team, players, player -> {
             PlayerStats playerStats = statsByPlayerId.get(player.getId());
-            return new Rating(playerStats.getMean(), playerStats.getDeviation());
+            return new Rating(playerStats.getBeforeMean(), playerStats.getBeforeDeviation());
           }));
 
       teamsContainer.getChildren().add(controller.getRoot());
@@ -296,10 +309,16 @@ public class ReplayDetailController implements Controller<Node> {
     replayService.runReplay(replay);
   }
 
-  public void copyLink(ActionEvent actionEvent) {
+
+  public void copyLink() {
     final Clipboard clipboard = Clipboard.getSystemClipboard();
     final ClipboardContent content = new ClipboardContent();
     content.putString(Replay.getReplayUrl(replay.getId(), clientProperties.getVault().getReplayDownloadUrlFormat()));
     clipboard.setContent(content);
+  }
+
+  public void showRatingChange() {
+    teamCardControllers.forEach(teamCardController -> teamCardController.showRatingChange(teams));
+    showRatingChangeButton.setVisible(false);
   }
 }
