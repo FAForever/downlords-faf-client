@@ -15,6 +15,7 @@ public class Player {
   @Id
   private String id;
   private String login;
+  private String userAgent;
 
   @Relationship("globalRating")
   private GlobalRating globalRating;

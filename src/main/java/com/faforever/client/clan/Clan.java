@@ -1,10 +1,8 @@
 package com.faforever.client.clan;
 
 import com.faforever.client.player.Player;
-import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -17,7 +15,7 @@ import java.util.stream.Collectors;
 
 public class Clan {
 
-  private final IntegerProperty id;
+  private final StringProperty id;
   private final StringProperty description;
   private final ObjectProperty<Player> founder;
   private final ObjectProperty<Player> leader;
@@ -29,7 +27,7 @@ public class Clan {
   private final ObjectProperty<Instant> createTime;
 
   public Clan() {
-    id = new SimpleIntegerProperty();
+    id = new SimpleStringProperty();
     description = new SimpleStringProperty();
     founder = new SimpleObjectProperty<>();
     leader = new SimpleObjectProperty<>();
@@ -51,21 +49,22 @@ public class Clan {
     clan.setCreateTime(dto.getCreateTime().toInstant());
     clan.setTag(dto.getTag());
     clan.setTagColor(dto.getTagColor());
+    clan.setWebsiteUrl(dto.getWebsiteUrl());
     clan.membersProperty().setAll(dto.getMemberships().stream()
         .map(membership -> Player.fromDto(membership.getPlayer()))
         .collect(Collectors.toList()));
     return clan;
   }
 
-  public int getId() {
+  public String getId() {
     return id.get();
   }
 
-  public void setId(int id) {
+  public void setId(String id) {
     this.id.set(id);
   }
 
-  public IntegerProperty idProperty() {
+  public StringProperty idProperty() {
     return id;
   }
 

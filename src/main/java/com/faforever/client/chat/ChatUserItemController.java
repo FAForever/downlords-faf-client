@@ -15,6 +15,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.StageHolder;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -91,6 +92,7 @@ public class ChatUserItemController implements Controller<Node> {
   private ChangeListener<String> clanChangeListener;
   private ChangeListener<PlayerStatus> gameStatusChangeListener;
   private InvalidationListener userActivityListener;
+  private ClanTooltipController clanTooltipController;
 
   @Inject
   // TODO reduce dependencies, rely on eventBus instead
@@ -360,9 +362,10 @@ public class ChatUserItemController implements Controller<Node> {
 
   public void onMouseEnteredClanTag() {
     clanService.getClanByTag(player.getClan()).thenAccept(optionalClan -> {
-      if (!optionalClan.isPresent() || clanMenu.getTooltip() != null) {
+      if (!optionalClan.isPresent()) {
         return;
       }
+
       clanMenu.getItems().clear();
 
       Clan clan = optionalClan.get();
@@ -372,19 +375,26 @@ public class ChatUserItemController implements Controller<Node> {
         clanMenu.getItems().add(messageLeaderItem);
       }
 
-      Tooltip clanTooltip = new Tooltip();
-      clanMenu.setTooltip(clanTooltip);
-      ClanTooltipController clanTooltipController = uiService.loadFxml("theme/chat/clan_tooltip.fxml");
-      clanTooltipController.setClan(clan);
-      clanTooltip.setMaxHeight(clanTooltipController.getRoot().getHeight());
-      clanTooltip.setGraphic(clanTooltipController.getRoot());
-
       MenuItem visitClanPageAction = new MenuItem(i18n.get("clan.visitPage"));
       visitClanPageAction.setOnAction(event -> {
         platformService.showDocument(clan.getWebsiteUrl());
         // TODO: Could be viewed in clan section (if implemented)
       });
       clanMenu.getItems().add(visitClanPageAction);
+
+      if (clanMenu.getTooltip() != null) {
+        clanTooltipController.setClan(clan);
+        return;
+      }
+
+      Tooltip clanTooltip = new Tooltip();
+      clanTooltipController = uiService.loadFxml("theme/chat/clan_tooltip.fxml");
+      clanTooltip.setMaxHeight(clanTooltipController.getRoot().getHeight());
+      clanTooltip.setGraphic(clanTooltipController.getRoot());
+      clanTooltipController.setClan(clan);
+      clanMenu.setTooltip(clanTooltip);
+      clanTooltip.show(StageHolder.getStage());
+
     });
   }
 }

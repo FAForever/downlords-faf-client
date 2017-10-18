@@ -6,7 +6,7 @@
 <?import javafx.scene.text.Font?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.clan.ClanTooltipController"
       fx:id="clanTooltipRoot"
-      maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+      maxHeight="600" maxWidth="300" minHeight="-Infinity" minWidth="-Infinity"
       xmlns="http://javafx.com/javafx/8">
     <children>
         <Label text="%clan.clanName" underline="true">
@@ -21,13 +21,13 @@
             </font>
         </Label>
         <Label fx:id="membersLabel"/>
-        <Label text="%clan.description" underline="true">
+        <Label fx:id="descriptionTitleLabel" text="%clan.description" underline="true">
             <font>
                 <Font size="9.0"/>
             </font>
         </Label>
-        <Label fx:id="descriptionLabel"/>
-        <Label text="%clan.leader" underline="true" wrapText="true">
+        <Label fx:id="descriptionLabel" maxWidth="300" wrapText="true"/>
+        <Label text="%clan.leader" underline="true">
             <font>
                 <Font size="9.0"/>
             </font>
