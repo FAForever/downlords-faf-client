@@ -139,11 +139,7 @@ public class PreferencesService {
       Files.copy(getClass().getResourceAsStream("/game.prefs"), gamePrefs);
     }
 
-    Path path = preferences.getForgedAlliance().getPath();
-    if (path == null || Files.notExists(path)) {
-      logger.info("Game path is not specified or non-existent, trying to detect");
-      detectGamePath();
-    }
+    // no need to try to detect the game path here, the corresponding handlers are not initialized yet
   }
 
   public static void configureLogging() {
@@ -306,7 +302,6 @@ public class PreferencesService {
     }
 
     logger.info("Game path could not be detected");
-    // TODO the handler for this event (MissingGamePathNotifier) is not registered on startup at this point
     eventBus.post(MissingGamePathEvent.INSTANCE);
   }
 }
