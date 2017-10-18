@@ -2,6 +2,7 @@ package com.faforever.client.replay;
 
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
+import com.faforever.client.api.dto.Validity;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.vault.review.Review;
@@ -48,6 +49,7 @@ public class Replay {
   private final ListProperty<ChatMessage> chatMessages;
   private final ListProperty<GameOption> gameOptions;
   private final ListProperty<Review> reviews;
+  private final ObjectProperty<Validity> validity;
 
   public Replay(String title) {
     this();
@@ -69,6 +71,7 @@ public class Replay {
     gameOptions = new SimpleListProperty<>(FXCollections.observableArrayList());
     reviews = new SimpleListProperty<>(FXCollections.observableArrayList(param
         -> new Observable[]{param.scoreProperty(), param.textProperty()}));
+    validity = new SimpleObjectProperty<>();
   }
 
   public Replay(LocalReplayInfo replayInfo, Path replayFile, FeaturedMod featuredMod, MapBean mapBean) {
@@ -97,6 +100,7 @@ public class Replay {
     replay.setTeams(teams(dto));
     replay.setTeamPlayerStats(teamPlayerStats(dto));
     replay.getReviews().setAll(reviews(dto));
+    replay.setValidity(dto.getValidity());
     return replay;
   }
 
@@ -126,9 +130,20 @@ public class Replay {
     return teams;
   }
 
-
   public static String getReplayUrl(int replayId, String baseUrlFormat) {
     return String.format(baseUrlFormat, replayId);
+  }
+
+  public Validity getValidity() {
+    return validity.get();
+  }
+
+  public void setValidity(Validity validity) {
+    this.validity.set(validity);
+  }
+
+  public ObjectProperty<Validity> validityProperty() {
+    return validity;
   }
 
   public Path getReplayFile() {
@@ -366,14 +381,20 @@ public class Replay {
   @Data
   public static class PlayerStats {
     private final int playerId;
-    private final double mean;
-    private final double deviation;
+    private final double beforeMean;
+    private final double beforeDeviation;
+    private final Double afterMean;
+    private final Double afterDeviation;
+    private final int score;
 
     public static PlayerStats fromDto(GamePlayerStats gamePlayerStats) {
       return new PlayerStats(
           Integer.valueOf(gamePlayerStats.getPlayer().getId()),
           gamePlayerStats.getBeforeMean(),
-          gamePlayerStats.getBeforeDeviation()
+          gamePlayerStats.getBeforeDeviation(),
+          gamePlayerStats.getAfterMean() == null ? null : Double.valueOf(gamePlayerStats.getAfterMean()),
+          gamePlayerStats.getAfterDeviation() == null ? null : Double.valueOf(gamePlayerStats.getAfterDeviation()),
+          gamePlayerStats.getScore()
       );
     }
   }

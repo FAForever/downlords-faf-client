@@ -34,7 +34,7 @@ public class JSkillsRatingService implements RatingService {
         .map(players -> {
           Team team = new Team();
           players.forEach(stats -> team.addPlayer(
-              new jskills.Player<>(stats.getPlayerId()), new Rating(stats.getMean(), stats.getDeviation())
+              new jskills.Player<>(stats.getPlayerId()), new Rating(stats.getBeforeMean(), stats.getBeforeDeviation())
           ));
           return team;
         })

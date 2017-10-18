@@ -42,4 +42,6 @@ public interface ReplayService {
   void enrich(Replay replay, Path path);
 
   CompletableFuture<Integer> getSize(int id);
+
+  boolean replayChangedRating(Replay replay);
 }

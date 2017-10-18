@@ -1,5 +1,6 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.api.dto.Validity;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.i18n.I18n;
@@ -100,6 +101,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void setReplay() throws Exception {
     Replay replay = new Replay();
+    replay.setValidity(Validity.VALID);
     replay.setFeaturedMod(new FeaturedMod());
     replay.getReviews().setAll(FXCollections.emptyObservableList());
     when(replayService.getSize(replay.getId())).thenReturn(CompletableFuture.completedFuture(1024));
@@ -114,6 +116,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     Review review = new Review();
     review.setPlayer(new Player("junit"));
     replay.getReviews().setAll(FXCollections.observableArrayList(review));
+    replay.setValidity(Validity.VALID);
 
     replay.setFeaturedMod(new FeaturedMod());
     instance.setReplay(replay);
