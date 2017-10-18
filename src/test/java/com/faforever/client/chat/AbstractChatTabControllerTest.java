@@ -132,7 +132,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     preferences = new Preferences();
 
     Clan clan = new Clan();
-    clan.setId(1234);
+    clan.setId("1234");
     Vault vault = new Vault();
     vault.setReplayDownloadUrlFormat(TEST_REPLAY_BASE_URL);
 
@@ -233,7 +233,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testShowClanWebsite() throws Exception {
     Clan clan = new Clan();
-    clan.setId(1234);
+    clan.setId("1234");
     clan.setWebsiteUrl("http://example.com");
     instance.showClanWebsite(sampleClanTag);
 

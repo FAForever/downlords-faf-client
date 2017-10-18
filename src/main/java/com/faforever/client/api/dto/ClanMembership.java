@@ -11,7 +11,7 @@ import java.time.OffsetDateTime;
 @Type("clanMembership")
 public class ClanMembership {
   @Id
-  private int id;
+  private String id;
   private OffsetDateTime createTime;
   private OffsetDateTime updateTime;
 

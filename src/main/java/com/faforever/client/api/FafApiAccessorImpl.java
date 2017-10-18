@@ -389,7 +389,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   public Optional<Clan> getClanByTag(String tag) {
     List<Clan> clans = getMany("/data/clan", 1, ImmutableMap.of(
-        "include", "leader",
+        "include", "leader,founder,memberships,memberships.player",
         "filter", rsql(qBuilder().string("tag").eq(tag))
     ));
     if (clans.isEmpty()) {

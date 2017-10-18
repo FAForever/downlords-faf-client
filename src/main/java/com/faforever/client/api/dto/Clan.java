@@ -12,16 +12,20 @@ import java.util.List;
 @Type("clan")
 public class Clan {
   @Id
-  private int id;
+  private String id;
   private String name;
   private String tag;
-  private Player founder;
-  private Player leader;
   private String description;
   private String tagColor;
   private String websiteUrl;
   private OffsetDateTime createTime;
   private OffsetDateTime updateTime;
+
+  @Relationship("founder")
+  private Player founder;
+
+  @Relationship("leader")
+  private Player leader;
 
   @Relationship("memberships")
   private List<ClanMembership> memberships;

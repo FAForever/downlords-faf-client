@@ -2,6 +2,7 @@ package com.faforever.client.clan;
 
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.i18n.I18n;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
@@ -20,16 +21,24 @@ public class ClanTooltipController implements Controller<Node> {
   public Label descriptionLabel;
   public Label membersLabel;
   public Label leaderLabel;
+  public Label descriptionTitleLabel;
+  private final I18n i18n;
 
   public void initialize() {
     descriptionLabel.managedProperty().bind(descriptionLabel.visibleProperty());
+    descriptionTitleLabel.managedProperty().bind(descriptionTitleLabel.visibleProperty());
     descriptionLabel.visibleProperty().bind(descriptionLabel.textProperty().isNotEmpty());
+    descriptionTitleLabel.visibleProperty().bind(descriptionLabel.textProperty().isNotEmpty());
+  }
+
+  public ClanTooltipController(I18n i18n) {
+    this.i18n = i18n;
   }
 
   public void setClan(Clan clan) {
     nameLabel.setText(clan.getName());
     // TODO improve formatting
-    membersLabel.setText(clan.getMembers().toString());
+    membersLabel.setText(i18n.number(clan.getMembers().size()));
     descriptionLabel.setText(clan.getDescription());
     leaderLabel.setText(clan.getLeader().getUsername());
     descriptionLabel.setText(Optional.ofNullable(clan.getDescription()).orElse(""));
