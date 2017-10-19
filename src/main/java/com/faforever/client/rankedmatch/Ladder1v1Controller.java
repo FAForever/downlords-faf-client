@@ -10,8 +10,10 @@ import com.faforever.client.leaderboard.RatingStat;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -63,6 +65,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
   private final LeaderboardService leaderboardService;
   private final I18n i18n;
   private final ClientProperties clientProperties;
+  private EventBus eventBus;
 
   public CategoryAxis ratingDistributionXAxis;
   public NumberAxis ratingDistributionYAxis;
@@ -97,13 +100,15 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
                              PreferencesService preferencesService,
                              PlayerService playerService,
                              LeaderboardService leaderboardService,
-                             I18n i18n, ClientProperties clientProperties) {
+                             I18n i18n, ClientProperties clientProperties,
+                             EventBus eventBus) {
     this.gameService = gameService;
     this.preferencesService = preferencesService;
     this.playerService = playerService;
     this.leaderboardService = leaderboardService;
     this.i18n = i18n;
     this.clientProperties = clientProperties;
+    this.eventBus = eventBus;
 
     random = new Random();
 
@@ -169,7 +174,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
 
   public void onPlayButtonClicked() {
     if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
-      // FIXME implement user notification
+      eventBus.post(new MissingGamePathEvent(true));
       return;
     }
 

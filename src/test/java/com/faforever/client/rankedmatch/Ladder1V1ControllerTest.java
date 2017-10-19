@@ -12,7 +12,9 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Ladder1v1Prefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -33,6 +35,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -61,13 +64,16 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ForgedAlliancePrefs forgedAlliancePrefs;
 
+  @Mock
+  private EventBus eventBus;
+
   private ObjectProperty<Player> currentPlayerProperty;
   private ObservableList<Faction> factionList;
 
   @Before
   public void setUp() throws Exception {
     instance = new Ladder1v1Controller(gameService, preferencesService, playerService, leaderboardService, i18n,
-        new ClientProperties());
+        new ClientProperties(), eventBus);
 
     Player player = new Player(USERNAME);
     player.setId(PLAYER_ID);
@@ -147,6 +153,21 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
     for (ToggleButton button : instance.factionsToButtons.values()) {
       assertThat(button.isDisable(), is(true));
     }
+  }
+
+  @Test
+  public void testOnPlayButtonClickedWithNoGamePath() throws Exception {
+    when(forgedAlliancePrefs.getPath()).thenReturn(null);
+
+    instance.onPlayButtonClicked();
+
+    verify(gameService, never()).startSearchLadder1v1(any());
+    verify(eventBus).post(new MissingGamePathEvent(true));
+
+    assertThat(instance.cancelButton.isVisible(), is(false));
+    assertThat(instance.playButton.isVisible(), is(true));
+    assertThat(instance.searchProgressIndicator.isVisible(), is(false));
+    assertThat(instance.searchingForOpponentLabel.isVisible(), is(false));
   }
 
   @Test
