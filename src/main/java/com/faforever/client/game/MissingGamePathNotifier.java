@@ -4,6 +4,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
@@ -40,7 +41,12 @@ public class MissingGamePathNotifier {
     List<Action> actions = Collections.singletonList(
         new Action(i18n.get("missingGamePath.locate"), chooseEvent -> eventBus.post(new GameDirectoryChooseEvent()))
     );
-    String message = i18n.get("missingGamePath.notification");
-    notificationService.addNotification(new ImmediateNotification(message, message, Severity.WARN, actions));
+    String notificationText = i18n.get("missingGamePath.notification");
+
+    if (event.isImmediateUserActionRequired()) {
+      notificationService.addNotification(new ImmediateNotification(notificationText, notificationText, Severity.WARN, actions));
+    } else {
+      notificationService.addNotification(new PersistentNotification(notificationText, Severity.WARN, actions));
+    }
   }
 }

@@ -138,8 +138,6 @@ public class PreferencesService {
       Files.createDirectories(gamePrefs.getParent());
       Files.copy(getClass().getResourceAsStream("/game.prefs"), gamePrefs);
     }
-
-    // no need to try to detect the game path here, the corresponding handlers are not initialized yet
   }
 
   public static void configureLogging() {
@@ -302,6 +300,6 @@ public class PreferencesService {
     }
 
     logger.info("Game path could not be detected");
-    eventBus.post(MissingGamePathEvent.INSTANCE);
+    eventBus.post(new MissingGamePathEvent());
   }
 }
