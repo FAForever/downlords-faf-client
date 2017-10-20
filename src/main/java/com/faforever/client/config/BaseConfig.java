@@ -36,8 +36,7 @@ public class BaseConfig {
     @Subscribe
     public void onDeadEvent(DeadEvent deadEvent) {
       Object unhandledEvent = deadEvent.getEvent();
-      log.warn("No event handler registered for event of type '{}'",
-          unhandledEvent.getClass().getSimpleName());
+      log.warn("No event handler registered for event of type '{}'", unhandledEvent.getClass().getSimpleName());
     }
   }
 }
