@@ -1,6 +1,8 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.HostMapInCustomGameEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameStatus;
@@ -16,11 +18,13 @@ import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import javafx.util.StringConverter;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -51,6 +55,7 @@ public class CustomGamesController implements Controller<Node> {
   private final GameService gameService;
   private final PreferencesService preferencesService;
   private final EventBus eventBus;
+  private final I18n i18n;
 
   public ToggleButton tableButton;
   public ToggleButton tilesButton;
@@ -60,19 +65,34 @@ public class CustomGamesController implements Controller<Node> {
   public Pane gamesRoot;
   public ScrollPane gameDetailPane;
   public GameDetailController gameDetailController;
+  public ChoiceBox<TilesSortingOrder> chooseSortingTypeChoiceBox;
 
   private FilteredList<Game> filteredItems;
 
   @Inject
   public CustomGamesController(UiService uiService, GameService gameService, PreferencesService preferencesService,
-                               EventBus eventBus) {
+                               EventBus eventBus, I18n i18n) {
     this.uiService = uiService;
     this.gameService = gameService;
     this.preferencesService = preferencesService;
     this.eventBus = eventBus;
+    this.i18n = i18n;
   }
 
   public void initialize() {
+    chooseSortingTypeChoiceBox.setVisible(false);
+    chooseSortingTypeChoiceBox.setConverter(new StringConverter<TilesSortingOrder>() {
+      @Override
+      public String toString(TilesSortingOrder tilesSortingOrder) {
+        return i18n.get(tilesSortingOrder.getDisplayNameKey());
+      }
+
+      @Override
+      public TilesSortingOrder fromString(String string) {
+        throw new UnsupportedOperationException("Not supported");
+      }
+    });
+
     ObservableList<Game> games = gameService.getGames();
 
     filteredItems = new FilteredList<>(games);
@@ -153,6 +173,7 @@ public class CustomGamesController implements Controller<Node> {
   }
 
   private void populateContainer(Node root) {
+    chooseSortingTypeChoiceBox.setVisible(false);
     gameViewContainer.getChildren().setAll(root);
     AnchorPane.setBottomAnchor(root, 0d);
     AnchorPane.setLeftAnchor(root, 0d);
@@ -164,11 +185,12 @@ public class CustomGamesController implements Controller<Node> {
     GamesTilesContainerController gamesTilesContainerController = uiService.loadFxml("theme/play/games_tiles_container.fxml");
     gamesTilesContainerController.selectedGameProperty()
         .addListener((observable, oldValue, newValue) -> setSelectedGame(newValue));
-    gamesTilesContainerController.createTiledFlowPane(filteredItems);
+    chooseSortingTypeChoiceBox.getItems().clear();
 
     Platform.runLater(() -> {
       Node root = gamesTilesContainerController.getRoot();
       populateContainer(root);
+      gamesTilesContainerController.createTiledFlowPane(filteredItems, chooseSortingTypeChoiceBox);
     });
   }
 
