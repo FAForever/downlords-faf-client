@@ -75,7 +75,7 @@ public class SpecificationController implements Controller<Node> {
       .put(LTE, "query.lessThanEquals")
       .put(IN, "query.in")
       .put(NIN, "query.notIn")
-      .put(RE, "query.regex")
+      .put(RE, "query.contains")
       .build();
 
   private static final Map<Class<?>, Collection<ComparisonOperator>> VALID_OPERATORS = ImmutableMap.of(
@@ -244,7 +244,7 @@ public class SpecificationController implements Controller<Node> {
       return Optional.ofNullable(getInstantCondition(comparisonOperator, value, propertyClass, (InstantProperty) property));
     }
     if (property instanceof EnumProperty) {
-      return Optional.ofNullable(getEquitableCondition(comparisonOperator, value, propertyClass, property));
+      return Optional.ofNullable(getEquitableCondition(comparisonOperator, value, propertyClass, (EnumProperty) property));
     }
 
     return Optional.ofNullable(getStringCondition(comparisonOperator, value, propertyClass, (StringProperty) property));
