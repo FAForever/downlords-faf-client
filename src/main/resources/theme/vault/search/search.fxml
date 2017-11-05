@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ChoiceBox?>
@@ -27,9 +28,24 @@
                         onAction="#onAddCriteriaButtonClicked" text="%query.addCriteria"/>
                 <Button layoutX="10.0" layoutY="10.0" maxHeight="1.7976931348623157E308" mnemonicParsing="false"
                         onAction="#onResetButtonClicked" text="%reset"/>
-                <Label text="sort by"/>
-                <ComboBox fx:id="sortProperty"/>
-                <ChoiceBox fx:id="sortOrder"/>
+                <HBox fx:id="sortBox" alignment="CENTER_LEFT" spacing="5">
+                    <padding>
+                        <Insets>
+                            <left>
+                                20
+                            </left>
+                            <right>
+                                20
+                            </right>
+                        </Insets>
+                    </padding>
+                    <children>
+                        <Label text="%search.sort"/>
+                        <ComboBox fx:id="sortPropertyComboBox"/>
+                        <ChoiceBox fx:id="sortOrderChoiceBox"/>
+                    </children>
+                </HBox>
+
                 <Button fx:id="searchButton" defaultButton="true" mnemonicParsing="false"
                         onAction="#onSearchButtonClicked" styleClass="button-raised" text="%search">
                     <graphic>

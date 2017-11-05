@@ -17,6 +17,7 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
 import lombok.AllArgsConstructor;
@@ -47,8 +48,9 @@ public class SearchController implements Controller<Pane> {
   public CheckBox displayQueryCheckBox;
   public Button searchButton;
   public Pane searchRoot;
-  public ComboBox<String> sortProperty;
-  public ChoiceBox<SortOrder> sortOrder;
+  public ComboBox<String> sortPropertyComboBox;
+  public ChoiceBox<SortOrder> sortOrderChoiceBox;
+  public HBox sortBox;
 
   private List<LogicalNodeController> queryNodes;
   private InvalidationListener queryInvalidationListener;
@@ -91,7 +93,7 @@ public class SearchController implements Controller<Pane> {
   }
 
   private void initSorting() {
-    sortProperty.setConverter(new StringConverter<String>() {
+    sortPropertyComboBox.setConverter(new StringConverter<String>() {
       @Override
       public String toString(String name) {
         return i18n.get(name);
@@ -102,7 +104,7 @@ public class SearchController implements Controller<Pane> {
         throw new UnsupportedOperationException("Not supported");
       }
     });
-    sortOrder.setConverter(new StringConverter<SortOrder>() {
+    sortOrderChoiceBox.setConverter(new StringConverter<SortOrder>() {
       @Override
       public String toString(SortOrder order) {
         return i18n.get(order.getI18nKey());
@@ -113,7 +115,7 @@ public class SearchController implements Controller<Pane> {
         throw new UnsupportedOperationException("Not supported");
       }
     });
-    sortOrder.getItems().addAll(SortOrder.values());
+    sortOrderChoiceBox.getItems().addAll(SortOrder.values());
   }
 
   public void setSearchableProperties(Map<String, String> searchableProperties) {
@@ -122,14 +124,14 @@ public class SearchController implements Controller<Pane> {
   }
 
   public void setSortConfig(ObjectProperty<SortConfig> sortConfigObjectProperty) {
-    sortProperty.getItems().addAll(searchableProperties.values());
-    sortOrder.getSelectionModel().select(sortConfigObjectProperty.get().getSortOrder());
-    sortProperty.getSelectionModel().select(searchableProperties.get(sortConfigObjectProperty.get().getSortProperty()));
-    sortProperty.valueProperty().addListener((observable, oldValue, newValue) -> {
-      sortConfigObjectProperty.set(new SortConfig(getCurrentEntityKey(), sortOrder.getValue()));
+    sortPropertyComboBox.getItems().addAll(searchableProperties.values());
+    sortOrderChoiceBox.getSelectionModel().select(sortConfigObjectProperty.get().getSortOrder());
+    sortPropertyComboBox.getSelectionModel().select(searchableProperties.get(sortConfigObjectProperty.get().getSortProperty()));
+    sortPropertyComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+      sortConfigObjectProperty.set(new SortConfig(getCurrentEntityKey(), sortOrderChoiceBox.getValue()));
       preferencesService.storeInBackground();
     });
-    sortOrder.valueProperty().addListener((observable, oldValue, newValue) -> {
+    sortOrderChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> {
       sortConfigObjectProperty.set(new SortConfig(getCurrentEntityKey(), newValue));
       preferencesService.storeInBackground();
     });
@@ -154,12 +156,12 @@ public class SearchController implements Controller<Pane> {
 
   public void onSearchButtonClicked() {
     String sortPropertyKey = getCurrentEntityKey();
-    searchListener.accept(new SearchConfig(new SortConfig(sortPropertyKey, sortOrder.getValue()), queryTextField.getText()));
+    searchListener.accept(new SearchConfig(new SortConfig(sortPropertyKey, sortOrderChoiceBox.getValue()), queryTextField.getText()));
   }
 
   private String getCurrentEntityKey() {
     return searchableProperties.entrySet().stream()
-        .filter(stringStringEntry -> stringStringEntry.getValue().equals(sortProperty.getValue()))
+        .filter(stringStringEntry -> stringStringEntry.getValue().equals(sortPropertyComboBox.getValue()))
         .findFirst()
         .get()
         .getKey();

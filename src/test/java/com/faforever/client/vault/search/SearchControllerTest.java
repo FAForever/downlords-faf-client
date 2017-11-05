@@ -107,8 +107,8 @@ public class SearchControllerTest extends AbstractPlainJavaFxTest {
   public void testSorting() throws Exception {
     instance.setSearchListener(searchListener);
     instance.queryTextField.setText("query");
-    instance.sortOrder.getSelectionModel().select(SortOrder.ASC);
-    instance.sortProperty.getSelectionModel().select("game.title");
+    instance.sortOrderChoiceBox.getSelectionModel().select(SortOrder.ASC);
+    instance.sortPropertyComboBox.getSelectionModel().select("game.title");
 
     instance.onSearchButtonClicked();
 
