@@ -3,11 +3,15 @@ package com.faforever.client.replay;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.LogicalNodeController;
 import com.faforever.client.query.SpecificationController;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
+import com.faforever.client.vault.search.SearchController.SearchConfig;
+import com.faforever.client.vault.search.SearchController.SortConfig;
 import javafx.event.ActionEvent;
 import javafx.scene.layout.Pane;
 import org.junit.Before;
@@ -54,9 +58,13 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
   @Mock
   private SearchController searchController;
+  @Mock
+  private PreferencesService preferencesService;
 
   @Captor
-  private ArgumentCaptor<Consumer<String>> searchListenerCaptor;
+  private ArgumentCaptor<Consumer<SearchConfig>> searchListenerCaptor;
+  private SortConfig sortOrder;
+  private SearchConfig standardSearchConfig;
 
   @Before
   public void setUp() throws Exception {
@@ -65,8 +73,11 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
       when(controller.getRoot()).thenReturn(new Pane());
       return controller;
     });
+    when(preferencesService.getPreferences()).thenReturn(new Preferences());
+    sortOrder = preferencesService.getPreferences().getVaultPrefs().getOnlineReplaySortConfig();
+    standardSearchConfig = new SearchConfig(sortOrder, "query");
 
-    instance = new OnlineReplayVaultController(replayService, uiService, notificationService, i18n);
+    instance = new OnlineReplayVaultController(replayService, uiService, notificationService, i18n, preferencesService);
 
     loadFxml("theme/vault/replay/online_replays.fxml", clazz -> {
       if (SearchController.class.isAssignableFrom(clazz)) {
@@ -107,47 +118,47 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnSearchButtonClicked() throws Exception {
-    Consumer<String> searchListener = searchListenerCaptor.getValue();
-    when(replayService.findByQuery("query", MAX_RESULTS, 1))
+    Consumer<SearchConfig> searchListener = searchListenerCaptor.getValue();
+    when(replayService.findByQuery("query", MAX_RESULTS, 1, sortOrder))
         .thenReturn(CompletableFuture.completedFuture(Arrays.asList(new Replay(), new Replay())));
 
-    searchListener.accept("query");
+    searchListener.accept(standardSearchConfig);
 
     assertThat(instance.showroomGroup.isVisible(), is(false));
     assertThat(instance.searchResultGroup.isVisible(), is(true));
-    verify(replayService).findByQuery("query", MAX_RESULTS, 1);
+    verify(replayService).findByQuery("query", MAX_RESULTS, 1, sortOrder);
   }
 
   @Test
   public void testOnSearchButtonClickedHandlesException() throws Exception {
-    Consumer<String> searchListener = searchListenerCaptor.getValue();
+    Consumer<SearchConfig> searchListener = searchListenerCaptor.getValue();
     CompletableFuture<List<Replay>> completableFuture = new CompletableFuture<>();
     completableFuture.completeExceptionally(new RuntimeException("JUnit test exception"));
-    when(replayService.findByQuery("query", MAX_RESULTS, 1)).thenReturn(completableFuture);
+    when(replayService.findByQuery("query", MAX_RESULTS, 1, sortOrder)).thenReturn(completableFuture);
 
-    searchListener.accept("query");
+    searchListener.accept(standardSearchConfig);
 
     verify(notificationService).addNotification(any(ImmediateNotification.class));
   }
 
   @Test
   public void testMoreButton() throws Exception {
-    Consumer<String> searchListener = searchListenerCaptor.getValue();
+    Consumer<SearchConfig> searchListener = searchListenerCaptor.getValue();
     List<Replay> list = new ArrayList<>();
     for (int i = 0; i != 100; i++) {
       list.add(new Replay());
     }
     CompletableFuture<List<Replay>> completableFuture = new CompletableFuture<>();
     completableFuture.complete(list);
-    when(replayService.findByQuery(eq("query"), eq(MAX_RESULTS), anyInt())).thenReturn(completableFuture);
+    when(replayService.findByQuery(eq("query"), eq(MAX_RESULTS), anyInt(), eq(sortOrder))).thenReturn(completableFuture);
 
-    searchListener.accept("query");
+    searchListener.accept(standardSearchConfig);
 
     instance.onLoadMoreButtonClicked(new ActionEvent());
 
     WaitForAsyncUtils.waitForFxEvents();
-    verify(replayService).findByQuery("query", MAX_RESULTS, 1);
-    verify(replayService).findByQuery("query", MAX_RESULTS, 2);
+    verify(replayService).findByQuery("query", MAX_RESULTS, 1, sortOrder);
+    verify(replayService).findByQuery("query", MAX_RESULTS, 2, sortOrder);
     assertThat(instance.moreButton.isVisible(), is(true));
   }
 

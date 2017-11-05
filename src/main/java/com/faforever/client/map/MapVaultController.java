@@ -13,6 +13,8 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.SearchableProperties;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
+import com.faforever.client.vault.search.SearchController.SearchConfig;
+import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.google.common.collect.Iterators;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -87,6 +89,7 @@ public class MapVaultController extends AbstractViewController<Node> {
   private String query;
   private int currentPage;
   private Supplier<CompletableFuture<List<MapBean>>> currentSupplier;
+  private SortConfig sortConfig;
 
   @Inject
   public MapVaultController(MapService mapService, I18n i18n, EventBus eventBus, PreferencesService preferencesService,
@@ -124,12 +127,14 @@ public class MapVaultController extends AbstractViewController<Node> {
     searchController.setRootType(com.faforever.client.api.dto.Map.class);
     searchController.setSearchListener(this::searchByQuery);
     searchController.setSearchableProperties(SearchableProperties.MAP_PROPERTIES);
+    searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().mapSortConfigProperty());
   }
 
-  private void searchByQuery(String query) {
-    this.query = query;
+  private void searchByQuery(SearchConfig searchConfig) {
+    this.query = searchConfig.getSearchQuerry();
+    this.sortConfig = searchConfig.getSortConfig();
     enterLoadingState();
-    displayMapsFromSupplier(() -> mapService.findByQuery(query, ++currentPage, MAX_SEARCH_RESULTS));
+    displayMapsFromSupplier(() -> mapService.findByQuery(query, ++currentPage, MAX_SEARCH_RESULTS, sortConfig));
   }
 
   @Override
@@ -231,7 +236,7 @@ public class MapVaultController extends AbstractViewController<Node> {
         displayShowroomMaps();
         break;
       case SEARCH_RESULT:
-        displayMapsFromSupplier(() -> mapService.findByQuery(query, 1, MAX_SEARCH_RESULTS));
+        displayMapsFromSupplier(() -> mapService.findByQuery(query, 1, MAX_SEARCH_RESULTS, sortConfig));
         break;
       default:
         // Do nothing

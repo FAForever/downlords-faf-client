@@ -53,6 +53,7 @@ import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.LT
 import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.LTE;
 import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.NE;
 import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.NIN;
+import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.RE;
 
 /**
  * Controller for building a specification in the sense of Domain Driven Design, e.g. {@code login == "Someone"} or
@@ -74,12 +75,13 @@ public class SpecificationController implements Controller<Node> {
       .put(LTE, "query.lessThanEquals")
       .put(IN, "query.in")
       .put(NIN, "query.notIn")
+      .put(RE, "query.regex")
       .build();
 
   private static final Map<Class<?>, Collection<ComparisonOperator>> VALID_OPERATORS = ImmutableMap.of(
       Number.class, Arrays.asList(EQ, NE, GT, GTE, LT, LTE, IN, NIN),
       Temporal.class, Arrays.asList(EQ, NE, GT, GTE, LT, LTE),
-      String.class, Arrays.asList(EQ, NE, IN, NIN),
+      String.class, Arrays.asList(EQ, NE, IN, NIN, RE),
       Boolean.class, Arrays.asList(EQ, NE),
       Enum.class, Arrays.asList(EQ, NE, IN, NIN)
   );
@@ -242,10 +244,10 @@ public class SpecificationController implements Controller<Node> {
       return Optional.ofNullable(getInstantCondition(comparisonOperator, value, propertyClass, (InstantProperty) property));
     }
     if (property instanceof EnumProperty) {
-      return Optional.ofNullable(getEquitableCondition(comparisonOperator, value, propertyClass, (EnumProperty) property));
+      return Optional.ofNullable(getEquitableCondition(comparisonOperator, value, propertyClass, property));
     }
 
-    return Optional.ofNullable(getEquitableCondition(comparisonOperator, value, propertyClass, (StringProperty) property));
+    return Optional.ofNullable(getStringCondition(comparisonOperator, value, propertyClass, (StringProperty) property));
   }
 
   @SneakyThrows
@@ -307,6 +309,27 @@ public class SpecificationController implements Controller<Node> {
       return prop.nin(value.split(","));
     }
     throw new ProgrammingError("Operator '" + comparisonOperator + "' should not have been allowed for type: " + fieldType);
+  }
+
+
+  private Condition getStringCondition(ComparisonOperator comparisonOperator, String value, Class<?> propertyClass, StringProperty prop) {
+
+    if (comparisonOperator == EQ) {
+      return prop.eq(value);
+    }
+    if (comparisonOperator == NE) {
+      return prop.ne(value);
+    }
+    if (comparisonOperator == IN) {
+      return prop.in(value.split(","));
+    }
+    if (comparisonOperator == NIN) {
+      return prop.nin(value.split(","));
+    }
+    if (comparisonOperator == RE) {
+      return prop.eq("*" + value + "*");
+    }
+    throw new ProgrammingError("Operator '" + comparisonOperator + "' should not have been allowed for type: " + propertyClass);
   }
 
   private Condition getInstantCondition(ComparisonOperator comparisonOperator, String value, Class<?> fieldType, InstantProperty<?> prop) {

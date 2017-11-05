@@ -37,6 +37,7 @@ public class Preferences {
   private final Ladder1v1Prefs ladder1v1;
   private final NewsPrefs news;
   private final DeveloperPrefs developer;
+  private final VaultPrefs vaultPrefs;
   private final ListProperty<Pair<String, SortType>> gameListSorting;
 
   public Preferences() {
@@ -59,7 +60,14 @@ public class Preferences {
     news = new NewsPrefs();
     developer = new DeveloperPrefs();
     gameListSorting = new SimpleListProperty<>(observableArrayList());
+    vaultPrefs = new VaultPrefs();
+
   }
+
+  public VaultPrefs getVaultPrefs() {
+    return vaultPrefs;
+  }
+
 
   public String getGamesViewMode() {
     return gamesViewMode.get();

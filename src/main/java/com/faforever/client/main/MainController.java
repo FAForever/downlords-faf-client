@@ -155,6 +155,7 @@ public class MainController implements Controller<Node> {
 
     TransientNotificationsController transientNotificationsController = uiService.loadFxml("theme/transient_notifications.fxml");
     transientNotificationsPopup = new Popup();
+    transientNotificationsPopup.setAutoFix(true);
     transientNotificationsPopup.getScene().getRoot().getStyleClass().add("transient-notification");
     transientNotificationsPopup.getContent().setAll(transientNotificationsController.getRoot());
 

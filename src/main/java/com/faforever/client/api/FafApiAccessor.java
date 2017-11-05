@@ -19,6 +19,7 @@ import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.mod.FeaturedMod;
+import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.io.ByteCountListener;
 
 import java.io.IOException;
@@ -84,7 +85,7 @@ public interface FafApiAccessor {
 
   List<Game> getMostWatchedReplays(int count, int page);
 
-  List<Game> findReplaysByQuery(String condition, int maxResults, int page);
+  List<Game> findReplaysByQuery(String condition, int maxResults, int page, SortConfig sortConfig);
 
   Optional<MapVersion> findMapByFolderName(String folderName);
 
@@ -106,7 +107,7 @@ public interface FafApiAccessor {
 
   Optional<Clan> getClanByTag(String tag);
 
-  List<Map> findMapsByQuery(String query, int page, int maxResults);
+  List<Map> findMapsByQuery(String query, int page, int maxResults, SortConfig sortConfig);
 
   Optional<MapVersion> findMapVersionById(String id);
 

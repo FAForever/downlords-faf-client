@@ -1,6 +1,8 @@
 package com.faforever.client.replay;
 
 
+import com.faforever.client.vault.search.SearchController.SortConfig;
+
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -30,7 +32,7 @@ public interface ReplayService {
 
   CompletableFuture<List<Replay>> getMostWatchedReplays(int topElementCount, int page);
 
-  CompletableFuture<List<Replay>> findByQuery(String condition, int maxResults, int page);
+  CompletableFuture<List<Replay>> findByQuery(String condition, int maxResults, int page, SortConfig sortConfig);
 
   CompletableFuture<Optional<Replay>> findById(int id);
 

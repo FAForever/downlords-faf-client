@@ -1,9 +1,16 @@
 package com.faforever.client.vault.search;
 
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.LogicalNodeController;
+import com.faforever.client.query.SearchableProperties;
 import com.faforever.client.query.SpecificationController;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.vault.search.SearchController.SearchConfig;
+import com.faforever.client.vault.search.SearchController.SortConfig;
+import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
 import javafx.scene.control.ChoiceBox;
@@ -17,6 +24,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -34,7 +42,11 @@ public class SearchControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private LogicalNodeController logicalNodeController;
   @Mock
-  private Consumer<String> searchListener;
+  private Consumer<SearchConfig> searchListener;
+  @Mock
+  private PreferencesService preferencesService;
+  @Mock
+  private I18n i18n;
 
   @Before
   public void setUp() throws Exception {
@@ -48,8 +60,9 @@ public class SearchControllerTest extends AbstractPlainJavaFxTest {
       when(controller.getRoot()).thenReturn(new Pane());
       return controller;
     });
+    when(preferencesService.getPreferences()).thenReturn(new Preferences());
 
-    instance = new SearchController(uiService);
+    instance = new SearchController(uiService, i18n, preferencesService);
 
     loadFxml("theme/vault/search/search.fxml", clazz -> {
       if (SpecificationController.class.isAssignableFrom(clazz)) {
@@ -60,6 +73,9 @@ public class SearchControllerTest extends AbstractPlainJavaFxTest {
       }
       return instance;
     });
+
+    instance.setSearchableProperties(SearchableProperties.GAME_PROPERTIES);
+    instance.setSortConfig(preferencesService.getPreferences().getVaultPrefs().onlineReplaySortConfigProperty());
   }
 
   @Test
@@ -69,7 +85,7 @@ public class SearchControllerTest extends AbstractPlainJavaFxTest {
 
     instance.onSearchButtonClicked();
 
-    verify(searchListener).accept("query");
+    verify(searchListener).accept(any(SearchConfig.class));
   }
 
   @Test
@@ -86,4 +102,19 @@ public class SearchControllerTest extends AbstractPlainJavaFxTest {
 
     assertThat(instance.queryTextField.getText(), is("name==JUnit"));
   }
+
+  @Test
+  public void testSorting() throws Exception {
+    instance.setSearchListener(searchListener);
+    instance.queryTextField.setText("query");
+    instance.sortOrder.getSelectionModel().select(SortOrder.ASC);
+    instance.sortProperty.getSelectionModel().select("game.title");
+
+    instance.onSearchButtonClicked();
+
+    SortConfig mapSortConfig = preferencesService.getPreferences().getVaultPrefs().getOnlineReplaySortConfig();
+    assertEquals(mapSortConfig.getSortOrder(), SortOrder.ASC);
+    verify(searchListener).accept(new SearchConfig(mapSortConfig, "query"));
+  }
+
 }
