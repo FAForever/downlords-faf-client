@@ -1,6 +1,8 @@
 package com.faforever.client.vault.search;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.LogicalNodeController;
 import com.faforever.client.query.SpecificationController;
 import com.faforever.client.theme.UiService;
@@ -8,11 +10,18 @@ import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
 import javafx.beans.InvalidationListener;
+import javafx.beans.property.ObjectProperty;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
+import javafx.util.StringConverter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Getter;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -27,6 +36,8 @@ import java.util.function.Consumer;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class SearchController implements Controller<Pane> {
   private final UiService uiService;
+  private final I18n i18n;
+  private final PreferencesService preferencesService;
   /**
    * The first query element.
    */
@@ -36,21 +47,25 @@ public class SearchController implements Controller<Pane> {
   public CheckBox displayQueryCheckBox;
   public Button searchButton;
   public Pane searchRoot;
+  public ComboBox<String> sortProperty;
+  public ChoiceBox<SortOrder> sortOrder;
 
   private List<LogicalNodeController> queryNodes;
   private InvalidationListener queryInvalidationListener;
   /**
    * Called with the query string when the user hits "search".
    */
-  private Consumer<String> searchListener;
+  private Consumer<SearchConfig> searchListener;
   private Map<String, String> searchableProperties;
   /**
    * Type of the searchable entity.
    */
   private Class<?> rootType;
 
-  public SearchController(UiService uiService) {
+  public SearchController(UiService uiService, I18n i18n, PreferencesService preferencesService) {
     this.uiService = uiService;
+    this.i18n = i18n;
+    this.preferencesService = preferencesService;
     queryNodes = new ArrayList<>();
   }
 
@@ -72,11 +87,52 @@ public class SearchController implements Controller<Pane> {
 
     queryInvalidationListener = observable -> queryTextField.setText(buildQuery(initialLogicalNodeController.specificationController, queryNodes));
     addInvalidationListener(initialLogicalNodeController);
+    initSorting();
+  }
+
+  private void initSorting() {
+    sortProperty.setConverter(new StringConverter<String>() {
+      @Override
+      public String toString(String name) {
+        return i18n.get(name);
+      }
+
+      @Override
+      public String fromString(String string) {
+        throw new UnsupportedOperationException("Not supported");
+      }
+    });
+    sortOrder.setConverter(new StringConverter<SortOrder>() {
+      @Override
+      public String toString(SortOrder order) {
+        return i18n.get(order.getI18nKey());
+      }
+
+      @Override
+      public SortOrder fromString(String string) {
+        throw new UnsupportedOperationException("Not supported");
+      }
+    });
+    sortOrder.getItems().addAll(SortOrder.values());
   }
 
   public void setSearchableProperties(Map<String, String> searchableProperties) {
     this.searchableProperties = searchableProperties;
     initialLogicalNodeController.specificationController.setProperties(searchableProperties);
+  }
+
+  public void setSortConfig(ObjectProperty<SortConfig> sortConfigObjectProperty) {
+    sortProperty.getItems().addAll(searchableProperties.values());
+    sortOrder.getSelectionModel().select(sortConfigObjectProperty.get().getSortOrder());
+    sortProperty.getSelectionModel().select(searchableProperties.get(sortConfigObjectProperty.get().getSortProperty()));
+    sortProperty.valueProperty().addListener((observable, oldValue, newValue) -> {
+      sortConfigObjectProperty.set(new SortConfig(getCurrentEntityKey(), sortOrder.getValue()));
+      preferencesService.storeInBackground();
+    });
+    sortOrder.valueProperty().addListener((observable, oldValue, newValue) -> {
+      sortConfigObjectProperty.set(new SortConfig(getCurrentEntityKey(), newValue));
+      preferencesService.storeInBackground();
+    });
   }
 
   private void addInvalidationListener(LogicalNodeController logicalNodeController) {
@@ -97,7 +153,16 @@ public class SearchController implements Controller<Pane> {
   }
 
   public void onSearchButtonClicked() {
-    searchListener.accept(queryTextField.getText());
+    String sortPropertyKey = getCurrentEntityKey();
+    searchListener.accept(new SearchConfig(new SortConfig(sortPropertyKey, sortOrder.getValue()), queryTextField.getText()));
+  }
+
+  private String getCurrentEntityKey() {
+    return searchableProperties.entrySet().stream()
+        .filter(stringStringEntry -> stringStringEntry.getValue().equals(sortProperty.getValue()))
+        .findFirst()
+        .get()
+        .getKey();
   }
 
   public void onAddCriteriaButtonClicked() {
@@ -152,12 +217,44 @@ public class SearchController implements Controller<Pane> {
     return searchRoot;
   }
 
-  public void setSearchListener(Consumer<String> searchListener) {
+  public void setSearchListener(Consumer<SearchConfig> searchListener) {
     this.searchListener = searchListener;
   }
 
   public void setRootType(Class<?> rootType) {
     this.rootType = rootType;
     initialLogicalNodeController.specificationController.setRootType(rootType);
+  }
+
+  @Getter
+  public enum SortOrder {
+    DESC("-", "search.sort.descending"),
+    ASC("", "search.sort.ascending");
+
+    private final String query;
+    private final String i18nKey;
+
+    SortOrder(String query, String i18nKey) {
+      this.query = query;
+      this.i18nKey = i18nKey;
+    }
+  }
+
+  @Data
+  @AllArgsConstructor
+  public static class SortConfig {
+    private String sortProperty;
+    private SortOrder sortOrder;
+
+    public String toQuerry() {
+      return sortOrder.getQuery() + sortProperty;
+    }
+  }
+
+  @Data
+  @AllArgsConstructor
+  public static class SearchConfig {
+    private SortConfig sortConfig;
+    private String searchQuerry;
   }
 }

@@ -27,6 +27,7 @@ import com.faforever.client.io.CountingFileSystemResource;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
+import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.io.ByteCountListener;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
@@ -313,10 +314,11 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public List<Game> findReplaysByQuery(String query, int maxResults, int page) {
+  public List<Game> findReplaysByQuery(String query, int maxResults, int page, SortConfig sortConfig) {
     return getPage("/data/game", maxResults, page, ImmutableMap.of(
         "filter", "(" + query + ");endTime=isnull=false",
-        "include", REPLAY_INCLUDES
+        "include", REPLAY_INCLUDES,
+        "sort", sortConfig.toQuerry()
     ));
   }
 
@@ -404,10 +406,11 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public List<Map> findMapsByQuery(String query, int page, int maxResults) {
+  public List<Map> findMapsByQuery(String query, int page, int maxResults, SortConfig sortConfig) {
     return getPage(MAP_ENDPOINT, maxResults, page, ImmutableMap.of(
         "filter", query,
-        "include", "latestVersion,latestVersion.reviews,author,statistics"
+        "include", "latestVersion,latestVersion.reviews,author,statistics",
+        "sort", sortConfig.toQuerry()
     ));
   }
 

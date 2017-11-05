@@ -35,6 +35,7 @@ import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.replay.Replay;
 import com.faforever.client.vault.review.Review;
+import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.io.ByteCountListener;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -328,8 +329,8 @@ public class FafServiceImpl implements FafService {
 
   @Override
   @Async
-  public CompletableFuture<List<Replay>> findReplaysByQuery(String query, int maxResults, int page) {
-    return CompletableFuture.completedFuture(fafApiAccessor.findReplaysByQuery(query, maxResults, page)
+  public CompletableFuture<List<Replay>> findReplaysByQuery(String query, int maxResults, int page, SortConfig sortConfig) {
+    return CompletableFuture.completedFuture(fafApiAccessor.findReplaysByQuery(query, maxResults, page, sortConfig)
         .parallelStream()
         .map(Replay::fromDto)
         .collect(toList()));
@@ -337,8 +338,8 @@ public class FafServiceImpl implements FafService {
 
   @Override
   @Async
-  public CompletableFuture<List<MapBean>> findMapsByQuery(String query, int page, int maxSearchResults) {
-    return CompletableFuture.completedFuture(fafApiAccessor.findMapsByQuery(query, page, maxSearchResults)
+  public CompletableFuture<List<MapBean>> findMapsByQuery(String query, int page, int maxSearchResults, SortConfig sortConfig) {
+    return CompletableFuture.completedFuture(fafApiAccessor.findMapsByQuery(query, page, maxSearchResults, sortConfig)
         .parallelStream()
         .map(MapBean::fromMapDto)
         .collect(toList()));

@@ -22,6 +22,7 @@ import com.faforever.client.replay.Replay.ChatMessage;
 import com.faforever.client.replay.Replay.GameOption;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.replay.ReplayData;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
@@ -290,8 +291,8 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public CompletableFuture<List<Replay>> findByQuery(String query, int maxResults, int page) {
-    return fafService.findReplaysByQuery(query, maxResults, page);
+  public CompletableFuture<List<Replay>> findByQuery(String query, int maxResults, int page, SortConfig sortConfig) {
+    return fafService.findReplaysByQuery(query, maxResults, page, sortConfig);
   }
 
   @Override

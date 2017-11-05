@@ -8,9 +8,11 @@ import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.SearchableProperties;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
+import com.faforever.client.vault.search.SearchController.SearchConfig;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -46,6 +48,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   private final UiService uiService;
   private final NotificationService notificationService;
   private final I18n i18n;
+  private final PreferencesService preferencesService;
 
   public Pane replayVaultRoot;
   public Pane newestPane;
@@ -66,11 +69,12 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   private Supplier<CompletableFuture<List<Replay>>> currentSupplier;
 
   @Inject
-  public OnlineReplayVaultController(ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n) {
+  public OnlineReplayVaultController(ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, PreferencesService preferencesService) {
     this.replayService = replayService;
     this.uiService = uiService;
     this.notificationService = notificationService;
     this.i18n = i18n;
+    this.preferencesService = preferencesService;
   }
 
   public void initialize() {
@@ -85,6 +89,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     searchController.setRootType(Game.class);
     searchController.setSearchListener(this::onSearch);
     searchController.setSearchableProperties(SearchableProperties.GAME_PROPERTIES);
+    searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().onlineReplaySortConfigProperty());
   }
 
   private void displaySearchResult(List<Replay> replays, boolean append) {
@@ -161,9 +166,9 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     moreButton.setVisible(false);
   }
 
-  private void onSearch(String query) {
+  private void onSearch(SearchConfig searchConfig) {
     enterSearchingState();
-    displayReplaysFromSupplier(() -> replayService.findByQuery(query, MAX_SEARCH_RESULTS, currentPage++));
+    displayReplaysFromSupplier(() -> replayService.findByQuery(searchConfig.getSearchQuerry(), MAX_SEARCH_RESULTS, currentPage++, searchConfig.getSortConfig()));
   }
 
   private void displaySearchResult(List<Replay> replays) {

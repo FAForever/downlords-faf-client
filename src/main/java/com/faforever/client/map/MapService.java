@@ -2,6 +2,7 @@ package com.faforever.client.map;
 
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.task.CompletableTask;
+import com.faforever.client.vault.search.SearchController.SortConfig;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
@@ -68,7 +69,7 @@ public interface MapService {
 
   CompletableFuture<Integer> getFileSize(URL downloadUrl);
 
-  CompletableFuture<List<MapBean>> findByQuery(String query, int page, int maxSearchResults);
+  CompletableFuture<List<MapBean>> findByQuery(String query, int page, int maxSearchResults, SortConfig sortConfig);
 
   Optional<MapBean> findMap(String id);
 }

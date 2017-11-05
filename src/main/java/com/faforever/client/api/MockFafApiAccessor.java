@@ -21,6 +21,7 @@ import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.mod.FeaturedMod;
+import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.io.ByteCountListener;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
@@ -175,7 +176,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<Game> findReplaysByQuery(String query, int maxResults, int page) {
+  public List<Game> findReplaysByQuery(String query, int maxResults, int page, SortConfig sortConfig) {
     return Collections.emptyList();
   }
 
@@ -231,7 +232,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<Map> findMapsByQuery(String query, int page, int maxResults) {
+  public List<Map> findMapsByQuery(String query, int page, int maxResults, SortConfig sortConfig) {
     return Collections.emptyList();
   }
 

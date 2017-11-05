@@ -23,6 +23,7 @@ import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.replay.Replay;
 import com.faforever.client.vault.review.Review;
+import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.io.ByteCountListener;
 import javafx.beans.property.ReadOnlyObjectProperty;
 
@@ -118,9 +119,9 @@ public interface FafService {
 
   void sendIceMessage(int remotePlayerId, Object message);
 
-  CompletableFuture<List<Replay>> findReplaysByQuery(String condition, int maxResults, int page);
+  CompletableFuture<List<Replay>> findReplaysByQuery(String condition, int maxResults, int page, SortConfig sortConfig);
 
-  CompletableFuture<List<MapBean>> findMapsByQuery(String query, int page, int maxSearchResults);
+  CompletableFuture<List<MapBean>> findMapsByQuery(String query, int page, int maxSearchResults, SortConfig sortConfig);
 
   CompletableFuture<Optional<MapBean>> findMapByFolderName(String folderName);
 
