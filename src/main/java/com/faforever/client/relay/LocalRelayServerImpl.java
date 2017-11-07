@@ -49,7 +49,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 import static com.faforever.client.net.SocketUtil.readSocket;
@@ -95,7 +95,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   @Resource
   FafService fafService;
   @Resource
-  ThreadPoolExecutor threadPoolExecutor;
+  Executor executor;
   @Resource
   EventBus eventBus;
   @Resource
@@ -169,7 +169,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
 
     gameUdpSocketFuture = new CompletableFuture<>();
     gpgPortFuture = new CompletableFuture<>();
-    threadPoolExecutor.execute(this::innerStart);
+    executor.execute(this::innerStart);
     return gpgPortFuture;
   }
 
@@ -240,7 +240,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
 
         proxySocketsByOriginalAddress.put(originalSocketAddress, relaySocket);
 
-        readSocket(threadPoolExecutor, relaySocket, packet -> {
+        readSocket(executor, relaySocket, packet -> {
           packet.setSocketAddress(originalSocketAddress);
           if (logger.isTraceEnabled()) {
             logger.trace("Forwarding {} bytes from FA to peer {}: {}", packet.getLength(),
