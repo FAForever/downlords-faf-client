@@ -15,9 +15,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.context.ApplicationContext;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.Executor;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -30,7 +31,7 @@ public class OnGameFullNotifierTest {
   @Mock
   private EventBus eventBus;
   @Mock
-  private ThreadPoolExecutor threadPoolExecutor;
+  private Executor executor;
   @Mock
   private GameService gameService;
   @Mock
@@ -41,19 +42,22 @@ public class OnGameFullNotifierTest {
   private MapService mapService;
   @Mock
   private PlatformService platformService;
+  @Mock
+  private ApplicationContext applicationContext;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new OnGameFullNotifier(platformService, threadPoolExecutor, gameService, notificationService, i18n,
-        mapService, eventBus, new ClientProperties());
+    instance = new OnGameFullNotifier(platformService, executor, notificationService, i18n,
+        mapService, eventBus, applicationContext, new ClientProperties());
     instance.postConstruct();
 
     doAnswer(invocation -> {
       ((Runnable) invocation.getArgument(0)).run();
       return null;
-    }).when(threadPoolExecutor).submit(any(Runnable.class));
+    }).when(executor).execute(any(Runnable.class));
+    when(applicationContext.getBean(GameService.class)).thenReturn(gameService);
 
     verify(eventBus).register(instance);
   }
@@ -73,7 +77,7 @@ public class OnGameFullNotifierTest {
     instance.onGameFull(new GameFullEvent());
 
     verify(notificationService).addNotification(any(TransientNotification.class));
-    verify(threadPoolExecutor).submit(any(Runnable.class));
+    verify(executor).execute(any(Runnable.class));
     verify(platformService).startFlashingWindow("Forged Alliance");
     verify(platformService).stopFlashingWindow("Forged Alliance");
   }

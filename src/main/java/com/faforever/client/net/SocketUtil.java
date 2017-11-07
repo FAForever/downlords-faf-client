@@ -10,7 +10,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 
 public final class SocketUtil {
@@ -26,7 +25,7 @@ public final class SocketUtil {
    *
    * @param executor the {@link Executor} to run the background thread in
    */
-  public static void readSocket(ThreadPoolExecutor executor, final DatagramSocket socket, Consumer<DatagramPacket> consumer) {
+  public static void readSocket(Executor executor, final DatagramSocket socket, Consumer<DatagramPacket> consumer) {
     String localSocketAddress = socket.getLocalSocketAddress().toString();
     logger.debug("Reading socket {}", localSocketAddress);
 
