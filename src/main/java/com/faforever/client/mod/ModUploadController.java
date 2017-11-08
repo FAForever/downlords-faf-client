@@ -12,6 +12,7 @@ import com.faforever.client.notification.ReportAction;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.CompletableTask;
 import com.google.common.eventbus.EventBus;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -105,15 +106,16 @@ public class ModUploadController  implements Controller<Node> {
 
   private void setModInfo(Mod mod) {
     this.modInfo = mod;
-
-    enterModInfoState();
-    modNameLabel.textProperty().bind(mod.nameProperty());
-    descriptionLabel.textProperty().bind(mod.descriptionProperty());
-    versionLabel.textProperty().bind(mod.versionProperty().asString());
-    uidLabel.textProperty().bind(mod.idProperty());
-    thumbnailImageView.imageProperty().bind(
-        Bindings.createObjectBinding(() -> modService.loadThumbnail(mod), mod.idProperty(), mod.imagePathProperty())
-    );
+    Platform.runLater(() -> {
+      enterModInfoState();
+      modNameLabel.textProperty().bind(mod.nameProperty());
+      descriptionLabel.textProperty().bind(mod.descriptionProperty());
+      versionLabel.textProperty().bind(mod.versionProperty().asString());
+      uidLabel.textProperty().bind(mod.idProperty());
+      thumbnailImageView.imageProperty().bind(
+          Bindings.createObjectBinding(() -> modService.loadThumbnail(mod), mod.idProperty(), mod.imagePathProperty())
+      );
+    });
   }
 
   private void enterModInfoState() {
