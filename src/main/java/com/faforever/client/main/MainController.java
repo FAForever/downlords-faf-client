@@ -2,6 +2,7 @@ package com.faforever.client.main;
 
 import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.fa.relay.event.GameFullEvent;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
@@ -438,6 +439,7 @@ public class MainController implements Controller<Node> {
 
   public void onNavigate(ActionEvent event) {
     eventBus.post(new NavigateEvent((NavigationItem) ((Node) event.getSource()).getUserData()));
+    eventBus.post(new GameFullEvent());
   }
 
   @Subscribe

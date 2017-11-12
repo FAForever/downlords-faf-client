@@ -2,7 +2,6 @@ package com.faforever.client.fa;
 
 import com.faforever.client.game.Faction;
 import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,20 +26,16 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final PreferencesService preferencesService;
-  private final PlayerService playerService;
 
   @Inject
-  public ForgedAllianceServiceImpl(PreferencesService preferencesService, PlayerService playerService) {
+  public ForgedAllianceServiceImpl(PreferencesService preferencesService) {
     this.preferencesService = preferencesService;
-    this.playerService = playerService;
   }
 
   @Override
   public Process startGame(int uid, @Nullable Faction faction, @Nullable List<String> additionalArgs,
-                           RatingMode ratingMode, int gpgPort, int localReplayPort, boolean rehost) throws IOException {
+                           RatingMode ratingMode, int gpgPort, int localReplayPort, boolean rehost, Player currentPlayer) throws IOException {
     Path executable = getExecutable();
-
-    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
 
     float deviation;
     float mean;
@@ -90,10 +85,9 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   }
 
   @Override
-  public Process startReplay(URI replayUri, Integer replayId) throws IOException {
+  public Process startReplay(URI replayUri, Integer replayId, Player currentPlayer) throws IOException {
     Path executable = getExecutable();
 
-    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
     List<String> launchCommand = LaunchCommandBuilder.create()
         .executable(executable)
         .replayUri(replayUri)

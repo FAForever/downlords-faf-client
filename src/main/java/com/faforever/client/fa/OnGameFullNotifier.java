@@ -13,7 +13,6 @@ import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.util.ProgrammingError;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -25,8 +24,7 @@ import static java.lang.Thread.sleep;
 
 /**
  * Starts flashing the Forged Alliance window whenever a {@link com.faforever.client.fa.relay.event.GameFullEvent} is
- * triggered and stops as soon as the window is focused.
- * Also shows a transient notification.
+ * triggered and stops as soon as the window is focused. Also shows a transient notification.
  */
 
 @Component
@@ -34,27 +32,25 @@ public class OnGameFullNotifier {
 
   private final PlatformService platformService;
   private final Executor executor;
-  private final ApplicationContext applicationContext;
   private final NotificationService notificationService;
   private final I18n i18n;
   private final MapService mapService;
   private final EventBus eventBus;
-  private GameService gameService;
+  private final GameService gameService;
   private final String faWindowTitle;
 
   @Inject
-  public OnGameFullNotifier(PlatformService platformService, Executor executor,
-                            NotificationService notificationService, I18n i18n,
-                            MapService mapService, EventBus eventBus,
-                            ApplicationContext applicationContext, ClientProperties clientProperties) {
+  public OnGameFullNotifier(PlatformService platformService, Executor executor, NotificationService notificationService,
+                            I18n i18n, MapService mapService, EventBus eventBus, ClientProperties clientProperties,
+                            GameService gameService) {
     this.platformService = platformService;
     this.executor = executor;
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.mapService = mapService;
     this.eventBus = eventBus;
-    this.applicationContext = applicationContext;
     this.faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
+    this.gameService = gameService;
   }
 
   @PostConstruct
@@ -64,10 +60,6 @@ public class OnGameFullNotifier {
 
   @Subscribe
   public void onGameFull(GameFullEvent event) {
-    if (gameService == null) {
-      gameService = applicationContext.getBean(GameService.class);
-    }
-
     executor.execute(() -> {
       platformService.startFlashingWindow(faWindowTitle);
       while (gameService.isGameRunning() && !platformService.isWindowFocused(faWindowTitle)) {
@@ -78,7 +70,7 @@ public class OnGameFullNotifier {
 
     Game currentGame = gameService.getCurrentGame();
     if (currentGame == null) {
-      throw new ProgrammingError("Got a GameFull notification but player is not in a preferences");
+      throw new ProgrammingError("Got a GameFull notification but player is not in a game");
     }
     if (platformService.isWindowFocused(faWindowTitle)) {
       return;

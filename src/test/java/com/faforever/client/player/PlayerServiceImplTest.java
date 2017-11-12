@@ -1,6 +1,5 @@
 package com.faforever.client.player;
 
-import com.faforever.client.game.GameService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.PlayersMessage;
 import com.faforever.client.remote.domain.SocialMessage;
@@ -9,7 +8,6 @@ import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -22,7 +20,6 @@ import java.util.function.Consumer;
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.chat.SocialStatus.FRIEND;
 import static com.natpryce.hamcrest.reflection.HasAnnotationMatcher.hasAnnotation;
-import static java.util.Collections.emptyList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
@@ -41,8 +38,6 @@ import static org.mockito.Mockito.when;
 public class PlayerServiceImplTest {
 
   @Mock
-  private GameService gameService;
-  @Mock
   private FafService fafService;
   @Mock
   private UserService userService;
@@ -56,10 +51,8 @@ public class PlayerServiceImplTest {
     MockitoAnnotations.initMocks(this);
 
     instance = new PlayerServiceImpl(fafService, userService, eventBus);
-    instance.gameService = gameService;
 
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(gameService.getGames()).thenReturn(FXCollections.observableList(emptyList()));
 
     instance.postConstruct();
   }

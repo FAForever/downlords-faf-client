@@ -42,6 +42,7 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
@@ -156,6 +157,19 @@ public class GameServiceImpl implements GameService {
     games = FXCollections.observableList(new ArrayList<>(),
         item -> new Observable[]{item.statusProperty(), item.getTeams()}
     );
+    games.addListener((ListChangeListener<Game>) change -> {
+      while (change.next()) {
+        change.getRemoved().forEach(game -> eventBus.post(new GameRemovedEvent(game)));
+
+        if (change.wasUpdated()) {
+          for (int i = change.getFrom(); i < change.getTo(); i++) {
+            eventBus.post(new GameUpdatedEvent(change.getList().get(i)));
+          }
+        }
+
+        change.getAddedSubList().forEach(game -> eventBus.post(new GameAddedEvent(game)));
+      }
+    });
     JavaFxUtil.attachListToMap(games, uidToGameInfoBean);
   }
 
@@ -265,11 +279,15 @@ public class GameServiceImpl implements GameService {
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, modVersions, simModUids))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapName))
         .thenRun(() -> noCatch(() -> {
-          process = forgedAllianceService.startReplay(replayUrl, gameId);
+          process = forgedAllianceService.startReplay(replayUrl, gameId, getCurrentPlayer());
           setGameRunning(true);
           this.ratingMode = NONE;
           spawnTerminationListener(process);
         }));
+  }
+
+  private Player getCurrentPlayer() {
+    return playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
   }
 
   @Override
@@ -367,12 +385,12 @@ public class GameServiceImpl implements GameService {
   }
 
   /**
-   * Actually starts the preferences, including relay and replay server. Call this method when everything else is prepared
-   * (mod/map download, connectivity check etc.)
+   * Actually starts the game, including relay and replay server. Call this method when everything else is
+   * prepared (mod/map download, connectivity check etc.)
    */
   private void startGame(GameLaunchMessage gameLaunchMessage, Faction faction, RatingMode ratingMode) {
     if (isRunning()) {
-      logger.warn("Forged Alliance is already running, not starting preferences");
+      logger.warn("Forged Alliance is already running, not starting game");
       return;
     }
 
@@ -382,7 +400,7 @@ public class GameServiceImpl implements GameService {
         .thenAccept(adapterPort -> {
           List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
           process = noCatch(() -> forgedAllianceService.startGame(gameLaunchMessage.getUid(), faction, args, ratingMode,
-              adapterPort, clientProperties.getReplay().getLocalServerPort(), rehostRequested));
+              adapterPort, clientProperties.getReplay().getLocalServerPort(), rehostRequested, getCurrentPlayer()));
           setGameRunning(true);
 
           this.ratingMode = ratingMode;
@@ -453,7 +471,7 @@ public class GameServiceImpl implements GameService {
           }
         }
       } catch (InterruptedException e) {
-        logger.warn("Error during post-preferences processing", e);
+        logger.warn("Error during post-game processing", e);
       }
     });
   }
@@ -476,7 +494,7 @@ public class GameServiceImpl implements GameService {
     this.rehostRequested = true;
     synchronized (gameRunning) {
       if (!gameRunning.get()) {
-        // If the preferences already has terminated, the rehost is issued here. Otherwise it will be issued after termination
+        // If the game already has terminated, the rehost is issued here. Otherwise it will be issued after termination
         rehost();
       }
     }
