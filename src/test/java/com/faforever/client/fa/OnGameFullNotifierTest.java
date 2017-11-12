@@ -15,7 +15,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.context.ApplicationContext;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -42,22 +41,19 @@ public class OnGameFullNotifierTest {
   private MapService mapService;
   @Mock
   private PlatformService platformService;
-  @Mock
-  private ApplicationContext applicationContext;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
     instance = new OnGameFullNotifier(platformService, executor, notificationService, i18n,
-        mapService, eventBus, applicationContext, new ClientProperties());
+        mapService, eventBus, new ClientProperties(), gameService);
     instance.postConstruct();
 
     doAnswer(invocation -> {
       ((Runnable) invocation.getArgument(0)).run();
       return null;
     }).when(executor).execute(any(Runnable.class));
-    when(applicationContext.getBean(GameService.class)).thenReturn(gameService);
 
     verify(eventBus).register(instance);
   }

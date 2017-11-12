@@ -5,7 +5,9 @@ import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.game.Game;
-import com.faforever.client.game.GameService;
+import com.faforever.client.game.GameAddedEvent;
+import com.faforever.client.game.GameRemovedEvent;
+import com.faforever.client.game.GameUpdatedEvent;
 import com.faforever.client.player.event.FriendJoinedGameEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameStatus;
@@ -20,7 +22,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
@@ -57,16 +58,12 @@ public class PlayerServiceImpl implements PlayerService {
   private final FafService fafService;
   private final UserService userService;
   private final EventBus eventBus;
-  //TODO: circular reference
-  @Inject
-  GameService gameService;
 
   @Inject
   public PlayerServiceImpl(FafService fafService, UserService userService, EventBus eventBus) {
     this.fafService = fafService;
     this.userService = userService;
     this.eventBus = eventBus;
-
 
     playersByName = FXCollections.observableHashMap();
     playersById = FXCollections.observableHashMap();
@@ -81,20 +78,39 @@ public class PlayerServiceImpl implements PlayerService {
     eventBus.register(this);
     fafService.addOnMessageListener(PlayersMessage.class, this::onPlayersInfo);
     fafService.addOnMessageListener(SocialMessage.class, this::onFoeList);
+  }
 
-    gameService.getGames().addListener((ListChangeListener<? super Game>) listChange -> {
-      while (listChange.next()) {
-        listChange.getRemoved().forEach(this::updateGameForPlayersInGame);
+  @Subscribe
+  private void onGameAdded(GameAddedEvent event) {
+    updateGameForPlayersInGame(event.getGame());
+  }
 
-        if (listChange.wasUpdated()) {
-          for (int i = listChange.getFrom(); i < listChange.getTo(); i++) {
-            updateGameForPlayersInGame(listChange.getList().get(i));
+  @Subscribe
+  private void onGameUpdated(GameUpdatedEvent event) {
+    updateGameForPlayersInGame(event.getGame());
+  }
+
+  @Subscribe
+  private void onGameRemoved(GameRemovedEvent event) {
+    updateGameForPlayersInGame(event.getGame());
+  }
+
+  private void updateGameForPlayersInGame(Game game) {
+    ObservableMap<String, List<String>> teams = game.getTeams();
+    synchronized (teams) {
+      teams.forEach((team, players) -> updateGamePlayers(players, game));
+
+      List<Player> leftGame = new LinkedList<>();
+      synchronized (gamesByPlayers) {
+        gamesByPlayers.forEach((player, g) -> {
+          if (g.getId() == game.getId() && gameContainsPlayer(game, player)) {
+            player.setGame(null);
+            leftGame.add(player);
           }
-        }
-
-        listChange.getAddedSubList().forEach(this::updateGameForPlayersInGame);
+        });
+        leftGame.forEach(gamesByPlayers::remove);
       }
-    });
+    }
   }
 
   @Subscribe
@@ -128,26 +144,11 @@ public class PlayerServiceImpl implements PlayerService {
     Optional.ofNullable(playerForUsername).ifPresent(player -> player.setIdleSince(Instant.now()));
   }
 
-  private void updateGameForPlayersInGame(Game game) {
-    ObservableMap<String, List<String>> teams = game.getTeams();
-    synchronized (teams) {
-      teams.forEach((team, players) -> updateGamePlayers(players, game));
-
-      List<Player> leftGame = new LinkedList<>();
-      synchronized (gamesByPlayers) {
-        gamesByPlayers.forEach((player, g) -> {
-          if (g == game
-              && game.getTeams().entrySet().stream()
-              .flatMap(team -> team.getValue().stream())
-              .filter(Objects::nonNull)
-              .noneMatch(s -> s.equals(player.getUsername()))) {
-            player.setGame(null);
-            leftGame.add(player);
-          }
-        });
-        leftGame.forEach(gamesByPlayers::remove);
-      }
-    }
+  private boolean gameContainsPlayer(Game game, Player player) {
+    return game.getTeams().entrySet().stream()
+        .flatMap(team -> team.getValue().stream())
+        .filter(Objects::nonNull)
+        .noneMatch(teamMembers -> teamMembers.equals(player.getUsername()));
   }
 
   private void updateGamePlayers(List<String> players, Game game) {

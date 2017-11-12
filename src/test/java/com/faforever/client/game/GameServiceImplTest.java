@@ -13,6 +13,7 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.patch.GameUpdater;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
@@ -125,10 +126,13 @@ public class GameServiceImplTest {
 
   @Captor
   private ArgumentCaptor<Consumer<GameInfoMessage>> gameInfoMessageListenerCaptor;
+  private Player junitPlayer;
   ;
 
   @Before
   public void setUp() throws Exception {
+    junitPlayer = PlayerBuilder.create("JUnit").defaultValues().get();
+
     ClientProperties clientProperties = new ClientProperties();
     clientProperties.getReplay().setLocalServerPort(LOCAL_REPLAY_PORT);
 
@@ -144,7 +148,7 @@ public class GameServiceImplTest {
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     when(replayService.startReplayServer(anyInt())).thenReturn(CompletableFuture.completedFuture(null));
     when(iceAdapter.start()).thenReturn(CompletableFuture.completedFuture(GPG_PORT));
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(PlayerBuilder.create("JUnit").defaultValues().get()));
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(junitPlayer));
 
     doAnswer(invocation -> {
       try {
@@ -201,7 +205,7 @@ public class GameServiceImplTest {
     gameLaunchMessage.setArgs(asList("/foo bar", "/bar foo"));
 
     when(forgedAllianceService.startGame(
-        gameLaunchMessage.getUid(), null, asList("/foo", "bar", "/bar", "foo"), GLOBAL, GPG_PORT, LOCAL_REPLAY_PORT, false)
+        gameLaunchMessage.getUid(), null, asList("/foo", "bar", "/bar", "foo"), GLOBAL, GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer)
     ).thenReturn(process);
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
@@ -228,7 +232,7 @@ public class GameServiceImplTest {
     gameTerminatedLatch.await(TIMEOUT, TIME_UNIT);
     verify(forgedAllianceService).startGame(
         gameLaunchMessage.getUid(), null, asList("/foo", "bar", "/bar", "foo"), GLOBAL,
-        GPG_PORT, LOCAL_REPLAY_PORT, false);
+        GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
     verify(replayService).startReplayServer(gameLaunchMessage.getUid());
   }
 
@@ -383,7 +387,7 @@ public class GameServiceImplTest {
     verify(mapService).download("scmp_037");
     verify(replayService).startReplayServer(123);
     verify(forgedAllianceService, timeout(100))
-        .startGame(eq(123), eq(CYBRAN), eq(asList("/team", "1", "/players", "2")), eq(RatingMode.LADDER_1V1), anyInt(), eq(LOCAL_REPLAY_PORT), eq(false));
+        .startGame(eq(123), eq(CYBRAN), eq(asList("/team", "1", "/players", "2")), eq(RatingMode.LADDER_1V1), anyInt(), eq(LOCAL_REPLAY_PORT), eq(false), eq(junitPlayer));
     assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
   }
 
@@ -395,7 +399,7 @@ public class GameServiceImplTest {
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
 
-    when(forgedAllianceService.startGame(anyInt(), any(), any(), any(), anyInt(), eq(LOCAL_REPLAY_PORT), eq(false))).thenReturn(process);
+    when(forgedAllianceService.startGame(anyInt(), any(), any(), any(), anyInt(), eq(LOCAL_REPLAY_PORT), eq(false), eq(junitPlayer))).thenReturn(process);
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
     when(mapService.download(newGameInfo.getMap())).thenReturn(CompletableFuture.completedFuture(null));
@@ -453,7 +457,7 @@ public class GameServiceImplTest {
 
     instance.onRehostRequest(new RehostRequestEvent());
 
-    verify(forgedAllianceService).startGame(anyInt(), eq(null), anyListOf(String.class), eq(GLOBAL), anyInt(), eq(LOCAL_REPLAY_PORT), eq(true));
+    verify(forgedAllianceService).startGame(anyInt(), eq(null), anyListOf(String.class), eq(GLOBAL), anyInt(), eq(LOCAL_REPLAY_PORT), eq(true), eq(junitPlayer));
   }
 
   @Test
@@ -465,6 +469,6 @@ public class GameServiceImplTest {
 
     instance.onRehostRequest(new RehostRequestEvent());
 
-    verify(forgedAllianceService, never()).startGame(anyInt(), any(), any(), any(), anyInt(), eq(LOCAL_REPLAY_PORT), anyBoolean());
+    verify(forgedAllianceService, never()).startGame(anyInt(), any(), any(), any(), anyInt(), eq(LOCAL_REPLAY_PORT), anyBoolean(), eq(junitPlayer));
   }
 }
