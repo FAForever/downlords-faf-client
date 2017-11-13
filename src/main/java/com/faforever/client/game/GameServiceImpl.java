@@ -210,7 +210,7 @@ public class GameServiceImpl implements GameService {
 
     return updateGameIfNecessary(newGameInfo.getFeaturedMod(), null, emptyMap(), newGameInfo.getSimMods())
         .thenCompose(aVoid -> downloadMapIfNecessary(newGameInfo.getMap()))
-        .thenRun(() -> connectivityService.connect())
+        .thenRun(connectivityService::connect)
         .thenRun(() -> localRelayServer.start(connectivityService))
         .thenCompose(aVoid -> fafService.requestHostGame(newGameInfo))
         .thenAccept(gameLaunchMessage -> startGame(gameLaunchMessage, null, RatingMode.GLOBAL));
@@ -422,7 +422,13 @@ public class GameServiceImpl implements GameService {
 
     stopSearchLadder1v1();
     replayService.startReplayServer(gameLaunchMessage.getUid())
-        .thenCompose(aVoid -> iceAdapter.start())
+        .thenCompose(aVoid -> {
+          // FIXME clean up when ICE gets enabled
+          if (!ICE_ADAPTER_ENABLED) {
+            return CompletableFuture.completedFuture(0);
+          }
+          return iceAdapter.start();
+        })
         .thenAccept(adapterPort -> {
           int port;
           if (!ICE_ADAPTER_ENABLED) {

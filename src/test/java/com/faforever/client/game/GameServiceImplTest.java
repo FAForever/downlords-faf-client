@@ -152,7 +152,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     when(replayService.startReplayServer(anyInt())).thenReturn(CompletableFuture.completedFuture(null));
-    when(iceAdapter.start()).thenReturn(CompletableFuture.completedFuture(GPG_PORT));
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(junitPlayer));
 
     doAnswer(invocation -> {
