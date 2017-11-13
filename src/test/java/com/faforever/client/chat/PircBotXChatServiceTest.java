@@ -287,7 +287,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     socialMessage.setChannels(Collections.emptyList());
 
     socialMessageListenerCaptor.getValue().accept(socialMessage);
-    verify(outputIrc, timeout(TIMEOUT)).joinChannel(DEFAULT_CHANNEL_NAME);
+    verify(outputIrc, timeout(TIMEOUT).atLeastOnce()).joinChannel(DEFAULT_CHANNEL_NAME);
   }
 
   private void firePircBotXEvent(Event event) {
