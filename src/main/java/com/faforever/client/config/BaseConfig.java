@@ -27,7 +27,8 @@ public class BaseConfig {
 
   @Bean
   EventBus eventBus() {
-    EventBus bus = new EventBus();
+    EventBus bus = new EventBus((exception, context) -> log.warn("Exception in '{}#{}' while handling event: {}",
+        context.getSubscriber().getClass(), context.getSubscriberMethod().getName(), context.getEvent(), exception));
     bus.register(new DeadEventHandler());
     return bus;
   }

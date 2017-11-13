@@ -296,9 +296,13 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
   private void addNodeOnTopOfBar(XYChart.Data<String, Integer> data, Node nodeToAdd) {
     final Node node = data.getNode();
     node.parentProperty().addListener((ov, oldParent, parent) -> {
+      if (parent == null) {
+        return;
+      }
       Group parentGroup = (Group) parent;
-      if (!parentGroup.getChildren().contains(nodeToAdd)) {
-        parentGroup.getChildren().add(nodeToAdd);
+      ObservableList<Node> children = parentGroup.getChildren();
+      if (!children.contains(nodeToAdd)) {
+        children.add(nodeToAdd);
       }
     });
 

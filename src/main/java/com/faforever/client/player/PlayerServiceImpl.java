@@ -24,7 +24,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -44,7 +43,6 @@ import static com.faforever.client.chat.SocialStatus.FRIEND;
 import static com.faforever.client.chat.SocialStatus.OTHER;
 import static com.faforever.client.chat.SocialStatus.SELF;
 
-@Lazy
 @Service
 public class PlayerServiceImpl implements PlayerService {
 
@@ -81,17 +79,17 @@ public class PlayerServiceImpl implements PlayerService {
   }
 
   @Subscribe
-  private void onGameAdded(GameAddedEvent event) {
+  public void onGameAdded(GameAddedEvent event) {
     updateGameForPlayersInGame(event.getGame());
   }
 
   @Subscribe
-  private void onGameUpdated(GameUpdatedEvent event) {
+  public void onGameUpdated(GameUpdatedEvent event) {
     updateGameForPlayersInGame(event.getGame());
   }
 
   @Subscribe
-  private void onGameRemoved(GameRemovedEvent event) {
+  public void onGameRemoved(GameRemovedEvent event) {
     updateGameForPlayersInGame(event.getGame());
   }
 

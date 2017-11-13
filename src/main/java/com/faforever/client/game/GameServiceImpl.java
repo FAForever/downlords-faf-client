@@ -36,11 +36,11 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.beans.Observable;
-import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -153,7 +153,20 @@ public class GameServiceImpl implements GameService {
     uidToGameInfoBean = FXCollections.observableHashMap();
     searching1v1 = new SimpleBooleanProperty();
     gameRunning = new SimpleBooleanProperty();
+
     currentGame = new SimpleObjectProperty<>();
+    currentGame.addListener((observable, oldValue, newValue) -> {
+      if (newValue == null) {
+        return;
+      }
+
+      newValue.statusProperty().addListener(new WeakChangeListener<>((observable1, oldValue1, newValue1) -> {
+        if (newValue1 == GameStatus.CLOSED) {
+          onCurrentGameEnded(currentGame);
+        }
+      }));
+    });
+
     games = FXCollections.observableList(new ArrayList<>(),
         item -> new Observable[]{item.statusProperty(), item.getTeams()}
     );
@@ -405,7 +418,6 @@ public class GameServiceImpl implements GameService {
 
           this.ratingMode = ratingMode;
           spawnTerminationListener(process);
-          setCurrentGameEndedListener(currentGame);
         })
         .exceptionally(throwable -> {
           logger.warn("Game could not be started", throwable);
@@ -417,15 +429,6 @@ public class GameServiceImpl implements GameService {
           setGameRunning(false);
           return null;
         });
-  }
-
-  @VisibleForTesting
-  protected void setCurrentGameEndedListener(final SimpleObjectProperty<Game> game) {
-    game.get().statusProperty().addListener(new WeakInvalidationListener(observable -> {
-      if (game.get().getStatus().equals(GameStatus.CLOSED)) {
-        onCurrentGameEnded(game);
-      }
-    }));
   }
 
   private void onCurrentGameEnded(SimpleObjectProperty<Game> game) {

@@ -473,9 +473,9 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     Game game = new Game();
     game.setId(123);
     game.setStatus(OPEN);
-    SimpleObjectProperty<Game> gameSimpleObjectProperty = new SimpleObjectProperty<>();
-    gameSimpleObjectProperty.set(game);
-    instance.setCurrentGameEndedListener(gameSimpleObjectProperty);
+
+    instance.currentGame.set(game);
+
     verify(notificationService, never()).addNotification(any(PersistentNotification.class));
 
     game.setStatus(CLOSED);
