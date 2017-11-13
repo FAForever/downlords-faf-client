@@ -13,12 +13,12 @@ import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.util.ProgrammingError;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.Executor;
 
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.lang.Thread.sleep;
@@ -28,30 +28,32 @@ import static java.lang.Thread.sleep;
  * triggered and stops as soon as the window is focused.
  * Also shows a transient notification.
  */
-@Lazy
+
 @Component
 public class OnGameFullNotifier {
 
   private final PlatformService platformService;
-  private final ThreadPoolExecutor threadPoolExecutor;
-  private final GameService gameService;
+  private final Executor executor;
+  private final ApplicationContext applicationContext;
   private final NotificationService notificationService;
   private final I18n i18n;
   private final MapService mapService;
   private final EventBus eventBus;
+  private GameService gameService;
   private final String faWindowTitle;
 
   @Inject
-  public OnGameFullNotifier(PlatformService platformService, ThreadPoolExecutor threadPoolExecutor,
-                            GameService gameService, NotificationService notificationService, I18n i18n,
-                            MapService mapService, EventBus eventBus, ClientProperties clientProperties) {
+  public OnGameFullNotifier(PlatformService platformService, Executor executor,
+                            NotificationService notificationService, I18n i18n,
+                            MapService mapService, EventBus eventBus,
+                            ApplicationContext applicationContext, ClientProperties clientProperties) {
     this.platformService = platformService;
-    this.threadPoolExecutor = threadPoolExecutor;
-    this.gameService = gameService;
+    this.executor = executor;
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.mapService = mapService;
     this.eventBus = eventBus;
+    this.applicationContext = applicationContext;
     this.faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
   }
 
@@ -62,7 +64,11 @@ public class OnGameFullNotifier {
 
   @Subscribe
   public void onGameFull(GameFullEvent event) {
-    threadPoolExecutor.submit(() -> {
+    if (gameService == null) {
+      gameService = applicationContext.getBean(GameService.class);
+    }
+
+    executor.execute(() -> {
       platformService.startFlashingWindow(faWindowTitle);
       while (gameService.isGameRunning() && !platformService.isWindowFocused(faWindowTitle)) {
         noCatch(() -> sleep(500));
