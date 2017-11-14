@@ -229,6 +229,13 @@ public class GameServiceImpl implements GameService {
 
     return modService.getFeaturedMod(game.getFeaturedMod())
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, featuredModVersions, simModUIds))
+        .thenAccept(aVoid -> {
+          try {
+            modService.enableSimMods(simModUIds);
+          } catch (IOException e) {
+            logger.warn("SimMods could not be enabled", e);
+          }
+        })
         .thenCompose(aVoid -> downloadMapIfNecessary(game.getMapFolderName()))
         .thenCompose(aVoid -> fafService.requestJoinGame(game.getId(), password))
         .thenAccept(gameLaunchMessage -> {

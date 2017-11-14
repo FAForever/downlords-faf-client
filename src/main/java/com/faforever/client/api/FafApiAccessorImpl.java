@@ -15,6 +15,7 @@ import com.faforever.client.api.dto.MapStatistics;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
 import com.faforever.client.api.dto.Mod;
+import com.faforever.client.api.dto.ModVersion;
 import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
@@ -280,8 +281,10 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @Override
   public Mod getMod(String uid) {
-    return getOne("/data/mod/" + uid, Mod.class, ImmutableMap.of(
-        "include", "latestVersion"));
+    List<ModVersion> answer = getMany("/data/modVersion/", 1, ImmutableMap.of(
+        "filter", rsql(qBuilder().string("uid").eq(uid)),
+        "include", "mod,mod.latestVersion"));
+    return answer.get(0).getMod();
   }
 
   @Override
