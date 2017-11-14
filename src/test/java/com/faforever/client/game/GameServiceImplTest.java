@@ -42,6 +42,7 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -125,6 +126,9 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Captor
   private ArgumentCaptor<Consumer<GameInfoMessage>> gameInfoMessageListenerCaptor;
+  @Captor
+  private ArgumentCaptor<Set<String>> simModsCaptor;
+
   private Player junitPlayer;
 
   @Before
@@ -191,6 +195,32 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
     verify(mapService, never()).download(any());
     verify(replayService).startReplayServer(game.getId());
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testModEnabling() throws Exception {
+    Game game = GameBuilder.create().defaultValues().get();
+
+    ObservableMap<String, String> simMods = FXCollections.observableHashMap();
+    simMods.put("123-456-789", "Fake mod name");
+
+    game.setSimMods(simMods);
+    game.setMapFolderName("map");
+
+    GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
+
+    when(mapService.isInstalled("map")).thenReturn(true);
+    when(fafService.requestJoinGame(game.getId(), null)).thenReturn(completedFuture(gameLaunchMessage));
+    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(CompletableFuture.completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+
+
+    CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
+    assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
+    verify(modService).enableSimMods(simModsCaptor.capture());
+    assertEquals(simModsCaptor.getValue().iterator().next(), "123-456-789");
+
   }
 
   @Test

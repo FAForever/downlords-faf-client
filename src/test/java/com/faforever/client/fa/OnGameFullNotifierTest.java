@@ -73,9 +73,7 @@ public class OnGameFullNotifierTest {
     instance.onGameFull(new GameFullEvent());
 
     verify(notificationService).addNotification(any(TransientNotification.class));
-    verify(threadPoolExecutor).submit(any(Runnable.class));
-    verify(platformService).startFlashingWindow("Forged Alliance");
-    verify(platformService).stopFlashingWindow("Forged Alliance");
+    verify(threadPoolExecutor).execute(any(Runnable.class));
   }
 
   @Test

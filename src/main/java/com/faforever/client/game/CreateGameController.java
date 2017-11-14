@@ -50,6 +50,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.Objects;
@@ -206,6 +207,12 @@ public class CreateGameController implements Controller<Pane> {
     modListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     modListView.setCellFactory(modListCellFactory());
     modListView.getItems().setAll(modService.getInstalledMods());
+    try {
+      modService.getActivatedSimAndUIMods().forEach(mod -> modListView.getSelectionModel().select(mod));
+    } catch (IOException e) {
+      logger.error("Activated Mods could not be loaded", e);
+    }
+    modListView.scrollTo(modListView.getSelectionModel().getSelectedItem());
   }
 
   private void initMapSelection() {
@@ -331,6 +338,12 @@ public class CreateGameController implements Controller<Pane> {
   public void onCreateButtonClicked() {
     ObservableList<Mod> selectedMods = modListView.getSelectionModel().getSelectedItems();
 
+    try {
+      modService.overrideActivatedMods(modListView.getSelectionModel().getSelectedItems());
+    } catch (IOException e) {
+      logger.warn("Activated Mods could not be updated", e);
+    }
+
     Set<String> simMods = selectedMods.stream()
         .map(Mod::getUid)
         .collect(Collectors.toSet());
@@ -371,6 +384,7 @@ public class CreateGameController implements Controller<Pane> {
 
   public void onReloadModsButtonClicked(ActionEvent event) {
     modService.loadInstalledMods();
+    initModList();
   }
 
   public void onDimmerClicked() {
