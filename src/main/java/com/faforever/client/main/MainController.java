@@ -259,11 +259,12 @@ public class MainController implements Controller<Node> {
   private void onMatchmakerMessage(MatchmakerMessage message) {
     if (message.getQueues() == null
         || gameService.gameRunningProperty().get()
-        || !preferencesService.getPreferences().getNotification().getLadder1v1ToastEnabled()) {
+        || !preferencesService.getPreferences().getNotification().getLadder1v1ToastEnabled()
+        || !playerService.getCurrentPlayer().isPresent()) {
       return;
     }
 
-    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
+    Player currentPlayer = playerService.getCurrentPlayer().get();
 
     int deviationFor80PercentQuality = (int) (ratingBeta / 2.5f);
     int deviationFor75PercentQuality = (int) (ratingBeta / 1.25f);

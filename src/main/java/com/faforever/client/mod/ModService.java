@@ -81,4 +81,8 @@ public interface ModService {
   CompletableFuture<List<FeaturedMod>> getFeaturedMods();
 
   CompletableFuture<FeaturedMod> getFeaturedMod(String gameTypeBeanName);
+
+  List<Mod> getActivatedSimAndUIMods() throws IOException;
+
+  void overrideActivatedMods(List<Mod> mods) throws IOException;
 }

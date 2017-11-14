@@ -174,6 +174,7 @@ public class ModServiceImpl implements ModService {
     return readOnlyInstalledMods;
   }
 
+  @SneakyThrows
   @Override
   public CompletableFuture<Void> downloadAndInstallMod(String uid) {
     return fafService.getMod(uid).thenAccept(mod -> downloadAndInstallMod(mod, null, null));
@@ -242,7 +243,7 @@ public class ModServiceImpl implements ModService {
 
   @Override
   public boolean isModInstalled(String uid) {
-    return getInstalledUiModsUids().contains(uid) || getInstalledModUids().contains(uid);
+    return getInstalledModUids().contains(uid);
   }
 
   @Override
@@ -374,6 +375,20 @@ public class ModServiceImpl implements ModService {
         .findFirst()
         .orElseThrow(() -> new IllegalArgumentException("Not a valid featured mod: " + featuredMod))
     ));
+  }
+
+  @Override
+  public List<Mod> getActivatedSimAndUIMods() throws IOException {
+    Map<String, Boolean> modStates = readModStates();
+    return getInstalledMods().parallelStream()
+        .filter(mod -> modStates.containsKey(mod.getUid()) && modStates.get(mod.getUid()))
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public void overrideActivatedMods(List<Mod> mods) throws IOException {
+    Map<String, Boolean> modStates = mods.parallelStream().collect(Collectors.toMap(Mod::getUid, o -> true));
+    writeModStates(modStates);
   }
 
   private CompletableFuture<List<Mod>> getTopElements(Comparator<? super Mod> comparator, int count) {
