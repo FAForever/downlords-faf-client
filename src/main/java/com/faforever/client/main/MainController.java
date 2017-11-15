@@ -37,6 +37,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.install4j.api.launcher.SplashScreen;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -318,6 +319,8 @@ public class MainController implements Controller<Node> {
     stage.setWidth(width);
     stage.setHeight(height);
     stage.show();
+
+    noCatch(SplashScreen::hide);
     enterLoggedOutState();
 
     ObservableList<Screen> screensForRectangle = Screen.getScreensForRectangle(x, y, width, height);

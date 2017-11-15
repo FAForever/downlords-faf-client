@@ -368,6 +368,9 @@ return console.askOkCancel(message, true);
                       <void property="extension">
                         <string>fafreplay</string>
                       </void>
+                      <void property="launcherId">
+                        <string>25</string>
+                      </void>
                     </object>
                   </java>
                 </serializedBean>
@@ -392,11 +395,7 @@ return console.askOkCancel(message, true);
               <formComponent name="" id="165" customizedId="" beanClass="com.install4j.runtime.beans.formcomponents.FileAssociationsComponent" enabled="true" commentSet="false" comment="" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false" useExternalParametrization="true" externalParametrizationName="File Associations" externalParametrizationMode="include">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.formcomponents.FileAssociationsComponent">
-                      <void property="fillVertical">
-                        <boolean>true</boolean>
-                      </void>
-                    </object>
+                    <object class="com.install4j.runtime.beans.formcomponents.FileAssociationsComponent" />
                   </java>
                 </serializedBean>
                 <initScript />
@@ -1193,7 +1192,7 @@ return console.askYesNo(message, true);
     </styles>
   </installerGui>
   <mediaSets>
-    <windows name="Windows" id="26" customizedId="" mediaFileName="" installDir="${compiler:sys.fullName}" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" downloadURL="" includeAllDownloadableComponents="false" includedJRE="windows-x86-1.8.0_152" manualJREEntry="false" bundleType="2" jreURL="http://content.faforever.com/jre/windows-x86-1.8.0_131.tar.gz" jreShared="true" directDownload="true" installOnlyIfNecessary="true" customInstallBaseDir="" contentFilesType="1" verifyIntegrity="true">
+    <windows name="Windows" id="26" customizedId="" mediaFileName="" installDir="${compiler:sys.fullName}" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" downloadURL="" includeAllDownloadableComponents="false" includedJRE="windows-x86-1.8.0_152" manualJREEntry="false" bundleType="2" jreURL="http://content.faforever.com/jre/windows-x86-1.8.0_144.tar.gz" jreShared="true" directDownload="true" installOnlyIfNecessary="true" customInstallBaseDir="" contentFilesType="1" verifyIntegrity="true">
       <excludedComponents />
       <includedDownloadableComponents />
       <excludedLaunchers />
