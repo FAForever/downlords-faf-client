@@ -42,10 +42,11 @@ security:
 logging:
   level:
     org.springframework.beans: warn
-    org.springframework.http.client.support: debug
-    org.springframework.security.oauth2: debug
+    org.springframework.http.client.support: info
+    org.springframework.security.oauth2: info
     org.springframework.security.oauth2.client.token.grant: off
-    faf-ice-adapter: debug
+    faf-ice-adapter:
+
     org.ice4j.stack: warn
     com.nbarraille.jjsonrpc: warn
     org.pircbotx: warn

@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.VictoryCondition;
@@ -59,7 +60,7 @@ public class Game {
 
   public Game(GameInfoMessage gameInfoMessage) {
     this();
-    updateFromGameInfo(gameInfoMessage);
+    updateFromGameInfo(gameInfoMessage, true);
   }
 
   public Game() {
@@ -83,7 +84,19 @@ public class Game {
     startTime = new SimpleObjectProperty<>();
   }
 
-  public void updateFromGameInfo(GameInfoMessage gameInfoMessage) {
+  void updateFromGameInfo(GameInfoMessage gameInfoMessage) {
+    updateFromGameInfo(gameInfoMessage, false);
+  }
+
+  private void updateFromGameInfo(GameInfoMessage gameInfoMessage, boolean isContructing) {
+    /* Since this method synchronizes on and updates members of "game", deadlocks can happen easily (updates can fire
+     events on the event bus, and each event subscriber is synchronized as well). By ensuring that we run all updates
+     in the application thread, we eliminate this risk. This is not required during construction of the game however,
+     since members are not yet accessible from outside. */
+    if (!isContructing) {
+      JavaFxUtil.assertApplicationThread();
+    }
+
     id.set(gameInfoMessage.getUid());
     host.set(gameInfoMessage.getHost());
     title.set(StringEscapeUtils.unescapeHtml4(gameInfoMessage.getTitle()));
@@ -318,8 +331,8 @@ public class Game {
   }
 
   /**
-   * Maps team names ("1", "2", ...) to a list of player names.
-   * <strong>Make sure to synchronize on the return value.</strong>
+   * Maps team names ("1", "2", ...) to a list of player names. <strong>Make sure to synchronize on the return
+   * value.</strong>
    */
   public ObservableMap<String, List<String>> getTeams() {
     return teams.get();
