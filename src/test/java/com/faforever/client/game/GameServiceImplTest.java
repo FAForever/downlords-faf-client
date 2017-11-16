@@ -264,6 +264,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     ));
 
     gameInfoMessageListenerCaptor.getValue().accept(multiGameInfoMessage);
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.getGames(), hasSize(2));
   }
@@ -277,6 +278,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     GameInfoMessage gameInfoMessage2 = GameInfoMessageBuilder.create(2).defaultValues().title("Game 2").get();
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage2);
+    WaitForAsyncUtils.waitForFxEvents();
 
     Game game1 = new Game(gameInfoMessage1);
     Game game2 = new Game(gameInfoMessage2);
@@ -294,6 +296,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
         .state(OPEN)
         .addTeamMember("1", "PlayerName").get();
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.getCurrentGame(), notNullValue());
     assertThat(instance.getCurrentGame().getId(), is(1234));
@@ -331,6 +334,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     GameInfoMessage gameInfoMessage = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").state(PLAYING).get();
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
+    WaitForAsyncUtils.waitForFxEvents();
 
     CountDownLatch changeLatch = new CountDownLatch(1);
     Game game = instance.getGames().iterator().next();

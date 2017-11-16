@@ -67,6 +67,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
@@ -87,6 +88,8 @@ public class GameServiceImpl implements GameService {
 
   @VisibleForTesting
   final BooleanProperty gameRunning;
+
+  /** TODO: Explain why access needs to be synchronized. */
   @VisibleForTesting
   final SimpleObjectProperty<Game> currentGame;
 
@@ -150,7 +153,7 @@ public class GameServiceImpl implements GameService {
 
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
     this.externalReplayInfoGenerator = externalReplayInfoGenerator1;
-    uidToGameInfoBean = FXCollections.observableHashMap();
+    uidToGameInfoBean = FXCollections.observableMap(new ConcurrentHashMap<>());
     searching1v1 = new SimpleBooleanProperty();
     gameRunning = new SimpleBooleanProperty();
 
@@ -162,7 +165,7 @@ public class GameServiceImpl implements GameService {
 
       newValue.statusProperty().addListener(new WeakChangeListener<>((observable1, oldValue1, newValue1) -> {
         if (newValue1 == GameStatus.CLOSED) {
-          onCurrentGameEnded(currentGame);
+          onCurrentGameEnded();
         }
       }));
     });
@@ -171,6 +174,10 @@ public class GameServiceImpl implements GameService {
         item -> new Observable[]{item.statusProperty(), item.getTeams()}
     );
     games.addListener((ListChangeListener<Game>) change -> {
+      /* To prevent deadlocks (i.e. synchronization on the game's "teams" and on the google event subscriber), only
+      allow this to run on the application thread. */
+      JavaFxUtil.assertApplicationThread();
+
       while (change.next()) {
         change.getRemoved().forEach(game -> eventBus.post(new GameRemovedEvent(game)));
 
@@ -398,8 +405,8 @@ public class GameServiceImpl implements GameService {
   }
 
   /**
-   * Actually starts the game, including relay and replay server. Call this method when everything else is
-   * prepared (mod/map download, connectivity check etc.)
+   * Actually starts the game, including relay and replay server. Call this method when everything else is prepared
+   * (mod/map download, connectivity check etc.)
    */
   private void startGame(GameLaunchMessage gameLaunchMessage, Faction faction, RatingMode ratingMode) {
     if (isRunning()) {
@@ -431,13 +438,14 @@ public class GameServiceImpl implements GameService {
         });
   }
 
-  private void onCurrentGameEnded(SimpleObjectProperty<Game> game) {
-    notificationService.addNotification(new PersistentNotification(i18n.get("game.ended", game.get().getTitle()),
-        Severity.INFO,
-        singletonList(new Action(i18n.get("game.rate"), actionEvent -> {
-          replayService.findById(game.get().getId())
-              .thenAccept(replay -> externalReplayInfoGenerator.showExternalReplayInfo(replay, String.valueOf(game.get().getId())));
-        }))));
+  private void onCurrentGameEnded() {
+    synchronized (currentGame) {
+      int currentGameId = currentGame.get().getId();
+      notificationService.addNotification(new PersistentNotification(i18n.get("game.ended", currentGame.get().getTitle()),
+          Severity.INFO,
+          singletonList(new Action(i18n.get("game.rate"), actionEvent -> replayService.findById(currentGameId)
+              .thenAccept(replay -> externalReplayInfoGenerator.showExternalReplayInfo(replay, String.valueOf(currentGameId)))))));
+    }
   }
 
   /**
@@ -480,16 +488,18 @@ public class GameServiceImpl implements GameService {
   }
 
   private void rehost() {
-    Game game = currentGame.get();
+    synchronized (currentGame) {
+      Game game = currentGame.get();
 
-    modService.getFeaturedMod(game.getFeaturedMod())
-        .thenAccept(featuredModBean -> hostGame(new NewGameInfo(
-            game.getTitle(),
-            game.getPassword(),
-            featuredModBean,
-            game.getMapFolderName(),
-            new HashSet<>(game.getSimMods().values())
-        )));
+      modService.getFeaturedMod(game.getFeaturedMod())
+          .thenAccept(featuredModBean -> hostGame(new NewGameInfo(
+              game.getTitle(),
+              game.getPassword(),
+              featuredModBean,
+              game.getMapFolderName(),
+              new HashSet<>(game.getSimMods().values())
+          )));
+    }
   }
 
   @Subscribe
@@ -506,45 +516,43 @@ public class GameServiceImpl implements GameService {
   @PostConstruct
   void postConstruct() {
     eventBus.register(this);
-    fafService.addOnMessageListener(GameInfoMessage.class, this::onGameInfo);
+    fafService.addOnMessageListener(GameInfoMessage.class, message -> Platform.runLater(() -> onGameInfo(message)));
     fafService.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == ConnectionState.DISCONNECTED) {
-        uidToGameInfoBean.clear();
+        synchronized (uidToGameInfoBean) {
+          uidToGameInfoBean.clear();
+        }
       }
     });
   }
 
   private void onGameInfo(GameInfoMessage gameInfoMessage) {
+    // Since all game updates are usually reflected on the UI and to prevent deadlocks
+    JavaFxUtil.assertApplicationThread();
+
     if (gameInfoMessage.getGames() != null) {
       gameInfoMessage.getGames().forEach(this::onGameInfo);
       return;
     }
 
-    final Game game;
-    Integer gameId = gameInfoMessage.getUid();
     Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
-    if (!uidToGameInfoBean.containsKey(gameId)) {
-      game = new Game(gameInfoMessage);
-      uidToGameInfoBean.put(gameId, game);
-    } else {
-      game = uidToGameInfoBean.get(gameId);
-      Platform.runLater(() -> game.updateFromGameInfo(gameInfoMessage));
 
-      if (GameStatus.CLOSED == gameInfoMessage.getState()) {
-        if (currentPlayer.getGame() == game) {
-          // Don't remove the game until the current player closed it
-          currentPlayer.gameProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue == null && oldValue.getStatus() == GameStatus.CLOSED) {
-              removeGame(gameInfoMessage);
-            }
-          });
-        } else {
-          removeGame(gameInfoMessage);
-        }
-        return;
+    Game game = createOrUpdateGame(gameInfoMessage);
+    if (GameStatus.CLOSED == game.getStatus()) {
+      if (currentPlayer.getGame() == game) {
+        // Don't remove the game until the current player closed it. TODO: Why?
+        currentPlayer.gameProperty().addListener((observable, oldValue, newValue) -> {
+          if (newValue == null && oldValue.getStatus() == GameStatus.CLOSED) {
+            removeGame(gameInfoMessage);
+          }
+        });
+      } else {
+        removeGame(gameInfoMessage);
       }
+      return;
     }
 
+    // TODO the following can be removed as soon as the server tells us which game a player is in.
     boolean currentPlayerInGame = gameInfoMessage.getTeams().values().stream()
         .anyMatch(team -> team.contains(currentPlayer.getUsername()));
 
@@ -564,13 +572,24 @@ public class GameServiceImpl implements GameService {
     });
   }
 
-  private void removeGame(GameInfoMessage gameInfoMessage) {
-    Platform.runLater(() -> {
-      // This needs to run in the application thread since otherwise code triggered by the above updateFromGameInfo
-      // operation, which runs in the application thread, too, may try to access the removed element.
-      synchronized (uidToGameInfoBean) {
-        uidToGameInfoBean.remove(gameInfoMessage.getUid());
+  private Game createOrUpdateGame(GameInfoMessage gameInfoMessage) {
+    Integer gameId = gameInfoMessage.getUid();
+    final Game game;
+    synchronized (uidToGameInfoBean) {
+      if (!uidToGameInfoBean.containsKey(gameId)) {
+        game = new Game(gameInfoMessage);
+        uidToGameInfoBean.put(gameId, game);
+      } else {
+        game = uidToGameInfoBean.get(gameId);
+        game.updateFromGameInfo(gameInfoMessage);
       }
-    });
+    }
+    return game;
+  }
+
+  private void removeGame(GameInfoMessage gameInfoMessage) {
+    synchronized (uidToGameInfoBean) {
+      uidToGameInfoBean.remove(gameInfoMessage.getUid());
+    }
   }
 }
