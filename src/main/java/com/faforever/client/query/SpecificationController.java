@@ -25,6 +25,7 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.layout.HBox;
 import javafx.util.StringConverter;
 import lombok.SneakyThrows;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -78,13 +79,15 @@ public class SpecificationController implements Controller<Node> {
       .put(RE, "query.contains")
       .build();
 
-  private static final Map<Class<?>, Collection<ComparisonOperator>> VALID_OPERATORS = ImmutableMap.of(
-      Number.class, Arrays.asList(EQ, NE, GT, GTE, LT, LTE, IN, NIN),
-      Temporal.class, Arrays.asList(EQ, NE, GT, GTE, LT, LTE),
-      String.class, Arrays.asList(EQ, NE, IN, NIN, RE),
-      Boolean.class, Arrays.asList(EQ, NE),
-      Enum.class, Arrays.asList(EQ, NE, IN, NIN)
-  );
+  private static final Map<Class<?>, Collection<ComparisonOperator>> VALID_OPERATORS =
+      ImmutableMap.<Class<?>, Collection<ComparisonOperator>>builder()
+          .put(Number.class, Arrays.asList(EQ, NE, GT, GTE, LT, LTE, IN, NIN))
+          .put(Temporal.class, Arrays.asList(EQ, NE, GT, GTE, LT, LTE))
+          .put(String.class, Arrays.asList(EQ, NE, IN, NIN, RE))
+          .put(Boolean.class, Arrays.asList(EQ, NE))
+          .put(Enum.class, Arrays.asList(EQ, NE, IN, NIN))
+          .put(ComparableVersion.class, Arrays.asList(EQ, NE, GT, GTE, LT, LTE, IN, NIN))
+          .build();
 
   private final I18n i18n;
   private final FilteredList<ComparisonOperator> comparisonOperators;
@@ -286,6 +289,8 @@ public class SpecificationController implements Controller<Node> {
       prop = qBuilder.instant(property);
     } else if (ClassUtils.isAssignable(Enum.class, fieldType)) {
       prop = qBuilder.enumeration(property);
+    } else if (ClassUtils.isAssignable(ComparableVersion.class, fieldType)) {
+      prop = qBuilder.string(property);
     } else {
       throw new IllegalStateException("Unsupported target type: " + fieldType);
     }
