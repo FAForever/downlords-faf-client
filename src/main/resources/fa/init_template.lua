@@ -56,7 +56,7 @@ whitelist =
     "effects.scd",
     "editor.scd",
     "ambience.scd",
-    "advanced strategic icons.nxt",
+    "advanced strategic icons.scd",
     "lobbymanager_v105.scd",
     "texturepack.nxt",
     "sc_music.scd"
