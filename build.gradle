@@ -56,7 +56,7 @@ configurations {
 
 class HttpBuilder extends HTTPBuilder {
 
-  public HttpBuilder(String url) {
+  HttpBuilder(String url) {
     super(url)
     this.parser.'text/json' = { resp ->
       def bufferedText = resp.entity.content.getText(ParserRegistry.getCharset(resp)).trim()
@@ -299,10 +299,10 @@ dependencies {
   compile("com.github.micheljung:i4jruntime:${i4jruntimeVersion}")
 
   testCompile 'junit:junit:4.11'
-  testCompile("org.testfx:testfx-core:4.0.+") {
+  testCompile("org.testfx:testfx-core:4.0.8-alpha") {
     exclude module: 'guava'
   }
-  testCompile("org.testfx:testfx-junit:4.0.+")
+  testCompile("org.testfx:testfx-junit:4.0.8-alpha")
   testCompile("com.natpryce.hamcrest:hamcrest-reflection:0.1-2")
   testCompile("org.springframework.boot:spring-boot-starter-test")
 
