@@ -31,13 +31,20 @@ a {
 
 .chat-section {
   overflow: hidden;
+}
+
+.chat-section * {
+  word-wrap: break-word;
+}
+
+.chat-section.extended {
   padding: 1em;
   /* Same color as -divider-color */
   border-bottom: 1px solid #424242;
 }
 
-.chat-section * {
-  word-wrap: break-word;
+.chat-section.compact {
+  padding: 0 .5em;
 }
 
 img.avatar,
@@ -60,9 +67,9 @@ img.country-flag[src=""] {
   display: none;
 }
 
-.chat-section .avatar,
-.chat-section .country-flag,
-.chat-section .author {
+.chat-section img.avatar,
+.chat-section img.country-flag,
+.chat-section div.author {
   display: inline-block;
   vertical-align: middle;
 }
@@ -72,6 +79,9 @@ img.country-flag[src=""] {
   color: #fafafa;
   cursor: pointer;
   font-weight: bold;
+}
+
+.chat-section.extended .username {
   margin-right: 0.5em;
 }
 
@@ -102,6 +112,26 @@ img.country-flag[src=""] {
   padding-left: 1em;
 }
 
+.chat-section.extended .text {
+  padding-left: 1em;
+}
+
+.chat-section.compact .text {
+  padding-left: .5em;
+  width: 100%;
+}
+
+.chat-section.compact .time {
+  float: right;
+}
+
+.chat-section.compact .avatar,
+.chat-section.compact .country-flag,
+.chat-section.compact .author,
+.chat-section.compact .time {
+  white-space: nowrap;
+}
+
 .chat-section.text.action {
   font-style: italic;
 }
@@ -122,8 +152,8 @@ img.country-flag[src=""] {
 .username.chat_only {
   color: #808080;
 }
-
 /* Username and mentions */
+
 .self,
 .username.self {
   color: #FFA500;

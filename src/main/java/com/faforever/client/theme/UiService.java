@@ -89,8 +89,10 @@ public class UiService {
   public static final String CSS_CLASS_ICON = "icon";
   public static final String LADDER_1V1_IMAGE = "theme/images/ranked1v1_notification.png";
   public static final String CHAT_CONTAINER = "theme/chat/chat_container.html";
-  public static final String CHAT_ENTRY = "theme/chat/chat_section.html";
-  public static final String CHAT_TEXT = "theme/chat/chat_text.html";
+  public static final String CHAT_ENTRY = "theme/chat/extended/chat_section.html";
+  public static final String CHAT_ENTRY_COMPACT = "theme/chat/compact/chat_section.html";
+  public static final String CHAT_TEXT = "theme/chat/extended/chat_text.html";
+  public static final String COMPACT_CHAT_TEXT = "theme/chat/compact/chat_text.html";
 
   public static Theme DEFAULT_THEME = new Theme() {
     {
@@ -286,7 +288,6 @@ public class UiService {
   }
 
 
-
   public URL getThemeFileUrl(String relativeFile) {
     String themeFile = getThemeFile(relativeFile);
     if (themeFile.startsWith("file:") || themeFile.startsWith("jar:")) {
@@ -294,7 +295,6 @@ public class UiService {
     }
     return noCatch(() -> new ClassPathResource(getThemeFile(relativeFile)).getURL());
   }
-
 
 
   public void setTheme(Theme theme) {

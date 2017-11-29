@@ -23,28 +23,29 @@ function link(input) {
       }
   );
 }
-function showClanInfo(node) {
-    java.clanInfo(node.textContent);
+
+function showClanInfo(clanTag) {
+    java.clanInfo(clanTag);
 }
 
 function hideClanInfo() {
     java.hideClanInfo();
 }
 
-function showClanWebsite(node) {
-    java.showClanWebsite(node.textContent);
+function showClanWebsite(clanTag) {
+    java.showClanWebsite(clanTag);
 }
 
-function showPlayerInfo(node) {
-    java.playerInfo(node.textContent);
+function showPlayerInfo(playerName) {
+    java.playerInfo(playerName);
 }
 
 function hidePlayerInfo() {
     java.hidePlayerInfo();
 }
 
-function messagePlayer(node) {
-    java.openPrivateMessageTab(node.textContent);
+function messagePlayer(playerName) {
+    java.openPrivateMessageTab(playerName);
 }
 
 function scrollToBottomIfDesired() {

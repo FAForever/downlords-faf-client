@@ -1,17 +1,17 @@
-<div id="chat-section-{section-id}" class="chat-section chat-section-{username}">
+<div id="chat-section-{section-id} extended" class="chat-section chat-section-{username}">
   <div class="chat-section-head">
     <img class="avatar" src="{avatar}"/>
     <img class="country-flag" src="{country-flag}"/>
     <div class="author">
       <span class="clan-tag {css-classes}"
-            onmouseover="showClanInfo(this)"
+            onmouseover="showClanInfo('{clan-tag}')"
             onmouseout="hideClanInfo()"
-            onclick="showClanWebsite(this)"
-      >{clan-tag}</span>
+            onclick="showClanWebsite('{clan-tag}')">{decorated-clan-tag}</span>
+
       <span class="username {css-classes}"
-            onmouseover="showPlayerInfo(this)"
+            onmouseover="showPlayerInfo('{username}')"
             onmouseout="hidePlayerInfo()"
-            onclick="messagePlayer(this)"
+            onclick="messagePlayer('{username}')"
             style="{inline-style}">{username}</span>
       <span class="time">{time}</span>
     </div>

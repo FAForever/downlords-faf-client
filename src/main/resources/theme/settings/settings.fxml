@@ -79,6 +79,7 @@
                                         <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES"/>
                                         <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES"/>
                                         <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES"/>
+                                        <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES"/>
                                         <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
                                         <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
                                     </rowConstraints>
@@ -91,12 +92,12 @@
                                                          disable="true" mnemonicParsing="false"
                                                          GridPane.columnIndex="1"/>
                                         <Label styleClass="h2" text="%settings.chat.colors"
-                                               GridPane.columnSpan="2147483647" GridPane.rowIndex="5">
+                                               GridPane.columnSpan="2147483647" GridPane.rowIndex="6">
                                             <GridPane.margin>
                                                 <Insets top="20.0"/>
                                             </GridPane.margin>
                                         </Label>
-                                        <VBox spacing="5.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="6">
+                                        <VBox spacing="5.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="7">
                                             <children>
                                                 <JFXRadioButton fx:id="defaultColorsToggle" mnemonicParsing="false"
                                                                 selected="true" text="%settings.chat.colorMode.default"
@@ -126,6 +127,10 @@
                                         <JFXComboBox fx:id="timeComboBox" maxWidth="1.7976931348623157E308"
                                                      onAction="#onTimeFormatSelected" GridPane.columnIndex="1"
                                                      GridPane.rowIndex="4"/>
+                                        <Label text="%settings.chat.chatFormat" GridPane.rowIndex="5"/>
+                                        <JFXComboBox fx:id="chatComboBox" maxWidth="1.7976931348623157E308"
+                                                     onAction="#onChatFormatSelected" GridPane.columnIndex="1"
+                                                     GridPane.rowIndex="5"/>
                                     </children>
                                 </GridPane>
                             </content>

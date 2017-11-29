@@ -50,6 +50,7 @@ import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import netscape.javascript.JSObject;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -71,7 +72,9 @@ import java.util.regex.Pattern;
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
 import static com.faforever.client.theme.UiService.CHAT_ENTRY;
+import static com.faforever.client.theme.UiService.CHAT_ENTRY_COMPACT;
 import static com.faforever.client.theme.UiService.CHAT_TEXT;
+import static com.faforever.client.theme.UiService.COMPACT_CHAT_TEXT;
 import static com.github.nocatch.NoCatch.noCatch;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
 import static java.time.temporal.ChronoUnit.MINUTES;
@@ -472,78 +475,108 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    */
   private void addMessage(ChatMessage chatMessage) {
     noCatch(() -> {
-      if (lastMessage == null || !lastMessage.getUsername().equals(chatMessage.getUsername())
-          || lastMessage.getTime().isBefore(chatMessage.getTime().minus(1, MINUTES))) {
-        addChatSection(chatMessage);
+      if (requiresNewChatSection(chatMessage)) {
+        appendChatMessageSection(chatMessage);
+      } else {
+        appendMessage(chatMessage);
       }
-      appendMessage(chatMessage);
       lastMessage = chatMessage;
     });
   }
 
-  private void appendMessage(ChatMessage chatMessage) throws IOException {
-    try (Reader reader = new InputStreamReader(uiService.getThemeFileUrl(CHAT_TEXT).openStream())) {
-      String text = htmlEscaper().escape(chatMessage.getMessage()).replace("\\", "\\\\");
-      text = convertUrlsToHyperlinks(text);
-
-      Matcher matcher = mentionPattern.matcher(text);
-      if (matcher.find()) {
-        text = matcher.replaceAll("<span class='self'>" + matcher.group(1) + "</span>");
-        onMention(chatMessage);
-      }
-
-      String html = CharStreams.toString(reader).replace("{text}", text);
-
-      Collection<String> cssClasses = new ArrayList<>();
-      if (chatMessage.isAction()) {
-        cssClasses.add(ACTION_CSS_CLASS);
-      } else {
-        cssClasses.add(MESSAGE_CSS_CLASS);
-      }
-
-      html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
-      addToMessageContainer(html, "chat-section-" + lastEntryId);
-    }
+  private boolean requiresNewChatSection(ChatMessage chatMessage) {
+    return lastMessage == null
+        || !lastMessage.getUsername().equals(chatMessage.getUsername())
+        || lastMessage.getTime().isBefore(chatMessage.getTime().minus(1, MINUTES))
+        || lastMessage.isAction();
   }
 
-  private void addChatSection(ChatMessage chatMessage) throws IOException {
-    Player player = playerService.getPlayerForUsername(chatMessage.getUsername());
-    try (Reader reader = new InputStreamReader(uiService.getThemeFileUrl(CHAT_ENTRY).openStream())) {
-      String login = chatMessage.getUsername();
-      String html = CharStreams.toString(reader);
-
-      String avatarUrl = "";
-      String clanTag = "";
-      String countryFlagUrl = "";
-      if (player != null) {
-        avatarUrl = player.getAvatarUrl();
-        countryFlagUrl = countryFlagService.getCountryFlagUrl(player.getCountry())
-            .map(URL::toString)
-            .orElse("");
-
-        if (StringUtils.isNotEmpty(player.getClan())) {
-          clanTag = i18n.get("chat.clanTagFormat", player.getClan());
-        }
-      }
-
-      String timeString = timeService.asShortTime(chatMessage.getTime());
-      html = html.replace("{time}", timeString)
-          .replace("{avatar}", StringUtils.defaultString(avatarUrl))
-          .replace("{username}", login)
-          .replace("{clan-tag}", clanTag)
-          .replace("{country-flag}", StringUtils.defaultString(countryFlagUrl))
-          .replace("{section-id}", String.valueOf(++lastEntryId));
-
-      Collection<String> cssClasses = new ArrayList<>();
-      cssClasses.add(String.format("user-%s", chatMessage.getUsername()));
-
-      Optional.ofNullable(getMessageCssClass(login)).ifPresent(cssClasses::add);
-
-      html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
-      html = html.replace("{inline-style}", getInlineStyle(login));
-
-      addToMessageContainer(html, MESSAGE_CONTAINER_ID);
+  private void appendMessage(ChatMessage chatMessage) throws IOException {
+    URL themeFileUrl;
+    if (preferencesService.getPreferences().getChat().getChatFormat() == ChatFormat.COMPACT) {
+      themeFileUrl = uiService.getThemeFileUrl(COMPACT_CHAT_TEXT);
+    } else {
+      themeFileUrl = uiService.getThemeFileUrl(CHAT_TEXT);
     }
+
+    String html = renderHtml(chatMessage, themeFileUrl, null);
+
+    insertIntoContainer(html, "chat-section-" + lastEntryId);
+  }
+
+  private void appendChatMessageSection(ChatMessage chatMessage) throws IOException {
+    URL themeFileURL;
+    if (preferencesService.getPreferences().getChat().getChatFormat() == ChatFormat.COMPACT) {
+      themeFileURL = uiService.getThemeFileUrl(CHAT_ENTRY_COMPACT);
+    } else {
+      themeFileURL = uiService.getThemeFileUrl(CHAT_ENTRY);
+    }
+
+    String html = renderHtml(chatMessage, themeFileURL, ++lastEntryId);
+    insertIntoContainer(html, MESSAGE_CONTAINER_ID);
+    appendMessage(chatMessage);
+  }
+
+  private String renderHtml(ChatMessage chatMessage, URL themeFileUrl, @Nullable Integer sectionId) throws IOException {
+    String html;
+    try (Reader reader = new InputStreamReader(themeFileUrl.openStream())) {
+      html = CharStreams.toString(reader);
+    }
+
+    String login = chatMessage.getUsername();
+    String avatarUrl = "";
+    String clanTag = "";
+    String decoratedClanTag = "";
+    String countryFlagUrl = "";
+
+    Player player = playerService.getPlayerForUsername(chatMessage.getUsername());
+    if (player != null) {
+      avatarUrl = player.getAvatarUrl();
+      countryFlagUrl = countryFlagService.getCountryFlagUrl(player.getCountry())
+          .map(URL::toString)
+          .orElse("");
+
+      if (StringUtils.isNotEmpty(player.getClan())) {
+        clanTag = player.getClan();
+        decoratedClanTag = i18n.get("chat.clanTagFormat", clanTag);
+      }
+    }
+
+    String timeString = timeService.asShortTime(chatMessage.getTime());
+    html = html.replace("{time}", timeString)
+        .replace("{avatar}", StringUtils.defaultString(avatarUrl))
+        .replace("{username}", login)
+        .replace("{clan-tag}", clanTag)
+        .replace("{decorated-clan-tag}", decoratedClanTag)
+        .replace("{country-flag}", StringUtils.defaultString(countryFlagUrl))
+        .replace("{section-id}", String.valueOf(sectionId));
+
+    Collection<String> cssClasses = new ArrayList<>();
+    cssClasses.add(String.format("user-%s", chatMessage.getUsername()));
+    if (chatMessage.isAction()) {
+      cssClasses.add(ACTION_CSS_CLASS);
+    } else {
+      cssClasses.add(MESSAGE_CSS_CLASS);
+    }
+
+    html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
+
+    Optional.ofNullable(getMessageCssClass(login)).ifPresent(cssClasses::add);
+
+    String text = htmlEscaper().escape(chatMessage.getMessage()).replace("\\", "\\\\");
+    text = convertUrlsToHyperlinks(text);
+
+    Matcher matcher = mentionPattern.matcher(text);
+    if (matcher.find()) {
+      text = matcher.replaceAll("<span class='self'>" + matcher.group(1) + "</span>");
+      onMention(chatMessage);
+    }
+
+    return html
+        .replace("{css-classes}", Joiner.on(' ').join(cssClasses))
+        .replace("{inline-style}", getInlineStyle(login))
+        // Always replace text last in case the message contains one of the placeholders.
+        .replace("{text}", text);
   }
 
   protected void onMention(ChatMessage chatMessage) {
@@ -616,7 +649,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     return (String) engine.executeScript("link('" + text.replace("'", "\\'") + "')");
   }
 
-  private void addToMessageContainer(String html, String containerId) {
+  private void insertIntoContainer(String html, String containerId) {
     ((JSObject) engine.executeScript("document.getElementById('" + containerId + "')"))
         .call("insertAdjacentHTML", "beforeend", html);
     getMessagesWebView().requestLayout();

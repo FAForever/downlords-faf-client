@@ -121,10 +121,9 @@ public class BrowserCallback {
   /**
    * Called from JavaScript when user hovers over a clan tag.
    */
-  public void clanInfo(String clanTag) {
-    String clanTagWithReplacement = removeBrackets(clanTag);
-    clanService.getClanByTag(clanTagWithReplacement).thenAccept(clan -> Platform.runLater(() -> {
-      if (!clan.isPresent() || clanTagWithReplacement.isEmpty()) {
+  public void showClanInfo(String clanTag) {
+    clanService.getClanByTag(clanTag).thenAccept(clan -> Platform.runLater(() -> {
+      if (!clan.isPresent() || clanTag.isEmpty()) {
         return;
       }
       ClanTooltipController clanTooltipController = uiService.loadFxml("theme/chat/clan_tooltip.fxml");
@@ -155,8 +154,7 @@ public class BrowserCallback {
   /**
    * Called from JavaScript when user clicks on clan tag.
    */
-  public void showClanWebsite(String decoratedClanTag) {
-    String clanTag = removeBrackets(decoratedClanTag);
+  public void showClanWebsite(String clanTag) {
     clanService.getClanByTag(clanTag).thenAccept(clan -> {
       if (!clan.isPresent()) {
         return;
@@ -168,7 +166,7 @@ public class BrowserCallback {
   /**
    * Called from JavaScript when user hovers over a user name.
    */
-  public void playerInfo(String username) {
+  public void showPlayerInfo(String username) {
     Player player = playerService.getPlayerForUsername(username);
     if (player == null || player.isChatOnly()) {
       return;
@@ -201,10 +199,6 @@ public class BrowserCallback {
       playerInfoPopup.hide();
       playerInfoPopup = null;
     });
-  }
-
-  private String removeBrackets(String tag) {
-    return tag.replaceAll("[\\[\\]]", "");
   }
 
   void setLastMouseX(double screenX) {
