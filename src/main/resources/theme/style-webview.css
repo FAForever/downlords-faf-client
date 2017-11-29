@@ -36,6 +36,12 @@ a {
   border-bottom: 1px solid #424242;
 }
 
+.compact {
+  overflow: hidden;
+  padding: 0.1em;
+  border-bottom: none;
+}
+
 .chat-section * {
   word-wrap: break-word;
 }
@@ -127,6 +133,34 @@ img.country-flag[src=""] {
 .self,
 .username.self {
   color: #FFA500;
+}
+
+/* For compact chat mode */
+table {
+  width: 100%
+}
+
+td#text {
+  width: 99%;
+}
+
+td#author {
+  width: 18ch;
+  text-align: right;
+}
+
+td#avatar {
+  width: 44px;
+}
+
+td#flag {
+  width: 16px;
+}
+
+td#time {
+  width: 40px;
+  padding: 1em;
+  text-align: right;
 }
 
 /***************** News (WebView) *****************/

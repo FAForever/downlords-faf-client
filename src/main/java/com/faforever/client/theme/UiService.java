@@ -90,7 +90,9 @@ public class UiService {
   public static final String LADDER_1V1_IMAGE = "theme/images/ranked1v1_notification.png";
   public static final String CHAT_CONTAINER = "theme/chat/chat_container.html";
   public static final String CHAT_ENTRY = "theme/chat/chat_section.html";
+  public static final String CHAT_ENTRY_COMPACT = "theme/chat/chat_section_compact.html";
   public static final String CHAT_TEXT = "theme/chat/chat_text.html";
+  public static final String COMPACT_CHAT_TEXT = "theme/chat/chat_text_compact.html";
 
   public static Theme DEFAULT_THEME = new Theme() {
     {

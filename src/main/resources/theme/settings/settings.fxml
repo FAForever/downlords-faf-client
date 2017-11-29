@@ -126,6 +126,8 @@
                                         <JFXComboBox fx:id="timeComboBox" maxWidth="1.7976931348623157E308"
                                                      onAction="#onTimeFormatSelected" GridPane.columnIndex="1"
                                                      GridPane.rowIndex="4"/>
+                                        <Label text="%settings.chat.chatFormat"/>
+                                        <JFXComboBox fx:id="chatComboBox" onAction="#onChatFormatSelected"/>
                                     </children>
                                 </GridPane>
                             </content>

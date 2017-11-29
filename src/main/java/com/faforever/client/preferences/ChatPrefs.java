@@ -1,6 +1,7 @@
 package com.faforever.client.preferences;
 
 import com.faforever.client.chat.ChatColorMode;
+import com.faforever.client.chat.ChatFormat;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
@@ -28,12 +29,12 @@ public class ChatPrefs {
   private final MapProperty<String, Color> userToColor;
   private final BooleanProperty hideFoeMessages;
   private final ObjectProperty<TimeInfo> timeFormat;
+  private final ObjectProperty<ChatFormat> chatFormat;
 
   /**
    * Time in minutes a player has to be inactive to be considered idle.
    */
   private final IntegerProperty idleThreshold;
-
 
   public ChatPrefs() {
     timeFormat = new SimpleObjectProperty<>(TimeInfo.AUTO);
@@ -46,6 +47,7 @@ public class ChatPrefs {
     userToColor = new SimpleMapProperty<>(FXCollections.observableHashMap());
     chatColorMode = new SimpleObjectProperty<>(CUSTOM);
     idleThreshold = new SimpleIntegerProperty(10);
+    chatFormat = new SimpleObjectProperty<>(ChatFormat.EXTENDED);
   }
 
   public ChatColorMode getChatColorMode() {
@@ -62,6 +64,18 @@ public class ChatPrefs {
 
   public void setTimeFormat(TimeInfo time) {
     this.timeFormat.set(time);
+  }
+
+  public ChatFormat getChatFormat() {
+    return this.chatFormat.get();
+  }
+
+  public void setChatFormat(ChatFormat chatFormat) {
+    this.chatFormat.setValue(chatFormat);
+  }
+
+  public ObjectProperty<ChatFormat> chatFormatProperty() {
+    return chatFormat;
   }
 
   public ObjectProperty<ChatColorMode> chatColorModeProperty() {
