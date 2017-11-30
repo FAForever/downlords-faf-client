@@ -45,6 +45,7 @@ import org.pircbotx.hooks.events.ConnectEvent;
 import org.pircbotx.hooks.events.DisconnectEvent;
 import org.pircbotx.hooks.events.JoinEvent;
 import org.pircbotx.hooks.events.MessageEvent;
+import org.pircbotx.hooks.events.MotdEvent;
 import org.pircbotx.hooks.events.NoticeEvent;
 import org.pircbotx.hooks.events.OpEvent;
 import org.pircbotx.hooks.events.PartEvent;
@@ -180,6 +181,7 @@ public class PircBotXChatService implements ChatService {
     addEventListener(MessageEvent.class, this::onMessage);
     addEventListener(ActionEvent.class, this::onAction);
     addEventListener(PrivateMessageEvent.class, this::onPrivateMessage);
+    addEventListener(MotdEvent.class, this::onMotd);
     addEventListener(OpEvent.class, event -> {
       User recipient = event.getRecipient();
       if (recipient != null) {
@@ -215,6 +217,10 @@ public class PircBotXChatService implements ChatService {
     });
   }
 
+  private void onMotd(MotdEvent event) {
+    sendIdentify(event.getBot().getConfiguration());
+  }
+
   @Subscribe
   public void onLoginSuccessEvent(LoginSuccessEvent event) {
     connect();
@@ -236,11 +242,18 @@ public class PircBotXChatService implements ChatService {
         onIdentified();
       } else if (message.contains("isn't registered")) {
         pircBotX.sendIRC().message(config.getNickservNick(), format("register %s %s@users.faforever.com", getPassword(), userService.getUsername()));
+      } else if (message.contains(" registered")) {
+        // We just registered and are now identified
+        onIdentified();
       } else if (message.contains("choose a different nick")) {
         // The server didn't accept our IDENTIFY command, well then, let's send a private message to nickserv manually
-        pircBotX.sendIRC().message(config.getNickservNick(), format("identify %s", getPassword()));
+        sendIdentify(config);
       }
     }
+  }
+
+  private void sendIdentify(Configuration config) {
+    pircBotX.sendIRC().message(config.getNickservNick(), format("identify %s", getPassword()));
   }
 
   private void onIdentified() {
