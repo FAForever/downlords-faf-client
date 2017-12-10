@@ -12,8 +12,13 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.ReportAction;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.player.Player;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
@@ -91,6 +96,8 @@ public class UserInfoWindowController implements Controller<Node> {
   private final EventService eventService;
   private final I18n i18n;
   private final UiService uiService;
+  private final NotificationService notificationService;
+  private final ReportingService reportingService;
   public Label lockedAchievementsHeaderLabel;
   public Label unlockedAchievementsHeaderLabel;
   public PieChart gamesPlayedChart;
@@ -125,16 +132,20 @@ public class UserInfoWindowController implements Controller<Node> {
   private Map<String, AchievementDefinition> achievementDefinitionById;
   private Window ownerWindow;
 
+
   @Inject
   public UserInfoWindowController(StatisticsService statisticsService, CountryFlagService countryFlagService,
                                   AchievementService achievementService, EventService eventService,
-                                  PreferencesService preferencesService, I18n i18n, UiService uiService) {
+                                  PreferencesService preferencesService, I18n i18n, UiService uiService,
+                                  NotificationService notifficationService, ReportingService reportingService) {
     this.statisticsService = statisticsService;
     this.countryFlagService = countryFlagService;
     this.achievementService = achievementService;
     this.eventService = eventService;
     this.i18n = i18n;
     this.uiService = uiService;
+    this.notificationService = notifficationService;
+    this.reportingService = reportingService;
 
     achievementItemById = new HashMap<>();
     achievementDefinitionById = new HashMap<>();
@@ -373,9 +384,14 @@ public class UserInfoWindowController implements Controller<Node> {
 
   private CompletableFuture<Void> loadStatistics(KnownFeaturedMod featuredMod) {
     return statisticsService.getRatingHistory(featuredMod, player.getId())
-        .thenAccept(ratingHistory -> Platform.runLater(() -> plotPlayerRatingGraph(ratingHistory)))
+        .thenAccept(ratingHistory -> {
+          if (!ratingHistory.isEmpty()) {
+            Platform.runLater(() -> plotPlayerRatingGraph(ratingHistory));
+          }
+        })
         .exceptionally(throwable -> {
-          // FIXME display to user
+          notificationService.addNotification(new ImmediateNotification(i18n.get("error.title"), i18n.get("userInfo.statisticsError"),
+              Severity.ERROR, throwable, Collections.singletonList(new ReportAction(i18n, reportingService, throwable))));
           log.warn("Statistics could not be loaded", throwable);
           return null;
         });
