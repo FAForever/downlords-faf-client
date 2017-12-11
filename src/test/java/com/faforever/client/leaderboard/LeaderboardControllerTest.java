@@ -2,6 +2,7 @@ package com.faforever.client.leaderboard;
 
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.OpenLadder1v1LeaderboardEvent;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -52,7 +53,7 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
     instance.ratingTable.itemsProperty().addListener(observable -> loadedLatch.countDown());
     instance.setRatingType(KnownFeaturedMod.LADDER_1V1);
 
-    instance.onDisplay();
+    instance.onDisplay(new OpenLadder1v1LeaderboardEvent());
 
     assertTrue(loadedLatch.await(3, TimeUnit.SECONDS));
     verifyZeroInteractions(notificationService);
@@ -69,7 +70,7 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
         entry1, entry2
     )));
     instance.setRatingType(KnownFeaturedMod.LADDER_1V1);
-    instance.onDisplay();
+    instance.onDisplay(new OpenLadder1v1LeaderboardEvent());
 
     assertThat(instance.ratingTable.getSelectionModel().getSelectedItem(), nullValue());
 
@@ -89,7 +90,7 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
         entry1, entry2
     )));
     instance.setRatingType(KnownFeaturedMod.LADDER_1V1);
-    instance.onDisplay();
+    instance.onDisplay(new OpenLadder1v1LeaderboardEvent());
 
     assertThat(instance.ratingTable.getSelectionModel().getSelectedItem(), nullValue());
 

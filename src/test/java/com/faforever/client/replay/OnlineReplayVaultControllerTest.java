@@ -1,6 +1,7 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.OpenOnlineReplayVaultEvent;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
@@ -107,7 +108,7 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     when(replayService.getNewestReplays(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(replays));
     when(replayService.getHighestRatedReplays(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(replays));
 
-    instance.onDisplay();
+    instance.onDisplay(new OpenOnlineReplayVaultEvent());
 
     verify(replayService).getNewestReplays(anyInt(), eq(1));
     verify(replayService).getHighestRatedReplays(anyInt(), eq(1));

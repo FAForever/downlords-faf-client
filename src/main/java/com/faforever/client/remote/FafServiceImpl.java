@@ -474,6 +474,15 @@ public class FafServiceImpl implements FafService {
 
   @Override
   @Async
+  public CompletableFuture<List<MapBean>> getLadder1v1Maps(int count, int page) {
+    List<MapBean> maps = fafApiAccessor.getLadder1v1Maps(count, page).stream()
+        .map(ladder1v1Map -> MapBean.fromMapVersionDto(ladder1v1Map.getMapVersion()))
+        .collect(toList());
+    return CompletableFuture.completedFuture(maps);
+  }
+
+  @Override
+  @Async
   public CompletableFuture<Optional<Clan>> getClanByTag(String tag) {
     return CompletableFuture.completedFuture(fafApiAccessor.getClanByTag(tag)
         .map(Clan::fromDto));

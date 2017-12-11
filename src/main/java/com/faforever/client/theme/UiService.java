@@ -14,6 +14,7 @@ public interface UiService {
   String UNKNOWN_MAP_IMAGE = "theme/images/unknown_map.png";
   //TODO: Create Images for News Categories
   String SERVER_UPDATE_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  String LADDER_NEWS_IMAGE = "theme/images/news_fallback.jpg";
   String TOURNAMENT_NEWS_IMAGE = "theme/images/news_fallback.jpg";
   String FA_UPDATE_NEWS_IMAGE = "theme/images/news_fallback.jpg";
   String LOBBY_UPDATE_NEWS_IMAGE = "theme/images/news_fallback.jpg";
@@ -42,6 +43,7 @@ public interface UiService {
       setThemeVersion("1.0");
     }
   };
+
 
   String getThemeFile(String relativeFile);
 

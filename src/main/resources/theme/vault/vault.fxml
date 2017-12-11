@@ -11,7 +11,7 @@
    <children>
       <TabPane fx:id="vaultRoot" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" rotateGraphic="true" side="LEFT" tabClosingPolicy="UNAVAILABLE" tabMaxHeight="200.0" tabMinHeight="200.0">
           <tabs>
-              <Tab>
+              <Tab fx:id="mapVaultTab">
                   <fx:include fx:id="mapVault" source="map/map_vault.fxml" />
                   <graphic>
                       <Group>
@@ -25,7 +25,7 @@
                       </Group>
                   </graphic>
               </Tab>
-              <Tab>
+              <Tab fx:id="modVaultTab">
                   <fx:include fx:id="modVault" source="mod/mod_vault.fxml" />
                   <graphic>
                       <Group>
@@ -39,7 +39,7 @@
                       </Group>
                   </graphic>
               </Tab>
-              <Tab>
+              <Tab fx:id="liveReplayVaultTab">
                   <fx:include fx:id="liveReplayVault" source="replay/live_replays.fxml"/>
                   <graphic>
                       <Group>
@@ -53,7 +53,7 @@
                       </Group>
                   </graphic>
               </Tab>
-              <Tab>
+              <Tab fx:id="onlineReplayVaultTab">
                   <fx:include fx:id="onlineReplayVault" source="replay/online_replays.fxml"/>
                   <graphic>
                       <Group>
@@ -67,7 +67,7 @@
                       </Group>
                   </graphic>
               </Tab>
-              <Tab>
+              <Tab fx:id="localReplayVaultTab">
                   <fx:include fx:id="localReplayVault" source="replay/replay_vault.fxml"/>
                   <graphic>
                       <Group>

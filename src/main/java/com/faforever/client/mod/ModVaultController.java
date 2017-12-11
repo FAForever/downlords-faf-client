@@ -4,6 +4,7 @@ import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.mod.event.ModUploadedEvent;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
@@ -134,7 +135,7 @@ public class ModVaultController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void onDisplay() {
+  public void onDisplay(NavigateEvent navigateEvent) {
     if (initialized) {
       return;
     }

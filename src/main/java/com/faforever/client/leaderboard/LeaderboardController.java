@@ -4,6 +4,7 @@ import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -112,7 +113,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void onDisplay() {
+  public void onDisplay(NavigateEvent navigateEvent) {
     Assert.checkNullIllegalState(ratingType, "ratingType must not be null");
 
     contentPane.setVisible(false);

@@ -1,4 +1,4 @@
-package com.faforever.client.main;
+package com.faforever.client.main.event;
 
 import java.util.HashMap;
 

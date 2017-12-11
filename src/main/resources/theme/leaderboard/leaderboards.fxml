@@ -10,7 +10,7 @@
          xmlns="http://javafx.com/javafx/8.0.60"
          fx:controller="com.faforever.client.leaderboard.LeaderboardsController">
     <tabs>
-        <Tab>
+        <Tab fx:id="ladder1v1LeaderboardTab">
             <fx:include fx:id="ladder1v1Leaderboard" source="leaderboard.fxml"/>
             <graphic>
                 <Group>
@@ -24,7 +24,7 @@
                 </Group>
             </graphic>
         </Tab>
-        <Tab>
+        <Tab fx:id="globalLeaderboardTab">
             <fx:include fx:id="globalLeaderboard" source="leaderboard.fxml"/>
             <graphic>
                 <Group>

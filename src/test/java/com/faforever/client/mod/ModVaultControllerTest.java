@@ -1,6 +1,7 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.OpenModVaultEvent;
 import com.faforever.client.mod.Mod.ModType;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
@@ -123,7 +124,7 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
     waitUntilInitialized(instance.newestPane, latch);
     waitUntilInitialized(instance.highestRatedPane, latch);
 
-    instance.onDisplay();
+    instance.onDisplay(new OpenModVaultEvent());
 
     assertTrue(latch.await(5000, TimeUnit.MILLISECONDS));
   }

@@ -3,11 +3,15 @@ package com.faforever.client.news;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.NavigateEvent;
+import com.faforever.client.main.event.ShowLadderMapsEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import com.google.common.io.CharStreams;
+import javafx.event.ActionEvent;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.layout.Pane;
 import javafx.scene.web.WebView;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -35,6 +39,7 @@ public class NewsController extends AbstractViewController<Node> {
   public Pane newsRoot;
   public Pane newsListPane;
   public WebView newsDetailWebView;
+  public Button showLadderMapsButton;
 
   @Inject
   public NewsController(PreferencesService preferencesService, I18n i18n, NewsService newsService, UiService uiService, EventBus eventBus, WebViewConfigurer webViewConfigurer) {
@@ -47,11 +52,12 @@ public class NewsController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void onDisplay() {
+  public void onDisplay(NavigateEvent navigateEvent) {
     if (!newsListPane.getChildren().isEmpty()) {
       return;
     }
-
+    showLadderMapsButton.managedProperty().bind(showLadderMapsButton.visibleProperty());
+    showLadderMapsButton.setVisible(false);
     newsDetailWebView.setContextMenuEnabled(false);
     webViewConfigurer.configureWebView(newsDetailWebView);
 
@@ -79,6 +85,7 @@ public class NewsController extends AbstractViewController<Node> {
   }
 
   private void displayNewsItem(NewsItem newsItem) {
+    showLadderMapsButton.setVisible(newsItem.getNewsCategory().equals(NewsCategory.LADDER));
     eventBus.post(new UnreadNewsEvent(false));
 
     try (Reader reader = new InputStreamReader(NEWS_DETAIL_HTML_RESOURCE.getInputStream())) {
@@ -96,5 +103,9 @@ public class NewsController extends AbstractViewController<Node> {
 
   public Node getRoot() {
     return newsRoot;
+  }
+
+  public void showLadderMaps(ActionEvent actionEvent) {
+    eventBus.post(new ShowLadderMapsEvent());
   }
 }

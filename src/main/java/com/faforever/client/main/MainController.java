@@ -11,6 +11,8 @@ import com.faforever.client.game.GamePathHandler;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.LoginController;
+import com.faforever.client.main.event.NavigateEvent;
+import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.news.UnreadNewsEvent;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.ImmediateNotificationController;
@@ -51,7 +53,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.Modality;
 import javafx.stage.Popup;
@@ -171,7 +172,7 @@ public class MainController implements Controller<Node> {
     notificationService.addTransientNotificationListener(notification -> runLater(() -> transientNotificationsController.addNotification(notification)));
     gameService.addOnRankedMatchNotificationListener(this::onMatchmakerMessage);
     // Always load chat immediately so messages or joined channels don't need to be cached until we display them.
-    loadView(NavigationItem.CHAT);
+    getView(NavigationItem.CHAT);
   }
 
   @Subscribe
@@ -194,21 +195,17 @@ public class MainController implements Controller<Node> {
     runLater(() -> chatButton.pseudoClassStateChanged(HIGHLIGHTED, !currentItem.equals(NavigationItem.CHAT)));
   }
 
-  private void setContent(Node node) {
+  private void displayView(AbstractViewController<?> controller, NavigateEvent navigateEvent) {
+    Node node = controller.getRoot();
     ObservableList<Node> children = contentPane.getChildren();
 
     if (!children.contains(node)) {
       children.add(node);
-
-      AnchorPane.setTopAnchor(node, 0d);
-      AnchorPane.setRightAnchor(node, 0d);
-      AnchorPane.setBottomAnchor(node, 0d);
-      AnchorPane.setLeftAnchor(node, 0d);
+      JavaFxUtil.setAnchors(node, 0d);
     }
 
-    for (Node child : children) {
-      child.setVisible(child == node);
-    }
+    Optional.ofNullable(currentItem).ifPresent(item -> getView(item).hide());
+    controller.display(navigateEvent);
   }
 
   private Rectangle2D getTransientNotificationAreaBounds() {
@@ -442,16 +439,16 @@ public class MainController implements Controller<Node> {
     return mainRoot;
   }
 
-  public void onNavigate(ActionEvent event) {
+  public void onNavigateButtonClicked(ActionEvent event) {
     eventBus.post(new NavigateEvent((NavigationItem) ((Node) event.getSource()).getUserData()));
   }
 
   @Subscribe
   public void onNavigateEvent(NavigateEvent navigateEvent) {
     NavigationItem item = navigateEvent.getItem();
-    AbstractViewController<?> controller = loadView(item);
 
-    setContent(controller.getRoot());
+    AbstractViewController<?> controller = getView(item);
+    displayView(controller, navigateEvent);
 
     mainNavigation.getToggles().stream()
         .filter(toggle -> toggle.getUserData() == navigateEvent.getItem())
@@ -463,7 +460,7 @@ public class MainController implements Controller<Node> {
     preferencesService.storeInBackground();
   }
 
-  private AbstractViewController<?> loadView(NavigationItem item) {
+  private AbstractViewController<?> getView(NavigationItem item) {
     return noCatch(() -> viewCache.get(item, () -> uiService.loadFxml(item.getFxmlFile())));
   }
 
@@ -484,7 +481,7 @@ public class MainController implements Controller<Node> {
 
   public void onChat(ActionEvent actionEvent) {
     chatButton.pseudoClassStateChanged(HIGHLIGHTED, false);
-    onNavigate(actionEvent);
+    onNavigateButtonClicked(actionEvent);
   }
 
   public class ToastDisplayer implements InvalidationListener {

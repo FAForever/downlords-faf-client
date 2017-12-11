@@ -10,6 +10,7 @@ import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.GlobalLeaderboardEntry;
 import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
+import com.faforever.client.api.dto.Ladder1v1Map;
 import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
@@ -117,4 +118,6 @@ public interface FafApiAccessor {
   Optional<Game> findReplayById(int id);
 
   List<Mod> findModsByQuery(SearchConfig query, int page, int maxResults);
+
+  List<Ladder1v1Map> getLadder1v1Maps(int count, int page);
 }

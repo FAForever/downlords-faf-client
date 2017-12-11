@@ -1,6 +1,8 @@
 package com.faforever.client.map;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.OpenMapVaultEvent;
+import com.faforever.client.main.event.ShowLadderMapsEvent;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -15,6 +17,7 @@ import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -120,7 +123,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     waitUntilInitialized(instance.newestPane, latch);
     waitUntilInitialized(instance.mostPlayedPane, latch);
 
-    instance.onDisplay();
+    instance.onDisplay(new OpenMapVaultEvent());
 
     assertTrue(latch.await(5000, TimeUnit.MILLISECONDS));
   }
@@ -132,4 +135,24 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
       }
     });
   }
+
+  @Test
+  public void testNotifyPropertyShowLadderInitialized() throws Exception {
+    List<MapBean> maps = new ArrayList<>();
+    for (int i = 0; i < 5; i++) {
+      maps.add(
+          MapBeanBuilder.create()
+              .defaultValues()
+              .displayName("Map " + i)
+              .uid(String.valueOf(i))
+              .get()
+      );
+    }
+    when(mapService.getLadderMaps(anyInt(), eq(1))).thenReturn(CompletableFuture.completedFuture(maps));
+    instance.display(new ShowLadderMapsEvent());
+
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(mapService).getLadderMaps(100, 1);
+  }
+
 }
