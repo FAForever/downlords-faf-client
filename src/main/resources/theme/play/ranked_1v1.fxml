@@ -18,7 +18,8 @@
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
 <ScrollPane xmlns:fx="http://javafx.com/fxml/1" fx:id="ladder1v1Root" fitToWidth="true"
-            maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/8.0.60"
+            maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+            xmlns="http://javafx.com/javafx/8.0.121"
             fx:controller="com.faforever.client.rankedmatch.Ladder1v1Controller">
   <content>
     <VBox alignment="CENTER" minHeight="0.0" minWidth="0.0" spacing="5.0">
@@ -168,6 +169,7 @@
               <Insets top="5.0" />
           </padding>
         </FlowPane>
+          <Button mnemonicParsing="false" onAction="#showLadderMaps" text="%ranked1v1.showMaps"/>
       </children>
       <padding>
           <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

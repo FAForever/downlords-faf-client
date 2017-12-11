@@ -4,6 +4,7 @@ import com.faforever.client.api.dto.Game;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -14,6 +15,8 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
@@ -67,6 +70,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   private ReplayDetailController replayDetailController;
   private int currentPage;
   private Supplier<CompletableFuture<List<Replay>>> currentSupplier;
+  private final ObjectProperty<State> state;
 
   @Inject
   public OnlineReplayVaultController(ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, PreferencesService preferencesService) {
@@ -75,6 +79,8 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.preferencesService = preferencesService;
+
+    state = new SimpleObjectProperty<>(State.UNINITIALIZED);
   }
 
   public void initialize() {
@@ -140,9 +146,12 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   }
 
   @Override
-  protected void onDisplay() {
-    super.onDisplay();
-    refresh();
+  public void onDisplay(NavigateEvent navigateEvent) {
+    super.onDisplay(navigateEvent);
+
+    if (state.get() == State.UNINITIALIZED) {
+      refresh();
+    }
   }
 
   @Override
@@ -151,6 +160,8 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   }
 
   private void enterSearchingState() {
+    state.set(State.SEARCHING);
+
     showroomGroup.setVisible(false);
     searchResultGroup.setVisible(false);
     loadingPane.setVisible(true);
@@ -158,7 +169,9 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     moreButton.setVisible(false);
   }
 
-  private void enterShowroomState() {
+  private void enterResultState() {
+    state.set(State.RESULT);
+
     showroomGroup.setVisible(true);
     searchResultGroup.setVisible(false);
     loadingPane.setVisible(false);
@@ -176,7 +189,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   }
 
   public void onBackButtonClicked() {
-    enterShowroomState();
+    enterResultState();
   }
 
   public void onRefreshButtonClicked() {
@@ -188,7 +201,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     replayService.getNewestReplays(TOP_ELEMENT_COUNT, 1)
         .thenAccept(replays -> populateReplays(replays, newestPane))
         .thenCompose(aVoid -> replayService.getHighestRatedReplays(TOP_ELEMENT_COUNT, 1).thenAccept(modInfoBeans -> populateReplays(modInfoBeans, highestRatedPane)))
-        .thenRun(this::enterShowroomState)
+        .thenRun(this::enterResultState)
         .exceptionally(throwable -> {
           logger.warn("Could not populate replays", throwable);
           return null;
@@ -219,9 +232,12 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
           notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
               i18n.get("vault.replays.searchError"), Severity.ERROR, e,
               Collections.singletonList(new DismissAction(i18n))));
-          enterShowroomState();
+          enterResultState();
           return null;
         });
   }
 
+  private enum State {
+    SEARCHING, RESULT, UNINITIALIZED
+  }
 }

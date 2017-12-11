@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
@@ -237,8 +238,8 @@ public class ChatController extends AbstractViewController<Node> {
   }
 
   @Override
-  protected void onDisplay() {
-    super.onDisplay();
+  protected void onDisplay(NavigateEvent navigateEvent) {
+    super.onDisplay(navigateEvent);
     if (!tabPane.getTabs().isEmpty()) {
       Tab tab = tabPane.getSelectionModel().getSelectedItem();
       nameToChatTabController.get(tab.getId()).onDisplay();

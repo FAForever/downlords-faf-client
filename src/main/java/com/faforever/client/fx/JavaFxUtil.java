@@ -24,7 +24,6 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
@@ -279,11 +278,11 @@ public final class JavaFxUtil {
     write(bufferedImage, format, path.toFile());
   }
 
-  public static void setAnchors(Pane pane, double value) {
-    AnchorPane.setBottomAnchor(pane, value);
-    AnchorPane.setLeftAnchor(pane, value);
-    AnchorPane.setRightAnchor(pane, value);
-    AnchorPane.setTopAnchor(pane, value);
+  public static void setAnchors(Node node, double value) {
+    AnchorPane.setBottomAnchor(node, value);
+    AnchorPane.setLeftAnchor(node, value);
+    AnchorPane.setRightAnchor(node, value);
+    AnchorPane.setTopAnchor(node, value);
   }
 
   public static void fixScrollSpeed(ScrollPane scrollPane) {

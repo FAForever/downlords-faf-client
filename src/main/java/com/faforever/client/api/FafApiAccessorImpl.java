@@ -10,6 +10,7 @@ import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.GlobalLeaderboardEntry;
 import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
+import com.faforever.client.api.dto.Ladder1v1Map;
 import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapStatistics;
 import com.faforever.client.api.dto.MapVersion;
@@ -403,6 +404,12 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   public Optional<Game> findReplayById(int id) {
     return Optional.ofNullable(getOne("/data/game/" + id, Game.class, ImmutableMap.of("include", REPLAY_INCLUDES)));
+  }
+
+  @Override
+  public List<Ladder1v1Map> getLadder1v1Maps(int count, int page) {
+    return getPage("/data/ladder1v1Map", count, page, ImmutableMap.of(
+        "include", "mapVersion,mapVersion.map,mapVersion.map.latestVersion,mapVersion.map.latestVersion.reviews,mapVersion.map.author,mapVersion.map.statistics"));
   }
 
   @Override

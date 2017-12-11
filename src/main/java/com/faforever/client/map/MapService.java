@@ -72,4 +72,6 @@ public interface MapService {
   CompletableFuture<List<MapBean>> findByQuery(String query, int page, int maxSearchResults, SortConfig sortConfig);
 
   Optional<MapBean> findMap(String id);
+
+  CompletableFuture<List<MapBean>> getLadderMaps(int loadMoreCount, int page);
 }

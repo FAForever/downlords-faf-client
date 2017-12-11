@@ -55,6 +55,8 @@
                                 <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                 <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
                             </rowConstraints>
                             <children>
                                 <Label styleClass="h2" text="%mapVault.mostLikedMaps" />
@@ -69,6 +71,13 @@
                                 <Label styleClass="h2" text="%mapVault.mostPlayed" GridPane.rowIndex="4" />
                                 <Button mnemonicParsing="false" onAction="#showMoreMostPlayedMaps" styleClass="button-raised" text="%more" GridPane.columnIndex="1" GridPane.rowIndex="4" />
                                 <FlowPane fx:id="mostPlayedPane" hgap="10.0" maxWidth="1.7976931348623157E308" prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="5" />
+                                <Label styleClass="h2" text="%mapVault.ladder" GridPane.rowIndex="6"/>
+                                <Button mnemonicParsing="false" onAction="#showMoreLadderdMaps"
+                                        styleClass="button-raised"
+                                        text="%more" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+                                <FlowPane fx:id="ladderPane" hgap="10.0" maxWidth="1.7976931348623157E308"
+                                          prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
+                                          GridPane.rowIndex="7"/>
                             </children>
                         </GridPane>
                         <VBox fx:id="searchResultGroup" alignment="TOP_CENTER" spacing="10.0">

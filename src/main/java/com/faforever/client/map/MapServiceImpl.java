@@ -401,6 +401,11 @@ public class MapServiceImpl implements MapService {
     return fafService.findMapById(id);
   }
 
+  @Override
+  public CompletableFuture<List<MapBean>> getLadderMaps(int loadMoreCount, int page) {
+    return fafService.getLadder1v1Maps(loadMoreCount, page);
+  }
+
   private CompletableFuture<Void> downloadAndInstallMap(String folderName, URL downloadUrl, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
     DownloadMapTask task = applicationContext.getBean(DownloadMapTask.class);
     task.setMapUrl(downloadUrl);

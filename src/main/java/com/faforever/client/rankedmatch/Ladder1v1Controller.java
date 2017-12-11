@@ -7,6 +7,7 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.leaderboard.RatingStat;
+import com.faforever.client.main.event.ShowLadderMapsEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -19,6 +20,7 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
+import javafx.event.ActionEvent;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.chart.BarChart;
@@ -310,5 +312,9 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
       nodeToAdd.setLayoutX(Math.round(bounds.getMinX() + bounds.getWidth() / 2 - nodeToAdd.prefWidth(-1) / 2));
       nodeToAdd.setLayoutY(Math.round(bounds.getMinY() - nodeToAdd.prefHeight(-1) * 0.5));
     });
+  }
+
+  public void showLadderMaps(ActionEvent actionEvent) {
+    eventBus.post(new ShowLadderMapsEvent());
   }
 }

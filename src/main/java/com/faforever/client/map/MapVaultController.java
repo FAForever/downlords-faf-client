@@ -4,6 +4,8 @@ import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.NavigateEvent;
+import com.faforever.client.main.event.ShowLadderMapsEvent;
 import com.faforever.client.map.event.MapUploadedEvent;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
@@ -19,11 +21,14 @@ import com.google.common.collect.Iterators;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Modality;
@@ -69,7 +74,7 @@ public class MapVaultController extends AbstractViewController<Node> {
   private final PreferencesService preferencesService;
   private final UiService uiService;
   private final NotificationService notificationService;
-
+  private final ObjectProperty<State> state;
   public Pane searchResultGroup;
   public Pane searchResultPane;
   public Pane showroomGroup;
@@ -82,10 +87,8 @@ public class MapVaultController extends AbstractViewController<Node> {
   public Button backButton;
   public SearchController searchController;
   public Button moreButton;
-
-  private boolean initialized;
+  public FlowPane ladderPane;
   private MapDetailController mapDetailController;
-  private State state;
   private String query;
   private int currentPage;
   private Supplier<CompletableFuture<List<MapBean>>> currentSupplier;
@@ -100,6 +103,8 @@ public class MapVaultController extends AbstractViewController<Node> {
     this.preferencesService = preferencesService;
     this.uiService = uiService;
     this.notificationService = notificationService;
+
+    state = new SimpleObjectProperty<>(State.UNINITIALIZED);
   }
 
   @Override
@@ -138,13 +143,12 @@ public class MapVaultController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void onDisplay() {
-    if (initialized) {
-      return;
+  public void onDisplay(NavigateEvent navigateEvent) {
+    if (navigateEvent instanceof ShowLadderMapsEvent) {
+      showMoreLadderdMaps();
+    } else if (state.get() == State.UNINITIALIZED) {
+      displayShowroomMaps();
     }
-    initialized = true;
-
-    displayShowroomMaps();
   }
 
   private void displayShowroomMaps() {
@@ -152,6 +156,7 @@ public class MapVaultController extends AbstractViewController<Node> {
     mapService.getMostPlayedMaps(TOP_ELEMENT_COUNT, 1).thenAccept(maps -> replaceSearchResult(maps, mostPlayedPane))
         .thenCompose(aVoid -> mapService.getHighestRatedMaps(TOP_ELEMENT_COUNT, 1)).thenAccept(maps -> replaceSearchResult(maps, mostLikedPane))
         .thenCompose(aVoid -> mapService.getNewestMaps(TOP_ELEMENT_COUNT, 1)).thenAccept(maps -> replaceSearchResult(maps, newestPane))
+        .thenCompose(aVoid -> mapService.getLadderMaps(TOP_ELEMENT_COUNT, 1).thenAccept(maps -> replaceSearchResult(maps, ladderPane)))
         .thenRun(this::enterShowroomState)
         .exceptionally(throwable -> {
           logger.warn("Could not populate maps", throwable);
@@ -165,7 +170,7 @@ public class MapVaultController extends AbstractViewController<Node> {
   }
 
   private void enterLoadingState() {
-    state = State.LOADING;
+    state.set(State.LOADING);
     showroomGroup.setVisible(false);
     searchResultGroup.setVisible(false);
     loadingLabel.setVisible(true);
@@ -174,7 +179,7 @@ public class MapVaultController extends AbstractViewController<Node> {
   }
 
   private void enterSearchResultState() {
-    state = State.SEARCH_RESULT;
+    state.set(State.SEARCH_RESULT);
     showroomGroup.setVisible(false);
     searchResultGroup.setVisible(true);
     loadingLabel.setVisible(false);
@@ -183,7 +188,7 @@ public class MapVaultController extends AbstractViewController<Node> {
   }
 
   private void enterShowroomState() {
-    state = State.SHOWROOM;
+    state.set(State.SHOWROOM);
     showroomGroup.setVisible(true);
     searchResultGroup.setVisible(false);
     loadingLabel.setVisible(false);
@@ -231,7 +236,7 @@ public class MapVaultController extends AbstractViewController<Node> {
 
   public void onRefreshButtonClicked() {
     mapService.evictCache();
-    switch (state) {
+    switch (state.get()) {
       case SHOWROOM:
         displayShowroomMaps();
         break;
@@ -265,6 +270,11 @@ public class MapVaultController extends AbstractViewController<Node> {
   public void showMoreMostPlayedMaps() {
     enterLoadingState();
     displayMapsFromSupplier(() -> mapService.getMostPlayedMaps(LOAD_MORE_COUNT, ++currentPage));
+  }
+
+  public void showMoreLadderdMaps() {
+    enterLoadingState();
+    displayMapsFromSupplier(() -> mapService.getLadderMaps(LOAD_MORE_COUNT, ++currentPage));
   }
 
   private void appendSearchResult(List<MapBean> maps, Pane pane) {
@@ -325,6 +335,6 @@ public class MapVaultController extends AbstractViewController<Node> {
   }
 
   private enum State {
-    LOADING, SHOWROOM, SEARCH_RESULT
+    UNINITIALIZED, LOADING, SHOWROOM, SEARCH_RESULT
   }
 }

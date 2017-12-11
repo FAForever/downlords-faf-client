@@ -41,7 +41,7 @@
                                 <String fx:value="main-menu-button"/>
                             </styleClass>
                         </MenuButton>
-                        <ToggleButton fx:id="newsButton" mnemonicParsing="false" onAction="#onNavigate"
+                        <ToggleButton fx:id="newsButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked"
                                       styleClass="main-navigation-button" text="%main.community.news">
                             <toggleGroup>
                                 <ToggleGroup fx:id="mainNavigation"/>
@@ -50,16 +50,17 @@
                         <ToggleButton fx:id="chatButton" mnemonicParsing="false" onAction="#onChat"
                                       styleClass="main-navigation-button" text="%main.chat"
                                       toggleGroup="$mainNavigation"/>
-                        <ToggleButton fx:id="playButton" mnemonicParsing="false" onAction="#onNavigate"
+                        <ToggleButton fx:id="playButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked"
                                       styleClass="main-navigation-button" text="%main.play"
                                       toggleGroup="$mainNavigation"/>
-                        <ToggleButton fx:id="vaultButton" mnemonicParsing="false" onAction="#onNavigate"
+                        <ToggleButton fx:id="vaultButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked"
                                       styleClass="main-navigation-button" text="%main.vault"
                                       toggleGroup="$mainNavigation"/>
-                        <ToggleButton fx:id="leaderboardsButton" mnemonicParsing="false" onAction="#onNavigate"
+                        <ToggleButton fx:id="leaderboardsButton" mnemonicParsing="false"
+                                      onAction="#onNavigateButtonClicked"
                                       styleClass="main-navigation-button" text="%main.leaderboards"
                                       toggleGroup="$mainNavigation"/>
-                        <ToggleButton fx:id="unitsButton" mnemonicParsing="false" onAction="#onNavigate"
+                        <ToggleButton fx:id="unitsButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked"
                                       styleClass="main-navigation-button" text="%main.units"
                                       toggleGroup="$mainNavigation"/>
                         <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS"/>
