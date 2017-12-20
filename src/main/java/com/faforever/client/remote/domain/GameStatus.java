@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public enum GameStatus {
@@ -31,7 +32,7 @@ public enum GameStatus {
   }
 
   public static GameStatus fromString(String string) {
-    GameStatus gameStatus = fromString.get(string);
+    GameStatus gameStatus = fromString.get(string != null ? string.toLowerCase(Locale.US) : null);
     if (gameStatus == null) {
       logger.warn("Unknown game state: {}", string);
       return UNKNOWN;
