@@ -493,6 +493,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @SuppressWarnings("unchecked")
   @SneakyThrows
   private <T> T getOne(String endpointPath, Class<T> type) {
+    authorizedLatch.await();
     return restOperations.getForObject(endpointPath, type, Collections.emptyMap());
   }
 
