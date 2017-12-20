@@ -224,7 +224,6 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
       ratingLabel.setVisible(true);
       ratingLabel.setText(i18n.number(rating));
 
-      updateRatingHint(rating);
     }
 
     leaderboardService.getLadder1v1Stats()
@@ -253,21 +252,6 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
       logger.warn("Leaderboard entry could not be read for current player: " + currentPlayer.getUsername(), throwable);
       return null;
     });
-  }
-
-  private void updateRatingHint(int rating) {
-    // TODO remove/rethink rating hint
-//    if (rating < environment.getProperty("rating.low", int.class)) {
-//      ratingHintLabel.setText(i18n.valueOf("ranked1v1.ratingHint.low"));
-//    } else if (rating < environment.getProperty("rating.moderate", int.class)) {
-//      ratingHintLabel.setText(i18n.valueOf("ranked1v1.ratingHint.moderate"));
-//    } else if (rating < environment.getProperty("rating.good", int.class)) {
-//      ratingHintLabel.setText(i18n.valueOf("ranked1v1.ratingHint.good"));
-//    } else if (rating < environment.getProperty("rating.high", int.class)) {
-//      ratingHintLabel.setText(i18n.valueOf("ranked1v1.ratingHint.high"));
-//    } else if (rating < environment.getProperty("rating.top", int.class)) {
-//      ratingHintLabel.setText(i18n.valueOf("ranked1v1.ratingHint.top"));
-//    }
   }
 
   private void plotRatingDistributions(List<RatingStat> ratingStats, Player player) {

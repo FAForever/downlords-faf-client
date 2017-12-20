@@ -99,7 +99,6 @@
                       <Label styleClass="h2" text="%ranked1v1.rating.title" />
                       <Label fx:id="ratingLabel" prefHeight="80.0" styleClass="h1" text="0000" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
                       <ProgressIndicator fx:id="ratingProgressIndicator" prefWidth="244.0" progress="0.66" GridPane.rowIndex="2" />
-                      <Label fx:id="ratingHintLabel" text="&lt;rating hint&gt;" wrapText="true" GridPane.rowIndex="1" />
                   </children>
                 </GridPane>
                   <GridPane prefWidth="250.0" styleClass="card" GridPane.columnIndex="1">
