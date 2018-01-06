@@ -3,14 +3,11 @@ package com.faforever.client.achievements;
 import com.faforever.client.api.dto.AchievementDefinition;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.config.CacheNames;
-import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.UpdatedAchievementsMessage;
-import com.faforever.client.theme.UiService;
-import com.faforever.client.user.UserService;
+import com.google.common.annotations.VisibleForTesting;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
@@ -35,19 +32,16 @@ public class AchievementServiceImpl implements AchievementService {
 
   private static final int ACHIEVEMENT_IMAGE_SIZE = 128;
   private final ObservableList<PlayerAchievement> readOnlyPlayerAchievements;
-  private final ObservableList<PlayerAchievement> playerAchievements;
+  @VisibleForTesting
+  final ObservableList<PlayerAchievement> playerAchievements;
 
-  private final UserService userService;
   private final FafService fafService;
   private final PlayerService playerService;
   private final AssetService assetService;
 
   @Inject
   // TODO cut dependencies if possible
-  public AchievementServiceImpl(UserService userService, FafService fafService,
-                                NotificationService notificationService, I18n i18n, PlayerService playerService,
-                                UiService uiService, AssetService assetService) {
-    this.userService = userService;
+  public AchievementServiceImpl(FafService fafService, PlayerService playerService, AssetService assetService) {
     this.fafService = fafService;
     this.playerService = playerService;
     this.assetService = assetService;
@@ -58,9 +52,11 @@ public class AchievementServiceImpl implements AchievementService {
 
   @Override
   public CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(Integer playerId) {
-    if (Objects.equals(userService.getUserId(), playerId)) {
+    int currentPlayerId = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has to be set")).getId();
+    if (Objects.equals(currentPlayerId, playerId)) {
       if (readOnlyPlayerAchievements.isEmpty()) {
-        reloadAchievements();
+
+        return reloadAchievements();
       }
       return CompletableFuture.completedFuture(readOnlyPlayerAchievements);
     }
@@ -96,8 +92,14 @@ public class AchievementServiceImpl implements AchievementService {
         null, ACHIEVEMENT_IMAGE_SIZE, ACHIEVEMENT_IMAGE_SIZE);
   }
 
-  private void reloadAchievements() {
-    fafService.getPlayerAchievements(userService.getUserId()).thenAccept(playerAchievements::setAll);
+  private CompletableFuture<List<PlayerAchievement>> reloadAchievements() {
+    CompletableFuture<List<PlayerAchievement>> achievementsLoadedFuture = new CompletableFuture<>();
+    int playerId = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has to be set")).getId();
+    fafService.getPlayerAchievements(playerId).thenAccept(achievements -> {
+      playerAchievements.setAll(achievements);
+      achievementsLoadedFuture.complete(readOnlyPlayerAchievements);
+    });
+    return achievementsLoadedFuture;
   }
 
   @PostConstruct

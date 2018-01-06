@@ -3,19 +3,17 @@ package com.faforever.client.achievements;
 import com.faforever.client.achievements.AchievementService.AchievementState;
 import com.faforever.client.api.dto.AchievementDefinition;
 import com.faforever.client.api.dto.PlayerAchievement;
-import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.theme.UiService;
-import com.faforever.client.user.UserService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -23,8 +21,8 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -35,14 +33,13 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AchievementServiceImplTest {
 
   private static final int PLAYER_ID = 123;
-  private static final String USERNAME = "junit";
 
   @Rule
   public TemporaryFolder preferencesDirectory = new TemporaryFolder();
@@ -55,34 +52,26 @@ public class AchievementServiceImplTest {
   @Mock
   private AchievementServiceImpl instance;
   @Mock
-  private UserService userService;
-  @Mock
-  private NotificationService notificationService;
-  @Mock
-  private I18n i18n;
-  @Mock
-  private UiService uiService;
-  @Mock
   private FafService fafService;
   @Mock
   private AssetService assetService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new AchievementServiceImpl(userService, fafService, notificationService, i18n, playerService, uiService, assetService);
-
-    when(userService.getUserId()).thenReturn(PLAYER_ID);
+    instance = new AchievementServiceImpl(fafService, playerService, assetService);
+    Player player = new Player("abc");
+    player.setId(PLAYER_ID);
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
 
     instance.postConstruct();
   }
 
   @Test
   public void testGetPlayerAchievementsForCurrentUser() throws Exception {
-    when(fafService.getPlayerAchievements(userService.getUserId()))
-        .thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
-
+    instance.playerAchievements.add(new PlayerAchievement());
     instance.getPlayerAchievements(PLAYER_ID);
-    verifyZeroInteractions(playerService);
+    verify(fafService).addOnMessageListener(ArgumentMatchers.any(), ArgumentMatchers.any());
+    verifyNoMoreInteractions(fafService);
   }
 
   @Test
