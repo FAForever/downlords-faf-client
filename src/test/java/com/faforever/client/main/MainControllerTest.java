@@ -23,6 +23,7 @@ import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.StageHolder;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
@@ -323,6 +324,18 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     Window window = instance.getRoot().getScene().getWindow();
     Rectangle2D bounds = new Rectangle2D(window.getX(), window.getY(), window.getWidth(), window.getHeight());
     assertTrue(Screen.getPrimary().getBounds().contains(bounds));
+
+    //trying faulty restore
+    CountDownLatch restoreLatch = new CountDownLatch(1);
+    Platform.runLater(() -> {
+      StageHolder.getStage().setMaximized(true);
+      StageHolder.getStage().setMaximized(false);
+      restoreLatch.countDown();
+    });
+    assertTrue(latch.await(5, TimeUnit.SECONDS));
+
+    Rectangle2D newBounds = new Rectangle2D(window.getX(), window.getY(), window.getWidth(), window.getHeight());
+    assertTrue(Screen.getPrimary().getBounds().contains(newBounds));
   }
 
   @Test

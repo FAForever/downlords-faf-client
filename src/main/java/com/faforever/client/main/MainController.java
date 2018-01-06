@@ -352,8 +352,15 @@ public class MainController implements Controller<Node> {
       if (!newValue) {
         stage.setWidth(mainWindowPrefs.getWidth());
         stage.setHeight(mainWindowPrefs.getHeight());
-        stage.setX(mainWindowPrefs.getX());
-        stage.setY(mainWindowPrefs.getY());
+        ObservableList<Screen> screensForRectangle = Screen.
+            getScreensForRectangle(mainWindowPrefs.getX(), mainWindowPrefs.getY(), mainWindowPrefs.getWidth(), mainWindowPrefs.getHeight());
+        if (screensForRectangle.isEmpty()) {
+          JavaFxUtil.centerOnScreen(stage);
+        } else {
+          stage.setX(mainWindowPrefs.getX());
+          stage.setY(mainWindowPrefs.getY());
+        }
+
       }
       mainWindowPrefs.setMaximized(newValue);
       preferencesService.storeInBackground();
