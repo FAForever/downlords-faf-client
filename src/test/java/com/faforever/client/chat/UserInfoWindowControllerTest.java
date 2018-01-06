@@ -9,8 +9,10 @@ import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.events.EventService;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardService;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerBuilder;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
@@ -55,13 +57,17 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private UiService uiService;
   @Mock
-  private PreferencesService preferencesService;
-  @Mock
   private AchievementItemController achievementItemController;
+  @Mock
+  private PlayerService playerService;
+  @Mock
+  private NotificationService notificationService;
+  @Mock
+  private LeaderboardService leaderboardService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new UserInfoWindowController(statisticsService, countryFlagService, achievementService, eventService, preferencesService, i18n, uiService);
+    instance = new UserInfoWindowController(statisticsService, countryFlagService, achievementService, eventService, playerService, i18n, uiService, notificationService, leaderboardService);
 
     when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
 

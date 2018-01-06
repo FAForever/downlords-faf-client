@@ -12,8 +12,10 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardService;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
@@ -67,10 +69,8 @@ import static com.faforever.client.events.EventService.EVENT_BUILT_NAVAL_UNITS;
 import static com.faforever.client.events.EventService.EVENT_BUILT_TECH_1_UNITS;
 import static com.faforever.client.events.EventService.EVENT_BUILT_TECH_2_UNITS;
 import static com.faforever.client.events.EventService.EVENT_BUILT_TECH_3_UNITS;
-import static com.faforever.client.events.EventService.EVENT_CUSTOM_GAMES_PLAYED;
 import static com.faforever.client.events.EventService.EVENT_CYBRAN_PLAYS;
 import static com.faforever.client.events.EventService.EVENT_CYBRAN_WINS;
-import static com.faforever.client.events.EventService.EVENT_LADDER_1V1_GAMES_PLAYED;
 import static com.faforever.client.events.EventService.EVENT_SERAPHIM_PLAYS;
 import static com.faforever.client.events.EventService.EVENT_SERAPHIM_WINS;
 import static com.faforever.client.events.EventService.EVENT_UEF_PLAYS;
@@ -82,15 +82,17 @@ import static javafx.collections.FXCollections.observableList;
 @Component
 @Slf4j
 public class UserInfoWindowController implements Controller<Node> {
-
   private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMM");
 
   private final StatisticsService statisticsService;
+  private final PlayerService playerService;
   private final CountryFlagService countryFlagService;
   private final AchievementService achievementService;
   private final EventService eventService;
   private final I18n i18n;
   private final UiService uiService;
+  private final NotificationService notificationService;
+  private final LeaderboardService leaderboardService;
   public Label lockedAchievementsHeaderLabel;
   public Label unlockedAchievementsHeaderLabel;
   public PieChart gamesPlayedChart;
@@ -125,16 +127,21 @@ public class UserInfoWindowController implements Controller<Node> {
   private Map<String, AchievementDefinition> achievementDefinitionById;
   private Window ownerWindow;
 
+
   @Inject
   public UserInfoWindowController(StatisticsService statisticsService, CountryFlagService countryFlagService,
                                   AchievementService achievementService, EventService eventService,
-                                  PreferencesService preferencesService, I18n i18n, UiService uiService) {
+                                  PlayerService playerService, I18n i18n, UiService uiService,
+                                  NotificationService notificationService, LeaderboardService leaderboardService) {
     this.statisticsService = statisticsService;
     this.countryFlagService = countryFlagService;
     this.achievementService = achievementService;
     this.eventService = eventService;
+    this.playerService = playerService;
     this.i18n = i18n;
     this.uiService = uiService;
+    this.notificationService = notificationService;
+    this.leaderboardService = leaderboardService;
 
     achievementItemById = new HashMap<>();
     achievementDefinitionById = new HashMap<>();
@@ -224,9 +231,10 @@ public class UserInfoWindowController implements Controller<Node> {
           plotFactionsChart(events);
           plotUnitsByCategoriesChart(events);
           plotTechBuiltChart(events);
-          plotGamesPlayedChart(events);
+          plotGamesPlayedChart();
         })
         .exceptionally(throwable -> {
+          notificationService.addImmediateErrorNotification(throwable, "userInfo.statistics.errorLoading");
           log.warn("Could not load player events", throwable);
           return null;
         });
@@ -236,8 +244,8 @@ public class UserInfoWindowController implements Controller<Node> {
     enterAchievementsLoadingState();
     achievementService.getAchievementDefinitions()
         .exceptionally(throwable -> {
-          // TODO display to user
-          log.warn("Could not display achievement definitions", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "userInfo.achievements.errorLoading");
+          log.warn("Player achievements could not be loaded", throwable);
           return Collections.emptyList();
         })
         .thenAccept(this::setAvailableAchievements)
@@ -247,23 +255,24 @@ public class UserInfoWindowController implements Controller<Node> {
           enterAchievementsLoadedState();
         })
         .exceptionally(throwable -> {
-          // TODO tell the user
-          log.warn("Player achievements could not be loaded", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "userInfo.achievements.errorLDisplaying");
+          log.warn("Could not display achievement definitions", throwable);
+
           return null;
         });
   }
 
   @SuppressWarnings("unchecked")
   private void plotFactionsChart(Map<String, PlayerEvent> playerEvents) {
-    int aeonPlays = playerEvents.containsKey(EVENT_AEON_PLAYS) ? playerEvents.get(EVENT_AEON_PLAYS).getCount() : 0;
-    int cybranPlays = playerEvents.containsKey(EVENT_CYBRAN_PLAYS) ? playerEvents.get(EVENT_CYBRAN_PLAYS).getCount() : 0;
-    int uefPlays = playerEvents.containsKey(EVENT_UEF_PLAYS) ? playerEvents.get(EVENT_UEF_PLAYS).getCount() : 0;
-    int seraphimPlays = playerEvents.containsKey(EVENT_SERAPHIM_PLAYS) ? playerEvents.get(EVENT_SERAPHIM_PLAYS).getCount() : 0;
+    int aeonPlays = playerEvents.containsKey(EVENT_AEON_PLAYS) ? playerEvents.get(EVENT_AEON_PLAYS).getCurrentCount() : 0;
+    int cybranPlays = playerEvents.containsKey(EVENT_CYBRAN_PLAYS) ? playerEvents.get(EVENT_CYBRAN_PLAYS).getCurrentCount() : 0;
+    int uefPlays = playerEvents.containsKey(EVENT_UEF_PLAYS) ? playerEvents.get(EVENT_UEF_PLAYS).getCurrentCount() : 0;
+    int seraphimPlays = playerEvents.containsKey(EVENT_SERAPHIM_PLAYS) ? playerEvents.get(EVENT_SERAPHIM_PLAYS).getCurrentCount() : 0;
 
-    int aeonWins = playerEvents.containsKey(EVENT_AEON_WINS) ? playerEvents.get(EVENT_AEON_WINS).getCount() : 0;
-    int cybranWins = playerEvents.containsKey(EVENT_CYBRAN_WINS) ? playerEvents.get(EVENT_CYBRAN_WINS).getCount() : 0;
-    int uefWins = playerEvents.containsKey(EVENT_UEF_WINS) ? playerEvents.get(EVENT_UEF_WINS).getCount() : 0;
-    int seraphimWins = playerEvents.containsKey(EVENT_SERAPHIM_WINS) ? playerEvents.get(EVENT_SERAPHIM_WINS).getCount() : 0;
+    int aeonWins = playerEvents.containsKey(EVENT_AEON_WINS) ? playerEvents.get(EVENT_AEON_WINS).getCurrentCount() : 0;
+    int cybranWins = playerEvents.containsKey(EVENT_CYBRAN_WINS) ? playerEvents.get(EVENT_CYBRAN_WINS).getCurrentCount() : 0;
+    int uefWins = playerEvents.containsKey(EVENT_UEF_WINS) ? playerEvents.get(EVENT_UEF_WINS).getCurrentCount() : 0;
+    int seraphimWins = playerEvents.containsKey(EVENT_SERAPHIM_WINS) ? playerEvents.get(EVENT_SERAPHIM_WINS).getCurrentCount() : 0;
 
     XYChart.Series<String, Integer> winsSeries = new XYChart.Series<>();
     winsSeries.setName(i18n.get("userInfo.wins"));
@@ -284,9 +293,9 @@ public class UserInfoWindowController implements Controller<Node> {
 
   @SuppressWarnings("unchecked")
   private void plotUnitsByCategoriesChart(Map<String, PlayerEvent> playerEvents) {
-    int airBuilt = playerEvents.containsKey(EVENT_BUILT_AIR_UNITS) ? playerEvents.get(EVENT_BUILT_AIR_UNITS).getCount() : 0;
-    int landBuilt = playerEvents.containsKey(EVENT_BUILT_LAND_UNITS) ? playerEvents.get(EVENT_BUILT_LAND_UNITS).getCount() : 0;
-    int navalBuilt = playerEvents.containsKey(EVENT_BUILT_NAVAL_UNITS) ? playerEvents.get(EVENT_BUILT_NAVAL_UNITS).getCount() : 0;
+    int airBuilt = playerEvents.containsKey(EVENT_BUILT_AIR_UNITS) ? playerEvents.get(EVENT_BUILT_AIR_UNITS).getCurrentCount() : 0;
+    int landBuilt = playerEvents.containsKey(EVENT_BUILT_LAND_UNITS) ? playerEvents.get(EVENT_BUILT_LAND_UNITS).getCurrentCount() : 0;
+    int navalBuilt = playerEvents.containsKey(EVENT_BUILT_NAVAL_UNITS) ? playerEvents.get(EVENT_BUILT_NAVAL_UNITS).getCurrentCount() : 0;
 
     Platform.runLater(() -> unitsBuiltChart.setData(FXCollections.observableArrayList(
         new PieChart.Data(i18n.get("stats.air"), airBuilt),
@@ -297,9 +306,9 @@ public class UserInfoWindowController implements Controller<Node> {
 
   @SuppressWarnings("unchecked")
   private void plotTechBuiltChart(Map<String, PlayerEvent> playerEvents) {
-    int tech1Built = playerEvents.containsKey(EVENT_BUILT_TECH_1_UNITS) ? playerEvents.get(EVENT_BUILT_TECH_1_UNITS).getCount() : 0;
-    int tech2Built = playerEvents.containsKey(EVENT_BUILT_TECH_2_UNITS) ? playerEvents.get(EVENT_BUILT_TECH_2_UNITS).getCount() : 0;
-    int tech3Built = playerEvents.containsKey(EVENT_BUILT_TECH_3_UNITS) ? playerEvents.get(EVENT_BUILT_TECH_3_UNITS).getCount() : 0;
+    int tech1Built = playerEvents.containsKey(EVENT_BUILT_TECH_1_UNITS) ? playerEvents.get(EVENT_BUILT_TECH_1_UNITS).getCurrentCount() : 0;
+    int tech2Built = playerEvents.containsKey(EVENT_BUILT_TECH_2_UNITS) ? playerEvents.get(EVENT_BUILT_TECH_2_UNITS).getCurrentCount() : 0;
+    int tech3Built = playerEvents.containsKey(EVENT_BUILT_TECH_3_UNITS) ? playerEvents.get(EVENT_BUILT_TECH_3_UNITS).getCurrentCount() : 0;
 
     Platform.runLater(() -> techBuiltChart.setData(FXCollections.observableArrayList(
         new PieChart.Data(i18n.get("stats.tech1"), tech1Built),
@@ -309,14 +318,19 @@ public class UserInfoWindowController implements Controller<Node> {
   }
 
   @SuppressWarnings("unchecked")
-  private void plotGamesPlayedChart(Map<String, PlayerEvent> playerEvents) {
-    int tech1Built = playerEvents.containsKey(EVENT_CUSTOM_GAMES_PLAYED) ? playerEvents.get(EVENT_CUSTOM_GAMES_PLAYED).getCount() : 0;
-    int tech2Built = playerEvents.containsKey(EVENT_LADDER_1V1_GAMES_PLAYED) ? playerEvents.get(EVENT_LADDER_1V1_GAMES_PLAYED).getCount() : 0;
-
-    Platform.runLater(() -> gamesPlayedChart.setData(FXCollections.observableArrayList(
-        new PieChart.Data(i18n.get("stats.custom"), tech1Built),
-        new PieChart.Data(i18n.get("stats.ranked1v1"), tech2Built)
-    )));
+  private void plotGamesPlayedChart() {
+    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player must be set"));
+    leaderboardService.getEntryForPlayer(currentPlayer.getId()).thenAccept(leaderboardEntryBean -> Platform.runLater(() -> {
+      int ladderGamesCount = leaderboardEntryBean.getGamesPlayed();
+      int custonGamesCount = currentPlayer.getNumberOfGames();
+      Platform.runLater(() -> gamesPlayedChart.setData(FXCollections.observableArrayList(
+          new PieChart.Data(i18n.get("stats.custom"), custonGamesCount),
+          new PieChart.Data(i18n.get("stats.ranked1v1"), ladderGamesCount)
+      )));
+    })).exceptionally(throwable -> {
+      log.warn("Leaderboard entry could not be read for current player: " + currentPlayer.getUsername(), throwable);
+      return null;
+    });
   }
 
   private void enterAchievementsLoadingState() {

@@ -139,11 +139,11 @@ public class FafApiAccessorImplTest {
     PlayerEvent playerEvent1 = new PlayerEvent();
     playerEvent1.setId("1");
     playerEvent1.setEvent(new Event().setId("1-1-1"));
-    playerEvent1.setCount(11);
+    playerEvent1.setCurrentCount(11);
     PlayerEvent playerEvent2 = new PlayerEvent();
     playerEvent2.setId("2");
     playerEvent2.setEvent(new Event().setId("2-2-2"));
-    playerEvent2.setCount(22);
+    playerEvent2.setCurrentCount(22);
     List<PlayerEvent> result = Arrays.asList(playerEvent1, playerEvent2);
 
     when(restOperations.getForObject(anyString(), eq(List.class)))

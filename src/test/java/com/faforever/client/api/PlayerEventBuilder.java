@@ -21,7 +21,7 @@ public class PlayerEventBuilder extends PlayerEvent {
   }
 
   public PlayerEventBuilder count(int count) {
-    playerEvent.setCount(count);
+    playerEvent.setCurrentCount(count);
     return this;
   }
 

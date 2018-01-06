@@ -15,7 +15,7 @@ public class PlayerEvent {
 
   @Id
   private String id;
-  private int count;
+  private int currentCount;
 
   @Relationship("event")
   private Event event;
