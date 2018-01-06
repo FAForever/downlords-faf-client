@@ -223,7 +223,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
       ratingProgressIndicator.setVisible(false);
       ratingLabel.setVisible(true);
       ratingLabel.setText(i18n.number(rating));
-
+      ratingHintLabel.setVisible(false);
       updateRatingHint(rating);
     }
 
