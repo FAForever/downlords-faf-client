@@ -20,6 +20,7 @@ import javafx.collections.ObservableList;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -101,9 +102,17 @@ public class Mod {
     mod.getHookDirectories().setAll(modInfo.getHookDirectories());
     Optional.ofNullable(modInfo.getIcon())
         .map(icon -> Paths.get(icon))
-        .filter(iconPath -> iconPath.getNameCount() > 2)
+        .map(path -> correctIconPath(path, mod))
+        .filter(path -> path.getNameCount() > 2)
         .ifPresent(iconPath -> mod.setImagePath(basePath.resolve(iconPath.subpath(2, iconPath.getNameCount()))));
     return mod;
+  }
+
+  private static Path correctIconPath(Path path, Mod mod) {
+    if (path.getNameCount() == 1) {
+      return Paths.get(File.separator + "mods", mod.getName().replace(" ", ""), path.toString());
+    }
+    return path;
   }
 
   public static Mod fromModInfo(com.faforever.client.api.dto.Mod mod) {
