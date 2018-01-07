@@ -12,7 +12,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -46,7 +45,6 @@ public class SettingsControllerTest extends AbstractPlainJavaFxTest {
     preferences = new Preferences();
     when(preferenceService.getPreferences()).thenReturn(preferences);
     when(uiService.currentThemeProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(userService.currentUserProperty()).thenReturn(new SimpleStringProperty());
 
     instance = new SettingsController(userService, preferenceService, uiService, i18n, eventBus, notificationService);
     loadFxml("theme/settings/settings.fxml", param -> instance);

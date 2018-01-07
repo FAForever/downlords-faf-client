@@ -9,11 +9,13 @@ import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.events.EventService;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.OffsetDateTimeCell;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.player.NameRecord;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.stats.StatisticsService;
@@ -21,6 +23,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
+import com.faforever.client.util.TimeService;
 import com.neovisionaries.i18n.CountryCode;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -36,6 +39,8 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
@@ -52,6 +57,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
@@ -85,12 +91,13 @@ public class UserInfoWindowController implements Controller<Node> {
   private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMM");
 
   private final StatisticsService statisticsService;
-  private final PlayerService playerService;
   private final CountryFlagService countryFlagService;
   private final AchievementService achievementService;
   private final EventService eventService;
   private final I18n i18n;
   private final UiService uiService;
+  private final TimeService timeService;
+  private final PlayerService playerService;
   private final NotificationService notificationService;
   private final LeaderboardService leaderboardService;
   public Label lockedAchievementsHeaderLabel;
@@ -122,6 +129,9 @@ public class UserInfoWindowController implements Controller<Node> {
   public Label countryLabel;
   public ImageView countryImageView;
   public Pane userInfoRoot;
+  public TableView<NameRecord> nameHistoryTable;
+  public TableColumn<NameRecord, OffsetDateTime> changeDateColumn;
+  public TableColumn<NameRecord, String> nameColumn;
   private Player player;
   private Map<String, AchievementItemController> achievementItemById;
   private Map<String, AchievementDefinition> achievementDefinitionById;
@@ -130,9 +140,10 @@ public class UserInfoWindowController implements Controller<Node> {
 
   @Inject
   public UserInfoWindowController(StatisticsService statisticsService, CountryFlagService countryFlagService,
-                                  AchievementService achievementService, EventService eventService,
-                                  PlayerService playerService, I18n i18n, UiService uiService,
-                                  NotificationService notificationService, LeaderboardService leaderboardService) {
+                                  AchievementService achievementService, EventService eventService, I18n i18n,
+                                  UiService uiService, TimeService timeService,
+                                  NotificationService notificationService, PlayerService playerService,
+                                  LeaderboardService  leaderboardService) {
     this.statisticsService = statisticsService;
     this.countryFlagService = countryFlagService;
     this.achievementService = achievementService;
@@ -140,6 +151,7 @@ public class UserInfoWindowController implements Controller<Node> {
     this.playerService = playerService;
     this.i18n = i18n;
     this.uiService = uiService;
+    this.timeService = timeService;
     this.notificationService = notificationService;
     this.leaderboardService = leaderboardService;
 
@@ -185,6 +197,10 @@ public class UserInfoWindowController implements Controller<Node> {
         });
       }
     });
+
+    nameColumn.setCellValueFactory(param -> param.getValue().nameProperty());
+    changeDateColumn.setCellValueFactory(param -> param.getValue().changeDateProperty());
+    changeDateColumn.setCellFactory(param -> new OffsetDateTimeCell<>(timeService));
   }
 
   public Region getRoot() {
@@ -214,6 +230,8 @@ public class UserInfoWindowController implements Controller<Node> {
     ratingLabelGlobal.setText(i18n.number(RatingUtil.getGlobalRating(player)));
     ratingLabel1v1.setText(i18n.number(RatingUtil.getLeaderboardRating(player)));
 
+    updateNameHistory(player);
+
     CountryCode countryCode = CountryCode.getByCode(player.getCountry());
     if (countryCode != null) {
       // Country code is unknown to CountryCode, like A1 or A2 (from GeoIP)
@@ -236,6 +254,15 @@ public class UserInfoWindowController implements Controller<Node> {
         .exceptionally(throwable -> {
           notificationService.addImmediateErrorNotification(throwable, "userInfo.statistics.errorLoading");
           log.warn("Could not load player events", throwable);
+          return null;
+        });
+  }
+
+  private void updateNameHistory(Player player) {
+    playerService.getPlayersByIds(Collections.singletonList(player.getId()))
+        .thenAccept(players -> nameHistoryTable.setItems(players.get(0).getNames()))
+        .exceptionally(throwable -> {
+          notificationService.addImmediateErrorNotification(throwable, "userInfo.nameHistory.errorLoading");
           return null;
         });
   }
@@ -445,4 +472,5 @@ public class UserInfoWindowController implements Controller<Node> {
   public void setOwnerWindow(Window ownerWindow) {
     this.ownerWindow = ownerWindow;
   }
+
 }

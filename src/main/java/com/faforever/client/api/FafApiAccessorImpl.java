@@ -74,6 +74,8 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   private static final String MAP_ENDPOINT = "/data/map";
   private static final String REPLAY_INCLUDES = "featuredMod,playerStats,playerStats.player,reviews,reviews.player,mapVersion,mapVersion.map,mapVersion.reviews";
+  private static final String PLAYER_INCLUDES = "globalRating,ladder1v1Rating,names";
+
   private final EventBus eventBus;
   private final RestTemplateBuilder restTemplateBuilder;
   private final ClientProperties clientProperties;
@@ -341,7 +343,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     List<String> ids = playerIds.stream().map(String::valueOf).collect(Collectors.toList());
 
     return getMany("/data/player", playerIds.size(), ImmutableMap.of(
-        "include", "globalRating,ladder1v1Rating",
+        "include", PLAYER_INCLUDES,
         "filter", rsql(qBuilder().string("id").in(ids))
     ));
   }

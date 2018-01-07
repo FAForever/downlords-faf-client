@@ -1,6 +1,6 @@
 faf-client:
   server:
-    host: localhost
+    host: lobby.test.faforever.com
 
   irc:
     host: irc.test.faforever.com
@@ -24,7 +24,7 @@ faf-client:
     base-url: https://www.test.faforever.com
 
   api:
-    base-url: https://japi.test.faforever.com
+    base-url: https://api.test.faforever.com
     client-id: 3bc8282c-7730-11e5-8bcf-feff819cdc9f
     client-secret: 6035bd78-7730-11e5-8bcf-feff819cdc9f
 

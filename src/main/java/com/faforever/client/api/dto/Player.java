@@ -7,6 +7,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @EqualsAndHashCode(of = "id")
@@ -22,4 +24,7 @@ public class Player {
 
   @Relationship("ladder1v1Rating")
   private Ladder1v1Rating ladder1v1Rating;
+
+  @Relationship("names")
+  private List<NameRecord> names;
 }

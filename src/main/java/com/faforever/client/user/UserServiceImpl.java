@@ -11,7 +11,6 @@ import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import org.slf4j.Logger;
@@ -114,11 +113,6 @@ public class UserServiceImpl implements UserService {
     fafService.disconnect();
     eventBus.post(new LoggedOutEvent());
     preferencesService.getPreferences().getLogin().setAutoLogin(false);
-  }
-
-  @Override
-  public ReadOnlyStringProperty currentUserProperty() {
-    return username;
   }
 
   @Override
