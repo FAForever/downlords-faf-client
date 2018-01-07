@@ -238,13 +238,6 @@
                             <children>
                                 <VBox spacing="5.0">
                                     <children>
-                                        <Label styleClass="h3" text="%settings.account.username" />
-                                        <HBox>
-                                            <children>
-                                                <TextField fx:id="usernameField" disable="true" maxWidth="270.0" prefHeight="30.0" prefWidth="270.0" />
-                                                <Button disable="true" mnemonicParsing="false" text="%settings.account.username.change" />
-                                            </children>
-                                        </HBox>
                                         <Label styleClass="h3" text="%settings.account.steamAccount" />
                                         <HBox>
                                             <children>

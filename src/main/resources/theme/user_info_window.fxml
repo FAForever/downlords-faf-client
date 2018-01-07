@@ -11,6 +11,8 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToggleGroup?>
@@ -297,6 +299,25 @@
               <Label styleClass="icon" text=""/>
           </graphic>
         </Tab>
+          <Tab text="%userInfo.nameHistory">
+              <TableView fx:id="nameHistoryTable">
+                  <placeholder>
+                      <Label text="%userInfo.nameHistory.noHistory"/>
+                  </placeholder>
+                  <columns>
+                      <TableColumn fx:id="changeDateColumn" editable="false" prefWidth="150"
+                                   text="%userInfo.nameHistory.date"/>
+                      <TableColumn fx:id="nameColumn" editable="false" prefWidth="150"
+                                   text="%userInfo.nameHistory.name"/>
+                  </columns>
+                  <columnResizePolicy>
+                      <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                  </columnResizePolicy>
+              </TableView>
+              <graphic>
+                  <Label styleClass="icon" text=""/>
+              </graphic>
+          </Tab>
       </tabs>
     </TabPane>
       <ImageView fx:id="avatarImageView" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true"

@@ -9,6 +9,7 @@ import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.events.EventService;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerBuilder;
@@ -16,6 +17,8 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.TimeService;
+import javafx.scene.layout.HBox;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -23,6 +26,7 @@ import org.mockito.Mock;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
@@ -59,6 +63,8 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private AchievementItemController achievementItemController;
   @Mock
+  private TimeService timeService;
+  @Mock
   private PlayerService playerService;
   @Mock
   private NotificationService notificationService;
@@ -67,9 +73,13 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new UserInfoWindowController(statisticsService, countryFlagService, achievementService, eventService, playerService, i18n, uiService, notificationService, leaderboardService);
+    instance = new UserInfoWindowController(statisticsService, countryFlagService, achievementService, eventService,
+        i18n, uiService, timeService,
+        notificationService, playerService, leaderboardService);
 
     when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
+    when(achievementItemController.getRoot()).thenReturn(new HBox());
+    when(playerService.getPlayersByIds(any())).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
 
     when(statisticsService.getRatingHistory(any(), eq(PLAYER_ID))).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
         new RatingHistoryDataPoint(OffsetDateTime.now(), 1500f, 50f),
