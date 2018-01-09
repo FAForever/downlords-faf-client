@@ -14,25 +14,24 @@ import com.faforever.client.fa.relay.event.GameFullEvent;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.net.GatewayUtil;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.SocketUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.invoke.MethodHandles;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -63,11 +62,9 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
  * page</a> for a graphical explanation.</p> <p>Being a proxy includes rewriting the sender/receiver of all outgoing and
  * incoming packages. Apart from being necessary, this makes us IPv6 compatible.</p>
  */
+@Slf4j
 @Service
 public class LocalRelayServerImpl implements LocalRelayServer {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
   /**
    * A collection of runnables to be executed whenever the game connected to this relay server.
    */
@@ -89,17 +86,12 @@ public class LocalRelayServerImpl implements LocalRelayServer {
    */
   private final Map<Integer, SocketAddress> originalAddressByUid;
   private final BooleanProperty started;
-
-  @Resource
-  UserService userService;
-  @Resource
-  FafService fafService;
-  @Resource
-  Executor executor;
-  @Resource
-  EventBus eventBus;
-  @Resource
-  ConnectivityService connectivityService;
+  private final NotificationService notificationService;
+  private final UserService userService;
+  private final FafService fafService;
+  private final Executor executor;
+  private final EventBus eventBus;
+  private final ConnectivityService connectivityService;
 
   private FaDataOutputStream gameOutputStream;
   private FaDataInputStream gameInputStream;
@@ -129,7 +121,16 @@ public class LocalRelayServerImpl implements LocalRelayServer {
    */
   private InetAddress defaultGatewayAddress;
 
-  public LocalRelayServerImpl() {
+  @Inject
+  public LocalRelayServerImpl(NotificationService notificationService, UserService userService,
+                              FafService fafService, Executor executor,
+                              EventBus eventBus, ConnectivityService connectivityService) {
+    this.notificationService = notificationService;
+    this.userService = userService;
+    this.fafService = fafService;
+    this.executor = executor;
+    this.eventBus = eventBus;
+    this.connectivityService = connectivityService;
     proxySocketsByOriginalAddress = new HashMap<>();
     originalAddressByUid = new HashMap<>();
     onGameConnectedListeners = new ArrayList<>();
@@ -156,12 +157,12 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   public CompletionStage<Integer> start(DatagramGateway gateway) {
     synchronized (started) {
       if (started.get()) {
-        logger.warn("Local relay server was already running, restarting");
+        log.warn("Local relay server was already running, restarting");
         close();
       }
     }
 
-    logger.debug("Starting relay server");
+    log.debug("Starting relay server");
     this.packetGateway = gateway;
     this.defaultGatewayAddress = noCatch(GatewayUtil::findGateway);
 
@@ -189,7 +190,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
         return;
       }
 
-      logger.info("Closing relay server");
+      log.info("Closing relay server");
 
       proxySocketsByOriginalAddress.values().forEach(IOUtils::closeQuietly);
       proxySocketsByOriginalAddress.clear();
@@ -213,8 +214,8 @@ public class LocalRelayServerImpl implements LocalRelayServer {
 
     DatagramSocket relaySocket = createOrGetRelaySocket(packet.getSocketAddress());
     noCatch(() -> {
-      if (logger.isTraceEnabled()) {
-        logger.trace("Forwarding {} bytes from peer '{}' through '{}': {}", packet.getLength(),
+      if (log.isTraceEnabled()) {
+        log.trace("Forwarding {} bytes from peer '{}' through '{}': {}", packet.getLength(),
             packet.getSocketAddress(), relaySocket.getLocalSocketAddress(),
             new String(packet.getData(), 0, packet.getLength(), US_ASCII));
       }
@@ -236,14 +237,14 @@ public class LocalRelayServerImpl implements LocalRelayServer {
     if (!proxySocketsByOriginalAddress.containsKey(originalSocketAddress)) {
       try {
         DatagramSocket relaySocket = new DatagramSocket(new InetSocketAddress(getLoopbackAddress(), 0));
-        logger.debug("Mapping peer {} to relay socket {}", originalSocketAddress, relaySocket.getLocalSocketAddress());
+        log.debug("Mapping peer {} to relay socket {}", originalSocketAddress, relaySocket.getLocalSocketAddress());
 
         proxySocketsByOriginalAddress.put(originalSocketAddress, relaySocket);
 
         readSocket(executor, relaySocket, packet -> {
           packet.setSocketAddress(originalSocketAddress);
-          if (logger.isTraceEnabled()) {
-            logger.trace("Forwarding {} bytes from FA to peer {}: {}", packet.getLength(),
+          if (log.isTraceEnabled()) {
+            log.trace("Forwarding {} bytes from FA to peer {}: {}", packet.getLength(),
                 originalSocketAddress, new String(packet.getData(), 0, packet.getLength(), US_ASCII));
           }
 
@@ -265,20 +266,23 @@ public class LocalRelayServerImpl implements LocalRelayServer {
         int localPort = serverSocket.getLocalPort();
         gpgPortFuture.complete(localPort);
 
-        logger.info("GPG relay server listening on port {}", localPort);
+        log.info("GPG relay server listening on port {}", localPort);
         synchronized (started) {
           started.set(true);
         }
 
         try (Socket faSocket = serverSocket.accept()) {
           LocalRelayServerImpl.this.gameSocket = faSocket;
-          logger.debug("Forged Alliance connected to relay server from {}:{}", faSocket.getInetAddress(), faSocket.getPort());
+          log.debug("Forged Alliance connected to relay server from {}:{}", faSocket.getInetAddress(), faSocket.getPort());
 
           onGameConnectedListeners.forEach(Runnable::run);
 
           LocalRelayServerImpl.this.gameInputStream = createFaInputStream(faSocket.getInputStream());
           LocalRelayServerImpl.this.gameOutputStream = createFaOutputStream(faSocket.getOutputStream());
           redirectGpgConnection();
+        } catch (SocketException e) {
+          log.error("No connection to relay server established", e);
+          notificationService.addImmediateErrorNotification(e, "fa.socketException");
         }
       }
     });
@@ -307,7 +311,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
         handleDataFromFa(gpgClientMessage);
       }
     } catch (IOException e) {
-      logger.info("Forged Alliance disconnected from local relay server (" + e.getMessage() + ")");
+      log.info("Forged Alliance disconnected from local relay server (" + e.getMessage() + ")");
       close();
     }
   }
@@ -321,14 +325,14 @@ public class LocalRelayServerImpl implements LocalRelayServer {
       }
 
       int faGamePort = SocketUtils.findAvailableUdpPort();
-      logger.debug("Picked port for FA to listen: {}", faGamePort);
+      log.debug("Picked port for FA to listen: {}", faGamePort);
 
       handleCreateLobby(new CreateLobbyServerMessage(lobbyMode, faGamePort, username, userService.getUserId(), 1));
       gameUdpSocketFuture.complete(new InetSocketAddress(getLoopbackAddress(), faGamePort));
     } else if (command == GpgClientCommand.REHOST) {
       eventBus.post(new RehostRequestEvent());
     } else if (command == GpgClientCommand.JSON_STATS) {
-      logger.debug("Received game stats: {}", gpgGameMessage.getArgs().get(0));
+      log.debug("Received game stats: {}", gpgGameMessage.getArgs().get(0));
     } else if (command == GpgClientCommand.GAME_FULL) {
       eventBus.post(new GameFullEvent());
       return;
@@ -366,7 +370,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
     int headerSize = commandString.length();
     String headerField = commandString.replace("\t", "/t").replace("\n", "/n");
 
-    logger.debug("Writing data to FA, command: {}, args: {}", commandString, gpgServerMessage.getArgs());
+    log.debug("Writing data to FA, command: {}, args: {}", commandString, gpgServerMessage.getArgs());
 
     gameOutputStream.writeInt(headerSize);
     gameOutputStream.writeString(headerField);
