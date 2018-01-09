@@ -3,7 +3,6 @@ package com.faforever.client.notification;
 import com.faforever.client.notification.Action.ActionCallback;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.google.common.eventbus.EventBus;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -30,7 +29,7 @@ public class TransientNotificationControllerTest extends AbstractPlainJavaFxTest
 
   @Before
   public void setUp() throws Exception {
-    PreferencesService preferencesService = new PreferencesService(mock(EventBus.class));
+    PreferencesService preferencesService = new PreferencesService();
     preferencesService.postConstruct();
     instance = new TransientNotificationController(preferencesService);
 

@@ -144,6 +144,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
     instance.onFactionButtonClicked();
 
     instance.onPlayButtonClicked();
+    instance.setSearching(true);
 
     verify(gameService).startSearchLadder1v1(any());
     assertThat(instance.cancelButton.isVisible(), is(true));

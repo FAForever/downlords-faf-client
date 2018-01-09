@@ -150,7 +150,8 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
     playerService.getCurrentPlayer().ifPresent(this::setCurrentPlayer);
   }
 
-  private void setSearching(boolean searching) {
+  @VisibleForTesting
+  void setSearching(boolean searching) {
     cancelButton.setVisible(searching);
     playButton.setVisible(!searching);
     searchProgressIndicator.setVisible(searching);
@@ -178,7 +179,6 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
       return;
     }
 
-    setSearching(true);
     setFactionButtonsDisabled(true);
 
     ObservableList<Faction> factions = preferencesService.getPreferences().getLadder1v1Prefs().getFactions();

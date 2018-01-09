@@ -4,6 +4,7 @@ import com.faforever.client.chat.ChatController;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WindowController;
+import com.faforever.client.game.GamePathHandler;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.LoginController;
@@ -110,6 +111,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private EventBus eventBus;
   @Mock
+  private GamePathHandler gamePathHandler;
+  @Mock
   private ChatController chatController;
   private MainController instance;
   private CountDownLatch mainControllerInitializedLatch;
@@ -124,7 +127,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
         .setInitialStandardDeviation(500);
 
     instance = new MainController(preferencesService, i18n, notificationService, playerService, gameService, clientUpdateService,
-        uiService, eventBus, clientProperties, platformService);
+        uiService, eventBus, clientProperties, gamePathHandler, platformService);
 
     gameRunningProperty = new SimpleBooleanProperty();
 
