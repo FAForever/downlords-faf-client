@@ -24,7 +24,7 @@ public class PreferencesServiceTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new PreferencesService(eventBus);
+    instance = new PreferencesService();
   }
 
   @Test

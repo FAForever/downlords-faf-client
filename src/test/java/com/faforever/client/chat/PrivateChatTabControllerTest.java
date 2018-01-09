@@ -14,7 +14,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ExternalReplayInfoGenerator;
 import com.faforever.client.replay.ReplayService;
@@ -85,8 +84,6 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private EventBus eventBus;
   @Mock
-  private Preferences preferences;
-  @Mock
   private CountryFlagService countryFlagService;
   @Mock
   private MapService mapService;
@@ -112,7 +109,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
     vault.setReplayDownloadUrlFormat("test.de");
     when(clientProperties.getVault()).thenReturn(vault);
 
-    PreferencesService preferencesService = new PreferencesService(eventBus);
+    PreferencesService preferencesService = new PreferencesService();
     preferencesService.postConstruct();
     preferencesService.getPreferences().getMainWindow().setLastView(NavigationItem.CHAT.name());
 
