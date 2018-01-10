@@ -169,8 +169,12 @@ public class UiServiceImpl implements UiService {
   }
 
   @PreDestroy
-  void preDestroy() {
+  void preDestroy() throws IOException {
     IOUtils.closeQuietly(watchService);
+    Path cacheStylesheetsDirectory = preferencesService.getCacheStylesheetsDirectory();
+    if (Files.exists(cacheStylesheetsDirectory)) {
+      deleteRecursively(cacheStylesheetsDirectory);
+    }
   }
 
   private void stopWatchingTheme(Theme theme) {
