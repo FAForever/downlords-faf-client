@@ -16,7 +16,7 @@
 <?import java.lang.String?>
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mapDetailRoot" maxHeight="1.7976931348623157E308"
             maxWidth="1.7976931348623157E308" onMouseClicked="#onDimmerClicked" styleClass="dimmer"
-            xmlns="http://javafx.com/javafx/8.0.111" fx:controller="com.faforever.client.map.MapDetailController">
+            xmlns="http://javafx.com/javafx/8.0.121" fx:controller="com.faforever.client.map.MapDetailController">
   <children>
       <AnchorPane onMouseClicked="#onContentPaneClicked" styleClass="modal-popup" AnchorPane.bottomAnchor="50.0"
                   AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="50.0">
@@ -68,27 +68,27 @@
                                           <Label styleClass="icon" text=""/>
                                       </graphic>
                                   </Label>
-                                  <HBox alignment="TOP_RIGHT" spacing="10.0" GridPane.columnIndex="1"
+                                  <VBox alignment="TOP_RIGHT" spacing="10.0" GridPane.columnIndex="1"
                                         GridPane.columnSpan="2147483647">
-                                      <children>
-                                          <Button fx:id="createGameButton" defaultButton="true" mnemonicParsing="false"
-                                                  onAction="#onCreateGameButtonClicked" text="%games.create"/>
-                                          <Button fx:id="installButton" defaultButton="true" mnemonicParsing="false"
-                                                  onAction="#onInstallButtonClicked"
-                                                  text="%mapVault.installButtonFormat"/>
-                                          <Button fx:id="uninstallButton" mnemonicParsing="false"
-                                                  onAction="#onUninstallButtonClicked" text="%mapVault.uninstall"/>
-                                      </children>
-                                  </HBox>
-                                  <VBox fx:id="loadingContainer" alignment="CENTER_LEFT" maxWidth="300.0"
-                                        GridPane.columnIndex="1"
-                                        GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT"
-                                        GridPane.valignment="TOP">
-                                      <children>
-                                          <Label fx:id="progressLabel"/>
-                                          <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308"
-                                                       progress="0.0"/>
-                                      </children>
+                                      <HBox alignment="TOP_RIGHT" spacing="10.0">
+                                          <children>
+                                              <Button fx:id="createGameButton" defaultButton="true"
+                                                      mnemonicParsing="false" onAction="#onCreateGameButtonClicked"
+                                                      text="%games.create"/>
+                                              <Button fx:id="installButton" defaultButton="true" mnemonicParsing="false"
+                                                      onAction="#onInstallButtonClicked"
+                                                      text="%mapVault.installButtonFormat"/>
+                                              <Button fx:id="uninstallButton" mnemonicParsing="false"
+                                                      onAction="#onUninstallButtonClicked" text="%mapVault.uninstall"/>
+                                          </children>
+                                      </HBox>
+                                      <VBox fx:id="loadingContainer" alignment="TOP_RIGHT" maxWidth="300.0">
+                                          <children>
+                                              <Label fx:id="progressLabel"/>
+                                              <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308"
+                                                           progress="0.0"/>
+                                          </children>
+                                      </VBox>
                                   </VBox>
                                   <Label fx:id="authorLabel" styleClass="secondary" text="&lt;Author&gt;"
                                          GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="1"
