@@ -7,9 +7,11 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.scene.layout.Pane;
 import org.junit.Before;
@@ -59,6 +61,8 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
 
     when(gameService.getGames()).thenReturn(games);
     when(preferencesService.getPreferences()).thenReturn(preferences);
+    when(preferences.showModdedGamesProperty()).thenReturn(new SimpleBooleanProperty(true));
+    when(preferences.showPasswordProtectedGamesProperty()).thenReturn(new SimpleBooleanProperty(true));
     when(preferences.getGamesViewMode()).thenReturn("tableButton");
     when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
     when(uiService.loadFxml("theme/play/games_tiles_container.fxml")).thenReturn(gamesTilesContainerController);
@@ -91,6 +95,42 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
     assertTrue(instance.gameDetailPane.isVisible());
     instance.setSelectedGame(null);
     assertFalse(instance.gameDetailPane.isVisible());
+  }
+
+
+  @Test
+  public void testUpdateFilters() throws Exception {
+    Game game = GameBuilder.create().defaultValues().get();
+    Game gameWithMod = GameBuilder.create().defaultValues().get();
+    Game gameWithPW = GameBuilder.create().defaultValues().get();
+    Game gameWithModAndPW = GameBuilder.create().defaultValues().get();
+
+    ObservableMap<String, String> simMods = FXCollections.observableHashMap();
+    simMods.put("123-456-789", "Fake mod name");
+    gameWithMod.setSimMods(simMods);
+    gameWithModAndPW.setSimMods(simMods);
+
+    gameWithPW.setPassword("password");
+    gameWithPW.passwordProtectedProperty().set(true);
+    gameWithModAndPW.setPassword("password");
+    gameWithModAndPW.passwordProtectedProperty().set(true);
+
+    ObservableList<Game> games = FXCollections.observableArrayList();
+    games.addAll(game, gameWithMod, gameWithPW, gameWithModAndPW);
+    instance.setFilteredList(games);
+
+    instance.showModdedGamesCheckBox.setSelected(true);
+    instance.showPasswordProtectedGamesCheckBox.setSelected(true);
+    assertTrue(instance.filteredItems.size() == 4);
+
+    instance.showModdedGamesCheckBox.setSelected(false);
+    assertTrue(instance.filteredItems.size() == 2);
+
+    instance.showPasswordProtectedGamesCheckBox.setSelected(false);
+    assertTrue(instance.filteredItems.size() == 1);
+
+    instance.showModdedGamesCheckBox.setSelected(true);
+    assertTrue(instance.filteredItems.size() == 2);
   }
 
   @Test

@@ -34,7 +34,9 @@
                 <HBox alignment="BASELINE_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0">
                   <children>
                       <Button fx:id="createGameButton" defaultButton="true" mnemonicParsing="false" onAction="#onCreateGameButtonClicked" text="%games.create" />
-                      <CheckBox mnemonicParsing="false" onAction="#onShowPrivateGames" selected="true" text="%games.showPasswordProtectedGames" />
+                      <CheckBox fx:id="showPasswordProtectedGamesCheckBox" mnemonicParsing="false"
+                                text="%games.showPasswordProtectedGames"/>
+                      <CheckBox fx:id="showModdedGamesCheckBox" mnemonicParsing="false" text="%games.showModdedGames"/>
                       <ChoiceBox fx:id="chooseSortingTypeChoiceBox"/>
                       <Pane HBox.hgrow="ALWAYS" />
                     <HBox alignment="BASELINE_LEFT">
