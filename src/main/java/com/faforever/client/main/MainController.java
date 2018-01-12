@@ -150,7 +150,7 @@ public class MainController implements Controller<Node> {
     PersistentNotificationsController persistentNotificationsController = uiService.loadFxml("theme/persistent_notifications.fxml");
     persistentNotificationsPopup = new Popup();
     persistentNotificationsPopup.getContent().setAll(persistentNotificationsController.getRoot());
-    persistentNotificationsPopup.setAnchorLocation(AnchorLocation.CONTENT_TOP_LEFT);
+    persistentNotificationsPopup.setAnchorLocation(AnchorLocation.CONTENT_TOP_RIGHT);
     persistentNotificationsPopup.setAutoFix(true);
     persistentNotificationsPopup.setAutoHide(true);
 
