@@ -128,7 +128,7 @@ public class MapUploadController implements Controller<Node> {
     sizeLabel.textProperty().bind(Bindings.createStringBinding(
         () -> {
           MapSize mapSize = mapInfo.getSize();
-          return i18n.get("mapVault.upload.sizeFormat", mapSize.getWidthInPixels(), mapSize.getHeightInPixels());
+          return i18n.get("mapVault.upload.sizeFormat", mapSize.getWidthInKm(), mapSize.getHeightInKm());
         }, mapInfo.sizeProperty())
     );
     playersLabel.textProperty().bind(Bindings.createStringBinding(
