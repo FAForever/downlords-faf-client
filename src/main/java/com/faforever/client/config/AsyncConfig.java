@@ -12,7 +12,9 @@ import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
+import javax.annotation.PreDestroy;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @EnableAsync
@@ -36,12 +38,17 @@ public class AsyncConfig implements AsyncConfigurer, SchedulingConfigurer {
   }
 
   @Bean
-  public Executor taskExecutor() {
+  public ExecutorService taskExecutor() {
     return Executors.newCachedThreadPool();
   }
 
   @Bean
   public TaskScheduler taskScheduler() {
     return new ThreadPoolTaskScheduler();
+  }
+
+  @PreDestroy
+  public void preDestroy() {
+    taskExecutor().shutdownNow();
   }
 }
