@@ -31,6 +31,8 @@ public class GameTooltipController implements Controller<Node> {
   public Pane teamsPane;
   public Label modsLabel;
   public VBox gameTooltipRoot;
+  private ObservableMap<String, List<String>> lastTeams;
+  private ObservableMap<String, String> lastSimMods;
 
   @Inject
   public GameTooltipController(UiService uiService, PlayerService playerService) {
@@ -45,8 +47,21 @@ public class GameTooltipController implements Controller<Node> {
   public void setGameInfoBean(Game game) {
     createTeams(game.getTeams());
     createModsList(game.getSimMods());
-    game.getTeams().addListener((MapChangeListener<String, List<String>>) change -> createTeams(change.getMap()));
-    game.getSimMods().addListener((MapChangeListener<String, String>) change -> createModsList(change.getMap()));
+    MapChangeListener<String, List<String>> teamChangedListener = change -> createTeams(change.getMap());
+    game.getTeams().addListener(teamChangedListener);
+
+    if (lastTeams != null) {
+      lastTeams.removeListener(teamChangedListener);
+    }
+    lastTeams = game.getTeams();
+
+    MapChangeListener<String, String> simModsChangedListener = change -> createModsList(change.getMap());
+    game.getSimMods().addListener(simModsChangedListener);
+
+    if (lastSimMods != null) {
+      game.getSimMods().removeListener(simModsChangedListener);
+    }
+    lastSimMods = game.getSimMods();
   }
 
   private void createTeams(ObservableMap<? extends String, ? extends List<String>> teamsList) {
