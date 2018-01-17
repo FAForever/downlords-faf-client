@@ -201,4 +201,11 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
     assertThat(avatarBean.getUrl(), equalTo(new URL("http://www.example.com/avatar2.png")));
     assertThat(avatarBean.getDescription(), is("Avatar Number #2"));
   }
+
+  @Test
+  public void testHideUserInfoOnIdBeingNull() {
+    Player player = PlayerBuilder.create("xyz").get();
+    instance.setPlayer(player);
+    assertThat(instance.showUserInfo.isVisible(), is(false));
+  }
 }
