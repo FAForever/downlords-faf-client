@@ -16,6 +16,7 @@ public class ClientProperties {
   private Server server = new Server();
   private Ice ice = new Ice();
   private Vault vault = new Vault();
+  private Support support = new Support();
   private Replay replay = new Replay();
   private GitHub gitHub = new GitHub();
   private Imgur imgur = new Imgur();
@@ -89,6 +90,11 @@ public class ClientProperties {
     private String mapPreviewUrlFormat;
     private String replayDownloadUrlFormat;
     private String modDownloadUrlFormat;
+  }
+
+  @Data
+  public static class Support {
+    private String mailToFormat;
   }
 
   @Data

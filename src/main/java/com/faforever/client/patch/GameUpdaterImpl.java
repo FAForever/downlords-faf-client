@@ -4,7 +4,7 @@ import com.faforever.client.game.FaInitGenerator;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.notificationEvents.ShowImmediateErrorNotificationEvent;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
@@ -48,12 +48,10 @@ public class GameUpdaterImpl implements GameUpdater {
   private final TaskService taskService;
   private final FafService fafService;
   private final FaInitGenerator faInitGenerator;
-  private final NotificationService notificationService;
 
   @Inject
   public GameUpdaterImpl(ModService modService, ApplicationContext applicationContext, TaskService taskService,
-                         FafService fafService, FaInitGenerator faInitGenerator, NotificationService notificationService) {
-    this.notificationService = notificationService;
+                         FafService fafService, FaInitGenerator faInitGenerator) {
     featuredModUpdaters = new ArrayList<>();
     this.modService = modService;
     this.applicationContext = applicationContext;
@@ -98,7 +96,7 @@ public class GameUpdaterImpl implements GameUpdater {
         })
         .exceptionally(throwable -> {
           log.warn("Game could not be joined", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
+          applicationContext.publishEvent(new ShowImmediateErrorNotificationEvent(throwable, "games.couldNotJoin"));
           return null;
         });
   }

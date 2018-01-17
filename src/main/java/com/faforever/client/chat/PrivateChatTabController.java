@@ -8,7 +8,6 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
@@ -16,7 +15,7 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ExternalReplayInfoGenerator;
 import com.faforever.client.replay.ReplayService;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.SupportService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
@@ -29,6 +28,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.web.WebView;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -61,20 +61,20 @@ public class PrivateChatTabController extends AbstractChatTabController {
                                   ImageUploadService imageUploadService,
                                   UrlPreviewResolver urlPreviewResolver,
                                   NotificationService notificationService,
-                                  ReportingService reportingService,
+                                  SupportService supportService,
                                   UiService uiService,
                                   AutoCompletionHelper autoCompletionHelper,
                                   EventBus eventBus,
                                   AudioService audioService,
                                   ChatService chatService,
-                                  MapService mapService,
+                                  ApplicationEventPublisher applicationEventPublisher,
                                   WebViewConfigurer webViewConfigurer,
                                   CountryFlagService countryFlagService,
                                   ReplayService replayService,
                                   ClientProperties clientProperties,
                                   ExternalReplayInfoGenerator externalReplayInfoGenerator) {
     super(clanService, webViewConfigurer, userService, chatService, platformService, preferencesService, playerService, audioService, timeService, i18n,
-        imageUploadService, urlPreviewResolver, notificationService, reportingService, uiService, autoCompletionHelper,
+        applicationEventPublisher, imageUploadService, urlPreviewResolver, notificationService, supportService, uiService, autoCompletionHelper,
         eventBus, countryFlagService, replayService, clientProperties, externalReplayInfoGenerator);
   }
 

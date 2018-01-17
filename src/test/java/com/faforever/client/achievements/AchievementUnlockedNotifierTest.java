@@ -4,8 +4,8 @@ import com.faforever.client.api.dto.AchievementDefinition;
 import com.faforever.client.api.dto.AchievementType;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationServiceImpl;
 import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.notification.notificationEvents.ShowTransientNotificationEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.UpdatedAchievement;
 import com.faforever.client.remote.UpdatedAchievementsMessage;
@@ -13,9 +13,11 @@ import javafx.scene.image.Image;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
@@ -28,6 +30,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -36,7 +39,7 @@ public class AchievementUnlockedNotifierTest {
   @Mock
   private AchievementUnlockedNotifier instance;
   @Mock
-  private NotificationServiceImpl notificationService;
+  private ApplicationEventPublisher applicationEventPublisher;
   @Mock
   private I18n i18n;
   @Mock
@@ -53,7 +56,7 @@ public class AchievementUnlockedNotifierTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new AchievementUnlockedNotifier(notificationService, i18n, achievementService, fafService, audioService);
+    instance = new AchievementUnlockedNotifier(i18n, achievementService, fafService, audioService, applicationEventPublisher);
     instance.postConstruct();
 
     verify(fafService).addOnMessageListener(eq(UpdatedAchievementsMessage.class), listenerCaptor.capture());
@@ -70,10 +73,10 @@ public class AchievementUnlockedNotifierTest {
 
     verify(audioService).playAchievementUnlockedSound();
 
-    ArgumentCaptor<TransientNotification> notificationCaptor = ArgumentCaptor.forClass(TransientNotification.class);
-    verify(notificationService).addNotification(notificationCaptor.capture());
+    ArgumentCaptor<ShowTransientNotificationEvent> notificationCaptor = ArgumentCaptor.forClass(ShowTransientNotificationEvent.class);
+    verify(applicationEventPublisher).publishEvent(notificationCaptor.capture());
 
-    TransientNotification notification = notificationCaptor.getValue();
+    TransientNotification notification = notificationCaptor.getValue().getNotification();
 
     assertThat(notification.getImage(), notNullValue());
     assertThat(notification.getTitle(), is("Achievement unlocked"));
@@ -88,7 +91,7 @@ public class AchievementUnlockedNotifierTest {
     triggerUpdatedAchievementsMessage(achievementDefinition, false);
 
     verifyZeroInteractions(audioService);
-    verifyZeroInteractions(notificationService);
+    verify(applicationEventPublisher, never()).publishEvent(ArgumentMatchers.any());
   }
 
   private void triggerUpdatedAchievementsMessage(AchievementDefinition achievementDefinition, boolean newlyUnlocked) {

@@ -11,13 +11,13 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.NavigationItem;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.notification.notificationEvents.ShowTransientNotificationEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ExternalReplayInfoGenerator;
 import com.faforever.client.replay.ReplayService;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.SupportService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.context.ApplicationEventPublisher;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
@@ -53,8 +54,6 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   private ChatService chatService;
   @Mock
   private UserService userService;
-  @Mock
-  private PreferencesService preferencesService;
   @Mock
   private PlayerService playerService;
   @Mock
@@ -80,7 +79,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ClanService clanService;
   @Mock
-  private ReportingService reportingService;
+  private SupportService supportService;
   @Mock
   private EventBus eventBus;
   @Mock
@@ -99,6 +98,8 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   private ClientProperties clientProperties;
   @Mock
   private ExternalReplayInfoGenerator externalReplayInfoGenerator;
+  @Mock
+  private ApplicationEventPublisher applicationEventPublisher;
 
   private PrivateChatTabController instance;
   private String playerName;
@@ -116,8 +117,8 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance = new PrivateChatTabController(clanService,
         userService, platformService, preferencesService, playerService,
         timeService, i18n, imageUploadService, urlPreviewResolver, notificationService,
-        reportingService, uiService, autoCompletionHelper, eventBus, audioService,
-        chatService, mapService, webViewConfigurer, countryFlagService, replayService, clientProperties, externalReplayInfoGenerator);
+        supportService, uiService, autoCompletionHelper, eventBus, audioService,
+        chatService, applicationEventPublisher, webViewConfigurer, countryFlagService, replayService, clientProperties, externalReplayInfoGenerator);
 
 
     playerName = "testUser";
@@ -157,7 +158,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void testOnChatMessageUnfocusedTriggersNotification() throws Exception {
     WaitForAsyncUtils.waitForAsyncFx(5000, () -> getRoot().getScene().getWindow().hide());
     instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
-    verify(notificationService).addNotification(any(TransientNotification.class));
+    verify(applicationEventPublisher).publishEvent(any(ShowTransientNotificationEvent.class));
   }
 
   @Test

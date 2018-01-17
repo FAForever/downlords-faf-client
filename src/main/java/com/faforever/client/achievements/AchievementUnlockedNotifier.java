@@ -4,13 +4,14 @@ import com.faforever.client.achievements.AchievementService.AchievementState;
 import com.faforever.client.api.dto.AchievementDefinition;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationServiceImpl;
 import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.notification.notificationEvents.ShowTransientNotificationEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.UpdatedAchievement;
 import com.faforever.client.remote.UpdatedAchievementsMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -24,21 +25,21 @@ public class AchievementUnlockedNotifier {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private final NotificationServiceImpl notificationService;
   private final I18n i18n;
   private final AchievementService achievementService;
   private final FafService fafService;
   private final AudioService audioService;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   private long lastSoundPlayed;
 
   @Inject
-  public AchievementUnlockedNotifier(NotificationServiceImpl notificationService, I18n i18n, AchievementService achievementService, FafService fafService, AudioService audioService) {
-    this.notificationService = notificationService;
+  public AchievementUnlockedNotifier(I18n i18n, AchievementService achievementService, FafService fafService, AudioService audioService, ApplicationEventPublisher applicationEventPublisher) {
     this.i18n = i18n;
     this.achievementService = achievementService;
     this.fafService = fafService;
     this.audioService = audioService;
+    this.applicationEventPublisher = applicationEventPublisher;
   }
 
   @PostConstruct
@@ -63,11 +64,10 @@ public class AchievementUnlockedNotifier {
       audioService.playAchievementUnlockedSound();
       lastSoundPlayed = System.currentTimeMillis();
     }
-    notificationService.addNotification(new TransientNotification(
-            i18n.get("achievement.unlockedTitle"),
-            achievementDefinition.getName(),
+    applicationEventPublisher.publishEvent(new ShowTransientNotificationEvent(new TransientNotification(
+        i18n.get("achievement.unlockedTitle"),
+        achievementDefinition.getName(),
         achievementService.getImage(achievementDefinition, AchievementState.UNLOCKED)
-        )
-    );
+    )));
   }
 }

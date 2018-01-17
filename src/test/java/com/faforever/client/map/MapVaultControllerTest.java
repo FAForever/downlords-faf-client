@@ -1,7 +1,6 @@
 package com.faforever.client.map;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.LogicalNodeController;
@@ -15,6 +14,7 @@ import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +46,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private NotificationService notificationService;
+  private ApplicationEventPublisher applicationEventPublisher;
   @Mock
   private SearchController searchController;
   @Mock
@@ -59,7 +59,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
-    instance = new MapVaultController(mapService, i18n, eventBus, preferencesService, uiService, notificationService);
+    instance = new MapVaultController(mapService, i18n, eventBus, preferencesService, uiService, applicationEventPublisher);
 
     doAnswer(invocation -> {
       MapDetailController controller = mock(MapDetailController.class);

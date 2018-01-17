@@ -9,10 +9,9 @@ import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.SupportService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
@@ -25,6 +24,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.concurrent.CompletableFuture;
@@ -69,16 +69,16 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ReplayService replayService;
   @Mock
-  private NotificationService notificationService;
+  private ApplicationEventPublisher applicationEventPublisher;
   @Mock
-  private ReportingService reportingService;
+  private SupportService supportService;
   @Mock
   private TimeService timeService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new CoopController(replayService, gameService, coopService, notificationService, i18n, reportingService,
-        mapService, preferencesService, uiService, timeService, webViewConfigurer, modService);
+    instance = new CoopController(replayService, gameService, coopService, applicationEventPublisher, i18n, supportService,
+        mapService, uiService, timeService, webViewConfigurer, modService);
 
     when(coopService.getLeaderboard(any(), anyInt())).thenReturn(CompletableFuture.completedFuture(emptyList()));
     when(coopService.getMissions()).thenReturn(CompletableFuture.completedFuture(emptyList()));

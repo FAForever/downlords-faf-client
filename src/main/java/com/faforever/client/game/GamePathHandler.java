@@ -2,8 +2,8 @@ package com.faforever.client.game;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.notificationEvents.ShowImmediateNotificationEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.ui.preferences.event.GameDirectoryChosenEvent;
@@ -11,6 +11,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -30,15 +31,15 @@ public class GamePathHandler {
       Paths.get(System.getenv("ProgramFiles") + "\\Supreme Commander - Forged Alliance")
   );
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private final NotificationService notificationService;
   private final I18n i18n;
   private final EventBus eventBus;
+  private final ApplicationEventPublisher applicationEventPublisher;
   private final PreferencesService preferencesService;
 
-  public GamePathHandler(NotificationService notificationService, I18n i18n, EventBus eventBus, PreferencesService preferencesService) {
-    this.notificationService = notificationService;
+  public GamePathHandler(I18n i18n, EventBus eventBus, ApplicationEventPublisher applicationEventPublisher, PreferencesService preferencesService) {
     this.i18n = i18n;
     this.eventBus = eventBus;
+    this.applicationEventPublisher = applicationEventPublisher;
     this.preferencesService = preferencesService;
 
   }
@@ -57,7 +58,7 @@ public class GamePathHandler {
     Path path = event.getPath();
 
     if (path == null || !Files.isDirectory(path)) {
-      notificationService.addNotification(new ImmediateNotification(i18n.get("gameChosen.invalidPath"), i18n.get("gameChosen.couldNotLocatedGame"), Severity.WARN));
+      applicationEventPublisher.publishEvent(new ShowImmediateNotificationEvent(new ImmediateNotification(i18n.get("gameChosen.invalidPath"), i18n.get("gameChosen.couldNotLocatedGame"), Severity.WARN)));
       return;
     }
 

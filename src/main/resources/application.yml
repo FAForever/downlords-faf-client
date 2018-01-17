@@ -27,6 +27,9 @@ faf-client:
   unit-database:
     url: http://spooky.github.io/unitdb/#/
 
+  support:
+    mailToFormat: mailto:alexander.von.trostorff@gmail.com?subject=%s&body=%s
+
 spring:
   profiles:
     active: ${CLIENT_PROFILE:prod}
@@ -71,3 +74,4 @@ logging:
     com.faforever.client.theme: info
     com.faforever.client.io: info
     com.faforever.client.fa.relay.ice: info
+

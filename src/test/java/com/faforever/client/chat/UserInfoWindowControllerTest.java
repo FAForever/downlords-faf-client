@@ -9,9 +9,7 @@ import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.events.EventService;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.leaderboard.LeaderboardService;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.stats.StatisticsService;
@@ -22,6 +20,7 @@ import javafx.scene.layout.HBox;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
@@ -67,7 +66,7 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private PlayerService playerService;
   @Mock
-  private NotificationService notificationService;
+  private ApplicationEventPublisher applicationEventPublisher;
   @Mock
   private LeaderboardService leaderboardService;
 
@@ -75,7 +74,7 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     instance = new UserInfoWindowController(statisticsService, countryFlagService, achievementService, eventService,
         i18n, uiService, timeService,
-        notificationService, playerService, leaderboardService);
+        playerService, leaderboardService, applicationEventPublisher);
 
     when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
     when(achievementItemController.getRoot()).thenReturn(new HBox());

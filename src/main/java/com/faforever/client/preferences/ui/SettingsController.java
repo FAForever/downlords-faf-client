@@ -5,9 +5,9 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.notificationEvents.ShowPersistentNotificationEvent;
 import com.faforever.client.preferences.LanguageInfo;
 import com.faforever.client.preferences.LocalizationPrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
@@ -40,6 +40,7 @@ import javafx.stage.Screen;
 import javafx.util.converter.NumberStringConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -56,7 +57,7 @@ import static com.faforever.client.theme.UiService.DEFAULT_THEME;
 @Slf4j
 public class SettingsController implements Controller<Node> {
 
-  private final NotificationService notificationService;
+  private final ApplicationEventPublisher applicationEventPublisher;
   private final UserService userService;
   private final PreferencesService preferencesService;
   private final UiService uiService;
@@ -108,13 +109,13 @@ public class SettingsController implements Controller<Node> {
 
   @Inject
   public SettingsController(UserService userService, PreferencesService preferencesService, UiService uiService,
-                            I18n i18n, EventBus eventBus, NotificationService notificationService) {
+                            I18n i18n, EventBus eventBus, ApplicationEventPublisher applicationEventPublisher) {
     this.userService = userService;
     this.preferencesService = preferencesService;
     this.uiService = uiService;
     this.i18n = i18n;
     this.eventBus = eventBus;
-    this.notificationService = notificationService;
+    this.applicationEventPublisher = applicationEventPublisher;
   }
 
   /**
@@ -300,7 +301,8 @@ public class SettingsController implements Controller<Node> {
     log.debug("A new language was selected: {}", languageComboBox.getValue());
     localizationPrefs.setLanguage(languageComboBox.getValue());
     preferencesService.storeInBackground();
-    notificationService.addNotification(new PersistentNotification(
+    applicationEventPublisher.publishEvent(new ShowPersistentNotificationEvent(
+        new PersistentNotification(
         i18n.get("settings.languages.restart.message"),
         Severity.WARN,
         Collections.singletonList(new Action(i18n.get("settings.languages.restart"),
@@ -308,7 +310,7 @@ public class SettingsController implements Controller<Node> {
               Platform.exit();
               // FIXME reload application (stage & application context)
             })
-        )));
+        ))));
   }
 
   private void configureToastScreen(Preferences preferences) {

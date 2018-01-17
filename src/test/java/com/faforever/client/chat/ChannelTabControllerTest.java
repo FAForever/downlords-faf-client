@@ -15,7 +15,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ExternalReplayInfoGenerator;
 import com.faforever.client.replay.ReplayService;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.SupportService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.TaskScheduler;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -103,7 +104,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private UrlPreviewResolver urlPreviewResolver;
   @Mock
-  private ReportingService reportingService;
+  private SupportService supportService;
   @Mock
   private EventBus eventBus;
   @Mock
@@ -114,6 +115,8 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   private ClientProperties clientProperties;
   @Mock
   private ExternalReplayInfoGenerator externalReplayInfoGenerator;
+  @Mock
+  private ApplicationEventPublisher applicationEventPublisher;
 
   @Before
   public void setUp() throws Exception {
@@ -124,11 +127,11 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     instance = new ChannelTabController(clanService, userService, chatService,
         platformService, preferencesService, playerService,
         audioService, timeService, i18n, imageUploadService,
-        urlPreviewResolver, notificationService, reportingService,
+        urlPreviewResolver, notificationService, supportService,
         uiService, autoCompletionHelper,
         eventBus, webViewConfigurer, threadPoolExecutor, taskScheduler,
         countryFlagService, replayService, clientProperties,
-        externalReplayInfoGenerator);
+        externalReplayInfoGenerator, applicationEventPublisher);
 
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
     when(userService.getUsername()).thenReturn(USER_NAME);

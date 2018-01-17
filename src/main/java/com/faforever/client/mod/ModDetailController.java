@@ -3,13 +3,9 @@ package com.faforever.client.mod;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.ReportAction;
-import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.notificationEvents.ShowImmediateErrorNotificationEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.ReviewService;
@@ -30,13 +26,12 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.util.Optional;
-
-import static java.util.Collections.singletonList;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -44,9 +39,8 @@ import static java.util.Collections.singletonList;
 public class ModDetailController implements Controller<Node> {
 
   private final ModService modService;
-  private final NotificationService notificationService;
+  private final ApplicationEventPublisher applicationEventPublisher;
   private final I18n i18n;
-  private final ReportingService reportingService;
   private final TimeService timeService;
   private final ReviewService reviewService;
   private final PlayerService playerService;
@@ -73,13 +67,11 @@ public class ModDetailController implements Controller<Node> {
   private ListChangeListener<Mod> installStatusChangeListener;
 
   @Inject
-  public ModDetailController(ModService modService, NotificationService notificationService, I18n i18n,
-                             ReportingService reportingService, TimeService timeService, ReviewService reviewService,
-                             PlayerService playerService) {
+  public ModDetailController(ModService modService, ApplicationEventPublisher applicationEventPublisher, I18n i18n,
+                             TimeService timeService, ReviewService reviewService, PlayerService playerService) {
     this.modService = modService;
-    this.notificationService = notificationService;
+    this.applicationEventPublisher = applicationEventPublisher;
     this.i18n = i18n;
-    this.reportingService = reportingService;
     this.timeService = timeService;
     this.reviewService = reviewService;
     this.playerService = playerService;
@@ -210,10 +202,7 @@ public class ModDetailController implements Controller<Node> {
     modService.downloadAndInstallMod(mod, progressBar.progressProperty(), progressLabel.textProperty())
         .thenRun(() -> uninstallButton.setVisible(true))
         .exceptionally(throwable -> {
-          notificationService.addNotification(new ImmediateNotification(
-              i18n.get("errorTitle"),
-              i18n.get("modVault.installationFailed", mod.getName(), throwable.getLocalizedMessage()),
-              Severity.ERROR, throwable, singletonList(new ReportAction(i18n, reportingService, throwable))));
+          applicationEventPublisher.publishEvent(new ShowImmediateErrorNotificationEvent(throwable, "modVault.installationFailed", mod.getName(), throwable.getLocalizedMessage()));
           return null;
         });
   }
@@ -224,10 +213,7 @@ public class ModDetailController implements Controller<Node> {
     uninstallButton.setVisible(false);
 
     modService.uninstallMod(mod).exceptionally(throwable -> {
-      notificationService.addNotification(new ImmediateNotification(
-          i18n.get("errorTitle"),
-          i18n.get("modVault.couldNotDeleteMod", mod.getName(), throwable.getLocalizedMessage()),
-          Severity.ERROR, throwable, singletonList(new ReportAction(i18n, reportingService, throwable))));
+      applicationEventPublisher.publishEvent(new ShowImmediateErrorNotificationEvent(throwable, "modVault.couldNotDeleteMod", mod.getName(), throwable.getLocalizedMessage()));
       return null;
     });
   }

@@ -8,12 +8,12 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBeanBuilder;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.notificationEvents.ShowImmediateErrorNotificationEvent;
+import com.faforever.client.notification.notificationEvents.ShowPersistentNotificationEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.SupportService;
 import com.faforever.client.task.TaskService;
 import com.faforever.commons.replay.ReplayData;
 import org.junit.Before;
@@ -101,7 +101,7 @@ public class ReplayServiceImplTest {
   @Mock
   private FafService fafService;
   @Mock
-  private ReportingService reportingService;
+  private SupportService supportService;
   @Mock
   private PlatformService platformService;
   @Mock
@@ -115,8 +115,8 @@ public class ReplayServiceImplTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new ReplayServiceImpl(new ClientProperties(), preferencesService, replayFileReader, notificationService, gameService,
-        taskService, i18n, reportingService, applicationContext, platformService, replayServer, fafService, modService, mapService);
+    instance = new ReplayServiceImpl(new ClientProperties(), preferencesService, replayFileReader, gameService,
+        taskService, i18n, applicationContext, platformService, replayServer, fafService, modService, mapService);
 
     when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath());
     when(preferencesService.getCorruptedReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath().resolve("corrupt"));
@@ -166,7 +166,7 @@ public class ReplayServiceImplTest {
 
     verify(replayFileReader).parseMetaData(file1);
     verify(replayFileReader).parseMetaData(file2);
-    verify(notificationService, times(2)).addNotification(any(PersistentNotification.class));
+    verify(applicationContext, times(2)).publishEvent(any(ShowPersistentNotificationEvent.class));
 
     assertThat(Files.exists(file1), is(false));
     assertThat(Files.exists(file2), is(false));
@@ -315,7 +315,7 @@ public class ReplayServiceImplTest {
 
     instance.runReplay(replay);
 
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(applicationContext).publishEvent(any(ShowImmediateErrorNotificationEvent.class));
     verifyNoMoreInteractions(gameService);
   }
 

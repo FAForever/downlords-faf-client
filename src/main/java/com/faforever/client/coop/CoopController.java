@@ -15,15 +15,11 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.DismissAction;
-import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.ReportAction;
-import com.faforever.client.notification.Severity;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.notification.notificationEvents.ShowImmediateErrorNotificationEvent;
+import com.faforever.client.notification.notificationEvents.ShowPersistentErrorNotificationEvent;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.replay.ReplayService;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.SupportService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.google.common.base.Strings;
@@ -50,12 +46,12 @@ import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.scene.web.WebView;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.function.Predicate;
 
 import static com.faforever.client.game.KnownFeaturedMod.COOP;
@@ -75,9 +71,9 @@ public class CoopController implements Controller<Node> {
   private final ReplayService replayService;
   private final GameService gameService;
   private final CoopService coopService;
-  private final NotificationService notificationService;
+  private final ApplicationEventPublisher applicationEventPublisher;
   private final I18n i18n;
-  private final ReportingService reportingService;
+  private final SupportService supportService;
   private final MapService mapService;
   private final UiService uiService;
   private final TimeService timeService;
@@ -106,13 +102,13 @@ public class CoopController implements Controller<Node> {
   public TableColumn<CoopResult, String> replayColumn;
 
   @Inject
-  public CoopController(ReplayService replayService, GameService gameService, CoopService coopService, NotificationService notificationService, I18n i18n, ReportingService reportingService, MapService mapService, PreferencesService preferencesService, UiService uiService, TimeService timeService, WebViewConfigurer webViewConfigurer, ModService modService) {
+  public CoopController(ReplayService replayService, GameService gameService, CoopService coopService, ApplicationEventPublisher applicationEventPublisher, I18n i18n, SupportService supportService, MapService mapService, UiService uiService, TimeService timeService, WebViewConfigurer webViewConfigurer, ModService modService) {
     this.replayService = replayService;
     this.gameService = gameService;
     this.coopService = coopService;
-    this.notificationService = notificationService;
+    this.applicationEventPublisher = applicationEventPublisher;
     this.i18n = i18n;
-    this.reportingService = reportingService;
+    this.supportService = supportService;
     this.mapService = mapService;
     this.uiService = uiService;
     this.timeService = timeService;
@@ -177,7 +173,7 @@ public class CoopController implements Controller<Node> {
         Platform.runLater(selectionModel::selectFirst);
       }
     }).exceptionally(throwable -> {
-      notificationService.addPersistentErrorNotification(throwable, "coop.couldNotLoad", throwable.getLocalizedMessage());
+      applicationEventPublisher.publishEvent(new ShowPersistentErrorNotificationEvent(throwable, "coop.couldNotLoad", throwable.getLocalizedMessage()));
       return null;
     });
   }
@@ -225,10 +221,7 @@ public class CoopController implements Controller<Node> {
     coopService.getLeaderboard(getSelectedMission(), numberOfPlayersComboBox.getSelectionModel().getSelectedItem())
         .thenAccept(coopLeaderboardEntries -> Platform.runLater(() -> leaderboardTable.setItems(observableList(coopLeaderboardEntries))))
         .exceptionally(throwable -> {
-          notificationService.addNotification(new ImmediateNotification(
-              i18n.get("errorTitle"), i18n.get("coop.leaderboard.couldNotLoad"), Severity.ERROR, throwable,
-              Arrays.asList(new ReportAction(i18n, reportingService, throwable), new DismissAction(i18n)
-              )));
+          applicationEventPublisher.publishEvent(new ShowImmediateErrorNotificationEvent(throwable, "coop.leaderboard.couldNotLoad"));
           return null;
         });
   }

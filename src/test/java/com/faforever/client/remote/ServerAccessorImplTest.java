@@ -7,8 +7,9 @@ import com.faforever.client.legacy.FactionDeserializer;
 import com.faforever.client.legacy.ServerMessageSerializer;
 import com.faforever.client.legacy.UidService;
 import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.notificationEvents.ShowImmediateErrorNotificationEvent;
+import com.faforever.client.notification.notificationEvents.ShowImmediateNotificationEvent;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
@@ -30,7 +31,6 @@ import com.faforever.client.remote.gson.MessageTargetTypeAdapter;
 import com.faforever.client.remote.gson.RatingRangeTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.io.QDataInputStream;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.hash.Hashing;
 import com.google.gson.FieldNamingPolicy;
@@ -48,6 +48,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.DataInputStream;
@@ -100,17 +101,15 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private UidService uidService;
   @Mock
-  private NotificationService notificationService;
+  private ApplicationEventPublisher applicationEventPublisher;
   @Mock
   private I18n i18n;
-  @Mock
-  private ReportingService reportingService;
 
   private FafServerAccessorImpl instance;
   private ServerSocket fafLobbyServerSocket;
   private Socket localToServerSocket;
-  private ServerWriter serverToClientWriter;
   private boolean stopped;
+  private ServerWriter serverToClientWriter;
   private BlockingQueue<String> messagesReceivedByFafServer;
   private CountDownLatch serverToClientReadyLatch;
 
@@ -126,7 +125,7 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
         .setHost(LOOPBACK_ADDRESS.getHostAddress())
         .setPort(fafLobbyServerSocket.getLocalPort());
 
-    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, clientProperties, reportingService);
+    instance = new FafServerAccessorImpl(preferencesService, uidService, i18n, clientProperties, applicationEventPublisher);
 
     LoginPrefs loginPrefs = new LoginPrefs();
     loginPrefs.setUsername("junit");
@@ -269,10 +268,10 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
     sendFromServer(noticeMessage);
 
-    ArgumentCaptor<ImmediateNotification> captor = ArgumentCaptor.forClass(ImmediateNotification.class);
-    verify(notificationService, timeout(1000)).addNotification(captor.capture());
+    ArgumentCaptor<ShowImmediateNotificationEvent> captor = ArgumentCaptor.forClass(ShowImmediateNotificationEvent.class);
+    verify(applicationEventPublisher, timeout(1000)).publishEvent(captor.capture());
 
-    ImmediateNotification notification = captor.getValue();
+    ImmediateNotification notification = captor.getValue().getNotification();
     assertThat(notification.getSeverity(), is(Severity.WARN));
     assertThat(notification.getText(), is("foo bar"));
     assertThat(notification.getTitle(), is("Message from Server"));
@@ -312,7 +311,7 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void onUIDNotFound() throws Exception {
-    instance.onUIDNotExecuted(new Exception("UID not found"));
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    instance.onUidNotExecuted(new Exception("UID not found"));
+    verify(applicationEventPublisher).publishEvent(any(ShowImmediateErrorNotificationEvent.class));
   }
 }

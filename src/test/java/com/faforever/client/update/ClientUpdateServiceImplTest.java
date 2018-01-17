@@ -4,6 +4,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.notificationEvents.ShowPersistentNotificationEvent;
 import com.faforever.client.task.TaskService;
 import com.faforever.commons.io.Bytes;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -46,7 +47,7 @@ public class ClientUpdateServiceImplTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ClientUpdateServiceImpl(taskService, notificationService, i18n, platformService, applicationContext);
+    instance = new ClientUpdateServiceImpl(taskService, i18n, platformService, applicationContext);
 
     doAnswer(invocation -> invocation.getArgument(0)).when(taskService).submitTask(any());
   }
@@ -70,10 +71,10 @@ public class ClientUpdateServiceImplTest {
 
     verify(taskService).submitTask(taskMock);
 
-    ArgumentCaptor<PersistentNotification> captor = ArgumentCaptor.forClass(PersistentNotification.class);
+    ArgumentCaptor<ShowPersistentNotificationEvent> captor = ArgumentCaptor.forClass(ShowPersistentNotificationEvent.class);
 
-    verify(notificationService).addNotification(captor.capture());
-    PersistentNotification persistentNotification = captor.getValue();
+    verify(applicationContext).publishEvent(captor.capture());
+    PersistentNotification persistentNotification = captor.getValue().getNotification();
 
     verify(i18n).get("clientUpdateAvailable.notification", "v0.4.8.1-alpha", Bytes.formatSize(56079360L, i18n.getUserSpecificLocale()));
     assertThat(persistentNotification.getSeverity(), is(INFO));

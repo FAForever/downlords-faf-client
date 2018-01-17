@@ -15,9 +15,8 @@ import com.faforever.client.login.LoginFailedException;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.ReportAction;
-import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.notificationEvents.ShowImmediateErrorNotificationEvent;
+import com.faforever.client.notification.notificationEvents.ShowImmediateNotificationEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.SearchLadder1v1ClientMessage;
 import com.faforever.client.rankedmatch.StopSearchLadder1v1ClientMessage;
@@ -58,7 +57,6 @@ import com.faforever.client.remote.gson.RatingRangeTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.gson.VictoryConditionTypeAdapter;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.update.Version;
 import com.github.nocatch.NoCatch;
 import com.google.common.annotations.VisibleForTesting;
@@ -76,6 +74,7 @@ import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -113,11 +112,10 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
   private final PreferencesService preferencesService;
   private final UidService uidService;
-  private final NotificationService notificationService;
   private final I18n i18n;
   private final String lobbyHost;
   private final int lobbyPort;
-  private final ReportingService reportingService;
+  private final ApplicationEventPublisher applicationEventPublisher;
   private Task<Void> fafConnectionTask;
   private String localIp;
   private ServerWriter serverWriter;
@@ -134,10 +132,10 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   @Inject
   public FafServerAccessorImpl(PreferencesService preferencesService,
                                UidService uidService,
-                               NotificationService notificationService,
                                I18n i18n,
                                ClientProperties clientProperties,
-                               ReportingService reportingService) {
+                               ApplicationEventPublisher applicationEventPublisher) {
+    this.applicationEventPublisher = applicationEventPublisher;
     Server server = clientProperties.getServer();
     this.lobbyHost = server.getHost();
     this.lobbyPort = server.getPort();
@@ -166,9 +164,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     addOnMessageListener(AvatarMessage.class, this::onAvatarMessage);
     this.preferencesService = preferencesService;
     this.uidService = uidService;
-    this.notificationService = notificationService;
     this.i18n = i18n;
-    this.reportingService = reportingService;
   }
 
   private void onAvatarMessage(AvatarMessage avatarMessage) {
@@ -179,8 +175,9 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     if (noticeMessage.getText() == null) {
       return;
     }
-    notificationService.addNotification(new ImmediateNotification(i18n.get("messageFromServer"), noticeMessage.getText(), noticeMessage.getSeverity(),
-        Collections.singletonList(new DismissAction(i18n))));
+
+    applicationEventPublisher.publishEvent(new ShowImmediateNotificationEvent(new ImmediateNotification(i18n.get("messageFromServer"), noticeMessage.getText(), noticeMessage.getSeverity(),
+        Collections.singletonList(new DismissAction(i18n)))));
   }
 
   @Override
@@ -437,18 +434,17 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
       String uniqueId = uidService.generate(String.valueOf(sessionId.get()), preferencesService.getFafDataDirectory().resolve("uid.log"));
       writeToServer(new LoginClientMessage(username, Hashing.sha256().hashString(password, UTF_8).toString(), sessionId.get(), uniqueId, localIp));
     } catch (IOException e) {
-      onUIDNotExecuted(e);
+      onUidNotExecuted(e);
     }
   }
 
   @VisibleForTesting
-  protected void onUIDNotExecuted(Exception e) {
+  protected void onUidNotExecuted(Exception e) {
     logger.error("UID.exe not executed", e);
     if (e.getMessage() == null) {
       return;
     }
-    notificationService.addNotification(new ImmediateNotification(i18n.get("UIDNotExecuted"), e.getMessage(), Severity.ERROR,
-        Collections.singletonList(new ReportAction(i18n, reportingService, e))));
+    applicationEventPublisher.publishEvent(new ShowImmediateErrorNotificationEvent(e, "uidNotExecuted"));
   }
 
   private void onGameLaunchInfo(GameLaunchMessage gameLaunchMessage) {

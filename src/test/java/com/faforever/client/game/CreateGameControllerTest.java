@@ -12,7 +12,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.SupportService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import javafx.beans.property.SimpleObjectProperty;
@@ -24,6 +24,7 @@ import javafx.scene.input.KeyEvent;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Paths;
@@ -61,17 +62,18 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   private
   GameService gameService;
   @Mock
-  private
-  NotificationService notificationService;
+  private ApplicationEventPublisher applicationEventPublisher;
   @Mock
   private
-  ReportingService reportingService;
+  SupportService supportService;
   @Mock
   private I18n i18n;
   @Mock
   private UiService uiService;
   @Mock
   private FafService fafService;
+  @Mock
+  private NotificationService notificationService;
 
   private Preferences preferences;
   private CreateGameController instance;
@@ -79,7 +81,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new CreateGameController(fafService, mapService, modService, gameService, preferencesService, i18n, notificationService, reportingService);
+    instance = new CreateGameController(fafService, mapService, modService, gameService, preferencesService, i18n, notificationService, supportService, applicationEventPublisher);
 
     mapList = FXCollections.observableArrayList();
 
@@ -236,7 +238,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testInitGameTypeComboBoxEmpty() throws Exception {
-    instance = new CreateGameController(fafService, mapService, modService, gameService, preferencesService, i18n, notificationService, reportingService);
+    instance = new CreateGameController(fafService, mapService, modService, gameService, preferencesService, i18n, notificationService, supportService, applicationEventPublisher);
     loadFxml("theme/play/create_game.fxml", clazz -> instance);
 
     assertThat(instance.featuredModListView.getItems(), empty());

@@ -1,9 +1,8 @@
 package com.faforever.client.game;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.notificationEvents.ShowImmediateNotificationEvent;
+import com.faforever.client.notification.notificationEvents.ShowPersistentNotificationEvent;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.google.common.eventbus.EventBus;
 import org.junit.Before;
@@ -11,6 +10,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.context.ApplicationEventPublisher;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -20,7 +20,7 @@ public class MissingGamePathNotifierTest {
   @Mock
   private I18n i18n;
   @Mock
-  private NotificationService notificationService;
+  private ApplicationEventPublisher applicationEventPublisher;
 
   private MissingGamePathNotifier instance;
   private EventBus eventBus;
@@ -28,7 +28,7 @@ public class MissingGamePathNotifierTest {
   @Before
   public void setUp() {
     eventBus = new EventBus();
-    instance = new MissingGamePathNotifier(eventBus, i18n, notificationService);
+    instance = new MissingGamePathNotifier(eventBus, i18n, applicationEventPublisher);
     instance.postConstruct();
   }
 
@@ -36,13 +36,13 @@ public class MissingGamePathNotifierTest {
   public void testImmediateNotificationOnUrgentEvent() {
     eventBus.post(new MissingGamePathEvent(true));
 
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(applicationEventPublisher).publishEvent(any(ShowImmediateNotificationEvent.class));
   }
 
   @Test
   public void testPersistentNotificationOnDefaultEvent() {
     eventBus.post(new MissingGamePathEvent());
 
-    verify(notificationService).addNotification(any(PersistentNotification.class));
+    verify(applicationEventPublisher).publishEvent(any(ShowPersistentNotificationEvent.class));
   }
 }

@@ -2,12 +2,12 @@ package com.faforever.client.leaderboard;
 
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.SupportService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
@@ -19,7 +19,9 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
@@ -29,15 +31,15 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private LeaderboardService leaderboardService;
   @Mock
-  private NotificationService notificationService;
+  private ApplicationEventPublisher applicationEventPublisher;
   @Mock
-  private ReportingService reportingService;
+  private SupportService supportService;
   @Mock
   private I18n i18n;
 
   @Before
   public void setUp() throws Exception {
-    instance = new LeaderboardController(leaderboardService, notificationService, i18n, reportingService);
+    instance = new LeaderboardController(leaderboardService, applicationEventPublisher, i18n, supportService);
 
     loadFxml("theme/leaderboard/leaderboard.fxml", clazz -> instance);
   }
@@ -55,7 +57,7 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
     instance.onDisplay();
 
     assertTrue(loadedLatch.await(3, TimeUnit.SECONDS));
-    verifyZeroInteractions(notificationService);
+    verify(applicationEventPublisher, never()).publishEvent(any());
   }
 
   @Test

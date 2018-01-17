@@ -1,10 +1,8 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.eventbus.EventBus;
 import org.junit.Before;
@@ -12,6 +10,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.nio.file.Path;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -37,9 +36,7 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ModService modService;
   @Mock
-  private NotificationService notificationService;
-  @Mock
-  private ReportingService reportingService;
+  private ApplicationEventPublisher applicationEventPublisher;
   @Mock
   private ThreadPoolExecutor threadPoolExecutor;
 
@@ -54,7 +51,7 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ModUploadController(modService, threadPoolExecutor, notificationService, reportingService, i18n, eventBus);
+    instance = new ModUploadController(modService, threadPoolExecutor, applicationEventPublisher, i18n, eventBus);
 
     doAnswer(invocation -> {
       ((Runnable) invocation.getArgument(0)).run();

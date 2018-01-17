@@ -6,8 +6,8 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.notificationEvents.ShowImmediateNotificationEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.SearchableProperties;
 import com.faforever.client.theme.UiService;
@@ -25,6 +25,7 @@ import javafx.scene.layout.VBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -46,7 +47,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
 
   private final ReplayService replayService;
   private final UiService uiService;
-  private final NotificationService notificationService;
+  private final ApplicationEventPublisher applicationEventPublisher;
   private final I18n i18n;
   private final PreferencesService preferencesService;
 
@@ -69,10 +70,10 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   private Supplier<CompletableFuture<List<Replay>>> currentSupplier;
 
   @Inject
-  public OnlineReplayVaultController(ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, PreferencesService preferencesService) {
+  public OnlineReplayVaultController(ReplayService replayService, UiService uiService, ApplicationEventPublisher applicationEventPublisher, I18n i18n, PreferencesService preferencesService) {
     this.replayService = replayService;
     this.uiService = uiService;
-    this.notificationService = notificationService;
+    this.applicationEventPublisher = applicationEventPublisher;
     this.i18n = i18n;
     this.preferencesService = preferencesService;
   }
@@ -222,9 +223,10 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     mapsSupplier.get()
         .thenAccept(this::displaySearchResult)
         .exceptionally(e -> {
-          notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
+          applicationEventPublisher.publishEvent(new ShowImmediateNotificationEvent(new ImmediateNotification(i18n.get("errorTitle"),
               i18n.get("vault.replays.searchError"), Severity.ERROR, e,
-              Collections.singletonList(new DismissAction(i18n))));
+              Collections.singletonList(new DismissAction(i18n))))
+          );
           enterShowroomState();
           return null;
         });

@@ -5,14 +5,15 @@ import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.notificationEvents.ShowPersistentNotificationEvent;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import com.google.common.primitives.Bytes;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -45,7 +46,7 @@ public class ReplayServerImpl implements ReplayServer {
   private static final byte[] LIVE_REPLAY_PREFIX = new byte[]{'P', '/'};
 
   private final ClientProperties clientProperties;
-  private final NotificationService notificationService;
+  private final ApplicationEventPublisher applicationEventPublisher;
   private final I18n i18n;
   private final GameService gameService;
   private final UserService userService;
@@ -57,11 +58,11 @@ public class ReplayServerImpl implements ReplayServer {
   private boolean stoppedGracefully;
 
   @Inject
-  public ReplayServerImpl(ClientProperties clientProperties, NotificationService notificationService, I18n i18n,
+  public ReplayServerImpl(ClientProperties clientProperties, ApplicationEventPublisher applicationEventPublisher, I18n i18n,
                           GameService gameService, UserService userService, ReplayFileWriter replayFileWriter,
                           ClientUpdateService clientUpdateService) {
     this.clientProperties = clientProperties;
-    this.notificationService = notificationService;
+    this.applicationEventPublisher = applicationEventPublisher;
     this.i18n = i18n;
     this.gameService = gameService;
     this.userService = userService;
@@ -105,7 +106,7 @@ public class ReplayServerImpl implements ReplayServer {
       } catch (ConnectException e) {
         // TODO record locally even though remote is down.
         log.warn("Could not connect to remote replay server", e);
-        notificationService.addNotification(new PersistentNotification(i18n.get("replayServer.unreachable"), Severity.WARN));
+        applicationEventPublisher.publishEvent(new ShowPersistentNotificationEvent(new PersistentNotification(i18n.get("replayServer.unreachable"), Severity.WARN)));
         future.complete(null);
       } catch (IOException e) {
         if (stoppedGracefully) {
@@ -113,10 +114,9 @@ public class ReplayServerImpl implements ReplayServer {
         }
         future.completeExceptionally(e);
         log.warn("Error in replay server", e);
-        notificationService.addNotification(new PersistentNotification(
-                i18n.get("replayServer.listeningFailed", localReplayServerPort),
-                Severity.WARN, Collections.singletonList(new Action(i18n.get("replayServer.retry"), event -> start(uid)))
-            )
+        applicationEventPublisher.publishEvent(new ShowPersistentNotificationEvent(new PersistentNotification(
+            i18n.get("replayServer.listeningFailed", localReplayServerPort),
+            Severity.WARN, Collections.singletonList(new Action(i18n.get("replayServer.retry"), event -> start(uid)))))
         );
       }
     }).start();

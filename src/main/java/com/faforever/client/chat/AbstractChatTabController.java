@@ -18,13 +18,14 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.notification.notificationEvents.ShowTransientNotificationEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ExternalReplayInfoGenerator;
 import com.faforever.client.replay.ReplayService;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.SupportService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.uploader.ImageUploadService;
@@ -68,6 +69,7 @@ import netscape.javascript.JSObject;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.inject.Inject;
@@ -136,10 +138,11 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   protected final TimeService timeService;
   protected final I18n i18n;
   protected final NotificationService notificationService;
-  protected final ReportingService reportingService;
+  protected final SupportService supportService;
   protected final UiService uiService;
   protected final EventBus eventBus;
   protected final WebViewConfigurer webViewConfigurer;
+  protected final ApplicationEventPublisher applicationEventPublisher;
   protected final ExternalReplayInfoGenerator externalReplayInfoGenerator;
   protected final ImageUploadService imageUploadService;
   protected final UrlPreviewResolver urlPreviewResolver;
@@ -183,13 +186,14 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
                                    PlatformService platformService, PreferencesService preferencesService,
                                    PlayerService playerService, AudioService audioService,
                                    TimeService timeService, I18n i18n,
-                                   ImageUploadService imageUploadService, UrlPreviewResolver urlPreviewResolver,
-                                   NotificationService notificationService, ReportingService reportingService, UiService uiService,
+                                   ApplicationEventPublisher applicationEventPublisher, ImageUploadService imageUploadService, UrlPreviewResolver urlPreviewResolver,
+                                   NotificationService notificationService, SupportService supportService, UiService uiService,
                                    AutoCompletionHelper autoCompletionHelper, EventBus eventBus, CountryFlagService countryFlagService,
                                    ReplayService replayService, ClientProperties clientProperties, ExternalReplayInfoGenerator externalReplayInfoGenerator) {
 
     this.webViewConfigurer = webViewConfigurer;
     this.clanService = clanService;
+    this.applicationEventPublisher = applicationEventPublisher;
     this.uiService = uiService;
     this.chatService = chatService;
     this.userService = userService;
@@ -202,7 +206,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     this.imageUploadService = imageUploadService;
     this.urlPreviewResolver = urlPreviewResolver;
     this.notificationService = notificationService;
-    this.reportingService = reportingService;
+    this.supportService = supportService;
     this.autoCompletionHelper = autoCompletionHelper;
     this.eventBus = eventBus;
     this.countryFlagService = countryFlagService;
@@ -584,9 +588,9 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       messageTextField.requestFocus();
     }).exceptionally(throwable -> {
       logger.warn("Message could not be sent: {}", text, throwable);
-      notificationService.addNotification(new ImmediateNotification(
+      applicationEventPublisher.publishEvent(new ImmediateNotification(
           i18n.get("errorTitle"), i18n.get("chat.sendFailed"), Severity.ERROR, throwable, Arrays.asList(
-          new ReportAction(i18n, reportingService, throwable),
+          new ReportAction(i18n, supportService, throwable),
           new DismissAction(i18n))
       ));
 
@@ -734,7 +738,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     Player player = playerService.getPlayerForUsername(chatMessage.getUsername());
     String identiconSource = player != null ? String.valueOf(player.getId()) : chatMessage.getUsername();
 
-    notificationService.addNotification(new TransientNotification(
+    applicationEventPublisher.publishEvent(new ShowTransientNotificationEvent(new TransientNotification(
         chatMessage.getUsername(),
         chatMessage.getMessage(),
         IdenticonUtil.createIdenticon(identiconSource),
@@ -742,7 +746,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
           eventBus.post(new NavigateEvent(NavigationItem.CHAT));
           stage.toFront();
           getRoot().getTabPane().getSelectionModel().select(getRoot());
-        })
+        }))
     );
   }
 

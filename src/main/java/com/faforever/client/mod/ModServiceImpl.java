@@ -3,9 +3,7 @@ package com.faforever.client.mod;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.Action;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.notificationEvents.ShowImmediateErrorNotificationEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
@@ -58,13 +56,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.faforever.client.notification.Severity.WARN;
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
 @Lazy
@@ -80,7 +76,6 @@ public class ModServiceImpl implements ModService {
   private final PreferencesService preferencesService;
   private final TaskService taskService;
   private final ApplicationContext applicationContext;
-  private final NotificationService notificationService;
   private final I18n i18n;
   private final PlatformService platformService;
   private final AssetService assetService;
@@ -95,8 +90,7 @@ public class ModServiceImpl implements ModService {
   @Inject
   // TODO divide and conquer
   public ModServiceImpl(TaskService taskService, FafService fafService, PreferencesService preferencesService,
-                        ApplicationContext applicationContext,
-                        NotificationService notificationService, I18n i18n,
+                        ApplicationContext applicationContext, I18n i18n,
                         PlatformService platformService, AssetService assetService) {
     pathToMod = new HashMap<>();
     modReader = new ModReader();
@@ -106,7 +100,6 @@ public class ModServiceImpl implements ModService {
     this.fafService = fafService;
     this.preferencesService = preferencesService;
     this.applicationContext = applicationContext;
-    this.notificationService = notificationService;
     this.i18n = i18n;
     this.platformService = platformService;
     this.assetService = assetService;
@@ -469,10 +462,7 @@ public class ModServiceImpl implements ModService {
       }
     } catch (ModLoadException e) {
       logger.debug("Corrupt mod: " + path, e);
-
-      notificationService.addNotification(new PersistentNotification(i18n.get("corruptedMods.notification", path.getFileName()), WARN, singletonList(
-          new Action(i18n.get("corruptedMods.show"), event -> platformService.reveal(path))
-      )));
+      applicationContext.publishEvent(new ShowImmediateErrorNotificationEvent(e, "corruptedMods.notification", path.getFileName()));
     }
   }
 

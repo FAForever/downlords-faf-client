@@ -6,14 +6,14 @@ import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.notification.DismissAction;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.notificationEvents.ShowPersistentNotificationEvent;
 import com.faforever.client.replay.LoadLocalReplaysTask;
 import com.faforever.client.replay.Replay;
 import com.faforever.client.replay.ReplayService;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.SupportService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
@@ -59,13 +59,12 @@ import static java.util.Arrays.asList;
 public class ReplayVaultController implements Controller<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private final NotificationService notificationService;
   private final ReplayService replayService;
   private final MapService mapService;
   private final TaskService taskService;
   private final I18n i18n;
   private final TimeService timeService;
-  private final ReportingService reportingService;
+  private final SupportService supportService;
   private final ApplicationContext applicationContext;
   private final UiService uiService;
 
@@ -80,14 +79,13 @@ public class ReplayVaultController implements Controller<Node> {
 
   @Inject
   // TODO reduce dependencies
-  public ReplayVaultController(NotificationService notificationService, ReplayService replayService, MapService mapService, TaskService taskService, I18n i18n, TimeService timeService, ReportingService reportingService, ApplicationContext applicationContext, UiService uiService) {
-    this.notificationService = notificationService;
+  public ReplayVaultController(ReplayService replayService, MapService mapService, TaskService taskService, I18n i18n, TimeService timeService, SupportService supportService, ApplicationContext applicationContext, UiService uiService) {
     this.replayService = replayService;
     this.mapService = mapService;
     this.taskService = taskService;
     this.i18n = i18n;
     this.timeService = timeService;
-    this.reportingService = reportingService;
+    this.supportService = supportService;
     this.applicationContext = applicationContext;
     this.uiService = uiService;
   }
@@ -255,10 +253,10 @@ public class ReplayVaultController implements Controller<Node> {
         .thenAccept(this::addLocalReplays)
         .exceptionally(throwable -> {
               logger.warn("Error while loading local replays", throwable);
-              notificationService.addNotification(new PersistentNotification(
+          applicationContext.publishEvent(new ShowPersistentNotificationEvent(new PersistentNotification(
                   i18n.get("replays.loadingLocalTask.failed"),
-                  Severity.ERROR, asList(new ReportAction(i18n, reportingService, throwable), new DismissAction(i18n))
-              ));
+              Severity.ERROR, asList(new ReportAction(i18n, supportService, throwable), new DismissAction(i18n))
+          )));
               return null;
             }
         );
@@ -278,7 +276,7 @@ public class ReplayVaultController implements Controller<Node> {
 //          notificationService.addNotification(new PersistentNotification(
 //              i18n.valueOf("replays.loadingOnlineTask.failed"),
 //              Severity.ERROR,
-//              Collections.singletonList(new Action(i18n.valueOf("report"), event -> reportingService.reportError(throwable)))
+//              Collections.singletonList(new Action(i18n.valueOf("report"), event -> supportService.reportError(throwable)))
 //          ));
 //          return null;
 //        });
