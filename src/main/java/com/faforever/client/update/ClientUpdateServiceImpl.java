@@ -4,8 +4,8 @@ import com.faforever.client.FafClientApplication;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.notificationEvents.ShowPersistentNotificationEvent;
 import com.faforever.client.task.TaskService;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -38,7 +38,6 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
   private static final String DEVELOPMENT_VERSION_STRING = "dev";
 
   private final TaskService taskService;
-  private final NotificationService notificationService;
   private final I18n i18n;
   private final PlatformService platformService;
   private final ApplicationContext applicationContext;
@@ -47,9 +46,8 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
   ComparableVersion currentVersion;
 
   @Inject
-  public ClientUpdateServiceImpl(TaskService taskService, NotificationService notificationService, I18n i18n, PlatformService platformService, ApplicationContext applicationContext) {
+  public ClientUpdateServiceImpl(TaskService taskService, I18n i18n, PlatformService platformService, ApplicationContext applicationContext) {
     this.taskService = taskService;
-    this.notificationService = notificationService;
     this.i18n = i18n;
     this.platformService = platformService;
     this.applicationContext = applicationContext;
@@ -69,13 +67,14 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
       if (updateInfo == null) {
         return;
       }
-      notificationService.addNotification(new PersistentNotification(
+
+      applicationContext.publishEvent(new ShowPersistentNotificationEvent(new PersistentNotification(
           i18n.get("clientUpdateAvailable.notification", updateInfo.getName(), formatSize(updateInfo.getSize(), i18n.getUserSpecificLocale())),
           INFO, asList(
           new Action(i18n.get("clientUpdateAvailable.downloadAndInstall"), event -> downloadAndInstallInBackground(updateInfo)),
           new Action(i18n.get("clientUpdateAvailable.releaseNotes"), Action.Type.OK_STAY,
               event -> platformService.showDocument(updateInfo.getReleaseNotesUrl().toExternalForm())
-          )))
+          ))))
       );
     }).exceptionally(throwable -> {
       logger.warn("Client update check failed", throwable);
@@ -107,11 +106,9 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
         .thenAccept(this::install)
         .exceptionally(throwable -> {
           logger.warn("Error while downloading client update", throwable);
-          notificationService.addNotification(
-              new PersistentNotification(i18n.get("clientUpdateDownloadFailed.notification"), WARN, singletonList(
-                  new Action(i18n.get("clientUpdateDownloadFailed.retry"), event -> downloadAndInstallInBackground(updateInfo))
-              ))
-          );
+          applicationContext.publishEvent(new ShowPersistentNotificationEvent(new PersistentNotification(i18n.get("clientUpdateDownloadFailed.notification"), WARN, singletonList(
+              new Action(i18n.get("clientUpdateDownloadFailed.retry"), event -> downloadAndInstallInBackground(updateInfo))
+          ))));
           return null;
         });
   }

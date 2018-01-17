@@ -8,21 +8,21 @@ import com.faforever.client.game.GameBuilder;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.notification.notificationEvents.ShowTransientNotificationEvent;
 import com.google.common.eventbus.EventBus;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class OnGameFullNotifierTest {
@@ -34,19 +34,19 @@ public class OnGameFullNotifierTest {
   @Mock
   private GameService gameService;
   @Mock
-  private NotificationService notificationService;
-  @Mock
   private I18n i18n;
   @Mock
   private MapService mapService;
   @Mock
   private PlatformService platformService;
+  @Mock
+  private ApplicationEventPublisher applicationEventPublisher;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new OnGameFullNotifier(platformService, executor, notificationService, i18n,
+    instance = new OnGameFullNotifier(platformService, executor, applicationEventPublisher, i18n,
         mapService, eventBus, new ClientProperties(), gameService);
     instance.postConstruct();
 
@@ -72,7 +72,7 @@ public class OnGameFullNotifierTest {
 
     instance.onGameFull(new GameFullEvent());
 
-    verify(notificationService).addNotification(any(TransientNotification.class));
+    verify(applicationEventPublisher).publishEvent(any(ShowTransientNotificationEvent.class));
     verify(executor).execute(any(Runnable.class));
   }
 
@@ -84,6 +84,6 @@ public class OnGameFullNotifierTest {
 
     instance.onGameFull(new GameFullEvent());
 
-    verifyZeroInteractions(notificationService);
+    verify(applicationEventPublisher, never()).publishEvent(any());
   }
 }

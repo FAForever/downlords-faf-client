@@ -8,9 +8,9 @@ import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.notificationEvents.ShowPersistentNotificationEvent;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.rankedmatch.MatchmakerMessage.MatchmakerQueue;
 import com.faforever.client.remote.domain.Avatar;
@@ -32,6 +32,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -68,19 +69,19 @@ public class MockFafServerAccessor implements FafServerAccessor {
   private final HashMap<Class<? extends ServerMessage>, Collection<Consumer<ServerMessage>>> messageListeners;
 
   private final TaskService taskService;
-  private final NotificationService notificationService;
+  private final ApplicationEventPublisher applicationEventPublisher;
   private final I18n i18n;
   private final EventBus eventBus;
 
   private ObjectProperty<ConnectionState> connectionState;
 
   @Inject
-  public MockFafServerAccessor(TaskService taskService, NotificationService notificationService, I18n i18n, EventBus eventBus) {
+  public MockFafServerAccessor(TaskService taskService, ApplicationEventPublisher applicationEventPublisher, I18n i18n, EventBus eventBus) {
+    this.applicationEventPublisher = applicationEventPublisher;
     timer = new Timer("LobbyServerAccessorTimer", true);
     messageListeners = new HashMap<>();
     connectionState = new SimpleObjectProperty<>();
     this.taskService = taskService;
-    this.notificationService = notificationService;
     this.i18n = i18n;
     this.eventBus = eventBus;
   }
@@ -163,7 +164,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
             messageListeners.getOrDefault(gameInfoMessage.getClass(), Collections.emptyList())
                 .forEach(consumer -> consumer.accept(gameInfoMessage)));
 
-        notificationService.addNotification(
+        applicationEventPublisher.publishEvent(new ShowPersistentNotificationEvent(
             new PersistentNotification(
                 "How about a long-running (7s) mock task?",
                 Severity.INFO,
@@ -182,9 +183,8 @@ public class MockFafServerAccessor implements FafServerAccessor {
                           }
                         })),
                     new Action("Nope")
-                )
             )
-        );
+            )));
 
         LoginMessage sessionInfo = new LoginMessage();
         sessionInfo.setId(123);

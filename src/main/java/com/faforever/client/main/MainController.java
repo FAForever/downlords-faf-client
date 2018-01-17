@@ -20,6 +20,7 @@ import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.notification.TransientNotificationsController;
+import com.faforever.client.notification.notificationEvents.ShowTransientNotificationEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -27,6 +28,7 @@ import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.remote.domain.RatingRange;
+import com.faforever.client.reporting.SupportService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.tray.event.IncrementApplicationBadgeEvent;
@@ -61,6 +63,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -91,7 +94,7 @@ public class MainController implements Controller<Node> {
   private final Cache<NavigationItem, AbstractViewController<?>> viewCache;
   private final PreferencesService preferencesService;
   private final I18n i18n;
-  private final NotificationService notificationService;
+  private final ApplicationEventPublisher applicationEventPublisher;
   private final PlayerService playerService;
   private final GameService gameService;
   private final ClientUpdateService clientUpdateService;
@@ -101,6 +104,8 @@ public class MainController implements Controller<Node> {
   private final int ratingBeta;
   private final GamePathHandler gamePathHandler;
   private final PlatformService platformService;
+  private final SupportService supportService;
+  private final NotificationService notificationService;
   public Pane mainHeaderPane;
   public Labeled notificationsBadge;
   public Pane contentPane;
@@ -120,13 +125,12 @@ public class MainController implements Controller<Node> {
   private WindowController windowController;
 
   @Inject
-  public MainController(PreferencesService preferencesService, I18n i18n, NotificationService notificationService,
-                        PlayerService playerService, GameService gameService, ClientUpdateService clientUpdateService,
+  public MainController(PreferencesService preferencesService, I18n i18n, ApplicationEventPublisher applicationEventPublisher, PlayerService playerService, GameService gameService, ClientUpdateService clientUpdateService,
                         UiService uiService, EventBus eventBus, ClientProperties clientProperties, GamePathHandler gamePathHandler,
-                        PlatformService platformService) {
+                        PlatformService platformService, SupportService supportService, NotificationService notificationService) {
     this.preferencesService = preferencesService;
     this.i18n = i18n;
-    this.notificationService = notificationService;
+    this.applicationEventPublisher = applicationEventPublisher;
     this.playerService = playerService;
     this.gameService = gameService;
     this.clientUpdateService = clientUpdateService;
@@ -137,6 +141,8 @@ public class MainController implements Controller<Node> {
     this.ratingBeta = clientProperties.getTrueSkill().getBeta();
     this.gamePathHandler = gamePathHandler;
     this.platformService = platformService;
+    this.supportService = supportService;
+    this.notificationService = notificationService;
     this.viewCache = CacheBuilder.newBuilder().build();
   }
 
@@ -302,12 +308,12 @@ public class MainController implements Controller<Node> {
       return;
     }
 
-    notificationService.addNotification(new TransientNotification(
+    applicationEventPublisher.publishEvent(new ShowTransientNotificationEvent(new TransientNotification(
         i18n.get("ranked1v1.notification.title"),
         i18n.get("ranked1v1.notification.message"),
         uiService.getThemeImage(UiService.LADDER_1V1_IMAGE),
         event -> eventBus.post(new NavigateEvent(NavigationItem.PLAY))
-    ));
+    )));
   }
 
   public void display() {
@@ -485,6 +491,10 @@ public class MainController implements Controller<Node> {
   public void onChat(ActionEvent actionEvent) {
     chatButton.pseudoClassStateChanged(HIGHLIGHTED, false);
     onNavigate(actionEvent);
+  }
+
+  public void onSupport(ActionEvent actionEvent) {
+    supportService.requestSupport();
   }
 
   public class ToastDisplayer implements InvalidationListener {

@@ -1,11 +1,10 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.notificationEvents.ShowImmediateErrorNotificationEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.SupportService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewController;
@@ -19,6 +18,7 @@ import javafx.scene.image.Image;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Optional;
@@ -36,9 +36,9 @@ import static org.mockito.Mockito.when;
 public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
   @Mock
-  private ReportingService reportingService;
+  private SupportService supportService;
   @Mock
-  private NotificationService notificationService;
+  private ApplicationEventPublisher applicationEventPublisher;
   @Mock
   private ModService modService;
   @Mock
@@ -63,7 +63,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ModDetailController(modService, notificationService, i18n, reportingService, timeService, reviewService, playerService);
+    instance = new ModDetailController(modService, applicationEventPublisher, i18n, timeService, reviewService, playerService);
 
     installedMods = FXCollections.observableArrayList();
     when(modService.getInstalledMods()).thenReturn(installedMods);
@@ -144,7 +144,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
     instance.onInstallButtonClicked();
 
     verify(modService).downloadAndInstallMod(any(Mod.class), any(), any());
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(applicationEventPublisher).publishEvent(any(ShowImmediateErrorNotificationEvent.class));
   }
 
   @Test
@@ -170,7 +170,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
     instance.onUninstallButtonClicked();
 
     verify(modService).uninstallMod(mod);
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(applicationEventPublisher).publishEvent(any(ShowImmediateErrorNotificationEvent.class));
   }
 
   @Test

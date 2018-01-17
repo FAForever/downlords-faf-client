@@ -7,9 +7,8 @@ import com.faforever.client.mod.event.ModUploadedEvent;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.ReportAction;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.notification.notificationEvents.ShowImmediateErrorNotificationEvent;
+import com.faforever.client.notification.notificationEvents.ShowImmediateNotificationEvent;
 import com.faforever.client.task.CompletableTask;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
@@ -23,6 +22,7 @@ import javafx.scene.layout.Region;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -43,8 +43,7 @@ public class ModUploadController  implements Controller<Node> {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final ModService modService;
   private final ThreadPoolExecutor threadPoolExecutor;
-  private final NotificationService notificationService;
-  private final ReportingService reportingService;
+  private final ApplicationEventPublisher applicationEventPublisher;
   private final I18n i18n;
   private final EventBus eventBus;
   public Label uploadTaskMessageLabel;
@@ -65,11 +64,10 @@ public class ModUploadController  implements Controller<Node> {
   private Mod modInfo;
 
   @Inject
-  public ModUploadController(ModService modService, ThreadPoolExecutor threadPoolExecutor, NotificationService notificationService, ReportingService reportingService, I18n i18n, EventBus eventBus) {
+  public ModUploadController(ModService modService, ThreadPoolExecutor threadPoolExecutor, ApplicationEventPublisher applicationEventPublisher, I18n i18n, EventBus eventBus) {
     this.modService = modService;
     this.threadPoolExecutor = threadPoolExecutor;
-    this.notificationService = notificationService;
-    this.reportingService = reportingService;
+    this.applicationEventPublisher = applicationEventPublisher;
     this.i18n = i18n;
     this.eventBus = eventBus;
   }
@@ -133,22 +131,18 @@ public class ModUploadController  implements Controller<Node> {
   private void onUploadFailed(Throwable throwable) {
     enterModInfoState();
     if (throwable instanceof ApiException) {
-      notificationService.addNotification(new ImmediateNotification(
+      applicationEventPublisher.publishEvent(new ShowImmediateNotificationEvent(new ImmediateNotification(
           i18n.get("errorTitle"), i18n.get("modVault.upload.failed", throwable.getLocalizedMessage()), ERROR,
           asList(
               new Action(i18n.get("modVault.upload.retry"), event -> onUploadClicked()),
               new DismissAction(i18n)
           )
-      ));
+          ))
+      );
     } else {
-      notificationService.addNotification(new ImmediateNotification(
-          i18n.get("errorTitle"), i18n.get("modVault.upload.failed", throwable.getLocalizedMessage()), ERROR, throwable,
-          asList(
-              new Action(i18n.get("modVault.upload.retry"), event -> onUploadClicked()),
-              new ReportAction(i18n, reportingService, throwable),
-              new DismissAction(i18n)
-          )
-      ));
+      applicationEventPublisher.publishEvent(
+          new ShowImmediateErrorNotificationEvent(throwable, "modVault.upload.failed", throwable.getLocalizedMessage())
+      );
     }
   }
 

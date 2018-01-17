@@ -15,10 +15,11 @@ import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.notificationEvents.ShowImmediateNotificationEvent;
+import com.faforever.client.notification.notificationEvents.ShowPersistentNotificationEvent;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
@@ -30,7 +31,7 @@ import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.replay.ExternalReplayInfoGenerator;
 import com.faforever.client.replay.ReplayService;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.SupportService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -49,6 +50,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -104,11 +106,11 @@ public class GameServiceImpl implements GameService {
   private final MapService mapService;
   private final PreferencesService preferencesService;
   private final GameUpdater gameUpdater;
-  private final NotificationService notificationService;
+  private final ApplicationEventPublisher applicationEventPublisher;
   private final I18n i18n;
   private final Executor executor;
   private final PlayerService playerService;
-  private final ReportingService reportingService;
+  private final SupportService supportService;
   private final EventBus eventBus;
   private final IceAdapter iceAdapter;
   private final ModService modService;
@@ -131,8 +133,8 @@ public class GameServiceImpl implements GameService {
   public GameServiceImpl(ClientProperties clientProperties, FafService fafService,
                          ForgedAllianceService forgedAllianceService, MapService mapService,
                          PreferencesService preferencesService, GameUpdater gameUpdater,
-                         NotificationService notificationService, I18n i18n, Executor executor,
-                         PlayerService playerService, ReportingService reportingService, EventBus eventBus,
+                         ApplicationEventPublisher applicationEventPublisher, I18n i18n, Executor executor,
+                         PlayerService playerService, SupportService supportService, EventBus eventBus,
                          IceAdapter iceAdapter, ModService modService, PlatformService platformService,
                          ExternalReplayInfoGenerator externalReplayInfoGenerator1) {
     this.clientProperties = clientProperties;
@@ -141,11 +143,11 @@ public class GameServiceImpl implements GameService {
     this.mapService = mapService;
     this.preferencesService = preferencesService;
     this.gameUpdater = gameUpdater;
-    this.notificationService = notificationService;
+    this.applicationEventPublisher = applicationEventPublisher;
     this.i18n = i18n;
     this.executor = executor;
     this.playerService = playerService;
-    this.reportingService = reportingService;
+    this.supportService = supportService;
     this.eventBus = eventBus;
     this.iceAdapter = iceAdapter;
     this.modService = modService;
@@ -282,12 +284,13 @@ public class GameServiceImpl implements GameService {
 
   private void notifyCantPlayReplay(@Nullable Integer replayId, Throwable throwable) {
     logger.error("Could not play replay '" + replayId + "'", throwable);
-    notificationService.addNotification(new ImmediateNotification(
+    applicationEventPublisher.publishEvent(new ShowImmediateNotificationEvent(new ImmediateNotification(
         i18n.get("errorTitle"),
         i18n.get("replayCouldNotBeStarted", replayId),
         ERROR, throwable,
-        singletonList(new Action(i18n.get("report"))))
+        singletonList(new Action(i18n.get("report")))))
     );
+
   }
 
   @Override
@@ -435,11 +438,11 @@ public class GameServiceImpl implements GameService {
         })
         .exceptionally(throwable -> {
           logger.warn("Game could not be started", throwable);
-          notificationService.addNotification(
-              new ImmediateNotification(i18n.get("errorTitle"),
-                  i18n.get("game.start.couldNotStart"), ERROR, throwable, Arrays.asList(
-                  new ReportAction(i18n, reportingService, throwable), new DismissAction(i18n)))
+          applicationEventPublisher.publishEvent(new ShowImmediateNotificationEvent(new ImmediateNotification(i18n.get("errorTitle"),
+              i18n.get("game.start.couldNotStart"), ERROR, throwable, Arrays.asList(
+              new ReportAction(i18n, supportService, throwable), new DismissAction(i18n))))
           );
+
           setGameRunning(false);
           return null;
         });
@@ -448,10 +451,11 @@ public class GameServiceImpl implements GameService {
   private void onCurrentGameEnded() {
     synchronized (currentGame) {
       int currentGameId = currentGame.get().getId();
-      notificationService.addNotification(new PersistentNotification(i18n.get("game.ended", currentGame.get().getTitle()),
+      applicationEventPublisher.publishEvent(new ShowPersistentNotificationEvent(new PersistentNotification(i18n.get("game.ended", currentGame.get().getTitle()),
           Severity.INFO,
           singletonList(new Action(i18n.get("game.rate"), actionEvent -> replayService.findById(currentGameId)
-              .thenAccept(replay -> externalReplayInfoGenerator.showExternalReplayInfo(replay, String.valueOf(currentGameId)))))));
+              .thenAccept(replay -> externalReplayInfoGenerator.showExternalReplayInfo(replay, String.valueOf(currentGameId)))))))
+      );
     }
   }
 

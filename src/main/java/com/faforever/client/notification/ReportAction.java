@@ -1,11 +1,11 @@
 package com.faforever.client.notification;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.SupportService;
 
 public class ReportAction extends Action {
 
-  public ReportAction(I18n i18n, ReportingService reportingService, Throwable throwable) {
-    super(i18n.get("report"), event -> reportingService.reportError(throwable));
+  public ReportAction(I18n i18n, SupportService supportService, Throwable throwable) {
+    super(i18n.get("report"), event -> supportService.reportError(throwable));
   }
 }

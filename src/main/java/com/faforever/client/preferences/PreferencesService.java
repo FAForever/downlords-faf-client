@@ -54,8 +54,10 @@ public class PreferencesService {
   private static final String CORRUPTED_REPLAYS_SUB_FOLDER = "corrupt";
   private static final String CACHE_SUB_FOLDER = "cache";
   private static final String CACHE_STYLESHEETS_SUB_FOLDER = Paths.get(CACHE_SUB_FOLDER, "stylesheets").toString();
+  private static final String LOG_FILE_NAME = "downlords-faf-client.log";
 
   public static final String SUPREME_COMMANDER_EXE = "SupremeCommander.exe";
+
 
   static {
     if (org.bridj.Platform.isWindows()) {
@@ -66,7 +68,7 @@ public class PreferencesService {
 
     System.setProperty("logging.file", PreferencesService.FAF_DATA_DIRECTORY
         .resolve("logs")
-        .resolve("downlords-faf-client.log")
+        .resolve(LOG_FILE_NAME)
         .toString());
 
     SLF4JBridgeHandler.removeHandlersForRootLogger();
@@ -231,6 +233,10 @@ public class PreferencesService {
 
   public Path getFafLogDirectory() {
     return getFafDataDirectory().resolve("logs");
+  }
+
+  public Path getClientLogFilePath() {
+    return getFafLogDirectory().resolve(LOG_FILE_NAME);
   }
 
   public Path getThemesDirectory() {

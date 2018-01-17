@@ -14,7 +14,7 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ExternalReplayInfoGenerator;
 import com.faforever.client.replay.ReplayService;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.SupportService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
@@ -46,6 +46,7 @@ import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
@@ -111,15 +112,15 @@ public class ChannelTabController extends AbstractChatTabController {
                               PlatformService platformService, PreferencesService preferencesService,
                               PlayerService playerService, AudioService audioService, TimeService timeService,
                               I18n i18n, ImageUploadService imageUploadService, UrlPreviewResolver urlPreviewResolver,
-                              NotificationService notificationService, ReportingService reportingService,
+                              NotificationService notificationService, SupportService supportService,
                               UiService uiService, AutoCompletionHelper autoCompletionHelper, EventBus eventBus,
                               WebViewConfigurer webViewConfigurer, ThreadPoolExecutor threadPoolExecutor,
                               TaskScheduler taskScheduler, CountryFlagService countryFlagService,
                               ReplayService replayService, ClientProperties clientProperties,
-                              ExternalReplayInfoGenerator externalReplayInfoGenerator) {
+                              ExternalReplayInfoGenerator externalReplayInfoGenerator, ApplicationEventPublisher applicationEventPublisher) {
 
     super(clanService, webViewConfigurer, userService, chatService, platformService, preferencesService, playerService,
-        audioService, timeService, i18n, imageUploadService, urlPreviewResolver, notificationService, reportingService,
+        audioService, timeService, i18n, applicationEventPublisher, imageUploadService, urlPreviewResolver, notificationService, supportService,
         uiService, autoCompletionHelper, eventBus, countryFlagService, replayService, clientProperties, externalReplayInfoGenerator);
 
     userToChatUserControls = FXCollections.observableMap(new ConcurrentHashMap<>());

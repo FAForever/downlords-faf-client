@@ -16,9 +16,10 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.notificationEvents.ShowImmediateNotificationEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.SupportService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import javafx.application.Platform;
@@ -46,6 +47,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -74,8 +76,9 @@ public class CreateGameController implements Controller<Pane> {
   private final PreferencesService preferencesService;
   private final I18n i18n;
   private final NotificationService notificationService;
-  private final ReportingService reportingService;
+  private final SupportService supportService;
   private final FafService fafService;
+  private final ApplicationEventPublisher applicationEventPublisher;
   public Label mapSizeLabel;
   public Label mapPlayersLabel;
   public Label mapDescriptionLabel;
@@ -96,15 +99,16 @@ public class CreateGameController implements Controller<Pane> {
   FilteredList<MapBean> filteredMapBeans;
 
   @Inject
-  public CreateGameController(FafService fafService, MapService mapService, ModService modService, GameService gameService, PreferencesService preferencesService, I18n i18n, NotificationService notificationService, ReportingService reportingService) {
+  public CreateGameController(FafService fafService, MapService mapService, ModService modService, GameService gameService, PreferencesService preferencesService, I18n i18n, NotificationService notificationService, SupportService supportService, ApplicationEventPublisher applicationEventPublisher) {
     this.mapService = mapService;
     this.modService = modService;
     this.gameService = gameService;
     this.preferencesService = preferencesService;
     this.i18n = i18n;
     this.notificationService = notificationService;
-    this.reportingService = reportingService;
+    this.supportService = supportService;
     this.fafService = fafService;
+    this.applicationEventPublisher = applicationEventPublisher;
   }
 
   public void initialize() {
@@ -357,13 +361,12 @@ public class CreateGameController implements Controller<Pane> {
 
     gameService.hostGame(newGameInfo).exceptionally(throwable -> {
       logger.warn("Game could not be hosted", throwable);
-      notificationService.addNotification(
-          new ImmediateNotification(
-              i18n.get("errorTitle"),
-              i18n.get("game.create.failed"),
-              Severity.WARN,
-              throwable,
-              Collections.singletonList(new ReportAction(i18n, reportingService, throwable))));
+      applicationEventPublisher.publishEvent(new ShowImmediateNotificationEvent(new ImmediateNotification(
+          i18n.get("errorTitle"),
+          i18n.get("game.create.failed"),
+          Severity.WARN,
+          throwable,
+          Collections.singletonList(new ReportAction(i18n, supportService, throwable)))));
       return null;
     });
 

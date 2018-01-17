@@ -5,20 +5,19 @@ import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.fx.WindowController;
-import com.faforever.client.game.GameService;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.notificationEvents.ShowImmediateNotificationEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -37,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -67,6 +67,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   private final JoinGameHelper joinGameHelper;
   private final AvatarService avatarService;
   private final UiService uiService;
+  private final ApplicationEventPublisher applicationEventPublisher;
   public ComboBox<AvatarBean> avatarComboBox;
   public CustomMenuItem avatarPickerMenuItem;
   public MenuItem sendPrivateMessageItem;
@@ -89,7 +90,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   private Player player;
 
   @Inject
-  public ChatUserContextMenuController(UserService userService, ChatService chatService, PreferencesService preferencesService, PlayerService playerService, GameService gameService, ReplayService replayService, NotificationService notificationService, I18n i18n, EventBus eventBus, JoinGameHelper joinGameHelper, AvatarService avatarService, UiService uiService) {
+  public ChatUserContextMenuController(ChatService chatService, PreferencesService preferencesService, PlayerService playerService, ReplayService replayService, NotificationService notificationService, I18n i18n, EventBus eventBus, JoinGameHelper joinGameHelper, AvatarService avatarService, UiService uiService, ApplicationEventPublisher applicationEventPublisher) {
     this.chatService = chatService;
     this.preferencesService = preferencesService;
     this.playerService = playerService;
@@ -100,6 +101,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     this.joinGameHelper = joinGameHelper;
     this.avatarService = avatarService;
     this.uiService = uiService;
+    this.applicationEventPublisher = applicationEventPublisher;
   }
   
   public void initialize() {
@@ -259,7 +261,8 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
       logger.error("Cannot display live replay {}", e.getCause());
       String title = i18n.get("replays.live.loadFailure.title");
       String message = i18n.get("replays.live.loadFailure.message");
-      notificationService.addNotification(new ImmediateNotification(title, message, Severity.ERROR));
+
+      applicationEventPublisher.publishEvent(new ShowImmediateNotificationEvent(new ImmediateNotification(title, message, Severity.ERROR)));
     }
   }
 

@@ -2,11 +2,10 @@ package com.faforever.client.vault.replay;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.LoadLocalReplaysTask;
 import com.faforever.client.replay.ReplayInfoBeanBuilder;
 import com.faforever.client.replay.ReplayService;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.SupportService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
@@ -32,8 +31,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
@@ -46,22 +45,20 @@ public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private TaskService taskService;
   @Mock
-  private NotificationService notificationService;
-  @Mock
   private ReplayService replayService;
   @Mock
   private MapService mapService;
   @Mock
   private TimeService timeService;
   @Mock
-  private ReportingService reportingService;
+  private SupportService supportService;
   @Mock
   private UiService uiService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new ReplayVaultController(notificationService, replayService, mapService, taskService, i18n, timeService,
-        reportingService, applicationContext, uiService);
+    instance = new ReplayVaultController(replayService, mapService, taskService, i18n, timeService,
+        supportService, applicationContext, uiService);
 
     doReturn(new LoadLocalReplaysTask(replayService, i18n)).when(applicationContext).getBean(eq(LoadLocalReplaysTask.class));
 
@@ -96,7 +93,7 @@ public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     assertThat(((TableView) instance.getRoot()).getItems().size(), is(3));
 
     verify(taskService).submitTask(task);
-    verifyZeroInteractions(notificationService);
+    verify(applicationContext, never()).publishEvent(any());
   }
 //
 //  @Test

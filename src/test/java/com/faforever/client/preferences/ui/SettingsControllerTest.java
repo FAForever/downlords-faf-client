@@ -1,8 +1,7 @@
 package com.faforever.client.preferences.ui;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.notificationEvents.ShowPersistentNotificationEvent;
 import com.faforever.client.preferences.LanguageInfo;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -15,6 +14,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -37,7 +37,7 @@ public class SettingsControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private I18n i18n;
   @Mock
-  private NotificationService notificationService;
+  private ApplicationEventPublisher applicationEventPublisher;
   private Preferences preferences;
 
   @Before
@@ -46,7 +46,7 @@ public class SettingsControllerTest extends AbstractPlainJavaFxTest {
     when(preferenceService.getPreferences()).thenReturn(preferences);
     when(uiService.currentThemeProperty()).thenReturn(new SimpleObjectProperty<>());
 
-    instance = new SettingsController(userService, preferenceService, uiService, i18n, eventBus, notificationService);
+    instance = new SettingsController(userService, preferenceService, uiService, i18n, eventBus, applicationEventPublisher);
     loadFxml("theme/settings/settings.fxml", param -> instance);
   }
 
@@ -57,7 +57,7 @@ public class SettingsControllerTest extends AbstractPlainJavaFxTest {
 
     instance.onLanguageSelected();
 
-    verify(notificationService).addNotification(any(PersistentNotification.class));
+    verify(applicationEventPublisher).publishEvent(any(ShowPersistentNotificationEvent.class));
   }
 
   @Test
@@ -67,7 +67,7 @@ public class SettingsControllerTest extends AbstractPlainJavaFxTest {
 
     instance.onLanguageSelected();
 
-    verify(notificationService, never()).addNotification(any(PersistentNotification.class));
+    verify(applicationEventPublisher, never()).publishEvent(any(ShowPersistentNotificationEvent.class));
   }
 
   @Test

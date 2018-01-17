@@ -14,7 +14,7 @@ import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
-import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.notificationEvents.ShowImmediateErrorNotificationEvent;
 import com.faforever.client.player.NameRecord;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
@@ -53,6 +53,7 @@ import javafx.util.StringConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -98,8 +99,8 @@ public class UserInfoWindowController implements Controller<Node> {
   private final UiService uiService;
   private final TimeService timeService;
   private final PlayerService playerService;
-  private final NotificationService notificationService;
   private final LeaderboardService leaderboardService;
+  private final ApplicationEventPublisher applicationEventPublisher;
   public Label lockedAchievementsHeaderLabel;
   public Label unlockedAchievementsHeaderLabel;
   public PieChart gamesPlayedChart;
@@ -141,9 +142,8 @@ public class UserInfoWindowController implements Controller<Node> {
   @Inject
   public UserInfoWindowController(StatisticsService statisticsService, CountryFlagService countryFlagService,
                                   AchievementService achievementService, EventService eventService, I18n i18n,
-                                  UiService uiService, TimeService timeService,
-                                  NotificationService notificationService, PlayerService playerService,
-                                  LeaderboardService  leaderboardService) {
+                                  UiService uiService, TimeService timeService, PlayerService playerService,
+                                  LeaderboardService leaderboardService, ApplicationEventPublisher applicationEventPublisher) {
     this.statisticsService = statisticsService;
     this.countryFlagService = countryFlagService;
     this.achievementService = achievementService;
@@ -152,8 +152,8 @@ public class UserInfoWindowController implements Controller<Node> {
     this.i18n = i18n;
     this.uiService = uiService;
     this.timeService = timeService;
-    this.notificationService = notificationService;
     this.leaderboardService = leaderboardService;
+    this.applicationEventPublisher = applicationEventPublisher;
 
     achievementItemById = new HashMap<>();
     achievementDefinitionById = new HashMap<>();
@@ -252,7 +252,7 @@ public class UserInfoWindowController implements Controller<Node> {
           plotGamesPlayedChart();
         })
         .exceptionally(throwable -> {
-          notificationService.addImmediateErrorNotification(throwable, "userInfo.statistics.errorLoading");
+          applicationEventPublisher.publishEvent(new ShowImmediateErrorNotificationEvent(throwable, "userInfo.statistics.errorLoading"));
           log.warn("Could not load player events", throwable);
           return null;
         });
@@ -262,7 +262,7 @@ public class UserInfoWindowController implements Controller<Node> {
     playerService.getPlayersByIds(Collections.singletonList(player.getId()))
         .thenAccept(players -> nameHistoryTable.setItems(players.get(0).getNames()))
         .exceptionally(throwable -> {
-          notificationService.addImmediateErrorNotification(throwable, "userInfo.nameHistory.errorLoading");
+          applicationEventPublisher.publishEvent(new ShowImmediateErrorNotificationEvent(throwable, "userInfo.nameHistory.errorLoading"));
           return null;
         });
   }
@@ -271,7 +271,7 @@ public class UserInfoWindowController implements Controller<Node> {
     enterAchievementsLoadingState();
     achievementService.getAchievementDefinitions()
         .exceptionally(throwable -> {
-          notificationService.addImmediateErrorNotification(throwable, "userInfo.achievements.errorLoading");
+          applicationEventPublisher.publishEvent(new ShowImmediateErrorNotificationEvent(throwable, "userInfo.achievements.errorLoading"));
           log.warn("Player achievements could not be loaded", throwable);
           return Collections.emptyList();
         })
@@ -282,9 +282,8 @@ public class UserInfoWindowController implements Controller<Node> {
           enterAchievementsLoadedState();
         })
         .exceptionally(throwable -> {
-          notificationService.addImmediateErrorNotification(throwable, "userInfo.achievements.errorLDisplaying");
+          applicationEventPublisher.publishEvent(new ShowImmediateErrorNotificationEvent(throwable, "userInfo.achievements.errorLDisplaying"));
           log.warn("Could not display achievement definitions", throwable);
-
           return null;
         });
   }

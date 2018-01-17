@@ -1,8 +1,7 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.notificationEvents.ShowImmediateNotificationEvent;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.LogicalNodeController;
@@ -19,6 +18,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.ArrayList;
@@ -53,7 +53,7 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private LogicalNodeController logicalNodeController;
   @Mock
-  private NotificationService notificationService;
+  private ApplicationEventPublisher applicationEventPublisher;
   @Mock
   private I18n i18n;
   @Mock
@@ -77,7 +77,7 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     sortOrder = preferencesService.getPreferences().getVaultPrefs().getOnlineReplaySortConfig();
     standardSearchConfig = new SearchConfig(sortOrder, "query");
 
-    instance = new OnlineReplayVaultController(replayService, uiService, notificationService, i18n, preferencesService);
+    instance = new OnlineReplayVaultController(replayService, uiService, applicationEventPublisher, i18n, preferencesService);
 
     loadFxml("theme/vault/replay/online_replays.fxml", clazz -> {
       if (SearchController.class.isAssignableFrom(clazz)) {
@@ -138,7 +138,7 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
 
     searchListener.accept(standardSearchConfig);
 
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(applicationEventPublisher).publishEvent(any(ShowImmediateNotificationEvent.class));
   }
 
   @Test

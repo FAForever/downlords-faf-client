@@ -1,12 +1,11 @@
 package com.faforever.client.game;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.notificationEvents.ShowImmediateNotificationEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.SupportService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
@@ -15,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,9 +44,9 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private NotificationService notificationService;
+  private ApplicationEventPublisher applicationEventPublisher;
   @Mock
-  private ReportingService reportingService;
+  private SupportService supportService;
   @Mock
   private Player player;
   @Mock
@@ -58,7 +58,7 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new JoinGameHelper(i18n, playerService, gameService, preferencesService, notificationService, reportingService, uiService, eventBus);
+    instance = new JoinGameHelper(i18n, playerService, gameService, preferencesService, applicationEventPublisher, supportService, uiService, eventBus);
 
     when(playerService.getCurrentPlayer()).thenReturn(Optional.ofNullable(player));
     when(player.getGlobalRatingMean()).thenReturn(1000.0f);
@@ -143,7 +143,7 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
   public void testJoinGameIgnoreRatings() throws Exception {
     instance.join(game, "haha", true);
     verify(gameService).joinGame(game, "haha");
-    verify(notificationService, never()).addNotification(any(ImmediateNotification.class));
+    verify(applicationEventPublisher, never()).publishEvent(any(ShowImmediateNotificationEvent.class));
 
     verify(game, never()).getMinRating();
     verify(game, never()).getMaxRating();
@@ -156,7 +156,7 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
   public void testJoinGameRatingToLow() throws Exception {
     when(game.getMinRating()).thenReturn(5000);
     instance.join(game);
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(applicationEventPublisher).publishEvent(any(ShowImmediateNotificationEvent.class));
   }
 
   /**
@@ -166,6 +166,6 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
   public void testJoinGameRatingToHigh() throws Exception {
     when(game.getMaxRating()).thenReturn(100);
     instance.join(game);
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(applicationEventPublisher).publishEvent(any(ShowImmediateNotificationEvent.class));
   }
 }

@@ -6,8 +6,8 @@ import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.notificationEvents.ShowImmediateNotificationEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.net.URL;
@@ -74,14 +75,16 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   private JoinGameHelper joinGameHelper;
   @Mock
   private AvatarService avatarService;
+  @Mock
+  private ApplicationEventPublisher applicationEventPublisher;
 
   private ChatUserContextMenuController instance;
   private Player player;
 
   @Before
   public void setUp() throws Exception {
-    instance = new ChatUserContextMenuController(userService, chatService, preferencesService, playerService, gameService,
-        replayService, notificationService, i18n, eventBus, joinGameHelper, avatarService, uiService);
+    instance = new ChatUserContextMenuController(chatService, preferencesService, playerService,
+        replayService, notificationService, i18n, eventBus, joinGameHelper, avatarService, uiService, applicationEventPublisher);
 
     Preferences preferences = mock(Preferences.class);
     ChatPrefs chatPrefs = mock(ChatPrefs.class);
@@ -178,7 +181,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
     instance.onWatchGame();
 
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(applicationEventPublisher).publishEvent(any(ShowImmediateNotificationEvent.class));
   }
 
   @Test

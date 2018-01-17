@@ -10,17 +10,15 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
-import com.faforever.client.notification.ReportAction;
-import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.notificationEvents.ShowImmediateErrorNotificationEvent;
+import com.faforever.client.notification.notificationEvents.ShowImmediateNotificationEvent;
+import com.faforever.client.notification.notificationEvents.ShowPersistentNotificationEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.replay.Replay.ChatMessage;
 import com.faforever.client.replay.Replay.GameOption;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.replay.ReplayData;
@@ -63,7 +61,6 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.move;
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
@@ -85,15 +82,12 @@ public class ReplayServiceImpl implements ReplayService {
   private static final String FAF_LIFE_PROTOCOL = "faflive";
   private static final String GPGNET_SCHEME = "gpgnet";
   private static final String TEMP_SCFA_REPLAY_FILE_NAME = "temp.scfareplay";
-
   private final ClientProperties clientProperties;
   private final PreferencesService preferencesService;
   private final ReplayFileReader replayFileReader;
-  private final NotificationService notificationService;
   private final GameService gameService;
   private final TaskService taskService;
   private final I18n i18n;
-  private final ReportingService reportingService;
   private final ApplicationContext applicationContext;
   private final PlatformService platformService;
   private final ReplayServer replayServer;
@@ -103,19 +97,16 @@ public class ReplayServiceImpl implements ReplayService {
 
   @Inject
   public ReplayServiceImpl(ClientProperties clientProperties, PreferencesService preferencesService,
-                           ReplayFileReader replayFileReader, NotificationService notificationService,
-                           GameService gameService, TaskService taskService, I18n i18n,
-                           ReportingService reportingService, ApplicationContext applicationContext,
+                           ReplayFileReader replayFileReader, GameService gameService, TaskService taskService,
+                           I18n i18n, ApplicationContext applicationContext,
                            PlatformService platformService, ReplayServer replayServer, FafService fafService,
                            ModService modService, MapService mapService) {
     this.clientProperties = clientProperties;
     this.preferencesService = preferencesService;
     this.replayFileReader = replayFileReader;
-    this.notificationService = notificationService;
     this.gameService = gameService;
     this.taskService = taskService;
     this.i18n = i18n;
-    this.reportingService = reportingService;
     this.applicationContext = applicationContext;
     this.platformService = platformService;
     this.replayServer = replayServer;
@@ -166,11 +157,11 @@ public class ReplayServiceImpl implements ReplayService {
           mapService.findByMapFolderName(replayInfo.getMapname())
               .thenAccept(mapBean -> {
                 if (!mapBean.isPresent()) {
-                  notificationService.addNotification(new ImmediateNotification(
+                  applicationContext.publishEvent(new ShowImmediateNotificationEvent(new ImmediateNotification(
                       i18n.get("errorTitle"),
                       i18n.get("mapNotFound", replayInfo.getMapname()),
                       WARN
-                  ));
+                  )));
                   return;
                 }
                 replayInfos.add(new Replay(replayInfo, replayFile, featuredMod, mapBean.get()));
@@ -194,13 +185,12 @@ public class ReplayServiceImpl implements ReplayService {
     logger.debug("Moving corrupted replay file from {} to {}", replayFile, target);
 
     noCatch(() -> move(replayFile, target));
-
-    notificationService.addNotification(new PersistentNotification(
+    applicationContext.publishEvent(new ShowPersistentNotificationEvent(new PersistentNotification(
         i18n.get("corruptedReplayFiles.notification"), WARN,
         singletonList(
             new Action(i18n.get("corruptedReplayFiles.show"), event -> platformService.reveal(replayFile))
         )
-    ));
+    )));
   }
 
   @Override
@@ -247,12 +237,7 @@ public class ReplayServiceImpl implements ReplayService {
       URI replayUri = new URI(GPGNET_SCHEME, null, uri.getHost(), uri.getPort(), uri.getPath(), null, null);
       gameService.runWithLiveReplay(replayUri, gameId, gameType, mapName)
           .exceptionally(throwable -> {
-            notificationService.addNotification(new ImmediateNotification(
-                i18n.get("errorTitle"),
-                i18n.get("liveReplayCouldNotBeStarted"),
-                Severity.ERROR, throwable,
-                asList(new DismissAction(i18n), new ReportAction(i18n, reportingService, throwable))
-            ));
+            applicationContext.publishEvent(new ShowImmediateErrorNotificationEvent(throwable, "liveReplayCouldNotBeStarted"));
             return null;
           });
     } catch (URISyntaxException e) {
@@ -350,13 +335,7 @@ public class ReplayServiceImpl implements ReplayService {
     downloadReplay(replayId)
         .thenAccept(this::runReplayFile)
         .exceptionally(throwable -> {
-          notificationService.addNotification(new ImmediateNotification(
-              i18n.get("errorTitle"),
-              i18n.get("replayCouldNotBeStarted", replayId),
-              Severity.ERROR, throwable,
-              singletonList(new ReportAction(i18n, reportingService, throwable)))
-          );
-
+          applicationContext.publishEvent(new ShowImmediateErrorNotificationEvent(throwable, "replayCouldNotBeStarted", replayId));
           return null;
         });
   }

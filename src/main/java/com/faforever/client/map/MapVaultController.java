@@ -5,10 +5,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.event.MapUploadedEvent;
-import com.faforever.client.notification.DismissAction;
-import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.notificationEvents.ShowImmediateErrorNotificationEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.SearchableProperties;
 import com.faforever.client.theme.UiService;
@@ -32,6 +29,7 @@ import javafx.stage.StageStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -39,7 +37,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -68,7 +65,7 @@ public class MapVaultController extends AbstractViewController<Node> {
   private final EventBus eventBus;
   private final PreferencesService preferencesService;
   private final UiService uiService;
-  private final NotificationService notificationService;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   public Pane searchResultGroup;
   public Pane searchResultPane;
@@ -93,13 +90,13 @@ public class MapVaultController extends AbstractViewController<Node> {
 
   @Inject
   public MapVaultController(MapService mapService, I18n i18n, EventBus eventBus, PreferencesService preferencesService,
-                            UiService uiService, NotificationService notificationService) {
+                            UiService uiService, ApplicationEventPublisher applicationEventPublisher) {
     this.mapService = mapService;
     this.i18n = i18n;
     this.eventBus = eventBus;
     this.preferencesService = preferencesService;
     this.uiService = uiService;
-    this.notificationService = notificationService;
+    this.applicationEventPublisher = applicationEventPublisher;
   }
 
   @Override
@@ -292,9 +289,7 @@ public class MapVaultController extends AbstractViewController<Node> {
     mapsSupplier.get()
         .thenAccept(this::displayMaps)
         .exceptionally(e -> {
-          notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
-              i18n.get("vault.replays.searchError"), Severity.ERROR, e,
-              Collections.singletonList(new DismissAction(i18n))));
+          applicationEventPublisher.publishEvent(new ShowImmediateErrorNotificationEvent(e, "vault.replays.searchError"));
           enterShowroomState();
           return null;
         });
@@ -316,9 +311,7 @@ public class MapVaultController extends AbstractViewController<Node> {
           enterSearchResultState();
         })
         .exceptionally(e -> {
-          notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
-              i18n.get("vault.replays.searchError"), Severity.ERROR, e,
-              Collections.singletonList(new DismissAction(i18n))));
+          applicationEventPublisher.publishEvent(new ShowImmediateErrorNotificationEvent(e, "vault.replays.searchError"));
           enterShowroomState();
           return null;
         });

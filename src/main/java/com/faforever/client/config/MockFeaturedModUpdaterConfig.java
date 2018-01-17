@@ -3,7 +3,6 @@ package com.faforever.client.config;
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.game.FaInitGenerator;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.patch.FeaturedModUpdater;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.patch.GameUpdaterImpl;
@@ -26,11 +25,10 @@ public class MockFeaturedModUpdaterConfig {
   private final FafService fafService;
   private final FaInitGenerator faInitGenerator;
   private final FeaturedModUpdater featuredModUpdater;
-  private final NotificationService notificationService;
 
   @Bean
   GameUpdater gameUpdater() {
-    return new GameUpdaterImpl(modService, applicationContext, taskService, fafService, faInitGenerator, notificationService)
+    return new GameUpdaterImpl(modService, applicationContext, taskService, fafService, faInitGenerator)
         .addFeaturedModUpdater(featuredModUpdater);
   }
 }

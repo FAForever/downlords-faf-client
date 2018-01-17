@@ -4,8 +4,6 @@ import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -90,7 +88,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
@@ -135,8 +132,6 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   private TaskService taskService;
   @Mock
   private PreferencesService preferencesService;
-  @Mock
-  private NotificationService notificationService;
   @Mock
   private Preferences preferences;
   @Mock
@@ -803,8 +798,6 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void getOrCreateChatUserFoeNoNotification() throws Exception {
     instance.getOrCreateChatUser(CHAT_USER_NAME);
-
-    verify(notificationService, never()).addNotification(any(TransientNotification.class));
   }
 
   @Test

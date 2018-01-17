@@ -5,8 +5,8 @@ import com.faforever.client.game.Game;
 import com.faforever.client.game.GameBuilder;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.notification.notificationEvents.ShowTransientNotificationEvent;
 import com.faforever.client.player.event.FriendJoinedGameEvent;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
@@ -18,6 +18,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.ReflectionUtils;
 
 import static com.natpryce.hamcrest.reflection.HasAnnotationMatcher.hasAnnotation;
@@ -32,7 +33,7 @@ import static org.mockito.Mockito.when;
 public class FriendJoinedGameNotifierTest {
   private FriendJoinedGameNotifier instance;
   @Mock
-  private NotificationService notificationService;
+  private ApplicationEventPublisher applicationEventPublisher;
   @Mock
   private EventBus eventBus;
   @Mock
@@ -52,7 +53,7 @@ public class FriendJoinedGameNotifierTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new FriendJoinedGameNotifier(notificationService, i18n, eventBus, joinGameHelper, preferencesService, audioService);
+    instance = new FriendJoinedGameNotifier(applicationEventPublisher, i18n, eventBus, joinGameHelper, preferencesService, audioService);
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getNotification()).thenReturn(notification);
@@ -78,10 +79,10 @@ public class FriendJoinedGameNotifierTest {
 
     instance.onFriendJoinedGame(new FriendJoinedGameEvent(player));
 
-    ArgumentCaptor<TransientNotification> captor = ArgumentCaptor.forClass(TransientNotification.class);
-    verify(notificationService).addNotification(captor.capture());
+    ArgumentCaptor<ShowTransientNotificationEvent> captor = ArgumentCaptor.forClass(ShowTransientNotificationEvent.class);
+    verify(applicationEventPublisher).publishEvent(captor.capture());
 
-    TransientNotification notification = captor.getValue();
+    TransientNotification notification = captor.getValue().getNotification();
     assertThat(notification.getTitle(), is("junit joined My Game"));
     assertThat(notification.getText(), is("Click to join"));
     assertThat(notification.getImage(), notNullValue());
@@ -93,6 +94,6 @@ public class FriendJoinedGameNotifierTest {
 
     instance.onFriendJoinedGame(new FriendJoinedGameEvent(PlayerBuilder.create("junit").get()));
 
-    verify(notificationService, never()).addNotification(any(TransientNotification.class));
+    verify(applicationEventPublisher, never()).publishEvent(any(ShowTransientNotificationEvent.class));
   }
 }

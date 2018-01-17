@@ -10,8 +10,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotificationsController;
-import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.notification.TransientNotificationsController;
+import com.faforever.client.notification.notificationEvents.ShowTransientNotificationEvent;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
@@ -22,6 +22,7 @@ import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.remote.domain.RatingRange;
+import com.faforever.client.reporting.SupportService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
@@ -46,6 +47,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Path;
@@ -93,8 +95,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private WindowPrefs mainWindowPrefs;
   @Mock
-  private NotificationService notificationService;
-  @Mock
   private ClientUpdateService clientUpdateService;
   @Mock
   private GameService gameService;
@@ -113,7 +113,13 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private GamePathHandler gamePathHandler;
   @Mock
+  private ApplicationEventPublisher applicationEventPublisher;
+  @Mock
   private ChatController chatController;
+  @Mock
+  private NotificationService notificationService;
+  @Mock
+  private SupportService supportService;
   private MainController instance;
   private CountDownLatch mainControllerInitializedLatch;
   private BooleanProperty gameRunningProperty;
@@ -126,8 +132,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
         .setInitialMean(1500)
         .setInitialStandardDeviation(500);
 
-    instance = new MainController(preferencesService, i18n, notificationService, playerService, gameService, clientUpdateService,
-        uiService, eventBus, clientProperties, gamePathHandler, platformService);
+    instance = new MainController(preferencesService, i18n, applicationEventPublisher, playerService, gameService, clientUpdateService,
+        uiService, eventBus, clientProperties, gamePathHandler, platformService, supportService, notificationService);
 
     gameRunningProperty = new SimpleBooleanProperty();
 
@@ -227,7 +233,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnMatchMakerMessageDisplaysNotification80Quality() {
     prepareTestMatchmakerMessageTest(100);
-    verify(notificationService).addNotification(any(TransientNotification.class));
+    verify(applicationEventPublisher).publishEvent(any(ShowTransientNotificationEvent.class));
   }
 
   @Test
@@ -257,20 +263,20 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnMatchMakerMessageDisplaysNotification75Quality() {
     prepareTestMatchmakerMessageTest(101);
-    verify(notificationService).addNotification(any(TransientNotification.class));
+    verify(applicationEventPublisher).publishEvent(any(ShowTransientNotificationEvent.class));
   }
 
   @Test
   public void testOnMatchMakerMessageDoesNotDisplaysNotificationLessThan75Quality() {
     prepareTestMatchmakerMessageTest(201);
-    verify(notificationService, never()).addNotification(any(TransientNotification.class));
+    verify(applicationEventPublisher, never()).publishEvent(any(ShowTransientNotificationEvent.class));
   }
 
   @Test
   public void testOnMatchMakerMessageDoesNotDisplaysNotificationWhenGameIsRunning() {
     gameRunningProperty.set(true);
     prepareTestMatchmakerMessageTest(100);
-    verify(notificationService, never()).addNotification(any(TransientNotification.class));
+    verify(applicationEventPublisher, never()).publishEvent(any(ShowTransientNotificationEvent.class));
   }
 
   @Test
@@ -284,7 +290,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     matchmakerMessage.setQueues(null);
     matchmakerMessageCaptor.getValue().accept(matchmakerMessage);
 
-    verify(notificationService, never()).addNotification(any(TransientNotification.class));
+    verify(applicationEventPublisher, never()).publishEvent(any(ShowTransientNotificationEvent.class));
   }
 
   @Test
@@ -300,7 +306,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
         singletonList(new RatingRange(1500, 1510)), singletonList(new RatingRange(1500, 1510)))));
     matchmakerMessageCaptor.getValue().accept(matchmakerMessage);
 
-    verify(notificationService, never()).addNotification(any(TransientNotification.class));
+    verify(applicationEventPublisher, never()).publishEvent(any(ShowTransientNotificationEvent.class));
   }
 
   @Test

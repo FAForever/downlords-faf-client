@@ -1,6 +1,8 @@
 package com.faforever.client.reporting;
 
-public interface ReportingService {
+public interface SupportService {
 
   void reportError(Throwable e);
+
+  void requestSupport();
 }

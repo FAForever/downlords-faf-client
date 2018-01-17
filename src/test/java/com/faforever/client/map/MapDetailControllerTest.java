@@ -1,9 +1,8 @@
 package com.faforever.client.map;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.SupportService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewController;
@@ -17,6 +16,7 @@ import javafx.beans.property.StringProperty;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.concurrent.CompletableFuture;
@@ -31,9 +31,9 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private MapService mapService;
   @Mock
-  private NotificationService notificationService;
+  private ApplicationEventPublisher applicationEventPublisher;
   @Mock
-  private ReportingService reportingService;
+  private SupportService supportService;
   @Mock
   private TimeService timeService;
   @Mock
@@ -59,7 +59,7 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     when(mapService.downloadAndInstallMap(any(), any(DoubleProperty.class), any(StringProperty.class))).thenReturn(CompletableFuture.runAsync(() -> {
     }));
-    instance = new MapDetailController(mapService, notificationService, i18n, reportingService, timeService, playerService, reviewService, eventBus);
+    instance = new MapDetailController(mapService, applicationEventPublisher, i18n, timeService, playerService, reviewService, eventBus);
 
     loadFxml("theme/vault/map/map_detail.fxml", param -> {
       if (param == ReviewsController.class) {

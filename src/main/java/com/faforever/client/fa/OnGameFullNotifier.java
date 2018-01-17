@@ -8,11 +8,12 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.notification.notificationEvents.ShowTransientNotificationEvent;
 import com.faforever.client.util.ProgrammingError;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -32,7 +33,7 @@ public class OnGameFullNotifier {
 
   private final PlatformService platformService;
   private final Executor executor;
-  private final NotificationService notificationService;
+  private final ApplicationEventPublisher applicationEventPublisher;
   private final I18n i18n;
   private final MapService mapService;
   private final EventBus eventBus;
@@ -40,12 +41,11 @@ public class OnGameFullNotifier {
   private final String faWindowTitle;
 
   @Inject
-  public OnGameFullNotifier(PlatformService platformService, Executor executor, NotificationService notificationService,
-                            I18n i18n, MapService mapService, EventBus eventBus, ClientProperties clientProperties,
-                            GameService gameService) {
+  public OnGameFullNotifier(PlatformService platformService, Executor executor, ApplicationEventPublisher applicationEventPublisher, I18n i18n,
+                            MapService mapService, EventBus eventBus, ClientProperties clientProperties, GameService gameService) {
     this.platformService = platformService;
     this.executor = executor;
-    this.notificationService = notificationService;
+    this.applicationEventPublisher = applicationEventPublisher;
     this.i18n = i18n;
     this.mapService = mapService;
     this.eventBus = eventBus;
@@ -76,8 +76,8 @@ public class OnGameFullNotifier {
       return;
     }
 
-    notificationService.addNotification(new TransientNotification(i18n.get("game.full"), i18n.get("game.full.action"),
+    applicationEventPublisher.publishEvent(new ShowTransientNotificationEvent(new TransientNotification(i18n.get("game.full"), i18n.get("game.full.action"),
         mapService.loadPreview(currentGame.getMapFolderName(), PreviewSize.SMALL),
-        v -> platformService.focusWindow(faWindowTitle)));
+        v -> platformService.focusWindow(faWindowTitle))));
   }
 }

@@ -1,11 +1,16 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.notificationEvents.ShowImmediateNotificationEvent;
+import com.faforever.client.notification.notificationEvents.ShowPersistentNotificationEvent;
+import com.faforever.client.notification.notificationEvents.ShowTransientNotificationEvent;
+import com.faforever.client.reporting.SupportService;
 import javafx.collections.SetChangeListener;
 import javafx.collections.SetChangeListener.Change;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.testfx.util.WaitForAsyncUtils;
 
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
@@ -20,26 +25,28 @@ public class NotificationServiceImplTest {
   private NotificationServiceImpl instance;
 
   @Mock
-  private ReportingService reportingService;
+  private SupportService supportService;
+  @Mock
+  private I18n i18n;
 
   @Before
   public void setUp() throws Exception {
-    instance = new NotificationServiceImpl(reportingService);
+    instance = new NotificationServiceImpl(supportService, i18n);
   }
 
   @Test
   public void testAddNotificationPersistent() throws Exception {
-    instance.addNotification(new PersistentNotification("text", Severity.INFO));
+    instance.onPersistentNotification(new ShowPersistentNotificationEvent(new PersistentNotification("text", Severity.INFO)));
   }
 
   @Test
   public void testAddNotificationImmediate() throws Exception {
-    instance.addNotification(new ImmediateNotification("title", "text", Severity.INFO));
+    instance.onImmediateNotification(new ShowImmediateNotificationEvent(new ImmediateNotification("title", "text", Severity.INFO)));
   }
 
   @Test
   public void testAddNotificationTransient() throws Exception {
-    instance.addNotification(new TransientNotification("title", "text"));
+    instance.onTransientNotification(new ShowTransientNotificationEvent(new TransientNotification("title", "text")));
   }
 
   @Test
@@ -48,8 +55,9 @@ public class NotificationServiceImplTest {
     SetChangeListener<PersistentNotification> listener = mock(SetChangeListener.class);
 
     instance.addPersistentNotificationListener(listener);
-    instance.addNotification(mock(PersistentNotification.class));
+    instance.onPersistentNotification(new ShowPersistentNotificationEvent(mock(PersistentNotification.class)));
 
+    WaitForAsyncUtils.waitForFxEvents();
     verify(listener).onChanged(any(Change.class));
   }
 
@@ -61,8 +69,9 @@ public class NotificationServiceImplTest {
     instance.addTransientNotificationListener(listener);
 
     TransientNotification notification = mock(TransientNotification.class);
-    instance.addNotification(notification);
+    instance.onTransientNotification(new ShowTransientNotificationEvent(notification));
 
+    WaitForAsyncUtils.waitForFxEvents();
     verify(listener).onTransientNotification(notification);
   }
 
@@ -74,8 +83,9 @@ public class NotificationServiceImplTest {
     instance.addImmediateNotificationListener(listener);
 
     ImmediateNotification notification = mock(ImmediateNotification.class);
-    instance.addNotification(notification);
+    instance.onImmediateNotification(new ShowImmediateNotificationEvent(notification));
 
+    WaitForAsyncUtils.waitForFxEvents();
     verify(listener).onImmediateNotification(notification);
   }
 
@@ -84,8 +94,9 @@ public class NotificationServiceImplTest {
     assertThat(instance.getPersistentNotifications(), empty());
 
     PersistentNotification notification = mock(PersistentNotification.class);
-    instance.addNotification(notification);
+    instance.onPersistentNotification(new ShowPersistentNotificationEvent(notification));
 
+    WaitForAsyncUtils.waitForFxEvents();
     assertThat(instance.getPersistentNotifications(), hasSize(1));
     assertSame(notification, instance.getPersistentNotifications().iterator().next());
   }
@@ -97,9 +108,10 @@ public class NotificationServiceImplTest {
     PersistentNotification notification1 = mock(PersistentNotification.class);
     PersistentNotification notification2 = mock(PersistentNotification.class);
 
-    instance.addNotification(notification1);
-    instance.addNotification(notification2);
+    instance.onPersistentNotification(new ShowPersistentNotificationEvent(notification1));
+    instance.onPersistentNotification(new ShowPersistentNotificationEvent(notification2));
 
+    WaitForAsyncUtils.waitForFxEvents();
     assertThat(instance.getPersistentNotifications(), hasSize(2));
 
     instance.removeNotification(notification2);

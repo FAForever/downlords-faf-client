@@ -6,10 +6,10 @@ import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.notification.notificationEvents.ShowImmediateNotificationEvent;
+import com.faforever.client.reporting.SupportService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.Validator;
 import javafx.beans.property.SimpleFloatProperty;
@@ -21,6 +21,7 @@ import javafx.scene.layout.Pane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -37,9 +38,9 @@ public class LeaderboardController extends AbstractViewController<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final LeaderboardService leaderboardService;
-  private final NotificationService notificationService;
+  private final ApplicationEventPublisher applicationEventPublisher;
   private final I18n i18n;
-  private final ReportingService reportingService;
+  private final SupportService supportService;
   public Pane leaderboardRoot;
   public TableColumn<LeaderboardEntry, Number> rankColumn;
   public TableColumn<LeaderboardEntry, String> nameColumn;
@@ -53,11 +54,11 @@ public class LeaderboardController extends AbstractViewController<Node> {
   private KnownFeaturedMod ratingType;
 
   @Inject
-  public LeaderboardController(LeaderboardService leaderboardService, NotificationService notificationService, I18n i18n, ReportingService reportingService) {
+  public LeaderboardController(LeaderboardService leaderboardService, ApplicationEventPublisher applicationEventPublisher, I18n i18n, SupportService supportService) {
     this.leaderboardService = leaderboardService;
-    this.notificationService = notificationService;
+    this.applicationEventPublisher = applicationEventPublisher;
     this.i18n = i18n;
-    this.reportingService = reportingService;
+    this.supportService = supportService;
   }
 
   @Override
@@ -122,14 +123,14 @@ public class LeaderboardController extends AbstractViewController<Node> {
     }).exceptionally(throwable -> {
       contentPane.setVisible(false);
       logger.warn("Error while loading leaderboard entries", throwable);
-      notificationService.addNotification(new ImmediateNotification(
+      applicationEventPublisher.publishEvent(new ShowImmediateNotificationEvent(new ImmediateNotification(
           i18n.get("errorTitle"), i18n.get("leaderboard.failedToLoad"),
           Severity.ERROR, throwable,
           Arrays.asList(
-              new ReportAction(i18n, reportingService, throwable),
+              new ReportAction(i18n, supportService, throwable),
               new DismissAction(i18n)
           )
-      ));
+      )));
       return null;
     });
   }

@@ -7,13 +7,9 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.NavigateEvent;
 import com.faforever.client.main.NavigationItem;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
-import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.ReportAction;
-import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.notificationEvents.ShowImmediateErrorNotificationEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
@@ -37,6 +33,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -44,18 +41,15 @@ import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static java.util.Collections.singletonList;
-
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 public class MapDetailController implements Controller<Node> {
 
   private final MapService mapService;
-  private final NotificationService notificationService;
+  private final ApplicationEventPublisher applicationEventPublisher;
   private final I18n i18n;
   private final TimeService timeService;
-  private final ReportingService reportingService;
   private final PlayerService playerService;
   private final ReviewService reviewService;
 
@@ -80,13 +74,12 @@ public class MapDetailController implements Controller<Node> {
   private ListChangeListener<MapBean> installStatusChangeListener;
 
   @Inject
-  public MapDetailController(MapService mapService, NotificationService notificationService, I18n i18n,
-                             ReportingService reportingService, TimeService timeService, PlayerService playerService,
+  public MapDetailController(MapService mapService, ApplicationEventPublisher applicationEventPublisher, I18n i18n,
+                             TimeService timeService, PlayerService playerService,
                              ReviewService reviewService, EventBus eventBus) {
     this.mapService = mapService;
-    this.notificationService = notificationService;
+    this.applicationEventPublisher = applicationEventPublisher;
     this.i18n = i18n;
-    this.reportingService = reportingService;
     this.timeService = timeService;
     this.playerService = playerService;
     this.reviewService = reviewService;
@@ -232,10 +225,7 @@ public class MapDetailController implements Controller<Node> {
     mapService.downloadAndInstallMap(map, progressBar.progressProperty(), progressLabel.textProperty())
         .thenRun(() -> setInstalled(true))
         .exceptionally(throwable -> {
-          notificationService.addNotification(new ImmediateNotification(
-              i18n.get("errorTitle"),
-              i18n.get("mapVault.installationFailed", map.getDisplayName(), throwable.getLocalizedMessage()),
-              Severity.ERROR, throwable, singletonList(new ReportAction(i18n, reportingService, throwable))));
+          applicationEventPublisher.publishEvent(new ShowImmediateErrorNotificationEvent(throwable, "mapVault.installationFailed"));
           setInstalled(false);
           return null;
         });
@@ -249,10 +239,7 @@ public class MapDetailController implements Controller<Node> {
     mapService.uninstallMap(map)
         .thenRun(() -> setInstalled(false))
         .exceptionally(throwable -> {
-          notificationService.addNotification(new ImmediateNotification(
-              i18n.get("errorTitle"),
-              i18n.get("mapVault.couldNotDeleteMap", map.getDisplayName(), throwable.getLocalizedMessage()),
-              Severity.ERROR, throwable, singletonList(new ReportAction(i18n, reportingService, throwable))));
+          applicationEventPublisher.publishEvent(new ShowImmediateErrorNotificationEvent(throwable, "mapVault.couldNotDeleteMap"));
           setInstalled(true);
           return null;
         });

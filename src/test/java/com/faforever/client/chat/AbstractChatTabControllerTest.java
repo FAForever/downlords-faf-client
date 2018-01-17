@@ -18,7 +18,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ExternalReplayInfoGenerator;
 import com.faforever.client.replay.Replay;
 import com.faforever.client.replay.ReplayService;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.SupportService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
@@ -45,6 +45,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.Instant;
@@ -98,7 +99,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private I18n i18n;
   @Mock
-  private NotificationService notificationService;
+  private ApplicationEventPublisher applicationEventPublisher;
   @Mock
   private AutoCompletionHelper autoCompletionHelper;
   @Mock
@@ -108,7 +109,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private WebViewConfigurer webViewConfigurer;
   @Mock
-  private ReportingService reportingService;
+  private SupportService supportService;
   @Mock
   private EventBus eventBus;
   @Mock
@@ -119,6 +120,8 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   private ClientProperties clientProperties;
   @Mock
   private ExternalReplayInfoGenerator externalReplayInfoGenerator;
+  @Mock
+  private NotificationService notificationService;
 
   private Preferences preferences;
   private AbstractChatTabController instance;
@@ -147,8 +150,8 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
     instance = new AbstractChatTabController(clanService, webViewConfigurer, userService,
         chatService, platformService, preferencesService, playerService,
-        audioService, timeService, i18n, imageUploadService,
-        urlPreviewResolver, notificationService, reportingService,
+        audioService, timeService, i18n, applicationEventPublisher, imageUploadService,
+        urlPreviewResolver, notificationService, supportService,
         uiService, autoCompletionHelper, eventBus, countryFlagService, replayService, clientProperties, externalReplayInfoGenerator) {
       private final Tab root = new Tab();
       private final WebView webView = new WebView();

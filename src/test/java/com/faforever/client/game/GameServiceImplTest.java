@@ -10,8 +10,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.notificationEvents.ShowPersistentErrorNotificationEvent;
+import com.faforever.client.notification.notificationEvents.ShowPersistentNotificationEvent;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
@@ -23,7 +23,7 @@ import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.replay.ExternalReplayInfoGenerator;
 import com.faforever.client.replay.ReplayService;
-import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.SupportService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -37,6 +37,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.ReflectionUtils;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -114,11 +115,11 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private ModService modService;
   @Mock
-  private NotificationService notificationService;
+  private ApplicationEventPublisher applicationEventPublisher;
   @Mock
   private I18n i18n;
   @Mock
-  private ReportingService reportingService;
+  private SupportService supportService;
   @Mock
   private PlatformService platformService;
   @Mock
@@ -139,8 +140,8 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     clientProperties.getReplay().setLocalServerPort(LOCAL_REPLAY_PORT);
 
     instance = new GameServiceImpl(clientProperties, fafService, forgedAllianceService, mapService,
-        preferencesService, gameUpdater, notificationService, i18n, executor, playerService,
-        reportingService, eventBus, iceAdapter, modService, platformService, externalReplayInfoGenerator);
+        preferencesService, gameUpdater, applicationEventPublisher, i18n, executor, playerService,
+        supportService, eventBus, iceAdapter, modService, platformService, externalReplayInfoGenerator);
     instance.replayService = replayService;
 
     Preferences preferences = new Preferences();
@@ -507,11 +508,11 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     instance.currentGame.set(game);
 
-    verify(notificationService, never()).addNotification(any(PersistentNotification.class));
+    verify(applicationEventPublisher, never()).publishEvent(any(ShowPersistentErrorNotificationEvent.class));
 
     game.setStatus(CLOSED);
 
     WaitForAsyncUtils.waitForFxEvents();
-    verify(notificationService).addNotification(any(PersistentNotification.class));
+    verify(applicationEventPublisher).publishEvent(any(ShowPersistentNotificationEvent.class));
   }
 }
