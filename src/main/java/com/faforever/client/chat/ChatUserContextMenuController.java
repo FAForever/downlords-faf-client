@@ -21,6 +21,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ColorPicker;
@@ -86,6 +87,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public MenuItem kickItem;
   public MenuItem banItem;
   public ContextMenu chatUserContextMenuRoot;
+  public MenuItem showUserInfo;
   private Player player;
 
   @Inject
@@ -126,6 +128,8 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
   public void setPlayer(Player player) {
     this.player = player;
+    showUserInfo.visibleProperty().bind(Bindings.createBooleanBinding(() -> player.getId() > 0, player.idProperty()));
+
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
     String lowerCaseUsername = player.getUsername().toLowerCase(US);
