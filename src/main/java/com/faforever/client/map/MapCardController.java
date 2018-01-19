@@ -90,7 +90,9 @@ public class MapCardController implements Controller<Node> {
     maxPlayersLabel.setText(i18n.number(map.getPlayers()));
 
     ObservableList<MapBean> installedMaps = mapService.getInstalledMaps();
-    installedMaps.addListener(new WeakListChangeListener<>(installedMapsChangeListener));
+    synchronized (installedMaps) {
+      installedMaps.addListener(new WeakListChangeListener<>(installedMapsChangeListener));
+    }
 
     ObservableList<Review> reviews = map.getReviews();
     reviews.addListener(new WeakInvalidationListener(reviewsChangedListener));

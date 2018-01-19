@@ -25,6 +25,7 @@ import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.collections.WeakListChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -192,7 +193,10 @@ public class MapDetailController implements Controller<Node> {
         .map(FaStrings::removeLocalizationTag)
         .orElseGet(() -> i18n.get("map.noDescriptionAvailable")), map.descriptionProperty()));
 
-    mapService.getInstalledMaps().addListener(new WeakListChangeListener<>(installStatusChangeListener));
+    ObservableList<MapBean> installedMaps = mapService.getInstalledMaps();
+    synchronized (installedMaps) {
+      installedMaps.addListener(new WeakListChangeListener<>(installStatusChangeListener));
+    }
     setInstalled(mapService.isInstalled(map.getFolderName()));
   }
 

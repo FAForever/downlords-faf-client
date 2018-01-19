@@ -262,10 +262,13 @@ public class MapServiceImpl implements MapService {
   @Override
   public MapBean getMapBeanLocallyFromName(String mapName) {
     logger.debug("Trying to return {} mapInfoBean locally", mapName);
-    for (MapBean mapBean : getInstalledMaps()) {
-      if (mapName.equalsIgnoreCase(mapBean.getDisplayName())) {
-        logger.debug("Found map {} locally", mapName);
-        return mapBean;
+    ObservableList<MapBean> installedMaps = getInstalledMaps();
+    synchronized (installedMaps) {
+      for (MapBean mapBean : installedMaps) {
+        if (mapName.equalsIgnoreCase(mapBean.getDisplayName())) {
+          logger.debug("Found map {} locally", mapName);
+          return mapBean;
+        }
       }
     }
     return null;
