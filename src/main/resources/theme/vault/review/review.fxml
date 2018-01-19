@@ -12,7 +12,8 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="ownReviewRoot" spacing="20.0" xmlns="http://javafx.com/javafx/8.0.111"
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="ownReviewRoot" maxHeight="1.7976931348623157E308" minWidth="100.0"
+      spacing="20.0" xmlns="http://javafx.com/javafx/8.0.111"
       fx:controller="com.faforever.client.vault.review.ReviewController">
     <children>
         <GridPane fx:id="displayReviewPane" hgap="5.0" maxHeight="1.7976931348623157E308"
@@ -25,8 +26,8 @@
                 <ColumnConstraints hgrow="NEVER"/>
             </columnConstraints>
             <rowConstraints>
-                <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-                <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
+                <RowConstraints maxHeight="1.7976931348623157E308" vgrow="NEVER"/>
+                <RowConstraints maxHeight="1.7976931348623157E308" minHeight="10.0" vgrow="ALWAYS"/>
             </rowConstraints>
             <children>
                 <ImageView fx:id="avatarImageView" fitHeight="48.0" fitWidth="48.0" pickOnBounds="true"
