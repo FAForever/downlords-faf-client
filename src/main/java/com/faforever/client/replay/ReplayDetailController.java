@@ -141,7 +141,7 @@ public class ReplayDetailController implements Controller<Node> {
 
     reviewsController.getRoot().setMaxSize(Integer.MAX_VALUE, Integer.MAX_VALUE);
 
-    copyButton.setText(i18n.get("replay.copyLink"));
+    copyButton.setText(i18n.get("replay.copyUrl"));
     onClosure = () -> ((Pane) replayDetailRoot.getParent()).getChildren().remove(replayDetailRoot);
   }
 
