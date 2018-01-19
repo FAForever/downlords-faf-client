@@ -24,6 +24,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -105,30 +106,6 @@ public class Mod {
     return mod;
   }
 
-  public static Mod fromModInfo(com.faforever.client.api.dto.Mod mod) {
-    ModVersion modVersion = mod.getLatestVersion();
-
-    Mod modInfoBean = new Mod();
-    modInfoBean.setDisplayName(mod.getDisplayName());
-    modInfoBean.setUploader(mod.getAuthor());
-    modInfoBean.setVersion(new ComparableVersion(String.valueOf(modVersion.getVersion())));
-//    modInfoBean.setLikes(modVersion.getLikes());
-//    modInfoBean.setPlayed(mod.getPlayed());
-    modInfoBean.setCreateTime(modVersion.getCreateTime().toLocalDateTime());
-    modInfoBean.setDescription(modVersion.getDescription());
-    modInfoBean.setId(modVersion.getId());
-    modInfoBean.setUid(modVersion.getUid());
-//    modInfoBean.setDownloads(mod));
-    modInfoBean.setThumbnailUrl(modVersion.getThumbnailUrl());
-//    modInfoBean.getComments().setAll(mod.getComments());
-    modInfoBean.setDownloadUrl(modVersion.getDownloadUrl());
-    modInfoBean.setReviewsSummary(ReviewsSummary.fromDto(modVersion.getModVersionReviewsSummary()));
-    if (mod.getUpdateTime() != null) {
-      mod.setUpdateTime(mod.getUpdateTime());
-    }
-    return modInfoBean;
-  }
-
   public URL getDownloadUrl() {
     return downloadUrl.get();
   }
@@ -161,10 +138,13 @@ public class Mod {
     mod.setDescription(modVersion.getDescription());
     mod.setDisplayName(dto.getDisplayName());
     mod.setId(modVersion.getId());
+    mod.setUid(modVersion.getUid());
     mod.setVersion(modVersion.getVersion());
     mod.setDownloadUrl(modVersion.getDownloadUrl());
     mod.setThumbnailUrl(modVersion.getThumbnailUrl());
+    mod.setReviewsSummary(ReviewsSummary.fromDto(modVersion.getModVersionReviewsSummary()));
     mod.setCreateTime(modVersion.getCreateTime().toLocalDateTime());
+    Optional.ofNullable(dto.getUpdateTime()).map(OffsetDateTime::toLocalDateTime).ifPresent(mod::setUpdateTime);
     mod.getReviews().setAll(
         dto.getVersions().stream()
             .filter(v -> v.getReviews() != null)

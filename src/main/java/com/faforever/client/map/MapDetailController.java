@@ -163,6 +163,8 @@ public class MapDetailController implements Controller<Node> {
     installButton.setVisible(!mapInstalled);
 
     Player player = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("No user is logged in"));
+
+    reviewsController.setCanWriteReview(false);
     mapService.hasPlayedMap(player.getId(), map.getId())
         .thenAccept(hasPlayed -> reviewsController.setCanWriteReview(hasPlayed));
 

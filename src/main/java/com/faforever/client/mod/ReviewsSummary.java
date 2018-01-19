@@ -26,11 +26,13 @@ public class ReviewsSummary {
 
   public static ReviewsSummary fromDto(com.faforever.client.api.dto.ReviewsSummary dto) {
     ReviewsSummary reviewsSummary = new ReviewsSummary();
-    reviewsSummary.setId(dto.getId());
-    reviewsSummary.setPositive(dto.getPositive());
-    reviewsSummary.setNegative(dto.getNegative());
-    reviewsSummary.setScore(dto.getScore());
-    reviewsSummary.setLowerBound(dto.getLowerBound());
+    if (dto != null) {
+      reviewsSummary.setId(dto.getId());
+      reviewsSummary.setPositive(dto.getPositive());
+      reviewsSummary.setNegative(dto.getNegative());
+      reviewsSummary.setScore(dto.getScore());
+      reviewsSummary.setLowerBound(dto.getLowerBound());
+    }
     return reviewsSummary;
   }
 

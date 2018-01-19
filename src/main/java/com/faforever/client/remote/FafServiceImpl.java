@@ -160,14 +160,14 @@ public class FafServiceImpl implements FafService {
   @Async
   public CompletableFuture<List<Mod>> getMods() {
     return CompletableFuture.completedFuture(fafApiAccessor.getMods().stream()
-        .map(Mod::fromModInfo)
+        .map(Mod::fromModDto)
         .collect(toList()));
   }
 
   @Override
   @Async
   public CompletableFuture<Mod> getMod(String uid) {
-    return CompletableFuture.completedFuture(Mod.fromModInfo(fafApiAccessor.getMod(uid)));
+    return CompletableFuture.completedFuture(Mod.fromModDto(fafApiAccessor.getMod(uid)));
   }
 
   @Override
