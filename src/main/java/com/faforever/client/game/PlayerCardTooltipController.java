@@ -31,12 +31,16 @@ public class PlayerCardTooltipController implements Controller<Node> {
   }
 
   public void setPlayer(Player player) {
+    setPlayerWithRating(player, RatingUtil.getRoundedGlobalRating(player));
+  }
+
+  public void setPlayerWithRating(Player player, int rating) {
     if (player == null) {
       return;
     }
     countryFlagService.loadCountryFlag(player.getCountry()).ifPresent(image -> countryImageView.setImage(image));
 
-    String playerInfoLocalized = i18n.get("userInfo.tooltipFormat", player.getUsername(), RatingUtil.getRoundedGlobalRating(player));
+    String playerInfoLocalized = i18n.get("userInfo.tooltipFormat", player.getUsername(), rating);
     playerInfo.setText(playerInfoLocalized);
   }
 

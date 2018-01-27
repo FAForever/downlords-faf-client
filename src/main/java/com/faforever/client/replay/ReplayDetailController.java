@@ -282,7 +282,7 @@ public class ReplayDetailController implements Controller<Node> {
           .thenAccept(players -> controller.setPlayersInTeam(team, players, player -> {
             PlayerStats playerStats = statsByPlayerId.get(player.getId());
             return new Rating(playerStats.getBeforeMean(), playerStats.getBeforeDeviation());
-          }));
+          }, false));
 
       teamsContainer.getChildren().add(controller.getRoot());
     }));
