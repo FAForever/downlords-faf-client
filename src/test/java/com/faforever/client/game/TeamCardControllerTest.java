@@ -62,13 +62,13 @@ public class TeamCardControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void setPlayersInTeam() throws Exception {
-    instance.setPlayersInTeam("2", playerList, player -> new Rating(1000, 0));
+    instance.setPlayersInTeam("2", playerList, player -> new Rating(1000, 0), true);
     verify(i18n).get("game.tooltip.teamTitle", 1, 1000);
   }
 
   @Test
   public void showRatingChange() throws Exception {
-    instance.setPlayersInTeam("2", playerList, player -> new Rating(1000, 0));
+    instance.setPlayersInTeam("2", playerList, player -> new Rating(1000, 0), true);
     instance.showRatingChange(teams);
     verify(ratingChangeLabelController).setRatingChange(playerStats);
   }
