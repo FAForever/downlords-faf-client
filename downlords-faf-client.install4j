@@ -57,7 +57,7 @@
         <content># Enter one VM parameter per line
 
 # Adjust maximum memory usage to 300MiB
--Xmx300m</content>
+-Xmx300m -XX:+HeapDumpOnOutOfMemoryError -Dprism.dirtyopts=false</content>
       </vmOptionsFile>
       <customScript mode="1" file="">
         <content />

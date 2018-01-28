@@ -7,7 +7,7 @@
       </pattern>
     </extension>
     <option name="MAIN_CLASS_NAME" value="com.faforever.client.FafClientApplication" />
-    <option name="VM_PARAMETERS" value="-XX:+UseConcMarkSweepGC -DnativeDir=build/resources/native -Dprism.dirtyopts=false" />
+    <option name="VM_PARAMETERS" value="-XX:+UseConcMarkSweepGC -DnativeDir=build/resources/native -Dprism.dirtyopts=false -Xmx300m -XX:+HeapDumpOnOutOfMemoryError" />
     <option name="PROGRAM_PARAMETERS" value="" />
     <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
