@@ -168,7 +168,7 @@ public class PlayerServiceImpl implements PlayerService {
           GameStatus gameStatus = game.getStatus();
           if (player.getSocialStatus() == FRIEND) {
             if (gameStatus == GameStatus.OPEN) {
-              eventBus.post(new FriendJoinedGameEvent(player));
+              eventBus.post(new FriendJoinedGameEvent(player, game));
             } else if (gameStatus == GameStatus.PLAYING) {
               // TODO implement
 //              eventBus.post(new FriendPlaysGameEvent(player));

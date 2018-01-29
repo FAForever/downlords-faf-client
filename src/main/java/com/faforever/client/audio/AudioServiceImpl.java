@@ -142,7 +142,8 @@ public class AudioServiceImpl implements AudioService {
     if (!notificationsPrefs.isFriendJoinsGameSoundEnabled()) {
       return;
     }
-    playSound(friendJoinsGameSound);
+    // FIXME implement
+//    playSound(friendJoinsGameSound);
   }
 
   @Override
