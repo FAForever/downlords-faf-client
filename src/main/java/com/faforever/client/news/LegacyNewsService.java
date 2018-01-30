@@ -20,6 +20,7 @@ import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -92,7 +93,7 @@ public class LegacyNewsService implements NewsService {
 
       result.add(new NewsItem(author, link, title, content, publishedDate, newsCategory));
     }
-
+    result.sort(Comparator.comparing(NewsItem::getDate).reversed());
     return result;
   }
 }
