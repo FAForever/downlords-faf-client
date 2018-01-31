@@ -25,6 +25,7 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -37,6 +38,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
+@Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class CustomGamesController implements Controller<Node> {
@@ -68,6 +70,7 @@ public class CustomGamesController implements Controller<Node> {
   public ChoiceBox<TilesSortingOrder> chooseSortingTypeChoiceBox;
 
   private FilteredList<Game> filteredItems;
+  private CreateGameController createGameController;
 
   @Inject
   public CustomGamesController(UiService uiService, GameService gameService, PreferencesService preferencesService,
@@ -140,7 +143,7 @@ public class CustomGamesController implements Controller<Node> {
       return;
     }
 
-    CreateGameController createGameController = uiService.loadFxml("theme/play/create_game.fxml");
+    createGameController = uiService.loadFxml("theme/play/create_game.fxml");
 
     Pane createGameRoot = createGameController.getRoot();
     gamesRoot.getChildren().add(createGameRoot);
@@ -153,7 +156,15 @@ public class CustomGamesController implements Controller<Node> {
 
   @Subscribe
   public void onHostMapInCustomGameEvent(HostMapInCustomGameEvent event) {
-    createGameButton.fire();
+    onCreateGameButtonClicked();
+    createGameController.setOnInitialized(() -> {
+      if (createGameController != null) {
+        boolean mapFound = createGameController.selectMap(event.getFolderName());
+        if (!mapFound) {
+          log.warn("Map with id {} could not be found in map list", event.getFolderName());
+        }
+      }
+    });
   }
 
   public Node getRoot() {

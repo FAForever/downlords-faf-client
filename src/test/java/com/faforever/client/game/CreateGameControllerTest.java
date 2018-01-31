@@ -15,6 +15,7 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -35,9 +36,11 @@ import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -95,9 +98,16 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     loadFxml("theme/play/create_game.fxml", clazz -> instance);
   }
 
+  private void initInstance() {
+    Platform.runLater(() -> instance.onDisplay());
+    WaitForAsyncUtils.waitForFxEvents();
+  }
+
   @Test
   public void testMapSearchTextFieldFilteringEmpty() throws Exception {
     instance.mapSearchTextField.setText("Test");
+
+    initInstance();
 
     assertThat(instance.filteredMapBeans.getSource(), empty());
   }
@@ -108,6 +118,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     mapList.add(MapBuilder.create().defaultValues().folderName("test2").get());
     mapList.add(MapBuilder.create().defaultValues().displayName("foo").get());
 
+    initInstance();
+
     instance.mapSearchTextField.setText("Test");
 
     assertThat(instance.filteredMapBeans.get(0).getFolderName(), is("test2"));
@@ -115,7 +127,19 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void testSelectMap() throws Exception {
+    MapBean testMap = MapBuilder.create().defaultValues().folderName("test2").get();
+    mapList.add(testMap);
+    instance.mapListView.setItems(mapList);
+
+    assertTrue(instance.selectMap("test2"));
+    assertThat(instance.mapListView.getSelectionModel().getSelectedItem(), equalTo(testMap));
+  }
+
+  @Test
   public void testMapSearchTextFieldKeyPressedUpForEmpty() throws Exception {
+    initInstance();
+
     instance.mapSearchTextField.setText("Test");
 
     instance.mapSearchTextField.getOnKeyPressed().handle(keyUpPressed);
@@ -125,19 +149,12 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testMapSearchTextFieldKeyPressedDownForEmpty() throws Exception {
-    instance.mapSearchTextField.setText("Test");
-
-    instance.mapSearchTextField.getOnKeyPressed().handle(keyDownPressed);
-    instance.mapSearchTextField.getOnKeyPressed().handle(keyDownReleased);
-
-    assertThat(instance.mapListView.getSelectionModel().getSelectedIndex(), is(-1));
-  }
-
-  @Test
   public void testMapSearchTextFieldKeyPressedUpForPopulated() throws Exception {
     mapList.add(MapBuilder.create().defaultValues().displayName("Test1").get());
     mapList.add(MapBuilder.create().defaultValues().displayName("Test1").get());
+
+    initInstance();
+
     instance.mapSearchTextField.setText("Test");
 
     instance.mapSearchTextField.getOnKeyPressed().handle(keyDownPressed);
@@ -152,6 +169,9 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   public void testMapSearchTextFieldKeyPressedDownForPopulated() throws Exception {
     mapList.add(MapBuilder.create().defaultValues().displayName("Test1").get());
     mapList.add(MapBuilder.create().defaultValues().displayName("Test1").get());
+
+    initInstance();
+
     instance.mapSearchTextField.setText("Test");
 
     instance.mapSearchTextField.getOnKeyPressed().handle(keyDownPressed);
@@ -165,8 +185,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     preferences.setLastGameTitle("testGame");
     preferences.getForgedAlliance().setPath(Paths.get(""));
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
+    initInstance();
 
     assertThat(instance.titleTextField.getText(), is("testGame"));
   }
@@ -177,8 +196,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     preferences.setLastGameTitle("123");
     when(i18n.get("game.create.featuredModMissing")).thenReturn("Mod missing");
     preferences.getForgedAlliance().setPath(Paths.get(""));
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
+
+    initInstance();
 
     assertThat(instance.titleTextField.getText(), is("123"));
     assertThat(instance.createGameButton.getText(), is("Mod missing"));
@@ -189,8 +208,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
     when(i18n.get("game.create.titleMissing")).thenReturn("title missing");
     preferences.getForgedAlliance().setPath(Paths.get(""));
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
+
+    initInstance();
 
     assertThat(instance.titleTextField.getText(), is(""));
     assertThat(instance.createGameButton.getText(), is("title missing"));
@@ -201,8 +220,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.DISCONNECTED));
     when(i18n.get("game.create.disconnected")).thenReturn("disconnected");
     preferences.getForgedAlliance().setPath(Paths.get(""));
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
+
+    initInstance();
 
     assertThat(instance.titleTextField.getText(), is(""));
     assertThat(instance.createGameButton.getText(), is("disconnected"));
@@ -213,8 +232,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTING));
     when(i18n.get("game.create.connecting")).thenReturn("connecting");
     preferences.getForgedAlliance().setPath(Paths.get(""));
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
+
+    initInstance();
 
     assertThat(instance.titleTextField.getText(), is(""));
     assertThat(instance.createGameButton.getText(), is("connecting"));
@@ -228,8 +247,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     mapList.add(MapBuilder.create().defaultValues().folderName("Test1").get());
     mapList.add(lastMapBean);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
+    initInstance();
 
     assertThat(instance.mapListView.getSelectionModel().getSelectedItem(), is(lastMapBean));
   }
@@ -247,8 +265,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
     when(modService.getFeaturedMods()).thenReturn(completedFuture(singletonList(featuredMod)));
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
+    initInstance();
 
     assertThat(instance.featuredModListView.getItems(), hasSize(1));
     assertThat(instance.featuredModListView.getItems().get(0), is(featuredMod));
@@ -262,8 +279,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     preferences.setLastGameType(null);
     when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredMod, featuredMod2)));
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
+    initInstance();
 
     assertThat(instance.featuredModListView.getSelectionModel().getSelectedItem(), is(featuredMod2));
   }
@@ -276,8 +292,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     preferences.setLastGameType("last");
     when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredMod, featuredMod2)));
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
+    initInstance();
 
     assertThat(instance.featuredModListView.getSelectionModel().getSelectedItem(), is(featuredMod));
   }
@@ -292,9 +307,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     when(modService.getInstalledMods()).thenReturn(FXCollections.observableArrayList(
         mod1, mod2
     ));
-
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
+    initInstance();
 
     assertThat(instance.modListView.getItems(), hasSize(2));
     assertThat(instance.modListView.getItems(), contains(mod1, mod2));
