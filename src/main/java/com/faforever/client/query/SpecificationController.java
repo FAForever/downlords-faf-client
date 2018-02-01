@@ -3,6 +3,7 @@ package com.faforever.client.query;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.ProgrammingError;
+import com.faforever.client.util.ReflectionUtil;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator;
@@ -263,7 +264,8 @@ public class SpecificationController implements Controller<Node> {
     String fieldName;
     while (!path.isEmpty()) {
       fieldName = path.remove(0);
-      Class<?> clazz = targetClass.getDeclaredField(fieldName).getType();
+      Class<?> clazz = ReflectionUtil.getDeclaredField(fieldName, targetClass);
+
       if (Iterable.class.isAssignableFrom(clazz)) {
         ParameterizedType genericType = (ParameterizedType) targetClass.getDeclaredField(fieldName).getGenericType();
         targetClass = (Class<?>) genericType.getActualTypeArguments()[0];
@@ -271,7 +273,6 @@ public class SpecificationController implements Controller<Node> {
         targetClass = clazz;
       }
     }
-
     return targetClass;
   }
 
