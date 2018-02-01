@@ -6,6 +6,7 @@ import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.GameLaunchMessage;
+import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -55,4 +56,8 @@ public interface FafServerAccessor {
   void selectAvatar(URL url);
 
   List<Avatar> getAvailableAvatars();
+
+  CompletableFuture<List<IceServer>> getIceServers();
+
+  void restoreGameSession(int id);
 }

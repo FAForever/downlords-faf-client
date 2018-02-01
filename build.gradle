@@ -206,7 +206,7 @@ task githubRelease(type: ReleaseTask, overwrite: true) {
 }
 
 task downloadIceAdapter(type: Download) {
-  src "https://github.com/FAForever/ice-adapter/releases/download/v${faf_ice_adapter_version}/faf-ice-adapter.zip"
+  src "https://github.com/FAForever/ice-adapter/releases/download/v${faf_ice_adapter_version}/faf-ice-adapter-win32.zip"
   dest file("${buildDir}/tmp/faf-ice-adapter.zip")
   onlyIfNewer true
 }

@@ -31,6 +31,7 @@ import com.faforever.client.player.Player;
 import com.faforever.client.remote.domain.GameEndedMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.IceMessage;
+import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.replay.Replay;
@@ -450,6 +451,16 @@ public class FafServiceImpl implements FafService {
   public CompletableFuture<Optional<Replay>> findReplayById(int id) {
     return CompletableFuture.completedFuture(fafApiAccessor.findReplayById(id)
         .map(Replay::fromDto));
+  }
+
+  @Override
+  public CompletableFuture<List<IceServer>> getIceServers() {
+    return fafServerAccessor.getIceServers();
+  }
+
+  @Override
+  public void restoreGameSession(int id) {
+    fafServerAccessor.restoreGameSession(id);
   }
 
   @Async

@@ -5,14 +5,8 @@ faf-client:
   irc:
     host: irc.test.faforever.com
 
-  ice:
-    turn:
-      host: test.faforever.com
-    stun:
-      host: test.faforever.com
-
   vault:
-    base-url: https://content.test.faforever.com
+    base-url: http://content.test.faforever.com
 
   news:
     feed-url: http://direct.faforever.com/news/feed

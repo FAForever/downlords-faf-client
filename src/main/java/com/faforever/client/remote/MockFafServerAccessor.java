@@ -18,6 +18,7 @@ import com.faforever.client.remote.domain.GameAccess;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameStatus;
+import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.Player;
 import com.faforever.client.remote.domain.PlayersMessage;
@@ -283,6 +284,16 @@ public class MockFafServerAccessor implements FafServerAccessor {
   @Override
   public List<Avatar> getAvailableAvatars() {
     return emptyList();
+  }
+
+  @Override
+  public CompletableFuture<List<IceServer>> getIceServers() {
+    return CompletableFuture.completedFuture(Collections.emptyList());
+  }
+
+  @Override
+  public void restoreGameSession(int id) {
+
   }
 
 
