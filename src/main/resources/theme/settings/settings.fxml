@@ -35,6 +35,8 @@
                                         <Label styleClass="h3" text="%settings.general.theme" />
                                         <ComboBox fx:id="themeComboBox" disable="true" />
                                         <CheckBox fx:id="rememberLastTabCheckBox" mnemonicParsing="false" text="%settings.general.rememberLastTab" />
+                                        <Label styleClass="h3" text="%settings.general.unitDatabase"/>
+                                        <ComboBox fx:id="unitDatabaseComboBox"/>
                                     </children>
                                 </VBox>
                             </children>

@@ -5,16 +5,24 @@ import com.faforever.client.game.KnownFeaturedMod;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
+import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.util.Pair;
+import lombok.Getter;
+
+import java.net.HttpCookie;
+import java.net.URI;
+import java.util.ArrayList;
 
 import static javafx.collections.FXCollections.observableArrayList;
 
@@ -43,6 +51,8 @@ public class Preferences {
   private final VaultPrefs vaultPrefs;
   private final ListProperty<Pair<String, SortType>> gameListSorting;
   private final ObjectProperty<TilesSortingOrder> gameTileSortingOrder;
+  private final ObjectProperty<UnitDataBaseType> unitDataBaseType;
+  private final MapProperty<URI, ArrayList<HttpCookie>> storedCookies;
 
   public Preferences() {
     gameTileSortingOrder = new SimpleObjectProperty<>(TilesSortingOrder.PLAYER_DES);
@@ -67,7 +77,8 @@ public class Preferences {
     developer = new DeveloperPrefs();
     gameListSorting = new SimpleListProperty<>(observableArrayList());
     vaultPrefs = new VaultPrefs();
-
+    unitDataBaseType = new SimpleObjectProperty<>(UnitDataBaseType.RACKOVER);
+    storedCookies = new SimpleMapProperty<>();
   }
 
   public VaultPrefs getVaultPrefs() {
@@ -235,4 +246,31 @@ public class Preferences {
     return gameListSorting.get();
   }
 
+  public UnitDataBaseType getUnitDataBaseType() {
+    return unitDataBaseType.get();
+  }
+
+  public void setUnitDataBaseType(UnitDataBaseType unitDataBaseType) {
+    this.unitDataBaseType.set(unitDataBaseType);
+  }
+
+  public ObjectProperty<UnitDataBaseType> unitDataBaseTypeProperty() {
+    return unitDataBaseType;
+  }
+
+  public ObservableMap<URI, ArrayList<HttpCookie>> getStoredCookies() {
+    return storedCookies;
+  }
+
+  public enum UnitDataBaseType {
+    SPOOKY("unitDatabase.spooky"),
+    RACKOVER("unitDatabase.rackover");
+
+    @Getter
+    private final String i18nKey;
+
+    UnitDataBaseType(String i18nKey) {
+      this.i18nKey = i18nKey;
+    }
+  }
 }

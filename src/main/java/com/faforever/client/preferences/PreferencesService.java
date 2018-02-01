@@ -10,6 +10,7 @@ import com.google.gson.GsonBuilder;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
 import javafx.beans.property.Property;
+import javafx.collections.ObservableMap;
 import javafx.scene.paint.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +55,6 @@ public class PreferencesService {
   private static final String CORRUPTED_REPLAYS_SUB_FOLDER = "corrupt";
   private static final String CACHE_SUB_FOLDER = "cache";
   private static final String CACHE_STYLESHEETS_SUB_FOLDER = Paths.get(CACHE_SUB_FOLDER, "stylesheets").toString();
-
   public static final String SUPREME_COMMANDER_EXE = "SupremeCommander.exe";
 
   static {
@@ -98,6 +98,7 @@ public class PreferencesService {
         .registerTypeHierarchyAdapter(Path.class, PathTypeAdapter.INSTANCE)
         .registerTypeAdapter(Color.class, new ColorTypeAdapter())
         .registerTypeAdapter(Faction.class, FactionTypeAdapter.INSTANCE)
+        .registerTypeAdapter(ObservableMap.class, FactionTypeAdapter.INSTANCE)
         .create();
   }
 

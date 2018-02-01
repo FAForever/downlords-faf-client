@@ -12,6 +12,7 @@ import com.faforever.client.preferences.LanguageInfo;
 import com.faforever.client.preferences.LocalizationPrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.Preferences.UnitDataBaseType;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.TimeInfo;
 import com.faforever.client.preferences.ToastPosition;
@@ -104,6 +105,7 @@ public class SettingsController implements Controller<Node> {
   public ComboBox<TimeInfo> timeComboBox;
   public Label passwordChangeErrorLabel;
   public Label passwordChangeSuccessLabel;
+  public ComboBox<UnitDataBaseType> unitDatabaseComboBox;
   private ChangeListener<Theme> themeChangeListener;
 
   @Inject
@@ -230,6 +232,24 @@ public class SettingsController implements Controller<Node> {
     executionDirectoryField.textProperty().bindBidirectional(preferences.getForgedAlliance().executionDirectoryProperty(), PATH_STRING_CONVERTER);
 
     passwordChangeErrorLabel.setVisible(false);
+
+    initUnitDatabaseSelection(preferences);
+  }
+
+  private void initUnitDatabaseSelection(Preferences preferences) {
+    unitDatabaseComboBox.setButtonCell(new StringListCell<>(unitDataBaseType -> i18n.get(unitDataBaseType.getI18nKey())));
+    unitDatabaseComboBox.setCellFactory(param -> new StringListCell<>(unitDataBaseType -> i18n.get(unitDataBaseType.getI18nKey())));
+    unitDatabaseComboBox.setItems(FXCollections.observableArrayList(UnitDataBaseType.values()));
+    unitDatabaseComboBox.setFocusTraversable(true);
+
+    ChangeListener<UnitDataBaseType> unitDataBaseTypeChangeListener = (observable, oldValue, newValue) -> unitDatabaseComboBox.getSelectionModel().select(newValue);
+    unitDataBaseTypeChangeListener.changed(null, null, preferences.getUnitDataBaseType());
+    preferences.unitDataBaseTypeProperty().addListener(unitDataBaseTypeChangeListener);
+
+    unitDatabaseComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+      preferences.setUnitDataBaseType(newValue);
+      preferencesService.storeInBackground();
+    });
   }
 
   private void configureTimeSetting(Preferences preferences) {
