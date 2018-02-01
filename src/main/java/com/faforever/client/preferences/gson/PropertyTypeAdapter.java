@@ -102,7 +102,7 @@ public class PropertyTypeAdapter implements JsonSerializer<Property<?>>, JsonDes
         return new SimpleSetProperty<>(context.deserialize(json, Set.class));
       }
       if (MapProperty.class.isAssignableFrom(clazz)) {
-        return new SimpleSetProperty<>(context.deserialize(json, Map.class));
+        return new SimpleMapProperty<>(context.deserialize(json, Map.class));
       }
     }
     if (typeOfT instanceof ParameterizedType) {

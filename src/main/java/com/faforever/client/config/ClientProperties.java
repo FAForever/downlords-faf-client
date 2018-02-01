@@ -151,6 +151,7 @@ public class ClientProperties {
 
   @Data
   public static class UnitDatabase {
-    private String url = "http://spooky.github.io/unitdb/#/";
+    private String spookiesUrl;
+    private String rackOversUrl;
   }
 }

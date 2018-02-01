@@ -25,7 +25,8 @@ faf-client:
       clientId: 141ee8a7030f16d
 
   unit-database:
-    url: http://spooky.github.io/unitdb/#/
+    spookiesUrl: http://spooky.github.io/unitdb/#/
+    rackOversUrl: http://90.103.145.211/index.php?settings64=eyJwcmV2aWV3Q29ybmVyIjoiTm9uZSJ9
 
 spring:
   profiles:
