@@ -27,6 +27,6 @@ public class FactionTypeAdapter extends TypeAdapter<Faction> {
       in.nextNull();
       return null;
     }
-    return Faction.fromString(in.nextString());
+    return Faction.fromFaValue(Integer.parseInt(in.nextString()));
   }
 }
