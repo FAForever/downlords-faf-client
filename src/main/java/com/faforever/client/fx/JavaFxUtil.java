@@ -145,6 +145,10 @@ public final class JavaFxUtil {
 
   public static void makeNumericTextField(TextField textField, int maxLength) {
     textField.textProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue == null) {
+        return;
+      }
+
       String value = newValue;
       if (!value.matches("\\d*")) {
         value = newValue.replaceAll("[^\\d]", "");

@@ -1,7 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fa.FaStrings;
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.i18n.I18n;
@@ -64,7 +64,7 @@ import static javafx.scene.layout.BackgroundRepeat.NO_REPEAT;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class CreateGameController implements Controller<Pane> {
+public class CreateGameController extends AbstractViewController<Pane> {
 
   private static final int MAX_RATING_LENGTH = 4;
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -107,7 +107,8 @@ public class CreateGameController implements Controller<Pane> {
     this.fafService = fafService;
   }
 
-  public void initialize() {
+  @Override
+  public void onDisplay() {
     mapPreviewPane.minHeightProperty().bind(mapPreviewPane.widthProperty());
     mapPreviewPane.maxHeightProperty().bind(mapPreviewPane.widthProperty());
     mapSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -393,5 +394,19 @@ public class CreateGameController implements Controller<Pane> {
 
   public void onContentPaneClicked(MouseEvent event) {
     event.consume();
+  }
+
+  public boolean selectMap(String folderName) {
+    Optional<MapBean> first = mapListView.getItems().stream()
+        .filter(mapBean -> mapBean.getFolderName() != null && mapBean.getFolderName().equals(folderName))
+        .findFirst();
+    boolean mapExists = first.isPresent();
+
+    if (mapExists) {
+      mapListView.getSelectionModel().select(first.get());
+      mapListView.scrollTo(first.get());
+    }
+
+    return mapExists;
   }
 }

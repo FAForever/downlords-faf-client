@@ -76,6 +76,7 @@ public class MapDetailController implements Controller<Node> {
   public ReviewsController reviewsController;
   public VBox loadingContainer;
   private final EventBus eventBus;
+  public Button createGameButton;
 
   private MapBean map;
   private ListChangeListener<MapBean> installStatusChangeListener;
@@ -103,6 +104,7 @@ public class MapDetailController implements Controller<Node> {
     progressLabel.managedProperty().bind(progressLabel.visibleProperty());
     progressLabel.visibleProperty().bind(progressBar.visibleProperty());
     loadingContainer.visibleProperty().bind(progressBar.visibleProperty());
+    createGameButton.managedProperty().bind(createGameButton.visibleProperty());
 
     reviewsController.setCanWriteReview(false);
 
@@ -137,6 +139,7 @@ public class MapDetailController implements Controller<Node> {
   private void setInstalled(boolean installed) {
     installButton.setVisible(!installed);
     uninstallButton.setVisible(installed);
+    createGameButton.setVisible(installed);
   }
 
   public Node getRoot() {
@@ -160,9 +163,6 @@ public class MapDetailController implements Controller<Node> {
     LocalDateTime createTime = map.getCreateTime();
     dateLabel.setText(timeService.asDate(createTime));
 
-    boolean mapInstalled = mapService.isInstalled(map.getFolderName());
-    installButton.setVisible(!mapInstalled);
-
     Player player = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("No user is logged in"));
 
     reviewsController.setCanWriteReview(false);
@@ -176,6 +176,7 @@ public class MapDetailController implements Controller<Node> {
         .filter(review -> review.getPlayer().getId() == player.getId())
         .findFirst());
 
+    setInstalled(mapService.isInstalled(map.getFolderName()));
     mapService.getFileSize(map.getDownloadUrl())
         .thenAccept(mapFileSize -> Platform.runLater(() -> {
           if (mapFileSize > -1) {
@@ -186,7 +187,6 @@ public class MapDetailController implements Controller<Node> {
             installButton.setDisable(true);
           }
         }));
-    uninstallButton.setVisible(mapInstalled);
 
     mapDescriptionLabel.textProperty().bind(Bindings.createStringBinding(() -> Optional.ofNullable(map.getDescription())
         .map(Strings::emptyToNull)
@@ -274,6 +274,6 @@ public class MapDetailController implements Controller<Node> {
 
   public void onCreateGameButtonClicked() {
     eventBus.post(new NavigateEvent(NavigationItem.PLAY));
-    eventBus.post(new HostMapInCustomGameEvent());
+    eventBus.post(new HostMapInCustomGameEvent(map.getFolderName()));
   }
 }
