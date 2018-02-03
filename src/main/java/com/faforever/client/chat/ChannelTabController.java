@@ -279,6 +279,10 @@ public class ChannelTabController extends AbstractChatTabController {
 
   @Override
   protected void onMention(ChatMessage chatMessage) {
+    if (preferencesService.getPreferences().getNotification().getNotifyOnAtMentionOnlyEnabled()
+        && !chatMessage.getMessage().contains("@" + userService.getUsername())) {
+      return;
+    }
     if (!hasFocus()) {
       audioService.playChatMentionSound();
       showNotificationIfNecessary(chatMessage);
