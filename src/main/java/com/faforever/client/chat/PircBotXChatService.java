@@ -6,6 +6,8 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
+import com.faforever.client.player.Player;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.UserOfflineEvent;
 import com.faforever.client.player.UserOnlineEvent;
 import com.faforever.client.preferences.ChatPrefs;
@@ -32,6 +34,7 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.scene.paint.Color;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
@@ -87,6 +90,7 @@ import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 
 @Lazy
 @Service
+@Slf4j
 @Profile("!" + FafClientApplication.PROFILE_OFFLINE)
 public class PircBotXChatService implements ChatService {
 
@@ -103,6 +107,7 @@ public class PircBotXChatService implements ChatService {
   private final SimpleIntegerProperty unreadMessagesCount;
 
   private final PreferencesService preferencesService;
+  private final PlayerService playerService;
   private final UserService userService;
   private final TaskService taskService;
   private final FafService fafService;
@@ -133,7 +138,7 @@ public class PircBotXChatService implements ChatService {
   public PircBotXChatService(PreferencesService preferencesService, UserService userService, TaskService taskService,
                              FafService fafService, I18n i18n, PircBotXFactory pircBotXFactory,
                              ThreadPoolExecutor threadPoolExecutor, EventBus eventBus,
-                             ClientProperties clientProperties) {
+                             ClientProperties clientProperties, PlayerService playerService) {
     this.preferencesService = preferencesService;
     this.userService = userService;
     this.taskService = taskService;
@@ -142,6 +147,7 @@ public class PircBotXChatService implements ChatService {
     this.pircBotXFactory = pircBotXFactory;
     this.threadPoolExecutor = threadPoolExecutor;
     this.eventBus = eventBus;
+    this.playerService = playerService;
 
     Irc irc = clientProperties.getIrc();
     this.ircHost = irc.getHost();
@@ -403,6 +409,7 @@ public class PircBotXChatService implements ChatService {
     String source;
     org.pircbotx.Channel channel = event.getChannel();
     source = channel.getName();
+
     eventBus.post(new ChatMessageEvent(new ChatMessage(source, Instant.ofEpochMilli(event.getTimestamp()), user.getNick(), event.getMessage(), false)));
   }
 
@@ -413,6 +420,12 @@ public class PircBotXChatService implements ChatService {
       return;
     }
     logger.debug("Received private message: {}", event);
+
+    Player sourcePlayer = playerService.getPlayerForUsername(user.getNick());
+    if (sourcePlayer != null && sourcePlayer.getSocialStatus() == SocialStatus.FOE && preferencesService.getPreferences().getChat().getHideFoeMessages()) {
+      log.debug("Suppressing chat message from foe '{}'", user.getNick());
+      return;
+    }
     eventBus.post(new ChatMessageEvent(new ChatMessage(user.getNick(), Instant.ofEpochMilli(event.getTimestamp()), user.getNick(), event.getMessage())));
   }
 

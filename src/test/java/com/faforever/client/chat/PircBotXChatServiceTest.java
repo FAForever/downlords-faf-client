@@ -6,7 +6,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
-import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.player.Player;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
@@ -18,15 +19,9 @@ import com.faforever.client.user.UserService;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.eventbus.EventBus;
 import com.google.common.hash.Hashing;
-import javafx.beans.property.MapProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleMapProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
-import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -138,23 +133,17 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private NotificationService notificationService;
   @Mock
-  private Preferences preferences;
-  @Mock
-  private ChatPrefs chatPrefs;
-  @Mock
   private I18n i18n;
   @Mock
   private PircBotXFactory pircBotXFactory;
   @Mock
   private UserChannelDao<User, org.pircbotx.Channel> userChannelDao;
   @Mock
-  private MapProperty<String, Color> userToColorProperty;
-  @Mock
-  private ObjectProperty<ChatColorMode> chatColorMode;
-  @Mock
   private FafService fafService;
   @Mock
   private ThreadPoolExecutor threadPoolExecutor;
+  @Mock
+  private PlayerService playerService;
   @Mock
   private EventBus eventBus;
 
@@ -165,6 +154,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   private CountDownLatch botShutdownLatch;
   private CompletableFuture<Object> botStartedFuture;
+  private Preferences preferences = new Preferences();
 
   @Before
   public void setUp() throws Exception {
@@ -176,12 +166,11 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
         .setReconnectDelay(100);
 
     instance = new PircBotXChatService(preferencesService, userService, taskService, fafService, i18n, pircBotXFactory,
-        threadPoolExecutor, eventBus, clientProperties);
+        threadPoolExecutor, eventBus, clientProperties, playerService);
 
     botShutdownLatch = new CountDownLatch(1);
 
-    userToColorProperty = new SimpleMapProperty<>(FXCollections.observableHashMap());
-    chatColorMode = new SimpleObjectProperty<>(CUSTOM);
+    preferences.getChat().setChatColorMode(CUSTOM);
 
     when(userService.getUsername()).thenReturn(CHAT_USER_NAME);
     when(userService.getPassword()).thenReturn(CHAT_PASSWORD);
@@ -214,13 +203,6 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     when(pircBotXFactory.createPircBotX(any())).thenReturn(pircBotX);
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.getChat()).thenReturn(chatPrefs);
-    when(chatPrefs.getChatColorMode()).thenReturn(chatColorMode.get());
-    when(chatPrefs.getUserToColor()).thenReturn(userToColorProperty);
-
-    when(chatPrefs.userToColorProperty()).thenReturn(userToColorProperty);
-    when(chatPrefs.chatColorModeProperty()).thenReturn(chatColorMode);
-
 
     when(user1.getNick()).thenReturn("user1");
     when(user1.getChannels()).thenReturn(ImmutableSortedSet.of(defaultChannel));
@@ -829,5 +811,23 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     ChannelSnapshot channelSnapshot = mock(ChannelSnapshot.class);
     when(channelSnapshot.getName()).thenReturn(name);
     return channelSnapshot;
+  }
+
+  @Test
+  public void testSuppressFoeMessage() throws Exception {
+    String message = "private message";
+
+    preferences.getChat().setHideFoeMessages(true);
+
+    User user = mock(User.class);
+    when(user.getNick()).thenReturn(chatUser1.getUsername());
+    Player playerMock = mock(Player.class);
+    when(playerService.getPlayerForUsername(chatUser1.getUsername())).thenReturn(playerMock);
+    when(playerMock.getSocialStatus()).thenReturn(SocialStatus.FOE);
+
+    connect();
+    firePircBotXEvent(createPrivateMessageEvent(user, message));
+
+    verify(eventBus, never()).post(any(Object.class));
   }
 }
