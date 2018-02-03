@@ -92,7 +92,7 @@ function removeUserMessageClass(user, cssClass) {
 }
 
 function updateUserMessageDisplay(user, display) {
-  var userMessages = document.getElementsByClassName(user);
+  var userMessages = document.getElementsByClassName("chat-section-" + user);
   for (var i = 0; i < userMessages.length; i++) {
     userMessages[i].style.display = display;
   }

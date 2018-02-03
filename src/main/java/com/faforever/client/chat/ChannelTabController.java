@@ -336,7 +336,7 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   private void updateUserMessageDisplay(Player player, String display) {
-    Platform.runLater(() -> getJsObject().call("updateUserMessageDisplay", String.format(USER_CSS_CLASS_FORMAT, player.getUsername()), display));
+    Platform.runLater(() -> getJsObject().call("updateUserMessageDisplay", player.getUsername(), display));
   }
 
   private synchronized void onUserJoinedChannel(ChatUser chatUser) {
