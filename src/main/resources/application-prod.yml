@@ -5,12 +5,6 @@ faf-client:
   irc:
     host: irc.faforever.com
 
-  ice:
-    turn:
-      host: faforever.com
-    stun:
-      host: faforever.com
-
   vault:
     base-url: http://content.faforever.com
 

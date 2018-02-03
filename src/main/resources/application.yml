@@ -47,7 +47,7 @@ logging:
     org.springframework.web.client: info
     org.springframework.security.oauth2: info
     org.springframework.security.oauth2.client.token.grant: off
-    faf-ice-adapter:
+    faf-ice-adapter: debug
 
     org.ice4j.stack: warn
     com.nbarraille.jjsonrpc: warn
@@ -64,7 +64,7 @@ logging:
     com.faforever.client.patch: info
     com.faforever.client.events: info
     com.faforever.client.legacy: info
-    com.faforever.client.remote: info
+    com.faforever.client.remote: debug
     com.faforever.client.replay: info
     com.faforever.client.relay: info
     com.faforever.client.chat: info

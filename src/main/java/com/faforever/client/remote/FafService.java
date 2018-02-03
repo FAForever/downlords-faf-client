@@ -19,6 +19,7 @@ import com.faforever.client.mod.Mod;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
 import com.faforever.client.remote.domain.GameLaunchMessage;
+import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.replay.Replay;
@@ -147,4 +148,8 @@ public interface FafService {
   CompletableFuture<Void> deleteModVersionReview(Review review);
 
   CompletableFuture<Optional<Replay>> findReplayById(int id);
+
+  CompletableFuture<List<IceServer>> getIceServers();
+
+  void restoreGameSession(int id);
 }

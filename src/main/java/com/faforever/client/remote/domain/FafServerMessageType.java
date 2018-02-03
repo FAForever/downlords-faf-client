@@ -17,6 +17,7 @@ public enum FafServerMessageType implements ServerMessageType {
   AUTHENTICATION_FAILED("authentication_failed", AuthenticationFailedMessage.class),
   UPDATED_ACHIEVEMENTS("updated_achievements", UpdatedAchievementsMessage.class),
   NOTICE("notice", NoticeMessage.class),
+  ICE_SERVERS("ice_servers", IceServersServerMessage.class),
   AVATAR("avatar", AvatarMessage.class);
 
   private static final Map<String, FafServerMessageType> fromString;

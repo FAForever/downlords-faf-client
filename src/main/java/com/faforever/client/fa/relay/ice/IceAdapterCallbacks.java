@@ -49,7 +49,11 @@ public class IceAdapterCallbacks {
     log.debug("ICE connection state for peer '{}' changed to: {}", remotePlayerId, state);
   }
 
-  public void onDatachannelOpen(long localPlayerId, long remotePlayerId) {
-    log.debug("Data channel between '{}' and '{}' opened", localPlayerId, remotePlayerId);
+  public void onConnected(long localPlayerId, long remotePlayerId, boolean connected) {
+    if (connected) {
+      log.debug("Connection between '{}' and '{}' has been established", localPlayerId, remotePlayerId);
+    } else {
+      log.debug("Connection between '{}' and '{}' has been lost", localPlayerId, remotePlayerId);
+    }
   }
 }

@@ -5,12 +5,6 @@ faf-client:
   irc:
     host: localhost
 
-  ice:
-    turn:
-      host: localhost
-    stun:
-      host: localhost
-
   vault:
     base-url: http://content.faforever.com
 
@@ -30,3 +24,9 @@ faf-client:
 
   forged-alliance:
     exe-url: http://content.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe
+
+logging:
+  level:
+    org.pircbotx.PircBotX: off
+    com.faforever.client.chat.PircBotXChatService: off
+    com.faforever.client.fa.relay.ice: debug

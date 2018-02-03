@@ -1199,7 +1199,7 @@ return console.askYesNo(message, true);
       <excludedBeans />
       <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
       <exclude>
-        <entry location="lib/faf-ice-adapter/faf-ice-testclient.exe" fileType="regular" />
+        <entry location="lib/faf-uid" fileType="regular" />
         <entry location="lib/uid" fileType="regular" />
       </exclude>
       <variables />

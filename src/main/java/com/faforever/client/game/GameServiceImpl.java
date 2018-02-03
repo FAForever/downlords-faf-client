@@ -28,6 +28,7 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameStatus;
+import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.replay.ExternalReplayInfoGenerator;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
@@ -134,7 +135,7 @@ public class GameServiceImpl implements GameService {
                          NotificationService notificationService, I18n i18n, Executor executor,
                          PlayerService playerService, ReportingService reportingService, EventBus eventBus,
                          IceAdapter iceAdapter, ModService modService, PlatformService platformService,
-                         ExternalReplayInfoGenerator externalReplayInfoGenerator1) {
+                         ExternalReplayInfoGenerator externalReplayInfoGenerator) {
     this.clientProperties = clientProperties;
     this.fafService = fafService;
     this.forgedAllianceService = forgedAllianceService;
@@ -152,7 +153,7 @@ public class GameServiceImpl implements GameService {
     this.platformService = platformService;
 
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
-    this.externalReplayInfoGenerator = externalReplayInfoGenerator1;
+    this.externalReplayInfoGenerator = externalReplayInfoGenerator;
     uidToGameInfoBean = FXCollections.observableMap(new ConcurrentHashMap<>());
     searching1v1 = new SimpleBooleanProperty();
     gameRunning = new SimpleBooleanProperty();
@@ -524,6 +525,7 @@ public class GameServiceImpl implements GameService {
   void postConstruct() {
     eventBus.register(this);
     fafService.addOnMessageListener(GameInfoMessage.class, message -> Platform.runLater(() -> onGameInfo(message)));
+    fafService.addOnMessageListener(LoginMessage.class, message -> onLoggedIn());
     fafService.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == ConnectionState.DISCONNECTED) {
         synchronized (uidToGameInfoBean) {
@@ -531,6 +533,12 @@ public class GameServiceImpl implements GameService {
         }
       }
     });
+  }
+
+  private void onLoggedIn() {
+    if (isGameRunning()) {
+      fafService.restoreGameSession(currentGame.get().getId());
+    }
   }
 
   private void onGameInfo(GameInfoMessage gameInfoMessage) {

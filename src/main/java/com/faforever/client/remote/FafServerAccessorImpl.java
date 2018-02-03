@@ -33,8 +33,11 @@ import com.faforever.client.remote.domain.GameAccess;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.HostGameMessage;
+import com.faforever.client.remote.domain.IceServersServerMessage;
+import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
 import com.faforever.client.remote.domain.InitSessionMessage;
 import com.faforever.client.remote.domain.JoinGameMessage;
+import com.faforever.client.remote.domain.ListIceServersMessage;
 import com.faforever.client.remote.domain.ListPersonalAvatarsMessage;
 import com.faforever.client.remote.domain.LoginClientMessage;
 import com.faforever.client.remote.domain.LoginMessage;
@@ -43,6 +46,7 @@ import com.faforever.client.remote.domain.NoticeMessage;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.remote.domain.RemoveFoeMessage;
 import com.faforever.client.remote.domain.RemoveFriendMessage;
+import com.faforever.client.remote.domain.RestoreGameSessionMessage;
 import com.faforever.client.remote.domain.SelectAvatarMessage;
 import com.faforever.client.remote.domain.SerializableMessage;
 import com.faforever.client.remote.domain.ServerCommand;
@@ -130,6 +134,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private ObjectProperty<ConnectionState> connectionState;
   private Socket fafServerSocket;
   private CompletableFuture<List<Avatar>> avatarsFuture;
+  private CompletableFuture<List<IceServer>> iceServersFuture;
 
   @Inject
   public FafServerAccessorImpl(PreferencesService preferencesService,
@@ -164,6 +169,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     addOnMessageListener(GameLaunchMessage.class, this::onGameLaunchInfo);
     addOnMessageListener(AuthenticationFailedMessage.class, this::dispatchAuthenticationFailed);
     addOnMessageListener(AvatarMessage.class, this::onAvatarMessage);
+    addOnMessageListener(IceServersServerMessage.class, this::onIceServersMessage);
     this.preferencesService = preferencesService;
     this.uidService = uidService;
     this.notificationService = notificationService;
@@ -173,6 +179,10 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
   private void onAvatarMessage(AvatarMessage avatarMessage) {
     avatarsFuture.complete(avatarMessage.getAvatarList());
+  }
+
+  private void onIceServersMessage(IceServersServerMessage iceServersServerMessage) {
+    iceServersFuture.complete(iceServersServerMessage.getIceServers());
   }
 
   private void onNotice(NoticeMessage noticeMessage) {
@@ -348,6 +358,18 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     avatarsFuture = new CompletableFuture<>();
     writeToServer(new ListPersonalAvatarsMessage());
     return NoCatch.noCatch(() -> avatarsFuture.get(10, TimeUnit.SECONDS));
+  }
+
+  @Override
+  public CompletableFuture<List<IceServer>> getIceServers() {
+    iceServersFuture = new CompletableFuture<>();
+    writeToServer(new ListIceServersMessage());
+    return iceServersFuture;
+  }
+
+  @Override
+  public void restoreGameSession(int id) {
+    writeToServer(new RestoreGameSessionMessage(id));
   }
 
   private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
