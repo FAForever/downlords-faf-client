@@ -138,7 +138,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
     for (Faction faction : EnumSet.of(AEON, CYBRAN, UEF, SERAPHIM)) {
       factionsToButtons.get(faction).setSelected(factions.contains(faction));
     }
-    playButton.setDisable(!factionsToButtons.values().stream().anyMatch(ToggleButton::isSelected));
+    playButton.setDisable(factionsToButtons.values().stream().noneMatch(ToggleButton::isSelected));
 
     preferencesService.addUpdateListener(preferences -> {
       if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
