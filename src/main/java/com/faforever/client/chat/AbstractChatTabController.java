@@ -127,6 +127,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    */
   private static final String ACTION_CSS_CLASS = "action";
   private static final String MESSAGE_CSS_CLASS = "message";
+  private static final Pattern boldPattern = Pattern.compile("\\*(.+)\\*");
   protected final UserService userService;
   protected final ChatService chatService;
   protected final PlatformService platformService;
@@ -665,6 +666,11 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       if (matcher.find()) {
         text = matcher.replaceAll("<span class='self'>" + matcher.group(1) + "</span>");
         onMention(chatMessage);
+      }
+
+      Matcher boldMatcher = boldPattern.matcher(text);
+      while (boldMatcher.find()) {
+        text = boldMatcher.replaceFirst("<b>" + boldMatcher.group(1) + "</b>");
       }
 
       String html = CharStreams.toString(reader).replace("{text}", text);
