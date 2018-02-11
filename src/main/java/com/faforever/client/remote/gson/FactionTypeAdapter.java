@@ -18,7 +18,7 @@ public class FactionTypeAdapter extends TypeAdapter<Faction> {
 
   @Override
   public void write(JsonWriter out, Faction value) throws IOException {
-    out.value(value.toFaValue());
+    out.value(value.getString());
   }
 
   @Override
