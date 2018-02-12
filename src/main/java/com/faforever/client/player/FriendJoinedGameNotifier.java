@@ -13,8 +13,6 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
@@ -30,7 +28,6 @@ public class FriendJoinedGameNotifier {
   private final JoinGameHelper joinGameHelper;
   private final PreferencesService preferencesService;
   private final AudioService audioService;
-  private List<FriendJoinedGameEvent> eventList;
 
   @Inject
   public FriendJoinedGameNotifier(NotificationService notificationService, I18n i18n, EventBus eventBus,
@@ -42,7 +39,6 @@ public class FriendJoinedGameNotifier {
     this.joinGameHelper = joinGameHelper;
     this.preferencesService = preferencesService;
     this.audioService = audioService;
-    eventList = new ArrayList<>();
   }
 
   @PostConstruct
@@ -57,9 +53,7 @@ public class FriendJoinedGameNotifier {
 
     audioService.playFriendJoinsGameSound();
 
-    if (preferencesService.getPreferences().getNotification().isFriendJoinsGameToastEnabled()
-        && !eventList.contains(event)) {
-      eventList.add(event);
+    if (preferencesService.getPreferences().getNotification().isFriendJoinsGameToastEnabled()) {
       notificationService.addNotification(new TransientNotification(
           i18n.get("friend.joinedGameNotification.title", player.getUsername(), game.getTitle()),
           i18n.get("friend.joinedGameNotification.action"),
