@@ -31,7 +31,6 @@ import javax.inject.Inject;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,7 +47,6 @@ public class PlayerServiceImpl implements PlayerService {
 
   private final ObservableMap<String, Player> playersByName;
   private final ObservableMap<Integer, Player> playersById;
-  private final ObservableMap<Player, Game> gamesByPlayers;
   private final List<Integer> foeList;
   private final List<Integer> friendList;
   private final ObjectProperty<Player> currentPlayer;
@@ -65,7 +63,6 @@ public class PlayerServiceImpl implements PlayerService {
 
     playersByName = FXCollections.observableHashMap();
     playersById = FXCollections.observableHashMap();
-    gamesByPlayers = FXCollections.observableHashMap();
     friendList = new ArrayList<>();
     foeList = new ArrayList<>();
     currentPlayer = new SimpleObjectProperty<>();
@@ -97,17 +94,6 @@ public class PlayerServiceImpl implements PlayerService {
     ObservableMap<String, List<String>> teams = game.getTeams();
     synchronized (teams) {
       teams.forEach((team, players) -> updateGamePlayers(players, game));
-
-      List<Player> leftGame = new LinkedList<>();
-      synchronized (gamesByPlayers) {
-        gamesByPlayers.forEach((player, g) -> {
-          if (g.getId() == game.getId() && gameContainsPlayer(game, player)) {
-            player.setGame(null);
-            leftGame.add(player);
-          }
-        });
-        leftGame.forEach(gamesByPlayers::remove);
-      }
     }
   }
 
@@ -155,25 +141,12 @@ public class PlayerServiceImpl implements PlayerService {
         .filter(Objects::nonNull)
         .forEach(player -> {
           resetIdleTime(player);
+          if (game == null) {
+            player.setGame(null);
+          } else if ((player.getGame() == null || !player.getGame().equals(game)) && player.getSocialStatus() == FRIEND && game.getStatus() == GameStatus.OPEN) {
+            eventBus.post(new FriendJoinedGameEvent(player, game));
+          }
           player.setGame(game);
-
-          synchronized (gamesByPlayers) {
-            if (gamesByPlayers.containsKey(player) && gamesByPlayers.get(player) != game) {
-              gamesByPlayers.remove(player);
-            }
-            if (!gamesByPlayers.containsKey(player)) {
-              gamesByPlayers.put(player, game);
-            }
-          }
-          GameStatus gameStatus = game.getStatus();
-          if (player.getSocialStatus() == FRIEND) {
-            if (gameStatus == GameStatus.OPEN) {
-              eventBus.post(new FriendJoinedGameEvent(player));
-            } else if (gameStatus == GameStatus.PLAYING) {
-              // TODO implement
-//              eventBus.post(new FriendPlaysGameEvent(player));
-            }
-          }
         });
   }
 

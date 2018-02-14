@@ -11,7 +11,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.IdenticonUtil;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -20,7 +19,6 @@ import javax.inject.Inject;
 /**
  * Displays a notification whenever a friend joins a preferences (if enabled in settings).
  */
-@Lazy
 @Component
 public class FriendJoinedGameNotifier {
 
@@ -32,7 +30,9 @@ public class FriendJoinedGameNotifier {
   private final AudioService audioService;
 
   @Inject
-  public FriendJoinedGameNotifier(NotificationService notificationService, I18n i18n, EventBus eventBus, JoinGameHelper joinGameHelper, PreferencesService preferencesService, AudioService audioService) {
+  public FriendJoinedGameNotifier(NotificationService notificationService, I18n i18n, EventBus eventBus,
+                                  JoinGameHelper joinGameHelper, PreferencesService preferencesService,
+                                  AudioService audioService) {
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.eventBus = eventBus;
@@ -49,7 +49,7 @@ public class FriendJoinedGameNotifier {
   @Subscribe
   public void onFriendJoinedGame(FriendJoinedGameEvent event) {
     Player player = event.getPlayer();
-    Game game = player.getGame();
+    Game game = event.getGame();
 
     audioService.playFriendJoinsGameSound();
 

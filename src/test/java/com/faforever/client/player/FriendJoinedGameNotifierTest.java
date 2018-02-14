@@ -76,7 +76,7 @@ public class FriendJoinedGameNotifierTest {
     when(i18n.get("friend.joinedGameNotification.title", "junit", "My Game")).thenReturn("junit joined My Game");
     when(i18n.get("friend.joinedGameNotification.action")).thenReturn("Click to join");
 
-    instance.onFriendJoinedGame(new FriendJoinedGameEvent(player));
+    instance.onFriendJoinedGame(new FriendJoinedGameEvent(player, game));
 
     ArgumentCaptor<TransientNotification> captor = ArgumentCaptor.forClass(TransientNotification.class);
     verify(notificationService).addNotification(captor.capture());
@@ -91,7 +91,7 @@ public class FriendJoinedGameNotifierTest {
   public void testNoNotificationIfDisabledInPreferences() throws Exception {
     when(notification.isFriendJoinsGameToastEnabled()).thenReturn(false);
 
-    instance.onFriendJoinedGame(new FriendJoinedGameEvent(PlayerBuilder.create("junit").get()));
+    instance.onFriendJoinedGame(new FriendJoinedGameEvent(PlayerBuilder.create("junit").get(), GameBuilder.create().get()));
 
     verify(notificationService, never()).addNotification(any(TransientNotification.class));
   }
