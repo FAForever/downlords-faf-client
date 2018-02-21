@@ -6,7 +6,6 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
-<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
@@ -20,12 +19,13 @@
 <?import javafx.scene.web.WebView?>
 <?import java.lang.Integer?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="coopRoot" hgap="20.0" maxHeight="1.7976931348623157E308"
-          maxWidth="1.7976931348623157E308" vgap="20.0" xmlns="http://javafx.com/javafx/8.0.60"
+          maxWidth="1.7976931348623157E308" vgap="20.0" xmlns="http://javafx.com/javafx/8"
           fx:controller="com.faforever.client.coop.CoopController">
     <columnConstraints>
         <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
         <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="10.0" prefWidth="300.0" />
         <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="10.0" prefWidth="300.0" />
+        <ColumnConstraints/>
     </columnConstraints>
     <rowConstraints>
         <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
@@ -45,52 +45,10 @@
             </children>
         </VBox>
         <ImageView fx:id="mapImageView" fitHeight="128.0" fitWidth="128.0" pickOnBounds="true" preserveRatio="true" GridPane.halignment="CENTER" GridPane.rowSpan="2" GridPane.valignment="CENTER" />
-        <AnchorPane fx:id="gameViewContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.rowIndex="4" />
+        <AnchorPane fx:id="gameViewContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                    minWidth="0.0" GridPane.columnIndex="2" GridPane.rowIndex="4"/>
         <ComboBox fx:id="missionComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" />
         <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%coop.host.title" GridPane.columnIndex="2" />
-        <ScrollPane fx:id="selectedGamePane" maxWidth="300.0" minWidth="300.0" GridPane.columnIndex="4"
-                    GridPane.rowSpan="2147483647">
-            <content>
-                <VBox maxHeight="1.7976931348623157E308" maxWidth="300.0" minHeight="0.0" minWidth="0.0">
-                    <children>
-                        <ImageView fx:id="selectedGameMapView" fitWidth="256.0" pickOnBounds="true" preserveRatio="true"
-                                   styleClass="map-preview">
-                            <VBox.margin>
-                                <Insets bottom="20.0"/>
-                            </VBox.margin>
-                        </ImageView>
-                        <Label fx:id="selectedGameTitleLabel" alignment="CENTER" styleClass="game-detail-title"
-                               text="&lt;Game title&gt;" wrapText="true"/>
-                        <Label fx:id="selectedGameMapLabel" text="&lt;Map&gt;">
-                            <graphic>
-                                <Label styleClass="fontawesome" text=""/>
-                            </graphic>
-                        </Label>
-                        <Label fx:id="selectedGameNumberOfPlayersLabel" text="&lt;Number of players&gt;">
-                            <graphic>
-                                <Label styleClass="fontawesome" text=""/>
-                            </graphic>
-                        </Label>
-                        <Label fx:id="selectedGameHostLabel" text="&lt;Hoster&gt;">
-                            <VBox.margin>
-                                <Insets/>
-                            </VBox.margin>
-                            <graphic>
-                                <Label styleClass="fontawesome" text=""/>
-                            </graphic>
-                        </Label>
-                        <VBox fx:id="selectedGameTeamPane" maxWidth="1.7976931348623157E308">
-                            <VBox.margin>
-                                <Insets top="10.0"/>
-                            </VBox.margin>
-                        </VBox>
-                    </children>
-                    <padding>
-                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-                    </padding>
-                </VBox>
-            </content>
-        </ScrollPane>
         <Label styleClass="h2" text="%coop.openGames" GridPane.columnIndex="2" GridPane.rowIndex="3" />
         <Separator prefWidth="200.0" GridPane.columnSpan="3" GridPane.rowIndex="2" />
         <TableView fx:id="leaderboardTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnSpan="2" GridPane.rowIndex="4">

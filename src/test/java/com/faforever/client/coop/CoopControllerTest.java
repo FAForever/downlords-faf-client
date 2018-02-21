@@ -86,8 +86,6 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
     when(gameService.getGames()).thenReturn(FXCollections.emptyObservableList());
     when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
     when(gamesTableController.getRoot()).thenReturn(new Pane());
-    selectedGameProperty = new SimpleObjectProperty<>();
-    when(gamesTableController.selectedGameProperty()).thenReturn(selectedGameProperty);
 
     loadFxml("theme/play/coop/coop.fxml", clazz -> instance);
 
@@ -95,7 +93,7 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void onPlayButtonClicked() throws Exception {
+  public void onPlayButtonClicked() {
     when(coopService.getMissions()).thenReturn(completedFuture(singletonList(new CoopMission())));
     instance.initialize();
 

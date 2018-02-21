@@ -37,10 +37,8 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.PasswordField;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -60,8 +58,6 @@ import java.util.function.Predicate;
 
 import static com.faforever.client.game.KnownFeaturedMod.COOP;
 import static java.util.Collections.emptySet;
-import static javafx.beans.binding.Bindings.createObjectBinding;
-import static javafx.beans.binding.Bindings.createStringBinding;
 import static javafx.collections.FXCollections.observableList;
 
 @Component
@@ -91,11 +87,6 @@ public class CoopController implements Controller<Node> {
   public TextField titleTextField;
   public Button playButton;
   public PasswordField passwordTextField;
-  public ImageView selectedGameMapView;
-  public Label selectedGameTitleLabel;
-  public Label selectedGameNumberOfPlayersLabel;
-  public Label selectedGameHostLabel;
-  public ScrollPane selectedGamePane;
   public TableView<CoopResult> leaderboardTable;
   public ComboBox<Integer> numberOfPlayersComboBox;
   public TableColumn<CoopResult, Integer> rankColumn;
@@ -163,7 +154,6 @@ public class CoopController implements Controller<Node> {
     filteredItems.setPredicate(OPEN_COOP_GAMES_PREDICATE);
 
     GamesTableController gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
-    gamesTableController.selectedGameProperty().addListener((observable, oldValue, newValue) -> setSelectedGame(newValue));
     gamesTableController.initializeGameTable(filteredItems);
 
     Node root = gamesTableController.getRoot();
@@ -248,7 +238,7 @@ public class CoopController implements Controller<Node> {
 
   private void populateContainer(Node root) {
     gameViewContainer.getChildren().setAll(root);
-    JavaFxUtil.setAnchors(gameViewContainer, 0d);
+    JavaFxUtil.setAnchors(root, 0d);
   }
 
   public void onPlayButtonClicked() {
@@ -260,30 +250,5 @@ public class CoopController implements Controller<Node> {
 
   public Node getRoot() {
     return coopRoot;
-  }
-
-  private void setSelectedGame(Game game) {
-    if (game == null) {
-      selectedGamePane.setVisible(false);
-      return;
-    }
-
-    selectedGamePane.setVisible(true);
-
-    selectedGameTitleLabel.textProperty().bind(game.titleProperty());
-
-    selectedGameMapView.imageProperty().bind(createObjectBinding(
-        () -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE),
-        game.mapFolderNameProperty()
-    ));
-
-    selectedGameNumberOfPlayersLabel.textProperty().bind(createStringBinding(
-        () -> i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers()),
-        game.numPlayersProperty(),
-        game.maxPlayersProperty()
-    ));
-
-    selectedGameHostLabel.textProperty().bind(game.hostProperty());
-    selectedGameHostLabel.textProperty().bind(game.mapFolderNameProperty());
   }
 }
