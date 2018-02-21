@@ -1,6 +1,7 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.FafClientApplication;
+import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -21,6 +23,7 @@ import java.util.concurrent.CompletableFuture;
 public class GitRepositoryFeaturedModUpdater implements FeaturedModUpdater {
 
   private static final String NON_WORD_CHARACTER_PATTERN = "[^\\w]";
+  private static final KnownFeaturedMod[] BLACKLISTED_FEATURED_MODS = {KnownFeaturedMod.COOP};
 
   private final TaskService taskService;
   private final ApplicationContext applicationContext;
@@ -54,6 +57,7 @@ public class GitRepositoryFeaturedModUpdater implements FeaturedModUpdater {
 
   @Override
   public boolean canUpdate(FeaturedMod featuredMod) {
-    return featuredMod.getGitUrl() != null;
+    return featuredMod.getGitUrl() != null && !Arrays.stream(BLACKLISTED_FEATURED_MODS).
+        anyMatch(knownFeaturedMod -> knownFeaturedMod.getTechnicalName().equals(featuredMod.getTechnicalName()));
   }
 }
