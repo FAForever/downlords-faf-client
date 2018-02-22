@@ -41,7 +41,7 @@
           <versionLine x="539" y="378" text="v${compiler:sys.version}" fontSize="10" fontColor="255,255,255" bold="true" />
         </text>
       </splashScreen>
-      <java mainClass="com.faforever.client.FafClientApplication" mainMode="1" vmParameters="-DnativeDir=lib -Dprism.dirtyopts=false" arguments="" allowVMPassthroughParameters="true" preferredVM="client" bundleRuntime="true">
+      <java mainClass="com.faforever.client.FafClientApplication" mainMode="1" vmParameters="-DnativeDir=lib -Dprism.dirtyopts=false -XX:+HeapDumpOnOutOfMemoryError" arguments="" allowVMPassthroughParameters="true" preferredVM="client" bundleRuntime="true">
         <classPath>
           <scanDirectory location="lib" failOnError="true" />
         </classPath>
@@ -53,11 +53,11 @@
       </java>
       <includedFiles />
       <unextractableFiles />
-      <vmOptionsFile mode="content" overwriteMode="0" fileMode="644">
+      <vmOptionsFile mode="content" overwriteMode="5" fileMode="644">
         <content># Enter one VM parameter per line
 
 # Adjust maximum memory usage to 512MiB
--Xmx512m -XX:+HeapDumpOnOutOfMemoryError -Dprism.dirtyopts=false</content>
+-Xmx512m</content>
       </vmOptionsFile>
       <customScript mode="1" file="">
         <content />
