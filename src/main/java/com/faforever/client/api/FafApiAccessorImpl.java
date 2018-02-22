@@ -80,6 +80,8 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   private static final String REPLAY_INCLUDES = "featuredMod,playerStats,playerStats.player,reviews,reviews.player,mapVersion,mapVersion.map,mapVersion.reviews,reviewsSummary";
   private static final String PLAYER_INCLUDES = "globalRating,ladder1v1Rating,names";
   private static final String MOD_ENDPOINT = "/data/mod";
+  private static final String OAUTH_TOKEN_PATH = "/oauth/token";
+
   private final EventBus eventBus;
   private final RestTemplateBuilder restTemplateBuilder;
   private final ClientProperties clientProperties;
@@ -100,8 +102,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     this.restTemplateBuilder = restTemplateBuilder
         .requestFactory(requestFactory)
         .additionalMessageConverters(jsonApiMessageConverter)
-        .errorHandler(jsonApiErrorHandler)
-        .rootUri(clientProperties.getApi().getBaseUrl());
+        .errorHandler(jsonApiErrorHandler);
   }
 
   private static String rsql(Condition<?> eq) {
@@ -463,11 +464,14 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     details.setClientId(apiProperties.getClientId());
     details.setClientSecret(apiProperties.getClientSecret());
     details.setClientAuthenticationScheme(AuthenticationScheme.header);
-    details.setAccessTokenUri(apiProperties.getAccessTokenUri());
+    details.setAccessTokenUri(apiProperties.getBaseUrl() + OAUTH_TOKEN_PATH);
     details.setUsername(username);
     details.setPassword(password);
 
-    restOperations = restTemplateBuilder.configure(new OAuth2RestTemplate(details));
+    restOperations = restTemplateBuilder
+        // Base URL can be changed in login window
+        .rootUri(clientProperties.getApi().getBaseUrl())
+        .configure(new OAuth2RestTemplate(details));
 
     authorizedLatch.countDown();
   }

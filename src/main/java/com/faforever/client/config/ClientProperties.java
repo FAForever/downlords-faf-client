@@ -127,7 +127,6 @@ public class ClientProperties {
     private String baseUrl;
     private String clientId;
     private String clientSecret;
-    private String accessTokenUri;
     private int maxPageSize = 10_000;
   }
 

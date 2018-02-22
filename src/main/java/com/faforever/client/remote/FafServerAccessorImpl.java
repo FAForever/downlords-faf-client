@@ -119,9 +119,9 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private final UidService uidService;
   private final NotificationService notificationService;
   private final I18n i18n;
-  private final String lobbyHost;
-  private final int lobbyPort;
   private final ReportingService reportingService;
+  @org.jetbrains.annotations.NotNull
+  private final ClientProperties clientProperties;
   private Task<Void> fafConnectionTask;
   private String localIp;
   private ServerWriter serverWriter;
@@ -143,9 +143,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
                                I18n i18n,
                                ClientProperties clientProperties,
                                ReportingService reportingService) {
-    Server server = clientProperties.getServer();
-    this.lobbyHost = server.getHost();
-    this.lobbyPort = server.getPort();
+    this.clientProperties = clientProperties;
     messageListeners = new HashMap<>();
     connectionState = new SimpleObjectProperty<>();
     sessionId = new SimpleObjectProperty<>();
@@ -226,11 +224,15 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
       @Override
       protected Void call() throws Exception {
         while (!isCancelled()) {
-          logger.info("Trying to connect to FAF server at {}:{}", lobbyHost, lobbyPort);
+          Server server = clientProperties.getServer();
+          String serverHost = server.getHost();
+          int serverPort = server.getPort();
+
+          logger.info("Trying to connect to FAF server at {}:{}", serverHost, serverPort);
           Platform.runLater(() -> connectionState.set(ConnectionState.CONNECTING));
 
 
-          try (Socket fafServerSocket = new Socket(lobbyHost, lobbyPort);
+          try (Socket fafServerSocket = new Socket(serverHost, serverPort);
                OutputStream outputStream = fafServerSocket.getOutputStream()) {
             FafServerAccessorImpl.this.fafServerSocket = fafServerSocket;
 
@@ -372,7 +374,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     writeToServer(new RestoreGameSessionMessage(id));
   }
 
-  private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
+  private ServerWriter createServerWriter(OutputStream outputStream) {
     ServerWriter serverWriter = new ServerWriter(outputStream);
     serverWriter.registerMessageSerializer(new ClientMessageSerializer(), ClientMessage.class);
     serverWriter.registerMessageSerializer(new StringSerializer(), String.class);

@@ -16,10 +16,6 @@ faf-client:
       forgot-password-url: ${faf-client.website.base-url}/account/password/reset
       create-account-url: ${faf-client.website.base-url}/account/register
 
-  api:
-      access-token-uri: ${faf-client.api.base-url}/oauth/token
-
-
   imgur:
     upload:
       clientId: 141ee8a7030f16d

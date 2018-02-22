@@ -86,7 +86,7 @@ public class ReplayServerImpl implements ReplayServer {
   }
 
   @Override
-  public CompletableFuture<Void> start(int uid) {
+  public CompletableFuture<Void> start(int gameId) {
     stoppedGracefully = false;
     CompletableFuture<Void> future = new CompletableFuture<>();
     new Thread(() -> {
@@ -101,7 +101,7 @@ public class ReplayServerImpl implements ReplayServer {
            Socket remoteReplayServerSocket = new Socket(remoteReplayServerHost, remoteReplayServerPort)) {
         this.serverSocket = localSocket;
         future.complete(null);
-        recordAndRelay(uid, localSocket, new BufferedOutputStream(remoteReplayServerSocket.getOutputStream()));
+        recordAndRelay(gameId, localSocket, new BufferedOutputStream(remoteReplayServerSocket.getOutputStream()));
       } catch (ConnectException e) {
         // TODO record locally even though remote is down.
         log.warn("Could not connect to remote replay server", e);
@@ -115,7 +115,7 @@ public class ReplayServerImpl implements ReplayServer {
         log.warn("Error in replay server", e);
         notificationService.addNotification(new PersistentNotification(
                 i18n.get("replayServer.listeningFailed", localReplayServerPort),
-                Severity.WARN, Collections.singletonList(new Action(i18n.get("replayServer.retry"), event -> start(uid)))
+            Severity.WARN, Collections.singletonList(new Action(i18n.get("replayServer.retry"), event -> start(gameId)))
             )
         );
       }
