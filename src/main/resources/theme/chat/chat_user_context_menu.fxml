@@ -12,6 +12,8 @@
     <MenuItem fx:id="showUserInfo" mnemonicParsing="false" onAction="#onUserInfo" text="%chat.userContext.userInfo"/>
     <MenuItem fx:id="sendPrivateMessageItem" mnemonicParsing="false" onAction="#onSendPrivateMessage"
               text="%chat.userContext.privateMessage"/>
+    <MenuItem fx:id="copyUsernameItem" mnemonicParsing="false" onAction="#onCopyUsername"
+              text="%chat.userContext.copyUsername"/>
     <CustomMenuItem fx:id="colorPickerMenuItem" hideOnClick="false" mnemonicParsing="false">
       <content>
         <ColorPicker fx:id="colorPicker"/>
