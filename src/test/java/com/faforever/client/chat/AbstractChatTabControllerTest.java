@@ -60,7 +60,7 @@ import static com.faforever.client.chat.SocialStatus.OTHER;
 import static com.faforever.client.chat.SocialStatus.SELF;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.hamcrest.Matchers.emptyString;
+import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -194,7 +194,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.onSendMessage();
 
     verify(chatService).sendMessageInBackground(eq(receiver), eq(message));
-    assertThat(instance.messageTextField().getText(), is(emptyString()));
+    assertThat(instance.messageTextField().getText(), is(isEmptyString()));
     assertThat(instance.messageTextField().isDisable(), is(false));
   }
 
@@ -253,7 +253,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.onSendMessage();
 
     verify(chatService).sendActionInBackground(eq(receiver), eq("is happy"));
-    assertThat(instance.messageTextField().getText(), is(emptyString()));
+    assertThat(instance.messageTextField().getText(), is(isEmptyString()));
     assertThat(instance.messageTextField().isDisable(), is(false));
   }
 

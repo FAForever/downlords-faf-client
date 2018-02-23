@@ -129,9 +129,10 @@ public class ModVaultController extends AbstractViewController<Node> {
   }
 
   private void searchByQuery(SearchConfig searchConfig) {
+    SearchConfig newSearchConfig = new SearchConfig(searchConfig.getSortConfig(), searchConfig.getSearchQuery() + ";latestVersion.hidden==\"false\"");
     currentPage = 0;
     enterLoadingState();
-    displayModsFromSupplier(() -> modService.findByQuery(searchConfig, ++currentPage, MAX_SEARCH_RESULTS));
+    displayModsFromSupplier(() -> modService.findByQuery(newSearchConfig, ++currentPage, MAX_SEARCH_RESULTS));
   }
 
   @Override
