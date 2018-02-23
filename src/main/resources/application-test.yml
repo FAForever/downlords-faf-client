@@ -18,7 +18,7 @@ faf-client:
     base-url: https://www.test.faforever.com
 
   api:
-    base-url: https://api.test.faforever.com
+    base-url: http://api.test.faforever.com
     client-id: 3bc8282c-7730-11e5-8bcf-feff819cdc9f
     client-secret: 6035bd78-7730-11e5-8bcf-feff819cdc9f
 

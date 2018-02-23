@@ -24,6 +24,7 @@ import com.nbarraille.jjsonrpc.JJsonPeer;
 import com.nbarraille.jjsonrpc.TcpClient;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.bridj.Platform;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,10 +152,10 @@ public class IceAdapterImpl implements IceAdapter {
       Player currentPlayer = playerService.getCurrentPlayer()
           .orElseThrow(() -> new IllegalStateException("Player has not been set"));
 
+
       Path workDirectory = Paths.get(nativeDir);
       String[] cmd = new String[]{
-          // FIXME make linux compatible
-          workDirectory.resolve("faf-ice-adapter.exe").toString(),
+          getBinaryName().toString(),
           "--id", String.valueOf(currentPlayer.getId()),
           "--login", currentPlayer.getUsername(),
           "--rpc-port", String.valueOf(adapterPort),
@@ -203,6 +204,10 @@ public class IceAdapterImpl implements IceAdapter {
     thread.start();
 
     return iceAdapterClientFuture;
+  }
+
+  private String getBinaryName() {
+    return Platform.isWindows() ? "faf-ice-adapter.exe" : "./faf-ice-adapter";
   }
 
   private void setIceServers() {
