@@ -239,7 +239,7 @@ public class PreferencesService {
   }
 
   public boolean isGamePathValid() {
-    return isGamePathValid(preferences.getForgedAlliance().getPath().resolve("bin"));
+    return isGamePathValid(preferences.getForgedAlliance().getExecutablePath().resolve("bin"));
   }
 
   public boolean isGamePathValid(Path binPath) {
