@@ -211,6 +211,12 @@ task downloadIceAdapter(type: Download) {
   onlyIfNewer true
 }
 
+task downloadIceAdapterLinux(type: Download) {
+  src "https://github.com/FAForever/ice-adapter/releases/download/v${faf_ice_adapter_version}/faf-ice-adapter"
+  dest file("${buildDir}/resources/native/faf-ice-adapter")
+  onlyIfNewer true
+}
+
 task unpackIceAdapter(type: Copy, dependsOn: downloadIceAdapter) {
   group "native dependencies"
   from zipTree(downloadIceAdapter.outputs.files.singleFile)
@@ -231,7 +237,7 @@ task downloadWindowsUid(type: Download, dependsOn: unpackIceAdapter) {
   onlyIfNewer true
 }
 
-task downloadNativeDependencies(dependsOn: [unpackIceAdapter, downloadUnixUid, downloadWindowsUid]) {
+task downloadNativeDependencies(dependsOn: [unpackIceAdapter, downloadUnixUid, downloadWindowsUid, downloadIceAdapterLinux]) {
   group "native dependencies"
 }
 
