@@ -150,9 +150,9 @@ public class CreateGameController implements Controller<Pane> {
       selectLastOrDefaultGameType();
     }));
 
-    if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
+    if (preferencesService.getPreferences().getForgedAlliance().getExecutablePath() == null) {
       preferencesService.addUpdateListener(preferences -> {
-        if (preferencesService.getPreferences().getForgedAlliance().getPath() != null) {
+        if (preferencesService.getPreferences().getForgedAlliance().getExecutablePath() != null) {
           Platform.runLater(this::init);
         }
       });

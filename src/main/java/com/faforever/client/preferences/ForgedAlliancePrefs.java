@@ -28,13 +28,14 @@ public class ForgedAlliancePrefs {
       STEAM_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PROGRAM_FILESX86), "Steam", "SteamApps", "common", "Supreme Commander Forged Alliance");
       LOCAL_FA_DATA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_LOCAL_APPDATA), "Gas Powered Games", "Supreme Commander Forged Alliance");
     } else {
-      GPG_FA_PATH = Paths.get(".");
+      String userHome = System.getProperty("user.home");
+      GPG_FA_PATH = Paths.get(userHome, "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
       STEAM_FA_PATH = Paths.get(".");
-      LOCAL_FA_DATA_PATH = Paths.get(".");
+      LOCAL_FA_DATA_PATH = Paths.get(userHome, ".wine", "drive_c", "users", System.getProperty("user.name"), "Application Data", "Gas Powered Games", "Supreme Commander Forged Alliance");
     }
   }
 
-  private final ObjectProperty<Path> path;
+  private final ObjectProperty<Path> executablePath;
   private final ObjectProperty<Path> customMapsDirectory;
   private final ObjectProperty<Path> preferencesFile;
   private final ObjectProperty<Path> officialMapsDirectory;
@@ -55,7 +56,7 @@ public class ForgedAlliancePrefs {
 
   public ForgedAlliancePrefs() {
     port = new SimpleIntegerProperty(6112);
-    path = new SimpleObjectProperty<>();
+    executablePath = new SimpleObjectProperty<>();
     customMapsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("Maps"));
     officialMapsDirectory = new SimpleObjectProperty<>(STEAM_FA_PATH.resolve("Maps"));
     modsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("Mods"));
@@ -85,16 +86,16 @@ public class ForgedAlliancePrefs {
     this.officialMapsDirectory.set(officialMapsDirectory);
   }
 
-  public Path getPath() {
-    return path.get();
+  public Path getExecutablePath() {
+    return executablePath.get();
   }
 
-  public void setPath(Path path) {
-    this.path.set(path);
+  public void setExecutablePath(Path executablePath) {
+    this.executablePath.set(executablePath);
   }
 
-  public ObjectProperty<Path> pathProperty() {
-    return path;
+  public ObjectProperty<Path> executablePathProperty() {
+    return executablePath;
   }
 
   public int getPort() {

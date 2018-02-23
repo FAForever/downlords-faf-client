@@ -131,13 +131,13 @@ public class MapServiceImpl implements MapService {
   @PostConstruct
   void postConstruct() {
     customMapsDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
-    preferencesService.getPreferences().getForgedAlliance().pathProperty().addListener(observable -> tryLoadMaps());
+    preferencesService.getPreferences().getForgedAlliance().executablePathProperty().addListener(observable -> tryLoadMaps());
     preferencesService.getPreferences().getForgedAlliance().customMapsDirectoryProperty().addListener(observable -> tryLoadMaps());
     tryLoadMaps();
   }
 
   private void tryLoadMaps() {
-    if (preferencesService.getPreferences().getForgedAlliance().getPath() == null
+    if (preferencesService.getPreferences().getForgedAlliance().getExecutablePath() == null
         || preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory() == null) {
       return;
     }
@@ -177,7 +177,7 @@ public class MapServiceImpl implements MapService {
       @Override
       protected Void call() {
         updateTitle(i18n.get("mapVault.loadingMaps"));
-        Path officialMapsPath = preferencesService.getPreferences().getForgedAlliance().getPath().resolve("maps");
+        Path officialMapsPath = preferencesService.getPreferences().getForgedAlliance().getExecutablePath().resolve("maps");
 
         try {
           List<Path> mapPaths = new ArrayList<>();

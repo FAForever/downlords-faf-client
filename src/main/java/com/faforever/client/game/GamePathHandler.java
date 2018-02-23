@@ -70,7 +70,7 @@ public class GamePathHandler {
     Path gamePath = path.getParent();
 
     logger.info("Found game path at {}", gamePath);
-    preferencesService.getPreferences().getForgedAlliance().setPath(gamePath);
+    preferencesService.getPreferences().getForgedAlliance().setExecutablePath(gamePath);
     preferencesService.storeInBackground();
   }
 
@@ -88,7 +88,7 @@ public class GamePathHandler {
   }
 
   public void detectAndUpdateGamePath() {
-    Path faPath = preferencesService.getPreferences().getForgedAlliance().getPath();
+    Path faPath = preferencesService.getPreferences().getForgedAlliance().getExecutablePath();
     if (faPath == null || Files.notExists(faPath)) {
       logger.info("Game path is not specified or non-existent, trying to detect");
       detectGamePath();

@@ -227,7 +227,7 @@ public class SettingsController implements Controller<Node> {
     notifyOnAtMentionOnly.selectedProperty().bindBidirectional(preferences.getNotification().notifyOnAtMentionOnlyEnabledProperty());
     enableSoundsCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().soundsEnabledProperty());
     gamePortTextField.textProperty().bindBidirectional(preferences.getForgedAlliance().portProperty(), new NumberStringConverter(integerNumberFormat));
-    gameLocationTextField.textProperty().bindBidirectional(preferences.getForgedAlliance().pathProperty(), PATH_STRING_CONVERTER);
+    gameLocationTextField.textProperty().bindBidirectional(preferences.getForgedAlliance().executablePathProperty(), PATH_STRING_CONVERTER);
     autoDownloadMapsCheckBox.selectedProperty().bindBidirectional(preferences.getForgedAlliance().autoDownloadMapsProperty());
 
     executableDecoratorField.textProperty().bindBidirectional(preferences.getForgedAlliance().executableDecoratorProperty());
