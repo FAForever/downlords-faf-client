@@ -16,7 +16,7 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.SocialMessage;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.ui.tray.event.IncrementApplicationBadgeEvent;
+import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
@@ -236,6 +236,7 @@ public class PircBotXChatService implements ChatService {
   public void onLoggedOutEvent(LoggedOutEvent event) {
     disconnect();
     autoChannelsJoined = false;
+    eventBus.post(UpdateApplicationBadgeEvent.ofNewValue(0));
   }
 
   private void onNotice(NoticeEvent event) {
@@ -615,7 +616,7 @@ public class PircBotXChatService implements ChatService {
 
   @Override
   public void incrementUnreadMessagesCount(int delta) {
-    eventBus.post(new IncrementApplicationBadgeEvent(delta));
+    eventBus.post(UpdateApplicationBadgeEvent.ofDelta(delta));
   }
 
   @Override

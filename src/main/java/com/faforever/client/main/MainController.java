@@ -31,7 +31,7 @@ import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
-import com.faforever.client.ui.tray.event.IncrementApplicationBadgeEvent;
+import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
@@ -308,7 +308,8 @@ public class MainController implements Controller<Node> {
   }
 
   public void display() {
-    eventBus.post(new IncrementApplicationBadgeEvent(0));
+    eventBus.post(UpdateApplicationBadgeEvent.ofNewValue(0));
+
     Stage stage = StageHolder.getStage();
     windowController.configure(stage, mainRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
