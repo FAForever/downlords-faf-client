@@ -2,7 +2,7 @@ package com.faforever.client.ui.tray;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.ui.StageHolder;
-import com.faforever.client.ui.tray.event.IncrementApplicationBadgeEvent;
+import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
@@ -36,6 +36,7 @@ public class TrayIconManager {
 
   private final I18n i18n;
   private final EventBus eventBus;
+  private int badgeCount;
 
   @Inject
   public TrayIconManager(I18n i18n, EventBus eventBus) {
@@ -53,20 +54,28 @@ public class TrayIconManager {
    * generated on top of the icon.
    */
   @Subscribe
-  public void onSetApplicationBadgeEvent(IncrementApplicationBadgeEvent event) {
+  public void onSetApplicationBadgeEvent(UpdateApplicationBadgeEvent event) {
     Platform.runLater(() -> {
+      if (event.getDelta().isPresent()) {
+        badgeCount += event.getDelta().get();
+      } else if (event.getNewValue().isPresent()) {
+        badgeCount = event.getNewValue().get();
+      } else {
+        throw new IllegalStateException("No delta nor new value is available");
+      }
+
       List<Image> icons;
-      if (event.getDelta() < 1) {
+      if (badgeCount < 1) {
         icons = IntStream.range(4, 9)
             .mapToObj(power -> generateTrayIcon((int) Math.pow(2, power)))
             .collect(Collectors.toList());
       } else {
         icons = IntStream.range(4, 9)
             .mapToObj(power -> generateTrayIcon((int) Math.pow(2, power)))
-            .map(image -> addBadge(image, event.getDelta()))
+            .map(image -> addBadge(image, badgeCount))
             .collect(Collectors.toList());
       }
-      StageHolder.getStage().getIcons().addAll(icons);
+      StageHolder.getStage().getIcons().setAll(icons);
     });
   }
 
