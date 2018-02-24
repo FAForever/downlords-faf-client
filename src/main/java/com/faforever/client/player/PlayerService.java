@@ -1,5 +1,6 @@
 package com.faforever.client.player;
 
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,9 +42,17 @@ public interface PlayerService {
 
   void removeFoe(Player player);
 
+  void followPlayer(Player player);
+
+  void stopFollowing();
+
   Optional<Player> getCurrentPlayer();
 
   ReadOnlyObjectProperty<Player> currentPlayerProperty();
 
   CompletableFuture<List<Player>> getPlayersByIds(Collection<Integer> playerId);
+
+  public Player getFollowedPlayer();
+
+  public ObjectProperty<Player> followedPlayerProperty();
 }

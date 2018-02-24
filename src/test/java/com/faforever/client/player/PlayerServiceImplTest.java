@@ -194,6 +194,25 @@ public class PlayerServiceImplTest {
   }
 
   @Test
+  public void testFollowPlayer() {
+    Player player = instance.createAndGetPlayerForUsername("player");
+
+    instance.followPlayer(player);
+
+    assertTrue("Player was not marked as followed", instance.getFollowedPlayer() == player);
+  }
+
+  @Test
+  public void testStopFollowing() {
+    Player player = instance.createAndGetPlayerForUsername("player");
+
+    instance.followPlayer(player);
+    instance.stopFollowing();
+
+    assertNull("Still following player after trying to unfollow", instance.getFollowedPlayer());
+  }
+
+  @Test
   public void testGetCurrentPlayer() throws Exception {
     LoginSuccessEvent event = new LoginSuccessEvent("junit", "", 1);
     instance.onLoginSuccess(event);

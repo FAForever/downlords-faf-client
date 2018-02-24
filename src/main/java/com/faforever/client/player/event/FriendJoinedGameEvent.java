@@ -2,7 +2,9 @@ package com.faforever.client.player.event;
 
 import com.faforever.client.game.Game;
 import com.faforever.client.player.Player;
+import lombok.Getter;
 
+@Getter
 public class FriendJoinedGameEvent {
   private Player player;
   private Game game;
@@ -10,15 +12,6 @@ public class FriendJoinedGameEvent {
   public FriendJoinedGameEvent(Player player, Game game) {
     this.player = player;
     this.game = game;
-  }
-
-  public Player getPlayer() {
-    return player;
-  }
-
-
-  public Game getGame() {
-    return game;
   }
 
   @Override

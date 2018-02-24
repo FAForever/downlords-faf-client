@@ -50,6 +50,7 @@ import javafx.event.ActionEvent;
 import javafx.geometry.Bounds;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
@@ -115,6 +116,7 @@ public class MainController implements Controller<Node> {
   public ToggleButton unitsButton;
   public Pane mainRoot;
   public ToggleGroup mainNavigation;
+  public Button followingButton;
   @VisibleForTesting
   protected Popup transientNotificationsPopup;
   @VisibleForTesting
@@ -173,6 +175,11 @@ public class MainController implements Controller<Node> {
     notificationService.addImmediateNotificationListener(notification -> runLater(() -> displayImmediateNotification(notification)));
     notificationService.addTransientNotificationListener(notification -> runLater(() -> transientNotificationsController.addNotification(notification)));
     gameService.addOnRankedMatchNotificationListener(this::onMatchmakerMessage);
+
+    followingButton.visibleProperty().bind(playerService.followedPlayerProperty().isNotNull());
+    playerService.followedPlayerProperty().addListener((observableValue, oldVal, newVal) ->
+        followingButton.setText(i18n.get("main.following", Optional.ofNullable(newVal).map(p -> p.getUsername()).orElse("nobody"))));
+
     // Always load chat immediately so messages or joined channels don't need to be cached until we display them.
     getView(NavigationItem.CHAT);
   }
@@ -485,6 +492,10 @@ public class MainController implements Controller<Node> {
   public void onChat(ActionEvent actionEvent) {
     chatButton.pseudoClassStateChanged(HIGHLIGHTED, false);
     onNavigateButtonClicked(actionEvent);
+  }
+
+  public void onStopFollowButtonClicked(ActionEvent actionEvent) {
+    playerService.stopFollowing();
   }
 
   /**

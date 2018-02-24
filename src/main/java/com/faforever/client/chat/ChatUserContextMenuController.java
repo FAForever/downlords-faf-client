@@ -22,6 +22,7 @@ import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ColorPicker;
@@ -77,6 +78,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public MenuItem removeCustomColorItem;
   public CustomMenuItem colorPickerMenuItem;
   public ColorPicker colorPicker;
+  public MenuItem followPlayerItem;
   public MenuItem joinGameItem;
   public MenuItem addFriendItem;
   public MenuItem removeFriendItem;
@@ -173,6 +175,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     addFoeItem.visibleProperty().bind(player.socialStatusProperty().isNotEqualTo(FOE).and(player.socialStatusProperty().isNotEqualTo(SELF)));
     removeFoeItem.visibleProperty().bind(player.socialStatusProperty().isEqualTo(FOE));
 
+    followPlayerItem.visibleProperty().bind(player.socialStatusProperty().isNotEqualTo(SELF).and(player.chatOnlyProperty().isEqualTo(new SimpleBooleanProperty(false))));
     joinGameItem.visibleProperty().bind(player.socialStatusProperty().isNotEqualTo(SELF)
         .and(player.statusProperty().isEqualTo(PlayerStatus.LOBBYING)
             .or(player.statusProperty().isEqualTo(PlayerStatus.HOSTING))));
@@ -267,6 +270,10 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
       String message = i18n.get("replays.live.loadFailure.message");
       notificationService.addNotification(new ImmediateNotification(title, message, Severity.ERROR));
     }
+  }
+
+  public void onFollowPlayer() {
+    playerService.followPlayer(player);
   }
 
   public void onViewReplays() {
