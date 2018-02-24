@@ -8,7 +8,8 @@
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="playRoot" maxHeight="1.7976931348623157E308"
       xmlns="http://javafx.com/javafx/8.0.60" fx:controller="com.faforever.client.play.PlayController">
     <children>
-        <TabPane rotateGraphic="true" side="LEFT" tabClosingPolicy="UNAVAILABLE" tabMaxHeight="200.0"
+        <TabPane fx:id="playRootTabPane" rotateGraphic="true" side="LEFT" tabClosingPolicy="UNAVAILABLE"
+                 tabMaxHeight="200.0"
                  tabMinHeight="200.0" VBox.vgrow="ALWAYS">
             <tabs>
                 <Tab fx:id="customGamesTab">
@@ -27,9 +28,9 @@
                         </Group>
                     </graphic>
                 </Tab>
-            <Tab>
+                <Tab fx:id="ladderTab">
                <content>
-                  <fx:include source="ranked_1v1.fxml" />
+                   <fx:include source="ranked_1v1.fxml" fx:id="ladder"/>
                </content>
                <graphic>
                   <Group>
@@ -43,9 +44,9 @@
                   </Group>
                </graphic>
             </Tab>
-                <Tab>
+                <Tab fx:id="coopTab">
                     <content>
-                        <fx:include source="coop/coop.fxml" />
+                        <fx:include source="coop/coop.fxml" fx:id="coop"/>
                     </content>
                     <graphic>
                         <Group>

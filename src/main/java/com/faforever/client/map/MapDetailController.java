@@ -4,8 +4,7 @@ import com.faforever.client.fa.FaStrings;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.main.event.NavigateEvent;
-import com.faforever.client.main.event.NavigationItem;
+import com.faforever.client.main.event.HostGameEvent;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -273,7 +272,6 @@ public class MapDetailController implements Controller<Node> {
   }
 
   public void onCreateGameButtonClicked() {
-    eventBus.post(new NavigateEvent(NavigationItem.PLAY));
-    eventBus.post(new HostMapInCustomGameEvent());
+    eventBus.post(new HostGameEvent(map.getFolderName()));
   }
 }
