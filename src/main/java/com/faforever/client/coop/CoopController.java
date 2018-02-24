@@ -1,7 +1,7 @@
 package com.faforever.client.coop;
 
 import com.faforever.client.api.dto.CoopResult;
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeTableCell;
 import com.faforever.client.fx.StringCell;
@@ -62,7 +62,7 @@ import static javafx.collections.FXCollections.observableList;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class CoopController implements Controller<Node> {
+public class CoopController extends AbstractViewController<Node> {
 
   private static final Predicate<Game> OPEN_COOP_GAMES_PREDICATE = gameInfoBean ->
       gameInfoBean.getStatus() == GameStatus.OPEN

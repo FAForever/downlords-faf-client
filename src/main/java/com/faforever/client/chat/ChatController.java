@@ -238,7 +238,7 @@ public class ChatController extends AbstractViewController<Node> {
   }
 
   @Override
-  protected void onDisplay(NavigateEvent navigateEvent) {
+  public void onDisplay(NavigateEvent navigateEvent) {
     super.onDisplay(navigateEvent);
     if (!tabPane.getTabs().isEmpty()) {
       Tab tab = tabPane.getSelectionModel().getSelectedItem();

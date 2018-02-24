@@ -1,16 +1,16 @@
 package com.faforever.client.game;
 
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.HostMapInCustomGameEvent;
+import com.faforever.client.main.event.HostGameEvent;
+import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
@@ -26,6 +26,8 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
+import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -40,7 +42,8 @@ import java.util.function.Predicate;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class CustomGamesController implements Controller<Node> {
+@Slf4j
+public class CustomGamesController extends AbstractViewController<Node> {
 
   private static final Collection<String> HIDDEN_FEATURED_MODS = Arrays.asList(
       KnownFeaturedMod.COOP.getTechnicalName(),
@@ -138,6 +141,13 @@ public class CustomGamesController implements Controller<Node> {
     eventBus.register(this);
   }
 
+  @Override
+  public void onDisplay(NavigateEvent navigateEvent) {
+    if (navigateEvent instanceof HostGameEvent) {
+      onCreateGame(((HostGameEvent) navigateEvent).getMapFolderName());
+    }
+  }
+
   private void updateFilteredItems() {
     preferencesService.storeInBackground();
 
@@ -154,14 +164,21 @@ public class CustomGamesController implements Controller<Node> {
   }
 
   public void onCreateGameButtonClicked() {
+    onCreateGame(null);
+  }
+
+  private void onCreateGame(@Nullable String mapFolderName) {
     if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
       CompletableFuture<Path> gameDirectoryFuture = new CompletableFuture<>();
       eventBus.post(new GameDirectoryChooseEvent(gameDirectoryFuture));
-      gameDirectoryFuture.thenAccept(path -> Optional.ofNullable(path).ifPresent(path1 -> onCreateGameButtonClicked()));
+      gameDirectoryFuture.thenAccept(path -> Optional.ofNullable(path).ifPresent(path1 -> onCreateGame(null)));
       return;
     }
 
     CreateGameController createGameController = uiService.loadFxml("theme/play/create_game.fxml");
+    if (mapFolderName != null && !createGameController.selectMap(mapFolderName)) {
+      log.warn("Map with folder name: '{}' could not be found in map list", mapFolderName);
+    }
 
     Pane createGameRoot = createGameController.getRoot();
     gamesRoot.getChildren().add(createGameRoot);
@@ -170,11 +187,6 @@ public class CustomGamesController implements Controller<Node> {
     AnchorPane.setBottomAnchor(createGameRoot, 0d);
     AnchorPane.setLeftAnchor(createGameRoot, 0d);
     createGameRoot.requestFocus();
-  }
-
-  @Subscribe
-  public void onHostMapInCustomGameEvent(HostMapInCustomGameEvent event) {
-    createGameButton.fire();
   }
 
   public Node getRoot() {
