@@ -4,7 +4,6 @@ import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
-import com.faforever.client.util.RatingUtil;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
@@ -30,11 +29,7 @@ public class PlayerCardTooltipController implements Controller<Node> {
     this.i18n = i18n;
   }
 
-  public void setPlayer(Player player) {
-    setPlayerWithRating(player, RatingUtil.getRoundedGlobalRating(player));
-  }
-
-  public void setPlayerWithRating(Player player, int rating) {
+  public void setPlayer(Player player, int rating) {
     if (player == null) {
       return;
     }
