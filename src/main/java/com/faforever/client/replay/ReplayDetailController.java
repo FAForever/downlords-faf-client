@@ -5,6 +5,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
+import com.faforever.client.game.RatingType;
 import com.faforever.client.game.TeamCardController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean;
@@ -282,7 +283,7 @@ public class ReplayDetailController implements Controller<Node> {
           .thenAccept(players -> controller.setPlayersInTeam(team, players, player -> {
             PlayerStats playerStats = statsByPlayerId.get(player.getId());
             return new Rating(playerStats.getBeforeMean(), playerStats.getBeforeDeviation());
-          }, false));
+          }, RatingType.EXACT));
 
       teamsContainer.getChildren().add(controller.getRoot());
     }));
