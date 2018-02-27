@@ -12,7 +12,7 @@ import java.util.concurrent.CompletableFuture;
 
 public interface ReplayService {
 
-  Collection<Replay> getLocalReplays();
+  CompletableFuture<Collection<Replay>> getLocalReplays();
 
   void runReplay(Replay item);
 
