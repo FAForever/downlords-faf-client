@@ -326,9 +326,9 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @Override
   public Optional<MapVersion> findMapByFolderName(String folderName) {
-    List<MapVersion> maps = getMany(MAP_ENDPOINT, 1, ImmutableMap.of(
-        "include", "latestVersion,author",
-        "sort", "-updateTime"));
+    List<MapVersion> maps = getMany("/data/mapVersion", 1, ImmutableMap.of(
+        "filter", String.format("filename==\"*%s*\"", folderName),
+        "include", "map,map.statistics,reviews"));
     if (maps.isEmpty()) {
       return Optional.empty();
     }
@@ -435,7 +435,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @Override
   public Optional<MapVersion> findMapVersionById(String id) {
-    // TODO check what is returned if map does not exist
+    // FIXME: that is not gonna work this way
     return Optional.ofNullable(getOne(MAP_ENDPOINT + "/" + id, MapVersion.class));
   }
 

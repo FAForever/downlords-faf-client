@@ -129,7 +129,7 @@ public class MapServiceImpl implements MapService {
   }
 
   @PostConstruct
-  void postConstruct() throws IOException {
+  void postConstruct() {
     customMapsDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
     preferencesService.getPreferences().getForgedAlliance().pathProperty().addListener(observable -> tryLoadMaps());
     preferencesService.getPreferences().getForgedAlliance().customMapsDirectoryProperty().addListener(observable -> tryLoadMaps());
@@ -144,14 +144,14 @@ public class MapServiceImpl implements MapService {
     try {
       Files.createDirectories(customMapsDirectory);
       directoryWatcherThread = startDirectoryWatcher(customMapsDirectory);
-    } catch (IOException | InterruptedException e) {
+    } catch (IOException e) {
       logger.warn("Could not start map directory watcher", e);
       // TODO notify user
     }
     loadInstalledMaps();
   }
 
-  private Thread startDirectoryWatcher(Path mapsDirectory) throws IOException, InterruptedException {
+  private Thread startDirectoryWatcher(Path mapsDirectory) {
     Thread thread = new Thread(() -> noCatch(() -> {
       WatchService watcher = mapsDirectory.getFileSystem().newWatchService();
       MapServiceImpl.this.customMapsDirectory.register(watcher, ENTRY_DELETE);
@@ -175,7 +175,7 @@ public class MapServiceImpl implements MapService {
   private void loadInstalledMaps() {
     taskService.submitTask(new CompletableTask<Void>(Priority.LOW) {
       @Override
-      protected Void call() throws Exception {
+      protected Void call() {
         updateTitle(i18n.get("mapVault.loadingMaps"));
         Path officialMapsPath = preferencesService.getPreferences().getForgedAlliance().getPath().resolve("maps");
 
@@ -371,7 +371,7 @@ public class MapServiceImpl implements MapService {
   @Override
   public CompletableFuture<Optional<MapBean>> findByMapFolderName(String folderName) {
     Path localMapFolder = getPathForMap(folderName);
-    if (Files.exists(localMapFolder)) {
+    if (localMapFolder != null && Files.exists(localMapFolder)) {
       return CompletableFuture.completedFuture(Optional.of(readMap(localMapFolder)));
     }
     return fafService.findMapByFolderName(folderName);
