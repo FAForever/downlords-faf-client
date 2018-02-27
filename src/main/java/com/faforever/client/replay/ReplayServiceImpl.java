@@ -176,7 +176,7 @@ public class ReplayServiceImpl implements ReplayService {
                 replayInfos.add(new Replay(replayInfo, replayFile, featuredMod, mapBean.get()));
               });
         } catch (Exception e) {
-          logger.warn("Could not read replay file {} ({})", replayFile, e.getMessage());
+          logger.warn("Could not read replay file '{}'", replayFile, e);
           moveCorruptedReplayFile(replayFile);
         }
       }
