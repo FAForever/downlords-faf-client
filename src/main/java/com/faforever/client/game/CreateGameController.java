@@ -210,7 +210,7 @@ public class CreateGameController implements Controller<Pane> {
         default:
           return i18n.get("game.create.create");
       }
-    }, titleTextField.textProperty(), featuredModListView.getSelectionModel().selectedItemProperty(), fafService.connectionStateProperty()));
+    }, titleTextField.textProperty(), featuredModListView.getSelectionModel().selectedItemProperty(), fafService.connectionStateProperty(), connectivityService.connectivityStateProperty()));
 
     createGameButton.disableProperty().bind(
         titleTextField.textProperty().isEmpty()
