@@ -20,6 +20,7 @@ public class BaseConfig {
   @Bean
   MessageSource messageSource() {
     ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+    messageSource.setDefaultEncoding("utf-8");
     messageSource.setBasename("i18n.messages");
     messageSource.setFallbackToSystemLocale(false);
     return messageSource;
