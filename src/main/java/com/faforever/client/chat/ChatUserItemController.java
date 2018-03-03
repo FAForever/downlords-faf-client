@@ -85,7 +85,7 @@ public class ChatUserItemController implements Controller<Node> {
   public Label statusLabel;
   public Text presenceStatusIndicator;
   private Player player;
-  private boolean colorsAllowedInPane;
+  private boolean randomColorsAllowedInPane;
   private ChangeListener<ChatColorMode> colorModeChangeListener;
   private MapChangeListener<? super String, ? super Color> colorPerUserMapChangeListener;
   private ChangeListener<String> avatarChangeListener;
@@ -164,7 +164,6 @@ public class ChatUserItemController implements Controller<Node> {
     if (player.getSocialStatus() == SELF) {
       usernameLabel.getStyleClass().add(SELF.getCssClass());
       clanMenu.getStyleClass().add(SELF.getCssClass());
-      return;
     }
 
     Color color = null;
@@ -179,7 +178,7 @@ public class ChatUserItemController implements Controller<Node> {
 
         chatPrefs.getUserToColor().addListener(new WeakMapChangeListener<>(colorPerUserMapChangeListener));
       }
-    } else if (chatPrefs.getChatColorMode() == ChatColorMode.RANDOM && colorsAllowedInPane) {
+    } else if (chatPrefs.getChatColorMode() == ChatColorMode.RANDOM && randomColorsAllowedInPane) {
       color = ColorGeneratorUtil.generateRandomColor(chatUser.getUsername().hashCode());
     }
 
@@ -320,8 +319,8 @@ public class ChatUserItemController implements Controller<Node> {
     ));
   }
 
-  void setColorsAllowedInPane(boolean colorsAllowedInPane) {
-    this.colorsAllowedInPane = colorsAllowedInPane;
+  void setRandomColorsAllowedInPane(boolean randomColorsAllowedInPane) {
+    this.randomColorsAllowedInPane = randomColorsAllowedInPane;
     configureColor();
   }
 
