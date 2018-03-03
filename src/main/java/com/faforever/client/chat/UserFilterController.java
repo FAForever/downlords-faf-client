@@ -5,6 +5,8 @@ import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.annotations.VisibleForTesting;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.MenuButton;
@@ -33,6 +35,7 @@ public class UserFilterController implements Controller<Node> {
   public TextField clanFilterField;
   public TextField minRatingFilterField;
   public TextField maxRatingFilterField;
+  private BooleanProperty isFilterApplied = new SimpleBooleanProperty(false);
   @VisibleForTesting
   ChannelTabController channelTabController;
   @VisibleForTesting
@@ -61,6 +64,7 @@ public class UserFilterController implements Controller<Node> {
         chatUserItemController.setVisible(filterUser(chatUserItemController));
       }
     }
+    isFilterApplied.set(!maxRatingFilterField.getText().isEmpty() || !maxRatingFilterField.getText().isEmpty() || !clanFilterField.getText().isEmpty());
   }
 
   boolean filterUser(ChatUserItemController chatUserItemController) {
@@ -68,6 +72,10 @@ public class UserFilterController implements Controller<Node> {
         && isInClan(chatUserItemController)
         && isBoundedByRating(chatUserItemController)
         && isGameStatusMatch(chatUserItemController);
+  }
+
+  public BooleanProperty getIsFilterAppliedProperty() {
+    return isFilterApplied;
   }
 
   @VisibleForTesting

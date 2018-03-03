@@ -315,6 +315,13 @@ public class ChannelTabController extends AbstractChatTabController {
 
     userFilterController = uiService.loadFxml("theme/chat/user_filter.fxml");
     userFilterController.setChannelController(this);
+    userFilterController.getIsFilterAppliedProperty().addListener((observable, oldValue, newValue) -> {
+      if (!oldValue && newValue) {
+        advancedUserFilter.setStyle("-fx-text-fill: -swatch-400");
+      } else if (oldValue && !newValue) {
+        advancedUserFilter.setStyle(null);
+      }
+    });
     filterUserPopup.getContent().setAll(userFilterController.getRoot());
   }
 
@@ -445,8 +452,8 @@ public class ChannelTabController extends AbstractChatTabController {
       if (!userSearchTextField.textProperty().get().isEmpty()) {
         chatUserItemController.setVisible(isUsernameMatch(chatUserItemController));
       }
-      if (filterUserPopup.isShowing()) {
-        userFilterController.filterUser(chatUserItemController);
+      if (userFilterController.getIsFilterAppliedProperty().get()) {
+        chatUserItemController.setVisible(userFilterController.filterUser(chatUserItemController));
       }
     }
   }
