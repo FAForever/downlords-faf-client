@@ -85,8 +85,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
-import static com.faforever.client.chat.SocialStatus.FRIEND;
-import static com.faforever.client.chat.SocialStatus.SELF;
 import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
 import static com.faforever.client.theme.UiService.CHAT_ENTRY;
 import static com.faforever.client.theme.UiService.CHAT_TEXT;
@@ -771,8 +769,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
     if (chatPrefs.getHideFoeMessages() && player != null && player.getSocialStatus() == FOE) {
       display = "display: none;";
-    } else if (player != null && (player.getSocialStatus() == SELF || player.getSocialStatus() == FRIEND)) {
-      return "";
     } else {
       ChatColorMode chatColorMode = chatPrefs.getChatColorMode();
       if ((chatColorMode == ChatColorMode.CUSTOM || chatColorMode == ChatColorMode.RANDOM)

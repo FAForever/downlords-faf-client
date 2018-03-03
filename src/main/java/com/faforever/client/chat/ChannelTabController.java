@@ -526,7 +526,7 @@ public class ChannelTabController extends AbstractChatTabController {
     chatUserItemController.setPlayer(player);
     paneToChatUserControlMap.put(pane, chatUserItemController);
 
-    chatUserItemController.setColorsAllowedInPane((pane == othersPane || pane == chatOnlyPane) && player.getSocialStatus() != SELF);
+    chatUserItemController.setRandomColorsAllowedInPane((pane == othersPane || pane == chatOnlyPane) && player.getSocialStatus() != SELF);
 
     Platform.runLater(() -> {
       addChatUserItemSorted(pane, chatUserItemController);

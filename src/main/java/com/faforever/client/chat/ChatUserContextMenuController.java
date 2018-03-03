@@ -154,11 +154,9 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     });
 
     removeCustomColorItem.visibleProperty().bind(chatPrefs.chatColorModeProperty().isEqualTo(CUSTOM)
-        .and(colorPicker.valueProperty().isNotNull())
-        .and(player.socialStatusProperty().isNotEqualTo(SELF)));
+        .and(colorPicker.valueProperty().isNotNull()));
     colorPickerMenuItem.visibleProperty().bind(chatPrefs.chatColorModeProperty()
-        .isEqualTo(CUSTOM)
-        .and(player.socialStatusProperty().isNotEqualTo(SELF)));
+        .isEqualTo(CUSTOM));
 
     if (player.getSocialStatus() != SocialStatus.SELF) {
       avatarPickerMenuItem.setVisible(false);
