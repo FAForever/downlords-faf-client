@@ -443,6 +443,9 @@ public class UserInfoWindowController implements Controller<Node> {
         int number = object.intValue();
         int numberOfDataPoints = dataPoints.size();
         int dataPointIndex = number >= numberOfDataPoints ? numberOfDataPoints - 1 : number;
+        if (dataPointIndex >= dataPoints.size() || dataPointIndex < 0) {
+          return "";
+        }
         return DATE_FORMATTER.format(dataPoints.get(dataPointIndex).getInstant());
       }
 
