@@ -1,8 +1,8 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.mod.Mod;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.mod.ModVersion;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.util.Assert;
 import javafx.beans.InvalidationListener;
@@ -58,8 +58,8 @@ public class GitFeaturedModUpdateTaskImpl extends CompletableTask<PatchResult> i
 
 
     try (InputStream inputStream = Files.newInputStream(modInfoLuaFile)) {
-      Mod mod = modService.extractModInfo(inputStream, repositoryDirectory);
-      return PatchResult.fromModInfo(modService.readModVersion(repositoryDirectory), mod.getMountInfos(), mod.getHookDirectories());
+      ModVersion modVersion = modService.extractModInfo(inputStream, repositoryDirectory);
+      return PatchResult.fromModInfo(modService.readModVersion(repositoryDirectory), modVersion.getMountInfos(), modVersion.getHookDirectories());
     }
   }
 

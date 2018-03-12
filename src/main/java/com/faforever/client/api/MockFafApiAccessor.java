@@ -160,7 +160,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public Mod getMod(String uid) {
+  public ModVersion getModVersion(String uid) {
     return null;
   }
 

@@ -15,7 +15,7 @@ import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.LeaderboardEntry;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.FeaturedMod;
-import com.faforever.client.mod.Mod;
+import com.faforever.client.mod.ModVersion;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
 import com.faforever.client.remote.domain.GameLaunchMessage;
@@ -73,9 +73,9 @@ public interface FafService {
 
   void notifyGameEnded();
 
-  CompletableFuture<List<Mod>> getMods();
+  CompletableFuture<List<ModVersion>> getMods();
 
-  CompletableFuture<Mod> getMod(String uid);
+  CompletableFuture<ModVersion> getModVersion(String uid);
 
   void reconnect();
 
@@ -143,7 +143,7 @@ public interface FafService {
 
   CompletableFuture<Void> deleteMapVersionReview(Review review);
 
-  CompletableFuture<List<Mod>> findModsByQuery(SearchConfig query, int page, int count);
+  CompletableFuture<List<ModVersion>> findModsByQuery(SearchConfig query, int page, int count);
 
   CompletableFuture<Void> deleteModVersionReview(Review review);
 

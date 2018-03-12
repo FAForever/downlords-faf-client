@@ -21,7 +21,7 @@ public class UninstallModTask extends CompletableTask<Void> {
 
   private final ModService modService;
 
-  private Mod mod;
+  private ModVersion modVersion;
 
   @Inject
   public UninstallModTask(ModService modService) {
@@ -30,16 +30,16 @@ public class UninstallModTask extends CompletableTask<Void> {
     this.modService = modService;
   }
 
-  public void setMod(Mod mod) {
-    this.mod = mod;
+  public void setModVersion(ModVersion modVersion) {
+    this.modVersion = modVersion;
   }
 
   @Override
   protected Void call() throws Exception {
-    Objects.requireNonNull(mod, "mod has not been set");
+    Objects.requireNonNull(modVersion, "modVersion has not been set");
 
-    logger.info("Uninstalling mod '{}' ({})", mod.getDisplayName(), mod.getUid());
-    Path modPath = modService.getPathForMod(mod);
+    logger.info("Uninstalling modVersion '{}' ({})", modVersion.getDisplayName(), modVersion.getUid());
+    Path modPath = modService.getPathForMod(modVersion);
 
     FileUtils.deleteRecursively(modPath);
 

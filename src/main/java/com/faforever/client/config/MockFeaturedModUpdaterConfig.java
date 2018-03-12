@@ -30,7 +30,7 @@ public class MockFeaturedModUpdaterConfig {
 
   @Bean
   GameUpdater gameUpdater() {
-    return new GameUpdaterImpl(modService, applicationContext, taskService, fafService, faInitGenerator, notificationService)
+    return new GameUpdaterImpl(modService, applicationContext, taskService, fafService, faInitGenerator)
         .addFeaturedModUpdater(featuredModUpdater);
   }
 }

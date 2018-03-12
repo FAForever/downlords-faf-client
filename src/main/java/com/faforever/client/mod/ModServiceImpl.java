@@ -3,7 +3,7 @@ package com.faforever.client.mod;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.mod.Mod.ModType;
+import com.faforever.client.mod.ModVersion.ModType;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -91,9 +91,9 @@ public class ModServiceImpl implements ModService {
   private final ModReader modReader;
 
   private Path modsDirectory;
-  private Map<Path, Mod> pathToMod;
-  private ObservableList<Mod> installedMods;
-  private ObservableList<Mod> readOnlyInstalledMods;
+  private Map<Path, ModVersion> pathToMod;
+  private ObservableList<ModVersion> installedModVersions;
+  private ObservableList<ModVersion> readOnlyInstalledModVersions;
   private Thread directoryWatcherThread;
 
   @Inject
@@ -104,8 +104,8 @@ public class ModServiceImpl implements ModService {
                         PlatformService platformService, AssetService assetService) {
     pathToMod = new HashMap<>();
     modReader = new ModReader();
-    installedMods = FXCollections.observableArrayList();
-    readOnlyInstalledMods = FXCollections.unmodifiableObservableList(installedMods);
+    installedModVersions = FXCollections.observableArrayList();
+    readOnlyInstalledModVersions = FXCollections.unmodifiableObservableList(installedModVersions);
     this.taskService = taskService;
     this.fafService = fafService;
     this.preferencesService = preferencesService;
@@ -117,7 +117,7 @@ public class ModServiceImpl implements ModService {
   }
 
   @PostConstruct
-  void postConstruct() throws IOException {
+  void postConstruct() {
     modsDirectory = preferencesService.getPreferences().getForgedAlliance().getModsDirectory();
     preferencesService.getPreferences().getForgedAlliance().modsDirectoryProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue != null) {
@@ -134,14 +134,14 @@ public class ModServiceImpl implements ModService {
     try {
       createDirectories(modsDirectory);
       directoryWatcherThread = startDirectoryWatcher(modsDirectory);
-    } catch (IOException | InterruptedException e) {
+    } catch (IOException e) {
       logger.warn("Could not start mod directory watcher", e);
       // TODO notify user
     }
     loadInstalledMods();
   }
 
-  private Thread startDirectoryWatcher(Path modsDirectory) throws IOException, InterruptedException {
+  private Thread startDirectoryWatcher(Path modsDirectory) {
     Thread thread = new Thread(() -> noCatch(() -> {
       WatchService watcher = modsDirectory.getFileSystem().newWatchService();
       modsDirectory.register(watcher, ENTRY_DELETE);
@@ -174,14 +174,19 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public ObservableList<Mod> getInstalledMods() {
-    return readOnlyInstalledMods;
+  public ObservableList<ModVersion> getInstalledModVersions() {
+    return readOnlyInstalledModVersions;
   }
 
   @SneakyThrows
   @Override
   public CompletableFuture<Void> downloadAndInstallMod(String uid) {
-    return fafService.getMod(uid).thenAccept(mod -> downloadAndInstallMod(mod, null, null));
+    return fafService.getModVersion(uid)
+        .thenCompose(mod -> downloadAndInstallMod(mod, null, null))
+        .exceptionally(throwable -> {
+          logger.warn("Sim mod could not be installed", throwable);
+          return null;
+        });
   }
 
   @Override
@@ -201,26 +206,26 @@ public class ModServiceImpl implements ModService {
     }
 
     return taskService.submitTask(task).getFuture()
-        .thenAccept(aVoid -> loadInstalledMods());
+        .thenRun(this::loadInstalledMods);
   }
 
   @Override
-  public CompletableFuture<Void> downloadAndInstallMod(Mod mod, @Nullable DoubleProperty progressProperty, StringProperty titleProperty) {
-    return downloadAndInstallMod(mod.getDownloadUrl(), progressProperty, titleProperty);
+  public CompletableFuture<Void> downloadAndInstallMod(ModVersion modVersion, @Nullable DoubleProperty progressProperty, StringProperty titleProperty) {
+    return downloadAndInstallMod(modVersion.getDownloadUrl(), progressProperty, titleProperty);
   }
 
   @Override
   public Set<String> getInstalledModUids() {
-    return getInstalledMods().stream()
-        .map(Mod::getUid)
+    return getInstalledModVersions().stream()
+        .map(ModVersion::getUid)
         .collect(Collectors.toSet());
   }
 
   @Override
   public Set<String> getInstalledUiModsUids() {
-    return getInstalledMods().stream()
+    return getInstalledModVersions().stream()
         .filter(mod -> mod.getModType() == ModType.UI)
-        .map(Mod::getUid)
+        .map(ModVersion::getUid)
         .collect(Collectors.toSet());
   }
 
@@ -251,30 +256,30 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public CompletableFuture<Void> uninstallMod(Mod mod) {
+  public CompletableFuture<Void> uninstallMod(ModVersion modVersion) {
     UninstallModTask task = applicationContext.getBean(UninstallModTask.class);
-    task.setMod(mod);
+    task.setModVersion(modVersion);
     return taskService.submitTask(task).getFuture();
   }
 
   @Override
-  public Path getPathForMod(Mod modToFind) {
+  public Path getPathForMod(ModVersion modVersionToFind) {
     return pathToMod.entrySet().stream()
-        .filter(pathModEntry -> pathModEntry.getValue().getUid().equals(modToFind.getUid()))
+        .filter(pathModEntry -> pathModEntry.getValue().getUid().equals(modVersionToFind.getUid()))
         .findFirst()
         .map(Entry::getKey)
         .orElse(null);
   }
 
   @Override
-  public CompletableFuture<List<Mod>> getNewestMods(int count, int page) {
+  public CompletableFuture<List<ModVersion>> getNewestMods(int count, int page) {
     return findByQuery(new SearchConfig(new SortConfig(SearchableProperties.NEWEST_MOD_KEY, SortOrder.DESC), ""), page, count);
   }
 
   @NotNull
   @Override
   @SneakyThrows
-  public Mod extractModInfo(Path path) {
+  public ModVersion extractModInfo(Path path) {
     Path modInfoLua = path.resolve("mod_info.lua");
     logger.debug("Reading mod {}", path);
     if (Files.notExists(modInfoLua)) {
@@ -288,8 +293,8 @@ public class ModServiceImpl implements ModService {
 
   @NotNull
   @Override
-  public Mod extractModInfo(InputStream inputStream, Path basePath) {
-    return Mod.fromModInfo(modReader.readModInfo(inputStream, basePath), basePath);
+  public ModVersion extractModInfo(InputStream inputStream, Path basePath) {
+    return ModVersion.fromModInfo(modReader.readModInfo(inputStream, basePath), basePath);
   }
 
   @Override
@@ -301,10 +306,10 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public Image loadThumbnail(Mod mod) {
+  public Image loadThumbnail(ModVersion modVersion) {
     //FIXME: reintroduce correct caching
-    URL url = mod.getThumbnailUrl();
-    return assetService.loadAndCacheImage(url, Paths.get("mods"), () -> IdenticonUtil.createIdenticon(mod.getDisplayName()));
+    URL url = modVersion.getThumbnailUrl();
+    return assetService.loadAndCacheImage(url, Paths.get("mods"), () -> IdenticonUtil.createIdenticon(modVersion.getDisplayName()));
   }
 
   @Override
@@ -314,10 +319,10 @@ public class ModServiceImpl implements ModService {
 
   @Override
   @SneakyThrows
-  public long getModSize(Mod mod) {
+  public long getModSize(ModVersion modVersion) {
     HttpURLConnection conn = null;
     try {
-      conn = (HttpURLConnection) mod.getDownloadUrl().openConnection();
+      conn = (HttpURLConnection) modVersion.getDownloadUrl().openConnection();
       conn.setRequestMethod(HttpMethod.HEAD.name());
       return conn.getContentLength();
     } finally {
@@ -347,7 +352,7 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public CompletableFuture<List<Mod>> findByQuery(SearchConfig searchConfig, int page, int count) {
+  public CompletableFuture<List<ModVersion>> findByQuery(SearchConfig searchConfig, int page, int count) {
     return fafService.findModsByQuery(searchConfig, page, count);
   }
 
@@ -359,26 +364,26 @@ public class ModServiceImpl implements ModService {
 
   @Override
   @Async
-  public CompletableFuture<List<Mod>> getHighestRatedUiMods(int count, int page) {
+  public CompletableFuture<List<ModVersion>> getHighestRatedUiMods(int count, int page) {
     return fafService.findModsByQuery(new SearchConfig(new SortConfig(SearchableProperties.HIGHEST_RATED_MOD_KEY, SortOrder.DESC), "latestVersion.type==UI"), page, count);
   }
 
   @Override
-  public CompletableFuture<List<Mod>> getHighestRatedMods(int count, int page) {
+  public CompletableFuture<List<ModVersion>> getHighestRatedMods(int count, int page) {
     return fafService.findModsByQuery(new SearchConfig(new SortConfig(SearchableProperties.HIGHEST_RATED_MOD_KEY, SortOrder.DESC), ""), page, count);
   }
 
   @Override
-  public List<Mod> getActivatedSimAndUIMods() throws IOException {
+  public List<ModVersion> getActivatedSimAndUIMods() throws IOException {
     Map<String, Boolean> modStates = readModStates();
-    return getInstalledMods().parallelStream()
+    return getInstalledModVersions().parallelStream()
         .filter(mod -> modStates.containsKey(mod.getUid()) && modStates.get(mod.getUid()))
         .collect(Collectors.toList());
   }
 
   @Override
-  public void overrideActivatedMods(List<Mod> mods) throws IOException {
-    Map<String, Boolean> modStates = mods.parallelStream().collect(Collectors.toMap(Mod::getUid, o -> true));
+  public void overrideActivatedMods(List<ModVersion> modVersions) throws IOException {
+    Map<String, Boolean> modStates = modVersions.parallelStream().collect(Collectors.toMap(ModVersion::getUid, o -> true));
     writeModStates(modStates);
   }
 
@@ -440,16 +445,16 @@ public class ModServiceImpl implements ModService {
 
   private void removeMod(Path path) {
     logger.debug("Removing mod: {}", path);
-    installedMods.remove(pathToMod.remove(path));
+    installedModVersions.remove(pathToMod.remove(path));
   }
 
   private void addMod(Path path) {
     logger.debug("Adding mod: {}", path);
     try {
-      Mod mod = extractModInfo(path);
-      pathToMod.put(path, mod);
-      if (!installedMods.contains(mod)) {
-        installedMods.add(mod);
+      ModVersion modVersion = extractModInfo(path);
+      pathToMod.put(path, modVersion);
+      if (!installedModVersions.contains(modVersion)) {
+        installedModVersions.add(modVersion);
       }
     } catch (ModLoadException e) {
       logger.debug("Corrupt mod: " + path, e);

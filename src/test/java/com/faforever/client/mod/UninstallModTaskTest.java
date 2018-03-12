@@ -55,12 +55,12 @@ public class UninstallModTaskTest {
     copyMod("blackOpsSupport", BLACKOPS_SUPPORT_MOD_INFO);
     copyMod("ecoManager", ECO_MANAGER_MOD_INFO);
 
-    Mod mod = ModInfoBeanBuilder.create().uid("b2cde810-15d0-4bfa-af66-ec2d6ecd561b").get();
+    ModVersion modVersion = ModInfoBeanBuilder.create().uid("b2cde810-15d0-4bfa-af66-ec2d6ecd561b").get();
 
     Path ecoManagerPath = modsDirectory.getRoot().toPath().resolve("ecoManager");
-    when(modService.getPathForMod(mod)).thenReturn(ecoManagerPath);
+    when(modService.getPathForMod(modVersion)).thenReturn(ecoManagerPath);
 
-    instance.setMod(mod);
+    instance.setModVersion(modVersion);
     instance.call();
 
     assertThat(Files.exists(modsDirectory.getRoot().toPath().resolve("blackOpsSupport")), is(true));

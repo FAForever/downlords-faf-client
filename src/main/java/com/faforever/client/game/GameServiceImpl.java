@@ -46,6 +46,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -83,6 +84,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 
 @Lazy
 @Service
+@Slf4j
 public class GameServiceImpl implements GameService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -246,6 +248,11 @@ public class GameServiceImpl implements GameService {
             currentGame.set(game);
           }
           startGame(gameLaunchMessage, null, RatingMode.GLOBAL);
+        })
+        .exceptionally(throwable -> {
+          log.warn("Game could not be joined", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
+          return null;
         });
   }
 

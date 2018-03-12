@@ -59,14 +59,14 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   private StarController starController;
 
   private ModDetailController instance;
-  private ObservableList<Mod> installedMods;
+  private ObservableList<ModVersion> installedModVersions;
 
   @Before
   public void setUp() throws Exception {
     instance = new ModDetailController(modService, notificationService, i18n, reportingService, timeService, reviewService, playerService);
 
-    installedMods = FXCollections.observableArrayList();
-    when(modService.getInstalledMods()).thenReturn(installedMods);
+    installedModVersions = FXCollections.observableArrayList();
+    when(modService.getInstalledModVersions()).thenReturn(installedModVersions);
 
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(new Player("junit")));
 
@@ -88,35 +88,35 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testSetMod() throws Exception {
-    Mod mod = ModInfoBeanBuilder.create()
+  public void testSetMod() {
+    ModVersion modVersion = ModInfoBeanBuilder.create()
         .defaultValues()
-        .name("Mod name")
-        .author("Mod author")
+        .name("ModVersion name")
+        .author("ModVersion author")
         .thumbnailUrl(getClass().getResource("/theme/images/close.png").toExternalForm())
         .get();
 
-    when(modService.loadThumbnail(mod)).thenReturn(new Image("/theme/images/close.png"));
-    instance.setMod(mod);
+    when(modService.loadThumbnail(modVersion)).thenReturn(new Image("/theme/images/close.png"));
+    instance.setModVersion(modVersion);
 
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertThat(instance.nameLabel.getText(), is("Mod name"));
-    assertThat(instance.authorLabel.getText(), is("Mod author"));
+    assertThat(instance.nameLabel.getText(), is("ModVersion name"));
+    assertThat(instance.authorLabel.getText(), is("ModVersion author"));
     assertThat(instance.thumbnailImageView.getImage(), is(notNullValue()));
-    verify(modService).loadThumbnail(mod);
+    verify(modService).loadThumbnail(modVersion);
   }
 
   @Test
-  public void testSetModNoThumbnailLoadsDefault() throws Exception {
-    Mod mod = ModInfoBeanBuilder.create()
+  public void testSetModNoThumbnailLoadsDefault() {
+    ModVersion modVersion = ModInfoBeanBuilder.create()
         .defaultValues()
         .thumbnailUrl(null)
         .get();
     Image image = mock(Image.class);
-    when(modService.loadThumbnail(mod)).thenReturn(image);
+    when(modService.loadThumbnail(modVersion)).thenReturn(image);
 
-    instance.setMod(mod);
+    instance.setModVersion(modVersion);
 
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -124,57 +124,57 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnInstallButtonClicked() throws Exception {
-    when(modService.downloadAndInstallMod(any(Mod.class), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+  public void testOnInstallButtonClicked() {
+    when(modService.downloadAndInstallMod(any(ModVersion.class), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
-    instance.setMod(ModInfoBeanBuilder.create().defaultValues().get());
+    instance.setModVersion(ModInfoBeanBuilder.create().defaultValues().get());
     instance.onInstallButtonClicked();
 
-    verify(modService).downloadAndInstallMod(any(Mod.class), any(), any());
+    verify(modService).downloadAndInstallMod(any(ModVersion.class), any(), any());
   }
 
   @Test
-  public void testOnInstallButtonClickedInstallindModThrowsException() throws Exception {
+  public void testOnInstallButtonClickedInstallindModThrowsException() {
     CompletableFuture<Void> future = new CompletableFuture<>();
     future.completeExceptionally(new Exception("test exception"));
-    when(modService.downloadAndInstallMod(any(Mod.class), any(), any())).thenReturn(future);
+    when(modService.downloadAndInstallMod(any(ModVersion.class), any(), any())).thenReturn(future);
 
-    instance.setMod(ModInfoBeanBuilder.create().defaultValues().get());
+    instance.setModVersion(ModInfoBeanBuilder.create().defaultValues().get());
 
     instance.onInstallButtonClicked();
 
-    verify(modService).downloadAndInstallMod(any(Mod.class), any(), any());
+    verify(modService).downloadAndInstallMod(any(ModVersion.class), any(), any());
     verify(notificationService).addNotification(any(ImmediateNotification.class));
   }
 
   @Test
-  public void testOnUninstallButtonClicked() throws Exception {
-    Mod mod = ModInfoBeanBuilder.create().defaultValues().get();
-    instance.setMod(mod);
-    when(modService.uninstallMod(mod)).thenReturn(CompletableFuture.completedFuture(null));
+  public void testOnUninstallButtonClicked() {
+    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().get();
+    instance.setModVersion(modVersion);
+    when(modService.uninstallMod(modVersion)).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.onUninstallButtonClicked();
 
-    verify(modService).uninstallMod(mod);
+    verify(modService).uninstallMod(modVersion);
   }
 
   @Test
-  public void testOnUninstallButtonClickedThrowsException() throws Exception {
-    Mod mod = ModInfoBeanBuilder.create().defaultValues().get();
-    instance.setMod(mod);
+  public void testOnUninstallButtonClickedThrowsException() {
+    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().get();
+    instance.setModVersion(modVersion);
 
     CompletableFuture<Void> future = new CompletableFuture<>();
     future.completeExceptionally(new Exception("test exception"));
-    when(modService.uninstallMod(mod)).thenReturn(future);
+    when(modService.uninstallMod(modVersion)).thenReturn(future);
 
     instance.onUninstallButtonClicked();
 
-    verify(modService).uninstallMod(mod);
+    verify(modService).uninstallMod(modVersion);
     verify(notificationService).addNotification(any(ImmediateNotification.class));
   }
 
   @Test
-  public void testOnCloseButtonClicked() throws Exception {
+  public void testOnCloseButtonClicked() {
     WaitForAsyncUtils.asyncFx(() -> getRoot().getChildren().add(instance.getRoot()));
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -192,49 +192,49 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testShowUninstallButtonWhenModIsInstalled() throws Exception {
+  public void testShowUninstallButtonWhenModIsInstalled() {
     when(modService.isModInstalled("1")).thenReturn(true);
-    instance.setMod(ModInfoBeanBuilder.create().defaultValues().uid("1").get());
+    instance.setModVersion(ModInfoBeanBuilder.create().defaultValues().uid("1").get());
 
     assertThat(instance.installButton.isVisible(), is(false));
     assertThat(instance.uninstallButton.isVisible(), is(true));
   }
 
   @Test
-  public void testShowInstallButtonWhenModIsNotInstalled() throws Exception {
+  public void testShowInstallButtonWhenModIsNotInstalled() {
     when(modService.isModInstalled("1")).thenReturn(false);
-    instance.setMod(ModInfoBeanBuilder.create().defaultValues().uid("1").get());
+    instance.setModVersion(ModInfoBeanBuilder.create().defaultValues().uid("1").get());
 
     assertThat(instance.installButton.isVisible(), is(true));
     assertThat(instance.uninstallButton.isVisible(), is(false));
   }
 
   @Test
-  public void testChangeInstalledStateWhenModIsUninstalled() throws Exception {
+  public void testChangeInstalledStateWhenModIsUninstalled() {
     when(modService.isModInstalled("1")).thenReturn(true);
-    Mod mod = ModInfoBeanBuilder.create().defaultValues().uid("1").get();
-    instance.setMod(mod);
-    installedMods.add(mod);
+    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().uid("1").get();
+    instance.setModVersion(modVersion);
+    installedModVersions.add(modVersion);
 
     assertThat(instance.installButton.isVisible(), is(false));
     assertThat(instance.uninstallButton.isVisible(), is(true));
 
-    installedMods.remove(mod);
+    installedModVersions.remove(modVersion);
 
     assertThat(instance.installButton.isVisible(), is(true));
     assertThat(instance.uninstallButton.isVisible(), is(false));
   }
 
   @Test
-  public void testChangeInstalledStateWhenModIsInstalled() throws Exception {
+  public void testChangeInstalledStateWhenModIsInstalled() {
     when(modService.isModInstalled("1")).thenReturn(false);
-    Mod mod = ModInfoBeanBuilder.create().defaultValues().uid("1").get();
-    instance.setMod(mod);
+    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().uid("1").get();
+    instance.setModVersion(modVersion);
 
     assertThat(instance.installButton.isVisible(), is(true));
     assertThat(instance.uninstallButton.isVisible(), is(false));
 
-    installedMods.add(mod);
+    installedModVersions.add(modVersion);
 
     assertThat(instance.installButton.isVisible(), is(false));
     assertThat(instance.uninstallButton.isVisible(), is(true));

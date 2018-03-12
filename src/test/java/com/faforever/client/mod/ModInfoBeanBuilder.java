@@ -4,7 +4,6 @@ package com.faforever.client.mod;
 import com.faforever.commons.mod.MountInfo;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,10 +13,10 @@ import static com.github.nocatch.NoCatch.noCatch;
 
 public class ModInfoBeanBuilder {
 
-  private final Mod modInfo;
+  private final ModVersion modVersionInfo;
 
   public ModInfoBeanBuilder() {
-    modInfo = new Mod();
+    modVersionInfo = new ModVersion();
   }
 
   public static ModInfoBeanBuilder create() {
@@ -25,54 +24,54 @@ public class ModInfoBeanBuilder {
   }
 
   public ModInfoBeanBuilder defaultValues() {
-    modInfo.setCreateTime(LocalDateTime.now());
-    name("Mod");
+    modVersionInfo.setCreateTime(LocalDateTime.now());
+    name("ModVersion");
     uid(UUID.randomUUID().toString());
     version(new ComparableVersion("1"));
     return this;
   }
 
   public ModInfoBeanBuilder version(ComparableVersion version) {
-    modInfo.setVersion(version);
+    modVersionInfo.setVersion(version);
     return this;
   }
 
   public ModInfoBeanBuilder uid(String uid) {
-    modInfo.setUid(uid);
+    modVersionInfo.setUid(uid);
     return this;
   }
 
-  public Mod get() {
-    return modInfo;
+  public ModVersion get() {
+    return modVersionInfo;
   }
 
-  public ModInfoBeanBuilder downloadUrl(URL url) throws MalformedURLException {
-    modInfo.setDownloadUrl(url);
+  public ModInfoBeanBuilder downloadUrl(URL url) {
+    modVersionInfo.setDownloadUrl(url);
     return this;
   }
 
   public ModInfoBeanBuilder name(String name) {
-    modInfo.setDisplayName(name);
+    modVersionInfo.setDisplayName(name);
     return this;
   }
 
   public ModInfoBeanBuilder author(String author) {
-    modInfo.setUploader(author);
+    modVersionInfo.setUploader(author);
     return this;
   }
 
   public ModInfoBeanBuilder thumbnailUrl(String thumbnailUrl) {
-    modInfo.setThumbnailUrl(noCatch(() -> thumbnailUrl == null ? null : new URL(thumbnailUrl)));
+    modVersionInfo.setThumbnailUrl(noCatch(() -> thumbnailUrl == null ? null : new URL(thumbnailUrl)));
     return this;
   }
 
   public ModInfoBeanBuilder mountPoints(List<MountInfo> mountPoints) {
-    modInfo.getMountInfos().setAll(mountPoints);
+    modVersionInfo.getMountInfos().setAll(mountPoints);
     return this;
   }
 
-  public ModInfoBeanBuilder modType(Mod.ModType modType) {
-    modInfo.setModType(modType);
+  public ModInfoBeanBuilder modType(ModVersion.ModType modType) {
+    modVersionInfo.setModType(modType);
     return this;
   }
 }

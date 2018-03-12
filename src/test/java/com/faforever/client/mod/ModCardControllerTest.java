@@ -1,7 +1,7 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.mod.Mod.ModType;
+import com.faforever.client.mod.ModVersion.ModType;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.StarController;
@@ -44,8 +44,8 @@ public class ModCardControllerTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     instance = new ModCardController(modService, timeService, i18n);
 
-    ObservableList<Mod> installedMods = FXCollections.observableArrayList();
-    when(modService.getInstalledMods()).thenReturn(installedMods);
+    ObservableList<ModVersion> installedModVersions = FXCollections.observableArrayList();
+    when(modService.getInstalledModVersions()).thenReturn(installedModVersions);
     when(i18n.get(ModType.UI.getI18nKey())).thenReturn(ModType.UI.name());
 
     loadFxml("theme/vault/mod/mod_card.fxml", clazz -> {
@@ -60,36 +60,36 @@ public class ModCardControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testSetMod() throws Exception {
-    Mod mod = ModInfoBeanBuilder.create()
+  public void testSetMod() {
+    ModVersion modVersion = ModInfoBeanBuilder.create()
         .defaultValues()
-        .name("Mod name")
+        .name("ModVersion name")
         .modType(ModType.UI)
-        .author("Mod author")
+        .author("ModVersion author")
         .thumbnailUrl(getClass().getResource("/theme/images/close.png").toExternalForm())
         .get();
 
-    when(modService.loadThumbnail(mod)).thenReturn(new Image("/theme/images/close.png"));
-    instance.setMod(mod);
+    when(modService.loadThumbnail(modVersion)).thenReturn(new Image("/theme/images/close.png"));
+    instance.setModVersion(modVersion);
 
-    assertThat(instance.nameLabel.getText(), is("Mod name"));
-    assertThat(instance.authorLabel.getText(), is("Mod author"));
+    assertThat(instance.nameLabel.getText(), is("ModVersion name"));
+    assertThat(instance.authorLabel.getText(), is("ModVersion author"));
     assertThat(instance.thumbnailImageView.getImage(), is(notNullValue()));
-    verify(modService).loadThumbnail(mod);
+    verify(modService).loadThumbnail(modVersion);
   }
 
   @Test
-  public void testSetModNoThumbnail() throws Exception {
-    Mod mod = ModInfoBeanBuilder.create()
+  public void testSetModNoThumbnail() {
+    ModVersion modVersion = ModInfoBeanBuilder.create()
         .defaultValues()
         .thumbnailUrl(null)
         .modType(ModType.UI)
         .get();
 
     Image image = mock(Image.class);
-    when(modService.loadThumbnail(mod)).thenReturn(image);
+    when(modService.loadThumbnail(modVersion)).thenReturn(image);
 
-    instance.setMod(mod);
+    instance.setModVersion(modVersion);
 
     assertThat(instance.thumbnailImageView.getImage(), notNullValue());
   }
@@ -102,8 +102,8 @@ public class ModCardControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testShowModDetail() throws Exception {
-    Consumer<Mod> listener = mock(Consumer.class);
+  public void testShowModDetail() {
+    Consumer<ModVersion> listener = mock(Consumer.class);
     instance.setOnOpenDetailListener(listener);
     instance.onShowModDetail();
     verify(listener).accept(any());
@@ -111,8 +111,8 @@ public class ModCardControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testUiModLabel() {
-    Mod mod = ModInfoBeanBuilder.create().defaultValues().modType(ModType.UI).get();
-    instance.setMod(mod);
+    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().modType(ModType.UI).get();
+    instance.setModVersion(modVersion);
     assertThat(instance.typeLabel.getText(), equalTo(ModType.UI.name()));
   }
 }
