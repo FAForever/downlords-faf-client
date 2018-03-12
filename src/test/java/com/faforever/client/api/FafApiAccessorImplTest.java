@@ -8,15 +8,14 @@ import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
-import com.faforever.client.api.dto.ModVersion;
 import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.leaderboard.LeaderboardEntry;
-import com.faforever.client.mod.Mod;
 import com.faforever.client.mod.ModInfoBeanBuilder;
+import com.faforever.client.mod.ModVersion;
 import com.google.common.eventbus.EventBus;
 import org.junit.Before;
 import org.junit.Rule;
@@ -89,7 +88,7 @@ public class FafApiAccessorImplTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testGetPlayerAchievements() throws Exception {
+  public void testGetPlayerAchievements() {
     PlayerAchievement playerAchievement1 = new PlayerAchievement();
     playerAchievement1.setId("1");
     playerAchievement1.setAchievement(new AchievementDefinition().setId("1-2-3"));
@@ -108,7 +107,7 @@ public class FafApiAccessorImplTest {
   }
 
   @Test
-  public void testGetAchievementDefinitions() throws Exception {
+  public void testGetAchievementDefinitions() {
     AchievementDefinition achievementDefinition1 = new AchievementDefinition();
     achievementDefinition1.setId("1-2-3");
     AchievementDefinition achievementDefinition2 = new AchievementDefinition();
@@ -123,7 +122,7 @@ public class FafApiAccessorImplTest {
   }
 
   @Test
-  public void testGetAchievementDefinition() throws Exception {
+  public void testGetAchievementDefinition() {
     AchievementDefinition achievementDefinition = new AchievementDefinition();
     achievementDefinition.setId("1-2-3");
 
@@ -135,7 +134,7 @@ public class FafApiAccessorImplTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testGetPlayerEvents() throws Exception {
+  public void testGetPlayerEvents() {
     PlayerEvent playerEvent1 = new PlayerEvent();
     playerEvent1.setId("1");
     playerEvent1.setEvent(new Event().setId("1-1-1"));
@@ -159,22 +158,22 @@ public class FafApiAccessorImplTest {
   }
 
   @Test
-  public void testGetMods() throws Exception {
-    List<Mod> mods = Arrays.asList(
+  public void testGetMods() {
+    List<ModVersion> modVersions = Arrays.asList(
         ModInfoBeanBuilder.create().defaultValues().uid("1").get(),
         ModInfoBeanBuilder.create().defaultValues().uid("2").get()
     );
 
     when(restOperations.getForObject(startsWith("/data/mod"), eq(List.class)))
-        .thenReturn(mods)
+        .thenReturn(modVersions)
         .thenReturn(emptyList());
 
-    assertThat(instance.getMods(), equalTo(mods));
+    assertThat(instance.getMods(), equalTo(modVersions));
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testGetLadder1v1Leaderboard() throws Exception {
+  public void testGetLadder1v1Leaderboard() {
     List<LeaderboardEntry> result = Arrays.asList(
         Ladder1v1EntryBeanBuilder.create().defaultValues().username("user1").get(),
         Ladder1v1EntryBeanBuilder.create().defaultValues().username("user2").get()
@@ -195,7 +194,7 @@ public class FafApiAccessorImplTest {
   }
 
   @Test
-  public void testGetLadder1v1EntryForPlayer() throws Exception {
+  public void testGetLadder1v1EntryForPlayer() {
     Ladder1v1LeaderboardEntry entry = new Ladder1v1LeaderboardEntry();
     when(restOperations.getForObject("/leaderboards/ladder1v1/123", Ladder1v1LeaderboardEntry.class, emptyMap())).thenReturn(entry);
 
@@ -204,7 +203,7 @@ public class FafApiAccessorImplTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testGetFafGamePlayerStats() throws Exception {
+  public void testGetFafGamePlayerStats() {
     List<GamePlayerStats> gamePlayerStats = Collections.singletonList(new GamePlayerStats());
 
     when(restOperations.getForObject(anyString(), eq(List.class)))
@@ -222,7 +221,7 @@ public class FafApiAccessorImplTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testGetRatingHistory1v1() throws Exception {
+  public void testGetRatingHistory1v1() {
     List<GamePlayerStats> gamePlayerStats = Collections.singletonList(new GamePlayerStats());
 
     when(restOperations.getForObject(anyString(), eq(List.class)))
@@ -249,7 +248,7 @@ public class FafApiAccessorImplTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testChangePassword() throws Exception {
+  public void testChangePassword() {
     instance.changePassword("junit", "currentPasswordHash", "newPasswordHash");
 
     ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
@@ -262,7 +261,7 @@ public class FafApiAccessorImplTest {
   }
 
   @Test
-  public void testGetCoopMissions() throws Exception {
+  public void testGetCoopMissions() {
     when(restOperations.getForObject(startsWith("/data/coopMission"), eq(List.class))).thenReturn(emptyList());
 
     instance.getCoopMissions();
@@ -271,7 +270,7 @@ public class FafApiAccessorImplTest {
   }
 
   @Test
-  public void testCreateGameReview() throws Exception {
+  public void testCreateGameReview() {
     GameReview gameReview = new GameReview().setGame(new Game().setId("5"));
 
     when(restOperations.postForEntity(eq("/data/game/5/reviews"), eq(gameReview), eq(GameReview.class)))
@@ -287,12 +286,12 @@ public class FafApiAccessorImplTest {
   }
 
   @Test
-  public void testCreateModVersionReview() throws Exception {
+  public void testCreateModVersionReview() {
     ModVersionReview modVersionReview = new ModVersionReview();
     when(restOperations.postForEntity(eq("/data/modVersion/5/reviews"), eq(modVersionReview), eq(ModVersionReview.class)))
         .thenReturn(new ResponseEntity<>(HttpStatus.OK));
 
-    instance.createModVersionReview(modVersionReview.setModVersion(new ModVersion().setId("5")));
+    instance.createModVersionReview(modVersionReview.setModVersion(new com.faforever.client.api.dto.ModVersion().setId("5")));
 
     ArgumentCaptor<ModVersionReview> captor = ArgumentCaptor.forClass(ModVersionReview.class);
     verify(restOperations).postForEntity(eq("/data/modVersion/5/reviews"), captor.capture(), eq(ModVersionReview.class));
@@ -302,7 +301,7 @@ public class FafApiAccessorImplTest {
   }
 
   @Test
-  public void testCreateMapVersionReview() throws Exception {
+  public void testCreateMapVersionReview() {
     MapVersionReview mapVersionReview = new MapVersionReview().setMapVersion(new MapVersion().setId("5"));
     when(restOperations.postForEntity(eq("/data/mapVersion/5/reviews"), eq(mapVersionReview), eq(MapVersionReview.class)))
         .thenReturn(new ResponseEntity<>(HttpStatus.OK));
@@ -318,7 +317,7 @@ public class FafApiAccessorImplTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testGetLastGameOnMap() throws Exception {
+  public void testGetLastGameOnMap() {
     when(restOperations.getForObject(startsWith("/data/game"), eq(List.class)))
         .thenReturn(Collections.singletonList(new Game()))
         .thenReturn(emptyList());

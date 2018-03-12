@@ -3,8 +3,8 @@ package com.faforever.client.patch;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.DownloadService;
 import com.faforever.client.mod.FeaturedMod;
-import com.faforever.client.mod.Mod;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.mod.ModVersion;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
@@ -114,8 +114,8 @@ public class BireusFeaturedModUpdateTask extends CompletableTask<PatchResult> {
     }
 
     try (InputStream inputStream = Files.newInputStream(modInfoLuaFile)) {
-      Mod mod = modService.extractModInfo(inputStream, repositoryPath);
-      return PatchResult.fromModInfo(modService.readModVersion(repositoryPath), mod.getMountInfos(), mod.getHookDirectories());
+      ModVersion modVersion = modService.extractModInfo(inputStream, repositoryPath);
+      return PatchResult.fromModInfo(modService.readModVersion(repositoryPath), modVersion.getMountInfos(), modVersion.getHookDirectories());
     }
   }
 

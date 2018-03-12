@@ -2,7 +2,7 @@ package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenModVaultEvent;
-import com.faforever.client.mod.Mod.ModType;
+import com.faforever.client.mod.ModVersion.ModType;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -78,10 +78,10 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
       return modDetailController;
     }).when(uiService).loadFxml("theme/vault/mod/mod_detail.fxml");
 
-    Mod mod = ModInfoBeanBuilder.create().defaultValues().get();
-    when(modService.getHighestRatedMods(100, 1)).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(mod)));
+    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().get();
+    when(modService.getHighestRatedMods(100, 1)).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(modVersion)));
 
-    when(modService.getNewestMods(100, 1)).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(mod)));
+    when(modService.getNewestMods(100, 1)).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(modVersion)));
 
     loadFxml("theme/vault/mod/mod_vault.fxml", clazz -> {
       if (clazz == LogicalNodeController.class) {
@@ -105,20 +105,20 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnDisplay() throws Exception {
-    List<Mod> mods = new ArrayList<>();
+    List<ModVersion> modVersions = new ArrayList<>();
     for (int i = 0; i < 5; i++) {
-      mods.add(
+      modVersions.add(
           ModInfoBeanBuilder.create()
               .defaultValues()
-              .name("Mod " + i)
+              .name("ModVersion " + i)
               .uid(String.valueOf(i))
               .modType(i < 2 ? ModType.UI : ModType.SIM)
               .get()
       );
     }
 
-    when(modService.getNewestMods(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(mods));
-    when(modService.getHighestRatedMods(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(mods));
+    when(modService.getNewestMods(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(modVersions));
+    when(modService.getHighestRatedMods(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(modVersions));
 
     CountDownLatch latch = new CountDownLatch(2);
     waitUntilInitialized(instance.newestPane, latch);
@@ -138,16 +138,16 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testShowModDetail() throws Exception {
-    Mod mod = ModInfoBeanBuilder.create().defaultValues().get();
-    instance.onShowModDetail(mod);
+  public void testShowModDetail() {
+    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().get();
+    instance.onShowModDetail(modVersion);
 
-    verify(modDetailController).setMod(mod);
+    verify(modDetailController).setModVersion(modVersion);
     assertThat(modDetailController.getRoot().isVisible(), is(true));
   }
 
   @Test
-  public void showMoreHighestRatedMods() throws Exception {
+  public void showMoreHighestRatedMods() {
     when(modService.getHighestRatedMods(100, 1)).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
     instance.showMoreHighestRatedMods();
 
@@ -159,7 +159,7 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void showMoreNewestMods() throws Exception {
+  public void showMoreNewestMods() {
     when(modService.getNewestMods(100, 1)).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
     instance.showMoreNewestMods();
 
@@ -171,7 +171,7 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void showMoreMostLikedMods() throws Exception {
+  public void showMoreMostLikedMods() {
     instance.showMoreHighestRatedMods();
 
     WaitForAsyncUtils.waitForFxEvents();

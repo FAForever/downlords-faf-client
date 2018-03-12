@@ -4,7 +4,6 @@ import com.faforever.client.game.FaInitGenerator;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
@@ -48,12 +47,10 @@ public class GameUpdaterImpl implements GameUpdater {
   private final TaskService taskService;
   private final FafService fafService;
   private final FaInitGenerator faInitGenerator;
-  private final NotificationService notificationService;
 
   @Inject
   public GameUpdaterImpl(ModService modService, ApplicationContext applicationContext, TaskService taskService,
-                         FafService fafService, FaInitGenerator faInitGenerator, NotificationService notificationService) {
-    this.notificationService = notificationService;
+                         FafService fafService, FaInitGenerator faInitGenerator) {
     featuredModUpdaters = new ArrayList<>();
     this.modService = modService;
     this.applicationContext = applicationContext;
@@ -77,7 +74,7 @@ public class GameUpdaterImpl implements GameUpdater {
 
     CompletableFuture<Void> future = updateFeaturedMod(featuredMod, version)
         .thenAccept(patchResults::add)
-        .thenAccept(aVoid -> downloadMissingSimMods(simModUids));
+        .thenCompose(s -> downloadMissingSimMods(simModUids));
 
     if (!NAMES_OF_FEATURED_BASE_MODS.contains(featuredMod.getTechnicalName())) {
       future = future.thenCompose(aVoid -> modService.getFeaturedMod(FAF.getTechnicalName()))
@@ -88,18 +85,13 @@ public class GameUpdaterImpl implements GameUpdater {
     verifyUniformModFormat(patchResults);
 
     return future
-        .thenCompose(aVoid -> updateGameBinaries(patchResults.get(patchResults.size() - 1).getVersion()))
+        .thenCompose(s -> updateGameBinaries(patchResults.get(patchResults.size() - 1).getVersion()))
         .thenRun(() -> {
           if (patchResults.stream().noneMatch(patchResult -> patchResult.getLegacyInitFile() != null)) {
             generateInitFile(patchResults);
           } else {
             copyLegacyInitFile(patchResults);
           }
-        })
-        .exceptionally(throwable -> {
-          log.warn("Game could not be joined", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
-          return null;
         });
   }
 

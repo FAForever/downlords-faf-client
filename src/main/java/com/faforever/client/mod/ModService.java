@@ -21,7 +21,7 @@ public interface ModService {
 
   void loadInstalledMods();
 
-  ObservableList<Mod> getInstalledMods();
+  ObservableList<ModVersion> getInstalledModVersions();
 
   CompletableFuture<Void> downloadAndInstallMod(String uid);
 
@@ -29,7 +29,7 @@ public interface ModService {
 
   CompletableFuture<Void> downloadAndInstallMod(URL url, DoubleProperty progressProperty, StringProperty titleProperty);
 
-  CompletableFuture<Void> downloadAndInstallMod(Mod mod, DoubleProperty progressProperty, StringProperty titleProperty);
+  CompletableFuture<Void> downloadAndInstallMod(ModVersion modVersion, DoubleProperty progressProperty, StringProperty titleProperty);
 
   Set<String> getInstalledModUids();
 
@@ -39,32 +39,32 @@ public interface ModService {
 
   boolean isModInstalled(String uid);
 
-  CompletableFuture<Void> uninstallMod(Mod mod);
+  CompletableFuture<Void> uninstallMod(ModVersion modVersion);
 
-  Path getPathForMod(Mod mod);
+  Path getPathForMod(ModVersion modVersion);
 
-  CompletableFuture<List<Mod>> getHighestRatedUiMods(int count, int page);
+  CompletableFuture<List<ModVersion>> getHighestRatedUiMods(int count, int page);
 
-  CompletableFuture<List<Mod>> getHighestRatedMods(int count, int page);
+  CompletableFuture<List<ModVersion>> getHighestRatedMods(int count, int page);
 
-  CompletableFuture<List<Mod>> getNewestMods(int count, int page);
-
-  @NotNull
-  Mod extractModInfo(Path path);
+  CompletableFuture<List<ModVersion>> getNewestMods(int count, int page);
 
   @NotNull
-  Mod extractModInfo(InputStream inputStream, Path basePath);
+  ModVersion extractModInfo(Path path);
+
+  @NotNull
+  ModVersion extractModInfo(InputStream inputStream, Path basePath);
 
   CompletableTask<Void> uploadMod(Path modPath);
 
-  Image loadThumbnail(Mod mod);
+  Image loadThumbnail(ModVersion modVersion);
 
   void evictModsCache();
 
   /**
-   * Returns the download size of the specified mod in bytes.
+   * Returns the download size of the specified modVersion in bytes.
    */
-  long getModSize(Mod mod);
+  long getModSize(ModVersion modVersion);
 
   ComparableVersion readModVersion(Path modDirectory);
 
@@ -72,11 +72,11 @@ public interface ModService {
 
   CompletableFuture<FeaturedMod> getFeaturedMod(String gameTypeBeanName);
 
-  List<Mod> getActivatedSimAndUIMods() throws IOException;
+  List<ModVersion> getActivatedSimAndUIMods() throws IOException;
 
-  void overrideActivatedMods(List<Mod> mods) throws IOException;
+  void overrideActivatedMods(List<ModVersion> modVersions) throws IOException;
 
-  CompletableFuture<List<Mod>> findByQuery(SearchConfig searchConfig, int page, int maxSearchResults);
+  CompletableFuture<List<ModVersion>> findByQuery(SearchConfig searchConfig, int page, int maxSearchResults);
 
   void evictCache();
 }

@@ -62,7 +62,7 @@ public class ModUploadController  implements Controller<Node> {
   public Region modUploadRoot;
   private Path modPath;
   private CompletableTask<Void> modUploadTask;
-  private Mod modInfo;
+  private ModVersion modVersionInfo;
 
   @Inject
   public ModUploadController(ModService modService, ThreadPoolExecutor threadPoolExecutor, NotificationService notificationService, ReportingService reportingService, I18n i18n, EventBus eventBus) {
@@ -90,9 +90,9 @@ public class ModUploadController  implements Controller<Node> {
     this.modPath = modPath;
     enterParsingState();
     CompletableFuture.supplyAsync(() -> modService.extractModInfo(modPath), threadPoolExecutor)
-        .thenAccept(this::setModInfo)
+        .thenAccept(this::setModVersionInfo)
         .exceptionally(throwable -> {
-          logger.warn("Mod could not be read", throwable);
+          logger.warn("ModVersion could not be read", throwable);
           return null;
         });
   }
@@ -104,16 +104,16 @@ public class ModUploadController  implements Controller<Node> {
     uploadCompletePane.setVisible(false);
   }
 
-  private void setModInfo(Mod mod) {
-    this.modInfo = mod;
+  private void setModVersionInfo(ModVersion modVersion) {
+    this.modVersionInfo = modVersion;
     Platform.runLater(() -> {
       enterModInfoState();
-      modNameLabel.textProperty().bind(mod.displayNameProperty());
-      descriptionLabel.textProperty().bind(mod.descriptionProperty());
-      versionLabel.textProperty().bind(mod.versionProperty().asString());
-      uidLabel.textProperty().bind(mod.idProperty());
+      modNameLabel.textProperty().bind(modVersion.displayNameProperty());
+      descriptionLabel.textProperty().bind(modVersion.descriptionProperty());
+      versionLabel.textProperty().bind(modVersion.versionProperty().asString());
+      uidLabel.textProperty().bind(modVersion.idProperty());
       thumbnailImageView.imageProperty().bind(
-          Bindings.createObjectBinding(() -> modService.loadThumbnail(mod), mod.idProperty(), mod.imagePathProperty())
+          Bindings.createObjectBinding(() -> modService.loadThumbnail(modVersion), modVersion.idProperty(), modVersion.imagePathProperty())
       );
     });
   }
@@ -162,7 +162,7 @@ public class ModUploadController  implements Controller<Node> {
     uploadProgressBar.progressProperty().bind(modUploadTask.progressProperty());
 
     modUploadTask.getFuture()
-        .thenAccept(v -> eventBus.post(new ModUploadedEvent(modInfo)))
+        .thenAccept(v -> eventBus.post(new ModUploadedEvent(modVersionInfo)))
         .thenAccept(aVoid -> enterUploadCompleteState())
         .exceptionally(throwable -> {
           if (!(throwable instanceof CancellationException)) {

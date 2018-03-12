@@ -15,6 +15,7 @@ import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
 import com.faforever.client.api.dto.Mod;
+import com.faforever.client.api.dto.ModVersion;
 import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
@@ -77,7 +78,7 @@ public interface FafApiAccessor {
 
   void changePassword(String username, String currentPasswordHash, String newPasswordHash) throws IOException;
 
-  Mod getMod(String uid);
+  ModVersion getModVersion(String uid);
 
   List<FeaturedModFile> getFeaturedModFiles(FeaturedMod featuredMod, Integer version);
 

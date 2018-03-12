@@ -2,7 +2,7 @@ package com.faforever.client.mod;
 
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.mod.Mod.ModType;
+import com.faforever.client.mod.ModVersion.ModType;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
@@ -134,24 +134,24 @@ public class ModServiceImplTest {
   }
 
   @Test
-  public void testPostConstructLoadInstalledMods() throws Exception {
-    ObservableList<Mod> installedMods = instance.getInstalledMods();
+  public void testPostConstructLoadInstalledMods() {
+    ObservableList<ModVersion> installedModVersions = instance.getInstalledModVersions();
 
-    assertThat(installedMods.size(), is(1));
+    assertThat(installedModVersions.size(), is(1));
   }
 
   @Test
   public void testLoadInstalledModsLoadsMods() throws Exception {
-    assertThat(instance.getInstalledMods().size(), is(1));
+    assertThat(instance.getInstalledModVersions().size(), is(1));
     copyMod("BlackopsSupport", BLACKOPS_SUPPORT_MOD_INFO);
-    assertThat(instance.getInstalledMods().size(), is(1));
+    assertThat(instance.getInstalledModVersions().size(), is(1));
     instance.loadInstalledMods();
-    assertThat(instance.getInstalledMods().size(), is(2));
+    assertThat(instance.getInstalledModVersions().size(), is(2));
   }
 
   @Test
   public void testDownloadAndInstallMod() throws Exception {
-    assertThat(instance.getInstalledMods().size(), is(1));
+    assertThat(instance.getInstalledModVersions().size(), is(1));
 
     InstallModTask task = stubInstallModTask();
     task.getFuture().complete(null);
@@ -161,16 +161,16 @@ public class ModServiceImplTest {
     URL modUrl = new URL("http://example.com/some/mod.zip");
 
     copyMod("BlackopsSupport", BLACKOPS_SUPPORT_MOD_INFO);
-    assertThat(instance.getInstalledMods().size(), is(1));
+    assertThat(instance.getInstalledModVersions().size(), is(1));
 
     instance.downloadAndInstallMod(modUrl).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
-    assertThat(instance.getInstalledMods().size(), is(2));
+    assertThat(instance.getInstalledModVersions().size(), is(2));
   }
 
   @Test
   public void testDownloadAndInstallModWithProperties() throws Exception {
-    assertThat(instance.getInstalledMods().size(), is(1));
+    assertThat(instance.getInstalledModVersions().size(), is(1));
 
     InstallModTask task = stubInstallModTask();
     task.getFuture().complete(null);
@@ -180,7 +180,7 @@ public class ModServiceImplTest {
     URL modUrl = new URL("http://example.com/some/mod.zip");
 
     copyMod("BlackopsSupport", BLACKOPS_SUPPORT_MOD_INFO);
-    assertThat(instance.getInstalledMods().size(), is(1));
+    assertThat(instance.getInstalledModVersions().size(), is(1));
 
     StringProperty stringProperty = new SimpleStringProperty();
     DoubleProperty doubleProperty = new SimpleDoubleProperty();
@@ -190,33 +190,33 @@ public class ModServiceImplTest {
     assertThat(stringProperty.isBound(), is(true));
     assertThat(doubleProperty.isBound(), is(true));
 
-    assertThat(instance.getInstalledMods().size(), is(2));
+    assertThat(instance.getInstalledModVersions().size(), is(2));
   }
 
   @Test
   public void testDownloadAndInstallModInfoBeanWithProperties() throws Exception {
-    assertThat(instance.getInstalledMods().size(), is(1));
+    assertThat(instance.getInstalledModVersions().size(), is(1));
 
     InstallModTask task = stubInstallModTask();
     task.getFuture().complete(null);
 
     when(applicationContext.getBean(InstallModTask.class)).thenReturn(task);
 
-    URL modUrl = new URL("http://example.com/some/mod.zip");
+    URL modUrl = new URL("http://example.com/some/modVersion.zip");
 
     copyMod("BlackopsSupport", BLACKOPS_SUPPORT_MOD_INFO);
-    assertThat(instance.getInstalledMods().size(), is(1));
+    assertThat(instance.getInstalledModVersions().size(), is(1));
 
     StringProperty stringProperty = new SimpleStringProperty();
     DoubleProperty doubleProperty = new SimpleDoubleProperty();
 
-    Mod mod = ModInfoBeanBuilder.create().defaultValues().downloadUrl(modUrl).get();
-    instance.downloadAndInstallMod(mod, doubleProperty, stringProperty).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
+    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().downloadUrl(modUrl).get();
+    instance.downloadAndInstallMod(modVersion, doubleProperty, stringProperty).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(stringProperty.isBound(), is(true));
     assertThat(doubleProperty.isBound(), is(true));
 
-    assertThat(instance.getInstalledMods().size(), is(2));
+    assertThat(instance.getInstalledModVersions().size(), is(2));
   }
 
   @Test
@@ -231,12 +231,12 @@ public class ModServiceImplTest {
 
   @Test
   public void testGetInstalledUiModsUids() throws Exception {
-    assertThat(instance.getInstalledMods().size(), is(1));
+    assertThat(instance.getInstalledModVersions().size(), is(1));
 
     copyMod("EM", ECO_MANAGER_MOD_INFO);
 
     instance.loadInstalledMods();
-    assertThat(instance.getInstalledMods().size(), is(2));
+    assertThat(instance.getInstalledModVersions().size(), is(2));
 
     Set<String> installedUiModsUids = instance.getInstalledUiModsUids();
 
@@ -291,96 +291,96 @@ public class ModServiceImplTest {
     copyMod("EM", ECO_MANAGER_MOD_INFO);
     instance.loadInstalledMods();
 
-    ArrayList<Mod> installedMods = new ArrayList<>(instance.getInstalledMods());
-    installedMods.sort(Comparator.comparing(Mod::getDisplayName));
+    ArrayList<ModVersion> installedModVersions = new ArrayList<>(instance.getInstalledModVersions());
+    installedModVersions.sort(Comparator.comparing(ModVersion::getDisplayName));
 
-    Mod mod = installedMods.get(0);
+    ModVersion modVersion = installedModVersions.get(0);
 
-    assertThat(mod.getDisplayName(), is("BlackOps Global Icon Support Mod"));
-    assertThat(mod.getVersion(), is(new ComparableVersion("5")));
-    assertThat(mod.getUploader(), is("Exavier Macbeth, DeadMG"));
-    assertThat(mod.getDescription(), is("Version 5.0. This mod provides global icon support for any mod that places their icons in the proper folder structure. See Readme"));
-    assertThat(mod.getImagePath(), nullValue());
-    assertThat(mod.getSelectable(), is(true));
-    assertThat(mod.getId(), is(nullValue()));
-    assertThat(mod.getUid(), is("9e8ea941-c306-4751-b367-f00000000005"));
-    assertThat(mod.getModType(), equalTo(ModType.SIM));
+    assertThat(modVersion.getDisplayName(), is("BlackOps Global Icon Support Mod"));
+    assertThat(modVersion.getVersion(), is(new ComparableVersion("5")));
+    assertThat(modVersion.getUploader(), is("Exavier Macbeth, DeadMG"));
+    assertThat(modVersion.getDescription(), is("Version 5.0. This mod provides global icon support for any mod that places their icons in the proper folder structure. See Readme"));
+    assertThat(modVersion.getImagePath(), nullValue());
+    assertThat(modVersion.getSelectable(), is(true));
+    assertThat(modVersion.getId(), is(nullValue()));
+    assertThat(modVersion.getUid(), is("9e8ea941-c306-4751-b367-f00000000005"));
+    assertThat(modVersion.getModType(), equalTo(ModType.SIM));
 
-    mod = installedMods.get(1);
+    modVersion = installedModVersions.get(1);
 
-    assertThat(mod.getDisplayName(), is("BlackOps Unleashed"));
-    assertThat(mod.getVersion(), is(new ComparableVersion("8")));
-    assertThat(mod.getUploader(), is("Lt_hawkeye"));
-    assertThat(mod.getDescription(), is("Version 5.2. BlackOps Unleased Unitpack contains several new units and game changes. Have fun"));
-    assertThat(mod.getImagePath(), is(modsDirectory.getRoot().toPath().resolve("BlackOpsUnleashed/icons/yoda_icon.bmp")));
-    assertThat(mod.getSelectable(), is(true));
-    assertThat(mod.getId(), is(nullValue()));
-    assertThat(mod.getUid(), is("9e8ea941-c306-4751-b367-a11000000502"));
-    assertThat(mod.getModType(), equalTo(ModType.SIM));
-    assertThat(mod.getMountInfos(), hasSize(10));
-    assertThat(mod.getMountInfos().get(3).getFile(), is(Paths.get("effects")));
-    assertThat(mod.getMountInfos().get(3).getMountPoint(), is("/effects"));
-    assertThat(mod.getHookDirectories(), contains("/blackops"));
+    assertThat(modVersion.getDisplayName(), is("BlackOps Unleashed"));
+    assertThat(modVersion.getVersion(), is(new ComparableVersion("8")));
+    assertThat(modVersion.getUploader(), is("Lt_hawkeye"));
+    assertThat(modVersion.getDescription(), is("Version 5.2. BlackOps Unleased Unitpack contains several new units and game changes. Have fun"));
+    assertThat(modVersion.getImagePath(), is(modsDirectory.getRoot().toPath().resolve("BlackOpsUnleashed/icons/yoda_icon.bmp")));
+    assertThat(modVersion.getSelectable(), is(true));
+    assertThat(modVersion.getId(), is(nullValue()));
+    assertThat(modVersion.getUid(), is("9e8ea941-c306-4751-b367-a11000000502"));
+    assertThat(modVersion.getModType(), equalTo(ModType.SIM));
+    assertThat(modVersion.getMountInfos(), hasSize(10));
+    assertThat(modVersion.getMountInfos().get(3).getFile(), is(Paths.get("effects")));
+    assertThat(modVersion.getMountInfos().get(3).getMountPoint(), is("/effects"));
+    assertThat(modVersion.getHookDirectories(), contains("/blackops"));
 
-    mod = installedMods.get(2);
+    modVersion = installedModVersions.get(2);
 
-    assertThat(mod.getDisplayName(), is("EcoManager"));
-    assertThat(mod.getVersion(), is(new ComparableVersion("3")));
-    assertThat(mod.getUploader(), is("Crotalus"));
-    assertThat(mod.getDescription(), is("EcoManager v3, more efficient energy throttling"));
-    assertThat(mod.getImagePath(), nullValue());
-    assertThat(mod.getSelectable(), is(true));
-    assertThat(mod.getId(), is(nullValue()));
-    assertThat(mod.getUid(), is("b2cde810-15d0-4bfa-af66-ec2d6ecd561b"));
-    assertThat(mod.getModType(), equalTo(ModType.UI));
+    assertThat(modVersion.getDisplayName(), is("EcoManager"));
+    assertThat(modVersion.getVersion(), is(new ComparableVersion("3")));
+    assertThat(modVersion.getUploader(), is("Crotalus"));
+    assertThat(modVersion.getDescription(), is("EcoManager v3, more efficient energy throttling"));
+    assertThat(modVersion.getImagePath(), nullValue());
+    assertThat(modVersion.getSelectable(), is(true));
+    assertThat(modVersion.getId(), is(nullValue()));
+    assertThat(modVersion.getUid(), is("b2cde810-15d0-4bfa-af66-ec2d6ecd561b"));
+    assertThat(modVersion.getModType(), equalTo(ModType.UI));
   }
 
   @Test
   public void testLoadInstalledModWithoutModInfo() throws Exception {
     Files.createDirectories(modsDirectory.getRoot().toPath().resolve("foobar"));
 
-    assertThat(instance.getInstalledMods().size(), is(1));
+    assertThat(instance.getInstalledModVersions().size(), is(1));
 
     instance.loadInstalledMods();
 
-    assertThat(instance.getInstalledMods().size(), is(1));
+    assertThat(instance.getInstalledModVersions().size(), is(1));
   }
 
   @Test
-  public void testIsModInstalled() throws Exception {
+  public void testIsModInstalled() {
     assertThat(instance.isModInstalled("9e8ea941-c306-4751-b367-a11000000502"), is(true));
     assertThat(instance.isModInstalled("9e8ea941-c306-4751-b367-f00000000005"), is(false));
   }
 
   @Test
-  public void testUninstallMod() throws Exception {
+  public void testUninstallMod() {
     UninstallModTask uninstallModTask = mock(UninstallModTask.class);
     when(applicationContext.getBean(UninstallModTask.class)).thenReturn(uninstallModTask);
-    assertThat(instance.getInstalledMods(), hasSize(1));
+    assertThat(instance.getInstalledModVersions(), hasSize(1));
 
-    instance.uninstallMod(instance.getInstalledMods().get(0));
+    instance.uninstallMod(instance.getInstalledModVersions().get(0));
 
     verify(taskService).submitTask(uninstallModTask);
   }
 
   @Test
-  public void testGetPathForMod() throws Exception {
-    assertThat(instance.getInstalledMods(), hasSize(1));
+  public void testGetPathForMod() {
+    assertThat(instance.getInstalledModVersions(), hasSize(1));
 
-    Path actual = instance.getPathForMod(instance.getInstalledMods().get(0));
+    Path actual = instance.getPathForMod(instance.getInstalledModVersions().get(0));
 
     Path expected = modsDirectory.getRoot().toPath().resolve(BLACK_OPS_UNLEASHED_DIRECTORY_NAME);
     assertThat(actual, is(expected));
   }
 
   @Test
-  public void testGetPathForModUnknownModReturnsNull() throws Exception {
-    assertThat(instance.getInstalledMods(), hasSize(1));
+  public void testGetPathForModUnknownModReturnsNull() {
+    assertThat(instance.getInstalledModVersions(), hasSize(1));
     assertThat(instance.getPathForMod(ModInfoBeanBuilder.create().uid("1").get()), Matchers.nullValue());
   }
 
   @Test
-  public void testUploadMod() throws Exception {
+  public void testUploadMod() {
     ModUploadTask modUploadTask = mock(ModUploadTask.class);
 
     when(applicationContext.getBean(ModUploadTask.class)).thenReturn(modUploadTask);
@@ -395,18 +395,18 @@ public class ModServiceImplTest {
   }
 
   @Test
-  public void testLoadThumbnail() throws Exception {
-    Mod mod = ModInfoBeanBuilder.create().defaultValues()
+  public void testLoadThumbnail() {
+    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues()
         .thumbnailUrl("http://127.0.0.1:65534/thumbnail.png")
         .get();
-    instance.loadThumbnail(mod);
-    verify(assetService).loadAndCacheImage(eq(mod.getThumbnailUrl()), eq(Paths.get("mods")), any());
+    instance.loadThumbnail(modVersion);
+    verify(assetService).loadAndCacheImage(eq(modVersion.getThumbnailUrl()), eq(Paths.get("mods")), any());
   }
 
   private InstallModTask stubInstallModTask() {
     return new InstallModTask(preferencesService, i18n) {
       @Override
-      protected Void call() throws Exception {
+      protected Void call() {
         return null;
       }
     };

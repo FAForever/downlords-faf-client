@@ -87,7 +87,7 @@ public class ModVaultController extends AbstractViewController<Node> {
   private ModDetailController modDetailController;
   private ModVaultController.State state;
   private int currentPage;
-  private Supplier<CompletableFuture<List<Mod>>> currentSupplier;
+  private Supplier<CompletableFuture<List<ModVersion>>> currentSupplier;
 
   @Inject
   public ModVaultController(ModService modService, I18n i18n, EventBus eventBus, PreferencesService preferencesService,
@@ -156,9 +156,9 @@ public class ModVaultController extends AbstractViewController<Node> {
         });
   }
 
-  private void replaceSearchResult(List<Mod> mods, Pane pane) {
+  private void replaceSearchResult(List<ModVersion> modVersions, Pane pane) {
     Platform.runLater(() -> pane.getChildren().clear());
-    appendSearchResult(mods, pane);
+    appendSearchResult(modVersions, pane);
   }
 
   private void enterLoadingState() {
@@ -189,8 +189,8 @@ public class ModVaultController extends AbstractViewController<Node> {
   }
 
   @VisibleForTesting
-  void onShowModDetail(Mod mod) {
-    modDetailController.setMod(mod);
+  void onShowModDetail(ModVersion modVersion) {
+    modDetailController.setModVersion(modVersion);
     modDetailController.getRoot().setVisible(true);
     modDetailController.getRoot().requestFocus();
   }
@@ -274,14 +274,14 @@ public class ModVaultController extends AbstractViewController<Node> {
     displayModsFromSupplier(() -> modService.getNewestMods(LOAD_MORE_COUNT, ++currentPage));
   }
 
-  private void appendSearchResult(List<Mod> mods, Pane pane) {
+  private void appendSearchResult(List<ModVersion> modVersions, Pane pane) {
     JavaFxUtil.assertBackgroundThread();
 
     ObservableList<Node> children = pane.getChildren();
-    List<ModCardController> controllers = mods.parallelStream()
+    List<ModCardController> controllers = modVersions.parallelStream()
         .map(mod -> {
           ModCardController controller = uiService.loadFxml("theme/vault/mod/mod_card.fxml");
-          controller.setMod(mod);
+          controller.setModVersion(mod);
           controller.setOnOpenDetailListener(this::onShowModDetail);
           return controller;
         }).collect(Collectors.toList());
@@ -293,7 +293,7 @@ public class ModVaultController extends AbstractViewController<Node> {
     }));
   }
 
-  private void displayModsFromSupplier(Supplier<CompletableFuture<List<Mod>>> modsSupplier) {
+  private void displayModsFromSupplier(Supplier<CompletableFuture<List<ModVersion>>> modsSupplier) {
     this.currentSupplier = modsSupplier;
     modsSupplier.get()
         .thenAccept(this::displayMods)
@@ -306,9 +306,9 @@ public class ModVaultController extends AbstractViewController<Node> {
         });
   }
 
-  private void displayMods(List<Mod> mods) {
+  private void displayMods(List<ModVersion> modVersions) {
     Platform.runLater(() -> searchResultPane.getChildren().clear());
-    appendSearchResult(mods, searchResultPane);
+    appendSearchResult(modVersions, searchResultPane);
     Platform.runLater(this::enterSearchResultState);
   }
 

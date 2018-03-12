@@ -63,7 +63,7 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
 
     modUploadTask = new ModUploadTask(preferencesService, fafService, i18n) {
       @Override
-      protected Void call() throws Exception {
+      protected Void call() {
         return null;
       }
     };
@@ -72,8 +72,8 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testSetModPath() throws Exception {
-    when(modService.extractModInfo(any())).thenReturn(new Mod());
+  public void testSetModPath() {
+    when(modService.extractModInfo(any())).thenReturn(new ModVersion());
 
     Path modPath = modFolder.getRoot().toPath();
     instance.setModPath(modPath);
@@ -82,7 +82,7 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnCancelUploadClicked() throws Exception {
+  public void testOnCancelUploadClicked() {
     when(modService.uploadMod(any())).thenReturn(modUploadTask);
 
     modUploadTask.getFuture().complete(null);
@@ -94,7 +94,7 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnUploadClicked() throws Exception {
+  public void testOnUploadClicked() {
     when(modService.uploadMod(any())).thenReturn(modUploadTask);
     modUploadTask.getFuture().complete(null);
 

@@ -35,9 +35,9 @@ public class ModCardController implements Controller<Node> {
   public Label createdLabel;
   public Label numberOfReviewsLabel;
   public Label typeLabel;
-  private Mod mod;
-  private Consumer<Mod> onOpenDetailListener;
-  private ListChangeListener<Mod> installStatusChangeListener;
+  private ModVersion modVersion;
+  private Consumer<ModVersion> onOpenDetailListener;
+  private ListChangeListener<ModVersion> installStatusChangeListener;
   public StarsController starsController;
   private InvalidationListener reviewsChangedListener;
 
@@ -51,7 +51,7 @@ public class ModCardController implements Controller<Node> {
   }
 
   private void populateReviews() {
-    ObservableList<Review> reviews = mod.getReviews();
+    ObservableList<Review> reviews = modVersion.getReviews();
     Platform.runLater(() -> {
       numberOfReviewsLabel.setText(i18n.number(reviews.size()));
       starsController.setValue((float) reviews.stream().mapToInt(Review::getScore).average().orElse(0d));
@@ -61,14 +61,14 @@ public class ModCardController implements Controller<Node> {
   public void initialize() {
     installStatusChangeListener = change -> {
       while (change.next()) {
-        for (Mod mod : change.getAddedSubList()) {
-          if (this.mod.equals(mod)) {
+        for (ModVersion modVersion : change.getAddedSubList()) {
+          if (this.modVersion.equals(modVersion)) {
             setInstalled(true);
             return;
           }
         }
-        for (Mod mod : change.getRemoved()) {
-          if (this.mod.equals(mod)) {
+        for (ModVersion modVersion : change.getRemoved()) {
+          if (this.modVersion.equals(modVersion)) {
             setInstalled(false);
             return;
           }
@@ -81,19 +81,19 @@ public class ModCardController implements Controller<Node> {
     //TODO:IMPLEMENT ISSUE #670
   }
 
-  public void setMod(Mod mod) {
-    this.mod = mod;
-    thumbnailImageView.setImage(modService.loadThumbnail(mod));
-    nameLabel.setText(mod.getDisplayName());
-    authorLabel.setText(mod.getUploader());
-    createdLabel.setText(timeService.asDate(mod.getCreateTime()));
-    typeLabel.setText(mod.getModType() != null ? i18n.get(mod.getModType().getI18nKey()) : "");
+  public void setModVersion(ModVersion modVersion) {
+    this.modVersion = modVersion;
+    thumbnailImageView.setImage(modService.loadThumbnail(modVersion));
+    nameLabel.setText(modVersion.getDisplayName());
+    authorLabel.setText(modVersion.getUploader());
+    createdLabel.setText(timeService.asDate(modVersion.getCreateTime()));
+    typeLabel.setText(modVersion.getModType() != null ? i18n.get(modVersion.getModType().getI18nKey()) : "");
 
-    ObservableList<Mod> installedMods = modService.getInstalledMods();
-    synchronized (installedMods) {
-      installedMods.addListener(new WeakListChangeListener<>(installStatusChangeListener));
+    ObservableList<ModVersion> installedModVersions = modService.getInstalledModVersions();
+    synchronized (installedModVersions) {
+      installedModVersions.addListener(new WeakListChangeListener<>(installStatusChangeListener));
     }
-    ObservableList<Review> reviews = mod.getReviews();
+    ObservableList<Review> reviews = modVersion.getReviews();
     reviews.addListener(new WeakInvalidationListener(reviewsChangedListener));
     reviewsChangedListener.invalidated(reviews);
   }
@@ -102,11 +102,11 @@ public class ModCardController implements Controller<Node> {
     return modTileRoot;
   }
 
-  public void setOnOpenDetailListener(Consumer<Mod> onOpenDetailListener) {
+  public void setOnOpenDetailListener(Consumer<ModVersion> onOpenDetailListener) {
     this.onOpenDetailListener = onOpenDetailListener;
   }
 
   public void onShowModDetail() {
-    onOpenDetailListener.accept(mod);
+    onOpenDetailListener.accept(modVersion);
   }
 }

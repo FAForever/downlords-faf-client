@@ -68,8 +68,8 @@ public class ModDetailController implements Controller<Node> {
   public Node modDetailRoot;
   public ReviewsController reviewsController;
 
-  private Mod mod;
-  private ListChangeListener<Mod> installStatusChangeListener;
+  private ModVersion modVersion;
+  private ListChangeListener<ModVersion> installStatusChangeListener;
 
   @Inject
   public ModDetailController(ModService modService, NotificationService notificationService, I18n i18n,
@@ -102,14 +102,14 @@ public class ModDetailController implements Controller<Node> {
 
     installStatusChangeListener = change -> {
       while (change.next()) {
-        for (Mod mod : change.getAddedSubList()) {
-          if (this.mod.equals(mod)) {
+        for (ModVersion modVersion : change.getAddedSubList()) {
+          if (this.modVersion.equals(modVersion)) {
             setInstalled(true);
             return;
           }
         }
-        for (Mod mod : change.getRemoved()) {
-          if (this.mod.equals(mod)) {
+        for (ModVersion modVersion : change.getRemoved()) {
+          if (this.modVersion.equals(modVersion)) {
             setInstalled(false);
             return;
           }
@@ -137,33 +137,33 @@ public class ModDetailController implements Controller<Node> {
     return modDetailRoot;
   }
 
-  public void setMod(Mod mod) {
-    this.mod = mod;
-    thumbnailImageView.setImage(modService.loadThumbnail(mod));
-    nameLabel.setText(mod.getDisplayName());
-    authorLabel.setText(mod.getUploader());
+  public void setModVersion(ModVersion modVersion) {
+    this.modVersion = modVersion;
+    thumbnailImageView.setImage(modService.loadThumbnail(modVersion));
+    nameLabel.setText(modVersion.getDisplayName());
+    authorLabel.setText(modVersion.getUploader());
 
-    boolean modInstalled = modService.isModInstalled(mod.getUid());
+    boolean modInstalled = modService.isModInstalled(modVersion.getUid());
     installButton.setVisible(!modInstalled);
     uninstallButton.setVisible(modInstalled);
 
-    modDescriptionLabel.setText(mod.getDescription());
-    modService.getInstalledMods().addListener(new WeakListChangeListener<>(installStatusChangeListener));
-    setInstalled(modService.isModInstalled(mod.getUid()));
+    modDescriptionLabel.setText(modVersion.getDescription());
+    modService.getInstalledModVersions().addListener(new WeakListChangeListener<>(installStatusChangeListener));
+    setInstalled(modService.isModInstalled(modVersion.getUid()));
 
-    updatedLabel.setText(timeService.asDate(mod.getUpdateTime()));
+    updatedLabel.setText(timeService.asDate(modVersion.getUpdateTime()));
     sizeLabel.setText(Bytes.formatSize(getModSize(), i18n.getUserSpecificLocale()));
-    installationsLabel.setText(String.format(i18n.getUserSpecificLocale(), "%d", mod.getDownloads()));
-    versionLabel.setText(mod.getVersion().toString());
+    installationsLabel.setText(String.format(i18n.getUserSpecificLocale(), "%d", modVersion.getDownloads()));
+    versionLabel.setText(modVersion.getVersion().toString());
 
     Player player = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("No current player is available"));
 
-    reviewsController.setCanWriteReview(modService.isModInstalled(mod.getUid()));
+    reviewsController.setCanWriteReview(modService.isModInstalled(modVersion.getUid()));
     reviewsController.setOnSendReviewListener(this::onSendReview);
     reviewsController.setOnDeleteReviewListener(this::onDeleteReview);
-    reviewsController.setReviews(mod.getReviews());
-    reviewsController.setOwnReview(mod.getReviews().stream()
+    reviewsController.setReviews(modVersion.getReviews());
+    reviewsController.setOwnReview(modVersion.getReviews().stream()
         .filter(review -> review.getPlayer().getId() == player.getId())
         .findFirst());
   }
@@ -171,7 +171,7 @@ public class ModDetailController implements Controller<Node> {
   private void onDeleteReview(Review review) {
     reviewService.deleteModVersionReview(review)
         .thenRun(() -> Platform.runLater(() -> {
-          mod.getReviews().remove(review);
+          modVersion.getReviews().remove(review);
           reviewsController.setOwnReview(Optional.empty());
         }))
         // TODO display error to user
@@ -186,10 +186,10 @@ public class ModDetailController implements Controller<Node> {
     Player player = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("No current player is available"));
     review.setPlayer(player);
-    reviewService.saveModVersionReview(review, mod.getId())
+    reviewService.saveModVersionReview(review, modVersion.getId())
         .thenRun(() -> {
           if (isNew) {
-            mod.getReviews().add(review);
+            modVersion.getReviews().add(review);
           }
           reviewsController.setOwnReview(Optional.of(review));
         })
@@ -201,18 +201,18 @@ public class ModDetailController implements Controller<Node> {
   }
 
   private long getModSize() {
-    return modService.getModSize(mod);
+    return modService.getModSize(modVersion);
   }
 
   public void onInstallButtonClicked() {
     installButton.setVisible(false);
 
-    modService.downloadAndInstallMod(mod, progressBar.progressProperty(), progressLabel.textProperty())
+    modService.downloadAndInstallMod(modVersion, progressBar.progressProperty(), progressLabel.textProperty())
         .thenRun(() -> uninstallButton.setVisible(true))
         .exceptionally(throwable -> {
           notificationService.addNotification(new ImmediateNotification(
               i18n.get("errorTitle"),
-              i18n.get("modVault.installationFailed", mod.getDisplayName(), throwable.getLocalizedMessage()),
+              i18n.get("modVault.installationFailed", modVersion.getDisplayName(), throwable.getLocalizedMessage()),
               Severity.ERROR, throwable, singletonList(new ReportAction(i18n, reportingService, throwable))));
           return null;
         });
@@ -223,10 +223,10 @@ public class ModDetailController implements Controller<Node> {
     progressBar.setProgress(-1);
     uninstallButton.setVisible(false);
 
-    modService.uninstallMod(mod).exceptionally(throwable -> {
+    modService.uninstallMod(modVersion).exceptionally(throwable -> {
       notificationService.addNotification(new ImmediateNotification(
           i18n.get("errorTitle"),
-          i18n.get("modVault.couldNotDeleteMod", mod.getDisplayName(), throwable.getLocalizedMessage()),
+          i18n.get("modVault.couldNotDeleteMod", modVersion.getDisplayName(), throwable.getLocalizedMessage()),
           Severity.ERROR, throwable, singletonList(new ReportAction(i18n, reportingService, throwable))));
       return null;
     });

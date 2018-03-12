@@ -9,7 +9,6 @@ import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
-import com.faforever.client.api.dto.ModVersion;
 import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.chat.avatar.AvatarBean;
@@ -25,7 +24,7 @@ import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.LeaderboardEntry;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.FeaturedMod;
-import com.faforever.client.mod.Mod;
+import com.faforever.client.mod.ModVersion;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
 import com.faforever.client.remote.domain.GameEndedMessage;
@@ -159,16 +158,16 @@ public class FafServiceImpl implements FafService {
 
   @Override
   @Async
-  public CompletableFuture<List<Mod>> getMods() {
+  public CompletableFuture<List<ModVersion>> getMods() {
     return CompletableFuture.completedFuture(fafApiAccessor.getMods().stream()
-        .map(Mod::fromModDto)
+        .map(ModVersion::fromModDto)
         .collect(toList()));
   }
 
   @Override
   @Async
-  public CompletableFuture<Mod> getMod(String uid) {
-    return CompletableFuture.completedFuture(Mod.fromModDto(fafApiAccessor.getMod(uid)));
+  public CompletableFuture<com.faforever.client.mod.ModVersion> getModVersion(String uid) {
+    return CompletableFuture.completedFuture(com.faforever.client.mod.ModVersion.fromDto(fafApiAccessor.getModVersion(uid), null));
   }
 
   @Override
@@ -383,7 +382,7 @@ public class FafServiceImpl implements FafService {
       Assert.notNull(review.getPlayer(), "Player ID must be set");
       ModVersionReview updatedReview = fafApiAccessor.createModVersionReview(
           (ModVersionReview) modVersionReview
-              .setModVersion(new ModVersion().setId(String.valueOf(modVersionId)))
+              .setModVersion(new com.faforever.client.api.dto.ModVersion().setId(String.valueOf(modVersionId)))
               .setId(String.valueOf(review.getId()))
               .setPlayer(new com.faforever.client.api.dto.Player().setId(String.valueOf(review.getPlayer().getId())))
       );
@@ -465,10 +464,10 @@ public class FafServiceImpl implements FafService {
 
   @Async
   @Override
-  public CompletableFuture<List<Mod>> findModsByQuery(SearchConfig query, int page, int count) {
+  public CompletableFuture<List<ModVersion>> findModsByQuery(SearchConfig query, int page, int count) {
     return CompletableFuture.completedFuture(fafApiAccessor.findModsByQuery(query, page, count)
         .parallelStream()
-        .map(Mod::fromModDto)
+        .map(ModVersion::fromModDto)
         .collect(toList()));
   }
 

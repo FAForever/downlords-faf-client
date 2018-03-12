@@ -10,8 +10,8 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.map.MapSize;
 import com.faforever.client.mod.FeaturedMod;
-import com.faforever.client.mod.Mod;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.mod.ModVersion;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
@@ -82,7 +82,7 @@ public class CreateGameController implements Controller<Pane> {
   public Label mapNameLabel;
   public TextField mapSearchTextField;
   public TextField titleTextField;
-  public ListView<Mod> modListView;
+  public ListView<ModVersion> modListView;
   public TextField passwordTextField;
   public TextField minRankingTextField;
   public TextField maxRankingTextField;
@@ -206,7 +206,7 @@ public class CreateGameController implements Controller<Pane> {
   private void initModList() {
     modListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     modListView.setCellFactory(modListCellFactory());
-    modListView.getItems().setAll(modService.getInstalledMods());
+    modListView.getItems().setAll(modService.getInstalledModVersions());
     try {
       modService.getActivatedSimAndUIMods().forEach(mod -> modListView.getSelectionModel().select(mod));
     } catch (IOException e) {
@@ -294,12 +294,12 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   @NotNull
-  private Callback<ListView<Mod>, ListCell<Mod>> modListCellFactory() {
+  private Callback<ListView<ModVersion>, ListCell<ModVersion>> modListCellFactory() {
     return param -> {
-      ListCell<Mod> cell = new StringListCell<>(Mod::getDisplayName);
+      ListCell<ModVersion> cell = new StringListCell<>(ModVersion::getDisplayName);
       cell.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
         modListView.requestFocus();
-        MultipleSelectionModel<Mod> selectionModel = modListView.getSelectionModel();
+        MultipleSelectionModel<ModVersion> selectionModel = modListView.getSelectionModel();
         if (!cell.isEmpty()) {
           int index = cell.getIndex();
           if (selectionModel.getSelectedIndices().contains(index)) {
@@ -336,7 +336,7 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   public void onCreateButtonClicked() {
-    ObservableList<Mod> selectedMods = modListView.getSelectionModel().getSelectedItems();
+    ObservableList<ModVersion> selectedModVersions = modListView.getSelectionModel().getSelectedItems();
 
     try {
       modService.overrideActivatedMods(modListView.getSelectionModel().getSelectedItems());
@@ -344,8 +344,8 @@ public class CreateGameController implements Controller<Pane> {
       logger.warn("Activated mods could not be updated", e);
     }
 
-    Set<String> simMods = selectedMods.stream()
-        .map(Mod::getUid)
+    Set<String> simMods = selectedModVersions.stream()
+        .map(ModVersion::getUid)
         .collect(Collectors.toSet());
 
     NewGameInfo newGameInfo = new NewGameInfo(
