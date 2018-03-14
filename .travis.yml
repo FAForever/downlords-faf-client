@@ -34,3 +34,13 @@ addons:
     build_command_prepend: "./gradlew clean"
     build_command:   "./gradlew build"
     branch_pattern: coverity_scan
+
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+    - /home/travis/build/FAForever/downlords-faf-client/build/cache/
