@@ -10,7 +10,9 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.util.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
@@ -28,7 +30,8 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 /**
  * Detects the connectivity state in cooperation with the FAF server. <p> <ol> <li>Step: </li> </ol> </p>
  */
-@Service
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ConnectivityCheckTask extends CompletableTask<ConnectivityStateMessage> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -127,7 +130,7 @@ public class ConnectivityCheckTask extends CompletableTask<ConnectivityStateMess
     }
   }
 
-  private CompletableFuture<DatagramPacket> listenForPackage() throws ExecutionException, InterruptedException {
+  private CompletableFuture<DatagramPacket> listenForPackage() {
     CompletableFuture<DatagramPacket> future = new CompletableFuture<>();
     Consumer<DatagramPacket> complete = future::complete;
 

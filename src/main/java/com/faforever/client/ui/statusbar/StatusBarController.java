@@ -10,8 +10,9 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.update.Version;
 import com.google.common.base.Strings;
 import javafx.application.Platform;
-import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
@@ -26,7 +27,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import java.util.Collection;
 
 import static javafx.application.Platform.runLater;
 
@@ -143,8 +143,8 @@ public class StatusBarController implements Controller<Node> {
       });
     });
 
-    taskService.getActiveWorkers().addListener((Observable observable) -> {
-      Collection<Worker<?>> runningWorkers = taskService.getActiveWorkers();
+    taskService.getActiveWorkers().addListener((ListChangeListener<Worker<?>>) c -> {
+      ObservableList<Worker<?>> runningWorkers = taskService.getActiveWorkers();
       if (runningWorkers.isEmpty()) {
         setCurrentWorkerInStatusBar(null);
       } else {
