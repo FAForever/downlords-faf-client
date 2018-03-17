@@ -39,7 +39,7 @@ apply plugin: 'distribution'
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-version = '0.8.0-beta.ICE'
+version = '0.8.0-beta'
 
 compileJava.dependsOn(processResources)
 processResources {
