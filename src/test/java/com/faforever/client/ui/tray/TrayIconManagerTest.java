@@ -6,11 +6,13 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.google.common.eventbus.EventBus;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.nio.file.Paths;
+import java.nio.file.Path;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
@@ -18,6 +20,10 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
 public class TrayIconManagerTest extends AbstractPlainJavaFxTest {
+
+  @Rule
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
   private TrayIconManager instance;
 
   @Mock
@@ -37,7 +43,9 @@ public class TrayIconManagerTest extends AbstractPlainJavaFxTest {
     instance.onSetApplicationBadgeEvent(UpdateApplicationBadgeEvent.ofNewValue(1));
     WaitForAsyncUtils.waitForFxEvents();
 
-    getStage().getIcons().forEach(image -> JavaFxUtil.persistImage(image, Paths.get((int) image.getWidth() + ".png"), "png"));
+    Path tmpDir = temporaryFolder.getRoot().toPath();
+
+    getStage().getIcons().forEach(image -> JavaFxUtil.persistImage(image, tmpDir.resolve((int) image.getWidth() + ".png"), "png"));
     assertThat(getStage().getIcons(), hasSize(5));
   }
 
@@ -46,7 +54,9 @@ public class TrayIconManagerTest extends AbstractPlainJavaFxTest {
     instance.onSetApplicationBadgeEvent(UpdateApplicationBadgeEvent.ofDelta(1));
     WaitForAsyncUtils.waitForFxEvents();
 
-    getStage().getIcons().forEach(image -> JavaFxUtil.persistImage(image, Paths.get((int) image.getWidth() + ".png"), "png"));
+    Path tmpDir = temporaryFolder.getRoot().toPath();
+
+    getStage().getIcons().forEach(image -> JavaFxUtil.persistImage(image, tmpDir.resolve((int) image.getWidth() + ".png"), "png"));
     assertThat(getStage().getIcons(), hasSize(5));
   }
 }
