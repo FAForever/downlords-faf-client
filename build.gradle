@@ -10,7 +10,7 @@ import groovyx.net.http.ParserRegistry
 buildscript {
   repositories {
     mavenCentral()
-    maven { url 'http://maven.ej-technologies.com/repository' }
+    maven { url 'https://maven.ej-technologies.com/repository' }
     maven { url 'http://repo.spring.io/plugins-release' }
   }
 
@@ -259,6 +259,7 @@ repositories {
   mavenCentral()
   jcenter()
   maven { url "https://jitpack.io" }
+  maven { url 'https://maven.ej-technologies.com/repository' }
   maven { url "http://dl.bintray.com/typesafe/maven-releases" }
 }
 
@@ -306,7 +307,8 @@ dependencies {
   compile("com.github.nsp:JSkills:${jSkillsVersion}")
   compile("com.github.jasminb:jsonapi-converter:${jsonapiConverterVersion}")
   compile("com.github.Brutus5000:BiReUS-JCL:${bireusVersion}")
-  compile("com.github.micheljung:i4jruntime:${i4jruntimeVersion}")
+  provided("com.install4j:install4j-runtime:${install4jRuntimeVersion}")
+
 
   testCompile 'junit:junit:4.11'
   testCompile("org.testfx:testfx-core:4.0.8-alpha") {

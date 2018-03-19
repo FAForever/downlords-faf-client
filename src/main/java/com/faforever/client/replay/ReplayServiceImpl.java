@@ -29,6 +29,7 @@ import com.google.common.base.Splitter;
 import com.google.common.net.UrlEscapers;
 import com.google.common.primitives.Bytes;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +72,7 @@ import static java.util.Collections.singletonList;
 
 @Lazy
 @Service
+@Slf4j
 public class ReplayServiceImpl implements ReplayService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -332,7 +334,10 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @SneakyThrows
-  private void runReplayFile(Path path) {
+  @Override
+  public void runReplayFile(Path path) {
+    log.debug("Starting replay file: {}", path.toAbsolutePath());
+
     String fileName = path.getFileName().toString();
     if (fileName.endsWith(FAF_REPLAY_FILE_ENDING)) {
       runFafReplayFile(path);

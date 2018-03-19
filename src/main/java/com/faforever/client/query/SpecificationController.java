@@ -309,15 +309,16 @@ public class SpecificationController implements Controller<Node> {
       return prop.ne(value);
     }
     if (comparisonOperator == IN) {
-      return prop.in(value.split(","));
+      return prop.in((Object[]) value.split(","));
     }
     if (comparisonOperator == NIN) {
-      return prop.nin(value.split(","));
+      return prop.nin((Object[]) value.split(","));
     }
     throw new ProgrammingError("Operator '" + comparisonOperator + "' should not have been allowed for type: " + fieldType);
   }
 
 
+  @SuppressWarnings("unchecked")
   private Condition getStringCondition(ComparisonOperator comparisonOperator, String value, Class<?> propertyClass, StringProperty prop) {
 
     if (comparisonOperator == EQ) {
@@ -327,10 +328,10 @@ public class SpecificationController implements Controller<Node> {
       return prop.ne(value);
     }
     if (comparisonOperator == IN) {
-      return prop.in(value.split(","));
+      return prop.in((Object[]) value.split(","));
     }
     if (comparisonOperator == NIN) {
-      return prop.nin(value.split(","));
+      return prop.nin((Object[]) value.split(","));
     }
     if (comparisonOperator == RE) {
       return prop.eq("*" + value + "*");

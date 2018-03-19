@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="7.0.3" transformSequenceNumber="7">
-  <directoryPresets config="." />
+  <directoryPresets config="./src/media/appicon" />
   <application name="Downlord's FAF Client" distributionSourceDir="" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="dfc" publisher="Downlord" publisherWeb="https://github.com/FAForever/downlords-faf-client" version="" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" macVolumeId="e230e730a6fc064c" javaMinVersion="1.8.0_152" javaMaxVersion="1.8.0_999" allowBetaVM="true" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
@@ -49,7 +49,7 @@
       </java>
       <includedFiles />
       <unextractableFiles />
-      <vmOptionsFile mode="content" overwriteMode="5" fileMode="644">
+      <vmOptionsFile mode="content" overwriteMode="3" fileMode="644">
         <content># Enter one VM parameter per line
 
 # Adjust maximum memory usage to 512MiB
@@ -62,9 +62,11 @@
         <content />
       </infoPlist>
       <iconImageFiles>
-        <file path="./16.png" />
-        <file path="./32.png" />
-        <file path="./128.png" />
+        <file path="./src/media/appicon/16.png" />
+        <file path="./src/media/appicon/32.png" />
+        <file path="./src/media/appicon/48.png" />
+        <file path="./src/media/appicon/128.png" />
+        <file path="./src/media/appicon/256.png" />
       </iconImageFiles>
     </launcher>
   </launchers>
@@ -455,6 +457,24 @@ return console.askOkCancel(message, true);
                   </java>
                 </serializedBean>
                 <condition>context.getBooleanVariable("createDesktopLinkAction")</condition>
+              </action>
+              <action name="" id="251" customizedId="" beanClass="com.install4j.runtime.beans.actions.desktop.CreateFileAssociationAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" rollbackBarrierExitCode="0" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.desktop.CreateFileAssociationAction">
+                      <void property="description">
+                        <string>Forged Alliance Forever Replay</string>
+                      </void>
+                      <void property="extension">
+                        <string>fafreplay</string>
+                      </void>
+                      <void property="launcherId">
+                        <string>25</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
               </action>
             </actions>
             <formComponents>
@@ -1169,7 +1189,7 @@ return console.askYesNo(message, true);
     </styles>
   </installerGui>
   <mediaSets>
-    <windows name="Windows" id="26" customizedId="" mediaFileName="" installDir="${compiler:sys.fullName}" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" downloadURL="" includeAllDownloadableComponents="false" includedJRE="windows-x86-1.8.0_152" manualJREEntry="false" bundleType="2" jreURL="http://content.faforever.com/jre/windows-x86-1.8.0_152.tar.gz" jreShared="false" directDownload="true" installOnlyIfNecessary="false" customInstallBaseDir="" contentFilesType="1" verifyIntegrity="true">
+    <windows name="Windows" id="26" customizedId="" mediaFileName="" installDir="${compiler:sys.fullName}" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" downloadURL="" includeAllDownloadableComponents="false" includedJRE="windows-x86-1.8.0_162" manualJREEntry="false" bundleType="1" jreURL="http://content.faforever.com/jre/windows-x86-1.8.0_152.tar.gz" jreShared="false" directDownload="false" installOnlyIfNecessary="false" customInstallBaseDir="" contentFilesType="1" verifyIntegrity="true">
       <excludedComponents />
       <includedDownloadableComponents />
       <excludedLaunchers />
