@@ -44,4 +44,6 @@ public interface ReplayService {
   CompletableFuture<Integer> getSize(int id);
 
   boolean replayChangedRating(Replay replay);
+
+  void runReplayFile(Path path);
 }

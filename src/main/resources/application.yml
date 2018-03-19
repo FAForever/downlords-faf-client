@@ -60,7 +60,7 @@ logging:
     com.faforever.client.patch: info
     com.faforever.client.events: info
     com.faforever.client.legacy: info
-    com.faforever.client.remote: debug
+    com.faforever.client.remote: info
     com.faforever.client.replay: info
     com.faforever.client.relay: info
     com.faforever.client.chat: info
@@ -68,4 +68,5 @@ logging:
     com.faforever.client.task: info
     com.faforever.client.theme: info
     com.faforever.client.io: info
+    com.faforever.client.os: info
     com.faforever.client.fa.relay.ice: info
