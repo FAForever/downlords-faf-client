@@ -140,7 +140,7 @@ configurations {
 jar {
   manifest {
     attributes "Premain-Class": "com.faforever.client.fx.TransparentWebViewPatch",
-        "Main-Class": "com.faforever.client.Main",
+        "Main-Class": "com.faforever.client.FafClientApplication",
         "Implementation-Title": "Downlord's FAF Client",
         "Implementation-Version": version,
         "Implementation-Vendor": "Downlord"
