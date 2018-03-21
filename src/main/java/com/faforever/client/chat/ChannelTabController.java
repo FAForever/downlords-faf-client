@@ -37,6 +37,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.TitledPane;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
@@ -80,7 +81,7 @@ public class ChannelTabController extends AbstractChatTabController {
   private final Map<String, Map<Pane, ChatUserItemController>> userToChatUserControls;
   private final ThreadPoolExecutor threadPoolExecutor;
   private final TaskScheduler taskScheduler;
-  public Button advancedUserFilter;
+  public ToggleButton advancedUserFilter;
   public HBox searchFieldContainer;
   public Button closeSearchFieldButton;
   public TextField searchField;
@@ -315,13 +316,7 @@ public class ChannelTabController extends AbstractChatTabController {
 
     userFilterController = uiService.loadFxml("theme/chat/user_filter.fxml");
     userFilterController.setChannelController(this);
-    userFilterController.getIsFilterAppliedProperty().addListener((observable, oldValue, newValue) -> {
-      if (!oldValue && newValue) {
-        advancedUserFilter.setStyle("-fx-text-fill: -swatch-400");
-      } else if (oldValue && !newValue) {
-        advancedUserFilter.setStyle(null);
-      }
-    });
+    userFilterController.filterAppliedProperty().addListener(((observable, oldValue, newValue) -> advancedUserFilter.setSelected(newValue)));
     filterUserPopup.getContent().setAll(userFilterController.getRoot());
   }
 
@@ -452,7 +447,7 @@ public class ChannelTabController extends AbstractChatTabController {
       if (!userSearchTextField.textProperty().get().isEmpty()) {
         chatUserItemController.setVisible(isUsernameMatch(chatUserItemController));
       }
-      if (userFilterController.getIsFilterAppliedProperty().get()) {
+      if (userFilterController.isFilterApplied()) {
         chatUserItemController.setVisible(userFilterController.filterUser(chatUserItemController));
       }
     }
@@ -586,12 +581,13 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   public void onAdvancedUserFilter(ActionEvent actionEvent) {
+    advancedUserFilter.setSelected(userFilterController.isFilterApplied());
     if (filterUserPopup.isShowing()) {
       filterUserPopup.hide();
       return;
     }
 
-    Button button = (Button) actionEvent.getSource();
+    ToggleButton button = (ToggleButton) actionEvent.getSource();
 
     Bounds screenBounds = advancedUserFilter.localToScreen(advancedUserFilter.getBoundsInLocal());
     filterUserPopup.show(button.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMaxY());

@@ -7,6 +7,7 @@
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -33,8 +34,8 @@
               <HBox alignment="CENTER">
                 <children>
                   <TextField fx:id="userSearchTextField" maxWidth="1.7976931348623157E308" minWidth="10.0" prefColumnCount="5" HBox.hgrow="ALWAYS" />
-                    <Button fx:id="advancedUserFilter" mnemonicParsing="false" onAction="#onAdvancedUserFilter"
-                            styleClass="icon-button" text="" HBox.hgrow="NEVER"/>
+                  <ToggleButton fx:id="advancedUserFilter" mnemonicParsing="false" onAction="#onAdvancedUserFilter"
+                                styleClass="icon-button" text="" HBox.hgrow="NEVER"/>
                 </children>
                         <VBox.margin>
                            <Insets left="10.0" />
