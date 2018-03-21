@@ -6,5 +6,5 @@ public interface ReplayServer {
 
   void stop();
 
-  CompletableFuture<Void> start(int gameId);
+  CompletableFuture<Integer> start(int gameId);
 }

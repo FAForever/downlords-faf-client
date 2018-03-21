@@ -20,7 +20,7 @@ public interface ReplayService {
 
   void runLiveReplay(URI uri);
 
-  CompletableFuture<Void> startReplayServer(int gameUid);
+  CompletableFuture<Integer> startReplayServer(int gameUid);
 
   void stopReplayServer();
 
