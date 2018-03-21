@@ -261,7 +261,7 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public CompletableFuture<Void> startReplayServer(int gameUid) {
+  public CompletableFuture<Integer> startReplayServer(int gameUid) {
     return replayServer.start(gameUid);
   }
 

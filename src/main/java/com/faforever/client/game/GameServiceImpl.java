@@ -117,7 +117,6 @@ public class GameServiceImpl implements GameService {
   private final ModService modService;
   private final PlatformService platformService;
   private final String faWindowTitle;
-  private final ClientProperties clientProperties;
   private final ExternalReplayInfoGenerator externalReplayInfoGenerator;
 
   //TODO: circular reference
@@ -129,6 +128,7 @@ public class GameServiceImpl implements GameService {
   private Process process;
   private BooleanProperty searching1v1;
   private boolean rehostRequested;
+  private int localReplayPort;
 
   @Inject
   public GameServiceImpl(ClientProperties clientProperties, FafService fafService,
@@ -138,7 +138,6 @@ public class GameServiceImpl implements GameService {
                          PlayerService playerService, ReportingService reportingService, EventBus eventBus,
                          IceAdapter iceAdapter, ModService modService, PlatformService platformService,
                          ExternalReplayInfoGenerator externalReplayInfoGenerator) {
-    this.clientProperties = clientProperties;
     this.fafService = fafService;
     this.forgedAllianceService = forgedAllianceService;
     this.mapService = mapService;
@@ -431,11 +430,14 @@ public class GameServiceImpl implements GameService {
 
     stopSearchLadder1v1();
     replayService.startReplayServer(gameLaunchMessage.getUid())
-        .thenCompose(aVoid -> iceAdapter.start())
+        .thenCompose(port -> {
+          localReplayPort = port;
+          return iceAdapter.start();
+        })
         .thenAccept(adapterPort -> {
           List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
           process = noCatch(() -> forgedAllianceService.startGame(gameLaunchMessage.getUid(), faction, args, ratingMode,
-              adapterPort, clientProperties.getReplay().getLocalServerPort(), rehostRequested, getCurrentPlayer()));
+              adapterPort, localReplayPort, rehostRequested, getCurrentPlayer()));
           setGameRunning(true);
 
           this.ratingMode = ratingMode;
