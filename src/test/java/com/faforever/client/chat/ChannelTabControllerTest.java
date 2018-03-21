@@ -138,7 +138,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     when(uiService.loadFxml("theme/chat/user_filter.fxml")).thenReturn(userFilterController);
     when(uiService.loadFxml("theme/chat/chat_user_item.fxml")).thenReturn(chatUserItemController);
     when(userFilterController.getRoot()).thenReturn(new Pane());
-    when(userFilterController.getIsFilterAppliedProperty()).thenReturn(new SimpleBooleanProperty(false));
+    when(userFilterController.filterAppliedProperty()).thenReturn(new SimpleBooleanProperty(false));
     when(chatUserItemController.getRoot()).thenReturn(new Pane());
     when(uiService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
 
