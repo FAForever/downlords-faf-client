@@ -40,7 +40,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.install4j.api.launcher.SplashScreen;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -66,6 +65,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
@@ -322,7 +323,7 @@ public class MainController implements Controller<Node> {
     stage.setHeight(height);
     stage.show();
 
-    noCatch(SplashScreen::hide);
+    hideSplashScreen();
     enterLoggedOutState();
 
     ObservableList<Screen> screensForRectangle = Screen.getScreensForRectangle(x, y, width, height);
@@ -483,6 +484,23 @@ public class MainController implements Controller<Node> {
   public void onChat(ActionEvent actionEvent) {
     chatButton.pseudoClassStateChanged(HIGHLIGHTED, false);
     onNavigateButtonClicked(actionEvent);
+  }
+
+  /**
+   * Hides the install4j splash screen. The hide method is invoked via reflection to accommodate starting the client without install4j (e.g. on linux).
+   */
+  private static void hideSplashScreen() {
+    try {
+      final Class splashScreenClass = Class.forName("com.install4j.api.launcher.SplashScreen");
+      final Method hideMethod = splashScreenClass.getDeclaredMethod("hide");
+      hideMethod.invoke(null);
+    } catch (ClassNotFoundException e) {
+      log.debug("No install4j splash screen found to close.");
+    } catch (NoSuchMethodException | IllegalAccessException e) {
+      log.error("Couldn't close install4j splash screen.", e);
+    } catch (InvocationTargetException e) {
+      log.error("Couldn't close install4j splash screen.", e.getCause());
+    }
   }
 
   public class ToastDisplayer implements InvalidationListener {
