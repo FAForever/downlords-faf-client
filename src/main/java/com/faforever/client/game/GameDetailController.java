@@ -11,6 +11,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ProgrammingError;
 import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
@@ -56,6 +57,8 @@ public class GameDetailController implements Controller<Pane> {
   private Game game;
   private InvalidationListener teamsInvalidationListener;
   private InvalidationListener gameStatusInvalidationListener;
+  private WeakInvalidationListener weakTeamListener;
+  private WeakInvalidationListener weakStatusListener;
 
   public GameDetailController(I18n i18n, MapService mapService, ModService modService, PlayerService playerService,
                               UiService uiService, JoinGameHelper joinGameHelper) {
@@ -65,8 +68,6 @@ public class GameDetailController implements Controller<Pane> {
     this.playerService = playerService;
     this.uiService = uiService;
     this.joinGameHelper = joinGameHelper;
-
-    gameStatusInvalidationListener = observable -> onGameStatusChanged();
   }
 
   public void initialize() {
@@ -101,6 +102,10 @@ public class GameDetailController implements Controller<Pane> {
       watchButton.setVisible(false);
       return;
     }
+
+    gameStatusInvalidationListener = new WeakInvalidationListener(observable -> onGameStatusChanged());
+    teamsInvalidationListener = new WeakInvalidationListener(observable -> createTeams(newGame.getTeams(), newGame));
+
     gameTitleLabel.textProperty().bind(newGame.titleProperty());
     hostLabel.textProperty().bind(newGame.hostProperty());
     mapLabel.textProperty().bind(newGame.mapFolderNameProperty());
@@ -119,16 +124,18 @@ public class GameDetailController implements Controller<Pane> {
       return StringUtils.defaultString(fullName);
     }, newGame.featuredModProperty()));
 
-    if (this.game != null && teamsInvalidationListener != null) {
-      this.game.getTeams().removeListener(teamsInvalidationListener);
+    if (this.game != null && weakStatusListener != null && weakTeamListener != null) {
+      this.game.getTeams().removeListener(weakTeamListener);
+      this.game.statusProperty().removeListener(weakStatusListener);
     }
 
     this.game = newGame;
 
-    teamsInvalidationListener = observable -> createTeams(newGame.getTeams(), newGame);
     teamsInvalidationListener.invalidated(newGame.getTeams());
-    JavaFxUtil.addListener(newGame.getTeams(), teamsInvalidationListener);
-    JavaFxUtil.addListener(newGame.statusProperty(), gameStatusInvalidationListener);
+    weakTeamListener = new WeakInvalidationListener(teamsInvalidationListener);
+    JavaFxUtil.addListener(newGame.getTeams(),weakTeamListener);
+    weakStatusListener = new WeakInvalidationListener(gameStatusInvalidationListener);
+    JavaFxUtil.addListener(newGame.statusProperty(),weakStatusListener);
     gameStatusInvalidationListener.invalidated(newGame.statusProperty());
   }
 

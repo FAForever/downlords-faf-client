@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class TeamCardController implements Controller<Node> {
-
   private final UiService uiService;
   private final I18n i18n;
   public Pane teamPaneRoot;
