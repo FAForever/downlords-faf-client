@@ -16,6 +16,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.input.ContextMenuEvent;
@@ -69,10 +70,12 @@ public class ChatUserItemControllerTest extends AbstractPlainJavaFxTest {
   private PlayerService playerService;
   @Mock
   private PlatformService platformService;
+  @Mock
+  private TimeService timeService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new ChatUserItemController(preferencesService, avatarService, countryFlagService, chatService, i18n, uiService, joinGameHelper, eventBus, clanService, playerService, platformService);
+    instance = new ChatUserItemController(preferencesService, avatarService, countryFlagService, chatService, i18n, uiService, joinGameHelper, eventBus, clanService, playerService, platformService, timeService);
 
     Preferences preferences = new Preferences();
     when(preferencesService.getPreferences()).thenReturn(preferences);
