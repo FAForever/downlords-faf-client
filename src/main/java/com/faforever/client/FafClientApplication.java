@@ -6,6 +6,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.PlatformServiceImpl;
 import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.reporting.ReportingServiceImpl;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import javafx.application.Application;
@@ -46,6 +47,7 @@ public class FafClientApplication extends Application {
   public static void main(String[] args) {
     FafClientApplication.args = args;
     PreferencesService.configureLogging();
+    ReportingServiceImpl.initAutoReporting();
     launch(args);
   }
 

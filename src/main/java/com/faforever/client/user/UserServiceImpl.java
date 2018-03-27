@@ -4,6 +4,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.NoticeMessage;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.event.LogOutRequestEvent;
@@ -36,19 +37,22 @@ public class UserServiceImpl implements UserService {
   private final EventBus eventBus;
   private final ApplicationContext applicationContext;
   private final TaskService taskService;
+  private ReportingService reportingService;
 
   private String password;
   private Integer userId;
   private CompletableFuture<Void> loginFuture;
 
   @Inject
-  public UserServiceImpl(FafService fafService, PreferencesService preferencesService, EventBus eventBus, ApplicationContext applicationContext, TaskService taskService) {
+  public UserServiceImpl(FafService fafService, PreferencesService preferencesService, EventBus eventBus, ApplicationContext applicationContext, TaskService taskService,
+                         ReportingService reportingService) {
     username = new SimpleStringProperty();
     this.fafService = fafService;
     this.preferencesService = preferencesService;
     this.eventBus = eventBus;
     this.applicationContext = applicationContext;
     this.taskService = taskService;
+    this.reportingService = reportingService;
   }
 
   @Override
@@ -68,7 +72,7 @@ public class UserServiceImpl implements UserService {
           // Because of different case (upper/lower)
           String login = loginInfo.getLogin();
           UserServiceImpl.this.username.set(login);
-
+          reportingService.setAutoReportingUser(login, userId);
           preferencesService.getPreferences().getLogin().setUsername(login);
           preferencesService.storeInBackground();
 
