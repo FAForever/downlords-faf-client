@@ -1,12 +1,15 @@
 package com.faforever.client.reporting;
 
-import com.github.nocatch.NoCatch;
+import com.faforever.client.update.Version;
 import io.sentry.Sentry;
 import io.sentry.context.Context;
+import io.sentry.dsn.Dsn;
 import io.sentry.event.UserBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+
+import static io.sentry.dsn.Dsn.DEFAULT_DSN;
 
 
 @Lazy
@@ -30,6 +33,16 @@ public class ReportingServiceImpl implements ReportingService {
   }
 
   public static void initAutoReporting() {
-    NoCatch.setDefaultWrapperException(AutoReportedException.class);
+    String dsn = DEFAULT_DSN;
+
+    if (!Version.VERSION.equals(Version.SNAPSHOT)) {
+      try {
+        dsn = Dsn.dsnLookup();
+      } catch (Exception e) {
+        log.error("Error creating valid DSN from: '{}'.", dsn, e);
+      }
+    }
+
+    Sentry.init(dsn);
   }
 }

@@ -297,7 +297,7 @@ dependencies {
   compile("com.github.jasminb:jsonapi-converter:${jsonapiConverterVersion}")
   compile("com.github.Brutus5000:BiReUS-JCL:${bireusVersion}")
   compile("com.github.micheljung:i4jruntime:${i4jruntimeVersion}")
-  compile("io.sentry:sentry:1.7.2")
+  compile("io.sentry:sentry:${sentryVersion}")
 
   testCompile 'junit:junit:4.11'
   testCompile("org.testfx:testfx-core:4.0.8-alpha") {

@@ -3,6 +3,7 @@ package com.faforever.client.config;
 import com.google.common.eventbus.DeadEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -28,8 +29,13 @@ public class BaseConfig {
 
   @Bean
   EventBus eventBus() {
-    EventBus bus = new EventBus((exception, context) -> log.warn("Exception in '{}#{}' while handling event: {}",
-        context.getSubscriber().getClass(), context.getSubscriberMethod().getName(), context.getEvent(), exception));
+    EventBus bus = new EventBus((exception, context) -> {
+      log.warn(
+          "Exception in '{}#{}' while handling event: {}",
+          context.getSubscriber().getClass(), context.getSubscriberMethod().getName(), context.getEvent(), exception
+      );
+      Sentry.capture(exception);
+    });
     bus.register(new DeadEventHandler());
     return bus;
   }
