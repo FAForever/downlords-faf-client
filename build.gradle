@@ -156,6 +156,7 @@ distributions {
             file('src/main/native'),
             jar,
             unpackIceAdapter.outputs.files,
+            downloadIceAdapterLinux.outputs.files,
             downloadUnixUid.outputs.files,
             downloadWindowsUid.outputs.files
         ]
