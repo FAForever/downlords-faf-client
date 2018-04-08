@@ -65,7 +65,8 @@ public class WindowController implements Controller<Node> {
 
     Rectangle2D windowCenter = new Rectangle2D(x1, y1, 1, 1);
     ObservableList<Screen> screensForRectangle = Screen.getScreensForRectangle(windowCenter);
-    return screensForRectangle.get(0).getVisualBounds();
+    Screen targetScreen = screensForRectangle.stream().findFirst().orElse(Screen.getPrimary());
+    return targetScreen.getVisualBounds();
   }
 
   public static void maximize(Stage stage) {
