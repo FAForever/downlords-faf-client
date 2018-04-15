@@ -48,6 +48,7 @@ public class AssetServiceImpl implements AssetService {
 
     String urlString = url.toString();
     String filename = urlString.substring(urlString.lastIndexOf('/') + 1);
+    filename = filename.replaceAll("[^\\w.-]", ""); //replacing all characters that are illegal in filenames
     Path cachePath = preferencesService.getCacheDirectory().resolve(cacheSubFolder).resolve(filename);
     if (Files.exists(cachePath)) {
       logger.debug("Using cached image: {}", cachePath);
