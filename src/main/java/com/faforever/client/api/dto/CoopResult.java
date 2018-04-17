@@ -18,6 +18,7 @@ public class CoopResult {
   private Duration duration;
   private String playerNames;
   private boolean secondaryObjectives;
-  private int ranking;
   private int playerCount;
+  /** This field is not provided by the API but must be enriched instead. */
+  private int ranking;
 }

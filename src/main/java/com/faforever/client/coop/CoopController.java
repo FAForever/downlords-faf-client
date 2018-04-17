@@ -54,6 +54,7 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
 import static com.faforever.client.game.KnownFeaturedMod.COOP;
@@ -213,7 +214,11 @@ public class CoopController extends AbstractViewController<Node> {
 
   private void loadLeaderboard() {
     coopService.getLeaderboard(getSelectedMission(), numberOfPlayersComboBox.getSelectionModel().getSelectedItem())
-        .thenAccept(coopLeaderboardEntries -> Platform.runLater(() -> leaderboardTable.setItems(observableList(coopLeaderboardEntries))))
+        .thenAccept(coopLeaderboardEntries -> {
+          AtomicInteger ranking = new AtomicInteger();
+          coopLeaderboardEntries.forEach(coopResult -> coopResult.setRanking(ranking.incrementAndGet()));
+          Platform.runLater(() -> leaderboardTable.setItems(observableList(coopLeaderboardEntries)));
+        })
         .exceptionally(throwable -> {
           notificationService.addNotification(new ImmediateNotification(
               i18n.get("errorTitle"), i18n.get("coop.leaderboard.couldNotLoad"), Severity.ERROR, throwable,
