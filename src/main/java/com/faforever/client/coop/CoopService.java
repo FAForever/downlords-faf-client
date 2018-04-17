@@ -1,7 +1,5 @@
 package com.faforever.client.coop;
 
-import com.faforever.client.api.dto.CoopResult;
-
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 

@@ -1,6 +1,5 @@
 package com.faforever.client.coop;
 
-import com.faforever.client.api.dto.CoopResult;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeTableCell;

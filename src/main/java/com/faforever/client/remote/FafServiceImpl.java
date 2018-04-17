@@ -2,7 +2,6 @@ package com.faforever.client.remote;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.dto.AchievementDefinition;
-import com.faforever.client.api.dto.CoopResult;
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
@@ -16,6 +15,7 @@ import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.clan.Clan;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.coop.CoopMission;
+import com.faforever.client.coop.CoopResult;
 import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.game.Faction;
@@ -53,6 +53,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -230,7 +231,11 @@ public class FafServiceImpl implements FafService {
   @Override
   @Async
   public CompletableFuture<List<CoopResult>> getCoopLeaderboard(CoopMission mission, int numberOfPlayers) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getCoopLeaderboard(mission.getId(), numberOfPlayers));
+    AtomicInteger ranking = new AtomicInteger();
+    return CompletableFuture.completedFuture(fafApiAccessor.getCoopLeaderboard(mission.getId(), numberOfPlayers).stream()
+        .map(CoopResult::fromDto)
+        .peek(coopResult -> coopResult.setRanking(ranking.incrementAndGet()))
+        .collect(Collectors.toList()));
   }
 
   @Override
