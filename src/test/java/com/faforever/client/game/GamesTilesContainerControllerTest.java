@@ -75,9 +75,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testCreateTiledFlowPaneWithPostInstantiatedGameInfoBean() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    instance.tiledFlowPane.getChildren().addListener((Observable observable) -> {
-      latch.countDown();
-    });
+    instance.tiledFlowPane.getChildren().addListener((Observable observable) -> latch.countDown());
 
     doAnswer(invocation -> new Pane()).when(gameTileController).getRoot();
 
@@ -94,9 +92,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
   public void testCreateTiledFlowPaneWithPopulatedListAndPostInstantiatedGameInfoBean() throws Exception {
     CountDownLatch latch = new CountDownLatch(2);
     ObservableList<Node> children = instance.tiledFlowPane.getChildren();
-    children.addListener((Observable observable) -> {
-      latch.countDown();
-    });
+    children.addListener((Observable observable) -> latch.countDown());
 
     doAnswer(invocation -> new Pane()).when(gameTileController).getRoot();
 

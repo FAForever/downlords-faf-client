@@ -141,12 +141,11 @@ public class SearchController implements Controller<Pane> {
     logicalNodeController.specificationController.propertyField.valueProperty().addListener(queryInvalidationListener);
     logicalNodeController.specificationController.operationField.valueProperty().addListener(queryInvalidationListener);
     logicalNodeController.specificationController.valueField.valueProperty().addListener(queryInvalidationListener);
-    logicalNodeController.specificationController.valueField.getEditor().textProperty()
-        .addListener(observable -> {
-          if (!logicalNodeController.specificationController.valueField.valueProperty().isBound()) {
-            logicalNodeController.specificationController.valueField.setValue(logicalNodeController.specificationController.valueField.getEditor().getText());
-          }
-        });
+    logicalNodeController.specificationController.valueField.getEditor().textProperty().addListener(observable -> {
+      if (!logicalNodeController.specificationController.valueField.valueProperty().isBound()) {
+        logicalNodeController.specificationController.valueField.setValue(logicalNodeController.specificationController.valueField.getEditor().getText());
+      }
+    });
     logicalNodeController.specificationController.valueField.setOnKeyReleased(event -> {
       if (event.getCode() == KeyCode.ENTER) {
         searchButton.fire();

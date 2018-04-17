@@ -4,6 +4,7 @@ import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Vault;
 import com.faforever.client.fa.FaStrings;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean.Type;
 import com.faforever.client.preferences.PreferencesService;
@@ -131,8 +132,8 @@ public class MapServiceImpl implements MapService {
   @PostConstruct
   void postConstruct() {
     customMapsDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
-    preferencesService.getPreferences().getForgedAlliance().executablePathProperty().addListener(observable -> tryLoadMaps());
-    preferencesService.getPreferences().getForgedAlliance().customMapsDirectoryProperty().addListener(observable -> tryLoadMaps());
+    JavaFxUtil.addListener(preferencesService.getPreferences().getForgedAlliance().executablePathProperty(), observable -> tryLoadMaps());
+    JavaFxUtil.addListener(preferencesService.getPreferences().getForgedAlliance().customMapsDirectoryProperty(), observable -> tryLoadMaps());
     tryLoadMaps();
   }
 

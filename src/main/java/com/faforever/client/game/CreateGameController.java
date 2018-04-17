@@ -159,7 +159,6 @@ public class CreateGameController implements Controller<Pane> {
     } else {
       init();
     }
-
   }
 
   public void onCloseButtonClicked() {
@@ -167,8 +166,6 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   private void init() {
-    JavaFxUtil.assertApplicationThread();
-
     initModList();
     initMapSelection();
     initFeaturedModList();

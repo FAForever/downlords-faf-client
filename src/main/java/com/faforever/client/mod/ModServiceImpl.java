@@ -1,6 +1,7 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.config.CacheNames;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.ModVersion.ModType;
@@ -119,7 +120,7 @@ public class ModServiceImpl implements ModService {
   @PostConstruct
   void postConstruct() {
     modsDirectory = preferencesService.getPreferences().getForgedAlliance().getModsDirectory();
-    preferencesService.getPreferences().getForgedAlliance().modsDirectoryProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(preferencesService.getPreferences().getForgedAlliance().modsDirectoryProperty(), (observable, oldValue, newValue) -> {
       if (newValue != null) {
         onModDirectoryReady();
       }

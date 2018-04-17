@@ -2,6 +2,7 @@ package com.faforever.client.theme;
 
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.github.nocatch.NoCatch.NoCatchRunnable;
@@ -282,7 +283,7 @@ public class UiServiceImpl implements UiService {
   public void registerScene(Scene scene) {
     scenes.add(scene);
 
-    scene.getWindow().showingProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(scene.getWindow().showingProperty(), (observable, oldValue, newValue) -> {
       if (!newValue) {
         unregisterScene(scene);
       } else {

@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.fx.JavaFxUtil;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -51,7 +52,7 @@ public class Channel {
   }
 
   public void addUsersListeners(MapChangeListener<String, ChatUser> listener) {
-    users.addListener(listener);
+    JavaFxUtil.addListener(users, listener);
   }
 
   public void removeUserListener(MapChangeListener<String, ChatUser> listener) {

@@ -1,5 +1,6 @@
 package com.faforever.client.notification;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.reporting.ReportingService;
 import javafx.collections.ObservableSet;
@@ -61,7 +62,7 @@ public class NotificationServiceImpl implements NotificationService {
 
   @Override
   public void addPersistentNotificationListener(SetChangeListener<PersistentNotification> listener) {
-    persistentNotifications.addListener(listener);
+    JavaFxUtil.addListener(persistentNotifications, listener);
   }
 
   @Override

@@ -1,5 +1,6 @@
 package com.faforever.client.patch;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.mod.ModVersion;
@@ -71,9 +72,9 @@ public class GitFeaturedModUpdateTaskImpl extends CompletableTask<PatchResult> i
     InvalidationListener messageUpdatingListener = observable -> updateMessage(
         i18n.get("updater.git.progressFormat", progressMonitor.getTitle(), progressMonitor.getTasksDone(), progressMonitor.getTotalTasks())
     );
-    progressMonitor.titleProperty().addListener(messageUpdatingListener);
-    progressMonitor.tasksDoneProperty().addListener(messageUpdatingListener);
-    progressMonitor.workUnitsDoneProperty().addListener((observable, oldValue, newValue)
+    JavaFxUtil.addListener(progressMonitor.titleProperty(), messageUpdatingListener);
+    JavaFxUtil.addListener(progressMonitor.tasksDoneProperty(), messageUpdatingListener);
+    JavaFxUtil.addListener(progressMonitor.workUnitsDoneProperty(), (observable, oldValue, newValue)
         -> updateProgress(progressMonitor.getWorkUnitsDone(), progressMonitor.getTotalWork()));
 
     if (Files.notExists(gitRepoDir)) {

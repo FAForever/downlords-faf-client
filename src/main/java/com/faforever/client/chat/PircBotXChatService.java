@@ -4,6 +4,7 @@ import com.faforever.client.FafClientApplication;
 import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
@@ -196,10 +197,10 @@ public class PircBotXChatService implements ChatService {
     });
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    chatPrefs.userToColorProperty().addListener(
+    JavaFxUtil.addListener(chatPrefs.userToColorProperty(),
         (MapChangeListener<? super String, ? super Color>) change -> preferencesService.store()
     );
-    chatPrefs.chatColorModeProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), (observable, oldValue, newValue) -> {
       synchronized (chatUsersByName) {
         switch (newValue) {
           case CUSTOM:
@@ -517,14 +518,14 @@ public class PircBotXChatService implements ChatService {
   @Override
   public void addChatUsersByNameListener(MapChangeListener<String, ChatUser> listener) {
     synchronized (chatUsersByName) {
-      chatUsersByName.addListener(listener);
+      JavaFxUtil.addListener(chatUsersByName, listener);
     }
   }
 
   @Override
   public void addChannelsListener(MapChangeListener<String, Channel> listener) {
     synchronized (channels) {
-      channels.addListener(listener);
+      JavaFxUtil.addListener(channels, listener);
     }
   }
 

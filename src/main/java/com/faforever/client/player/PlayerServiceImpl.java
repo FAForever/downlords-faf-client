@@ -4,6 +4,7 @@ import com.faforever.client.chat.SocialStatus;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.chat.event.ChatMessageEvent;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameAddedEvent;
 import com.faforever.client.game.GameRemovedEvent;
@@ -172,7 +173,7 @@ public class PlayerServiceImpl implements PlayerService {
     synchronized (playersByName) {
       if (!playersByName.containsKey(username)) {
         Player player = new Player(username);
-        player.idProperty().addListener((observable, oldValue, newValue) -> {
+        JavaFxUtil.addListener(player.idProperty(), (observable, oldValue, newValue) -> {
           synchronized (playersById) {
             playersById.remove(oldValue.intValue());
             playersById.put(newValue.intValue(), player);

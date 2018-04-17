@@ -1,5 +1,6 @@
 package com.faforever.client.audio;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
@@ -48,7 +49,7 @@ public class AudioServiceImpl implements AudioService {
   @PostConstruct
   void postConstruct() throws IOException {
     notificationsPrefs = preferencesService.getPreferences().getNotification();
-    notificationsPrefs.soundsEnabledProperty().addListener((observable, oldValue, newValue) ->
+    JavaFxUtil.addListener(notificationsPrefs.soundsEnabledProperty(), (observable, oldValue, newValue) ->
         playSounds = newValue
     );
     playSounds = notificationsPrefs.isSoundsEnabled();

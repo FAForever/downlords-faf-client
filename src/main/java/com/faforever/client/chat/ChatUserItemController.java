@@ -89,7 +89,7 @@ public class ChatUserItemController implements Controller<Node> {
   private Player player;
   private boolean randomColorsAllowedInPane;
   private ChangeListener<ChatColorMode> colorModeChangeListener;
-  private MapChangeListener<? super String, ? super Color> colorPerUserMapChangeListener;
+  private MapChangeListener<String, Color> colorPerUserMapChangeListener;
   private ChangeListener<String> avatarChangeListener;
   private ChangeListener<String> clanChangeListener;
   private ChangeListener<PlayerStatus> gameStatusChangeListener;
@@ -174,13 +174,11 @@ public class ChatUserItemController implements Controller<Node> {
     ChatUser chatUser = chatService.getOrCreateChatUser(lowerUsername);
 
     if (chatPrefs.getChatColorMode() == CUSTOM) {
-      synchronized (chatPrefs.getUserToColor()) {
-        if (chatPrefs.getUserToColor().containsKey(lowerUsername)) {
-          color = chatPrefs.getUserToColor().get(lowerUsername);
-        }
-
-        chatPrefs.getUserToColor().addListener(new WeakMapChangeListener<>(colorPerUserMapChangeListener));
+      if (chatPrefs.getUserToColor().containsKey(lowerUsername)) {
+        color = chatPrefs.getUserToColor().get(lowerUsername);
       }
+
+      JavaFxUtil.addListener(chatPrefs.getUserToColor(), new WeakMapChangeListener<>(colorPerUserMapChangeListener));
     } else if (chatPrefs.getChatColorMode() == ChatColorMode.RANDOM && randomColorsAllowedInPane) {
       color = ColorGeneratorUtil.generateRandomColor(chatUser.getUsername().hashCode());
     }
@@ -255,15 +253,13 @@ public class ChatUserItemController implements Controller<Node> {
     configureGameStatusView();
 
     usernameLabel.setText(player.getUsername());
-    player.idleSinceProperty().addListener(new WeakInvalidationListener(userActivityListener));
-    player.statusProperty().addListener(new WeakInvalidationListener(userActivityListener));
+    JavaFxUtil.addListener(player.idleSinceProperty(), new WeakInvalidationListener(userActivityListener));
+    JavaFxUtil.addListener(player.statusProperty(), new WeakInvalidationListener(userActivityListener));
   }
 
   private void addChatColorModeListener() {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    synchronized (chatPrefs.chatColorModeProperty()) {
-      chatPrefs.chatColorModeProperty().addListener(new WeakChangeListener<>(colorModeChangeListener));
-    }
+    JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), new WeakChangeListener<>(colorModeChangeListener));
   }
 
   private void configureCountryImageView() {
@@ -278,7 +274,7 @@ public class ChatUserItemController implements Controller<Node> {
   }
 
   private void configureAvatarImageView() {
-    player.avatarUrlProperty().addListener(new WeakChangeListener<>(avatarChangeListener));
+    JavaFxUtil.addListener(player.avatarUrlProperty(), new WeakChangeListener<>(avatarChangeListener));
     setAvatarUrl(player.getAvatarUrl());
 
     Tooltip avatarTooltip = new Tooltip(player.getAvatarTooltip());
@@ -290,11 +286,11 @@ public class ChatUserItemController implements Controller<Node> {
 
   private void configureClanMenu() {
     setClanTag(player.getClan());
-    player.clanProperty().addListener(new WeakChangeListener<>(clanChangeListener));
+    JavaFxUtil.addListener(player.clanProperty(), new WeakChangeListener<>(clanChangeListener));
   }
 
   private void configureGameStatusView() {
-    player.statusProperty().addListener(new WeakChangeListener<>(gameStatusChangeListener));
+    JavaFxUtil.addListener(player.statusProperty(), new WeakChangeListener<>(gameStatusChangeListener));
     updateGameStatus();
   }
 

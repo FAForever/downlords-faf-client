@@ -351,7 +351,7 @@ public class MainController implements Controller<Node> {
   private void registerWindowListeners() {
     Stage stage = StageHolder.getStage();
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
-    stage.maximizedProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(stage.maximizedProperty(), (observable, oldValue, newValue) -> {
       if (!newValue) {
         stage.setWidth(mainWindowPrefs.getWidth());
         stage.setHeight(mainWindowPrefs.getHeight());
@@ -368,25 +368,25 @@ public class MainController implements Controller<Node> {
       mainWindowPrefs.setMaximized(newValue);
       preferencesService.storeInBackground();
     });
-    stage.heightProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(stage.heightProperty(), (observable, oldValue, newValue) -> {
       if (!stage.isMaximized()) {
         mainWindowPrefs.setHeight(newValue.intValue());
         preferencesService.storeInBackground();
       }
     });
-    stage.widthProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(stage.widthProperty(), (observable, oldValue, newValue) -> {
       if (!stage.isMaximized()) {
         mainWindowPrefs.setWidth(newValue.intValue());
         preferencesService.storeInBackground();
       }
     });
-    stage.xProperty().addListener(observable -> {
+    JavaFxUtil.addListener(stage.xProperty(), observable -> {
       if (!stage.isMaximized()) {
         mainWindowPrefs.setX(stage.getX());
         preferencesService.storeInBackground();
       }
     });
-    stage.yProperty().addListener(observable -> {
+    JavaFxUtil.addListener(stage.yProperty(), observable -> {
       if (!stage.isMaximized()) {
         mainWindowPrefs.setY(stage.getY());
         preferencesService.storeInBackground();
