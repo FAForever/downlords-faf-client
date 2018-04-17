@@ -1,6 +1,7 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
@@ -90,11 +91,10 @@ public class ModCardController implements Controller<Node> {
     typeLabel.setText(modVersion.getModType() != null ? i18n.get(modVersion.getModType().getI18nKey()) : "");
 
     ObservableList<ModVersion> installedModVersions = modService.getInstalledModVersions();
-    synchronized (installedModVersions) {
-      installedModVersions.addListener(new WeakListChangeListener<>(installStatusChangeListener));
-    }
+    JavaFxUtil.addListener(installedModVersions, new WeakListChangeListener<>(installStatusChangeListener));
+
     ObservableList<Review> reviews = modVersion.getReviews();
-    reviews.addListener(new WeakInvalidationListener(reviewsChangedListener));
+    JavaFxUtil.addListener(reviews, new WeakInvalidationListener(reviewsChangedListener));
     reviewsChangedListener.invalidated(reviews);
   }
 

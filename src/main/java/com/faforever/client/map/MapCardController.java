@@ -1,6 +1,7 @@
 package com.faforever.client.map;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.util.IdenticonUtil;
@@ -90,12 +91,10 @@ public class MapCardController implements Controller<Node> {
     maxPlayersLabel.setText(i18n.number(map.getPlayers()));
 
     ObservableList<MapBean> installedMaps = mapService.getInstalledMaps();
-    synchronized (installedMaps) {
-      installedMaps.addListener(new WeakListChangeListener<>(installedMapsChangeListener));
-    }
+    JavaFxUtil.addListener(installedMaps, new WeakListChangeListener<>(installedMapsChangeListener));
 
     ObservableList<Review> reviews = map.getReviews();
-    reviews.addListener(new WeakInvalidationListener(reviewsChangedListener));
+    JavaFxUtil.addListener(reviews, new WeakInvalidationListener(reviewsChangedListener));
     reviewsChangedListener.invalidated(reviews);
   }
 

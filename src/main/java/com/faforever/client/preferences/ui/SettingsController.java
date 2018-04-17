@@ -2,6 +2,7 @@ package com.faforever.client.preferences.ui;
 
 import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
@@ -107,7 +108,8 @@ public class SettingsController implements Controller<Node> {
   public Label passwordChangeSuccessLabel;
   public ComboBox<UnitDataBaseType> unitDatabaseComboBox;
   public CheckBox notifyOnAtMentionOnly;
-  private ChangeListener<Theme> themeChangeListener;
+  private ChangeListener<Theme> selectedThemeChangeListener;
+  private ChangeListener<Theme> currentThemeChangeListener;
 
   @Inject
   public SettingsController(UserService userService, PreferencesService preferencesService, UiService uiService,
@@ -163,13 +165,13 @@ public class SettingsController implements Controller<Node> {
     Preferences preferences = preferencesService.getPreferences();
     temporarilyDisableUnsupportedSettings(preferences);
 
-    maxMessagesTextField.textProperty().bindBidirectional(preferences.getChat().maxMessagesProperty(), new NumberStringConverter(integerNumberFormat));
+    JavaFxUtil.bindBidirectional(maxMessagesTextField.textProperty(), preferences.getChat().maxMessagesProperty(), new NumberStringConverter(integerNumberFormat));
     imagePreviewCheckBox.selectedProperty().bindBidirectional(preferences.getChat().previewImageUrlsProperty());
     enableNotificationsCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().transientNotificationsEnabledProperty());
 
     hideFoeCheckBox.selectedProperty().bindBidirectional(preferences.getChat().hideFoeMessagesProperty());
 
-    preferences.getChat().chatColorModeProperty().addListener((observable, oldValue, newValue) -> setSelectedColorMode(newValue));
+    JavaFxUtil.addListener(preferences.getChat().chatColorModeProperty(), (observable, oldValue, newValue) -> setSelectedColorMode(newValue));
     setSelectedColorMode(preferences.getChat().getChatColorMode());
 
     colorModeToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
@@ -184,13 +186,10 @@ public class SettingsController implements Controller<Node> {
       }
     });
 
-    themeChangeListener = (observable, oldValue, newValue) -> {
-      if (observable == themeComboBox.getSelectionModel().selectedItemProperty()) {
-        themeComboBox.getSelectionModel().select(newValue);
-      }
-    };
+    currentThemeChangeListener = (observable, oldValue, newValue) -> themeComboBox.getSelectionModel().select(newValue);
+    selectedThemeChangeListener = (observable, oldValue, newValue) -> uiService.setTheme(newValue);
 
-    preferences.getNotification().toastPositionProperty().addListener((observable, oldValue, newValue) -> setSelectedToastPosition(newValue));
+    JavaFxUtil.addListener(preferences.getNotification().toastPositionProperty(), (observable, oldValue, newValue) -> setSelectedToastPosition(newValue));
     setSelectedToastPosition(preferences.getNotification().getToastPosition());
     toastPosition.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == topLeftToastButton) {
@@ -246,7 +245,7 @@ public class SettingsController implements Controller<Node> {
 
     ChangeListener<UnitDataBaseType> unitDataBaseTypeChangeListener = (observable, oldValue, newValue) -> unitDatabaseComboBox.getSelectionModel().select(newValue);
     unitDataBaseTypeChangeListener.changed(null, null, preferences.getUnitDataBaseType());
-    preferences.unitDataBaseTypeProperty().addListener(unitDataBaseTypeChangeListener);
+    JavaFxUtil.addListener(preferences.unitDataBaseTypeProperty(), unitDataBaseTypeChangeListener);
 
     unitDatabaseComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
       preferences.setUnitDataBaseType(newValue);
@@ -289,21 +288,19 @@ public class SettingsController implements Controller<Node> {
   }
 
   private void configureRememberLastTab(Preferences preferences) {
-    rememberLastTabCheckBox.selectedProperty().bindBidirectional(preferences.rememberLastTabProperty());
+    JavaFxUtil.bindBidirectional(rememberLastTabCheckBox.selectedProperty(), preferences.rememberLastTabProperty());
   }
 
   private void configureThemeSelection(Preferences preferences) {
     themeComboBox.setItems(FXCollections.observableArrayList(uiService.getAvailableThemes()));
-    themeComboBox.getSelectionModel().selectedItemProperty().addListener(new WeakChangeListener<>(themeChangeListener));
+    themeComboBox.getSelectionModel().selectedItemProperty().addListener(new WeakChangeListener<>(selectedThemeChangeListener));
 
     Theme currentTheme = themeComboBox.getItems().stream()
         .filter(theme -> theme.getDisplayName().equals(preferences.getThemeName()))
         .findFirst().orElse(DEFAULT_THEME);
     themeComboBox.getSelectionModel().select(currentTheme);
 
-    uiService.currentThemeProperty().addListener(
-        (observable, oldValue, newValue) -> themeComboBox.getSelectionModel().select(newValue)
-    );
+    JavaFxUtil.addListener(uiService.currentThemeProperty(), new WeakChangeListener<>(currentThemeChangeListener));
   }
 
   private void configureLanguageSelection(Preferences preferences) {

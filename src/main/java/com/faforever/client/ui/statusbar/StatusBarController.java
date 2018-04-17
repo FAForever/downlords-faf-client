@@ -2,6 +2,7 @@ package com.faforever.client.ui.statusbar;
 
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
@@ -57,7 +58,7 @@ public class StatusBarController implements Controller<Node> {
     setCurrentWorkerInStatusBar(null);
     versionLabel.setText(Version.VERSION);
 
-    fafService.connectionStateProperty().addListener((observable, oldValue, newValue) -> runLater(() -> {
+    JavaFxUtil.addListener(fafService.connectionStateProperty(), (observable, oldValue, newValue) -> runLater(() -> {
       switch (newValue) {
         case DISCONNECTED:
           fafConnectionButton.setText(i18n.get("statusBar.fafDisconnected"));
@@ -77,7 +78,7 @@ public class StatusBarController implements Controller<Node> {
       }
     }));
 
-    chatService.connectionStateProperty().addListener((observable, oldValue, newValue) -> runLater(() -> {
+    JavaFxUtil.addListener(chatService.connectionStateProperty(), (observable, oldValue, newValue) -> runLater(() -> {
       chatConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_CONNECTED_PSEUDO_CLASS, false);
       chatConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_DISCONNECTED_PSEUDO_CLASS, false);
       switch (newValue) {
@@ -95,7 +96,7 @@ public class StatusBarController implements Controller<Node> {
       }
     }));
 
-    taskService.getActiveWorkers().addListener((Observable observable) -> {
+    JavaFxUtil.addListener(taskService.getActiveWorkers(), (Observable observable) -> {
       Collection<Worker<?>> runningWorkers = taskService.getActiveWorkers();
       if (runningWorkers.isEmpty()) {
         setCurrentWorkerInStatusBar(null);

@@ -6,6 +6,7 @@ import com.faforever.client.clan.ClanService;
 import com.faforever.client.clan.ClanTooltipController;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Vault;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
@@ -174,7 +175,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     getRoot().getChildren().setAll(tabPane);
 
     chatReadyLatch = new CountDownLatch(1);
-    instance.getMessagesWebView().getEngine().getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(instance.getMessagesWebView().getEngine().getLoadWorker().stateProperty(), (observable, oldValue, newValue) -> {
       if (Worker.State.SUCCEEDED.equals(newValue)) {
         chatReadyLatch.countDown();
       }

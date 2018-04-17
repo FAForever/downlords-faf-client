@@ -113,8 +113,7 @@ public class ChatController extends AbstractViewController<Node> {
     super.initialize();
     eventBus.register(this);
 
-    tabPane.getTabs().addListener((InvalidationListener) observable ->
-        noOpenTabsContainer.setVisible(tabPane.getTabs().isEmpty()));
+    tabPane.getTabs().addListener((InvalidationListener) observable -> noOpenTabsContainer.setVisible(tabPane.getTabs().isEmpty()));
 
     chatService.addChannelsListener(change -> {
       if (change.wasRemoved()) {
@@ -125,10 +124,10 @@ public class ChatController extends AbstractViewController<Node> {
       }
     });
 
-    chatService.connectionStateProperty().addListener((observable, oldValue, newValue) -> onConnectionStateChange(newValue));
+    JavaFxUtil.addListener(chatService.connectionStateProperty(), (observable, oldValue, newValue) -> onConnectionStateChange(newValue));
     onConnectionStateChange(chatService.connectionStateProperty().get());
 
-    tabPane.getTabs().addListener((ListChangeListener<Tab>) change -> {
+    JavaFxUtil.addListener(tabPane.getTabs(), (ListChangeListener<Tab>) change -> {
       while (change.next()) {
         change.getRemoved().forEach(tab -> nameToChatTabController.remove(tab.getId()));
       }

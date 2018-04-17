@@ -148,7 +148,7 @@ public class ModDetailController implements Controller<Node> {
     uninstallButton.setVisible(modInstalled);
 
     modDescriptionLabel.setText(modVersion.getDescription());
-    modService.getInstalledModVersions().addListener(new WeakListChangeListener<>(installStatusChangeListener));
+    JavaFxUtil.addListener(modService.getInstalledModVersions(), new WeakListChangeListener<>(installStatusChangeListener));
     setInstalled(modService.isModInstalled(modVersion.getUid()));
 
     updatedLabel.setText(timeService.asDate(modVersion.getUpdateTime()));

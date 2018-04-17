@@ -76,6 +76,7 @@ public class PlayController extends AbstractViewController<Node> {
       isHandlingEvent = false;
     }
   }
+
   @Override
   public Node getRoot() {
     return playRoot;

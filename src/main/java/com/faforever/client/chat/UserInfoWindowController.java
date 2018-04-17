@@ -9,6 +9,7 @@ import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.events.EventService;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.OffsetDateTimeCell;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.KnownFeaturedMod;
@@ -143,7 +144,7 @@ public class UserInfoWindowController implements Controller<Node> {
                                   AchievementService achievementService, EventService eventService, I18n i18n,
                                   UiService uiService, TimeService timeService,
                                   NotificationService notificationService, PlayerService playerService,
-                                  LeaderboardService  leaderboardService) {
+                                  LeaderboardService leaderboardService) {
     this.statisticsService = statisticsService;
     this.countryFlagService = countryFlagService;
     this.achievementService = achievementService;
@@ -187,9 +188,9 @@ public class UserInfoWindowController implements Controller<Node> {
         unlockedAchievementsHeaderLabel.setText(i18n.get("achievements.unlocked", unlockedAchievementsContainer.getChildren().size()))
     );
 
-    getRoot().sceneProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(getRoot().sceneProperty(), (observable, oldValue, newValue) -> {
       if (newValue != null) {
-        newValue.getWindow().showingProperty().addListener((observable11, oldValue11, newValue11) -> {
+        JavaFxUtil.addListener(newValue.getWindow().showingProperty(), (observable11, oldValue11, newValue11) -> {
           if (!newValue11) {
             // Fixes #241
             userInfoRoot.getChildren().clear();

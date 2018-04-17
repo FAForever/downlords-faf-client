@@ -51,7 +51,7 @@ public class WebViewConfigurer {
     WebEngine engine = webView.getEngine();
     engine.setUserDataDirectory(preferencesService.getCacheDirectory().toFile());
     uiService.registerWebView(webView);
-    webView.getEngine().getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(webView.getEngine().getLoadWorker().stateProperty(), (observable, oldValue, newValue) -> {
       if (newValue == State.SUCCEEDED) {
         EventListener listener = ev -> {
           ev.preventDefault();

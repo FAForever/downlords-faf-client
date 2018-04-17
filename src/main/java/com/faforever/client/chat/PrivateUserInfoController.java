@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.api.dto.AchievementState;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
@@ -66,15 +67,15 @@ public class PrivateUserInfoController {
     countryFlagService.loadCountryFlag(player.getCountry()).ifPresent(image -> countryImageView.setImage(image));
     countryLabel.setText(countryCode == null ? player.getCountry() : countryCode.getName());
 
-    player.globalRatingMeanProperty().addListener((observable) -> loadReceiverGlobalRatingInformation(player));
-    player.globalRatingDeviationProperty().addListener((observable) -> loadReceiverGlobalRatingInformation(player));
+    JavaFxUtil.addListener(player.globalRatingMeanProperty(), (observable) -> loadReceiverGlobalRatingInformation(player));
+    JavaFxUtil.addListener(player.globalRatingDeviationProperty(), (observable) -> loadReceiverGlobalRatingInformation(player));
     loadReceiverGlobalRatingInformation(player);
 
-    player.leaderboardRatingMeanProperty().addListener((observable) -> loadReceiverLadderRatingInformation(player));
-    player.leaderboardRatingDeviationProperty().addListener((observable) -> loadReceiverLadderRatingInformation(player));
+    JavaFxUtil.addListener(player.leaderboardRatingMeanProperty(), (observable) -> loadReceiverLadderRatingInformation(player));
+    JavaFxUtil.addListener(player.leaderboardRatingDeviationProperty(), (observable) -> loadReceiverLadderRatingInformation(player));
     loadReceiverLadderRatingInformation(player);
 
-    player.gameProperty().addListener(new WeakInvalidationListener(gameInvalidationListener));
+    JavaFxUtil.addListener(player.gameProperty(), new WeakInvalidationListener(gameInvalidationListener));
     gameInvalidationListener.invalidated(player.gameProperty());
 
     gamesPlayedLabel.textProperty().bind(player.numberOfGamesProperty().asString());

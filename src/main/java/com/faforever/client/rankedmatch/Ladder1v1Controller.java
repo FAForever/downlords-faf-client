@@ -2,6 +2,7 @@ package com.faforever.client.rankedmatch;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -134,7 +135,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
 
     setSearching(false);
 
-    gameService.searching1v1Property().addListener((observable, oldValue, newValue) -> setSearching(newValue));
+    JavaFxUtil.addListener(gameService.searching1v1Property(), (observable, oldValue, newValue) -> setSearching(newValue));
 
     ObservableList<Faction> factions = preferencesService.getPreferences().getLadder1v1Prefs().getFactions();
     for (Faction faction : EnumSet.of(AEON, CYBRAN, UEF, SERAPHIM)) {
@@ -148,7 +149,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
       }
     });
 
-    playerService.currentPlayerProperty().addListener((observable, oldValue, newValue) -> Platform.runLater(() -> setCurrentPlayer(newValue)));
+    JavaFxUtil.addListener(playerService.currentPlayerProperty(), (observable, oldValue, newValue) -> Platform.runLater(() -> setCurrentPlayer(newValue)));
     playerService.getCurrentPlayer().ifPresent(this::setCurrentPlayer);
   }
 
@@ -202,10 +203,10 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
   }
 
   private void setCurrentPlayer(Player player) {
-    playerRatingListener = ratingObservable -> Platform.runLater(() -> updateRating(player));
+    playerRatingListener = ratingObservable -> updateRating(player);
 
-    player.leaderboardRatingDeviationProperty().addListener(new WeakInvalidationListener(playerRatingListener));
-    player.leaderboardRatingMeanProperty().addListener(new WeakInvalidationListener(playerRatingListener));
+    JavaFxUtil.addListener(player.leaderboardRatingDeviationProperty(), new WeakInvalidationListener(playerRatingListener));
+    JavaFxUtil.addListener(player.leaderboardRatingMeanProperty(), new WeakInvalidationListener(playerRatingListener));
     updateRating(player);
     updateOtherValues(player);
   }
@@ -308,7 +309,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
       }
     });
 
-    node.boundsInParentProperty().addListener((ov, oldBounds, bounds) -> {
+    JavaFxUtil.addListener(node.boundsInParentProperty(), (ov, oldBounds, bounds) -> {
       nodeToAdd.setLayoutX(Math.round(bounds.getMinX() + bounds.getWidth() / 2 - nodeToAdd.prefWidth(-1) / 2));
       nodeToAdd.setLayoutY(Math.round(bounds.getMinY() - nodeToAdd.prefHeight(-1) * 0.5));
     });

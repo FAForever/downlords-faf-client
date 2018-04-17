@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
@@ -541,7 +542,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @SuppressWarnings("unchecked")
   private CompletableFuture<Set<String>> listenForUserOp(ChatUser chatUser) {
     CompletableFuture<Set<String>> future = new CompletableFuture<>();
-    chatUser.getModeratorInChannels().addListener((SetChangeListener<String>) change -> {
+    JavaFxUtil.addListener(chatUser.getModeratorInChannels(), (SetChangeListener<String>) change -> {
       if (change.wasAdded()) {
         future.complete((Set<String>) change.getSet());
       }

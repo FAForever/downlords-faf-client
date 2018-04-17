@@ -165,7 +165,7 @@ public class GameServiceImpl implements GameService {
         return;
       }
 
-      newValue.statusProperty().addListener(new WeakChangeListener<>((observable1, oldValue1, newValue1) -> {
+      JavaFxUtil.addListener(newValue.statusProperty(), new WeakChangeListener<>((observable1, oldValue1, newValue1) -> {
         if (newValue1 == GameStatus.CLOSED) {
           onCurrentGameEnded();
         }
@@ -535,7 +535,7 @@ public class GameServiceImpl implements GameService {
     eventBus.register(this);
     fafService.addOnMessageListener(GameInfoMessage.class, message -> Platform.runLater(() -> onGameInfo(message)));
     fafService.addOnMessageListener(LoginMessage.class, message -> onLoggedIn());
-    fafService.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(fafService.connectionStateProperty(), (observable, oldValue, newValue) -> {
       if (newValue == ConnectionState.DISCONNECTED) {
         synchronized (uidToGameInfoBean) {
           uidToGameInfoBean.clear();
@@ -565,7 +565,7 @@ public class GameServiceImpl implements GameService {
     if (GameStatus.CLOSED == game.getStatus()) {
       if (currentPlayer.getGame() == game) {
         // Don't remove the game until the current player closed it. TODO: Why?
-        currentPlayer.gameProperty().addListener((observable, oldValue, newValue) -> {
+        JavaFxUtil.addListener(currentPlayer.gameProperty(), (observable, oldValue, newValue) -> {
           if (newValue == null && oldValue.getStatus() == GameStatus.CLOSED) {
             removeGame(gameInfoMessage);
           }
@@ -586,7 +586,7 @@ public class GameServiceImpl implements GameService {
       }
     }
 
-    game.statusProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(game.statusProperty(), (observable, oldValue, newValue) -> {
       if (oldValue == GameStatus.OPEN
           && newValue == GameStatus.PLAYING
           && game.getTeams().values().stream().anyMatch(team -> team.contains(currentPlayer.getUsername()))
