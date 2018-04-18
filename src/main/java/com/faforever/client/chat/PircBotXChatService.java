@@ -130,8 +130,7 @@ public class PircBotXChatService implements ChatService {
    */
   private List<String> autoChannels;
   /**
-   * Indicates whether the "auto channels" already have been joined. This is needed because we don't want to auto join
-   * channels after a reconnect that the user left before the reconnect.
+   * Indicates whether the "auto channels" already have been joined. This is needed to not auto join them twice.
    */
   private boolean autoChannelsJoined;
 
@@ -236,7 +235,6 @@ public class PircBotXChatService implements ChatService {
   @Subscribe
   public void onLoggedOutEvent(LoggedOutEvent event) {
     disconnect();
-    autoChannelsJoined = false;
     eventBus.post(UpdateApplicationBadgeEvent.ofNewValue(0));
   }
 
@@ -437,7 +435,7 @@ public class PircBotXChatService implements ChatService {
 
     connectionTask = new Task<Void>() {
       @Override
-      protected Void call() throws Exception {
+      protected Void call() {
         while (!isCancelled()) {
           try {
             connectionState.set(ConnectionState.CONNECTING);
@@ -466,6 +464,7 @@ public class PircBotXChatService implements ChatService {
       channels.clear();
     }
     identifiedLatch = new CountDownLatch(1);
+    autoChannelsJoined = false;
   }
 
   @Override
@@ -473,7 +472,7 @@ public class PircBotXChatService implements ChatService {
     eventBus.post(new ChatMessageEvent(new ChatMessage(target, Instant.now(), userService.getUsername(), message)));
     return taskService.submitTask(new CompletableTask<String>(HIGH) {
       @Override
-      protected String call() throws Exception {
+      protected String call() {
         updateTitle(i18n.get("chat.sendMessageTask.title"));
         pircBotX.sendIRC().message(target, message);
         return message;
@@ -543,7 +542,7 @@ public class PircBotXChatService implements ChatService {
   public CompletableFuture<String> sendActionInBackground(String target, String action) {
     return taskService.submitTask(new CompletableTask<String>(HIGH) {
       @Override
-      protected String call() throws Exception {
+      protected String call() {
         updateTitle(i18n.get("chat.sendActionTask.title"));
 
         pircBotX.sendIRC().action(target, action);

@@ -71,7 +71,7 @@ public class ChatController extends AbstractViewController<Node> {
   private void onConnected() {
     connectingProgressPane.setVisible(false);
     tabPane.setVisible(true);
-    noOpenTabsContainer.setVisible(false);
+    noOpenTabsContainer.setVisible(tabPane.getTabs().isEmpty());
   }
 
   private void onConnecting() {
@@ -85,8 +85,6 @@ public class ChatController extends AbstractViewController<Node> {
   }
 
   private void removeTab(String playerOrChannelName) {
-    nameToChatTabController.remove(playerOrChannelName);
-
     if (nameToChatTabController.containsKey(playerOrChannelName)) {
       tabPane.getTabs().remove(nameToChatTabController.remove(playerOrChannelName).getRoot());
     }
@@ -116,18 +114,21 @@ public class ChatController extends AbstractViewController<Node> {
     tabPane.getTabs().addListener((InvalidationListener) observable -> noOpenTabsContainer.setVisible(tabPane.getTabs().isEmpty()));
 
     chatService.addChannelsListener(change -> {
-      if (change.wasRemoved()) {
-        onChannelLeft(change.getValueRemoved());
-      }
-      if (change.wasAdded()) {
-        onChannelJoined(change.getValueAdded());
-      }
+      Platform.runLater(() -> {
+        if (change.wasRemoved()) {
+          onChannelLeft(change.getValueRemoved());
+        }
+        if (change.wasAdded()) {
+          onChannelJoined(change.getValueAdded());
+        }
+      });
     });
 
-    JavaFxUtil.addListener(chatService.connectionStateProperty(), (observable, oldValue, newValue) -> onConnectionStateChange(newValue));
+    JavaFxUtil.addListener(chatService.connectionStateProperty(), (observable, oldValue, newValue) -> Platform.runLater(() -> onConnectionStateChange(newValue)));
     onConnectionStateChange(chatService.connectionStateProperty().get());
 
     JavaFxUtil.addListener(tabPane.getTabs(), (ListChangeListener<Tab>) change -> {
+      JavaFxUtil.assertApplicationThread();
       while (change.next()) {
         change.getRemoved().forEach(tab -> nameToChatTabController.remove(tab.getId()));
       }
@@ -136,7 +137,7 @@ public class ChatController extends AbstractViewController<Node> {
 
   @Subscribe
   public void onLoggedOutEvent(LoggedOutEvent event) {
-    onLoggedOut();
+    Platform.runLater(this::onLoggedOut);
   }
 
   private void onConnectionStateChange(ConnectionState newValue) {
@@ -196,6 +197,7 @@ public class ChatController extends AbstractViewController<Node> {
   }
 
   public void onJoinChannelButtonClicked() {
+    JavaFxUtil.assertApplicationThread();
     String channelName = channelNameTextField.getText();
     channelNameTextField.clear();
 
@@ -239,18 +241,24 @@ public class ChatController extends AbstractViewController<Node> {
   @Override
   public void onDisplay(NavigateEvent navigateEvent) {
     super.onDisplay(navigateEvent);
-    if (!tabPane.getTabs().isEmpty()) {
-      Tab tab = tabPane.getSelectionModel().getSelectedItem();
-      nameToChatTabController.get(tab.getId()).onDisplay();
-    }
+    Platform.runLater(() -> {
+      if (!tabPane.getTabs().isEmpty()) {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (tab != null) {
+          nameToChatTabController.get(tab.getId()).onDisplay();
+        }
+      }
+    });
   }
 
   @Override
   protected void onHide() {
     super.onHide();
-    if (!tabPane.getTabs().isEmpty()) {
-      Tab tab = tabPane.getSelectionModel().getSelectedItem();
-      Optional.ofNullable(nameToChatTabController.get(tab.getId())).ifPresent(AbstractChatTabController::onHide);
-    }
+    Platform.runLater(() -> {
+      if (!tabPane.getTabs().isEmpty()) {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        Optional.ofNullable(nameToChatTabController.get(tab.getId())).ifPresent(AbstractChatTabController::onHide);
+      }
+    });
   }
 }
