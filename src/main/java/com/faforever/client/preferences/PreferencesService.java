@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.invoke.MethodHandles;
+import java.lang.ref.WeakReference;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -84,7 +85,7 @@ public class PreferencesService {
    * @see #storeInBackground()
    */
   private final Timer timer;
-  private final Collection<PreferenceUpdateListener> updateListeners;
+  private final Collection<WeakReference<PreferenceUpdateListener>> updateListeners;
 
   private Preferences preferences;
   private TimerTask storeInBackgroundTask;
@@ -215,8 +216,18 @@ public class PreferencesService {
       @Override
       public void run() {
         store();
-        for (PreferenceUpdateListener updateListener : updateListeners) {
-          updateListener.onPreferencesUpdated(preferences);
+        ArrayList<WeakReference<PreferenceUpdateListener>> toBeRemoved = new ArrayList<>();
+        for (WeakReference<PreferenceUpdateListener> updateListener : updateListeners) {
+          PreferenceUpdateListener preferenceUpdateListener = updateListener.get();
+          if (preferenceUpdateListener == null) {
+            toBeRemoved.add(updateListener);
+            continue;
+          }
+          preferenceUpdateListener.onPreferencesUpdated(preferences);
+        }
+
+        for (WeakReference<PreferenceUpdateListener> preferenceUpdateListenerWeakReference : toBeRemoved) {
+          updateListeners.remove(preferenceUpdateListenerWeakReference);
         }
       }
     };
@@ -227,7 +238,7 @@ public class PreferencesService {
   /**
    * Adds a listener to be notified whenever the preferences have been updated (that is, stored to file).
    */
-  public void addUpdateListener(PreferenceUpdateListener listener) {
+  public void addUpdateListener(WeakReference<PreferenceUpdateListener> listener) {
     updateListeners.add(listener);
   }
 

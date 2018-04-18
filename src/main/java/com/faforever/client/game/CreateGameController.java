@@ -16,6 +16,7 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.preferences.PreferenceUpdateListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
@@ -27,6 +28,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -52,6 +54,7 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
@@ -92,9 +95,15 @@ public class CreateGameController implements Controller<Pane> {
   public Button createGameButton;
   public Pane mapPreviewPane;
   public Label versionLabel;
+  public CheckBox onlyForFriendsCheckBox;
   @VisibleForTesting
   FilteredList<MapBean> filteredMapBeans;
   private Runnable onClosedButtonClickedListener;
+  private PreferenceUpdateListener preferenceUpdateListener;
+  /**
+   * Remembers if the controller's init method was called, to avoid memory leaks by adding several listeners
+   */
+  private boolean initialized;
 
   @Inject
   public CreateGameController(FafService fafService, MapService mapService, ModService modService, GameService gameService, PreferencesService preferencesService, I18n i18n, NotificationService notificationService, ReportingService reportingService) {
@@ -153,11 +162,14 @@ public class CreateGameController implements Controller<Pane> {
     }));
 
     if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
-      preferencesService.addUpdateListener(preferences -> {
-        if (preferencesService.getPreferences().getForgedAlliance().getPath() != null) {
+      preferenceUpdateListener = preferences -> {
+        if (!initialized && preferencesService.getPreferences().getForgedAlliance().getPath() != null) {
+          initialized = true;
+
           Platform.runLater(this::init);
         }
-      });
+      };
+      preferencesService.addUpdateListener(new WeakReference<>(preferenceUpdateListener));
     } else {
       init();
     }
@@ -167,7 +179,9 @@ public class CreateGameController implements Controller<Pane> {
     onClosedButtonClickedListener.run();
   }
 
+
   private void init() {
+    bindGameVisibility();
     initModList();
     initMapSelection();
     initFeaturedModList();
@@ -200,6 +214,13 @@ public class CreateGameController implements Controller<Pane> {
         titleTextField.textProperty().isEmpty()
             .or(featuredModListView.getSelectionModel().selectedItemProperty().isNull().or(fafService.connectionStateProperty().isNotEqualTo(CONNECTED)))
     );
+  }
+
+  private void bindGameVisibility() {
+    preferencesService.getPreferences()
+        .lastGameOnlyFriendsProperty()
+        .bindBidirectional(onlyForFriendsCheckBox.selectedProperty());
+    onlyForFriendsCheckBox.selectedProperty().addListener(observable -> preferencesService.storeInBackground());
   }
 
   private void initModList() {
@@ -358,7 +379,8 @@ public class CreateGameController implements Controller<Pane> {
         Strings.emptyToNull(passwordTextField.getText()),
         featuredModListView.getSelectionModel().getSelectedItem(),
         mapListView.getSelectionModel().getSelectedItem().getFolderName(),
-        simMods);
+        simMods,
+        onlyForFriendsCheckBox.isSelected() ? GameVisibility.PRIVATE : GameVisibility.PUBLIC);
 
     gameService.hostGame(newGameInfo).exceptionally(throwable -> {
       logger.warn("Game could not be hosted", throwable);

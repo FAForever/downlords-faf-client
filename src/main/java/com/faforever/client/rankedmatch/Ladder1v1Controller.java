@@ -11,6 +11,7 @@ import com.faforever.client.leaderboard.RatingStat;
 import com.faforever.client.main.event.ShowLadderMapsEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.PreferenceUpdateListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.util.RatingUtil;
@@ -41,6 +42,7 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
+import java.lang.ref.WeakReference;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -97,6 +99,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
 
   // Kept as a field in order to prevent garbage collection
   private InvalidationListener playerRatingListener;
+  private PreferenceUpdateListener preferenceUpdateListener;
 
   @Inject
   public Ladder1v1Controller(GameService gameService,
@@ -143,11 +146,12 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
     }
     playButton.setDisable(factionsToButtons.values().stream().noneMatch(ToggleButton::isSelected));
 
-    preferencesService.addUpdateListener(preferences -> {
+    preferenceUpdateListener = preferences -> {
       if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
         onCancelButtonClicked();
       }
-    });
+    };
+    preferencesService.addUpdateListener(new WeakReference<>(preferenceUpdateListener));
 
     JavaFxUtil.addListener(playerService.currentPlayerProperty(), (observable, oldValue, newValue) -> Platform.runLater(() -> setCurrentPlayer(newValue)));
     playerService.getCurrentPlayer().ifPresent(this::setCurrentPlayer);
