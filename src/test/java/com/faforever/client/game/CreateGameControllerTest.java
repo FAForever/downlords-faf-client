@@ -299,4 +299,12 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.modListView.getItems(), hasSize(2));
     assertThat(instance.modListView.getItems(), contains(modVersion1, modVersion2));
   }
+
+  @Test
+  public void testOnlyFriendsBinding() {
+    instance.onlyForFriendsCheckBox.setSelected(true);
+    assertThat(preferences.isLastGameOnlyFriends(), is(true));
+    instance.onlyForFriendsCheckBox.setSelected(false);
+    assertThat(preferences.isLastGameOnlyFriends(), is(false));
+  }
 }

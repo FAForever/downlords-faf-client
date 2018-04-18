@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXCheckBox?>
 <?import com.jfoenix.controls.JFXPasswordField?>
 <?import com.jfoenix.controls.JFXTextField?>
 <?import javafx.geometry.Insets?>
@@ -126,6 +127,8 @@
                 <JFXButton mnemonicParsing="false" onAction="#onReloadModsButtonClicked" text="%game.create.reload"/>
             </children>
         </HBox>
+        <JFXCheckBox fx:id="onlyForFriendsCheckBox" text="%game.create.onlyFriends" mnemonicParsing="false"
+                  GridPane.columnIndex="1" GridPane.rowIndex="1"/>
     </children>
     <padding>
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
