@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="languageItemRoot" hgap="10.0" onMouseClicked="#onSelected"
+          styleClass="pointable,card" xmlns="http://javafx.com/javafx/8.0.141"
+          fx:controller="com.faforever.client.settings.LanguageItemController">
+    <rowConstraints>
+        <RowConstraints minHeight="10.0" prefHeight="48.0"/>
+    </rowConstraints>
+    <columnConstraints>
+        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+        <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
+    </columnConstraints>
+    <children>
+        <Label fx:id="localLanguageLabel" styleClass="h3" text="&lt;Native Language&gt;">
+            <graphic>
+                <Label fx:id="checkedLabel" styleClass="icon,checked-icon" text=""/>
+            </graphic>
+        </Label>
+        <Label fx:id="translatedLanguageLabel" contentDisplay="RIGHT" text="&lt;Translated Language&gt;"
+               GridPane.columnIndex="1" GridPane.halignment="RIGHT">
+            <graphic>
+                <ImageView fx:id="localeImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true"
+                           preserveRatio="true"/>
+            </graphic>
+        </Label>
+    </children>
+    <padding>
+        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+    </padding>
+</GridPane>

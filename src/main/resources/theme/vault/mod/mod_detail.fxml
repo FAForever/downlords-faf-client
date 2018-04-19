@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXProgressBar?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.image.ImageView?>
@@ -50,15 +50,15 @@
                                               GridPane.rowIndex="1">
                                             <children>
                                                 <Label fx:id="progressLabel" text=""/>
-                                                <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308"
-                                                             progress="0.0"/>
+                                                <JFXProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308"
+                                                                progress="0.0"/>
                                             </children>
                                         </VBox>
-                                        <Button fx:id="uninstallButton" mnemonicParsing="false"
-                                                onAction="#onUninstallButtonClicked" text="%modVault.uninstall"
-                                                GridPane.columnIndex="2" GridPane.halignment="RIGHT"
-                                                GridPane.rowIndex="1"/>
-                                        <Button fx:id="installButton" mnemonicParsing="false"
+                                        <JFXButton fx:id="uninstallButton" mnemonicParsing="false"
+                                                   onAction="#onUninstallButtonClicked" text="%modVault.uninstall"
+                                                   GridPane.columnIndex="2" GridPane.halignment="RIGHT"
+                                                   GridPane.rowIndex="1"/>
+                                        <JFXButton fx:id="installButton" mnemonicParsing="false"
                                                 onAction="#onInstallButtonClicked" styleClass="highlighted-button"
                                                 text="%modVault.install" GridPane.columnIndex="2"
                                                 GridPane.halignment="RIGHT" GridPane.rowIndex="1"/>
@@ -115,13 +115,13 @@
                         </VBox>
                     </content>
                 </ScrollPane>
-                <Button cancelButton="true" focusTraversable="false" onAction="#onCloseButtonClicked"
-                        AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <JFXButton cancelButton="true" focusTraversable="false" onAction="#onCloseButtonClicked"
+                           AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                     <styleClass>
                         <String fx:value="window-button"/>
                         <String fx:value="close-button"/>
                     </styleClass>
-                </Button>
+                </JFXButton>
             </children>
         </AnchorPane>
     </children>

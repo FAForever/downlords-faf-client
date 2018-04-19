@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.JFXSpinner?>
+<?import com.jfoenix.controls.JFXTextField?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="leaderboardRoot" alignment="CENTER" maxHeight="1.7976931348623157E308"
@@ -17,7 +17,8 @@
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                <children>
                   <Label contentDisplay="RIGHT" graphicTextGap="10.0" maxWidth="1.7976931348623157E308" styleClass="icon" text="" />
-            <TextField fx:id="searchTextField" maxWidth="1.7976931348623157E308" promptText="%ladder.searchPrompt" HBox.hgrow="ALWAYS" />
+                   <JFXTextField fx:id="searchTextField" maxWidth="1.7976931348623157E308"
+                                 promptText="%ladder.searchPrompt" HBox.hgrow="ALWAYS"/>
                </children>
             </HBox>
         <TableView fx:id="ratingTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS">
@@ -39,7 +40,7 @@
     </VBox>
     <VBox fx:id="connectionProgressPane" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0" VBox.vgrow="ALWAYS">
       <children>
-        <ProgressIndicator prefHeight="80.0" prefWidth="80.0" />
+        <JFXSpinner prefHeight="80.0" prefWidth="80.0"/>
         <Label text="%leaderboard.loading">
           <VBox.margin>
             <Insets />

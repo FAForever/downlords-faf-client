@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
+<?import com.jfoenix.controls.JFXButton?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -23,9 +23,9 @@
         <WebView fx:id="newsDetailWebView" prefHeight="-1.0" prefWidth="-1.0"
                  AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                  AnchorPane.topAnchor="0.0"/>
-          <Button text="%news.showLadderMaps" fx:id="showLadderMapsButton" onAction="#showLadderMaps"
-                  AnchorPane.rightAnchor="0.0"
-                  AnchorPane.topAnchor="0.0"/>
+          <JFXButton text="%news.showLadderMaps" fx:id="showLadderMapsButton" onAction="#showLadderMaps"
+                     AnchorPane.rightAnchor="0.0"
+                     AnchorPane.topAnchor="0.0"/>
       </children>
     </AnchorPane>
   </children>

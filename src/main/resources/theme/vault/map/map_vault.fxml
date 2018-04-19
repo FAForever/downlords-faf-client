@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXSpinner?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -24,23 +24,23 @@
                         <Separator maxWidth="1.7976931348623157E308"/>
                         <HBox spacing="10.0">
                             <children>
-                                <Button fx:id="backButton" mnemonicParsing="false" onAction="#onBackButtonClicked"
-                                        text="%back">
+                                <JFXButton fx:id="backButton" mnemonicParsing="false" onAction="#onBackButtonClicked"
+                                           text="%back">
                                     <graphic>
                                         <Label styleClass="icon" text=""/>
                                     </graphic>
-                                </Button>
-                                <Button mnemonicParsing="false" onAction="#onRefreshButtonClicked" text="%refresh">
+                                </JFXButton>
+                                <JFXButton mnemonicParsing="false" onAction="#onRefreshButtonClicked" text="%refresh">
                                     <graphic>
                                         <Label styleClass="icon" text="" />
                                     </graphic>
-                                </Button>
-                                <Button mnemonicParsing="false" onAction="#onUploadMapButtonClicked"
+                                </JFXButton>
+                                <JFXButton mnemonicParsing="false" onAction="#onUploadMapButtonClicked"
                                         text="%mapVault.upload">
                                     <graphic>
                                         <Label styleClass="icon" text=""/>
                                     </graphic>
-                                </Button>
+                                </JFXButton>
                             </children>
                         </HBox>
                         <GridPane fx:id="showroomGroup" vgap="10.0">
@@ -60,21 +60,23 @@
                             </rowConstraints>
                             <children>
                                 <Label styleClass="h2" text="%mapVault.mostLikedMaps" />
-                                <Button mnemonicParsing="false" onAction="#showMoreHighestRatedMaps"
-                                        styleClass="button-raised" text="%more" GridPane.columnIndex="1"/>
+                                <JFXButton mnemonicParsing="false" onAction="#showMoreHighestRatedMaps"
+                                           styleClass="button-raised" text="%more" GridPane.columnIndex="1"/>
                                 <FlowPane fx:id="mostLikedPane" hgap="10.0" maxWidth="1.7976931348623157E308" prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
                                 <Label styleClass="h2" text="%mapVault.newestMaps" GridPane.rowIndex="2" />
-                                <Button mnemonicParsing="false" onAction="#showMoreMostRecentMaps"
-                                        styleClass="button-raised" text="%more" GridPane.columnIndex="1"
-                                        GridPane.rowIndex="2"/>
+                                <JFXButton mnemonicParsing="false" onAction="#showMoreMostRecentMaps"
+                                           styleClass="button-raised" text="%more" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="2"/>
                                 <FlowPane fx:id="newestPane" hgap="10.0" maxWidth="1.7976931348623157E308" prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="3" />
                                 <Label styleClass="h2" text="%mapVault.mostPlayed" GridPane.rowIndex="4" />
-                                <Button mnemonicParsing="false" onAction="#showMoreMostPlayedMaps" styleClass="button-raised" text="%more" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                <JFXButton mnemonicParsing="false" onAction="#showMoreMostPlayedMaps"
+                                           styleClass="button-raised" text="%more" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="4"/>
                                 <FlowPane fx:id="mostPlayedPane" hgap="10.0" maxWidth="1.7976931348623157E308" prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="5" />
                                 <Label styleClass="h2" text="%mapVault.ladder" GridPane.rowIndex="6"/>
-                                <Button mnemonicParsing="false" onAction="#showMoreLadderdMaps"
-                                        styleClass="button-raised"
-                                        text="%more" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+                                <JFXButton mnemonicParsing="false" onAction="#showMoreLadderdMaps"
+                                           styleClass="button-raised"
+                                           text="%more" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
                                 <FlowPane fx:id="ladderPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                           prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
                                           GridPane.rowIndex="7"/>
@@ -84,15 +86,16 @@
                             <children>
                                 <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%searchResult"/>
                                 <FlowPane fx:id="searchResultPane" hgap="10.0" vgap="10.0" />
-                                <Button fx:id="moreButton" mnemonicParsing="false" onAction="#onLoadMoreButtonClicked"
-                                        text="%vault.more"/>
+                                <JFXButton fx:id="moreButton" mnemonicParsing="false"
+                                           onAction="#onLoadMoreButtonClicked"
+                                           text="%vault.more"/>
                             </children>
                         </VBox>
                         <Label fx:id="loadingLabel" alignment="CENTER" contentDisplay="TOP"
                                maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                                text="%mapVault.loadingMaps" VBox.vgrow="ALWAYS">
                             <graphic>
-                                <ProgressIndicator/>
+                                <JFXSpinner/>
                             </graphic>
                         </Label>
                     </children>

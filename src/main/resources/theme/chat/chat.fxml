@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.JFXSpinner?>
+<?import com.jfoenix.controls.JFXTextField?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TabPane?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="chatRoot" xmlns="http://javafx.com/javafx/8.0.40"
@@ -17,7 +17,7 @@
     <VBox fx:id="connectingProgressPane" alignment="CENTER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
           AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <children>
-        <ProgressIndicator prefHeight="80.0" prefWidth="80.0"/>
+        <JFXSpinner prefHeight="80.0" prefWidth="80.0"/>
         <Label text="%chat.connecting.message">
           <VBox.margin>
             <Insets bottom="28.0" top="14.0"/>
@@ -37,7 +37,8 @@
                 <Insets top="10.0"/>
               </padding>
             </Label>
-            <TextField fx:id="channelNameTextField" onAction="#onJoinChannelButtonClicked" promptText="%chat.channelNamePrompt"/>
+              <JFXTextField fx:id="channelNameTextField" onAction="#onJoinChannelButtonClicked"
+                            promptText="%chat.channelNamePrompt"/>
           </children>
         </VBox>
       </children>

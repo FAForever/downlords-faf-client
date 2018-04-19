@@ -19,7 +19,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,8 +36,6 @@ public class TeamCardController implements Controller<Node> {
   public Label teamNameLabel;
   private final Map<Integer, RatingChangeLabelController> ratingChangeControllersByPlayerId;
 
-
-  @Inject
   public TeamCardController(UiService uiService, I18n i18n) {
     this.uiService = uiService;
     this.i18n = i18n;
@@ -51,7 +48,7 @@ public class TeamCardController implements Controller<Node> {
    * @param teamsList a mapping of team name (e.g. "2") to a list of player names that are in that team
    * @param playerService the service to use to look up players by name
    */
-  public static void createAndAdd(ObservableMap<? extends String, ? extends List<String>> teamsList, PlayerService playerService, UiService uiService, Pane teamsPane) {
+  static void createAndAdd(ObservableMap<? extends String, ? extends List<String>> teamsList, PlayerService playerService, UiService uiService, Pane teamsPane) {
     for (Map.Entry<? extends String, ? extends List<String>> entry : teamsList.entrySet()) {
       List<Player> players = entry.getValue().stream()
           .map(playerService::getPlayerForUsername)

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.JFXProgressBar?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -27,8 +27,8 @@
            GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
     <Label fx:id="pointsLabel" text="&lt;Points&gt;" visible="false" GridPane.columnIndex="2"
            GridPane.halignment="RIGHT"/>
-    <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308" progress="0.0" GridPane.columnIndex="1"
-                 GridPane.rowIndex="2"/>
+      <JFXProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308" progress="0.0" GridPane.columnIndex="1"
+                      GridPane.rowIndex="2"/>
     <Label fx:id="progressLabel" text="&lt;progress&gt;" GridPane.columnIndex="2" GridPane.rowIndex="2"/>
     <ImageView fx:id="imageView" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true"
                GridPane.halignment="CENTER" GridPane.rowSpan="2147483647" GridPane.valignment="CENTER"/>

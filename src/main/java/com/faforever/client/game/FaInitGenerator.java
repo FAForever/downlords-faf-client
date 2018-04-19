@@ -49,7 +49,7 @@ public class FaInitGenerator {
    */
   public Path generateInitFile(List<MountInfo> mountInfos, Set<String> hookDirectories) {
     Path initFile = preferencesService.getFafBinDirectory().resolve(ForgedAlliancePrefs.INIT_FILE_NAME);
-    String faPath = preferencesService.getPreferences().getForgedAlliance().getExecutablePath().toAbsolutePath().toString().replaceAll("[/\\\\]", "\\\\\\\\");
+    String faPath = preferencesService.getPreferences().getForgedAlliance().getPath().toAbsolutePath().toString().replaceAll("[/\\\\]", "\\\\\\\\");
 
     logger.debug("Generating init file at {}", initFile);
 

@@ -138,7 +138,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnPlayButtonClicked() throws Exception {
-    when(forgedAlliancePrefs.getExecutablePath()).thenReturn(Paths.get("."));
+    when(forgedAlliancePrefs.getPath()).thenReturn(Paths.get("."));
 
     instance.aeonButton.setSelected(true);
     instance.onFactionButtonClicked();
@@ -158,7 +158,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnPlayButtonClickedWithNoGamePath() throws Exception {
-    when(forgedAlliancePrefs.getExecutablePath()).thenReturn(null);
+    when(forgedAlliancePrefs.getPath()).thenReturn(null);
 
     instance.onPlayButtonClicked();
 

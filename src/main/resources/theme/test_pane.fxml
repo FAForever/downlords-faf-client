@@ -4,7 +4,6 @@
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.web.WebView?>
@@ -24,9 +23,9 @@
                 <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity"
                       minWidth="100.0" SplitPane.resizableWithParent="false">
                   <children>
-                    <TextField fx:id="userSearchTextField" maxHeight="1.7976931348623157E308"
-                               maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity"
-                               promptText="%chat.searchPrompt"/>
+                      <JFXTextField fx:id="userSearchTextField" maxHeight="1.7976931348623157E308"
+                                    maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity"
+                                    promptText="%chat.searchPrompt"/>
                     <ScrollPane fitToWidth="true" focusTraversable="false" maxHeight="1.7976931348623157E308"
                                 maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity"
                                 VBox.vgrow="ALWAYS">
@@ -77,8 +76,8 @@
                 </VBox>
               </items>
             </SplitPane>
-            <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage"
-                       promptText="%chat.messagePrompt"/>
+              <JFXTextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage"
+                            promptText="%chat.messagePrompt"/>
           </children>
         </VBox>
       </content>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.JFXComboBox?>
 <?import javafx.scene.control.ColorPicker?>
-<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.CustomMenuItem?>
 <?import javafx.scene.control.MenuItem?>
@@ -40,7 +40,7 @@
       <content>
       </content>
       <content>
-        <ComboBox fx:id="avatarComboBox" maxWidth="1.7976931348623157E308"/>
+          <JFXComboBox fx:id="avatarComboBox" maxWidth="1.7976931348623157E308"/>
       </content>
     </CustomMenuItem>
   </items>

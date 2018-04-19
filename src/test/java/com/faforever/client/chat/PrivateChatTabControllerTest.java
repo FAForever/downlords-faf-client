@@ -1,22 +1,16 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
-import com.faforever.client.clan.ClanService;
-import com.faforever.client.config.ClientProperties;
-import com.faforever.client.config.ClientProperties.Vault;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigationItem;
-import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.replay.ExternalReplayInfoGenerator;
-import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
@@ -41,6 +35,7 @@ import java.time.Instant;
 import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -54,13 +49,9 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private UserService userService;
   @Mock
-  private PreferencesService preferencesService;
-  @Mock
   private PlayerService playerService;
   @Mock
   private PlatformService platformService;
-  @Mock
-  private UrlPreviewResolver urlPreviewResolver;
   @Mock
   private TimeService timeService;
   @Mock
@@ -78,46 +69,30 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private WebViewConfigurer webViewConfigurer;
   @Mock
-  private ClanService clanService;
-  @Mock
   private ReportingService reportingService;
   @Mock
   private EventBus eventBus;
   @Mock
   private CountryFlagService countryFlagService;
   @Mock
-  private MapService mapService;
-  @Mock
   private PrivateUserInfoController privateUserInfoController;
   @Mock
   private GameDetailController gameDetailController;
   @Mock
   private WatchButtonController watchButtonController;
-  @Mock
-  private ReplayService replayService;
-  @Mock
-  private ClientProperties clientProperties;
-  @Mock
-  private ExternalReplayInfoGenerator externalReplayInfoGenerator;
 
   private PrivateChatTabController instance;
   private String playerName;
 
   @Before
   public void setUp() throws IOException {
-    Vault vault = new Vault();
-    vault.setReplayDownloadUrlFormat("test.de");
-    when(clientProperties.getVault()).thenReturn(vault);
-
     PreferencesService preferencesService = new PreferencesService();
     preferencesService.postConstruct();
     preferencesService.getPreferences().getMainWindow().setLastView(NavigationItem.CHAT.name());
 
-    instance = new PrivateChatTabController(clanService,
-        userService, platformService, preferencesService, playerService,
-        timeService, i18n, imageUploadService, urlPreviewResolver, notificationService,
-        reportingService, uiService, autoCompletionHelper, eventBus, audioService,
-        chatService, mapService, webViewConfigurer, countryFlagService, replayService, clientProperties, externalReplayInfoGenerator);
+    instance = new PrivateChatTabController(userService, platformService, preferencesService, playerService, timeService,
+        i18n, imageUploadService, notificationService, reportingService, uiService, autoCompletionHelper, eventBus,
+        audioService, chatService, webViewConfigurer, countryFlagService);
 
 
     playerName = "testUser";
@@ -150,7 +125,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
     });
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(webViewConfigurer).configureWebView(instance.messagesWebView);
+    verify(webViewConfigurer).configureWebView(eq(instance.messagesWebView));
   }
 
   @Test

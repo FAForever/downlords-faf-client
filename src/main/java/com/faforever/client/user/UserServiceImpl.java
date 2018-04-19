@@ -1,5 +1,6 @@
 package com.faforever.client.user;
 
+import com.faforever.client.login.LoginFailedException;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.LoginMessage;
@@ -107,6 +108,14 @@ public class UserServiceImpl implements UserService {
     }
   }
 
+  private void onLoginError(NoticeMessage noticeMessage) {
+    if (loginFuture != null) {
+      loginFuture.toCompletableFuture().completeExceptionally(new LoginFailedException(noticeMessage.getText()));
+      loginFuture = null;
+      fafService.disconnect();
+    }
+  }
+
   @Override
   public void logOut() {
     logger.info("Logging out");
@@ -128,7 +137,7 @@ public class UserServiceImpl implements UserService {
   @PostConstruct
   void postConstruct() {
     fafService.addOnMessageListener(LoginMessage.class, loginInfo -> userId = loginInfo.getId());
-    fafService.addOnMessageListener(NoticeMessage.class, noticeMessage -> cancelLogin());
+    fafService.addOnMessageListener(NoticeMessage.class, this::onLoginError);
     eventBus.register(this);
   }
 

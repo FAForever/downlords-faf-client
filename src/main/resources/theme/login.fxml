@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXCheckBox?>
+<?import com.jfoenix.controls.JFXPasswordField?>
+<?import com.jfoenix.controls.JFXSpinner?>
+<?import com.jfoenix.controls.JFXTextField?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.PasswordField?>
-<?import javafx.scene.control.ProgressIndicator?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -15,14 +15,14 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 <?import java.lang.String?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="loginRoot" alignment="CENTER" fillWidth="false"
-      xmlns="http://javafx.com/javafx/8.0.111" fx:controller="com.faforever.client.login.LoginController">
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="loginRoot" alignment="CENTER" fillWidth="false" styleClass="login-root"
+      xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.login.LoginController">
   <children>
       <VBox alignment="CENTER" prefWidth="400.0" styleClass="login">
       <children>
           <Text onMouseClicked="#onMouseClicked" strokeType="OUTSIDE" strokeWidth="0.0" text="">
               <VBox.margin>
-                  <Insets bottom="50.0" top="70.0"/>
+                  <Insets bottom="70.0" top="70.0"/>
               </VBox.margin>
               <styleClass>
                   <String fx:value="login-logo"/>
@@ -31,19 +31,19 @@
           </Text>
           <VBox fx:id="loginProgressPane" alignment="CENTER" maxWidth="1.7976931348623157E308">
               <children>
-                  <ProgressIndicator prefHeight="80.0" prefWidth="80.0"/>
+                  <JFXSpinner prefHeight="80.0" prefWidth="80.0"/>
                   <Label text="%login.progress.message">
                       <VBox.margin>
                           <Insets top="14.0"/>
                       </VBox.margin>
                   </Label>
                   <Pane VBox.vgrow="ALWAYS"/>
-                  <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false"
-                          onAction="#onCancelLoginButtonClicked" text="%login.button.cancel">
+                  <JFXButton maxWidth="1.7976931348623157E308" mnemonicParsing="false"
+                             onAction="#onCancelLoginButtonClicked" text="%login.button.cancel">
                       <VBox.margin>
                           <Insets top="20.0"/>
                       </VBox.margin>
-                  </Button>
+                  </JFXButton>
               </children>
           </VBox>
           <VBox fx:id="loginFormPane" alignment="TOP_CENTER" maxHeight="1.7976931348623157E308" spacing="5.0">
@@ -58,9 +58,9 @@
                           <Insets bottom="5.0"/>
                       </VBox.margin>
                   </Label>
-                  <TextField fx:id="usernameInput" minWidth="100.0" promptText="%login.name"/>
-                  <PasswordField fx:id="passwordInput" minWidth="100.0" promptText="%login.password"/>
-                  <GridPane vgap="5.0" fx:id="serverConfigPane">
+                  <JFXTextField fx:id="usernameInput" minWidth="100.0" promptText="%login.name"/>
+                  <JFXPasswordField fx:id="passwordInput" minWidth="100.0" promptText="%login.password"/>
+                  <GridPane fx:id="serverConfigPane" vgap="5.0">
                       <columnConstraints>
                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0"/>
                           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
@@ -71,34 +71,34 @@
                           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
                       </rowConstraints>
                       <children>
-                          <TextField fx:id="serverHostField" promptText="%login.serverHost"/>
-                          <TextField fx:id="serverPortField" prefColumnCount="6" promptText="%port"
-                                     GridPane.columnIndex="1"/>
-                          <TextField fx:id="replayServerHostField" layoutX="10.0" layoutY="7.0"
-                                     promptText="%login.replayServerHost" GridPane.rowIndex="1"/>
-                          <TextField fx:id="replayServerPortField" layoutX="310.0" layoutY="7.0" prefColumnCount="6"
-                                     promptText="%port" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                          <TextField fx:id="apiBaseUrl" prefColumnCount="6" promptText="%login.apiBaseUrl"
-                                     GridPane.columnSpan="2147483647" GridPane.rowIndex="2"/>
+                          <JFXTextField fx:id="serverHostField" promptText="%login.serverHost"/>
+                          <JFXTextField fx:id="serverPortField" prefColumnCount="6" promptText="%port"
+                                        GridPane.columnIndex="1"/>
+                          <JFXTextField fx:id="replayServerHostField" layoutX="10.0" layoutY="7.0"
+                                        promptText="%login.replayServerHost" GridPane.rowIndex="1"/>
+                          <JFXTextField fx:id="replayServerPortField" layoutX="310.0" layoutY="7.0" prefColumnCount="6"
+                                        promptText="%port" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                          <JFXTextField fx:id="apiBaseUrl" prefColumnCount="6" promptText="%login.apiBaseUrl"
+                                        GridPane.columnSpan="2147483647" GridPane.rowIndex="2"/>
                       </children>
                       <VBox.margin>
                           <Insets top="20.0"/>
                       </VBox.margin>
                   </GridPane>
-                  <CheckBox fx:id="autoLoginCheckBox" alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308"
-                            mnemonicParsing="false" text="%login.autoLogin">
+                  <JFXCheckBox fx:id="autoLoginCheckBox" alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308"
+                               mnemonicParsing="false" text="%login.autoLogin">
                       <VBox.margin>
                           <Insets bottom="10.0" top="10.0"/>
                       </VBox.margin>
-                  </CheckBox>
-                  <Button fx:id="loginButton" defaultButton="true" maxWidth="1.7976931348623157E308"
-                          mnemonicParsing="false" onAction="#onLoginButtonClicked" text="%login.button.login"/>
+                  </JFXCheckBox>
+                  <JFXButton fx:id="loginButton" defaultButton="true" maxWidth="1.7976931348623157E308"
+                             mnemonicParsing="false" onAction="#onLoginButtonClicked" text="%login.button.login"/>
                   <HBox alignment="CENTER" spacing="10.0">
                       <children>
-                          <Button alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
-                                  onAction="#forgotLoginClicked" text="%login.forgot" HBox.hgrow="ALWAYS"/>
-                          <Button alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
-                                  onAction="#createNewAccountClicked" text="%login.create" HBox.hgrow="ALWAYS"/>
+                          <JFXButton alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
+                                     onAction="#forgotLoginClicked" text="%login.forgot" HBox.hgrow="ALWAYS"/>
+                          <JFXButton alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
+                                     onAction="#createNewAccountClicked" text="%login.create" HBox.hgrow="ALWAYS"/>
                       </children>
                       <VBox.margin>
                           <Insets top="20.0"/>

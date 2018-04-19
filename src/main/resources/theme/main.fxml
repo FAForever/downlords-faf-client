@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.JFXButton?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
@@ -14,8 +14,8 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="mainRoot" minHeight="500.0" minWidth="600.0"
-      xmlns="http://javafx.com/javafx/8.0.60" fx:controller="com.faforever.client.main.MainController">
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="mainRoot" minHeight="500.0" minWidth="600.0" styleClass="main-window"
+      xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.main.MainController">
     <children>
         <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
               VBox.vgrow="ALWAYS">
@@ -30,9 +30,9 @@
                                 <SeparatorMenuItem mnemonicParsing="false"/>
                                 <MenuItem disable="true" text="%menu.feedback"/>
                                 <SeparatorMenuItem mnemonicParsing="false"/>
-                                <MenuItem onAction="#onRevealLogFolder" text="%menu.revealLogFolder" />
-                                <MenuItem onAction="#onRevealMapFolder" text="%menu.revealMapFolder" />
-                                <MenuItem onAction="#onRevealModFolder" text="%menu.revealModFolder" />
+                                <MenuItem onAction="#onRevealLogFolder" text="%menu.revealLogFolder"/>
+                                <MenuItem onAction="#onRevealMapFolder" text="%menu.revealMapFolder"/>
+                                <MenuItem onAction="#onRevealModFolder" text="%menu.revealModFolder"/>
                                 <SeparatorMenuItem mnemonicParsing="false"/>
                                 <MenuItem onAction="#onExitItemSelected" text="%menu.exit"/>
                             </items>
@@ -57,34 +57,31 @@
                                       styleClass="main-navigation-button" text="%main.vault"
                                       toggleGroup="$mainNavigation"/>
                         <ToggleButton fx:id="leaderboardsButton" mnemonicParsing="false"
-                                      onAction="#onNavigateButtonClicked"
-                                      styleClass="main-navigation-button" text="%main.leaderboards"
-                                      toggleGroup="$mainNavigation"/>
+                                      onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                                      text="%main.leaderboards" toggleGroup="$mainNavigation"/>
                         <ToggleButton fx:id="unitsButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked"
                                       styleClass="main-navigation-button" text="%main.units"
                                       toggleGroup="$mainNavigation"/>
                         <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS"/>
                         <StackPane>
                             <children>
-                                <Button contentDisplay="CENTER" focusTraversable="false" mnemonicParsing="false"
-                                        onAction="#onNotificationsButtonClicked"
-                                        styleClass="icon-button,notification-button"
-                                        text=""/>
+                                <JFXButton contentDisplay="CENTER" styleClass="icon-button" text=""
+                                           onAction="#onNotificationsButtonClicked"/>
                                 <Label fx:id="notificationsBadge" alignment="CENTER" mouseTransparent="true"
                                        styleClass="notification-badge" text="3" StackPane.alignment="TOP_RIGHT">
                                     <StackPane.margin>
-                                        <Insets left="20.0" top="10.0"/>
+                                        <Insets right="5.0" top="5.0"/>
                                     </StackPane.margin>
                                 </Label>
                             </children>
-                            <padding>
-                                <Insets right="20.0"/>
-                            </padding>
                         </StackPane>
                         <fx:include source="user_button.fxml"/>
                     </children>
                 </HBox>
-                <AnchorPane fx:id="contentPane" VBox.vgrow="ALWAYS"/>
+                <StackPane fx:id="contentWrapperPane" VBox.vgrow="ALWAYS">
+                    <AnchorPane fx:id="contentPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                                VBox.vgrow="ALWAYS"/>
+                </StackPane>
             </children>
         </VBox>
         <fx:include source="statusbar/status_bar.fxml"/>

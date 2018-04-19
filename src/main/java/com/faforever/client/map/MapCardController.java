@@ -7,6 +7,7 @@ import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.StarsController;
+import com.jfoenix.controls.JFXRippler;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -46,6 +47,7 @@ public class MapCardController implements Controller<Node> {
   private Consumer<MapBean> onOpenDetailListener;
   private ListChangeListener<MapBean> installedMapsChangeListener;
   private InvalidationListener reviewsChangedListener;
+  private JFXRippler jfxRippler;
 
   @Inject
   public MapCardController(MapService mapService, I18n i18n) {
@@ -55,6 +57,7 @@ public class MapCardController implements Controller<Node> {
   }
 
   public void initialize() {
+    jfxRippler = new JFXRippler(mapTileRoot);
     installedMapsChangeListener = change -> {
       while (change.next()) {
         for (MapBean mapBean : change.getAddedSubList()) {
@@ -111,7 +114,7 @@ public class MapCardController implements Controller<Node> {
   }
 
   public Node getRoot() {
-    return mapTileRoot;
+    return jfxRippler;
   }
 
   public void setOnOpenDetailListener(Consumer<MapBean> onOpenDetailListener) {

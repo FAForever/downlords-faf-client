@@ -12,6 +12,9 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
+import com.jfoenix.controls.JFXDialog;
+import com.jfoenix.controls.JFXDialog.DialogTransition;
+import com.jfoenix.controls.JFXDialogLayout;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
@@ -20,12 +23,15 @@ import javafx.collections.transformation.FilteredList;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.util.StringConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
@@ -61,8 +67,9 @@ public class CustomGamesController extends AbstractViewController<Node> {
   private final PreferencesService preferencesService;
   private final EventBus eventBus;
   private final I18n i18n;
-  public GameDetailController gameDetailController;
 
+  @SuppressWarnings("WeakerAccess")
+  public GameDetailController gameDetailController;
   private GamesTableController gamesTableController;
 
   public ToggleButton tableButton;
@@ -70,9 +77,9 @@ public class CustomGamesController extends AbstractViewController<Node> {
   public ToggleGroup viewToggleGroup;
   public Button createGameButton;
   public Pane gameViewContainer;
-  public Pane gamesRoot;
+  public StackPane gamesRoot;
   public ScrollPane gameDetailPane;
-  public ChoiceBox<TilesSortingOrder> chooseSortingTypeChoiceBox;
+  public ComboBox<TilesSortingOrder> chooseSortingTypeChoiceBox;
 
   @VisibleForTesting
   FilteredList<Game> filteredItems;
@@ -93,6 +100,13 @@ public class CustomGamesController extends AbstractViewController<Node> {
   }
 
   public void initialize() {
+    JavaFxUtil.bind(createGameButton.disableProperty(), gameService.gameRunningProperty());
+    getRoot().sceneProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue == null) {
+        createGameButton.disableProperty().unbind();
+      }
+    });
+
     chooseSortingTypeChoiceBox.setVisible(false);
     chooseSortingTypeChoiceBox.setConverter(new StringConverter<TilesSortingOrder>() {
       @Override
@@ -169,7 +183,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
   }
 
   private void onCreateGame(@Nullable String mapFolderName) {
-    if (preferencesService.getPreferences().getForgedAlliance().getExecutablePath() == null) {
+    if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
       CompletableFuture<Path> gameDirectoryFuture = new CompletableFuture<>();
       eventBus.post(new GameDirectoryChooseEvent(gameDirectoryFuture));
       gameDirectoryFuture.thenAccept(path -> Optional.ofNullable(path).ifPresent(path1 -> onCreateGame(null)));
@@ -177,17 +191,30 @@ public class CustomGamesController extends AbstractViewController<Node> {
     }
 
     CreateGameController createGameController = uiService.loadFxml("theme/play/create_game.fxml");
+
     if (mapFolderName != null && !createGameController.selectMap(mapFolderName)) {
-      log.warn("Map with folder name: '{}' could not be found in map list", mapFolderName);
+      log.warn("Map with folder name '{}' could not be found in map list", mapFolderName);
     }
 
-    Pane createGameRoot = createGameController.getRoot();
-    gamesRoot.getChildren().add(createGameRoot);
-    AnchorPane.setTopAnchor(createGameRoot, 0d);
-    AnchorPane.setRightAnchor(createGameRoot, 0d);
-    AnchorPane.setBottomAnchor(createGameRoot, 0d);
-    AnchorPane.setLeftAnchor(createGameRoot, 0d);
-    createGameRoot.requestFocus();
+    Pane root = createGameController.getRoot();
+    JFXDialogLayout dialogLayout = new JFXDialogLayout();
+    dialogLayout.setHeading(new Label(i18n.get("games.create")));
+    dialogLayout.setBody(root);
+
+    JFXDialog dialog = new JFXDialog();
+    dialog.setContent(dialogLayout);
+    dialog.setTransitionType(DialogTransition.TOP);
+
+    createGameController.setOnClosedButtonClickedListener(dialog::close);
+    gamesRoot.setOnKeyPressed(event -> {
+      if (event.getCode() == KeyCode.ESCAPE) {
+        dialog.close();
+      }
+    });
+
+    dialog.show(gamesRoot);
+
+    root.requestFocus();
   }
 
   public Node getRoot() {

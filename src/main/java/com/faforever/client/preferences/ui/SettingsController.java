@@ -1,15 +1,17 @@
 package com.faforever.client.preferences.ui;
 
 import com.faforever.client.chat.ChatColorMode;
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.preferences.LanguageInfo;
+import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.preferences.LocalizationPrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
@@ -17,17 +19,20 @@ import com.faforever.client.preferences.Preferences.UnitDataBaseType;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.TimeInfo;
 import com.faforever.client.preferences.ToastPosition;
+import com.faforever.client.settings.LanguageItemController;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.user.UserService;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -37,6 +42,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.stage.Screen;
 import javafx.util.converter.NumberStringConverter;
@@ -45,10 +51,12 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.text.NumberFormat;
 import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
 import static com.faforever.client.theme.UiService.DEFAULT_THEME;
@@ -64,6 +72,8 @@ public class SettingsController implements Controller<Node> {
   private final UiService uiService;
   private final I18n i18n;
   private final EventBus eventBus;
+  private final PlatformService platformService;
+  private final ClientProperties clientProperties;
 
   public TextField executableDecoratorField;
   public TextField executionDirectoryField;
@@ -71,14 +81,14 @@ public class SettingsController implements Controller<Node> {
   public Toggle customColorsToggle;
   public Toggle randomColorsToggle;
   public Toggle defaultColorsToggle;
-  public CheckBox hideFoeCheckBox;
+  public Toggle hideFoeToggle;
   public TextField gamePortTextField;
   public TextField gameLocationTextField;
-  public CheckBox autoDownloadMapsCheckBox;
+  public Toggle autoDownloadMapsToggle;
   public TextField maxMessagesTextField;
-  public CheckBox imagePreviewCheckBox;
-  public CheckBox enableNotificationsCheckBox;
-  public CheckBox enableSoundsCheckBox;
+  public Toggle imagePreviewToggle;
+  public Toggle enableNotificationsToggle;
+  public Toggle enableSoundsToggle;
   public CheckBox displayFriendOnlineToastCheckBox;
   public CheckBox displayFriendOfflineToastCheckBox;
   public CheckBox playFriendOnlineSoundCheckBox;
@@ -91,10 +101,9 @@ public class SettingsController implements Controller<Node> {
   public CheckBox displayLadder1v1ToastCheckBox;
   public CheckBox playPmReceivedSoundCheckBox;
   public Region settingsRoot;
-  public ComboBox<LanguageInfo> languageComboBox;
   public ComboBox<Theme> themeComboBox;
-  public CheckBox rememberLastTabCheckBox;
-  public ToggleGroup toastPosition;
+  public Toggle rememberLastTabToggle;
+  public ToggleGroup toastPositionToggleGroup;
   public ComboBox<Screen> toastScreenComboBox;
   public ToggleButton bottomLeftToastButton;
   public ToggleButton topRightToastButton;
@@ -107,19 +116,38 @@ public class SettingsController implements Controller<Node> {
   public Label passwordChangeErrorLabel;
   public Label passwordChangeSuccessLabel;
   public ComboBox<UnitDataBaseType> unitDatabaseComboBox;
-  public CheckBox notifyOnAtMentionOnly;
+  public Toggle notifyOnAtMentionOnlyToggle;
+  public Pane languagesContainer;
   private ChangeListener<Theme> selectedThemeChangeListener;
   private ChangeListener<Theme> currentThemeChangeListener;
+  private InvalidationListener availableLanguagesListener;
 
-  @Inject
   public SettingsController(UserService userService, PreferencesService preferencesService, UiService uiService,
-                            I18n i18n, EventBus eventBus, NotificationService notificationService) {
+                            I18n i18n, EventBus eventBus, NotificationService notificationService,
+                            PlatformService platformService, ClientProperties clientProperties) {
     this.userService = userService;
     this.preferencesService = preferencesService;
     this.uiService = uiService;
     this.i18n = i18n;
     this.eventBus = eventBus;
     this.notificationService = notificationService;
+    this.platformService = platformService;
+    this.clientProperties = clientProperties;
+
+    availableLanguagesListener = observable -> {
+      LocalizationPrefs localization = preferencesService.getPreferences().getLocalization();
+      Locale currentLocale = localization.getLanguage();
+      List<Node> nodes = i18n.getAvailableLanguages().stream()
+          .map(locale -> {
+            LanguageItemController controller = uiService.loadFxml("theme/settings/language_item.fxml");
+            controller.setLocale(locale);
+            controller.setOnSelectedListener(this::onLanguageSelected);
+            controller.setSelected(locale.equals(currentLocale));
+            return controller.getRoot();
+          })
+          .collect(Collectors.toList());
+      languagesContainer.getChildren().setAll(nodes);
+    };
   }
 
   /**
@@ -137,16 +165,16 @@ public class SettingsController implements Controller<Node> {
   private void setSelectedToastPosition(ToastPosition newValue) {
     switch (newValue) {
       case TOP_RIGHT:
-        toastPosition.selectToggle(topRightToastButton);
+        toastPositionToggleGroup.selectToggle(topRightToastButton);
         break;
       case BOTTOM_RIGHT:
-        toastPosition.selectToggle(bottomRightToastButton);
+        toastPositionToggleGroup.selectToggle(bottomRightToastButton);
         break;
       case BOTTOM_LEFT:
-        toastPosition.selectToggle(bottomLeftToastButton);
+        toastPositionToggleGroup.selectToggle(bottomLeftToastButton);
         break;
       case TOP_LEFT:
-        toastPosition.selectToggle(topLeftToastButton);
+        toastPositionToggleGroup.selectToggle(topLeftToastButton);
         break;
     }
   }
@@ -166,10 +194,10 @@ public class SettingsController implements Controller<Node> {
     temporarilyDisableUnsupportedSettings(preferences);
 
     JavaFxUtil.bindBidirectional(maxMessagesTextField.textProperty(), preferences.getChat().maxMessagesProperty(), new NumberStringConverter(integerNumberFormat));
-    imagePreviewCheckBox.selectedProperty().bindBidirectional(preferences.getChat().previewImageUrlsProperty());
-    enableNotificationsCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().transientNotificationsEnabledProperty());
+    imagePreviewToggle.selectedProperty().bindBidirectional(preferences.getChat().previewImageUrlsProperty());
+    enableNotificationsToggle.selectedProperty().bindBidirectional(preferences.getNotification().transientNotificationsEnabledProperty());
 
-    hideFoeCheckBox.selectedProperty().bindBidirectional(preferences.getChat().hideFoeMessagesProperty());
+    hideFoeToggle.selectedProperty().bindBidirectional(preferences.getChat().hideFoeMessagesProperty());
 
     JavaFxUtil.addListener(preferences.getChat().chatColorModeProperty(), (observable, oldValue, newValue) -> setSelectedColorMode(newValue));
     setSelectedColorMode(preferences.getChat().getChatColorMode());
@@ -191,7 +219,7 @@ public class SettingsController implements Controller<Node> {
 
     JavaFxUtil.addListener(preferences.getNotification().toastPositionProperty(), (observable, oldValue, newValue) -> setSelectedToastPosition(newValue));
     setSelectedToastPosition(preferences.getNotification().getToastPosition());
-    toastPosition.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+    toastPositionToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == topLeftToastButton) {
         preferences.getNotification().setToastPosition(ToastPosition.TOP_LEFT);
       }
@@ -206,7 +234,7 @@ public class SettingsController implements Controller<Node> {
       }
     });
     configureTimeSetting(preferences);
-    configureLanguageSelection(preferences);
+    configureLanguageSelection();
     configureThemeSelection(preferences);
     configureRememberLastTab(preferences);
     configureToastScreen(preferences);
@@ -223,11 +251,11 @@ public class SettingsController implements Controller<Node> {
     playFriendPlaysGameSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendPlaysGameSoundEnabledProperty());
     playPmReceivedSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().privateMessageSoundEnabledProperty());
 
-    notifyOnAtMentionOnly.selectedProperty().bindBidirectional(preferences.getNotification().notifyOnAtMentionOnlyEnabledProperty());
-    enableSoundsCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().soundsEnabledProperty());
+    notifyOnAtMentionOnlyToggle.selectedProperty().bindBidirectional(preferences.getNotification().notifyOnAtMentionOnlyEnabledProperty());
+    enableSoundsToggle.selectedProperty().bindBidirectional(preferences.getNotification().soundsEnabledProperty());
     gamePortTextField.textProperty().bindBidirectional(preferences.getForgedAlliance().portProperty(), new NumberStringConverter(integerNumberFormat));
-    gameLocationTextField.textProperty().bindBidirectional(preferences.getForgedAlliance().executablePathProperty(), PATH_STRING_CONVERTER);
-    autoDownloadMapsCheckBox.selectedProperty().bindBidirectional(preferences.getForgedAlliance().autoDownloadMapsProperty());
+    gameLocationTextField.textProperty().bindBidirectional(preferences.getForgedAlliance().pathProperty(), PATH_STRING_CONVERTER);
+    autoDownloadMapsToggle.selectedProperty().bindBidirectional(preferences.getForgedAlliance().autoDownloadMapsProperty());
 
     executableDecoratorField.textProperty().bindBidirectional(preferences.getForgedAlliance().executableDecoratorProperty());
     executionDirectoryField.textProperty().bindBidirectional(preferences.getForgedAlliance().executionDirectoryProperty(), PATH_STRING_CONVERTER);
@@ -288,41 +316,42 @@ public class SettingsController implements Controller<Node> {
   }
 
   private void configureRememberLastTab(Preferences preferences) {
-    JavaFxUtil.bindBidirectional(rememberLastTabCheckBox.selectedProperty(), preferences.rememberLastTabProperty());
+    JavaFxUtil.bindBidirectional(rememberLastTabToggle.selectedProperty(), preferences.rememberLastTabProperty());
   }
 
   private void configureThemeSelection(Preferences preferences) {
     themeComboBox.setItems(FXCollections.observableArrayList(uiService.getAvailableThemes()));
-    themeComboBox.getSelectionModel().selectedItemProperty().addListener(new WeakChangeListener<>(selectedThemeChangeListener));
 
     Theme currentTheme = themeComboBox.getItems().stream()
         .filter(theme -> theme.getDisplayName().equals(preferences.getThemeName()))
         .findFirst().orElse(DEFAULT_THEME);
     themeComboBox.getSelectionModel().select(currentTheme);
 
+    themeComboBox.getSelectionModel().selectedItemProperty().addListener(selectedThemeChangeListener);
     JavaFxUtil.addListener(uiService.currentThemeProperty(), new WeakChangeListener<>(currentThemeChangeListener));
   }
 
-  private void configureLanguageSelection(Preferences preferences) {
-    languageComboBox.setButtonCell(new StringListCell<>(languageInfo -> i18n.get(languageInfo.getDisplayNameKey())));
-    languageComboBox.setCellFactory(param -> new StringListCell<>(languageInfo -> i18n.get(languageInfo.getDisplayNameKey())));
-    languageComboBox.setItems(FXCollections.observableArrayList(LanguageInfo.values()));
-    LanguageInfo languageInfo = preferences.getLocalization().getLanguage();
-    languageComboBox.getSelectionModel().select(languageInfo.ordinal());
+  private void configureLanguageSelection() {
+    i18n.getAvailableLanguages().addListener(new WeakInvalidationListener(availableLanguagesListener));
+    availableLanguagesListener.invalidated(i18n.getAvailableLanguages());
   }
 
-  public void onLanguageSelected() {
+  @VisibleForTesting
+  void onLanguageSelected(Locale locale) {
     LocalizationPrefs localizationPrefs = preferencesService.getPreferences().getLocalization();
-    if (Objects.equals(languageComboBox.getValue(), localizationPrefs.getLanguage())) {
+    if (Objects.equals(locale, localizationPrefs.getLanguage())) {
       return;
     }
-    log.debug("A new language was selected: {}", languageComboBox.getValue());
-    localizationPrefs.setLanguage(languageComboBox.getValue());
+    log.debug("A new language was selected: {}", locale);
+    localizationPrefs.setLanguage(locale);
     preferencesService.storeInBackground();
+
+    availableLanguagesListener.invalidated(i18n.getAvailableLanguages());
+
     notificationService.addNotification(new PersistentNotification(
-        i18n.get("settings.languages.restart.message"),
+        i18n.get(locale, "settings.languages.restart.message"),
         Severity.WARN,
-        Collections.singletonList(new Action(i18n.get("settings.languages.restart"),
+        Collections.singletonList(new Action(i18n.get(locale, "settings.languages.restart"),
             event -> {
               Platform.exit();
               // FIXME reload application (stage & application context)
@@ -344,7 +373,7 @@ public class SettingsController implements Controller<Node> {
     eventBus.post(new GameDirectoryChooseEvent());
   }
 
-  public void onSelectExecutionDirectory(ActionEvent event) {
+  public void onSelectExecutionDirectory() {
     // TODO implement
   }
 
@@ -383,4 +412,16 @@ public class SettingsController implements Controller<Node> {
         }
     );
   }
+
+  public void onPreviewToastButtonClicked() {
+    notificationService.addNotification(new TransientNotification(
+        i18n.get("settings.notifications.toastPreview.title"),
+        i18n.get("settings.notifications.toastPreview.text")
+    ));
+  }
+
+  public void onHelpUsButtonClicked() {
+    platformService.showDocument(clientProperties.getTranslationProjectUrl());
+  }
 }
+

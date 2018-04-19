@@ -37,7 +37,7 @@ import static com.faforever.client.fx.WindowController.WindowButtonType.MINIMIZE
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class WindowController implements Controller<Node> {
 
-  private static final double RESIZE_BORDER_WIDTH = 7d;
+  private static final double RESIZE_BORDER_WIDTH = 4d;
   private static final String PROPERTY_WINDOW_DECORATOR = "windowDecorator";
   private static final PseudoClass MAXIMIZED_PSEUDO_STATE = PseudoClass.getPseudoClass("maximized");
   private final UiService uiService;
@@ -98,10 +98,10 @@ public class WindowController implements Controller<Node> {
     windowRoot.pseudoClassStateChanged(MAXIMIZED_PSEUDO_STATE, false);
 
     stage.setMaximized(false);
-    AnchorPane.setTopAnchor(contentPane, RESIZE_BORDER_WIDTH);
-    AnchorPane.setRightAnchor(contentPane, RESIZE_BORDER_WIDTH);
-    AnchorPane.setBottomAnchor(contentPane, RESIZE_BORDER_WIDTH);
-    AnchorPane.setLeftAnchor(contentPane, RESIZE_BORDER_WIDTH);
+    AnchorPane.setTopAnchor(contentPane, 0d);
+    AnchorPane.setRightAnchor(contentPane, 0d);
+    AnchorPane.setBottomAnchor(contentPane, 0d);
+    AnchorPane.setLeftAnchor(contentPane, 0d);
 
     AnchorPane.setRightAnchor(windowButtons, RESIZE_BORDER_WIDTH);
   }
@@ -135,16 +135,6 @@ public class WindowController implements Controller<Node> {
     maximizeButton.managedProperty().bind(maximizeButton.visibleProperty());
     restoreButton.managedProperty().bind(restoreButton.visibleProperty());
     closeButton.managedProperty().bind(closeButton.visibleProperty());
-
-    // Workaround for https://bugs.openjdk.java.net/browse/JDK-8087997
-    // Will be fixed in JDK 8u122
-    // Fixes #13
-    JavaFxUtil.addListener(windowRoot.heightProperty(), (observable, oldValue, newValue) -> {
-      if (stage.isIconified() && stage.isMaximized()) {
-        stage.setIconified(false);
-        maximize();
-      }
-    });
   }
 
   public void configure(Stage stage, Region content, boolean resizable, WindowButtonType... buttons) {

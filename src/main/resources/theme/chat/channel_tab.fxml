@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXTextField?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -23,8 +23,11 @@
               <WebView fx:id="messagesWebView" minHeight="100.0" minWidth="100.0" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
               <HBox fx:id="searchFieldContainer" visible="false" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                 <children>
-                  <Button fx:id="closeSearchFieldButton" contentDisplay="RIGHT" focusTraversable="false" maxHeight="1.7976931348623157E308" mnemonicParsing="false" onMouseClicked="#onSearchFieldClose" styleClass="close-search-text-button" visible="false" />
-                  <TextField fx:id="searchField" promptText="%chat.filter.prompt" visible="false" />
+                    <JFXButton fx:id="closeSearchFieldButton" contentDisplay="RIGHT" focusTraversable="false"
+                               maxHeight="1.7976931348623157E308" mnemonicParsing="false"
+                               onMouseClicked="#onSearchFieldClose" styleClass="close-search-text-button"
+                               visible="false"/>
+                    <JFXTextField fx:id="searchField" promptText="%chat.filter.prompt" visible="false"/>
                 </children>
               </HBox>
             </children>
@@ -33,7 +36,8 @@
             <children>
               <HBox alignment="CENTER">
                 <children>
-                  <TextField fx:id="userSearchTextField" maxWidth="1.7976931348623157E308" minWidth="10.0" prefColumnCount="5" HBox.hgrow="ALWAYS" />
+                    <JFXTextField fx:id="userSearchTextField" maxWidth="1.7976931348623157E308" minWidth="10.0"
+                                  prefColumnCount="5" HBox.hgrow="ALWAYS"/>
                   <ToggleButton fx:id="advancedUserFilter" mnemonicParsing="false" onAction="#onAdvancedUserFilter"
                                 styleClass="icon-button" text="" HBox.hgrow="NEVER"/>
                 </children>
@@ -78,7 +82,12 @@
           </VBox>
         </items>
       </SplitPane>
-      <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage" promptText="%chat.messagePrompt" />
+        <JFXTextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage"
+                      promptText="%chat.messagePrompt">
+            <VBox.margin>
+                <Insets bottom="5.0"/>
+            </VBox.margin>
+        </JFXTextField>
     </children>
   </VBox>
 </Tab>

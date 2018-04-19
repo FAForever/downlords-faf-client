@@ -5,19 +5,18 @@ All the following applies to the content of a WebViews (chat, news), therefore i
 *****************/
 
 html, body {
-  /* Same as -base-color */
-  background-color: #212121;
+  background-color: transparent;
   margin: 0;
   padding: 0;
   /* Use same as -fx-light-text-color */
-  color: #e6e6e6;
+  color: #DCDCDC;
   font-family: 'Open Sans', 'sans-serif';
   font-size: 14px;
 }
 
 a {
   /* Use same as -fx-accent */
-  color: #609e15;
+  color: #009688;
   text-decoration: none;
 }
 
@@ -80,8 +79,8 @@ img.country-flag[src=""] {
   text-decoration: underline;
 }
 .chat-section .clan-tag {
-  /* Same as -primary-text-color */
-  color: #fafafa;
+  /* Use same as -fx-light-text-color */
+  color: #DCDCDC;
   cursor: pointer;
   font-weight: bold;
   margin-right: 0.5em;
@@ -92,14 +91,14 @@ img.country-flag[src=""] {
 }
 
 .chat-section .time {
-  /* Same as -tertiary-text-color */
+  /* Same as -fx-mid-text-color */
   color: #757575;
   font-size: 10px;
 }
 
 .chat-section .text {
-  /* Same as -secondary-text-color */
-  color: #bdbdbd;
+  /* Use same as -fx-light-text-color */
+  color: #DCDCDC;
   padding-left: 1em;
 }
 

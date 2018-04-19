@@ -1,13 +1,17 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.StringBinding;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -18,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import javax.inject.Inject;
 import java.util.Objects;
@@ -46,7 +51,7 @@ public class GameTileController implements Controller<Node> {
   public ImageView mapImageView;
   private Consumer<Game> onSelectedListener;
   private Game game;
-  private GameTooltipController gameTooltipController;
+  private Tooltip tooltip;
 
   @Inject
   public GameTileController(MapService mapService, I18n i18n, JoinGameHelper joinGameHelper, ModService modService, UiService uiService) {
@@ -66,16 +71,6 @@ public class GameTileController implements Controller<Node> {
     modsLabel.visibleProperty().bind(modsLabel.textProperty().isNotEmpty());
     gameTypeLabel.managedProperty().bind(gameTypeLabel.visibleProperty());
     lockIconLabel.managedProperty().bind(lockIconLabel.visibleProperty());
-
-    Tooltip tooltip = new Tooltip();
-    gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
-    tooltip.setGraphic(gameTooltipController.getRoot());
-    Tooltip.install(gameCardRoot, tooltip);
-    tooltip.showingProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue && game != null) {
-        gameTooltipController.setGameInfoBean(game);
-      }
-    });
   }
 
   public Node getRoot() {
@@ -83,6 +78,7 @@ public class GameTileController implements Controller<Node> {
   }
 
   public void setGame(Game game) {
+    Assert.isNull(this.game, "Game has already been set");
     this.game = game;
 
     modService.getFeaturedMod(game.getFeaturedMod())
@@ -91,7 +87,13 @@ public class GameTileController implements Controller<Node> {
     gameTitleLabel.textProperty().bind(game.titleProperty());
     hostLabel.setText(game.getHost());
 
-    gameMapLabel.textProperty().bind(game.mapFolderNameProperty());
+    StringBinding mapNameBinding = Bindings.createStringBinding(
+        () -> mapService.getMapLocallyFromName(game.getMapFolderName())
+            .map(MapBean::getDisplayName)
+            .orElse(game.getMapFolderName()),
+        game.mapFolderNameProperty());
+
+    JavaFxUtil.bind(gameMapLabel.textProperty(), mapNameBinding);
     numberOfPlayersLabel.textProperty().bind(createStringBinding(
         () -> i18n.get("game.players.format", game.getNumPlayers(), game.getMaxPlayers()),
         game.numPlayersProperty(),
@@ -127,5 +129,19 @@ public class GameTileController implements Controller<Node> {
       mouseEvent.consume();
       joinGameHelper.join(game);
     }
+  }
+
+  public void onMouseEntered() {
+    GameTooltipController gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
+    gameTooltipController.setGame(game);
+
+    tooltip = new Tooltip();
+    tooltip.setGraphic(gameTooltipController.getRoot());
+    Tooltip.install(gameCardRoot, tooltip);
+  }
+
+  public void onMouseExited() {
+    Tooltip.uninstall(gameCardRoot, tooltip);
+    tooltip = null;
   }
 }

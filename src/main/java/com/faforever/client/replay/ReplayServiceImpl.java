@@ -166,17 +166,7 @@ public class ReplayServiceImpl implements ReplayService {
           FeaturedMod featuredMod = modService.getFeaturedMod(replayInfo.getFeaturedMod()).getNow(FeaturedMod.UNKNOWN);
 
           mapService.findByMapFolderName(replayInfo.getMapname())
-              .thenAccept(mapBean -> {
-                if (!mapBean.isPresent()) {
-                  notificationService.addNotification(new ImmediateNotification(
-                      i18n.get("errorTitle"),
-                      i18n.get("mapNotFound", replayInfo.getMapname()),
-                      WARN
-                  ));
-                  return;
-                }
-                replayInfos.add(new Replay(replayInfo, replayFile, featuredMod, mapBean.get()));
-              });
+              .thenAccept(mapBean -> replayInfos.add(new Replay(replayInfo, replayFile, featuredMod, mapBean.orElse(null))));
         } catch (Exception e) {
           logger.warn("Could not read replay file '{}'", replayFile, e);
           moveCorruptedReplayFile(replayFile);

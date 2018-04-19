@@ -13,7 +13,6 @@ import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
-import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.Pane;
 import org.junit.Before;
@@ -52,10 +51,10 @@ public class SearchControllerTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     when(uiService.loadFxml("theme/vault/search/logical_node.fxml")).thenAnswer(invocation -> {
       LogicalNodeController controller = mock(LogicalNodeController.class);
-      controller.logicalOperatorField = new ChoiceBox<>();
+      controller.logicalOperatorField = new ComboBox<>();
       controller.specificationController = mock(SpecificationController.class);
       controller.specificationController.propertyField = new ComboBox<>();
-      controller.specificationController.operationField = new ChoiceBox<>();
+      controller.specificationController.operationField = new ComboBox<>();
       controller.specificationController.valueField = new ComboBox<>();
       when(controller.getRoot()).thenReturn(new Pane());
       return controller;

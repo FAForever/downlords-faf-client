@@ -26,7 +26,6 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -42,6 +41,7 @@ import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +94,7 @@ public class CreateGameController implements Controller<Pane> {
   public Label versionLabel;
   @VisibleForTesting
   FilteredList<MapBean> filteredMapBeans;
+  private Runnable onClosedButtonClickedListener;
 
   @Inject
   public CreateGameController(FafService fafService, MapService mapService, ModService modService, GameService gameService, PreferencesService preferencesService, I18n i18n, NotificationService notificationService, ReportingService reportingService) {
@@ -108,8 +109,9 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   public void initialize() {
-    mapPreviewPane.minHeightProperty().bind(mapPreviewPane.widthProperty());
-    mapPreviewPane.maxHeightProperty().bind(mapPreviewPane.widthProperty());
+    versionLabel.managedProperty().bind(versionLabel.visibleProperty());
+
+    mapPreviewPane.prefHeightProperty().bind(mapPreviewPane.widthProperty());
     mapSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue.isEmpty()) {
         filteredMapBeans.setPredicate(mapInfoBean -> true);
@@ -150,9 +152,9 @@ public class CreateGameController implements Controller<Pane> {
       selectLastOrDefaultGameType();
     }));
 
-    if (preferencesService.getPreferences().getForgedAlliance().getExecutablePath() == null) {
+    if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
       preferencesService.addUpdateListener(preferences -> {
-        if (preferencesService.getPreferences().getForgedAlliance().getExecutablePath() != null) {
+        if (preferencesService.getPreferences().getForgedAlliance().getPath() != null) {
           Platform.runLater(this::init);
         }
       });
@@ -162,7 +164,7 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   public void onCloseButtonClicked() {
-    ((Pane) getRoot().getParent()).getChildren().remove(createGameRoot);
+    onClosedButtonClickedListener.run();
   }
 
   private void init() {
@@ -238,14 +240,20 @@ public class CreateGameController implements Controller<Pane> {
         new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false))));
 
     MapSize mapSize = newValue.getSize();
-    mapSizeLabel.setText(i18n.get("mapPreview.size", mapSize.getWidthInPixels(), mapSize.getHeightInPixels()));
+    mapSizeLabel.setText(i18n.get("mapPreview.size", mapSize.getWidthInKm(), mapSize.getHeightInKm()));
     mapNameLabel.setText(newValue.getDisplayName());
     mapPlayersLabel.setText(i18n.number(newValue.getPlayers()));
     mapDescriptionLabel.setText(Optional.ofNullable(newValue.getDescription())
         .map(Strings::emptyToNull)
         .map(FaStrings::removeLocalizationTag)
         .orElseGet(() -> i18n.get("map.noDescriptionAvailable")));
-    versionLabel.setText(newValue.getVersion().toString());
+
+    ComparableVersion mapVersion = newValue.getVersion();
+    if (mapVersion == null) {
+      versionLabel.setVisible(false);
+    } else {
+      versionLabel.setText(i18n.get("map.versionFormat", mapVersion));
+    }
   }
 
   private void initFeaturedModList() {
@@ -371,31 +379,23 @@ public class CreateGameController implements Controller<Pane> {
     return createGameRoot;
   }
 
-  public void onSelectDefaultGameTypeButtonClicked(ActionEvent event) {
+  public void onSelectDefaultGameTypeButtonClicked() {
     featuredModListView.getSelectionModel().select(0);
   }
 
-  public void onDeselectModsButtonClicked(ActionEvent event) {
+  public void onDeselectModsButtonClicked() {
     modListView.getSelectionModel().clearSelection();
   }
 
-  public void onReloadModsButtonClicked(ActionEvent event) {
+  public void onReloadModsButtonClicked() {
     modService.loadInstalledMods();
     initModList();
-  }
-
-  public void onDimmerClicked() {
-    onCloseButtonClicked();
-  }
-
-  public void onContentPaneClicked(MouseEvent event) {
-    event.consume();
   }
 
   /**
    * @return returns true of the map was found and false if not
    */
-  public boolean selectMap(String mapFolderName) {
+  boolean selectMap(String mapFolderName) {
     Optional<MapBean> mapBeanOptional = mapListView.getItems().stream().filter(mapBean -> mapBean.getFolderName().equalsIgnoreCase(mapFolderName)).findAny();
     if (!mapBeanOptional.isPresent()) {
       return false;
@@ -403,5 +403,9 @@ public class CreateGameController implements Controller<Pane> {
     mapListView.getSelectionModel().select(mapBeanOptional.get());
     mapListView.scrollTo(mapBeanOptional.get());
     return true;
+  }
+
+  void setOnClosedButtonClickedListener(Runnable onClosedButtonClickedListener) {
+    this.onClosedButtonClickedListener = onClosedButtonClickedListener;
   }
 }

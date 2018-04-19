@@ -132,13 +132,13 @@ public class MapServiceImpl implements MapService {
   @PostConstruct
   void postConstruct() {
     customMapsDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
-    JavaFxUtil.addListener(preferencesService.getPreferences().getForgedAlliance().executablePathProperty(), observable -> tryLoadMaps());
+    JavaFxUtil.addListener(preferencesService.getPreferences().getForgedAlliance().pathProperty(), observable -> tryLoadMaps());
     JavaFxUtil.addListener(preferencesService.getPreferences().getForgedAlliance().customMapsDirectoryProperty(), observable -> tryLoadMaps());
     tryLoadMaps();
   }
 
   private void tryLoadMaps() {
-    if (preferencesService.getPreferences().getForgedAlliance().getExecutablePath() == null
+    if (preferencesService.getPreferences().getForgedAlliance().getPath() == null
         || preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory() == null) {
       return;
     }
@@ -178,7 +178,7 @@ public class MapServiceImpl implements MapService {
       @Override
       protected Void call() {
         updateTitle(i18n.get("mapVault.loadingMaps"));
-        Path officialMapsPath = preferencesService.getPreferences().getForgedAlliance().getExecutablePath().resolve("maps");
+        Path officialMapsPath = preferencesService.getPreferences().getForgedAlliance().getPath().resolve("maps");
 
         try {
           List<Path> mapPaths = new ArrayList<>();
@@ -237,11 +237,16 @@ public class MapServiceImpl implements MapService {
       MapBean mapBean = new MapBean();
       mapBean.setFolderName(mapFolder.getFileName().toString());
       mapBean.setDisplayName(scenarioInfo.get("name").toString());
-      mapBean.setDescription(FaStrings.removeLocalizationTag(scenarioInfo.get("description").tojstring()));
-      mapBean.setVersion(new ComparableVersion(scenarioInfo.get("map_version").tojstring()));
+      mapBean.setDescription(FaStrings.removeLocalizationTag(scenarioInfo.get("description").toString()));
       mapBean.setType(Type.fromString(scenarioInfo.get("type").toString()));
       mapBean.setSize(MapSize.valueOf(size.get(1).toint(), size.get(2).toint()));
       mapBean.setPlayers(scenarioInfo.get("Configurations").get("standard").get("teams").get(1).get("armies").length());
+
+      LuaValue mapVersion = scenarioInfo.get("map_version");
+      if (!mapVersion.isnil()) {
+        mapBean.setVersion(new ComparableVersion(mapVersion.toString()));
+      }
+
       return mapBean;
     } catch (LuaError e) {
       throw new MapLoadException(e);
@@ -261,18 +266,18 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  public MapBean getMapBeanLocallyFromName(String mapName) {
-    logger.debug("Trying to return {} mapInfoBean locally", mapName);
+  public Optional<MapBean> getMapLocallyFromName(String mapFolderName) {
+    logger.debug("Trying to find map '{}' locally", mapFolderName);
     ObservableList<MapBean> installedMaps = getInstalledMaps();
     synchronized (installedMaps) {
       for (MapBean mapBean : installedMaps) {
-        if (mapName.equalsIgnoreCase(mapBean.getDisplayName())) {
-          logger.debug("Found map {} locally", mapName);
-          return mapBean;
+        if (mapFolderName.equalsIgnoreCase(mapBean.getFolderName())) {
+          logger.debug("Found map {} locally", mapFolderName);
+          return Optional.of(mapBean);
         }
       }
     }
-    return null;
+    return Optional.empty();
   }
 
   @Override
