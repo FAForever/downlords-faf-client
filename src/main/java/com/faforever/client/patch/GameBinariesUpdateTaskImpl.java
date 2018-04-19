@@ -118,7 +118,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
     Path fafBinDirectory = preferencesService.getFafBinDirectory();
     createDirectories(fafBinDirectory);
 
-    Path faBinPath = preferencesService.getPreferences().getForgedAlliance().getExecutablePath().resolve("bin");
+    Path faBinPath = preferencesService.getPreferences().getForgedAlliance().getPath().resolve("bin");
 
     Files.list(faBinPath)
         .filter(path -> BINARIES_TO_COPY.contains(path.getFileName().toString()))

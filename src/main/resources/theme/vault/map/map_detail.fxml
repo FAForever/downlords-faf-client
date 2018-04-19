@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXProgressBar?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.image.ImageView?>
@@ -72,21 +72,22 @@
                                         GridPane.columnSpan="2147483647">
                                       <HBox alignment="TOP_RIGHT" spacing="10.0">
                                           <children>
-                                              <Button fx:id="createGameButton" defaultButton="true"
-                                                      mnemonicParsing="false" onAction="#onCreateGameButtonClicked"
-                                                      text="%games.create"/>
-                                              <Button fx:id="installButton" defaultButton="true" mnemonicParsing="false"
+                                              <JFXButton fx:id="createGameButton" defaultButton="true"
+                                                         mnemonicParsing="false" onAction="#onCreateGameButtonClicked"
+                                                         text="%games.create"/>
+                                              <JFXButton fx:id="installButton" defaultButton="true"
+                                                         mnemonicParsing="false"
                                                       onAction="#onInstallButtonClicked"
                                                       text="%mapVault.installButtonFormat"/>
-                                              <Button fx:id="uninstallButton" mnemonicParsing="false"
-                                                      onAction="#onUninstallButtonClicked" text="%mapVault.uninstall"/>
+                                              <JFXButton fx:id="uninstallButton" mnemonicParsing="false"
+                                                         onAction="#onUninstallButtonClicked" text="%mapVault.uninstall"/>
                                           </children>
                                       </HBox>
                                       <VBox fx:id="loadingContainer" alignment="TOP_RIGHT" maxWidth="300.0">
                                           <children>
                                               <Label fx:id="progressLabel"/>
-                                              <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308"
-                                                           progress="0.0"/>
+                                              <JFXProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308"
+                                                              progress="0.0"/>
                                           </children>
                                       </VBox>
                                   </VBox>
@@ -118,13 +119,13 @@
                   </VBox>
               </content>
           </ScrollPane>
-          <Button cancelButton="true" focusTraversable="false" onAction="#onCloseButtonClicked"
-                  AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+          <JFXButton cancelButton="true" focusTraversable="false" onAction="#onCloseButtonClicked"
+                     AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
               <styleClass>
                   <String fx:value="window-button"/>
                   <String fx:value="close-button"/>
               </styleClass>
-          </Button>
+          </JFXButton>
       </children>
     </AnchorPane>
   </children>

@@ -29,7 +29,7 @@ public interface MapService {
 
   ObservableList<MapBean> getInstalledMaps();
 
-  MapBean getMapBeanLocallyFromName(String mapName);
+  Optional<MapBean> getMapLocallyFromName(String mapName);
 
   boolean isOfficialMap(String mapName);
 

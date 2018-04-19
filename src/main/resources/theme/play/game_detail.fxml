@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.JFXButton?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -52,7 +52,8 @@
         <VBox alignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="6">
             <children>
                 <fx:include fx:id="watchButton" source="../vault/replay/watch_button.fxml"/>
-                <Button fx:id="joinButton" mnemonicParsing="false" onAction="#onJoinButtonClicked" text="%game.join"/>
+                <JFXButton fx:id="joinButton" mnemonicParsing="false" onAction="#onJoinButtonClicked"
+                           text="%game.join"/>
             </children>
         </VBox>
         <VBox fx:id="teamListPane" maxWidth="1.7976931348623157E308" spacing="10.0" GridPane.columnSpan="2147483647"

@@ -20,7 +20,6 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.Node;
-import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.layout.HBox;
@@ -93,7 +92,7 @@ public class SpecificationController implements Controller<Node> {
   private final I18n i18n;
   private final FilteredList<ComparisonOperator> comparisonOperators;
   public ComboBox<String> propertyField;
-  public ChoiceBox<ComparisonOperator> operationField;
+  public ComboBox<ComparisonOperator> operationField;
   public ComboBox<Object> valueField;
   public HBox specificationRoot;
   public DatePicker datePicker;

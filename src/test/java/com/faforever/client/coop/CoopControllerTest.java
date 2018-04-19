@@ -16,6 +16,7 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Pane;
@@ -78,7 +79,7 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     instance = new CoopController(replayService, gameService, coopService, notificationService, i18n, reportingService,
-        mapService, preferencesService, uiService, timeService, webViewConfigurer, modService);
+        mapService, uiService, timeService, webViewConfigurer, modService);
 
     when(coopService.getLeaderboard(any(), anyInt())).thenReturn(CompletableFuture.completedFuture(emptyList()));
     when(coopService.getMissions()).thenReturn(CompletableFuture.completedFuture(emptyList()));
@@ -95,7 +96,7 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void onPlayButtonClicked() {
     when(coopService.getMissions()).thenReturn(completedFuture(singletonList(new CoopMission())));
-    instance.initialize();
+    Platform.runLater(() -> instance.initialize());
 
     WaitForAsyncUtils.waitForFxEvents();
     instance.onPlayButtonClicked();

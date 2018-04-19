@@ -9,7 +9,7 @@ import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
-import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -56,7 +56,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
   public void testCreateTiledFlowPaneWithEmptyList() throws Exception {
     ObservableList<Game> observableList = FXCollections.observableArrayList();
 
-    instance.createTiledFlowPane(observableList, new ChoiceBox<>());
+    instance.createTiledFlowPane(observableList, new ComboBox<>());
 
     assertThat(instance.tiledFlowPane.getChildren(), empty());
   }
@@ -67,7 +67,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
     ObservableList<Game> observableList = FXCollections.observableArrayList();
     observableList.add(new Game());
 
-    instance.createTiledFlowPane(observableList, new ChoiceBox<>());
+    instance.createTiledFlowPane(observableList, new ComboBox<>());
 
     assertThat(instance.tiledFlowPane.getChildren(), hasSize(1));
   }
@@ -81,7 +81,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
 
     ObservableList<Game> observableList = FXCollections.observableArrayList();
 
-    instance.createTiledFlowPane(observableList, new ChoiceBox<>());
+    instance.createTiledFlowPane(observableList, new ComboBox<>());
     observableList.add(new Game());
 
     latch.await();
@@ -99,7 +99,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
     ObservableList<Game> observableList = FXCollections.observableArrayList();
 
     observableList.add(GameBuilder.create().defaultValues().get());
-    instance.createTiledFlowPane(observableList, new ChoiceBox<>());
+    instance.createTiledFlowPane(observableList, new ComboBox<>());
     observableList.add(GameBuilder.create().defaultValues().get());
 
     latch.await();
@@ -130,7 +130,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
 
     preferences.setGameTileSortingOrder(TilesSortingOrder.PLAYER_ASC);
 
-    instance.createTiledFlowPane(observableList, new ChoiceBox<>());
+    instance.createTiledFlowPane(observableList, new ComboBox<>());
     assertEquals(instance.uidToGameCard.get(game2.getId()), instance.tiledFlowPane.getChildren().get(0));
   }
 }

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
+<?import com.jfoenix.controls.JFXButton?>
 <?import javafx.scene.control.DialogPane?>
 <?import javafx.scene.layout.AnchorPane?>
 <DialogPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.40">
   <header>
     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="320.0">
       <children>
-        <Button fx:id="closeButton" mnemonicParsing="false" styleClass="window-button" AnchorPane.rightAnchor="0.0"
-                AnchorPane.topAnchor="0.0"/>
+          <JFXButton fx:id="closeButton" mnemonicParsing="false" styleClass="window-button" AnchorPane.rightAnchor="0.0"
+                     AnchorPane.topAnchor="0.0"/>
       </children>
     </AnchorPane>
   </header>

@@ -1,9 +1,9 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="FAF Client Java Server" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" singleton="true">
+  <configuration default="false" name="FAF Client Test Java Server" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" singleton="true">
     <module name="downlords-faf-client_main" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="com.faforever.client.FafClientApplication" />
     <option name="ACTIVE_PROFILES" value="test" />
-    <option name="VM_PARAMETERS" value="-DnativeDir=build/resources/native -Dprism.dirtyopts=false -Xms128m -Xmx512m -XX:MinHeapFreeRatio=15 -XX:MaxHeapFreeRatio=33 -XX:+HeapDumpOnOutOfMemoryError -XX:+UseStringDeduplication" />
+    <option name="VM_PARAMETERS" value="-DnativeDir=build/resources/native -Dprism.dirtyopts=false -Xms128m -Xmx512m -XX:MinHeapFreeRatio=15 -XX:MaxHeapFreeRatio=33 -XX:+HeapDumpOnOutOfMemoryError -XX:+UseStringDeduplication -javaagent:build/libs/webview-patch-agent.jar" />
     <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
     <option name="ALTERNATIVE_JRE_PATH" />
     <additionalParameters>

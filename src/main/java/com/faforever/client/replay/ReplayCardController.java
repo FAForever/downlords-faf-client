@@ -12,6 +12,7 @@ import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.StarsController;
 import com.google.common.base.Joiner;
+import com.jfoenix.controls.JFXRippler;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -58,6 +59,7 @@ public class ReplayCardController implements Controller<Node> {
   private Consumer<Replay> onOpenDetailListener;
   private I18n i18n;
   private InvalidationListener reviewsChangedListener;
+  private JFXRippler jfxRippler;
 
   @Inject
   public ReplayCardController(TimeService timeService, MapService mapService, RatingService ratingService, I18n i18n) {
@@ -66,6 +68,11 @@ public class ReplayCardController implements Controller<Node> {
     this.ratingService = ratingService;
     this.i18n = i18n;
     reviewsChangedListener = observable -> populateReviews();
+  }
+
+  @Override
+  public void initialize() {
+    jfxRippler = new JFXRippler(replayTileRoot);
   }
 
   public void setReplay(Replay replay) {
@@ -117,7 +124,7 @@ public class ReplayCardController implements Controller<Node> {
   }
 
   public Node getRoot() {
-    return replayTileRoot;
+    return jfxRippler;
   }
 
   public void setOnOpenDetailListener(Consumer<Replay> onOpenDetailListener) {

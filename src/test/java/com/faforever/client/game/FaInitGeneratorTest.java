@@ -42,7 +42,7 @@ public class FaInitGeneratorTest {
     instance = new FaInitGenerator(preferencesService);
 
     Preferences preferences = new Preferences();
-    preferences.getForgedAlliance().setExecutablePath(faDirectory.getRoot().toPath());
+    preferences.getForgedAlliance().setPath(faDirectory.getRoot().toPath());
 
     when(preferencesService.getFafBinDirectory()).thenReturn(fafBinDirectory.getRoot().toPath());
     when(preferencesService.getPreferences()).thenReturn(preferences);

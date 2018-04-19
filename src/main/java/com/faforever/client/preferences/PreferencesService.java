@@ -38,6 +38,7 @@ import java.util.TimerTask;
 @Service
 public class PreferencesService {
 
+  public static final String SUPREME_COMMANDER_EXE = "SupremeCommander.exe";
   public static final String FORGED_ALLIANCE_EXE = "ForgedAlliance.exe";
 
   /**
@@ -55,7 +56,7 @@ public class PreferencesService {
   private static final String CORRUPTED_REPLAYS_SUB_FOLDER = "corrupt";
   private static final String CACHE_SUB_FOLDER = "cache";
   private static final String CACHE_STYLESHEETS_SUB_FOLDER = Paths.get(CACHE_SUB_FOLDER, "stylesheets").toString();
-  public static final String SUPREME_COMMANDER_EXE = "SupremeCommander.exe";
+  private static final Path CACHE_DIRECTORY;
 
   static {
     if (org.bridj.Platform.isWindows()) {
@@ -63,6 +64,7 @@ public class PreferencesService {
     } else {
       FAF_DATA_DIRECTORY = Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
     }
+    CACHE_DIRECTORY = FAF_DATA_DIRECTORY.resolve(CACHE_SUB_FOLDER);
 
     System.setProperty("logging.file", PreferencesService.FAF_DATA_DIRECTORY
         .resolve("logs")
@@ -227,7 +229,7 @@ public class PreferencesService {
   }
 
   public Path getCacheDirectory() {
-    return getFafDataDirectory().resolve(CACHE_SUB_FOLDER);
+    return CACHE_DIRECTORY;
   }
 
   public Path getFafLogDirectory() {
@@ -239,7 +241,7 @@ public class PreferencesService {
   }
 
   public boolean isGamePathValid() {
-    return isGamePathValid(preferences.getForgedAlliance().getExecutablePath().resolve("bin"));
+    return isGamePathValid(preferences.getForgedAlliance().getPath().resolve("bin"));
   }
 
   public boolean isGamePathValid(Path binPath) {
@@ -253,4 +255,7 @@ public class PreferencesService {
     return getFafDataDirectory().resolve(CACHE_STYLESHEETS_SUB_FOLDER);
   }
 
+  public Path getLanguagesDirectory() {
+    return getFafDataDirectory().resolve("languages");
+  }
 }

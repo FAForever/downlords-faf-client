@@ -24,6 +24,8 @@ faf-client:
     spookiesUrl: http://spooky.github.io/unitdb/#/
     rackOversUrl: http://direct.faforever.com/faf/unitsDB/?settings64=eyJwcmV2aWV3Q29ybmVyIjoiTm9uZSJ9
 
+  translation-project-url: https://poeditor.com/join/project/2oWfdaZQZj
+
 spring:
   profiles:
     active: ${CLIENT_PROFILE:prod}
@@ -52,6 +54,7 @@ logging:
     com.faforever.client.FafClientApplication: info
     com.faforever.client.api: info
     com.faforever.client.connectivity: info
+    com.faforever.client.chat: info
     com.faforever.client.preferences: info
     com.faforever.client.map: info
     com.faforever.client.mod: info
@@ -63,10 +66,10 @@ logging:
     com.faforever.client.remote: info
     com.faforever.client.replay: info
     com.faforever.client.relay: info
-    com.faforever.client.chat: info
     com.faforever.client.game: info
     com.faforever.client.task: info
     com.faforever.client.theme: info
     com.faforever.client.io: info
     com.faforever.client.os: info
     com.faforever.client.fa.relay.ice: info
+    com.faforever.client.fx: info

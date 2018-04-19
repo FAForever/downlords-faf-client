@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
+<?import com.jfoenix.controls.JFXButton?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -32,13 +32,13 @@
                 <fx:include fx:id="ownReviewPane" source="review.fxml"/>
             </children>
         </AnchorPane>
-        <Button fx:id="createReviewButton" graphicTextGap="10.0" mnemonicParsing="false"
-                onAction="#onCreateReviewButtonClicked" text="%reviews.create" GridPane.columnIndex="1"
-                GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="BOTTOM">
+        <JFXButton fx:id="createReviewButton" graphicTextGap="10.0" mnemonicParsing="false"
+                   onAction="#onCreateReviewButtonClicked" text="%reviews.create" GridPane.columnIndex="1"
+                   GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="BOTTOM">
             <graphic>
                 <Label styleClass="icon" text=""/>
             </graphic>
-        </Button>
+        </JFXButton>
         <VBox alignment="TOP_CENTER" GridPane.rowIndex="3">
             <children>
                 <Label fx:id="scoreLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="review-score"
@@ -150,12 +150,12 @@
         <HBox fx:id="reviewsPagination" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
               GridPane.columnSpan="2147483647" GridPane.rowIndex="4">
             <children>
-                <Button fx:id="pageLeftButton" maxHeight="1.7976931348623157E308" mnemonicParsing="false"
-                        onAction="#onPageLeftButtonClicked" styleClass="icon-button" text="" HBox.hgrow="NEVER"/>
+                <JFXButton fx:id="pageLeftButton" maxHeight="1.7976931348623157E308" mnemonicParsing="false"
+                           onAction="#onPageLeftButtonClicked" styleClass="icon-button" text="" HBox.hgrow="NEVER"/>
                 <VBox fx:id="otherReviewsContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                       HBox.hgrow="ALWAYS"/>
-                <Button fx:id="pageRightButton" maxHeight="1.7976931348623157E308" mnemonicParsing="false"
-                        onAction="#onPageRightButtonClicked" styleClass="icon-button" text="" HBox.hgrow="NEVER"/>
+                <JFXButton fx:id="pageRightButton" maxHeight="1.7976931348623157E308" mnemonicParsing="false"
+                           onAction="#onPageRightButtonClicked" styleClass="icon-button" text="" HBox.hgrow="NEVER"/>
             </children>
         </HBox>
     </children>

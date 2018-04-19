@@ -22,6 +22,7 @@ public class ClientProperties {
   private Api api = new Api();
   private UnitDatabase unitDatabase = new UnitDatabase();
   private Website website = new Website();
+  private String translationProjectUrl;
 
   @Data
   public static class News {

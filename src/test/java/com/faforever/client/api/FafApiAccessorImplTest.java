@@ -252,12 +252,11 @@ public class FafApiAccessorImplTest {
     instance.changePassword("junit", "currentPasswordHash", "newPasswordHash");
 
     ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
-    verify(restOperations).postForEntity(eq("/users/change_password"), captor.capture(), eq(String.class));
+    verify(restOperations).postForEntity(eq("/users/changePassword"), captor.capture(), eq(String.class));
 
     Map<String, String> body = captor.getValue();
-    assertThat(body.get("name"), is("junit"));
-    assertThat(body.get("pw_hash_old"), is("currentPasswordHash"));
-    assertThat(body.get("pw_hash_new"), is("newPasswordHash"));
+    assertThat(body.get("currentPassword"), is("currentPasswordHash"));
+    assertThat(body.get("newPassword"), is("newPasswordHash"));
   }
 
   @Test

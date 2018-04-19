@@ -9,7 +9,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -68,10 +67,10 @@ public class FafClientApplication extends Application {
     Font.loadFont(FafClientApplication.class.getResourceAsStream("/font/dfc-icons.ttf"), 10);
     JavaFxUtil.fixTooltipDuration();
 
-    Platform.runLater(() -> applicationContext = new SpringApplicationBuilder(FafClientApplication.class)
+    applicationContext = new SpringApplicationBuilder(FafClientApplication.class)
         .profiles(getAdditionalProfiles())
         .bannerMode(Mode.OFF)
-        .run(getParameters().getRaw().toArray(new String[0])));
+        .run(getParameters().getRaw().toArray(new String[0]));
   }
 
   @Override

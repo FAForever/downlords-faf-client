@@ -1,6 +1,8 @@
 package com.faforever.client.coop;
 
 import com.faforever.client.api.dto.CoopResult;
+import com.faforever.client.api.dto.GamePlayerStats;
+import com.faforever.client.api.dto.Player;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeTableCell;
@@ -20,7 +22,6 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
@@ -56,6 +57,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.faforever.client.game.KnownFeaturedMod.COOP;
 import static java.util.Collections.emptySet;
@@ -80,6 +82,7 @@ public class CoopController extends AbstractViewController<Node> {
   private final TimeService timeService;
   private final WebViewConfigurer webViewConfigurer;
   private final ModService modService;
+
   public Node coopRoot;
   public ComboBox<CoopMission> missionComboBox;
   public ImageView mapImageView;
@@ -98,7 +101,10 @@ public class CoopController extends AbstractViewController<Node> {
   public TableColumn<CoopResult, String> replayColumn;
 
   @Inject
-  public CoopController(ReplayService replayService, GameService gameService, CoopService coopService, NotificationService notificationService, I18n i18n, ReportingService reportingService, MapService mapService, PreferencesService preferencesService, UiService uiService, TimeService timeService, WebViewConfigurer webViewConfigurer, ModService modService) {
+  public CoopController(ReplayService replayService, GameService gameService, CoopService coopService,
+                        NotificationService notificationService, I18n i18n, ReportingService reportingService,
+                        MapService mapService, UiService uiService, TimeService timeService,
+                        WebViewConfigurer webViewConfigurer, ModService modService) {
     this.replayService = replayService;
     this.gameService = gameService;
     this.coopService = coopService;
@@ -130,7 +136,8 @@ public class CoopController extends AbstractViewController<Node> {
     playerCountColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue().getPlayerCount()));
     playerCountColumn.setCellFactory(param -> new StringCell<>(String::valueOf));
 
-    playerNamesColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getPlayerNames()));
+    playerNamesColumn.setCellValueFactory(param -> new SimpleStringProperty(commaDelimitedPlayerList(param.getValue())));
+
     playerNamesColumn.setCellFactory(param -> new StringCell<>(String::valueOf));
 
     secondaryObjectivesColumn.setCellValueFactory(param -> new SimpleBooleanProperty(param.getValue().isSecondaryObjectives()));
@@ -147,6 +154,8 @@ public class CoopController extends AbstractViewController<Node> {
       return button.getRoot();
     }));
 
+    // Without this and no coop missions, the WebView is empty and the transparent background can't be applied to <html>
+    descriptionWebView.getEngine().loadContent("<html></html>");
     webViewConfigurer.configureWebView(descriptionWebView);
 
     ObservableList<Game> games = gameService.getGames();
@@ -171,6 +180,13 @@ public class CoopController extends AbstractViewController<Node> {
       notificationService.addPersistentErrorNotification(throwable, "coop.couldNotLoad", throwable.getLocalizedMessage());
       return null;
     });
+  }
+
+  private String commaDelimitedPlayerList(CoopResult coopResult) {
+    return coopResult.getGame().getPlayerStats().stream()
+        .map(GamePlayerStats::getPlayer)
+        .map(Player::getLogin)
+        .collect(Collectors.joining(i18n.get("textSeparator")));
   }
 
   private void onReplayButtonClicked(ReplayButtonController button) {

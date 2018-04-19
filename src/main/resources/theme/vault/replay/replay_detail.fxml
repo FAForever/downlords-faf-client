@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXTextField?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -95,23 +95,23 @@
                                      <Label styleClass="icon" text=""/>
                                  </graphic>
                               </Label>
-                               <Button fx:id="watchButton" defaultButton="true" mnemonicParsing="false"
-                                       onAction="#onWatchButtonClicked" text="%game.watchButtonFormat"
-                                       GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT"
-                                       GridPane.rowIndex="4">
+                               <JFXButton fx:id="watchButton" defaultButton="true" mnemonicParsing="false"
+                                          onAction="#onWatchButtonClicked" text="%game.watchButtonFormat"
+                                          GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT"
+                                          GridPane.rowIndex="4">
                                  <graphic>
                                      <Label styleClass="icon" text=""/>
                                  </graphic>
-                              </Button>
+                               </JFXButton>
                                <Label fx:id="onMapLabel" styleClass="secondary" text="&lt;OnMap&gt;"
                                       GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="1"
                                       GridPane.valignment="TOP"/>
                                <VBox alignment="TOP_RIGHT" prefWidth="100.0" GridPane.columnIndex="1"
                                      GridPane.columnSpan="2147483647">
                                    <children>
-                                       <TextField fx:id="replayIdField" alignment="CENTER_RIGHT" editable="false"
-                                                  maxWidth="100.0" promptText="&lt;ReplayID&gt;" text="#123456789"/>
-                                       <Button fx:id="copyButton" onAction="#copyLink"
+                                       <JFXTextField fx:id="replayIdField" alignment="CENTER_RIGHT" editable="false"
+                                                     maxWidth="100.0" promptText="&lt;ReplayID&gt;" text="#123456789"/>
+                                       <JFXButton fx:id="copyButton" onAction="#copyLink"
                                                prefHeight="25.0" text="Copy link for chat"/>
                                    </children>
                                </VBox>
@@ -125,8 +125,8 @@
                              <children>
                                  <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%game.lineUp"
                                         HBox.hgrow="ALWAYS"/>
-                                 <Button fx:id="showRatingChangeButton" alignment="CENTER" mnemonicParsing="false"
-                                         onAction="#showRatingChange" text="%game.showRatingChange"/>
+                                 <JFXButton fx:id="showRatingChangeButton" alignment="CENTER" mnemonicParsing="false"
+                                            onAction="#showRatingChange" text="%game.showRatingChange"/>
                              </children>
                          </HBox>
                          <HBox fx:id="teamsContainer" alignment="TOP_CENTER" spacing="20.0"/>
@@ -138,8 +138,8 @@
                              </children>
                          </VBox>
                          <Separator layoutX="10.0" layoutY="254.0" maxWidth="1.7976931348623157E308"/>
-                         <Button fx:id="downloadMoreInfoButton" mnemonicParsing="false"
-                                 onAction="#onDownloadMoreInfoClicked" text="%game.downloadMoreInfo"/>
+                         <JFXButton fx:id="downloadMoreInfoButton" mnemonicParsing="false"
+                                    onAction="#onDownloadMoreInfoClicked" text="%game.downloadMoreInfo"/>
                          <VBox fx:id="moreInformationPane" maxWidth="1.7976931348623157E308">
                              <children>
                                  <GridPane hgap="10.0" maxWidth="1.7976931348623157E308" vgap="10.0">
@@ -196,13 +196,13 @@
                   </VBox>
                </content>
             </ScrollPane>
-             <Button cancelButton="true" focusTraversable="false" onAction="#onCloseButtonClicked"
-                     AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+             <JFXButton cancelButton="true" focusTraversable="false" onAction="#onCloseButtonClicked"
+                        AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                <styleClass>
                    <String fx:value="window-button"/>
                    <String fx:value="close-button"/>
                </styleClass>
-            </Button>
+             </JFXButton>
          </children>
       </AnchorPane>
    </children>

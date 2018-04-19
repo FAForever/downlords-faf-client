@@ -1,8 +1,6 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
-import com.faforever.client.clan.ClanService;
-import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -12,8 +10,6 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.replay.ExternalReplayInfoGenerator;
-import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
@@ -59,7 +55,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.faforever.client.chat.ChatColorMode.DEFAULT;
@@ -108,29 +103,26 @@ public class ChannelTabController extends AbstractChatTabController {
 
   // TODO cut dependencies
   @Inject
-  public ChannelTabController(ClanService clanService, UserService userService, ChatService chatService,
+  public ChannelTabController(UserService userService, ChatService chatService,
                               PlatformService platformService, PreferencesService preferencesService,
                               PlayerService playerService, AudioService audioService, TimeService timeService,
-                              I18n i18n, ImageUploadService imageUploadService, UrlPreviewResolver urlPreviewResolver,
+                              I18n i18n, ImageUploadService imageUploadService,
                               NotificationService notificationService, ReportingService reportingService,
                               UiService uiService, AutoCompletionHelper autoCompletionHelper, EventBus eventBus,
                               WebViewConfigurer webViewConfigurer, ThreadPoolExecutor threadPoolExecutor,
-                              TaskScheduler taskScheduler, CountryFlagService countryFlagService,
-                              ReplayService replayService, ClientProperties clientProperties,
-                              ExternalReplayInfoGenerator externalReplayInfoGenerator) {
+                              TaskScheduler taskScheduler, CountryFlagService countryFlagService) {
 
-    super(clanService, webViewConfigurer, userService, chatService, platformService, preferencesService, playerService,
-        audioService, timeService, i18n, imageUploadService, urlPreviewResolver, notificationService, reportingService,
-        uiService, autoCompletionHelper, eventBus, countryFlagService, replayService, clientProperties, externalReplayInfoGenerator);
+    super(webViewConfigurer, userService, chatService, platformService, preferencesService, playerService, audioService,
+        timeService, i18n, imageUploadService, notificationService, reportingService, uiService, autoCompletionHelper,
+        eventBus, countryFlagService);
 
-    userToChatUserControls = FXCollections.observableMap(new ConcurrentHashMap<>());
+    userToChatUserControls = FXCollections.observableHashMap();
     this.threadPoolExecutor = threadPoolExecutor;
     this.taskScheduler = taskScheduler;
   }
 
-
   // TODO clean this up
-  public Map<String, Map<Pane, ChatUserItemController>> getUserToChatUserControls() {
+  Map<String, Map<Pane, ChatUserItemController>> getUserToChatUserControls() {
     return userToChatUserControls;
   }
 
@@ -195,9 +187,13 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   private void updatePresenceStatusIndicators() {
-    Platform.runLater(() -> userToChatUserControls.values().stream()
-        .flatMap(paneChatUserItemControllerMap -> paneChatUserItemControllerMap.values().stream())
-        .forEach(ChatUserItemController::updatePresenceStatusIndicator));
+    Platform.runLater(() -> {
+      synchronized (userToChatUserControls) {
+        userToChatUserControls.values().stream()
+            .flatMap(paneChatUserItemControllerMap -> paneChatUserItemControllerMap.values().stream())
+            .forEach(ChatUserItemController::updatePresenceStatusIndicator);
+      }
+    });
   }
 
   /**
@@ -207,11 +203,9 @@ public class ChannelTabController extends AbstractChatTabController {
   private void filterChatUserControlsBySearchString() {
     synchronized (userToChatUserControls) {
       for (Map<Pane, ChatUserItemController> chatUserControlMap : userToChatUserControls.values()) {
-        synchronized (chatUserControlMap) {
-          for (Map.Entry<Pane, ChatUserItemController> chatUserControlEntry : chatUserControlMap.entrySet()) {
-            ChatUserItemController chatUserItemController = chatUserControlEntry.getValue();
-            chatUserItemController.setVisible(isUsernameMatch(chatUserItemController));
-          }
+        for (Map.Entry<Pane, ChatUserItemController> chatUserControlEntry : chatUserControlMap.entrySet()) {
+          ChatUserItemController chatUserItemController = chatUserControlEntry.getValue();
+          chatUserItemController.setVisible(isUsernameMatch(chatUserItemController));
         }
       }
     }
@@ -353,21 +347,31 @@ public class ChannelTabController extends AbstractChatTabController {
 
     JavaFxUtil.bind(player.moderatorForChannelsProperty(), chatUser.moderatorInChannelsProperty());
     JavaFxUtil.addListener(player.usernameProperty(), (observable, oldValue, newValue) -> {
-      Map<Pane, ChatUserItemController> userItemControllers = userToChatUserControls.get(oldValue);
-      if (userItemControllers == null) {
-        return;
-      }
-      for (Map.Entry<Pane, ChatUserItemController> entry : userItemControllers.entrySet()) {
-        Pane pane = entry.getKey();
-        ChatUserItemController chatUserItemController = entry.getValue();
+      synchronized (userToChatUserControls) {
+        Map<Pane, ChatUserItemController> userItemControllers = userToChatUserControls.get(oldValue);
+        if (userItemControllers == null) {
+          return;
+        }
+        for (Map.Entry<Pane, ChatUserItemController> entry : userItemControllers.entrySet()) {
+          Pane pane = entry.getKey();
+          ChatUserItemController chatUserItemController = entry.getValue();
 
-        pane.getChildren().remove(chatUserItemController.getRoot());
-        addChatUserItemSorted(pane, chatUserItemController);
+          pane.getChildren().remove(chatUserItemController.getRoot());
+          addChatUserItemSorted(pane, chatUserItemController);
+        }
       }
     });
     JavaFxUtil.bind(player.usernameProperty(), chatUser.usernameProperty());
 
     JavaFxUtil.addListener(player.socialStatusProperty(), (observable, oldValue, newValue) -> {
+      if (oldValue == OTHER && player.isChatOnly()) {
+        removeFromPane(player, chatOnlyPane);
+        removeUserMessageClass(player, CSS_CLASS_CHAT_ONLY);
+      } else {
+        removeFromPane(player, getPaneForSocialStatus(oldValue));
+        removeUserMessageClass(player, oldValue.getCssClass());
+      }
+
       if (newValue == OTHER && player.isChatOnly()) {
         addToPane(player, chatOnlyPane);
         setUserMessageClass(player, CSS_CLASS_CHAT_ONLY);
@@ -378,14 +382,6 @@ public class ChannelTabController extends AbstractChatTabController {
 
       if (chatPrefs.getHideFoeMessages() && newValue == FOE) {
         updateUserMessageDisplay(player, "none");
-      }
-
-      if (oldValue == OTHER && player.isChatOnly()) {
-        removeFromPane(player, chatOnlyPane);
-        removeUserMessageClass(player, CSS_CLASS_CHAT_ONLY);
-      } else {
-        removeFromPane(player, getPaneForSocialStatus(oldValue));
-        removeUserMessageClass(player, oldValue.getCssClass());
       }
 
       if (chatPrefs.getHideFoeMessages() && oldValue == FOE) {
@@ -465,20 +461,22 @@ public class ChannelTabController extends AbstractChatTabController {
   private void onUserLeft(String username) {
     JavaFxUtil.assertBackgroundThread();
 
-    Map<Pane, ChatUserItemController> paneToChatUserControlMap = userToChatUserControls.get(username);
-    if (paneToChatUserControlMap == null) {
-      return;
-    }
-
-    Platform.runLater(() -> {
-      synchronized (paneToChatUserControlMap) {
-        for (Map.Entry<Pane, ChatUserItemController> entry : paneToChatUserControlMap.entrySet()) {
-          entry.getKey().getChildren().remove(entry.getValue().getRoot());
-        }
-        paneToChatUserControlMap.clear();
+    synchronized (userToChatUserControls) {
+      Map<Pane, ChatUserItemController> paneToChatUserControlMap = userToChatUserControls.get(username);
+      if (paneToChatUserControlMap == null) {
+        return;
       }
-    });
-    userToChatUserControls.remove(username);
+
+      Platform.runLater(() -> {
+        synchronized (userToChatUserControls) {
+          for (Map.Entry<Pane, ChatUserItemController> entry : paneToChatUserControlMap.entrySet()) {
+            entry.getKey().getChildren().remove(entry.getValue().getRoot());
+          }
+          paneToChatUserControlMap.clear();
+        }
+      });
+      userToChatUserControls.remove(username);
+    }
   }
 
   private ChatUserItemController addToPane(Player player, Pane pane) {
@@ -486,12 +484,12 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   private void removeFromPane(Player player, Pane pane) {
-    Map<Pane, ChatUserItemController> paneChatUserControlMap = userToChatUserControls.get(player.getUsername());
-    if (paneChatUserControlMap == null) {
-      // User has not yet been added to this pane; no need to remove him
-      return;
-    }
-    synchronized (paneChatUserControlMap) {
+    synchronized (userToChatUserControls) {
+      Map<Pane, ChatUserItemController> paneChatUserControlMap = userToChatUserControls.get(player.getUsername());
+      if (paneChatUserControlMap == null) {
+        // User has not yet been added to this pane; no need to remove him
+        return;
+      }
       ChatUserItemController controller = paneChatUserControlMap.remove(pane);
       if (controller == null) {
         return;
@@ -510,30 +508,24 @@ public class ChannelTabController extends AbstractChatTabController {
   private ChatUserItemController createChatUserControlForPlayerIfNecessary(Pane pane, Player player) {
     String username = player.getUsername();
     synchronized (userToChatUserControls) {
-      if (!userToChatUserControls.containsKey(username)) {
-        userToChatUserControls.put(username, new HashMap<>(1, 1));
+      Map<Pane, ChatUserItemController> paneToChatUserControlMap = userToChatUserControls
+          .computeIfAbsent(username, s -> new HashMap<>(1, 1));
+
+      ChatUserItemController existingChatUserItemController = paneToChatUserControlMap.get(pane);
+      if (existingChatUserItemController != null) {
+        return existingChatUserItemController;
       }
+
+      ChatUserItemController chatUserItemController = uiService.loadFxml("theme/chat/chat_user_item.fxml");
+      chatUserItemController.setPlayer(player);
+      paneToChatUserControlMap.put(pane, chatUserItemController);
+
+      chatUserItemController.setRandomColorsAllowedInPane((pane == othersPane || pane == chatOnlyPane) && player.getSocialStatus() != SELF);
+
+      Platform.runLater(() -> addChatUserItemSorted(pane, chatUserItemController));
+
+      return chatUserItemController;
     }
-
-    Map<Pane, ChatUserItemController> paneToChatUserControlMap = userToChatUserControls.get(username);
-
-    ChatUserItemController existingChatUserItemController = paneToChatUserControlMap.get(pane);
-    if (existingChatUserItemController != null) {
-      return existingChatUserItemController;
-    }
-
-    ChatUserItemController chatUserItemController = uiService.loadFxml("theme/chat/chat_user_item.fxml");
-    chatUserItemController.setPlayer(player);
-    paneToChatUserControlMap.put(pane, chatUserItemController);
-
-    chatUserItemController.setRandomColorsAllowedInPane((pane == othersPane || pane == chatOnlyPane) && player.getSocialStatus() != SELF);
-
-    Platform.runLater(() -> {
-      addChatUserItemSorted(pane, chatUserItemController);
-      isUsernameMatch(chatUserItemController);
-    });
-
-    return chatUserItemController;
   }
 
   private Collection<Pane> getTargetPanesForUser(Player player) {
