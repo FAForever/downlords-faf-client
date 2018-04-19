@@ -5,6 +5,7 @@ import java.util.Map;
 
 public enum ServerCommand {
   PING,
+  PONG,
   LOGIN_AVAILABLE,
   ACK,
   ERROR,

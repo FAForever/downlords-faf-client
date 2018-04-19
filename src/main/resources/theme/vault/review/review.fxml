@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.JFXButton?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextArea?>
@@ -48,20 +48,20 @@
                         <Insets left="15.0" right="15.0"/>
                     </padding>
                 </Label>
-                <Button fx:id="deleteButton" mnemonicParsing="false" onAction="#onDeleteButtonClicked" text=""
-                        GridPane.columnIndex="3" GridPane.rowSpan="2147483647" GridPane.valignment="TOP">
+                <JFXButton fx:id="deleteButton" mnemonicParsing="false" onAction="#onDeleteButtonClicked" text=""
+                           GridPane.columnIndex="3" GridPane.rowSpan="2147483647" GridPane.valignment="TOP">
                     <styleClass>
                         <String fx:value="icon"/>
                         <String fx:value="medium"/>
                     </styleClass>
-                </Button>
-                <Button fx:id="editButton" mnemonicParsing="false" onAction="#onEditButtonClicked" text=""
+                </JFXButton>
+                <JFXButton fx:id="editButton" mnemonicParsing="false" onAction="#onEditButtonClicked" text=""
                         GridPane.columnIndex="4" GridPane.rowSpan="2147483647" GridPane.valignment="TOP">
                     <styleClass>
                         <String fx:value="icon"/>
                         <String fx:value="medium"/>
                     </styleClass>
-                </Button>
+                </JFXButton>
             </children>
             <padding>
                 <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
@@ -79,8 +79,8 @@
                           wrapText="true"/>
                 <ButtonBar prefHeight="40.0" prefWidth="200.0">
                     <buttons>
-                        <Button mnemonicParsing="false" onAction="#onCancelButtonClicked" text="%cancel"/>
-                        <Button defaultButton="true" mnemonicParsing="false" onAction="#onSendReview"
+                        <JFXButton mnemonicParsing="false" onAction="#onCancelButtonClicked" text="%cancel"/>
+                        <JFXButton defaultButton="true" mnemonicParsing="false" onAction="#onSendReview"
                                 text="%review.send"/>
                     </buttons>
                 </ButtonBar>

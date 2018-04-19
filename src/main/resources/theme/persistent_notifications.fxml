@@ -3,8 +3,8 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.VBox?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="persistentNotificationsRoot" styleClass="persistent-notifications"
-      xmlns="http://javafx.com/javafx/8.0.40"
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="persistentNotificationsRoot" minWidth="240.0"
+      styleClass="persistent-notifications" xmlns="http://javafx.com/javafx/8.0.141"
       fx:controller="com.faforever.client.notification.PersistentNotificationsController">
   <children>
     <Label fx:id="noNotificationsLabel" styleClass="no-notifications" text="%notifications.empty"/>

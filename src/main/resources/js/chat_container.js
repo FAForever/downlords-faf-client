@@ -13,9 +13,9 @@ function link(input) {
             tagName: "a",
             attrs: {
               "href": "javascript:void(0);",
-              "onClick": "chatTab.openUrl('" + match.getUrl() + "')",
-              "onMouseOver": "chatTab.previewUrl('" + match.getUrl() + "')",
-              "onMouseOut": "chatTab.hideUrlPreview()"
+                "onClick": "java.openUrl('" + match.getUrl() + "')",
+                "onMouseOver": "java.previewUrl('" + match.getUrl() + "')",
+                "onMouseOut": "java.hideUrlPreview()"
             },
             innerHtml: match.getAnchorText()
           });
@@ -24,27 +24,27 @@ function link(input) {
   );
 }
 function showClanInfo(node) {
-  chatTab.clanInfo(node.textContent);
+    java.clanInfo(node.textContent);
 }
 
 function hideClanInfo() {
-  chatTab.hideClanInfo();
+    java.hideClanInfo();
 }
 
 function showClanWebsite(node) {
-  chatTab.showClanWebsite(node.textContent);
+    java.showClanWebsite(node.textContent);
 }
 
 function showPlayerInfo(node) {
-  chatTab.playerInfo(node.textContent);
+    java.playerInfo(node.textContent);
 }
 
 function hidePlayerInfo() {
-  chatTab.hidePlayerInfo();
+    java.hidePlayerInfo();
 }
 
 function messagePlayer(node) {
-  chatTab.openPrivateMessageTab(node.textContent);
+    java.openPrivateMessageTab(node.textContent);
 }
 
 function scrollToBottomIfDesired() {

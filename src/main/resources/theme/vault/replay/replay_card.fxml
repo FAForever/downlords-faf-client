@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -9,7 +10,7 @@
 <?import java.lang.String?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="replayTileRoot" hgap="20.0" maxWidth="1.7976931348623157E308"
           onMouseClicked="#onShowReplayDetail" styleClass="card,pointable" vgap="5.0"
-          xmlns="http://javafx.com/javafx/8.0.111" fx:controller="com.faforever.client.replay.ReplayCardController">
+          xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.replay.ReplayCardController">
     <columnConstraints>
         <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
         <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
@@ -29,7 +30,7 @@
         <ImageView fx:id="mapThumbnailImageView" fitHeight="64.0" fitWidth="64.0" pickOnBounds="true"
                    preserveRatio="true" GridPane.halignment="CENTER" GridPane.rowSpan="2147483647"
                    GridPane.valignment="TOP"/>
-        <HBox alignment="BASELINE_LEFT" spacing="5.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647">
+        <HBox alignment="BASELINE_LEFT" spacing="10.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647">
             <children>
                 <Label fx:id="gameTitleLabel" styleClass="h2" text="&lt;Title&gt;"/>
                 <Label fx:id="onMapLabel" styleClass="secondary" text="%game.onMapFormat"/>
@@ -123,4 +124,7 @@
         <Label fx:id="playerListLabel" styleClass="secondary" text="&lt;PlayerList&gt;" GridPane.columnIndex="1"
                GridPane.columnSpan="2147483647" GridPane.rowIndex="2"/>
     </children>
+    <padding>
+        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+    </padding>
 </GridPane>

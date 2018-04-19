@@ -16,6 +16,7 @@ public enum ClientMessageType {
   AVATAR("avatar"),
   ICE_SERVERS("ice_servers"),
   RESTORE_GAME_SESSION("restore_game_session"),
+  PING("ping"),
   PONG("pong");
 
   private static Map<String, ClientMessageType> fromString;

@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXComboBox?>
+<?import com.jfoenix.controls.JFXPasswordField?>
+<?import com.jfoenix.controls.JFXTextField?>
 <?import javafx.collections.FXCollections?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -19,7 +19,7 @@
 <?import javafx.scene.web.WebView?>
 <?import java.lang.Integer?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="coopRoot" hgap="20.0" maxHeight="1.7976931348623157E308"
-          maxWidth="1.7976931348623157E308" vgap="20.0" xmlns="http://javafx.com/javafx/8"
+          maxWidth="1.7976931348623157E308" vgap="20.0" xmlns="http://javafx.com/javafx/8.0.141"
           fx:controller="com.faforever.client.coop.CoopController">
     <columnConstraints>
         <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
@@ -39,21 +39,25 @@
         <WebView fx:id="descriptionWebView" prefHeight="-1.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
         <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
             <children>
-                <TextField fx:id="titleTextField" maxWidth="1.7976931348623157E308" promptText="%game.create.title" styleClass="game-title-input" />
-                <PasswordField fx:id="passwordTextField" maxWidth="1.7976931348623157E308" promptText="%game.create.password" />
-                <Button fx:id="playButton" defaultButton="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onPlayButtonClicked" text="%coop.host.button" />
+                <JFXTextField fx:id="titleTextField" maxWidth="1.7976931348623157E308" promptText="%game.create.title"
+                              styleClass="game-title-input"/>
+                <JFXPasswordField fx:id="passwordTextField" maxWidth="1.7976931348623157E308"
+                                  promptText="%game.create.password"/>
+                <JFXButton fx:id="playButton" defaultButton="true" maxWidth="1.7976931348623157E308"
+                           mnemonicParsing="false" onAction="#onPlayButtonClicked" text="%coop.host.button"/>
             </children>
         </VBox>
         <ImageView fx:id="mapImageView" fitHeight="128.0" fitWidth="128.0" pickOnBounds="true" preserveRatio="true" GridPane.halignment="CENTER" GridPane.rowSpan="2" GridPane.valignment="CENTER" />
         <AnchorPane fx:id="gameViewContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                     minWidth="0.0" GridPane.columnIndex="2" GridPane.rowIndex="4"/>
-        <ComboBox fx:id="missionComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" />
+        <JFXComboBox fx:id="missionComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1"/>
         <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%coop.host.title" GridPane.columnIndex="2" />
         <Label styleClass="h2" text="%coop.openGames" GridPane.columnIndex="2" GridPane.rowIndex="3" />
         <Separator prefWidth="200.0" GridPane.columnSpan="3" GridPane.rowIndex="2" />
         <TableView fx:id="leaderboardTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnSpan="2" GridPane.rowIndex="4">
             <columns>
-                <TableColumn fx:id="rankColumn" editable="false" maxWidth="32.0" minWidth="24.0" prefWidth="32.0" sortable="false" text="%coop.leaderboard.rank" />
+                <TableColumn fx:id="rankColumn" editable="false" maxWidth="64.0" minWidth="24.0" prefWidth="32.0"
+                             sortable="false" text="%coop.leaderboard.rank"/>
                 <TableColumn fx:id="playerCountColumn" editable="false" maxWidth="1000.0" minWidth="24.0" prefWidth="50.0" sortable="false" text="%coop.leaderboard.players" />
                 <TableColumn fx:id="playerNamesColumn" editable="false" minWidth="24.0" prefWidth="-1.0" sortable="false" text="%coop.leaderboard.names" />
                 <TableColumn fx:id="secondaryObjectivesColumn" editable="false" maxWidth="1000.0" minWidth="24.0" prefWidth="-1.0" sortable="false" text="%coop.leaderboard.secondary" />
@@ -64,7 +68,8 @@
                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
             </columnResizePolicy>
         </TableView>
-        <ComboBox fx:id="numberOfPlayersComboBox" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
+        <JFXComboBox fx:id="numberOfPlayersComboBox" GridPane.columnIndex="1" GridPane.halignment="RIGHT"
+                     GridPane.rowIndex="3">
             <items>
                 <FXCollections fx:factory="observableArrayList">
                     <Integer fx:value="0" />
@@ -74,7 +79,7 @@
                     <Integer fx:value="4" />
                 </FXCollections>
             </items>
-        </ComboBox>
+        </JFXComboBox>
     </children>
     <padding>
         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />

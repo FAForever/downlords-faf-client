@@ -39,7 +39,7 @@ apply plugin: 'distribution'
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-version = '0.8.0-beta'
+version = '0.9.0-beta'
 
 compileJava.dependsOn(processResources)
 processResources {
@@ -147,6 +147,15 @@ jar {
   }
 }
 
+task webviewPatcherJar(type: Jar) {
+  manifest {
+    attributes "Premain-Class": "com.faforever.client.fx.TransparentWebViewPatch"
+  }
+  archiveName = 'webview-patch-agent.jar'
+  from sourceSets.main.output
+  include 'com/faforever/client/fx/TransparentWebViewPatch.class'
+}
+
 distributions {
   main {
     contents {
@@ -157,7 +166,8 @@ distributions {
             unpackIceAdapter.outputs.files,
             downloadIceAdapterLinux.outputs.files,
             downloadUnixUid.outputs.files,
-            downloadWindowsUid.outputs.files
+            downloadWindowsUid.outputs.files,
+            webviewPatcherJar.outputs.files
         ]
       }
       exclude('**/i4jruntime*.jar')
@@ -261,6 +271,7 @@ repositories {
   maven { url "https://jitpack.io" }
   maven { url 'https://maven.ej-technologies.com/repository' }
   maven { url "http://dl.bintray.com/typesafe/maven-releases" }
+  maven { url "http://maven.teamdev.com/repository/products" }
 }
 
 jacoco {
@@ -307,6 +318,8 @@ dependencies {
   compile("com.github.nsp:JSkills:${jSkillsVersion}")
   compile("com.github.jasminb:jsonapi-converter:${jsonapiConverterVersion}")
   compile("com.github.Brutus5000:BiReUS-JCL:${bireusVersion}")
+  compile("com.jfoenix:jfoenix:${jfoenixVersion}")
+  compile 'org.javassist:javassist:3.20.0-GA'
   provided("com.install4j:install4j-runtime:${install4jRuntimeVersion}")
 
 

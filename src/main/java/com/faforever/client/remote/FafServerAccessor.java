@@ -60,4 +60,6 @@ public interface FafServerAccessor {
   CompletableFuture<List<IceServer>> getIceServers();
 
   void restoreGameSession(int id);
+
+  void ping();
 }

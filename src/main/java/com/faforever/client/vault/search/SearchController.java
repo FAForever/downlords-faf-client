@@ -13,7 +13,6 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -49,7 +48,7 @@ public class SearchController implements Controller<Pane> {
   public Button searchButton;
   public Pane searchRoot;
   public ComboBox<String> sortPropertyComboBox;
-  public ChoiceBox<SortOrder> sortOrderChoiceBox;
+  public ComboBox<SortOrder> sortOrderChoiceBox;
   public HBox sortBox;
 
   private List<LogicalNodeController> queryNodes;

@@ -122,7 +122,7 @@ public class ReplayVaultController implements Controller<Node> {
 
   @NotNull
   private TableRow<Replay> replayRowFactory() {
-    TableRow<Replay> row = new TableRow();
+    TableRow<Replay> row = new TableRow<>();
     row.setOnMouseClicked(event -> {
       // If ID == 0, this isn't an entry but root node
       if (event.getClickCount() == 2 && !row.isEmpty() && row.getItem().getId() != 0) {

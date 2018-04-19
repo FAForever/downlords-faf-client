@@ -1,6 +1,7 @@
 package com.faforever.client.api.dto;
 
 import com.github.jasminb.jsonapi.annotations.Id;
+import com.github.jasminb.jsonapi.annotations.Relationship;
 import com.github.jasminb.jsonapi.annotations.Type;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -16,9 +17,11 @@ public class CoopResult {
   @Id
   private String id;
   private Duration duration;
-  private String playerNames;
   private boolean secondaryObjectives;
   private int playerCount;
-  /** This field is not provided by the API but must be enriched instead. */
+  /** This field is not provided by the API and must be enriched instead. */
   private int ranking;
+
+  @Relationship("game")
+  private Game game;
 }

@@ -4,10 +4,9 @@ import com.google.common.eventbus.DeadEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 
 /**
  * This configuration has to be imported by other configurations and should only contain beans that are necessary to run
@@ -18,10 +17,10 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 public class BaseConfig {
 
   @Bean
-  MessageSource messageSource() {
-    ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+  ReloadableResourceBundleMessageSource messageSource() {
+    ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
     messageSource.setDefaultEncoding("utf-8");
-    messageSource.setBasename("i18n.messages");
+    messageSource.setBasename("classpath:i18n/messages");
     messageSource.setFallbackToSystemLocale(false);
     return messageSource;
   }

@@ -7,7 +7,8 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
 import javafx.application.Platform;
-import javafx.collections.MapChangeListener;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -32,8 +33,11 @@ public class GameTooltipController implements Controller<Node> {
   public Pane teamsPane;
   public Label modsLabel;
   public VBox gameTooltipRoot;
-  private ObservableMap<String, List<String>> lastTeams;
-  private ObservableMap<String, String> lastSimMods;
+
+  @SuppressWarnings("FieldCanBeLocal")
+  private InvalidationListener teamInvalidationListener;
+  @SuppressWarnings("FieldCanBeLocal")
+  private InvalidationListener simModsInvalidationListener;
 
   @Inject
   public GameTooltipController(UiService uiService, PlayerService playerService) {
@@ -45,24 +49,14 @@ public class GameTooltipController implements Controller<Node> {
     modsPane.managedProperty().bind(modsPane.visibleProperty());
   }
 
-  public void setGameInfoBean(Game game) {
+  public void setGame(Game game) {
     createTeams(game.getTeams());
     createModsList(game.getSimMods());
-    MapChangeListener<String, List<String>> teamChangedListener = change -> createTeams(change.getMap());
-    JavaFxUtil.addListener(game.getTeams(), teamChangedListener);
+    teamInvalidationListener = change -> createTeams(game.getTeams());
+    JavaFxUtil.addListener(game.getTeams(), new WeakInvalidationListener(teamInvalidationListener));
 
-    if (lastTeams != null) {
-      lastTeams.removeListener(teamChangedListener);
-    }
-    lastTeams = game.getTeams();
-
-    MapChangeListener<String, String> simModsChangedListener = change -> createModsList(change.getMap());
-    JavaFxUtil.addListener(game.getSimMods(), simModsChangedListener);
-
-    if (lastSimMods != null) {
-      game.getSimMods().removeListener(simModsChangedListener);
-    }
-    lastSimMods = game.getSimMods();
+    simModsInvalidationListener = change -> createModsList(game.getSimMods());
+    JavaFxUtil.addListener(game.getSimMods(), new WeakInvalidationListener(simModsInvalidationListener));
   }
 
   private void createTeams(ObservableMap<? extends String, ? extends List<String>> teamsList) {

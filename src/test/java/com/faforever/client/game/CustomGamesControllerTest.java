@@ -12,15 +12,15 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import javafx.event.ActionEvent;
 import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.testfx.util.WaitForAsyncUtils;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.verify;
@@ -34,8 +34,6 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
   private GameService gameService;
   @Mock
   private PreferencesService preferencesService;
-  @Mock
-  private Preferences preferences;
   @Mock
   private UiService uiService;
   @Mock
@@ -51,7 +49,7 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private GamesTilesContainerController gamesTilesContainerController;
 
-  private ObservableList games;
+  private ObservableList<Game> games;
 
   @Before
   public void setUp() throws Exception {
@@ -59,11 +57,12 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
 
     games = FXCollections.observableArrayList();
 
+    Preferences preferences = new Preferences();
+    preferences.setGamesViewMode("tableButton");
+
     when(gameService.getGames()).thenReturn(games);
+    when(gameService.gameRunningProperty()).thenReturn(new SimpleBooleanProperty());
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.showModdedGamesProperty()).thenReturn(new SimpleBooleanProperty(true));
-    when(preferences.showPasswordProtectedGamesProperty()).thenReturn(new SimpleBooleanProperty(true));
-    when(preferences.getGamesViewMode()).thenReturn("tableButton");
     when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
     when(uiService.loadFxml("theme/play/games_tiles_container.fxml")).thenReturn(gamesTilesContainerController);
     when(gamesTilesContainerController.getRoot()).thenReturn(new Pane());
@@ -83,23 +82,22 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testSetSelectedGameShowsDetailPane() throws Exception {
+  public void testSetSelectedGameShowsDetailPane() {
     assertFalse(instance.gameDetailPane.isVisible());
     instance.setSelectedGame(GameBuilder.create().defaultValues().get());
     assertTrue(instance.gameDetailPane.isVisible());
   }
 
   @Test
-  public void testSetSelectedGameNullHidesDetailPane() throws Exception {
+  public void testSetSelectedGameNullHidesDetailPane() {
     instance.setSelectedGame(GameBuilder.create().defaultValues().get());
     assertTrue(instance.gameDetailPane.isVisible());
     instance.setSelectedGame(null);
     assertFalse(instance.gameDetailPane.isVisible());
   }
 
-
   @Test
-  public void testUpdateFilters() throws Exception {
+  public void testUpdateFilters() {
     Game game = GameBuilder.create().defaultValues().get();
     Game gameWithMod = GameBuilder.create().defaultValues().get();
     Game gameWithPW = GameBuilder.create().defaultValues().get();
@@ -121,21 +119,21 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
 
     instance.showModdedGamesCheckBox.setSelected(true);
     instance.showPasswordProtectedGamesCheckBox.setSelected(true);
-    assertTrue(instance.filteredItems.size() == 4);
+    assertEquals(4, instance.filteredItems.size());
 
     instance.showModdedGamesCheckBox.setSelected(false);
-    assertTrue(instance.filteredItems.size() == 2);
+    assertEquals(2, instance.filteredItems.size());
 
     instance.showPasswordProtectedGamesCheckBox.setSelected(false);
-    assertTrue(instance.filteredItems.size() == 1);
+    assertEquals(1, instance.filteredItems.size());
 
     instance.showModdedGamesCheckBox.setSelected(true);
-    assertTrue(instance.filteredItems.size() == 2);
+    assertEquals(2, instance.filteredItems.size());
   }
 
   @Test
-  public void testTiles() throws Exception {
-    instance.tilesButton.getOnAction().handle(new ActionEvent());
+  public void testTiles() {
+    instance.tilesButton.fire();
     WaitForAsyncUtils.waitForFxEvents();
     verify(gamesTilesContainerController).createTiledFlowPane(games, instance.chooseSortingTypeChoiceBox);
   }
