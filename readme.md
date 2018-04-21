@@ -17,3 +17,6 @@ Please take a look at the [contribution guidelines](https://github.com/FAForever
 1. Make sure you have the IntelliJ [Lombok plugin](https://plugins.jetbrains.com/idea/plugin/6317-lombok-plugin) installed
 1. Make sure you have `Enable annotation processing` enabled in the settings
 1. For some reasons, IntelliJ deletes launch configurations after import. Please revert such deleted files first (Version Control (Alt+F9) -> Local Changes)
+
+# JxBrowser disclaimer
+Downlords-faf-client uses JxBrowser http://www.teamdev.com/jxbrowser, which is a proprietary software. The use of JxBrowser is governed by JxBrowser Product Licence Agreement http://www.teamdev.com/jxbrowser-licence-agreement. If you would like to use JxBrowser in your development, please contact TeamDev.
