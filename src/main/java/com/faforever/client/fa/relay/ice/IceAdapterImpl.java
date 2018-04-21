@@ -155,7 +155,7 @@ public class IceAdapterImpl implements IceAdapter {
 
       Path workDirectory = Paths.get(nativeDir);
       String[] cmd = new String[]{
-          getBinaryName().toString(),
+          getBinaryName(),
           "--id", String.valueOf(currentPlayer.getId()),
           "--login", currentPlayer.getUsername(),
           "--rpc-port", String.valueOf(adapterPort),
