@@ -153,9 +153,9 @@ public class IceAdapterImpl implements IceAdapter {
           .orElseThrow(() -> new IllegalStateException("Player has not been set"));
 
 
-      Path workDirectory = Paths.get(nativeDir);
+      Path workDirectory = Paths.get(nativeDir).toAbsolutePath();
       String[] cmd = new String[]{
-          getBinaryName(),
+          getBinaryName(workDirectory),
           "--id", String.valueOf(currentPlayer.getId()),
           "--login", currentPlayer.getUsername(),
           "--rpc-port", String.valueOf(adapterPort),
@@ -206,8 +206,8 @@ public class IceAdapterImpl implements IceAdapter {
     return iceAdapterClientFuture;
   }
 
-  private String getBinaryName() {
-    return Platform.isWindows() ? "faf-ice-adapter.exe" : "./faf-ice-adapter";
+  private String getBinaryName(Path workDirectory) {
+    return Platform.isWindows() ? workDirectory.resolve("faf-ice-adapter.exe").toString() : "./faf-ice-adapter";
   }
 
   private void setIceServers() {
