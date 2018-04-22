@@ -7,6 +7,7 @@ import com.faforever.client.patch.BireusFeaturedModUpdater;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.patch.GameUpdaterImpl;
 import com.faforever.client.patch.SimpleHttpFeaturedModUpdater;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import lombok.AllArgsConstructor;
@@ -27,10 +28,11 @@ public class FeaturedModUpdaterConfig {
   private final FaInitGenerator faInitGenerator;
   private final SimpleHttpFeaturedModUpdater httpFeaturedModUpdater;
   private final BireusFeaturedModUpdater bireusFeaturedModUpdater;
+  private final PreferencesService preferencesService;
 
   @Bean
   GameUpdater gameUpdater() {
-    return new GameUpdaterImpl(modService, applicationContext, taskService, fafService, faInitGenerator)
+    return new GameUpdaterImpl(modService, applicationContext, taskService, fafService, faInitGenerator, preferencesService)
         .addFeaturedModUpdater(bireusFeaturedModUpdater)
         .addFeaturedModUpdater(httpFeaturedModUpdater);
   }
