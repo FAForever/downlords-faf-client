@@ -203,7 +203,7 @@ public class GameServiceImpl implements GameService {
 
   @Override
   public CompletableFuture<Void> hostGame(NewGameInfo newGameInfo) {
-    if (isRunning()) {
+    if (isForgedAllianceProcessRunning()) {
       logger.debug("Game is running, ignoring host request");
       return completedFuture(null);
     }
@@ -218,7 +218,7 @@ public class GameServiceImpl implements GameService {
 
   @Override
   public CompletableFuture<Void> joinGame(Game game, String password) {
-    if (isRunning()) {
+    if (isForgedAllianceProcessRunning()) {
       logger.debug("Game is running, ignoring join request");
       return completedFuture(null);
     }
@@ -265,7 +265,7 @@ public class GameServiceImpl implements GameService {
 
   @Override
   public void runWithReplay(Path path, @Nullable Integer replayId, String featuredMod, Integer version, Map<String, Integer> modVersions, Set<String> simMods, String mapName) {
-    if (isRunning()) {
+    if (isForgedAllianceProcessRunning()) {
       logger.warn("Forged Alliance is already running, not starting replay");
       return;
     }
@@ -300,7 +300,7 @@ public class GameServiceImpl implements GameService {
 
   @Override
   public CompletableFuture<Void> runWithLiveReplay(URI replayUrl, Integer gameId, String gameType, String mapName) {
-    if (isRunning()) {
+    if (isForgedAllianceProcessRunning()) {
       logger.warn("Forged Alliance is already running, not starting live replay");
       return completedFuture(null);
     }
@@ -346,7 +346,7 @@ public class GameServiceImpl implements GameService {
 
   @Override
   public CompletableFuture<Void> startSearchLadder1v1(Faction faction) {
-    if (isRunning()) {
+    if (isForgedAllianceProcessRunning()) {
       logger.debug("Game is running, ignoring 1v1 search request");
       return completedFuture(null);
     }
@@ -398,7 +398,7 @@ public class GameServiceImpl implements GameService {
     }
   }
 
-  private boolean isRunning() {
+  public boolean isForgedAllianceProcessRunning() {
     return process != null && process.isAlive();
   }
 
@@ -424,7 +424,7 @@ public class GameServiceImpl implements GameService {
    * (mod/map download, connectivity check etc.)
    */
   private void startGame(GameLaunchMessage gameLaunchMessage, Faction faction, RatingMode ratingMode) {
-    if (isRunning()) {
+    if (isForgedAllianceProcessRunning()) {
       logger.warn("Forged Alliance is already running, not starting game");
       return;
     }

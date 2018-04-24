@@ -1,5 +1,11 @@
 package com.faforever.client.fx;
 
+import com.faforever.client.game.GameService;
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.theme.UiService;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
@@ -41,6 +47,9 @@ public class WindowController implements Controller<Node> {
   private static final String PROPERTY_WINDOW_DECORATOR = "windowDecorator";
   private static final PseudoClass MAXIMIZED_PSEUDO_STATE = PseudoClass.getPseudoClass("maximized");
   private final UiService uiService;
+  private final GameService gameService;
+  private final NotificationService notificationService;
+  private final I18n i18n;
   public AnchorPane contentPane;
   public Button minimizeButton;
   public Button maximizeButton;
@@ -55,8 +64,11 @@ public class WindowController implements Controller<Node> {
   private boolean isResizing;
 
   @Inject
-  public WindowController(UiService uiService) {
+  public WindowController(UiService uiService, GameService gameService, NotificationService notificationService, I18n i18n) {
     this.uiService = uiService;
+    this.gameService = gameService;
+    this.notificationService = notificationService;
+    this.i18n = i18n;
   }
 
   public static Rectangle2D getVisualBounds(Stage stage) {
@@ -82,6 +94,18 @@ public class WindowController implements Controller<Node> {
   }
 
   public void onCloseButtonClicked() {
+    if (gameService.isForgedAllianceProcessRunning()) {
+      notificationService.addNotification(new ImmediateNotification(
+          i18n.get("exitWarning.title"),
+          i18n.get("exitWarning.message"),
+          Severity.WARN,
+          Arrays.asList(
+              new Action(i18n.get("yes"), event -> stage.close()),
+              new Action(i18n.get("no"))
+          )
+      ));
+      return;
+    }
     stage.close();
   }
 

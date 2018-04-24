@@ -50,4 +50,6 @@ public interface GameService {
   Game getCurrentGame();
 
   boolean isGameRunning();
+
+  public boolean isForgedAllianceProcessRunning();
 }
