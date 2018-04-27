@@ -69,6 +69,7 @@ import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.RE
 public class SpecificationController implements Controller<Node> {
 
   private static final Map<ComparisonOperator, String> operatorToI18nKey = ImmutableMap.<ComparisonOperator, String>builder()
+      .put(RE, "query.contains")
       .put(EQ, "query.equals")
       .put(NE, "query.notEquals")
       .put(GT, "query.greaterThan")
@@ -77,7 +78,6 @@ public class SpecificationController implements Controller<Node> {
       .put(LTE, "query.lessThanEquals")
       .put(IN, "query.in")
       .put(NIN, "query.notIn")
-      .put(RE, "query.contains")
       .build();
 
   private static final Map<Class<?>, Collection<ComparisonOperator>> VALID_OPERATORS =
