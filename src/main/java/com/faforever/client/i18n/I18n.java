@@ -10,6 +10,8 @@ public interface I18n {
 
   Locale getUserSpecificLocale();
 
+  String getCountryNameLocalized(String isoCode);
+
   String number(int number);
 
   String numberWithSign(int number);

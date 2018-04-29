@@ -25,7 +25,6 @@ import com.faforever.client.util.Assert;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
-import com.neovisionaries.i18n.CountryCode;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
@@ -233,13 +232,7 @@ public class UserInfoWindowController implements Controller<Node> {
 
     updateNameHistory(player);
 
-    CountryCode countryCode = CountryCode.getByCode(player.getCountry());
-    if (countryCode != null) {
-      // Country code is unknown to CountryCode, like A1 or A2 (from GeoIP)
-      countryLabel.setText(countryCode.getName());
-    } else {
-      countryLabel.setText(player.getCountry());
-    }
+    countryLabel.setText(i18n.getCountryNameLocalized(player.getCountry()));
 
     globalButton.fire();
     globalButton.setSelected(true);

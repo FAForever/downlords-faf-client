@@ -44,6 +44,11 @@ public class I18nImpl implements I18n {
   }
 
   @Override
+  public String getCountryNameLocalized(String isoCode) {
+    return isoCode == null ? null : new Locale("", isoCode).getDisplayCountry(this.userSpecificLocale);
+  }
+
+  @Override
   public String getQuantized(String singularKey, String pluralKey, long arg) {
     Object[] args = {arg};
     if (Math.abs(arg) == 1) {

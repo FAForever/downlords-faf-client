@@ -1,7 +1,10 @@
 <div id="chat-section-{section-id}" class="chat-section chat-section-{username}">
   <div class="chat-section-head">
     <img class="avatar" src="{avatar}"/>
-    <img class="country-flag" src="{country-flag}"/>
+    <img class="country-flag" src="{country-flag}"
+      onmouseover="showCountryInfo(this)"
+      onmouseout="hideCountryInfo()"
+    />
     <div class="author">
       <span class="clan-tag {css-classes}"
             onmouseover="showClanInfo(this)"

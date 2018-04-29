@@ -35,6 +35,14 @@ function showClanWebsite(node) {
   chatTab.showClanWebsite(node.textContent);
 }
 
+function showCountryInfo(node) {
+  chatTab.countryInfo(node.getAttribute("src"));
+}
+
+function hideCountryInfo() {
+  chatTab.hideCountryInfo();
+}
+
 function showPlayerInfo(node) {
   chatTab.playerInfo(node.textContent);
 }

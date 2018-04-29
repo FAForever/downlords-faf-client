@@ -65,6 +65,7 @@ import javafx.stage.PopupWindow;
 import javafx.stage.PopupWindow.AnchorLocation;
 import javafx.stage.Stage;
 import netscape.javascript.JSObject;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -171,6 +172,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private Pattern mentionPattern;
   private Tooltip linkPreviewTooltip;
   private ChangeListener<Boolean> stageFocusedListener;
+  private Popup countryInfoPopup;
   private Popup playerInfoPopup;
   private ChatMessage lastMessage;
 
@@ -459,6 +461,33 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
   private String removeBrackets(String tag) {
     return tag.replaceAll("[\\[\\]]", "");
+  }
+
+  /**
+   * Called from JavaScript when user hovers over a country flag.
+   */
+  public void countryInfo(String flagPath) {
+    countryInfoPopup = new Popup();
+    Label label = new Label();
+    label.getStyleClass().add("tooltip");
+    countryInfoPopup.getContent().setAll(label);
+    
+    String flagName = FilenameUtils.getBaseName(flagPath);
+    label.setText(i18n.getCountryNameLocalized(flagName));
+
+    countryInfoPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
+    countryInfoPopup.show(getRoot().getTabPane(), lastMouseX, lastMouseY - 10);
+  }
+
+  /**
+   * Called from JavaScript when user no longer hovers over a country flag.
+   */
+  public void hideCountryInfo() {
+    if (countryInfoPopup == null) {
+      return;
+    }
+    countryInfoPopup.hide();
+    countryInfoPopup = null;
   }
 
   /**
