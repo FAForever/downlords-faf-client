@@ -128,6 +128,15 @@ public class PreferencesService {
     }
   }
 
+  /**
+   * Sometimes, old preferences values are renamed or moved. The purpose of this method is to temporarily perform such
+   * migrations.
+   */
+  private void migratePreferences(Preferences preferences) {
+    preferences.getForgedAlliance().setInstallationPath(preferences.getForgedAlliance().getInstallationPath());
+    storeInBackground();
+  }
+
   public static void configureLogging() {
     // Calling this method causes the class to be initialized (static initializers) which in turn causes the logger to initialize.
   }
@@ -165,6 +174,8 @@ public class PreferencesService {
     } catch (IOException e) {
       logger.warn("Preferences file " + path.toAbsolutePath() + " could not be read", e);
     }
+
+    migratePreferences(preferences);
   }
 
   public Preferences getPreferences() {
