@@ -35,7 +35,12 @@ public class ForgedAlliancePrefs {
     }
   }
 
+  /**
+   * @deprecated use {@code installationPath} instead.
+   */
+  @Deprecated
   private final ObjectProperty<Path> path;
+  private final ObjectProperty<Path> installationPath;
   private final ObjectProperty<Path> customMapsDirectory;
   private final ObjectProperty<Path> preferencesFile;
   private final ObjectProperty<Path> officialMapsDirectory;
@@ -57,6 +62,7 @@ public class ForgedAlliancePrefs {
   public ForgedAlliancePrefs() {
     port = new SimpleIntegerProperty(6112);
     path = new SimpleObjectProperty<>();
+    installationPath = new SimpleObjectProperty<>();
     customMapsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("Maps"));
     officialMapsDirectory = new SimpleObjectProperty<>(STEAM_FA_PATH.resolve("Maps"));
     modsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("Mods"));
@@ -86,12 +92,21 @@ public class ForgedAlliancePrefs {
     this.officialMapsDirectory.set(officialMapsDirectory);
   }
 
+  /**
+   * @deprecated use {@code installationPath} instead.
+   */
+  @Deprecated
   public Path getPath() {
     return path.get();
   }
 
+  /**
+   * @deprecated use {@code installationPath} instead.
+   */
+  @Deprecated
   public void setPath(Path path) {
     this.path.set(path);
+    this.installationPath.set(path);
   }
 
   public ObjectProperty<Path> pathProperty() {
@@ -172,5 +187,17 @@ public class ForgedAlliancePrefs {
 
   public ObjectProperty<Path> executionDirectoryProperty() {
     return executionDirectory;
+  }
+
+  public Path getInstallationPath() {
+    return installationPath.get();
+  }
+
+  public void setInstallationPath(Path installationPath) {
+    this.installationPath.set(installationPath);
+  }
+
+  public ObjectProperty<Path> installationPathProperty() {
+    return installationPath;
   }
 }
