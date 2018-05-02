@@ -56,6 +56,7 @@
 
             </children>
         </HBox>
-        <TextField fx:id="queryTextField" maxWidth="1.7976931348623157E308" promptText="%vault.replays.queryPrompt"/>
+        <TextField fx:id="queryTextField" onAction="#onSearchButtonClicked" maxWidth="1.7976931348623157E308"
+                   promptText="%vault.replays.queryPrompt"/>
     </children>
 </VBox>
