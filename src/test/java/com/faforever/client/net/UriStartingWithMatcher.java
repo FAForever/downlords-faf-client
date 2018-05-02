@@ -1,7 +1,6 @@
 package com.faforever.client.net;
 
 import org.mockito.ArgumentMatcher;
-import org.mockito.Matchers;
 
 import java.net.URI;
 
