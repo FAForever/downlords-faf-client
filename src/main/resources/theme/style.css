@@ -357,6 +357,11 @@
 
 .button.icon {
   -fx-text-overrun: clip;
+  -fx-background-color: transparent;
+  -fx-background-radius: 3em;
+  -fx-pref-width: 3em;
+  -fx-pref-height: 3em;
+  -fx-cursor: hand;
 }
 
 .button.icon.medium {
@@ -374,6 +379,10 @@
   -fx-background: -fx-base;
   -fx-background-color: -fx-background;
   -fx-border-color: -fx-box-border;
+}
+
+.context-menu {
+  -fx-min-width: 160;
 }
 
 /***************** Tooltip *****************/
