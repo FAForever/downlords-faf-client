@@ -152,7 +152,7 @@ public class ChatUserItemController implements Controller<Node> {
   public void onContextMenuRequested(ContextMenuEvent event) {
     ChatUserContextMenuController contextMenuController = uiService.loadFxml("theme/chat/chat_user_context_menu.fxml");
     contextMenuController.setPlayer(player);
-    contextMenuController.getContextMenu().show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+    contextMenuController.getContextMenu().show(chatUserItemRoot, event.getScreenX(), event.getScreenY());
   }
 
   public void onItemClicked(MouseEvent mouseEvent) {

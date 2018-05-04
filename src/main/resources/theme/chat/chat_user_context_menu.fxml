@@ -1,27 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXColorPicker?>
 <?import com.jfoenix.controls.JFXComboBox?>
-<?import javafx.scene.control.ColorPicker?>
 <?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.CustomMenuItem?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SeparatorMenuItem?>
-<ContextMenu xmlns:fx="http://javafx.com/fxml/1" fx:id="chatUserContextMenuRoot" xmlns="http://javafx.com/javafx/8.0.40"
+<?import javafx.scene.layout.HBox?>
+<ContextMenu xmlns:fx="http://javafx.com/fxml/1" fx:id="chatUserContextMenuRoot"
+             xmlns="http://javafx.com/javafx/8.0.141"
              fx:controller="com.faforever.client.chat.ChatUserContextMenuController">
   <items>
-    <MenuItem fx:id="showUserInfo" mnemonicParsing="false" onAction="#onUserInfo" text="%chat.userContext.userInfo"/>
-    <MenuItem fx:id="sendPrivateMessageItem" mnemonicParsing="false" onAction="#onSendPrivateMessage"
-              text="%chat.userContext.privateMessage"/>
-    <MenuItem fx:id="copyUsernameItem" mnemonicParsing="false" onAction="#onCopyUsername"
-              text="%chat.userContext.copyUsername"/>
+      <MenuItem fx:id="showUserInfo" mnemonicParsing="false" onAction="#onUserInfo" text="%chat.userContext.userInfo"/>
+      <MenuItem fx:id="sendPrivateMessageItem" mnemonicParsing="false" onAction="#onSendPrivateMessage"
+                text="%chat.userContext.privateMessage"/>
+      <MenuItem fx:id="copyUsernameItem" mnemonicParsing="false" onAction="#onCopyUsername"
+                text="%chat.userContext.copyUsername"/>
     <CustomMenuItem fx:id="colorPickerMenuItem" hideOnClick="false" mnemonicParsing="false">
-      <content>
-        <ColorPicker fx:id="colorPicker"/>
-      </content>
+        <content>
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                <children>
+                    <JFXColorPicker fx:id="colorPicker" HBox.hgrow="ALWAYS"/>
+                    <JFXButton fx:id="removeCustomColorButton" onAction="#onRemoveCustomColor" styleClass="icon,small"
+                               text="" HBox.hgrow="NEVER"/>
+                </children>
+            </HBox>
+        </content>
     </CustomMenuItem>
-    <MenuItem fx:id="removeCustomColorItem" mnemonicParsing="false" onAction="#onRemoveCustomColor"
-              text="%chat.userContext.removeColor"/>
-    <SeparatorMenuItem fx:id="socialSeparator" mnemonicParsing="false"/>
+      <SeparatorMenuItem fx:id="socialSeparator" mnemonicParsing="false"/>
     <MenuItem fx:id="addFriendItem" mnemonicParsing="false" onAction="#onAddFriend" text="%chat.userContext.addFriend" />
     <MenuItem fx:id="removeFriendItem" mnemonicParsing="false" onAction="#onRemoveFriend" text="%chat.userContext.removeFriend" />
     <MenuItem fx:id="addFoeItem" mnemonicParsing="false" onAction="#onAddFoe" text="%chat.userContext.addFoe" />
@@ -29,13 +36,14 @@
     <SeparatorMenuItem mnemonicParsing="false" />
       <MenuItem fx:id="joinGameItem" mnemonicParsing="false" onAction="#onJoinGame" text="%chat.userContext.joinGame" />
     <MenuItem fx:id="watchGameItem" mnemonicParsing="false" onAction="#onWatchGame" text="%chat.userContext.viewLiveReplay" />
-    <MenuItem fx:id="viewReplaysItem" disable="true" mnemonicParsing="false" onAction="#onViewReplays"
-              text="%chat.userContext.viewReplays"/>
-    <MenuItem fx:id="inviteItem" mnemonicParsing="false" disable="true" onAction="#onInviteToGame"
-              text="%chat.userContext.inviteToGame"/>
+      <MenuItem fx:id="viewReplaysItem" disable="true" mnemonicParsing="false" onAction="#onViewReplays"
+                text="%chat.userContext.viewReplays"/>
+      <MenuItem fx:id="inviteItem" disable="true" mnemonicParsing="false" onAction="#onInviteToGame"
+                text="%chat.userContext.inviteToGame"/>
     <SeparatorMenuItem fx:id="moderatorActionSeparator" mnemonicParsing="false" />
-    <MenuItem fx:id="kickItem" mnemonicParsing="false" disable="true" onAction="#onKick" text="%chat.userContext.kick"/>
-    <MenuItem fx:id="banItem" mnemonicParsing="false" disable="true" onAction="#onBan" text="%chat.userContext.ban"/>
+      <MenuItem fx:id="kickItem" disable="true" mnemonicParsing="false" onAction="#onKick"
+                text="%chat.userContext.kick"/>
+      <MenuItem fx:id="banItem" disable="true" mnemonicParsing="false" onAction="#onBan" text="%chat.userContext.ban"/>
     <CustomMenuItem fx:id="avatarPickerMenuItem" hideOnClick="false" mnemonicParsing="false">
       <content>
       </content>
