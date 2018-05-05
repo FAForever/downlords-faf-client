@@ -6,9 +6,8 @@ import org.springframework.stereotype.Component;
 
 @Lazy
 @Component
-public class AudioClipPlayerImpl implements AudioClipPlayer {
+public class AudioClipPlayer {
 
-  @Override
   public void playSound(AudioClip audioClip) {
     audioClip.play();
   }
