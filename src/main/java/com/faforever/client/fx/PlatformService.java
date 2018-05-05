@@ -13,13 +13,13 @@ import java.nio.file.Path;
 import static com.github.nocatch.NoCatch.noCatch;
 import static org.bridj.Platform.show;
 
-public class PlatformServiceImpl implements PlatformService {
+public class PlatformService {
 
   private final HostServices hostServices;
 
   private final boolean isWindows;
 
-  public PlatformServiceImpl(HostServices hostServices) {
+  public PlatformService(HostServices hostServices) {
     this.hostServices = hostServices;
     isWindows = Platform.isWindows();
   }
@@ -27,7 +27,7 @@ public class PlatformServiceImpl implements PlatformService {
   /**
    * Opens the specified URI in a new browser window or tab.
    */
-  @Override
+  
   public void showDocument(String url) {
     hostServices.showDocument(url);
   }
@@ -35,7 +35,7 @@ public class PlatformServiceImpl implements PlatformService {
   /**
    * Show a file in its parent directory, if possible selecting the file (not possible on all platforms).
    */
-  @Override
+  
   public void reveal(Path path) {
     noCatch(() -> show(path.toFile()));
   }
@@ -45,7 +45,7 @@ public class PlatformServiceImpl implements PlatformService {
    * Show a Window, restore it to it's state before minimizing (normal/restored or maximized) and move it to foreground
    * will only work on windows systems
    */
-  @Override
+  
   public void focusWindow(String windowTitle) {
     if (!isWindows) {
       return;
@@ -75,7 +75,7 @@ public class PlatformServiceImpl implements PlatformService {
     }
   }
 
-  @Override
+  
   public void startFlashingWindow(String windowTitle) {
     if (!isWindows) {
       return;
@@ -93,7 +93,7 @@ public class PlatformServiceImpl implements PlatformService {
     User32.INSTANCE.FlashWindowEx(flashwinfo);
   }
 
-  @Override
+  
   public void stopFlashingWindow(String windowTitle) {
     if (!isWindows) {
       return;
@@ -126,7 +126,7 @@ public class PlatformServiceImpl implements PlatformService {
     return new String(textBuffer).trim();
   }
 
-  @Override
+  
   public boolean isWindowFocused(String windowTitle) {
     return windowTitle.equals(getForegroundWindowTitle());
   }

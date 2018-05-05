@@ -10,16 +10,15 @@ import java.util.concurrent.CompletableFuture;
 
 @Lazy
 @Service
-public class ClanServiceImpl implements ClanService {
+public class ClanService {
 
   private final FafService fafService;
 
   @Inject
-  public ClanServiceImpl(FafService fafService) {
+  public ClanService(FafService fafService) {
     this.fafService = fafService;
   }
 
-  @Override
   public CompletableFuture<Optional<Clan>> getClanByTag(String tag) {
     return fafService.getClanByTag(tag);
   }

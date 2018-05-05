@@ -14,7 +14,7 @@ import java.io.IOException;
 
 @Lazy
 @Service
-public class AudioServiceImpl implements AudioService {
+public class AudioService {
 
   private static final String ACHIEVEMENT_UNLOCKED_SOUND = "theme/sounds/achievement_unlocked.mp3";
   private static final String INFO_SOUND = "theme/sounds/info.mp3";
@@ -40,7 +40,7 @@ public class AudioServiceImpl implements AudioService {
   private NotificationsPrefs notificationsPrefs;
 
   @Inject
-  public AudioServiceImpl(PreferencesService preferencesService, AudioClipPlayer audioClipPlayer, UiService uiService) {
+  public AudioService(PreferencesService preferencesService, AudioClipPlayer audioClipPlayer, UiService uiService) {
     this.preferencesService = preferencesService;
     this.audioClipPlayer = audioClipPlayer;
     this.uiService = uiService;
@@ -75,7 +75,7 @@ public class AudioServiceImpl implements AudioService {
     return new AudioClip(uiService.getThemeFileUrl(sound).toString());
   }
 
-  @Override
+  
   public void playChatMentionSound() {
     if (!notificationsPrefs.isMentionSoundEnabled()) {
       return;
@@ -83,7 +83,7 @@ public class AudioServiceImpl implements AudioService {
     playSound(chatMentionSound);
   }
 
-  @Override
+  
   public void playPrivateMessageSound() {
     if (!notificationsPrefs.isPrivateMessageSoundEnabled()) {
       return;
@@ -91,7 +91,7 @@ public class AudioServiceImpl implements AudioService {
     playSound(privateMessageSound);
   }
 
-  @Override
+  
   public void playInfoNotificationSound() {
     if (!notificationsPrefs.isInfoSoundEnabled()) {
       return;
@@ -99,7 +99,7 @@ public class AudioServiceImpl implements AudioService {
     playSound(infoNotificationSound);
   }
 
-  @Override
+  
   public void playWarnNotificationSound() {
     if (!notificationsPrefs.isWarnSoundEnabled()) {
       return;
@@ -107,7 +107,7 @@ public class AudioServiceImpl implements AudioService {
     playSound(warnNotificationSound);
   }
 
-  @Override
+  
   public void playErrorNotificationSound() {
     if (!notificationsPrefs.isErrorSoundEnabled()) {
       return;
@@ -115,12 +115,12 @@ public class AudioServiceImpl implements AudioService {
     playSound(errorNotificationSound);
   }
 
-  @Override
+  
   public void playAchievementUnlockedSound() {
     playSound(achievementUnlockedSound);
   }
 
-  @Override
+  
   public void playFriendOnlineSound() {
     if (!notificationsPrefs.isFriendOnlineSoundEnabled()) {
       return;
@@ -129,7 +129,7 @@ public class AudioServiceImpl implements AudioService {
 //    playSound(friendOnlineSound);
   }
 
-  @Override
+  
   public void playFriendOfflineSound() {
     if (!notificationsPrefs.isFriendOfflineSoundEnabled()) {
       return;
@@ -138,7 +138,7 @@ public class AudioServiceImpl implements AudioService {
 //    playSound(friendOfflineSound);
   }
 
-  @Override
+  
   public void playFriendJoinsGameSound() {
     if (!notificationsPrefs.isFriendJoinsGameSoundEnabled()) {
       return;
@@ -147,7 +147,7 @@ public class AudioServiceImpl implements AudioService {
 //    playSound(friendJoinsGameSound);
   }
 
-  @Override
+  
   public void playFriendPlaysGameSound() {
     if (!notificationsPrefs.isFriendPlaysGameSoundEnabled()) {
       return;

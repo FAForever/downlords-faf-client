@@ -9,9 +9,9 @@ import org.mockito.MockitoAnnotations;
 import static org.mockito.Mockito.verify;
 
 
-public class CoopServiceImplTest {
+public class CoopServiceTest {
 
-  private CoopServiceImpl instance;
+  private CoopService instance;
 
   @Mock
   private FafService fafService;
@@ -20,7 +20,7 @@ public class CoopServiceImplTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new CoopServiceImpl(fafService);
+    instance = new CoopService(fafService);
   }
 
   @Test

@@ -19,20 +19,24 @@ import java.util.List;
 
 import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANCE_EXE;
 
+/**
+ * Knows how to starts/stop Forged Alliance with proper parameters. Downloading maps, mods and updates as well as
+ * notifying the server about whether the preferences is running or not is <strong>not</strong> this service's responsibility.
+ */
 @Lazy
 @Service
-public class ForgedAllianceServiceImpl implements ForgedAllianceService {
+public class ForgedAllianceService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final PreferencesService preferencesService;
 
   @Inject
-  public ForgedAllianceServiceImpl(PreferencesService preferencesService) {
+  public ForgedAllianceService(PreferencesService preferencesService) {
     this.preferencesService = preferencesService;
   }
 
-  @Override
+  
   public Process startGame(int uid, @Nullable Faction faction, @Nullable List<String> additionalArgs,
                            RatingMode ratingMode, int gpgPort, int localReplayPort, boolean rehost, Player currentPlayer) throws IOException {
     Path executable = getExecutable();
@@ -70,7 +74,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
     return launch(executable, launchCommand);
   }
 
-  @Override
+  
   public Process startReplay(Path path, @Nullable Integer replayId) throws IOException {
     Path executable = getExecutable();
 
@@ -84,7 +88,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
     return launch(executable, launchCommand);
   }
 
-  @Override
+  
   public Process startReplay(URI replayUri, Integer replayId, Player currentPlayer) throws IOException {
     Path executable = getExecutable();
 

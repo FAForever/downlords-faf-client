@@ -12,21 +12,19 @@ import java.util.concurrent.CompletableFuture;
 
 @Lazy
 @Service
-public class CoopServiceImpl implements CoopService {
+public class CoopService {
 
   private final FafService fafService;
 
   @Inject
-  public CoopServiceImpl(FafService fafService) {
+  public CoopService(FafService fafService) {
     this.fafService = fafService;
   }
 
-  @Override
   public CompletableFuture<List<CoopMission>> getMissions() {
     return fafService.getCoopMaps();
   }
 
-  @Override
   public CompletableFuture<List<CoopResult>> getLeaderboard(CoopMission mission, int numberOfPlayers) {
     return fafService.getCoopLeaderboard(mission, numberOfPlayers);
   }

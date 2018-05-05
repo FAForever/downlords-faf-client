@@ -19,13 +19,12 @@ import static com.faforever.client.config.CacheNames.COUNTRY_FLAGS;
 
 @Lazy
 @Service
-public class CountryFlagServiceImpl implements CountryFlagService {
+public class CountryFlagService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final Collection<String> NON_COUNTRY_CODES = Arrays.asList("A1", "A2", "");
 
-  @Override
   @Cacheable(COUNTRY_FLAGS)
   public Optional<Image> loadCountryFlag(final String country) {
     if (country == null) {
@@ -36,7 +35,6 @@ public class CountryFlagServiceImpl implements CountryFlagService {
         .map(url -> new Image(url.toString(), true));
   }
 
-  @Override
   @SneakyThrows
   public Optional<URL> getCountryFlagUrl(String country) {
     if (country == null) {
