@@ -4,7 +4,7 @@ import com.faforever.client.api.dto.AchievementDefinition;
 import com.faforever.client.api.dto.AchievementType;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationServiceImpl;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.UpdatedAchievement;
@@ -36,7 +36,7 @@ public class AchievementUnlockedNotifierTest {
   @Mock
   private AchievementUnlockedNotifier instance;
   @Mock
-  private NotificationServiceImpl notificationService;
+  private NotificationService notificationService;
   @Mock
   private I18n i18n;
   @Mock

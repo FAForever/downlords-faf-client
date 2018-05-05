@@ -19,7 +19,7 @@ public class CoopResult {
   private Duration duration;
   private boolean secondaryObjectives;
   private int playerCount;
-  /** This field is not provided by the API and must be enriched instead. */
+  /** This field is not provided by the API but must be enriched instead. */
   private int ranking;
 
   @Relationship("game")

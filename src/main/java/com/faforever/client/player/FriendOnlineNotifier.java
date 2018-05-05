@@ -28,12 +28,12 @@ public class FriendOnlineNotifier {
   private final I18n i18n;
   private final EventBus eventBus;
   private final AudioService audioService;
-  private final PlayerServiceImpl playerService;
+  private final PlayerService playerService;
   private final PreferencesService preferencesService;
 
   @Inject
   public FriendOnlineNotifier(NotificationService notificationService, I18n i18n, EventBus eventBus,
-                              AudioService audioService, PlayerServiceImpl playerService, PreferencesService preferencesService) {
+                              AudioService audioService, PlayerService playerService, PreferencesService preferencesService) {
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.eventBus = eventBus;

@@ -59,7 +59,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
-import static com.faforever.client.theme.UiService.DEFAULT_THEME;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -324,7 +323,7 @@ public class SettingsController implements Controller<Node> {
 
     Theme currentTheme = themeComboBox.getItems().stream()
         .filter(theme -> theme.getDisplayName().equals(preferences.getThemeName()))
-        .findFirst().orElse(DEFAULT_THEME);
+        .findFirst().orElse(UiService.DEFAULT_THEME);
     themeComboBox.getSelectionModel().select(currentTheme);
 
     themeComboBox.getSelectionModel().selectedItemProperty().addListener(selectedThemeChangeListener);

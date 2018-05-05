@@ -2,7 +2,6 @@ package com.faforever.client.fx;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.TableCell;
 
 import java.util.function.Function;

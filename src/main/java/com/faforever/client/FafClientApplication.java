@@ -3,12 +3,12 @@ package com.faforever.client;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.fx.PlatformServiceImpl;
 import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -67,7 +67,7 @@ public class FafClientApplication extends Application {
     Font.loadFont(FafClientApplication.class.getResourceAsStream("/font/dfc-icons.ttf"), 10);
     JavaFxUtil.fixTooltipDuration();
 
-    applicationContext = new SpringApplicationBuilder(FafClientApplication.class)
+    Platform.runLater(() -> applicationContext = new SpringApplicationBuilder(FafClientApplication.class)
         .profiles(getAdditionalProfiles())
         .bannerMode(Mode.OFF)
         .run(getParameters().getRaw().toArray(new String[0]));
@@ -82,7 +82,7 @@ public class FafClientApplication extends Application {
 
   @Bean
   public PlatformService platformService() {
-    return new PlatformServiceImpl(getHostServices());
+    return new PlatformService(getHostServices());
   }
 
   private void showMainWindow() {

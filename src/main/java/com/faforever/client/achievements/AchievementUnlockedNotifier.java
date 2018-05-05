@@ -4,7 +4,7 @@ import com.faforever.client.achievements.AchievementService.AchievementState;
 import com.faforever.client.api.dto.AchievementDefinition;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationServiceImpl;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.UpdatedAchievement;
@@ -24,7 +24,7 @@ public class AchievementUnlockedNotifier {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private final NotificationServiceImpl notificationService;
+  private final NotificationService notificationService;
   private final I18n i18n;
   private final AchievementService achievementService;
   private final FafService fafService;
@@ -33,7 +33,7 @@ public class AchievementUnlockedNotifier {
   private long lastSoundPlayed;
 
   @Inject
-  public AchievementUnlockedNotifier(NotificationServiceImpl notificationService, I18n i18n, AchievementService achievementService, FafService fafService, AudioService audioService) {
+  public AchievementUnlockedNotifier(NotificationService notificationService, I18n i18n, AchievementService achievementService, FafService fafService, AudioService audioService) {
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.achievementService = achievementService;

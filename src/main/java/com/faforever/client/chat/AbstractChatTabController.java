@@ -319,7 +319,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     WebView messagesWebView = getMessagesWebView();
     webViewConfigurer.configureWebView(messagesWebView);
 
-    JavaFxUtil.addListener(messagesWebView.zoomProperty(), (observable, oldValue, newValue) -> {
+    messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
+    messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {
       preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
       preferencesService.storeInBackground();
     });

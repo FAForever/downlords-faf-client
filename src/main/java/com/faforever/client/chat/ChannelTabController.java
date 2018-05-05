@@ -371,7 +371,6 @@ public class ChannelTabController extends AbstractChatTabController {
         removeFromPane(player, getPaneForSocialStatus(oldValue));
         removeUserMessageClass(player, oldValue.getCssClass());
       }
-
       if (newValue == OTHER && player.isChatOnly()) {
         addToPane(player, chatOnlyPane);
         setUserMessageClass(player, CSS_CLASS_CHAT_ONLY);
