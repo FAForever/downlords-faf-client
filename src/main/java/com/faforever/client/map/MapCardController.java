@@ -3,7 +3,7 @@ package com.faforever.client.map;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapServiceImpl.PreviewSize;
+import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.StarsController;

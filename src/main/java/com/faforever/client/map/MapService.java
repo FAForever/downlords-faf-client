@@ -67,7 +67,7 @@ import static java.util.stream.Collectors.toCollection;
 
 @Lazy
 @Service
-public class MapServiceImpl implements MapService {
+public class MapService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -89,10 +89,10 @@ public class MapServiceImpl implements MapService {
   private Thread directoryWatcherThread;
 
   @Inject
-  public MapServiceImpl(PreferencesService preferencesService, TaskService taskService,
-                        ApplicationContext applicationContext,
-                        FafService fafService, AssetService assetService,
-                        I18n i18n, UiService uiService, ClientProperties clientProperties) {
+  public MapService(PreferencesService preferencesService, TaskService taskService,
+                    ApplicationContext applicationContext,
+                    FafService fafService, AssetService assetService,
+                    I18n i18n, UiService uiService, ClientProperties clientProperties) {
     this.preferencesService = preferencesService;
     this.taskService = taskService;
     this.applicationContext = applicationContext;
@@ -155,7 +155,7 @@ public class MapServiceImpl implements MapService {
   private Thread startDirectoryWatcher(Path mapsDirectory) {
     Thread thread = new Thread(() -> noCatch(() -> {
       WatchService watcher = mapsDirectory.getFileSystem().newWatchService();
-      MapServiceImpl.this.customMapsDirectory.register(watcher, ENTRY_DELETE);
+      MapService.this.customMapsDirectory.register(watcher, ENTRY_DELETE);
 
       try {
         while (!Thread.interrupted()) {
@@ -175,7 +175,7 @@ public class MapServiceImpl implements MapService {
 
   private void loadInstalledMaps() {
     taskService.submitTask(new CompletableTask<Void>(Priority.LOW) {
-      @Override
+      
       protected Void call() {
         updateTitle(i18n.get("mapVault.loadingMaps"));
         Path officialMapsPath = preferencesService.getPreferences().getForgedAlliance().getExecutablePath().resolve("maps");
@@ -217,7 +217,7 @@ public class MapServiceImpl implements MapService {
     }
   }
 
-  @Override
+  
   @NotNull
   public MapBean readMap(Path mapFolder) throws MapLoadException {
     if (!Files.isDirectory(mapFolder)) {
@@ -249,18 +249,18 @@ public class MapServiceImpl implements MapService {
   }
 
   @NotNull
-  @Override
+  
   @Cacheable(value = CacheNames.MAP_PREVIEW, unless = "#result == null")
   public Image loadPreview(String mapName, PreviewSize previewSize) {
     return loadPreview(getPreviewUrl(mapName, mapPreviewUrlFormat, previewSize), previewSize);
   }
 
-  @Override
+  
   public ObservableList<MapBean> getInstalledMaps() {
     return installedSkirmishMaps;
   }
 
-  @Override
+  
   public MapBean getMapBeanLocallyFromName(String mapName) {
     logger.debug("Trying to return {} mapInfoBean locally", mapName);
     ObservableList<MapBean> installedMaps = getInstalledMaps();
@@ -275,7 +275,7 @@ public class MapServiceImpl implements MapService {
     return null;
   }
 
-  @Override
+  
   public boolean isOfficialMap(String mapName) {
     return OfficialMap.fromMapName(mapName) != null;
   }
@@ -284,33 +284,33 @@ public class MapServiceImpl implements MapService {
   /**
    * Returns {@code true} if the given map is available locally, {@code false} otherwise.
    */
-  @Override
+  
   public boolean isInstalled(String mapFolderName) {
     return mapsByFolderName.containsKey(mapFolderName.toLowerCase());
   }
 
-  @Override
+  
   public CompletableFuture<Void> download(String technicalMapName) {
     URL mapUrl = getDownloadUrl(technicalMapName, mapDownloadUrlFormat);
     return downloadAndInstallMap(technicalMapName, mapUrl, null, null);
   }
 
-  @Override
+  
   public CompletableFuture<Void> downloadAndInstallMap(MapBean map, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
     return downloadAndInstallMap(map.getFolderName(), map.getDownloadUrl(), progressProperty, titleProperty);
   }
 
-  @Override
+  
   public CompletableFuture<List<MapBean>> getHighestRatedMaps(int count, int page) {
     return fafService.getHighestRatedMaps(count, page);
   }
 
-  @Override
+  
   public CompletableFuture<List<MapBean>> getNewestMaps(int count, int page) {
     return fafService.getNewestMaps(count, page);
   }
 
-  @Override
+  
   public CompletableFuture<List<MapBean>> getMostPlayedMaps(int count, int page) {
     return fafService.getMostPlayedMaps(count, page);
   }
@@ -318,7 +318,7 @@ public class MapServiceImpl implements MapService {
   /**
    * Loads the preview of a map or returns a "unknown map" image.
    */
-  @Override
+  
   @Cacheable(CacheNames.MAP_PREVIEW)
   public Image loadPreview(MapBean map, PreviewSize previewSize) {
     URL url;
@@ -340,19 +340,19 @@ public class MapServiceImpl implements MapService {
         () -> uiService.getThemeImage(UiService.UNKNOWN_MAP_IMAGE));
   }
 
-  @Override
+  
   public CompletableFuture<Void> uninstallMap(MapBean map) {
     UninstallMapTask task = applicationContext.getBean(com.faforever.client.map.UninstallMapTask.class);
     task.setMap(map);
     return taskService.submitTask(task).getFuture();
   }
 
-  @Override
+  
   public Path getPathForMap(MapBean map) {
     return getPathForMap(map.getFolderName());
   }
 
-  @Override
+  
   public Path getPathForMap(String technicalName) {
     Path path = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory().resolve(technicalName);
     if (Files.notExists(path)) {
@@ -361,7 +361,7 @@ public class MapServiceImpl implements MapService {
     return path;
   }
 
-  @Override
+  
   public CompletableTask<Void> uploadMap(Path mapPath, boolean ranked) {
     MapUploadTask mapUploadTask = applicationContext.getBean(MapUploadTask.class);
     mapUploadTask.setMapPath(mapPath);
@@ -370,7 +370,7 @@ public class MapServiceImpl implements MapService {
     return taskService.submitTask(mapUploadTask);
   }
 
-  @Override
+  
   @CacheEvict(CacheNames.MAPS)
   public void evictCache() {
     // Nothing to see here
@@ -379,7 +379,7 @@ public class MapServiceImpl implements MapService {
   /**
    * Tries to find a map my its folder name, first locally then on the server.
    */
-  @Override
+  
   public CompletableFuture<Optional<MapBean>> findByMapFolderName(String folderName) {
     Path localMapFolder = getPathForMap(folderName);
     if (localMapFolder != null && Files.exists(localMapFolder)) {
@@ -388,13 +388,13 @@ public class MapServiceImpl implements MapService {
     return fafService.findMapByFolderName(folderName);
   }
 
-  @Override
+  
   public CompletableFuture<Boolean> hasPlayedMap(int playerId, String mapVersionId) {
     return fafService.getLastGameOnMap(playerId, mapVersionId)
         .thenApply(Optional::isPresent);
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<Integer> getFileSize(URL downloadUrl) {
     return CompletableFuture.completedFuture(noCatch(() -> downloadUrl
@@ -402,17 +402,17 @@ public class MapServiceImpl implements MapService {
         .getContentLength()));
   }
 
-  @Override
+  
   public CompletableFuture<List<MapBean>> findByQuery(String query, int page, int maxSearchResults, SortConfig sortConfig) {
     return fafService.findMapsByQuery(query, page, maxSearchResults, sortConfig);
   }
 
-  @Override
+  
   public Optional<MapBean> findMap(String id) {
     return fafService.findMapById(id);
   }
 
-  @Override
+  
   public CompletableFuture<List<MapBean>> getLadderMaps(int loadMoreCount, int page) {
     return fafService.getLadder1v1Maps(loadMoreCount, page);
   }

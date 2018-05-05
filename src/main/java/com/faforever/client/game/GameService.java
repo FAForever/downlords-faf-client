@@ -88,7 +88,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 @Lazy
 @Service
 @Slf4j
-public class GameServiceImpl implements GameService {
+public class GameService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -134,13 +134,13 @@ public class GameServiceImpl implements GameService {
   private int localReplayPort;
 
   @Inject
-  public GameServiceImpl(ClientProperties clientProperties, FafService fafService,
-                         ForgedAllianceService forgedAllianceService, MapService mapService,
-                         PreferencesService preferencesService, GameUpdater gameUpdater,
-                         NotificationService notificationService, I18n i18n, Executor executor,
-                         PlayerService playerService, ReportingService reportingService, EventBus eventBus,
-                         IceAdapter iceAdapter, ModService modService, PlatformService platformService,
-                         ExternalReplayInfoGenerator externalReplayInfoGenerator) {
+  public GameService(ClientProperties clientProperties, FafService fafService,
+                     ForgedAllianceService forgedAllianceService, MapService mapService,
+                     PreferencesService preferencesService, GameUpdater gameUpdater,
+                     NotificationService notificationService, I18n i18n, Executor executor,
+                     PlayerService playerService, ReportingService reportingService, EventBus eventBus,
+                     IceAdapter iceAdapter, ModService modService, PlatformService platformService,
+                     ExternalReplayInfoGenerator externalReplayInfoGenerator) {
     this.fafService = fafService;
     this.forgedAllianceService = forgedAllianceService;
     this.mapService = mapService;
@@ -198,12 +198,12 @@ public class GameServiceImpl implements GameService {
     JavaFxUtil.attachListToMap(games, uidToGameInfoBean);
   }
 
-  @Override
+  
   public ReadOnlyBooleanProperty gameRunningProperty() {
     return gameRunning;
   }
 
-  @Override
+  
   public CompletableFuture<Void> hostGame(NewGameInfo newGameInfo) {
     if (isRunning()) {
       logger.debug("Game is running, ignoring host request");
@@ -218,7 +218,7 @@ public class GameServiceImpl implements GameService {
         .thenAccept(gameLaunchMessage -> startGame(gameLaunchMessage, null, RatingMode.GLOBAL));
   }
 
-  @Override
+  
   public CompletableFuture<Void> joinGame(Game game, String password) {
     if (isRunning()) {
       logger.debug("Game is running, ignoring join request");
@@ -268,7 +268,7 @@ public class GameServiceImpl implements GameService {
   /**
    * @param path a replay file that is readable by the preferences without any further conversion
    */
-  @Override
+  
   public void runWithReplay(Path path, @Nullable Integer replayId, String featuredMod, Integer version, Map<String, Integer> modVersions, Set<String> simMods, String mapName) {
     if (isRunning()) {
       logger.warn("Forged Alliance is already running, not starting replay");
@@ -303,7 +303,7 @@ public class GameServiceImpl implements GameService {
     );
   }
 
-  @Override
+  
   public CompletableFuture<Void> runWithLiveReplay(URI replayUrl, Integer gameId, String gameType, String mapName) {
     if (isRunning()) {
       logger.warn("Forged Alliance is already running, not starting live replay");
@@ -330,12 +330,12 @@ public class GameServiceImpl implements GameService {
     return playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
   }
 
-  @Override
+  
   public ObservableList<Game> getGames() {
     return games;
   }
 
-  @Override
+  
   public Game getByUid(int uid) {
     Game game = uidToGameInfoBean.get(uid);
     if (game == null) {
@@ -344,12 +344,12 @@ public class GameServiceImpl implements GameService {
     return game;
   }
 
-  @Override
+  
   public void addOnRankedMatchNotificationListener(Consumer<MatchmakerMessage> listener) {
     fafService.addOnMessageListener(MatchmakerMessage.class, listener);
   }
 
-  @Override
+  
   public CompletableFuture<Void> startSearchLadder1v1(Faction faction) {
     if (isRunning()) {
       logger.debug("Game is running, ignoring 1v1 search request");
@@ -382,7 +382,7 @@ public class GameServiceImpl implements GameService {
         });
   }
 
-  @Override
+  
   public void stopSearchLadder1v1() {
     if (searching1v1.get()) {
       fafService.stopSearchingRanked();
@@ -390,7 +390,7 @@ public class GameServiceImpl implements GameService {
     }
   }
 
-  @Override
+  
   public BooleanProperty searching1v1Property() {
     return searching1v1;
   }
@@ -399,7 +399,7 @@ public class GameServiceImpl implements GameService {
    * Returns the preferences the player is currently in. Returns {@code null} if not in a preferences.
    */
   @Nullable
-  @Override
+  
   public Game getCurrentGame() {
     synchronized (currentGame) {
       return currentGame.get();
@@ -414,7 +414,7 @@ public class GameServiceImpl implements GameService {
     return gameUpdater.update(featuredMod, version, featuredModVersions, simModUids);
   }
 
-  @Override
+  
   public boolean isGameRunning() {
     synchronized (gameRunning) {
       return gameRunning.get();

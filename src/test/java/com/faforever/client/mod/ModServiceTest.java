@@ -59,7 +59,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ModServiceImplTest {
+public class ModServiceTest {
 
   public static final String BLACK_OPS_UNLEASHED_DIRECTORY_NAME = "BlackOpsUnleashed";
   private static final ClassPathResource BLACKOPS_SUPPORT_MOD_INFO = new ClassPathResource("/mods/blackops_support_mod_info.lua");
@@ -96,13 +96,13 @@ public class ModServiceImplTest {
   @Mock
   private PlatformService platformService;
 
-  private ModServiceImpl instance;
+  private ModService instance;
   private Path gamePrefsPath;
   private Path blackopsSupportPath;
 
   @Before
   public void setUp() throws Exception {
-    instance = new ModServiceImpl(taskService, fafService, preferencesService, applicationContext,
+    instance = new ModService(taskService, fafService, preferencesService, applicationContext,
         notificationService, i18n, platformService, assetService);
 
     gamePrefsPath = faDataDirectory.getRoot().toPath().resolve("game.prefs");

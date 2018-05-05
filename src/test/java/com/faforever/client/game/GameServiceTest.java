@@ -81,7 +81,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class GameServiceImplTest extends AbstractPlainJavaFxTest {
+public class GameServiceTest extends AbstractPlainJavaFxTest {
 
   private static final long TIMEOUT = 5000;
   private static final TimeUnit TIME_UNIT = TimeUnit.MILLISECONDS;
@@ -89,7 +89,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   private static final Integer GPG_PORT = 1234;
   private static final int LOCAL_REPLAY_PORT = 15111;
 
-  private GameServiceImpl instance;
+  private GameService instance;
 
   @Mock
   private PreferencesService preferencesService;
@@ -137,7 +137,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     ClientProperties clientProperties = new ClientProperties();
 
-    instance = new GameServiceImpl(clientProperties, fafService, forgedAllianceService, mapService,
+    instance = new GameService(clientProperties, fafService, forgedAllianceService, mapService,
         preferencesService, gameUpdater, notificationService, i18n, executor, playerService,
         reportingService, eventBus, iceAdapter, modService, platformService, externalReplayInfoGenerator);
     instance.replayService = replayService;
