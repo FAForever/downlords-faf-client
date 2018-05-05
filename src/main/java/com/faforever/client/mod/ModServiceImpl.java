@@ -318,6 +318,9 @@ public class ModServiceImpl implements ModService {
     fafService.evictModsCache();
   }
 
+  /**
+   * Returns the download size of the specified modVersion in bytes.
+   */
   @Override
   @SneakyThrows
   public long getModSize(ModVersion modVersion) {

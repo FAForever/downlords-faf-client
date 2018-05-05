@@ -28,7 +28,7 @@ import static com.github.nocatch.NoCatch.noCatch;
 
 @Lazy
 @Service
-public class AchievementServiceImpl implements AchievementService {
+public class AchievementServiceImpl {
 
   private static final int ACHIEVEMENT_IMAGE_SIZE = 128;
   private final ObservableList<PlayerAchievement> readOnlyPlayerAchievements;
@@ -50,7 +50,7 @@ public class AchievementServiceImpl implements AchievementService {
     readOnlyPlayerAchievements = FXCollections.unmodifiableObservableList(playerAchievements);
   }
 
-  @Override
+  
   public CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(Integer playerId) {
     int currentPlayerId = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has to be set")).getId();
     if (Objects.equals(currentPlayerId, playerId)) {
@@ -64,17 +64,17 @@ public class AchievementServiceImpl implements AchievementService {
     return fafService.getPlayerAchievements(playerId);
   }
 
-  @Override
+  
   public CompletableFuture<List<AchievementDefinition>> getAchievementDefinitions() {
     return fafService.getAchievementDefinitions();
   }
 
-  @Override
+  
   public CompletableFuture<AchievementDefinition> getAchievementDefinition(String achievementId) {
     return fafService.getAchievementDefinition(achievementId);
   }
 
-  @Override
+  
   @Cacheable(CacheNames.ACHIEVEMENT_IMAGES)
   public Image getImage(AchievementDefinition achievementDefinition, AchievementState achievementState) {
     URL url;
@@ -106,4 +106,9 @@ public class AchievementServiceImpl implements AchievementService {
   void postConstruct() {
     fafService.addOnMessageListener(UpdatedAchievementsMessage.class, updatedAchievementsMessage -> reloadAchievements());
   }
+
+  enum AchievementState {
+    HIDDEN, REVEALED, UNLOCKED
+  }
+
 }

@@ -82,6 +82,9 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
+/**
+ * Downloads necessary maps, mods and updates before starting
+ */
 @Lazy
 @Service
 @Slf4j
@@ -262,6 +265,9 @@ public class GameServiceImpl implements GameService {
     return mapService.download(mapFolderName);
   }
 
+  /**
+   * @param path a replay file that is readable by the preferences without any further conversion
+   */
   @Override
   public void runWithReplay(Path path, @Nullable Integer replayId, String featuredMod, Integer version, Map<String, Integer> modVersions, Set<String> simMods, String mapName) {
     if (isRunning()) {
@@ -389,6 +395,9 @@ public class GameServiceImpl implements GameService {
     return searching1v1;
   }
 
+  /**
+   * Returns the preferences the player is currently in. Returns {@code null} if not in a preferences.
+   */
   @Nullable
   @Override
   public Game getCurrentGame() {

@@ -285,6 +285,10 @@ public class MapServiceImpl implements MapService {
     return OfficialMap.fromMapName(mapName) != null;
   }
 
+
+  /**
+   * Returns {@code true} if the given map is available locally, {@code false} otherwise.
+   */
   @Override
   public boolean isInstalled(String mapFolderName) {
     return mapsByFolderName.containsKey(mapFolderName.toLowerCase());
@@ -316,6 +320,9 @@ public class MapServiceImpl implements MapService {
     return fafService.getMostPlayedMaps(count, page);
   }
 
+  /**
+   * Loads the preview of a map or returns a "unknown map" image.
+   */
   @Override
   @Cacheable(CacheNames.MAP_PREVIEW)
   public Image loadPreview(MapBean map, PreviewSize previewSize) {
@@ -376,6 +383,9 @@ public class MapServiceImpl implements MapService {
     // Nothing to see here
   }
 
+  /**
+   * Tries to find a map my its folder name, first locally then on the server.
+   */
   @Override
   public CompletableFuture<Optional<MapBean>> findByMapFolderName(String folderName) {
     Path localMapFolder = getPathForMap(folderName);

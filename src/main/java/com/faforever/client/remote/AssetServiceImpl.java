@@ -32,12 +32,12 @@ public class AssetServiceImpl implements AssetService {
     this.preferencesService = preferencesService;
   }
 
-  @Override
+  @Nullable
   public Image loadAndCacheImage(URL url, Path cacheSubFolder, @Nullable Supplier<Image> defaultSupplier) {
     return loadAndCacheImage(url, cacheSubFolder, defaultSupplier, 0, 0);
   }
 
-  @Override
+  @Nullable
   public Image loadAndCacheImage(URL url, Path cacheSubFolder, @Nullable Supplier<Image> defaultSupplier, int width, int height) {
     if (url == null) {
       if (defaultSupplier == null) {

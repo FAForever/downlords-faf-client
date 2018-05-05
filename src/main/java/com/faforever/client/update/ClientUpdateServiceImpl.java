@@ -60,7 +60,9 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
     logger.info("Current version: {}", currentVersion);
   }
 
-  @Override
+  /**
+   * Returns information about an available update. Returns {@code null} if no update is available.
+   */
   public void checkForUpdateInBackground() {
     CheckForUpdateTask task = applicationContext.getBean(CheckForUpdateTask.class);
     task.setCurrentVersion(currentVersion);
