@@ -65,33 +65,33 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
 @Lazy
 @Service
-public class UiServiceImpl implements UiService {
+public class UiService {
 
-  String UNKNOWN_MAP_IMAGE = "theme/images/unknown_map.png";
+  public static final String UNKNOWN_MAP_IMAGE = "theme/images/unknown_map.png";
   //TODO: Create Images for News Categories
-  String SERVER_UPDATE_NEWS_IMAGE = "theme/images/news_fallback.jpg";
-  String LADDER_NEWS_IMAGE = "theme/images/news_fallback.jpg";
-  String TOURNAMENT_NEWS_IMAGE = "theme/images/news_fallback.jpg";
-  String FA_UPDATE_NEWS_IMAGE = "theme/images/news_fallback.jpg";
-  String LOBBY_UPDATE_NEWS_IMAGE = "theme/images/news_fallback.jpg";
-  String BALANCE_NEWS_IMAGE = "theme/images/news_fallback.jpg";
-  String WEBSITE_NEWS_IMAGE = "theme/images/news_fallback.jpg";
-  String CAST_NEWS_IMAGE = "theme/images/news_fallback.jpg";
-  String PODCAST_NEWS_IMAGE = "theme/images/news_fallback.jpg";
-  String FEATURED_MOD_NEWS_IMAGE = "theme/images/news_fallback.jpg";
-  String DEVELOPMENT_NEWS_IMAGE = "theme/images/news_fallback.jpg";
-  String DEFAULT_NEWS_IMAGE = "theme/images/news_fallback.jpg";
-  String STYLE_CSS = "theme/style.css";
-  String WEBVIEW_CSS_FILE = "theme/style-webview.css";
-  String DEFAULT_ACHIEVEMENT_IMAGE = "theme/images/default_achievement.png";
-  String MENTION_SOUND = "theme/sounds/mention.mp3";
-  String CSS_CLASS_ICON = "icon";
-  String LADDER_1V1_IMAGE = "theme/images/ranked1v1_notification.png";
-  String CHAT_CONTAINER = "theme/chat/chat_container.html";
-  String CHAT_ENTRY = "theme/chat/chat_section.html";
-  String CHAT_TEXT = "theme/chat/chat_text.html";
+  public static final String SERVER_UPDATE_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  public static final String LADDER_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  public static final String TOURNAMENT_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  public static final String FA_UPDATE_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  public static final String LOBBY_UPDATE_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  public static final String BALANCE_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  public static final String WEBSITE_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  public static final String CAST_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  public static final String PODCAST_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  public static final String FEATURED_MOD_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  public static final String DEVELOPMENT_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  public static final String DEFAULT_NEWS_IMAGE = "theme/images/news_fallback.jpg";
+  public static final String STYLE_CSS = "theme/style.css";
+  public static final String WEBVIEW_CSS_FILE = "theme/style-webview.css";
+  public static final String DEFAULT_ACHIEVEMENT_IMAGE = "theme/images/default_achievement.png";
+  public static final String MENTION_SOUND = "theme/sounds/mention.mp3";
+  public static final String CSS_CLASS_ICON = "icon";
+  public static final String LADDER_1V1_IMAGE = "theme/images/ranked1v1_notification.png";
+  public static final String CHAT_CONTAINER = "theme/chat/chat_container.html";
+  public static final String CHAT_ENTRY = "theme/chat/chat_section.html";
+  public static final String CHAT_TEXT = "theme/chat/chat_text.html";
 
-  Theme DEFAULT_THEME = new Theme() {
+  public static Theme DEFAULT_THEME = new Theme() {
     {
       setAuthor("Downlord");
       setCompatibilityVersion(1);
@@ -125,9 +125,9 @@ public class UiServiceImpl implements UiService {
   private MessageSourceResourceBundle resources;
 
   @Inject
-  public UiServiceImpl(PreferencesService preferencesService, ThreadPoolExecutor threadPoolExecutor,
-                       CacheManager cacheManager, MessageSource messageSource, ApplicationContext applicationContext,
-                       I18n i18n) {
+  public UiService(PreferencesService preferencesService, ThreadPoolExecutor threadPoolExecutor,
+                   CacheManager cacheManager, MessageSource messageSource, ApplicationContext applicationContext,
+                   I18n i18n) {
     this.i18n = i18n;
     this.preferencesService = preferencesService;
     this.threadPoolExecutor = threadPoolExecutor;
@@ -265,7 +265,7 @@ public class UiServiceImpl implements UiService {
     return getThemeFile(STYLE_CSS);
   }
 
-  @Override
+
   public String getThemeFile(String relativeFile) {
     String strippedRelativeFile = relativeFile.replace("theme/", "");
     Path externalFile = getThemeDirectory(currentTheme.get()).resolve(strippedRelativeFile);
@@ -284,7 +284,7 @@ public class UiServiceImpl implements UiService {
   }
 
 
-  @Override
+
   public URL getThemeFileUrl(String relativeFile) {
     String themeFile = getThemeFile(relativeFile);
     if (themeFile.startsWith("file:") || themeFile.startsWith("jar:")) {
@@ -294,7 +294,7 @@ public class UiServiceImpl implements UiService {
   }
 
 
-  @Override
+
   public void setTheme(Theme theme) {
     stopWatchingTheme(theme);
 
@@ -333,7 +333,7 @@ public class UiServiceImpl implements UiService {
     scene.getStylesheets().setAll(getStylesheets());
   }
 
-  @Override
+
   public String[] getStylesheets() {
     return new String[]{getSceneStyleSheet(), getThemeFile("theme/material-colors.css")};
   }
@@ -350,7 +350,7 @@ public class UiServiceImpl implements UiService {
     }
   }
 
-  @Override
+
   public void loadThemes() {
     themesByFolderName.clear();
     themesByFolderName.put(DEFAULT_THEME_NAME, DEFAULT_THEME);
@@ -362,12 +362,12 @@ public class UiServiceImpl implements UiService {
     });
   }
 
-  @Override
+
   public Collection<Theme> getAvailableThemes() {
     return new ArrayList<>(themesByFolderName.values());
   }
 
-  @Override
+
   public ReadOnlyObjectProperty<Theme> currentThemeProperty() {
     return currentTheme;
   }
