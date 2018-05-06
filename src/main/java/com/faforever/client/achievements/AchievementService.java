@@ -28,7 +28,7 @@ import static com.github.nocatch.NoCatch.noCatch;
 
 @Lazy
 @Service
-public class AchievementServiceImpl {
+public class AchievementService {
 
   private static final int ACHIEVEMENT_IMAGE_SIZE = 128;
   private final ObservableList<PlayerAchievement> readOnlyPlayerAchievements;
@@ -41,7 +41,7 @@ public class AchievementServiceImpl {
 
   @Inject
   // TODO cut dependencies if possible
-  public AchievementServiceImpl(FafService fafService, PlayerService playerService, AssetService assetService) {
+  public AchievementService(FafService fafService, PlayerService playerService, AssetService assetService) {
     this.fafService = fafService;
     this.playerService = playerService;
     this.assetService = assetService;
@@ -107,7 +107,7 @@ public class AchievementServiceImpl {
     fafService.addOnMessageListener(UpdatedAchievementsMessage.class, updatedAchievementsMessage -> reloadAchievements());
   }
 
-  enum AchievementState {
+  public enum AchievementState {
     HIDDEN, REVEALED, UNLOCKED
   }
 
