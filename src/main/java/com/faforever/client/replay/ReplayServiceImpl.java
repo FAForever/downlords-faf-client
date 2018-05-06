@@ -305,7 +305,9 @@ public class ReplayServiceImpl implements ReplayService {
     return taskService.submitTask(task).getFuture();
   }
 
-  @Override
+  /**
+   * Reads the specified replay file in order to add more information to the specified replay instance.
+   */
   public void enrich(Replay replay, Path path) {
     ReplayData replayData = replayFileReader.parseReplay(path);
     replay.getChatMessages().setAll(replayData.getChatMessages().stream()

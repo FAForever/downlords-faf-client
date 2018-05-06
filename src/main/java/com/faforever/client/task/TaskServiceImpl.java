@@ -12,6 +12,12 @@ import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.Executor;
 
+/**
+ * Enqueues and runs tasks in background. Services that need to run a task (tasks that finish, not long-running
+ * background jobs) in background should always submit them to this service.
+ * <p>
+ * There are different queues for different kind of tasks. For every queue, only one task is executed at a time.
+ */
 @Lazy
 @Service
 public class TaskServiceImpl implements TaskService {
@@ -31,7 +37,11 @@ public class TaskServiceImpl implements TaskService {
     unmodifiableObservableList = FXCollections.unmodifiableObservableList(activeTasks);
   }
 
-  @Override
+  /**
+   * Submits a task for execution in background.
+   * @param <T> the task's result type
+   * @param task the task to execute
+   */
   @SuppressWarnings("unchecked")
   public <T extends PrioritizedCompletableTask> T submitTask(T task) {
     task.getFuture().whenComplete((o, throwable) -> {

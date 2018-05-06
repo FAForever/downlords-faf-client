@@ -45,26 +45,41 @@ public class NotificationServiceImpl implements NotificationService {
     onImmediateNotificationListeners = new ArrayList<>();
   }
 
+  /**
+   * Adds a {@link PersistentNotification} to be displayed.
+   */
   @Override
   public void addNotification(PersistentNotification notification) {
     persistentNotifications.add(notification);
   }
 
+  /**
+   * Adds a {@link TransientNotification} to be displayed.
+   */
   @Override
   public void addNotification(TransientNotification notification) {
     onTransientNotificationListeners.forEach(listener -> listener.onTransientNotification(notification));
   }
 
+  /**
+   * Adds a {@link ImmediateNotification} to be displayed.
+   */
   @Override
   public void addNotification(ImmediateNotification notification) {
     onImmediateNotificationListeners.forEach(listener -> listener.onImmediateNotification(notification));
   }
 
+  /**
+   * Adds a listener to be notified about added/removed {@link PersistentNotification}s
+   */
   @Override
   public void addPersistentNotificationListener(SetChangeListener<PersistentNotification> listener) {
     JavaFxUtil.addListener(persistentNotifications, listener);
   }
 
+  /**
+   * Adds a listener to be notified whenever a {@link TransientNotification} has been fired.
+   */
   @Override
   public void addTransientNotificationListener(OnTransientNotificationListener listener) {
     onTransientNotificationListeners.add(listener);
@@ -90,6 +105,7 @@ public class NotificationServiceImpl implements NotificationService {
     addNotification(new PersistentNotification(i18n.get(messageKey, args), ERROR, singletonList(new ReportAction(i18n, reportingService, throwable))));
   }
 
+  // TODO refactor code to use this method where applicable
   @Override
   public void addImmediateErrorNotification(Throwable throwable, String messageKey, Object... args) {
     addNotification(new ImmediateNotification(i18n.get("errorTitle"), i18n.get(messageKey, args), ERROR, throwable,

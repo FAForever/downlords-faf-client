@@ -25,6 +25,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -156,16 +157,30 @@ public class PlayerServiceImpl implements PlayerService {
     return playersById.containsKey(playerId);
   }
 
-  @Override
-  public Player getPlayerForUsername(String username) {
+
+
+  /**
+   * Returns the PlayerInfoBean for the specified username. Returns null if no such player is known.
+   */
+  @Nullable
+  // TODO Use Optional
+  public Player getPlayerForUsername(@Nullable String username) {
     return playersByName.get(username);
   }
 
+  /**
+   * Returns the PlayerInfoBean for the specified id. Returns null if no such player is known.
+   */
   @Override
   public Optional<Player> getPlayerForId(int id) {
     return Optional.ofNullable(playersById.get(id));
   }
 
+
+
+  /**
+   * Gets a player for the given username. A new user is created and registered if it does not yet exist.
+   */
   @Override
   public Player createAndGetPlayerForUsername(@NotNull String username) {
     Assert.checkNullArgument(username, "username must not be null");

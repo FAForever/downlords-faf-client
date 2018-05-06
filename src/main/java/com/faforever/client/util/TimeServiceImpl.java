@@ -33,7 +33,9 @@ public class TimeServiceImpl implements TimeService {
     this.preferencesService = preferencesService;
   }
 
-  @Override
+  /**
+   * A string as "10 minutes ago"
+   */
   public String timeAgo(Temporal temporal) {
     if (temporal == null) {
       return "";
@@ -60,7 +62,9 @@ public class TimeServiceImpl implements TimeService {
     return i18n.getQuantized("yearAgo", "yearsAgo", ago.toDays() / 365);
   }
 
-  @Override
+  /**
+   * Returns {@link #timeAgo(Temporal)} if the specified instant is less than one day ago, otherwise a date string.
+   */
   public String lessThanOneDayAgo(Temporal temporal) {
     if (temporal == null) {
       return "";
@@ -107,7 +111,10 @@ public class TimeServiceImpl implements TimeService {
 
   }
 
-  @Override
+  /**
+   * Returns the localized minutes and seconds (e.g. '20min 31s'), or hours and minutes (e.g. '1h 5min') of the
+   * specified duration.
+   */
   public String shortDuration(Duration duration) {
     if (duration == null) {
       return "";
@@ -123,7 +130,9 @@ public class TimeServiceImpl implements TimeService {
     return i18n.get("duration.hourMinutes", duration.toMinutes() / 60, duration.toMinutes() % 60);
   }
 
-  @Override
+  /**
+   * Returns e.g. "3:21:12" (h:mm:ss).
+   */
   public String asHms(Duration duration) {
     long seconds = duration.getSeconds();
     return String.format("%d:%02d:%02d", seconds / 3600, (seconds % 3600) / 60, (seconds % 60));
