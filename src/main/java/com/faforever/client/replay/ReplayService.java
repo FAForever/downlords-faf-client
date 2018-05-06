@@ -73,7 +73,7 @@ import static java.util.Collections.singletonList;
 @Lazy
 @Service
 @Slf4j
-public class ReplayServiceImpl implements ReplayService {
+public class ReplayService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -104,12 +104,12 @@ public class ReplayServiceImpl implements ReplayService {
   private final MapService mapService;
 
   @Inject
-  public ReplayServiceImpl(ClientProperties clientProperties, PreferencesService preferencesService,
-                           ReplayFileReader replayFileReader, NotificationService notificationService,
-                           GameService gameService, TaskService taskService, I18n i18n,
-                           ReportingService reportingService, ApplicationContext applicationContext,
-                           PlatformService platformService, ReplayServer replayServer, FafService fafService,
-                           ModService modService, MapService mapService) {
+  public ReplayService(ClientProperties clientProperties, PreferencesService preferencesService,
+                       ReplayFileReader replayFileReader, NotificationService notificationService,
+                       GameService gameService, TaskService taskService, I18n i18n,
+                       ReportingService reportingService, ApplicationContext applicationContext,
+                       PlatformService platformService, ReplayServer replayServer, FafService fafService,
+                       ModService modService, MapService mapService) {
     this.clientProperties = clientProperties;
     this.preferencesService = preferencesService;
     this.replayFileReader = replayFileReader;
@@ -148,7 +148,7 @@ public class ReplayServiceImpl implements ReplayService {
     return KnownFeaturedMod.DEFAULT.getTechnicalName();
   }
 
-  @Override
+  
   @SneakyThrows
   public Collection<Replay> getLocalReplays() {
     Collection<Replay> replayInfos = new ArrayList<>();
@@ -205,7 +205,7 @@ public class ReplayServiceImpl implements ReplayService {
     ));
   }
 
-  @Override
+  
   public void runReplay(Replay item) {
     if (item.getReplayFile() != null) {
       runReplayFile(item.getReplayFile());
@@ -214,7 +214,7 @@ public class ReplayServiceImpl implements ReplayService {
     }
   }
 
-  @Override
+  
   public void runLiveReplay(int gameId, int playerId) {
     Game game = gameService.getByUid(gameId);
     if (game == null) {
@@ -232,7 +232,7 @@ public class ReplayServiceImpl implements ReplayService {
     noCatch(() -> runLiveReplay(uriBuilder.build()));
   }
 
-  @Override
+  
   public void runLiveReplay(URI uri) {
     logger.debug("Running replay from URL: {}", uri);
     if (!uri.getScheme().equals(FAF_LIFE_PROTOCOL)) {
@@ -262,43 +262,43 @@ public class ReplayServiceImpl implements ReplayService {
     }
   }
 
-  @Override
+  
   public CompletableFuture<Integer> startReplayServer(int gameUid) {
     return replayServer.start(gameUid);
   }
 
-  @Override
+  
   public void stopReplayServer() {
     replayServer.stop();
   }
 
-  @Override
+  
   public void runReplay(Integer replayId) {
     runOnlineReplay(replayId);
   }
 
-  @Override
+  
   public CompletableFuture<List<Replay>> getNewestReplays(int topElementCount, int page) {
     return fafService.getNewestReplays(topElementCount, page);
   }
 
-  @Override
+  
   public CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount, int page) {
     return fafService.getHighestRatedReplays(topElementCount, page);
   }
 
-  @Override
+  
   public CompletableFuture<List<Replay>> findByQuery(String query, int maxResults, int page, SortConfig sortConfig) {
     return fafService.findReplaysByQuery(query, maxResults, page, sortConfig);
   }
 
-  @Override
+  
   public CompletableFuture<Optional<Replay>> findById(int id) {
     return fafService.findReplayById(id);
 
   }
 
-  @Override
+  
   public CompletableFuture<Path> downloadReplay(int id) {
     ReplayDownloadTask task = applicationContext.getBean(ReplayDownloadTask.class);
     task.setReplayId(id);
@@ -320,7 +320,7 @@ public class ReplayServiceImpl implements ReplayService {
     );
   }
 
-  @Override
+  
   @SneakyThrows
   public CompletableFuture<Integer> getSize(int id) {
     return CompletableFuture.supplyAsync(() -> noCatch(() -> new URL(String.format(clientProperties.getVault().getReplayDownloadUrlFormat(), id))
@@ -328,7 +328,7 @@ public class ReplayServiceImpl implements ReplayService {
         .getContentLength()));
   }
 
-  @Override
+  
   public boolean replayChangedRating(Replay replay) {
     return replay.getTeamPlayerStats().values().stream()
         .flatMap(Collection::stream)
@@ -336,7 +336,7 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @SneakyThrows
-  @Override
+  
   public void runReplayFile(Path path) {
     log.debug("Starting replay file: {}", path.toAbsolutePath());
 

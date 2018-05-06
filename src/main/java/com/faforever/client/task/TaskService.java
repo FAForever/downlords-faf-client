@@ -20,7 +20,7 @@ import java.util.concurrent.Executor;
  */
 @Lazy
 @Service
-public class TaskServiceImpl implements TaskService {
+public class TaskService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -30,7 +30,7 @@ public class TaskServiceImpl implements TaskService {
   private ObservableList<Worker<?>> unmodifiableObservableList;
 
   @Inject
-  public TaskServiceImpl(Executor executor) {
+  public TaskService(Executor executor) {
     this.executor = executor;
 
     activeTasks = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
@@ -57,7 +57,6 @@ public class TaskServiceImpl implements TaskService {
     return task;
   }
 
-  @Override
   public ObservableList<Worker<?>> getActiveWorkers() {
     return unmodifiableObservableList;
   }

@@ -45,7 +45,7 @@ import static com.faforever.client.chat.SocialStatus.OTHER;
 import static com.faforever.client.chat.SocialStatus.SELF;
 
 @Service
-public class PlayerServiceImpl implements PlayerService {
+public class PlayerService {
 
   private final ObservableMap<String, Player> playersByName;
   private final ObservableMap<Integer, Player> playersById;
@@ -58,7 +58,7 @@ public class PlayerServiceImpl implements PlayerService {
   private final EventBus eventBus;
 
   @Inject
-  public PlayerServiceImpl(FafService fafService, UserService userService, EventBus eventBus) {
+  public PlayerService(FafService fafService, UserService userService, EventBus eventBus) {
     this.fafService = fafService;
     this.userService = userService;
     this.eventBus = eventBus;
@@ -152,7 +152,7 @@ public class PlayerServiceImpl implements PlayerService {
         });
   }
 
-  @Override
+  
   public boolean isOnline(Integer playerId) {
     return playersById.containsKey(playerId);
   }
@@ -171,7 +171,7 @@ public class PlayerServiceImpl implements PlayerService {
   /**
    * Returns the PlayerInfoBean for the specified id. Returns null if no such player is known.
    */
-  @Override
+  
   public Optional<Player> getPlayerForId(int id) {
     return Optional.ofNullable(playersById.get(id));
   }
@@ -181,7 +181,7 @@ public class PlayerServiceImpl implements PlayerService {
   /**
    * Gets a player for the given username. A new user is created and registered if it does not yet exist.
    */
-  @Override
+  
   public Player createAndGetPlayerForUsername(@NotNull String username) {
     Assert.checkNullArgument(username, "username must not be null");
 
@@ -201,12 +201,12 @@ public class PlayerServiceImpl implements PlayerService {
     return playersByName.get(username);
   }
 
-  @Override
+  
   public Set<String> getPlayerNames() {
     return playersByName.keySet();
   }
 
-  @Override
+  
   public void addFriend(Player player) {
     playersByName.get(player.getUsername()).setSocialStatus(FRIEND);
     friendList.add(player.getId());
@@ -215,7 +215,7 @@ public class PlayerServiceImpl implements PlayerService {
     fafService.addFriend(player);
   }
 
-  @Override
+  
   public void removeFriend(Player player) {
     playersByName.get(player.getUsername()).setSocialStatus(OTHER);
     friendList.remove((Integer) player.getId());
@@ -223,7 +223,7 @@ public class PlayerServiceImpl implements PlayerService {
     fafService.removeFriend(player);
   }
 
-  @Override
+  
   public void addFoe(Player player) {
     playersByName.get(player.getUsername()).setSocialStatus(FOE);
     foeList.add(player.getId());
@@ -232,7 +232,7 @@ public class PlayerServiceImpl implements PlayerService {
     fafService.addFoe(player);
   }
 
-  @Override
+  
   public void removeFoe(Player player) {
     playersByName.get(player.getUsername()).setSocialStatus(OTHER);
     foeList.remove((Integer) player.getId());
@@ -240,17 +240,17 @@ public class PlayerServiceImpl implements PlayerService {
     fafService.removeFoe(player);
   }
 
-  @Override
+  
   public Optional<Player> getCurrentPlayer() {
     return Optional.ofNullable(currentPlayer.get());
   }
 
-  @Override
+  
   public ReadOnlyObjectProperty<Player> currentPlayerProperty() {
     return currentPlayer;
   }
 
-  @Override
+  
   public CompletableFuture<List<Player>> getPlayersByIds(Collection<Integer> playerIds) {
     return fafService.getPlayersByIds(playerIds);
   }

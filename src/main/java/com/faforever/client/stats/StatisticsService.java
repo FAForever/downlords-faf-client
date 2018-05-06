@@ -13,16 +13,15 @@ import java.util.concurrent.CompletableFuture;
 
 @Lazy
 @Service
-public class StatisticsServiceImpl implements StatisticsService {
+public class StatisticsService {
 
   private final FafService fafService;
 
   @Inject
-  public StatisticsServiceImpl(FafService fafService) {
+  public StatisticsService(FafService fafService) {
     this.fafService = fafService;
   }
 
-  @Override
   public CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(KnownFeaturedMod featuredMod, int playerId) {
     return fafService.getRatingHistory(playerId, featuredMod);
   }

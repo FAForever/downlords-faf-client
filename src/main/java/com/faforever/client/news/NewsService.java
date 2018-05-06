@@ -29,7 +29,7 @@ import static com.github.nocatch.NoCatch.noCatch;
 
 @Lazy
 @Service
-public class LegacyNewsService implements NewsService {
+public class NewsService {
 
   /**
    * The delay (in seconds) between polling for new news.
@@ -43,8 +43,8 @@ public class LegacyNewsService implements NewsService {
   private final TaskScheduler taskScheduler;
 
   @Inject
-  public LegacyNewsService(ClientProperties clientProperties, PreferencesService preferencesService, EventBus eventBus,
-                           TaskScheduler taskScheduler) {
+  public NewsService(ClientProperties clientProperties, PreferencesService preferencesService, EventBus eventBus,
+                     TaskScheduler taskScheduler) {
     this.newsFeedUrl = clientProperties.getNews().getFeedUrl();
 
     this.preferencesService = preferencesService;
@@ -68,7 +68,6 @@ public class LegacyNewsService implements NewsService {
         });
   }
 
-  @Override
   @Cacheable(CacheNames.NEWS)
   public List<NewsItem> fetchNews() {
     List<NewsItem> result = new ArrayList<>();

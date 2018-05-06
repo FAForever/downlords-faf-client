@@ -25,7 +25,7 @@ import static javafx.collections.FXCollections.synchronizedObservableSet;
 @Lazy
 @Service
 // TODO instead of being required an called explicitly, this service should listen for application events only
-public class NotificationServiceImpl implements NotificationService {
+public class NotificationService {
 
   private final ObservableSet<PersistentNotification> persistentNotifications;
   private final List<OnTransientNotificationListener> onTransientNotificationListeners;
@@ -37,7 +37,7 @@ public class NotificationServiceImpl implements NotificationService {
   private I18n i18n;
 
   @Inject
-  public NotificationServiceImpl(ReportingService reportingService) {
+  public NotificationService(ReportingService reportingService) {
     this.reportingService = reportingService;
 
     persistentNotifications = synchronizedObservableSet(observableSet(new TreeSet<>()));
@@ -48,7 +48,7 @@ public class NotificationServiceImpl implements NotificationService {
   /**
    * Adds a {@link PersistentNotification} to be displayed.
    */
-  @Override
+  
   public void addNotification(PersistentNotification notification) {
     persistentNotifications.add(notification);
   }
@@ -56,7 +56,7 @@ public class NotificationServiceImpl implements NotificationService {
   /**
    * Adds a {@link TransientNotification} to be displayed.
    */
-  @Override
+  
   public void addNotification(TransientNotification notification) {
     onTransientNotificationListeners.forEach(listener -> listener.onTransientNotification(notification));
   }
@@ -64,7 +64,7 @@ public class NotificationServiceImpl implements NotificationService {
   /**
    * Adds a {@link ImmediateNotification} to be displayed.
    */
-  @Override
+  
   public void addNotification(ImmediateNotification notification) {
     onImmediateNotificationListeners.forEach(listener -> listener.onImmediateNotification(notification));
   }
@@ -72,7 +72,7 @@ public class NotificationServiceImpl implements NotificationService {
   /**
    * Adds a listener to be notified about added/removed {@link PersistentNotification}s
    */
-  @Override
+  
   public void addPersistentNotificationListener(SetChangeListener<PersistentNotification> listener) {
     JavaFxUtil.addListener(persistentNotifications, listener);
   }
@@ -80,33 +80,33 @@ public class NotificationServiceImpl implements NotificationService {
   /**
    * Adds a listener to be notified whenever a {@link TransientNotification} has been fired.
    */
-  @Override
+  
   public void addTransientNotificationListener(OnTransientNotificationListener listener) {
     onTransientNotificationListeners.add(listener);
   }
 
-  @Override
+  
   public Set<PersistentNotification> getPersistentNotifications() {
     return Collections.unmodifiableSet(persistentNotifications);
   }
 
-  @Override
+  
   public void removeNotification(PersistentNotification notification) {
     persistentNotifications.remove(notification);
   }
 
-  @Override
+  
   public void addImmediateNotificationListener(OnImmediateNotificationListener listener) {
     onImmediateNotificationListeners.add(listener);
   }
 
-  @Override
+  
   public void addPersistentErrorNotification(Throwable throwable, String messageKey, Object... args) {
     addNotification(new PersistentNotification(i18n.get(messageKey, args), ERROR, singletonList(new ReportAction(i18n, reportingService, throwable))));
   }
 
   // TODO refactor code to use this method where applicable
-  @Override
+  
   public void addImmediateErrorNotification(Throwable throwable, String messageKey, Object... args) {
     addNotification(new ImmediateNotification(i18n.get("errorTitle"), i18n.get(messageKey, args), ERROR, throwable,
         Arrays.asList(new DismissAction(i18n), new ReportAction(i18n, reportingService, throwable))));

@@ -22,13 +22,13 @@ import java.util.TimeZone;
 
 @Lazy
 @Service
-public class TimeServiceImpl implements TimeService {
+public class TimeService {
 
   private final I18n i18n;
   private final PreferencesService preferencesService;
 
   @Inject
-  public TimeServiceImpl(I18n i18n, PreferencesService preferencesService) {
+  public TimeService(I18n i18n, PreferencesService preferencesService) {
     this.i18n = i18n;
     this.preferencesService = preferencesService;
   }
@@ -79,7 +79,7 @@ public class TimeServiceImpl implements TimeService {
     return asDate(temporal);
   }
 
-  @Override
+  
   public String asDate(TemporalAccessor temporalAccessor) {
     if (temporalAccessor == null) {
       return i18n.get("noDateAvailable");
@@ -90,14 +90,14 @@ public class TimeServiceImpl implements TimeService {
         .format(temporalAccessor);
   }
 
-  @Override
+  
   public String asShortTime(Temporal temporal) {
     return DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
         .withLocale(getCurrentTimeLocale())
         .format(ZonedDateTime.ofInstant(Instant.from(temporal), TimeZone.getDefault().toZoneId()));
   }
 
-  @Override
+  
   public String asIsoTime(Temporal temporal) {
     return DateTimeFormatter.ISO_TIME.format(temporal);
   }

@@ -35,7 +35,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class PlayerServiceImplTest {
+public class PlayerServiceTest {
 
   @Mock
   private FafService fafService;
@@ -44,13 +44,13 @@ public class PlayerServiceImplTest {
   @Mock
   private EventBus eventBus;
 
-  private PlayerServiceImpl instance;
+  private PlayerService instance;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new PlayerServiceImpl(fafService, userService, eventBus);
+    instance = new PlayerService(fafService, userService, eventBus);
 
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
 

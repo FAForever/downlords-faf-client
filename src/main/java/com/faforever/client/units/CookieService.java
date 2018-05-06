@@ -19,26 +19,26 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
-public class CookieServiceImpl implements CookieService {
+public class CookieService {
 
   private final PreferencesService preferencesService;
   private final Map<URI, ArrayList<HttpCookie>> storedCookies;
 
   @Inject
-  public CookieServiceImpl(PreferencesService preferencesService) {
+  public CookieService(PreferencesService preferencesService) {
     this.preferencesService = preferencesService;
     Preferences preferences = preferencesService.getPreferences();
     storedCookies = preferences.getStoredCookies();
   }
 
-  @Override
+  
   public void setUpCookieManger() {
     CookieManager manager = new CookieManager(new MyCookieStore(), CookiePolicy.ACCEPT_ALL);
     CookieHandler.setDefault(manager);
   }
 
   public class MyCookieStore implements CookieStore {
-    @Override
+    
     public void add(URI uri, HttpCookie cookie) {
       URI base = URI.create(uri.getHost());
       if (!storedCookies.containsKey(base)) {
@@ -52,22 +52,22 @@ public class CookieServiceImpl implements CookieService {
       preferencesService.storeInBackground();
     }
 
-    @Override
+    
     public List<HttpCookie> get(URI uri) {
       return storedCookies.containsKey(URI.create(uri.getHost())) ? storedCookies.get(URI.create(uri.getHost())) : Collections.emptyList();
     }
 
-    @Override
+    
     public List<HttpCookie> getCookies() {
       return storedCookies.values().stream().flatMap(Collection::stream).collect(Collectors.toList());
     }
 
-    @Override
+    
     public List<URI> getURIs() {
       return new ArrayList<>(preferencesService.getPreferences().getStoredCookies().keySet());
     }
 
-    @Override
+    
     public boolean remove(URI uri, HttpCookie cookie) {
       if (storedCookies.containsKey(URI.create(uri.getHost()))) {
         boolean remove = storedCookies.get(URI.create(uri.getHost())).remove(cookie);
@@ -77,7 +77,7 @@ public class CookieServiceImpl implements CookieService {
       return false;
     }
 
-    @Override
+    
     public boolean removeAll() {
       storedCookies.clear();
       preferencesService.storeInBackground();

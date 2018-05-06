@@ -21,14 +21,14 @@ import static com.github.nocatch.NoCatch.noCatch;
 
 @Lazy
 @Service
-public class AssetServiceImpl implements AssetService {
+public class AssetService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final PreferencesService preferencesService;
 
   @Inject
-  public AssetServiceImpl(PreferencesService preferencesService) {
+  public AssetService(PreferencesService preferencesService) {
     this.preferencesService = preferencesService;
   }
 

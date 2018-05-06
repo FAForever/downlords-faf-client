@@ -26,7 +26,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Lazy
 @Service
-public class UserServiceImpl implements UserService {
+public class UserService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final StringProperty username;
@@ -42,7 +42,7 @@ public class UserServiceImpl implements UserService {
   private CompletableFuture<Void> loginFuture;
 
   @Inject
-  public UserServiceImpl(FafService fafService, PreferencesService preferencesService, EventBus eventBus, ApplicationContext applicationContext, TaskService taskService) {
+  public UserService(FafService fafService, PreferencesService preferencesService, EventBus eventBus, ApplicationContext applicationContext, TaskService taskService) {
     username = new SimpleStringProperty();
     this.fafService = fafService;
     this.preferencesService = preferencesService;
@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService {
     this.taskService = taskService;
   }
 
-  @Override
+  
   public CompletableFuture<Void> login(String username, String password, boolean autoLogin) {
     this.password = password;
 
@@ -67,7 +67,7 @@ public class UserServiceImpl implements UserService {
 
           // Because of different case (upper/lower)
           String login = loginInfo.getLogin();
-          UserServiceImpl.this.username.set(login);
+          UserService.this.username.set(login);
 
           preferencesService.getPreferences().getLogin().setUsername(login);
           preferencesService.storeInBackground();
@@ -84,12 +84,12 @@ public class UserServiceImpl implements UserService {
     return loginFuture;
   }
 
-  @Override
+  
   public String getUsername() {
     return username.get();
   }
 
-  @Override
+  
   public String getPassword() {
     return password;
   }
@@ -98,7 +98,7 @@ public class UserServiceImpl implements UserService {
     return userId;
   }
 
-  @Override
+  
   public void cancelLogin() {
     if (loginFuture != null) {
       loginFuture.toCompletableFuture().cancel(true);
@@ -107,7 +107,7 @@ public class UserServiceImpl implements UserService {
     }
   }
 
-  @Override
+  
   public void logOut() {
     logger.info("Logging out");
     fafService.disconnect();
@@ -115,7 +115,7 @@ public class UserServiceImpl implements UserService {
     preferencesService.getPreferences().getLogin().setAutoLogin(false);
   }
 
-  @Override
+  
   public CompletableTask<Void> changePassword(String currentPassword, String newPassword) {
     ChangePasswordTask changePasswordTask = applicationContext.getBean(ChangePasswordTask.class);
     changePasswordTask.setUsername(username.get());

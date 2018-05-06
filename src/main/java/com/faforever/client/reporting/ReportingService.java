@@ -10,11 +10,10 @@ import java.lang.invoke.MethodHandles;
 
 @Lazy
 @Service
-public class ReportingServiceImpl implements ReportingService {
+public class ReportingService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Override
   public void reportError(Throwable e) {
     logger.warn("Reporting has not yet been implemented");
   }

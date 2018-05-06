@@ -22,7 +22,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class UserServiceImplTest {
+public class UserServiceTest {
 
   @Mock
   private Preferences preferences;
@@ -39,13 +39,13 @@ public class UserServiceImplTest {
   @Mock
   private ApplicationContext applicationContext;
 
-  private UserServiceImpl instance;
+  private UserService instance;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new UserServiceImpl(fafService, preferencesService, eventBus, applicationContext, taskService);
+    instance = new UserService(fafService, preferencesService, eventBus, applicationContext, taskService);
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getLogin()).thenReturn(login);
