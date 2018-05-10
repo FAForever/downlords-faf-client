@@ -60,103 +60,103 @@ import static java.util.stream.Collectors.toList;
 
 @Lazy
 @Service
-public class FafServiceImpl implements FafService {
+public class FafService {
 
   private final FafServerAccessor fafServerAccessor;
   private final FafApiAccessor fafApiAccessor;
   private final EventBus eventBus;
 
   @Inject
-  public FafServiceImpl(FafServerAccessor fafServerAccessor, FafApiAccessor fafApiAccessor, EventBus eventBus) {
+  public FafService(FafServerAccessor fafServerAccessor, FafApiAccessor fafApiAccessor, EventBus eventBus) {
     this.fafServerAccessor = fafServerAccessor;
     this.fafApiAccessor = fafApiAccessor;
     this.eventBus = eventBus;
   }
 
-  @Override
+  
   public <T extends ServerMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener) {
     fafServerAccessor.addOnMessageListener(type, listener);
   }
 
-  @Override
+  
   @SuppressWarnings("unchecked")
   public <T extends ServerMessage> void removeOnMessageListener(Class<T> type, Consumer<T> listener) {
     fafServerAccessor.removeOnMessageListener(type, listener);
   }
 
-  @Override
+  
   public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
     return fafServerAccessor.requestHostGame(newGameInfo);
   }
 
-  @Override
+  
   public ReadOnlyObjectProperty<ConnectionState> connectionStateProperty() {
     return fafServerAccessor.connectionStateProperty();
   }
 
-  @Override
+  
   public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password) {
     return fafServerAccessor.requestJoinGame(gameId, password);
   }
 
-  @Override
+  
   public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction, int port) {
     return fafServerAccessor.startSearchLadder1v1(faction);
   }
 
-  @Override
+  
   public void stopSearchingRanked() {
     fafServerAccessor.stopSearchingRanked();
   }
 
-  @Override
+  
   public void sendGpgGameMessage(GpgGameMessage message) {
     fafServerAccessor.sendGpgMessage(message);
   }
 
-  @Override
+  
   public CompletableFuture<LoginMessage> connectAndLogIn(String username, String password) {
     return fafServerAccessor.connectAndLogIn(username, password);
   }
 
-  @Override
+  
   public void disconnect() {
     fafServerAccessor.disconnect();
   }
 
-  @Override
+  
   public void addFriend(Player player) {
     fafServerAccessor.addFriend(player.getId());
   }
 
-  @Override
+  
   public void addFoe(Player player) {
     fafServerAccessor.addFoe(player.getId());
   }
 
-  @Override
+  
   public void removeFriend(Player player) {
     fafServerAccessor.removeFriend(player.getId());
   }
 
-  @Override
+  
   public void removeFoe(Player player) {
     fafServerAccessor.removeFoe(player.getId());
   }
 
-  @Override
+  
   @Async
   public void notifyGameEnded() {
     fafServerAccessor.sendGpgMessage(new GameEndedMessage());
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<LeaderboardEntry> getLadder1v1EntryForPlayer(int playerId) {
     return CompletableFuture.completedFuture(LeaderboardEntry.fromLadder1v1(fafApiAccessor.getLadder1v1EntryForPlayer(playerId)));
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<List<ModVersion>> getMods() {
     return CompletableFuture.completedFuture(fafApiAccessor.getMods().stream()
@@ -164,18 +164,18 @@ public class FafServiceImpl implements FafService {
         .collect(toList()));
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<com.faforever.client.mod.ModVersion> getModVersion(String uid) {
     return CompletableFuture.completedFuture(com.faforever.client.mod.ModVersion.fromDto(fafApiAccessor.getModVersion(uid), null));
   }
 
-  @Override
+  
   public void reconnect() {
     fafServerAccessor.reconnect();
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<List<MapBean>> getMostPlayedMaps(int count, int page) {
     return CompletableFuture.completedFuture(fafApiAccessor.getMostPlayedMaps(count, page).stream()
@@ -183,7 +183,7 @@ public class FafServiceImpl implements FafService {
         .collect(toList()));
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<List<MapBean>> getHighestRatedMaps(int count, int page) {
     return CompletableFuture.completedFuture(fafApiAccessor.getHighestRatedMaps(count, page).stream()
@@ -191,7 +191,7 @@ public class FafServiceImpl implements FafService {
         .collect(toList()));
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<List<MapBean>> getNewestMaps(int count, int page) {
     return CompletableFuture.completedFuture(fafApiAccessor.getNewestMaps(count, page).stream()
@@ -199,7 +199,7 @@ public class FafServiceImpl implements FafService {
         .collect(toList()));
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<List<CoopMission>> getCoopMaps() {
     return CompletableFuture.completedFuture(fafApiAccessor.getCoopMissions().stream()
@@ -207,7 +207,7 @@ public class FafServiceImpl implements FafService {
         .collect(toList()));
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<List<AvatarBean>> getAvailableAvatars() {
     return CompletableFuture.completedFuture(fafServerAccessor.getAvailableAvatars().stream()
@@ -215,25 +215,25 @@ public class FafServiceImpl implements FafService {
         .collect(Collectors.toList()));
   }
 
-  @Override
+  
   public void selectAvatar(AvatarBean avatar) {
     fafServerAccessor.selectAvatar(avatar == null ? null : avatar.getUrl());
     eventBus.post(new AvatarChangedEvent(avatar));
   }
 
-  @Override
+  
   @CacheEvict(CacheNames.MODS)
   public void evictModsCache() {
     // Cache eviction by annotation
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<List<CoopResult>> getCoopLeaderboard(CoopMission mission, int numberOfPlayers) {
     return CompletableFuture.completedFuture(fafApiAccessor.getCoopLeaderboard(mission.getId(), numberOfPlayers));
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(int playerId, KnownFeaturedMod knownFeaturedMod) {
     return CompletableFuture.completedFuture(fafApiAccessor.getGamePlayerStats(playerId, knownFeaturedMod)
@@ -247,7 +247,7 @@ public class FafServiceImpl implements FafService {
     );
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<List<FeaturedMod>> getFeaturedMods() {
     return CompletableFuture.completedFuture(fafApiAccessor.getFeaturedMods().stream()
@@ -256,13 +256,13 @@ public class FafServiceImpl implements FafService {
         .collect(Collectors.toList()));
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<List<FeaturedModFile>> getFeaturedModFiles(FeaturedMod featuredMod, Integer version) {
     return CompletableFuture.completedFuture(fafApiAccessor.getFeaturedModFiles(featuredMod, version));
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<List<LeaderboardEntry>> getLadder1v1Leaderboard() {
     return CompletableFuture.completedFuture(fafApiAccessor.getLadder1v1Leaderboard().parallelStream()
@@ -270,7 +270,7 @@ public class FafServiceImpl implements FafService {
         .collect(toList()));
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<List<LeaderboardEntry>> getGlobalLeaderboard() {
     return CompletableFuture.completedFuture(fafApiAccessor.getGlobalLeaderboard().parallelStream()
@@ -278,7 +278,7 @@ public class FafServiceImpl implements FafService {
         .collect(toList()));
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<List<Replay>> getNewestReplays(int topElementCount, int page) {
     return CompletableFuture.completedFuture(fafApiAccessor.getNewestReplays(topElementCount, page)
@@ -287,7 +287,7 @@ public class FafServiceImpl implements FafService {
         .collect(toList()));
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount, int page) {
     return CompletableFuture.completedFuture(fafApiAccessor.getHighestRatedReplays(topElementCount, page)
@@ -296,30 +296,30 @@ public class FafServiceImpl implements FafService {
         .collect(toList()));
   }
 
-  @Override
+  
   public void uploadMod(Path modFile, ByteCountListener byteListener) {
     fafApiAccessor.uploadMod(modFile, byteListener);
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(int playerId) {
     return CompletableFuture.completedFuture(fafApiAccessor.getPlayerAchievements(playerId));
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<List<AchievementDefinition>> getAchievementDefinitions() {
     return CompletableFuture.completedFuture(fafApiAccessor.getAchievementDefinitions());
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<AchievementDefinition> getAchievementDefinition(String achievementId) {
     return CompletableFuture.completedFuture(fafApiAccessor.getAchievementDefinition(achievementId));
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<List<Replay>> findReplaysByQuery(String query, int maxResults, int page, SortConfig sortConfig) {
     return CompletableFuture.completedFuture(fafApiAccessor.findReplaysByQuery(query, maxResults, page, sortConfig)
@@ -328,7 +328,7 @@ public class FafServiceImpl implements FafService {
         .collect(toList()));
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<List<MapBean>> findMapsByQuery(String query, int page, int maxSearchResults, SortConfig sortConfig) {
     return CompletableFuture.completedFuture(fafApiAccessor.findMapsByQuery(query, page, maxSearchResults, sortConfig)
@@ -337,20 +337,20 @@ public class FafServiceImpl implements FafService {
         .collect(toList()));
   }
 
-  @Override
+  
   public CompletableFuture<Optional<MapBean>> findMapByFolderName(String folderName) {
     return CompletableFuture.completedFuture(fafApiAccessor.findMapByFolderName(folderName)
         .map(MapBean::fromMapVersionDto));
   }
 
-  @Override
+  
   public CompletableFuture<List<Player>> getPlayersByIds(Collection<Integer> playerIds) {
     return CompletableFuture.completedFuture(fafApiAccessor.getPlayersByIds(playerIds).stream()
         .map(Player::fromDto)
         .collect(toList()));
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<Void> saveGameReview(Review review, int gameId) {
     GameReview gameReview = (GameReview) new GameReview()
@@ -371,7 +371,7 @@ public class FafServiceImpl implements FafService {
     return CompletableFuture.completedFuture(null);
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<Void> saveModVersionReview(Review review, String modVersionId) {
     ModVersionReview modVersionReview = (ModVersionReview) new ModVersionReview()
@@ -393,7 +393,7 @@ public class FafServiceImpl implements FafService {
     return CompletableFuture.completedFuture(null);
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<Void> saveMapVersionReview(Review review, String mapVersionId) {
     MapVersionReview mapVersionReview = (MapVersionReview) new MapVersionReview()
@@ -416,7 +416,7 @@ public class FafServiceImpl implements FafService {
     return CompletableFuture.completedFuture(null);
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<Optional<Replay>> getLastGameOnMap(int playerId, String mapVersionId) {
     return CompletableFuture.completedFuture(fafApiAccessor.getLastGamesOnMap(playerId, mapVersionId, 1).stream()
@@ -424,14 +424,14 @@ public class FafServiceImpl implements FafService {
         .findFirst());
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<Void> deleteGameReview(Review review) {
     fafApiAccessor.deleteGameReview(review.getId());
     return CompletableFuture.completedFuture(null);
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<Void> deleteMapVersionReview(Review review) {
     fafApiAccessor.deleteMapVersionReview(review.getId());
@@ -439,31 +439,31 @@ public class FafServiceImpl implements FafService {
   }
 
 
-  @Override
+  
   @Async
   public CompletableFuture<Void> deleteModVersionReview(Review review) {
     fafApiAccessor.deleteModVersionReview(review.getId());
     return CompletableFuture.completedFuture(null);
   }
 
-  @Override
+  
   public CompletableFuture<Optional<Replay>> findReplayById(int id) {
     return CompletableFuture.completedFuture(fafApiAccessor.findReplayById(id)
         .map(Replay::fromDto));
   }
 
-  @Override
+  
   public CompletableFuture<List<IceServer>> getIceServers() {
     return fafServerAccessor.getIceServers();
   }
 
-  @Override
+  
   public void restoreGameSession(int id) {
     fafServerAccessor.restoreGameSession(id);
   }
 
   @Async
-  @Override
+  
   public CompletableFuture<List<ModVersion>> findModsByQuery(SearchConfig query, int page, int count) {
     return CompletableFuture.completedFuture(fafApiAccessor.findModsByQuery(query, page, count)
         .parallelStream()
@@ -471,7 +471,7 @@ public class FafServiceImpl implements FafService {
         .collect(toList()));
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<List<MapBean>> getLadder1v1Maps(int count, int page) {
     List<MapBean> maps = fafApiAccessor.getLadder1v1Maps(count, page).stream()
@@ -480,20 +480,20 @@ public class FafServiceImpl implements FafService {
     return CompletableFuture.completedFuture(maps);
   }
 
-  @Override
+  
   @Async
   public CompletableFuture<Optional<Clan>> getClanByTag(String tag) {
     return CompletableFuture.completedFuture(fafApiAccessor.getClanByTag(tag)
         .map(Clan::fromDto));
   }
 
-  @Override
+  
   public Optional<MapBean> findMapById(String id) {
     return fafApiAccessor.findMapVersionById(id)
         .map(MapBean::fromMapVersionDto);
   }
 
-  @Override
+  
   public void sendIceMessage(int remotePlayerId, Object message) {
     fafServerAccessor.sendGpgMessage(new IceMessage(remotePlayerId, message));
   }
