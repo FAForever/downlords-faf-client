@@ -1,20 +1,74 @@
 package com.faforever.client.i18n;
 
+import com.faforever.client.preferences.LanguageInfo;
+import com.faforever.client.preferences.PreferencesService;
+import org.springframework.context.MessageSource;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 import java.util.Locale;
 
-public interface I18n {
+@Service
+public class I18n {
 
-  String get(String key, Object... args);
+  private final MessageSource messageSource;
+  private final PreferencesService preferencesService;
 
-  String getQuantized(String singularKey, String pluralKey, long arg);
+  private Locale userSpecificLocale;
 
-  Locale getUserSpecificLocale();
+  @Inject
+  public I18n(MessageSource messageSource, PreferencesService preferencesService) {
+    this.messageSource = messageSource;
+    this.preferencesService = preferencesService;
+  }
 
-  String number(int number);
+  @PostConstruct
+  public void postConstruct() {
+    LanguageInfo languageInfo = preferencesService.getPreferences().getLocalization().getLanguage();
+    if (!languageInfo.equals(LanguageInfo.AUTO)) {
+      userSpecificLocale = new Locale(languageInfo.getLanguageCode(), languageInfo.getCountryCode());
+    } else {
+      userSpecificLocale = Locale.getDefault();
+    }
+  }
 
-  String numberWithSign(int number);
+  
+  public String get(String key, Object... args) {
+    return messageSource.getMessage(key, args, userSpecificLocale);
+  }
 
-  String number(double number);
+  
+  public Locale getUserSpecificLocale() {
+    return this.userSpecificLocale;
+  }
 
-  String rounded(double number, int digits);
+  
+  public String getQuantized(String singularKey, String pluralKey, long arg) {
+    Object[] args = {arg};
+    if (Math.abs(arg) == 1) {
+      return messageSource.getMessage(singularKey, args, userSpecificLocale);
+    }
+    return messageSource.getMessage(pluralKey, args, userSpecificLocale);
+  }
+
+  
+  public String number(int number) {
+    return String.format(userSpecificLocale, "%d", number);
+  }
+
+  
+  public String numberWithSign(int number) {
+    return String.format(userSpecificLocale, "%+d", number);
+  }
+
+  
+  public String number(double number) {
+    return String.format(userSpecificLocale, "%f", number);
+  }
+
+  
+  public String rounded(double number, int digits) {
+    return String.format(userSpecificLocale, "%." + digits + "f", number);
+  }
 }

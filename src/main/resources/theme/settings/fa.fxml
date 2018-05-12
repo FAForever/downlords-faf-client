@@ -7,7 +7,6 @@
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-
 <VBox xmlns:fx="http://javafx.com/fxml/1" styleClass="settings-content" xmlns="http://javafx.com/javafx/8.0.60">
     <children>
         <TitledPane animated="false" collapsible="false" text="%settings.fa.title">

@@ -11,16 +11,16 @@ import org.mockito.runners.MockitoJUnitRunner;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class StatisticsServiceImplTest {
+public class StatisticsServiceTest {
 
   @Mock
   private FafService fafService;
 
-  private StatisticsServiceImpl instance;
+  private StatisticsService instance;
 
   @Before
   public void setUp() throws Exception {
-    instance = new StatisticsServiceImpl(fafService);
+    instance = new StatisticsService(fafService);
   }
 
   @Test

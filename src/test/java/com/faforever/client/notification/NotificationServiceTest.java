@@ -15,16 +15,16 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-public class NotificationServiceImplTest {
+public class NotificationServiceTest {
 
-  private NotificationServiceImpl instance;
+  private NotificationService instance;
 
   @Mock
   private ReportingService reportingService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new NotificationServiceImpl(reportingService);
+    instance = new NotificationService(reportingService);
   }
 
   @Test
