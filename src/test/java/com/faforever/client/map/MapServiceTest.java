@@ -2,7 +2,7 @@ package com.faforever.client.map;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapServiceImpl.PreviewSize;
+import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -47,7 +47,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class MapServiceImplTest extends AbstractPlainJavaFxTest {
+public class MapServiceTest extends AbstractPlainJavaFxTest {
 
   @Rule
   public TemporaryFolder cacheDirectory = new TemporaryFolder();
@@ -58,7 +58,7 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
 
-  private MapServiceImpl instance;
+  private MapService instance;
   private Path mapsDirectory;
 
   @Mock
@@ -87,7 +87,7 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
     ClientProperties clientProperties = new ClientProperties();
     clientProperties.getVault().setMapPreviewUrlFormat("http://127.0.0.1:65534/preview/%s/%s");
 
-    instance = new MapServiceImpl(preferencesService, taskService, applicationContext,
+    instance = new MapService(preferencesService, taskService, applicationContext,
         fafService, assetService, i18n, uiService, clientProperties);
 
     mapsDirectory = gameDirectory.newFolder("maps").toPath();

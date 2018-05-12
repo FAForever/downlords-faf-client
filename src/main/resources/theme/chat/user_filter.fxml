@@ -2,12 +2,12 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.MenuButton?>
-<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.RadioMenuItem?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
-
 <GridPane fx:id="filterUserRoot" hgap="10.0" styleClass="filter-user-root" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.UserFilterController">
   <columnConstraints>
     <ColumnConstraints hgrow="SOMETIMES" />
@@ -24,9 +24,15 @@
     <TextField fx:id="maxRatingFilterField" promptText="%chat.filter.maxRating" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
   <MenuButton fx:id="gameStatusMenu" mnemonicParsing="false" text="%game.gameStatus" GridPane.rowIndex="3">
     <items>
-      <MenuItem mnemonicParsing="false" onAction="#onGameStatusNone" text="%game.gameStatus.none" />
-      <MenuItem mnemonicParsing="false" onAction="#onGameStatusPlaying" text="%game.gameStatus.playing" />
-      <MenuItem mnemonicParsing="false" onAction="#onGameStatusLobby" text="%game.gameStatus.lobby" />
+        <RadioMenuItem mnemonicParsing="false" text="%game.gameStatus.none" onAction="#onGameStatusNone">
+            <toggleGroup>
+                <ToggleGroup fx:id="gameStatusToggleGroup"/>
+            </toggleGroup>
+        </RadioMenuItem>
+        <RadioMenuItem mnemonicParsing="false" toggleGroup="$gameStatusToggleGroup" onAction="#onGameStatusPlaying"
+                       text="%game.gameStatus.playing"/>
+        <RadioMenuItem mnemonicParsing="false" toggleGroup="$gameStatusToggleGroup" onAction="#onGameStatusLobby"
+                       text="%game.gameStatus.lobby"/>
     </items>
   </MenuButton>
   </children>

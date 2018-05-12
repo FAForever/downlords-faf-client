@@ -22,7 +22,7 @@ faf-client:
 
   unit-database:
     spookiesUrl: http://spooky.github.io/unitdb/#/
-    rackOversUrl: http://90.103.145.211/index.php?settings64=eyJwcmV2aWV3Q29ybmVyIjoiTm9uZSJ9
+    rackOversUrl: http://direct.faforever.com/faf/unitsDB/?settings64=eyJwcmV2aWV3Q29ybmVyIjoiTm9uZSJ9
 
 spring:
   profiles:

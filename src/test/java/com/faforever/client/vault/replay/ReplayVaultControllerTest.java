@@ -98,25 +98,4 @@ public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     verify(taskService).submitTask(task);
     verifyZeroInteractions(notificationService);
   }
-//
-//  @Test
-//  public void testLoadOnlineReplaysInBackground() throws Exception {
-//    LoadLocalReplaysTask task = mock(LoadLocalReplaysTask.class);
-//    when(applicationContext.getBean(LoadLocalReplaysTask.class)).thenReturn(task);
-//    when(replayService.getOnlineReplays()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
-//        ReplayInfoBeanBuilder.create().valueOf(),
-//        ReplayInfoBeanBuilder.create().valueOf(),
-//        ReplayInfoBeanBuilder.create().valueOf()
-//    )));
-//
-//    CountDownLatch loadedLatch = new CountDownLatch(1);
-//    instance.onlineReplaysRoot.getChildren().addListener((InvalidationListener) observable -> loadedLatch.countDown());
-//
-//    instance.loadOnlineReplaysInBackground();
-//
-//    assertTrue(loadedLatch.await(5000, TimeUnit.MILLISECONDS));
-//    assertThat(instance.onlineReplaysRoot.getChildren(), hasSize(3));
-//
-//    verifyZeroInteractions(notificationService);
-//  }
 }

@@ -9,7 +9,6 @@ import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.events.EventService;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerBuilder;

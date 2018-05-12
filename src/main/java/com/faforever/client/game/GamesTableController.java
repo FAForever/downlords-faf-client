@@ -1,10 +1,11 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
-import com.faforever.client.map.MapServiceImpl.PreviewSize;
+import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.theme.UiService;
@@ -90,7 +91,7 @@ public class GamesTableController implements Controller<Node> {
     applyLastSorting(gamesTable);
     gamesTable.setOnSort(this::onColumnSorted);
 
-    sortedList.addListener((Observable observable) -> selectFirstGame());
+    JavaFxUtil.addListener(sortedList, (Observable observable) -> selectFirstGame());
     selectFirstGame();
 
     passwordProtectionColumn.setCellValueFactory(param -> param.getValue().passwordProtectedProperty());

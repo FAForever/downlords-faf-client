@@ -1,9 +1,10 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
-import com.faforever.client.map.MapServiceImpl.PreviewSize;
+import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
@@ -126,8 +127,8 @@ public class GameDetailController implements Controller<Pane> {
 
     teamsInvalidationListener = observable -> createTeams(newGame.getTeams(), newGame);
     teamsInvalidationListener.invalidated(newGame.getTeams());
-    newGame.getTeams().addListener(teamsInvalidationListener);
-    newGame.statusProperty().addListener(gameStatusInvalidationListener);
+    JavaFxUtil.addListener(newGame.getTeams(), teamsInvalidationListener);
+    JavaFxUtil.addListener(newGame.statusProperty(), gameStatusInvalidationListener);
     gameStatusInvalidationListener.invalidated(newGame.statusProperty());
   }
 

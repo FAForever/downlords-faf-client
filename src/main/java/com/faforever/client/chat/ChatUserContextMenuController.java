@@ -105,7 +105,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     this.avatarService = avatarService;
     this.uiService = uiService;
   }
-  
+
   public void initialize() {
     avatarComboBox.setCellFactory(param -> avatarCell());
     avatarComboBox.setButtonCell(avatarCell());
@@ -135,11 +135,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
     String lowerCaseUsername = player.getUsername().toLowerCase(US);
-    if (chatPrefs.getUserToColor().containsKey(lowerCaseUsername)) {
-      colorPicker.setValue(chatPrefs.getUserToColor().get(lowerCaseUsername));
-    } else {
-      colorPicker.setValue(null);
-    }
+    colorPicker.setValue(chatPrefs.getUserToColor().getOrDefault(lowerCaseUsername, null));
 
     colorPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
       String lowerUsername = player.getUsername().toLowerCase(US);

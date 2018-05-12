@@ -127,7 +127,7 @@ public class ReviewsController implements Controller<Pane> {
     Player currentPlayer = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("No current player available"));
 
-    reviews.addListener(onReviewsChangedListener);
+    JavaFxUtil.addListener(reviews, onReviewsChangedListener);
     FilteredList<Review> onlyOtherNonEmptyReviews = reviews
         .filtered(review -> review.getPlayer().getId() != currentPlayer.getId() && !Strings.isNullOrEmpty(review.getText()));
 

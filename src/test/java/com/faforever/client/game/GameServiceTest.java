@@ -81,7 +81,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class GameServiceImplTest extends AbstractPlainJavaFxTest {
+public class GameServiceTest extends AbstractPlainJavaFxTest {
 
   private static final long TIMEOUT = 5000;
   private static final TimeUnit TIME_UNIT = TimeUnit.MILLISECONDS;
@@ -89,7 +89,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   private static final Integer GPG_PORT = 1234;
   private static final int LOCAL_REPLAY_PORT = 15111;
 
-  private GameServiceImpl instance;
+  private GameService instance;
 
   @Mock
   private PreferencesService preferencesService;
@@ -136,9 +136,8 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     junitPlayer = PlayerBuilder.create("JUnit").defaultValues().get();
 
     ClientProperties clientProperties = new ClientProperties();
-    clientProperties.getReplay().setLocalServerPort(LOCAL_REPLAY_PORT);
 
-    instance = new GameServiceImpl(clientProperties, fafService, forgedAllianceService, mapService,
+    instance = new GameService(clientProperties, fafService, forgedAllianceService, mapService,
         preferencesService, gameUpdater, notificationService, i18n, executor, playerService,
         reportingService, eventBus, iceAdapter, modService, platformService, externalReplayInfoGenerator);
     instance.replayService = replayService;
@@ -148,7 +147,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(replayService.startReplayServer(anyInt())).thenReturn(CompletableFuture.completedFuture(null));
+    when(replayService.startReplayServer(anyInt())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
     when(iceAdapter.start()).thenReturn(CompletableFuture.completedFuture(GPG_PORT));
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(junitPlayer));
 
@@ -281,7 +280,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnGames() throws Exception {
+  public void testOnGames() {
     assertThat(instance.getGames(), empty());
 
     GameInfoMessage multiGameInfoMessage = new GameInfoMessage();
@@ -314,7 +313,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnGameInfoMessageSetsCurrentGameIfUserIsInAndStatusOpen() throws Exception {
+  public void testOnGameInfoMessageSetsCurrentGameIfUserIsInAndStatusOpen() {
     assertThat(instance.getCurrentGame(), nullValue());
 
     when(playerService.getCurrentPlayer()).thenReturn(Optional.ofNullable(PlayerBuilder.create("PlayerName").get()));
@@ -330,7 +329,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnGameInfoMessageDoesntSetCurrentGameIfUserIsInAndStatusNotOpen() throws Exception {
+  public void testOnGameInfoMessageDoesntSetCurrentGameIfUserIsInAndStatusNotOpen() {
     assertThat(instance.getCurrentGame(), nullValue());
 
     when(playerService.getCurrentPlayer()).thenReturn(Optional.ofNullable(PlayerBuilder.create("PlayerName").get()));
@@ -344,7 +343,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnGameInfoMessageDoesntSetCurrentGameIfUserDoesntMatch() throws Exception {
+  public void testOnGameInfoMessageDoesntSetCurrentGameIfUserDoesntMatch() {
     assertThat(instance.getCurrentGame(), nullValue());
 
     when(playerService.getCurrentPlayer()).thenReturn(Optional.ofNullable(PlayerBuilder.create("PlayerName").get()));
@@ -447,7 +446,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testStopSearchLadder1v1() throws Exception {
+  public void testStopSearchLadder1v1() {
     instance.searching1v1Property().set(true);
     instance.stopSearchLadder1v1();
     assertThat(instance.searching1v1Property().get(), is(false));
@@ -455,7 +454,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testStopSearchLadder1v1NotSearching() throws Exception {
+  public void testStopSearchLadder1v1NotSearching() {
     instance.searching1v1Property().set(false);
     instance.stopSearchLadder1v1();
     assertThat(instance.searching1v1Property().get(), is(false));
@@ -463,7 +462,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testSubscribeEventBus() throws Exception {
+  public void testSubscribeEventBus() {
     verify(eventBus).register(instance);
 
     assertThat(ReflectionUtils.findMethod(
@@ -500,7 +499,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testCurrentGameEndedBehaviour() throws Exception {
+  public void testCurrentGameEndedBehaviour() {
     Game game = new Game();
     game.setId(123);
     game.setStatus(OPEN);

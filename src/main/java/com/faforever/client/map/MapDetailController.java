@@ -5,7 +5,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
-import com.faforever.client.map.MapServiceImpl.PreviewSize;
+import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
@@ -22,7 +22,6 @@ import com.faforever.commons.io.Bytes;
 import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.WeakListChangeListener;
@@ -187,15 +186,14 @@ public class MapDetailController implements Controller<Node> {
         }));
     uninstallButton.setVisible(mapInstalled);
 
-    mapDescriptionLabel.textProperty().bind(Bindings.createStringBinding(() -> Optional.ofNullable(map.getDescription())
+    mapDescriptionLabel.setText(Optional.ofNullable(map.getDescription())
         .map(Strings::emptyToNull)
         .map(FaStrings::removeLocalizationTag)
-        .orElseGet(() -> i18n.get("map.noDescriptionAvailable")), map.descriptionProperty()));
+        .orElseGet(() -> i18n.get("map.noDescriptionAvailable")));
 
     ObservableList<MapBean> installedMaps = mapService.getInstalledMaps();
-    synchronized (installedMaps) {
-      installedMaps.addListener(new WeakListChangeListener<>(installStatusChangeListener));
-    }
+    JavaFxUtil.addListener(installedMaps, new WeakListChangeListener<>(installStatusChangeListener));
+
     setInstalled(mapService.isInstalled(map.getFolderName()));
   }
 

@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
@@ -108,12 +109,12 @@ public class CustomGamesController extends AbstractViewController<Node> {
     ObservableList<Game> games = gameService.getGames();
 
     filteredItems = new FilteredList<>(games);
-    showModdedGamesCheckBox.selectedProperty().bindBidirectional(preferencesService.getPreferences().showModdedGamesProperty());
-    showPasswordProtectedGamesCheckBox.selectedProperty().bindBidirectional(preferencesService.getPreferences().showPasswordProtectedGamesProperty());
+    JavaFxUtil.bindBidirectional(showModdedGamesCheckBox.selectedProperty(), preferencesService.getPreferences().showModdedGamesProperty());
+    JavaFxUtil.bindBidirectional(showPasswordProtectedGamesCheckBox.selectedProperty(), preferencesService.getPreferences().showPasswordProtectedGamesProperty());
 
     updateFilteredItems();
-    preferencesService.getPreferences().showModdedGamesProperty().addListener(new WeakChangeListener<>(filterConditionsChangedListener));
-    preferencesService.getPreferences().showPasswordProtectedGamesProperty().addListener(new WeakChangeListener<>(filterConditionsChangedListener));
+    JavaFxUtil.addListener(preferencesService.getPreferences().showModdedGamesProperty(), new WeakChangeListener<>(filterConditionsChangedListener));
+    JavaFxUtil.addListener(preferencesService.getPreferences().showPasswordProtectedGamesProperty(), new WeakChangeListener<>(filterConditionsChangedListener));
 
     if (tilesButton.getId().equals(preferencesService.getPreferences().getGamesViewMode())) {
       viewToggleGroup.selectToggle(tilesButton);
@@ -195,8 +196,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   public void onTableButtonClicked() {
     gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
-    gamesTableController.selectedGameProperty()
-        .addListener((observable, oldValue, newValue) -> setSelectedGame(newValue));
+    gamesTableController.selectedGameProperty().addListener((observable, oldValue, newValue) -> setSelectedGame(newValue));
     Platform.runLater(() -> {
       gamesTableController.initializeGameTable(filteredItems);
 
@@ -216,8 +216,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   public void onTilesButtonClicked() {
     gamesTilesContainerController = uiService.loadFxml("theme/play/games_tiles_container.fxml");
-    gamesTilesContainerController.selectedGameProperty()
-        .addListener((observable, oldValue, newValue) -> setSelectedGame(newValue));
+    gamesTilesContainerController.selectedGameProperty().addListener((observable, oldValue, newValue) -> setSelectedGame(newValue));
     chooseSortingTypeChoiceBox.getItems().clear();
 
     Platform.runLater(() -> {

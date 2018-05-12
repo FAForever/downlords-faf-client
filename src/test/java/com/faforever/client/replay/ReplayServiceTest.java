@@ -55,7 +55,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-public class ReplayServiceImplTest {
+public class ReplayServiceTest {
 
   /**
    * First 64 bytes of a SCFAReplay file with version 3599. ASCII representation:
@@ -83,7 +83,7 @@ public class ReplayServiceImplTest {
   public TemporaryFolder replayDirectory = new TemporaryFolder();
   @Rule
   public TemporaryFolder cacheDirectory = new TemporaryFolder();
-  private ReplayServiceImpl instance;
+  private ReplayService instance;
   @Mock
   private I18n i18n;
   @Mock
@@ -115,7 +115,7 @@ public class ReplayServiceImplTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new ReplayServiceImpl(new ClientProperties(), preferencesService, replayFileReader, notificationService, gameService,
+    instance = new ReplayService(new ClientProperties(), preferencesService, replayFileReader, notificationService, gameService,
         taskService, i18n, reportingService, applicationContext, platformService, replayServer, fafService, modService, mapService);
 
     when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath());
@@ -126,28 +126,28 @@ public class ReplayServiceImplTest {
 
   @Test
   public void testParseSupComVersion() throws Exception {
-    Integer version = ReplayServiceImpl.parseSupComVersion(REPLAY_FIRST_BYTES);
+    Integer version = ReplayService.parseSupComVersion(REPLAY_FIRST_BYTES);
 
     assertEquals((Integer) 3599, version);
   }
 
   @Test
   public void testParseMapName() throws Exception {
-    String mapName = ReplayServiceImpl.parseMapName(REPLAY_FIRST_BYTES);
+    String mapName = ReplayService.parseMapName(REPLAY_FIRST_BYTES);
 
     assertEquals(TEST_MAP_NAME, mapName);
   }
 
   @Test
   public void testGuessModByFileNameModIsMissing() throws Exception {
-    String mod = ReplayServiceImpl.guessModByFileName("110621-2128 Saltrock Colony.SCFAReplay");
+    String mod = ReplayService.guessModByFileName("110621-2128 Saltrock Colony.SCFAReplay");
 
     assertEquals(KnownFeaturedMod.DEFAULT.getTechnicalName(), mod);
   }
 
   @Test
   public void testGuessModByFileNameModIsBlackops() throws Exception {
-    String mod = ReplayServiceImpl.guessModByFileName("110621-2128 Saltrock Colony.blackops.SCFAReplay");
+    String mod = ReplayService.guessModByFileName("110621-2128 Saltrock Colony.blackops.SCFAReplay");
 
     assertEquals("blackops", mod);
   }

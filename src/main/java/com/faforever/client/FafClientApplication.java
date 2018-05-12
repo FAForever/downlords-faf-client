@@ -3,12 +3,12 @@ package com.faforever.client;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.fx.PlatformServiceImpl;
 import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -39,12 +39,9 @@ public class FafClientApplication extends Application {
   public static final String PROFILE_LINUX = "linux";
   public static final String PROFILE_MAC = "mac";
 
-  private static String[] args;
-
   private ConfigurableApplicationContext applicationContext;
 
   public static void main(String[] args) {
-    FafClientApplication.args = args;
     PreferencesService.configureLogging();
     launch(args);
   }
@@ -62,34 +59,30 @@ public class FafClientApplication extends Application {
     } else if (org.bridj.Platform.isMacOSX()) {
       additionalProfiles.add(PROFILE_MAC);
     }
-    return additionalProfiles.toArray(new String[additionalProfiles.size()]);
+    return additionalProfiles.toArray(new String[0]);
   }
 
   @Override
-  public void init() throws Exception {
+  public void init() {
     Font.loadFont(FafClientApplication.class.getResourceAsStream("/font/dfc-icons.ttf"), 10);
     JavaFxUtil.fixTooltipDuration();
 
-    applicationContext = new SpringApplicationBuilder(FafClientApplication.class)
+    Platform.runLater(() -> applicationContext = new SpringApplicationBuilder(FafClientApplication.class)
         .profiles(getAdditionalProfiles())
         .bannerMode(Mode.OFF)
-        .run(args);
+        .run(getParameters().getRaw().toArray(new String[0])));
   }
 
   @Override
   public void start(Stage stage) {
     StageHolder.setStage(stage);
-    initStage(stage, applicationContext.getBean(UiService.class));
+    stage.initStyle(StageStyle.UNDECORATED);
     showMainWindow();
   }
 
   @Bean
   public PlatformService platformService() {
-    return new PlatformServiceImpl(getHostServices());
-  }
-
-  private void initStage(Stage stage, UiService uiService) {
-    stage.initStyle(StageStyle.UNDECORATED);
+    return new PlatformService(getHostServices());
   }
 
   private void showMainWindow() {

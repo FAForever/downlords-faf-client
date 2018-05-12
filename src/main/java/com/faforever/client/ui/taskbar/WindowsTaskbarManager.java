@@ -1,5 +1,6 @@
 package com.faforever.client.ui.taskbar;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.task.TaskService;
 import javafx.beans.Observable;
 import javafx.beans.value.WeakChangeListener;
@@ -37,7 +38,7 @@ public class WindowsTaskbarManager {
   }
 
   public void initialize() {
-    taskService.getActiveWorkers().addListener((Observable observable) -> onActiveTasksChanged());
+    JavaFxUtil.addListener(taskService.getActiveWorkers(), (Observable observable) -> onActiveTasksChanged());
     initTaskBar();
   }
 
@@ -48,7 +49,7 @@ public class WindowsTaskbarManager {
     } else {
       Worker<?> task = runningTasks.iterator().next();
       updateTaskbarProgress(task.getProgress());
-      task.progressProperty().addListener(new WeakChangeListener<>(
+      JavaFxUtil.addListener(task.progressProperty(), new WeakChangeListener<>(
           (observable1, oldValue, newValue) -> updateTaskbarProgress(newValue.doubleValue()))
       );
     }

@@ -86,27 +86,26 @@ public class ReplayServerImpl implements ReplayServer {
   }
 
   @Override
-  public CompletableFuture<Void> start(int gameId) {
+  public CompletableFuture<Integer> start(int gameId) {
     stoppedGracefully = false;
-    CompletableFuture<Void> future = new CompletableFuture<>();
+    CompletableFuture<Integer> future = new CompletableFuture<>();
     new Thread(() -> {
-      Integer localReplayServerPort = clientProperties.getReplay().getLocalServerPort();
       String remoteReplayServerHost = clientProperties.getReplay().getRemoteHost();
       Integer remoteReplayServerPort = clientProperties.getReplay().getRemotePort();
 
-      log.debug("Opening local replay server on port {}", localReplayServerPort);
       log.debug("Connecting to replay server at '{}:{}'", remoteReplayServerHost, remoteReplayServerPort);
 
-      try (ServerSocket localSocket = new ServerSocket(localReplayServerPort);
+      try (ServerSocket localSocket = new ServerSocket(0);
            Socket remoteReplayServerSocket = new Socket(remoteReplayServerHost, remoteReplayServerPort)) {
+        log.debug("Opening local replay server on port {}", localSocket.getLocalPort());
         this.serverSocket = localSocket;
-        future.complete(null);
+        future.complete(serverSocket.getLocalPort());
         recordAndRelay(gameId, localSocket, new BufferedOutputStream(remoteReplayServerSocket.getOutputStream()));
       } catch (ConnectException e) {
         // TODO record locally even though remote is down.
         log.warn("Could not connect to remote replay server", e);
         notificationService.addNotification(new PersistentNotification(i18n.get("replayServer.unreachable"), Severity.WARN));
-        future.complete(null);
+        future.complete(serverSocket.getLocalPort());
       } catch (IOException e) {
         if (stoppedGracefully) {
           return;
@@ -114,7 +113,7 @@ public class ReplayServerImpl implements ReplayServer {
         future.completeExceptionally(e);
         log.warn("Error in replay server", e);
         notificationService.addNotification(new PersistentNotification(
-                i18n.get("replayServer.listeningFailed", localReplayServerPort),
+            i18n.get("replayServer.listeningFailed"),
             Severity.WARN, Collections.singletonList(new Action(i18n.get("replayServer.retry"), event -> start(gameId)))
             )
         );

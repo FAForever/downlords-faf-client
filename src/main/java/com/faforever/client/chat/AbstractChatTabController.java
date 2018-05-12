@@ -280,16 +280,14 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   public void initialize() {
     mentionPattern = Pattern.compile("\\b(" + Pattern.quote(userService.getUsername()) + ")\\b", CASE_INSENSITIVE);
 
-    Platform.runLater(this::initChatView);
+    initChatView();
 
     addFocusListeners();
     addImagePasteListener();
 
-    unreadMessagesCount.addListener((observable, oldValue, newValue) ->
-        chatService.incrementUnreadMessagesCount(newValue.intValue() - oldValue.intValue())
-    );
-    StageHolder.getStage().focusedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
-    getRoot().selectedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
+    unreadMessagesCount.addListener((observable, oldValue, newValue) -> chatService.incrementUnreadMessagesCount(newValue.intValue() - oldValue.intValue()));
+    JavaFxUtil.addListener(StageHolder.getStage().focusedProperty(), new WeakChangeListener<>(resetUnreadMessagesListener));
+    JavaFxUtil.addListener(getRoot().selectedProperty(), new WeakChangeListener<>(resetUnreadMessagesListener));
 
     autoCompletionHelper.bindTo(messageTextField());
   }
@@ -298,8 +296,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    * Registers listeners necessary to focus the message input field when changing to another message tab, changing from
    * another tab to the "chat" tab or re-focusing the window.
    */
-  protected void addFocusListeners() {
-    getRoot().selectedProperty().addListener((observable, oldValue, newValue) -> {
+  private void addFocusListeners() {
+    JavaFxUtil.addListener(getRoot().selectedProperty(), (observable, oldValue, newValue) -> {
       if (newValue) {
         // Since a tab is marked as "selected" before it's rendered, the text field can't be selected yet.
         // So let's schedule the focus to be executed afterwards
@@ -307,7 +305,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       }
     });
 
-    getRoot().tabPaneProperty().addListener((tabPane, oldTabPane, newTabPane) -> {
+    JavaFxUtil.addListener(getRoot().tabPaneProperty(), (tabPane, oldTabPane, newTabPane) -> {
       if (newTabPane == null) {
         return;
       }
@@ -316,9 +314,9 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
           messageTextField().requestFocus();
         }
       };
-      StageHolder.getStage().focusedProperty().addListener(new WeakChangeListener<>(stageFocusedListener));
+      JavaFxUtil.addListener(StageHolder.getStage().focusedProperty(), new WeakChangeListener<>(stageFocusedListener));
 
-      newTabPane.focusedProperty().addListener((focusedTabPane, oldTabPaneFocus, newTabPaneFocus) -> {
+      JavaFxUtil.addListener(newTabPane.focusedProperty(), (focusedTabPane, oldTabPaneFocus, newTabPaneFocus) -> {
         if (newTabPaneFocus) {
           messageTextField().requestFocus();
         }
@@ -368,7 +366,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     webViewConfigurer.configureWebView(messagesWebView);
 
     messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
-    messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(messagesWebView.zoomProperty(), (observable, oldValue, newValue) -> {
       preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
       preferencesService.storeInBackground();
     });
@@ -380,7 +378,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
     engine = messagesWebView.getEngine();
     getJsObject().setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
-    engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(engine.getLoadWorker().stateProperty(), (observable, oldValue, newValue) -> {
       if (Worker.State.SUCCEEDED == newValue) {
         synchronized (waitingMessages) {
           waitingMessages.forEach(AbstractChatTabController.this::addMessage);

@@ -65,7 +65,8 @@ public class WindowController implements Controller<Node> {
 
     Rectangle2D windowCenter = new Rectangle2D(x1, y1, 1, 1);
     ObservableList<Screen> screensForRectangle = Screen.getScreensForRectangle(windowCenter);
-    return screensForRectangle.get(0).getVisualBounds();
+    Screen targetScreen = screensForRectangle.stream().findFirst().orElse(Screen.getPrimary());
+    return targetScreen.getVisualBounds();
   }
 
   public static void maximize(Stage stage) {
@@ -138,7 +139,7 @@ public class WindowController implements Controller<Node> {
     // Workaround for https://bugs.openjdk.java.net/browse/JDK-8087997
     // Will be fixed in JDK 8u122
     // Fixes #13
-    windowRoot.heightProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(windowRoot.heightProperty(), (observable, oldValue, newValue) -> {
       if (stage.isIconified() && stage.isMaximized()) {
         stage.setIconified(false);
         maximize();
@@ -161,7 +162,7 @@ public class WindowController implements Controller<Node> {
     // Configure these only once per stage
     if (!stage.getProperties().containsKey(PROPERTY_WINDOW_DECORATOR)) {
       stage.getProperties().put(PROPERTY_WINDOW_DECORATOR, this);
-      stage.iconifiedProperty().addListener((observable, oldValue, newValue) -> {
+      JavaFxUtil.addListener(stage.iconifiedProperty(), (observable, oldValue, newValue) -> {
         if (!newValue && stage.isMaximized()) {
           maximize();
         }

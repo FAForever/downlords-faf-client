@@ -3,12 +3,16 @@ package com.faforever.client.chat;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.util.ProgrammingError;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.annotations.VisibleForTesting;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -33,6 +37,8 @@ public class UserFilterController implements Controller<Node> {
   public TextField clanFilterField;
   public TextField minRatingFilterField;
   public TextField maxRatingFilterField;
+  public ToggleGroup gameStatusToggleGroup;
+  private final BooleanProperty filterApplied;
   @VisibleForTesting
   ChannelTabController channelTabController;
   @VisibleForTesting
@@ -41,6 +47,7 @@ public class UserFilterController implements Controller<Node> {
   @Inject
   public UserFilterController(I18n i18n) {
     this.i18n = i18n;
+    this.filterApplied = new SimpleBooleanProperty(false);
   }
 
   void setChannelController(ChannelTabController channelTabController) {
@@ -61,6 +68,7 @@ public class UserFilterController implements Controller<Node> {
         chatUserItemController.setVisible(filterUser(chatUserItemController));
       }
     }
+    filterApplied.set(!maxRatingFilterField.getText().isEmpty() || !minRatingFilterField.getText().isEmpty() || !clanFilterField.getText().isEmpty() || playerStatusFilter != null);
   }
 
   boolean filterUser(ChatUserItemController chatUserItemController) {
@@ -68,6 +76,14 @@ public class UserFilterController implements Controller<Node> {
         && isInClan(chatUserItemController)
         && isBoundedByRating(chatUserItemController)
         && isGameStatusMatch(chatUserItemController);
+  }
+
+  public BooleanProperty filterAppliedProperty() {
+    return filterApplied;
+  }
+
+  public boolean isFilterApplied() {
+    return filterApplied.get();
   }
 
   @VisibleForTesting
@@ -124,21 +140,41 @@ public class UserFilterController implements Controller<Node> {
   }
 
   public void onGameStatusPlaying(ActionEvent actionEvent) {
-    playerStatusFilter = PLAYING;
-    gameStatusMenu.setText(i18n.get("game.gameStatus.playing"));
+    updateGameStatusMenuText(playerStatusFilter == PLAYING ? null : PLAYING);
     filterUsers();
   }
 
   public void onGameStatusLobby(ActionEvent actionEvent) {
-    playerStatusFilter = LOBBYING;
-    gameStatusMenu.setText(i18n.get("game.gameStatus.lobby"));
+    updateGameStatusMenuText(playerStatusFilter == LOBBYING ? null : LOBBYING);
     filterUsers();
   }
 
   public void onGameStatusNone(ActionEvent actionEvent) {
-    playerStatusFilter = IDLE;
-    gameStatusMenu.setText(i18n.get("game.gameStatus.none"));
+    updateGameStatusMenuText(playerStatusFilter == IDLE ? null : IDLE);
     filterUsers();
+  }
+
+  private void updateGameStatusMenuText(PlayerStatus status) {
+    playerStatusFilter = status;
+    if (status == null) {
+      gameStatusMenu.setText(i18n.get("game.gameStatus"));
+      gameStatusToggleGroup.selectToggle(null);
+      return;
+    }
+
+    switch (status) {
+      case PLAYING:
+        gameStatusMenu.setText(i18n.get("game.gameStatus.playing"));
+        break;
+      case LOBBYING:
+        gameStatusMenu.setText(i18n.get("game.gameStatus.lobby"));
+        break;
+      case IDLE:
+        gameStatusMenu.setText(i18n.get("game.gameStatus.none"));
+        break;
+      default:
+        throw new ProgrammingError("Uncovered player status: " + status);
+    }
   }
 
   public Node getRoot() {

@@ -3,44 +3,41 @@ package com.faforever.client.fx;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.MapProperty;
+import javafx.beans.property.Property;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.ObservableSet;
+import javafx.collections.SetChangeListener;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.geometry.Bounds;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
-import javafx.stage.Popup;
-import javafx.stage.PopupWindow;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
+import javafx.util.converter.NumberStringConverter;
 import lombok.SneakyThrows;
 
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.file.Files.createDirectories;
@@ -73,77 +70,8 @@ public final class JavaFxUtil {
     throw new AssertionError("Not instantiatable");
   }
 
-  public static void makeSuggestionField(TextField textField,
-                                         Function<String, CompletableFuture<Set<Label>>> itemsFactory,
-                                         Consumer<Void> onAction) {
-    ListView<Label> listView = new ListView<>();
-    listView.prefWidthProperty().bind(textField.widthProperty());
-    listView.setFixedCellSize(24);
-
-    Popup popupControl = new Popup();
-    popupControl.setAutoHide(true);
-    popupControl.setAutoFix(false);
-    popupControl.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
-    popupControl.getScene().setRoot(listView);
-
-    BooleanProperty isUserSelecting = new SimpleBooleanProperty();
-
-    popupControl.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-      // Don't close on space
-      if (event.getCode() == KeyCode.SPACE) {
-        event.consume();
-      }
-    });
-    listView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue != null) {
-        isUserSelecting.set(true);
-        textField.setText(newValue.getText());
-      }
-    });
-    listView.setOnMouseClicked(event -> popupControl.hide());
-    listView.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
-      if (event.getCode() == KeyCode.ENTER) {
-        onAction.accept(null);
-        popupControl.hide();
-      }
-    });
-    textField.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
-      if (event.getCode() == KeyCode.DOWN) {
-        listView.requestFocus();
-        listView.getSelectionModel().selectFirst();
-        textField.positionCaret(Integer.MAX_VALUE);
-      } else {
-        isUserSelecting.set(false);
-      }
-    });
-    textField.textProperty().addListener((observable, oldValue, newValue) -> {
-      if (isUserSelecting.get()) {
-        return;
-      }
-      if (newValue.isEmpty()) {
-        popupControl.hide();
-        return;
-      }
-
-      if (oldValue.trim().equalsIgnoreCase(newValue)) {
-        return;
-      }
-
-      itemsFactory.apply(newValue).thenAccept(items -> Platform.runLater(() -> {
-        listView.getItems().setAll(items);
-        listView.setPrefHeight(Math.min(120, items.size() * (listView.getFixedCellSize() + 2)));
-        if (listView.getItems().isEmpty()) {
-          popupControl.hide();
-        } else if (!popupControl.isShowing()) {
-          Bounds screenBounds = textField.localToScreen(textField.getBoundsInLocal());
-          popupControl.show(textField.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMaxY());
-        }
-      }));
-    });
-  }
-
   public static void makeNumericTextField(TextField textField, int maxLength) {
-    textField.textProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(textField.textProperty(), (observable, oldValue, newValue) -> {
       String value = newValue;
       if (!value.matches("\\d*")) {
         value = newValue.replaceAll("[^\\d]", "");
@@ -231,8 +159,8 @@ public final class JavaFxUtil {
   /**
    * Updates the specified list with any changes made to the specified map, but not vice versa.
    */
-  public static <T> void attachListToMap(ObservableList<T> list, ObservableMap<?, T> map) {
-    map.addListener((MapChangeListener<Object, T>) change -> {
+  public static <K, V> void attachListToMap(ObservableList<V> list, ObservableMap<K, V> map) {
+    addListener(map, (MapChangeListener<K, V>) change -> {
       synchronized (list) {
         if (change.wasRemoved()) {
           list.remove(change.getValueRemoved());
@@ -249,7 +177,7 @@ public final class JavaFxUtil {
     }
     if (image.isBackgroundLoading() && image.getProgress() < 1) {
       // Let's hope that loading doesn't finish before the listener is added
-      image.progressProperty().addListener(new ChangeListener<Number>() {
+      JavaFxUtil.addListener(image.progressProperty(), new ChangeListener<Number>() {
         @Override
         public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
           if (newValue.intValue() >= 1) {
@@ -294,5 +222,105 @@ public final class JavaFxUtil {
       // deltaY/height to make the scrolling equally fast regardless of the actual height of the component
       scrollPane.setVvalue(vvalue + -deltaY / height);
     });
+  }
+
+  /**
+   * Since the JavaFX properties API is not thread safe, adding listeners must be synchronized on the property - which
+   * is what this method does.
+   */
+  public static <T> void addListener(ObservableValue<T> observableValue, ChangeListener<? super T> listener) {
+    synchronized (observableValue) {
+      observableValue.addListener(listener);
+    }
+  }
+
+  /**
+   * Since the JavaFX properties API is not thread safe, adding listeners must be synchronized on the property - which
+   * is what this method does.
+   */
+  public static <T> void addListener(Observable observable, InvalidationListener listener) {
+    synchronized (observable) {
+      observable.addListener(listener);
+    }
+  }
+
+  /**
+   * Since the JavaFX properties API is not thread safe, adding listeners must be synchronized on the property - which
+   * is what this method does.
+   */
+  public static <K, V> void addListener(ObservableMap<K, V> observable, MapChangeListener<K, V> listener) {
+    synchronized (observable) {
+      observable.addListener(listener);
+    }
+  }
+
+  /**
+   * Since the JavaFX properties API is not thread safe, adding listeners must be synchronized on the property - which
+   * is what this method does.
+   */
+  public static <T> void addListener(ObservableList<T> observable, ListChangeListener<T> listener) {
+    synchronized (observable) {
+      observable.addListener(listener);
+    }
+  }
+
+  /**
+   * Since the JavaFX properties API is not thread safe, adding listeners must be synchronized on the property - which
+   * is what this method does.
+   */
+  public static <K, V> void addListener(MapProperty<K, V> mapProperty, MapChangeListener<? super K, ? super V> listener) {
+    synchronized (mapProperty) {
+      mapProperty.addListener(listener);
+    }
+  }
+
+  /**
+   * Since the JavaFX properties API is not thread safe, adding listeners must be synchronized on the property - which
+   * is what this method does.
+   */
+  public static <T> void addListener(ObservableSet<T> set, SetChangeListener<T> listener) {
+    synchronized (set) {
+      set.addListener(listener);
+    }
+  }
+
+  /**
+   * Since the JavaFX properties API is not thread safe, binding a property must be synchronized on the property - which
+   * is what this method does.
+   */
+  public static <T> void bind(Property<T> property, ObservableValue<? extends T> observable) {
+    synchronized (property) {
+      property.bind(observable);
+    }
+  }
+
+  /**
+   * Since the JavaFX properties API is not thread safe, binding properties must be synchronized on the properties -
+   * which is what this method does. Since synchronization happens on both property in order {@code property1,
+   * property2}, this is prone to deadlocks. To avoid this, pass the property with the lower visibility (e.g. method- or
+   * controller-only) as first and the property with higher visibility (e.g. a property from a shared object or service)
+   * as second parameter.
+   */
+  public static void bindBidirectional(StringProperty stringProperty, IntegerProperty integerProperty, NumberStringConverter numberStringConverter) {
+    synchronized (stringProperty) {
+      synchronized (integerProperty) {
+        stringProperty.bindBidirectional(integerProperty, numberStringConverter);
+      }
+    }
+  }
+
+  /**
+   * Since the JavaFX properties API is not thread safe, binding properties must be synchronized on the properties -
+   * which is what this method does. Since synchronization happens on both property in order {@code property1,
+   * property2}, this is prone to deadlocks. To avoid this, pass the property with the lower visibility (e.g. method- or
+   * controller-only) as first and the property with higher visibility (e.g. a property from a shared object or service)
+   * as second parameter.
+   */
+  public static <T> void bindBidirectional(Property<T> property1, Property<T> property2) {
+    synchronized (property1) {
+      synchronized (property2) {
+        property1.bindBidirectional(property2);
+      }
+    }
   }
 }

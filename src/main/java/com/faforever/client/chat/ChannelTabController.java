@@ -37,6 +37,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.TitledPane;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
@@ -80,7 +81,7 @@ public class ChannelTabController extends AbstractChatTabController {
   private final Map<String, Map<Pane, ChatUserItemController>> userToChatUserControls;
   private final ThreadPoolExecutor threadPoolExecutor;
   private final TaskScheduler taskScheduler;
-  public Button advancedUserFilter;
+  public ToggleButton advancedUserFilter;
   public HBox searchFieldContainer;
   public Button closeSearchFieldButton;
   public TextField searchField;
@@ -304,7 +305,7 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   private void addChatColorListener() {
-    preferencesService.getPreferences().getChat().chatColorModeProperty().addListener(new WeakChangeListener<>(chatColorModeChangeListener));
+    JavaFxUtil.addListener(preferencesService.getPreferences().getChat().chatColorModeProperty(), new WeakChangeListener<>(chatColorModeChangeListener));
   }
 
   private void addUserFilterPopup() {
@@ -315,6 +316,7 @@ public class ChannelTabController extends AbstractChatTabController {
 
     userFilterController = uiService.loadFxml("theme/chat/user_filter.fxml");
     userFilterController.setChannelController(this);
+    userFilterController.filterAppliedProperty().addListener(((observable, oldValue, newValue) -> advancedUserFilter.setSelected(newValue)));
     filterUserPopup.getContent().setAll(userFilterController.getRoot());
   }
 
@@ -344,15 +346,13 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   private synchronized void onUserJoinedChannel(ChatUser chatUser) {
-    JavaFxUtil.assertBackgroundThread();
-
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
     String username = chatUser.getUsername();
     Player player = playerService.createAndGetPlayerForUsername(username);
 
-    player.moderatorForChannelsProperty().bind(chatUser.moderatorInChannelsProperty());
-    player.usernameProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.bind(player.moderatorForChannelsProperty(), chatUser.moderatorInChannelsProperty());
+    JavaFxUtil.addListener(player.usernameProperty(), (observable, oldValue, newValue) -> {
       Map<Pane, ChatUserItemController> userItemControllers = userToChatUserControls.get(oldValue);
       if (userItemControllers == null) {
         return;
@@ -365,9 +365,9 @@ public class ChannelTabController extends AbstractChatTabController {
         addChatUserItemSorted(pane, chatUserItemController);
       }
     });
-    player.usernameProperty().bind(chatUser.usernameProperty());
+    JavaFxUtil.bind(player.usernameProperty(), chatUser.usernameProperty());
 
-    player.socialStatusProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(player.socialStatusProperty(), (observable, oldValue, newValue) -> {
       if (newValue == OTHER && player.isChatOnly()) {
         addToPane(player, chatOnlyPane);
         setUserMessageClass(player, CSS_CLASS_CHAT_ONLY);
@@ -393,7 +393,7 @@ public class ChannelTabController extends AbstractChatTabController {
       }
     });
 
-    player.chatOnlyProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(player.chatOnlyProperty(), (observable, oldValue, newValue) -> {
       if (player.getSocialStatus() == OTHER && !chatUser.getModeratorInChannels().contains(username)) {
         if (newValue) {
           removeFromPane(player, othersPane);
@@ -424,7 +424,7 @@ public class ChannelTabController extends AbstractChatTabController {
       }
     });
 
-    chatPrefs.hideFoeMessagesProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(chatPrefs.hideFoeMessagesProperty(), (observable, oldValue, newValue) -> {
       if (newValue && player.getSocialStatus() == FOE) {
         updateUserMessageDisplay(player, "none");
       } else {
@@ -432,7 +432,7 @@ public class ChannelTabController extends AbstractChatTabController {
       }
     });
 
-    chatUser.colorProperty().addListener((observable, oldValue, newValue) ->
+    JavaFxUtil.addListener(chatUser.colorProperty(), (observable, oldValue, newValue) ->
         Platform.runLater(() -> updateUserMessageColor(chatUser))
     );
 
@@ -445,8 +445,8 @@ public class ChannelTabController extends AbstractChatTabController {
       if (!userSearchTextField.textProperty().get().isEmpty()) {
         chatUserItemController.setVisible(isUsernameMatch(chatUserItemController));
       }
-      if (filterUserPopup.isShowing()) {
-        userFilterController.filterUser(chatUserItemController);
+      if (userFilterController.isFilterApplied()) {
+        chatUserItemController.setVisible(userFilterController.filterUser(chatUserItemController));
       }
     }
   }
@@ -568,7 +568,7 @@ public class ChannelTabController extends AbstractChatTabController {
     searchField.clear();
   }
 
-  public void addSearchFieldListener() {
+  private void addSearchFieldListener() {
     searchField.textProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue.trim().isEmpty()) {
         getJsObject().call("removeHighlight");
@@ -579,12 +579,13 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   public void onAdvancedUserFilter(ActionEvent actionEvent) {
+    advancedUserFilter.setSelected(userFilterController.isFilterApplied());
     if (filterUserPopup.isShowing()) {
       filterUserPopup.hide();
       return;
     }
 
-    Button button = (Button) actionEvent.getSource();
+    ToggleButton button = (ToggleButton) actionEvent.getSource();
 
     Bounds screenBounds = advancedUserFilter.localToScreen(advancedUserFilter.getBoundsInLocal());
     filterUserPopup.show(button.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMaxY());

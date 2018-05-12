@@ -13,7 +13,7 @@ import com.faforever.client.game.GamesTableController;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
-import com.faforever.client.map.MapServiceImpl.PreviewSize;
+import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
@@ -54,6 +54,7 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
 import static com.faforever.client.game.KnownFeaturedMod.COOP;
@@ -213,7 +214,11 @@ public class CoopController extends AbstractViewController<Node> {
 
   private void loadLeaderboard() {
     coopService.getLeaderboard(getSelectedMission(), numberOfPlayersComboBox.getSelectionModel().getSelectedItem())
-        .thenAccept(coopLeaderboardEntries -> Platform.runLater(() -> leaderboardTable.setItems(observableList(coopLeaderboardEntries))))
+        .thenAccept(coopLeaderboardEntries -> {
+          AtomicInteger ranking = new AtomicInteger();
+          coopLeaderboardEntries.forEach(coopResult -> coopResult.setRanking(ranking.incrementAndGet()));
+          Platform.runLater(() -> leaderboardTable.setItems(observableList(coopLeaderboardEntries)));
+        })
         .exceptionally(throwable -> {
           notificationService.addNotification(new ImmediateNotification(
               i18n.get("errorTitle"), i18n.get("coop.leaderboard.couldNotLoad"), Severity.ERROR, throwable,

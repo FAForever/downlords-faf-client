@@ -26,9 +26,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class FafServiceImplTest {
+public class FafServiceTest {
 
-  private FafServiceImpl instance;
+  private FafService instance;
   @Mock
   private FafServerAccessor fafServerAccessor;
   @Mock
@@ -39,7 +39,7 @@ public class FafServiceImplTest {
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
-    instance = new FafServiceImpl(fafServerAccessor, fafApiAccessor, eventBus);
+    instance = new FafService(fafServerAccessor, fafApiAccessor, eventBus);
   }
 
   @Test

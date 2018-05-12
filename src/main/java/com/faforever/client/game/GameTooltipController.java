@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
@@ -48,7 +49,7 @@ public class GameTooltipController implements Controller<Node> {
     createTeams(game.getTeams());
     createModsList(game.getSimMods());
     MapChangeListener<String, List<String>> teamChangedListener = change -> createTeams(change.getMap());
-    game.getTeams().addListener(teamChangedListener);
+    JavaFxUtil.addListener(game.getTeams(), teamChangedListener);
 
     if (lastTeams != null) {
       lastTeams.removeListener(teamChangedListener);
@@ -56,7 +57,7 @@ public class GameTooltipController implements Controller<Node> {
     lastTeams = game.getTeams();
 
     MapChangeListener<String, String> simModsChangedListener = change -> createModsList(change.getMap());
-    game.getSimMods().addListener(simModsChangedListener);
+    JavaFxUtil.addListener(game.getSimMods(), simModsChangedListener);
 
     if (lastSimMods != null) {
       game.getSimMods().removeListener(simModsChangedListener);

@@ -89,16 +89,16 @@ public class GamesTilesContainerController implements Controller<Node> {
     initializeChoiceBox(choseSortingTypeChoiceBox);
     uidToGameCard = new HashMap<>();
     games.forEach(this::addGameCard);
-    games.addListener(new WeakListChangeListener<>(gameListChangeListener));
+    JavaFxUtil.addListener(games, new WeakListChangeListener<>(gameListChangeListener));
     selectFirstGame();
     sortNodes();
   }
 
-  private void initializeChoiceBox(ChoiceBox<TilesSortingOrder> choseSortingTypeChoiceBox) {
-    choseSortingTypeChoiceBox.setVisible(true);
-    choseSortingTypeChoiceBox.getItems().addAll(TilesSortingOrder.values());
-    choseSortingTypeChoiceBox.getSelectionModel().selectedItemProperty().addListener(new WeakChangeListener<>(sortingListener));
-    choseSortingTypeChoiceBox.getSelectionModel().select(preferencesService.getPreferences().getGameTileSortingOrder());
+  private void initializeChoiceBox(ChoiceBox<TilesSortingOrder> sortingTypeChoiceBox) {
+    sortingTypeChoiceBox.setVisible(true);
+    sortingTypeChoiceBox.getItems().addAll(TilesSortingOrder.values());
+    sortingTypeChoiceBox.getSelectionModel().selectedItemProperty().addListener(new WeakChangeListener<>(sortingListener));
+    sortingTypeChoiceBox.getSelectionModel().select(preferencesService.getPreferences().getGameTileSortingOrder());
   }
 
   private void selectFirstGame() {

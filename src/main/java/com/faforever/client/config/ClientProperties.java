@@ -77,7 +77,6 @@ public class ClientProperties {
   public static class Replay {
     private String remoteHost;
     private int remotePort = 15000;
-    private int localServerPort = 15001;
     private String replayFileFormat = "%d-%s.fafreplay";
     private String replayFileGlob = "*.fafreplay";
     // TODO this should acutally be reported by the server

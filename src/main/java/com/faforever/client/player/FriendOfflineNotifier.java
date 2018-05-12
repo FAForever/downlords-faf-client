@@ -23,11 +23,11 @@ public class FriendOfflineNotifier {
   private final I18n i18n;
   private final EventBus eventBus;
   private final AudioService audioService;
-  private final PlayerServiceImpl playerService;
+  private final PlayerService playerService;
 
   @Inject
   public FriendOfflineNotifier(NotificationService notificationService, I18n i18n, EventBus eventBus,
-                               AudioService audioService, PlayerServiceImpl playerService) {
+                               AudioService audioService, PlayerService playerService) {
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.eventBus = eventBus;

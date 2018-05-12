@@ -3,6 +3,7 @@ package com.faforever.client.units;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.UnitDatabase;
 import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.preferences.Preferences.UnitDataBaseType;
 import com.faforever.client.preferences.PreferencesService;
@@ -35,7 +36,7 @@ public class UnitsController extends AbstractViewController<Node> {
     if (Strings.isNullOrEmpty(unitsRoot.getEngine().getLocation())) {
       cookieService.setUpCookieManger();
       loadUnitDataBase(preferencesService.getPreferences().getUnitDataBaseType());
-      preferencesService.getPreferences().unitDataBaseTypeProperty().addListener((observable, oldValue, newValue) -> loadUnitDataBase(newValue));
+      JavaFxUtil.addListener(preferencesService.getPreferences().unitDataBaseTypeProperty(), (observable, oldValue, newValue) -> loadUnitDataBase(newValue));
     }
   }
 

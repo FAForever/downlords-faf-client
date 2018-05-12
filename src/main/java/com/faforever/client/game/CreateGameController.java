@@ -7,7 +7,7 @@ import com.faforever.client.fx.StringListCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
-import com.faforever.client.map.MapServiceImpl.PreviewSize;
+import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.MapSize;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
@@ -159,7 +159,6 @@ public class CreateGameController implements Controller<Pane> {
     } else {
       init();
     }
-
   }
 
   public void onCloseButtonClicked() {
@@ -167,8 +166,6 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   private void init() {
-    JavaFxUtil.assertApplicationThread();
-
     initModList();
     initMapSelection();
     initFeaturedModList();

@@ -1,10 +1,11 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
-import com.faforever.client.map.MapServiceImpl.PreviewSize;
+import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.rating.RatingService;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
@@ -103,7 +104,7 @@ public class ReplayCardController implements Controller<Node> {
     playerListLabel.setText(players);
 
     ObservableList<Review> reviews = replay.getReviews();
-    reviews.addListener(new WeakInvalidationListener(reviewsChangedListener));
+    JavaFxUtil.addListener(reviews, new WeakInvalidationListener(reviewsChangedListener));
     reviewsChangedListener.invalidated(reviews);
   }
 

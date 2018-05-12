@@ -37,7 +37,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AchievementServiceImplTest {
+public class AchievementServiceTest {
 
   private static final int PLAYER_ID = 123;
 
@@ -50,7 +50,7 @@ public class AchievementServiceImplTest {
   @Mock
   private PlayerService playerService;
   @Mock
-  private AchievementServiceImpl instance;
+  private AchievementService instance;
   @Mock
   private FafService fafService;
   @Mock
@@ -58,7 +58,7 @@ public class AchievementServiceImplTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new AchievementServiceImpl(fafService, playerService, assetService);
+    instance = new AchievementService(fafService, playerService, assetService);
     Player player = new Player("abc");
     player.setId(PLAYER_ID);
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));

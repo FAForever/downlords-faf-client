@@ -15,9 +15,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-public class AudioServiceImplTest extends AbstractPlainJavaFxTest {
+public class AudioServiceTest extends AbstractPlainJavaFxTest {
 
-  private AudioServiceImpl instance;
+  private AudioService instance;
   private NotificationsPrefs notificationsPrefs;
 
   @Mock
@@ -29,7 +29,7 @@ public class AudioServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Override
   public void start(Stage stage) throws Exception {
-    instance = new AudioServiceImpl(preferencesService, audioClipPlayer, uiService);
+    instance = new AudioService(preferencesService, audioClipPlayer, uiService);
 
     Preferences preferences = new Preferences();
     notificationsPrefs = preferences.getNotification();
