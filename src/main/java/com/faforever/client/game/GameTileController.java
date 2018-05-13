@@ -10,7 +10,6 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -87,7 +86,7 @@ public class GameTileController implements Controller<Node> {
     gameTitleLabel.textProperty().bind(game.titleProperty());
     hostLabel.setText(game.getHost());
 
-    StringBinding mapNameBinding = Bindings.createStringBinding(
+    StringBinding mapNameBinding = createStringBinding(
         () -> mapService.getMapLocallyFromName(game.getMapFolderName())
             .map(MapBean::getDisplayName)
             .orElse(game.getMapFolderName()),
