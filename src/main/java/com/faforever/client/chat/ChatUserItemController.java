@@ -269,7 +269,6 @@ public class ChatUserItemController implements Controller<Node> {
 
     if (!StringUtils.isEmpty(player.getCountry())) {
       final Tooltip countryTooltip = new Tooltip(i18n.getCountryNameLocalized(player.getCountry()));
-      //countryTooltip.textProperty().bind(player.countryProperty());
       Tooltip.install(countryImageView, countryTooltip);
     }
   }
