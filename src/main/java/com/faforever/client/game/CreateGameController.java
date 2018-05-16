@@ -108,8 +108,7 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   public void initialize() {
-    mapPreviewPane.minHeightProperty().bind(mapPreviewPane.widthProperty());
-    mapPreviewPane.maxHeightProperty().bind(mapPreviewPane.widthProperty());
+    mapPreviewPane.prefHeightProperty().bind(mapPreviewPane.widthProperty());
     mapSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue.isEmpty()) {
         filteredMapBeans.setPredicate(mapInfoBean -> true);
@@ -238,7 +237,7 @@ public class CreateGameController implements Controller<Pane> {
         new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false))));
 
     MapSize mapSize = newValue.getSize();
-    mapSizeLabel.setText(i18n.get("mapPreview.size", mapSize.getWidthInPixels(), mapSize.getHeightInPixels()));
+    mapSizeLabel.setText(i18n.get("mapPreview.size", mapSize.getWidthInKm(), mapSize.getHeightInKm()));
     mapNameLabel.setText(newValue.getDisplayName());
     mapPlayersLabel.setText(i18n.number(newValue.getPlayers()));
     mapDescriptionLabel.setText(Optional.ofNullable(newValue.getDescription())
