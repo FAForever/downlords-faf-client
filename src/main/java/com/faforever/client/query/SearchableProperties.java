@@ -48,6 +48,9 @@ public class SearchableProperties {
       .put("displayName", "map.name")
       .put("author.login", "map.author")
 
+      .put("statistics.plays", "map.playCount")
+      .put("statistics.downloads", "map.numberOfDownloads")
+
       .put("latestVersion.createTime", "map.uploadedDateTime")
       .put("latestVersion.updateTime", "map.updatedDateTime")
       .put("latestVersion.description", "map.description")
