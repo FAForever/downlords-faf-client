@@ -22,6 +22,7 @@ public class ClientProperties {
   private Api api = new Api();
   private UnitDatabase unitDatabase = new UnitDatabase();
   private Website website = new Website();
+  private Forms forms = new Forms();
 
   @Data
   public static class News {
@@ -133,5 +134,10 @@ public class ClientProperties {
   public static class UnitDatabase {
     private String spookiesUrl;
     private String rackOversUrl;
+  }
+
+  @Data
+  public static class Forms {
+    private String reportPlayerFormUrl;
   }
 }

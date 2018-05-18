@@ -5,9 +5,13 @@ import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef.HWND;
 import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.platform.win32.WinUser.WINDOWPLACEMENT;
+import javafx.application.Application;
 import javafx.application.HostServices;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 
 import static com.github.nocatch.NoCatch.noCatch;
@@ -15,13 +19,22 @@ import static org.bridj.Platform.show;
 
 public class PlatformServiceImpl implements PlatformService {
 
+  private final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   private final HostServices hostServices;
 
   private final boolean isWindows;
+  private final boolean isOpenJRE;
 
-  public PlatformServiceImpl(HostServices hostServices) {
-    this.hostServices = hostServices;
+  public PlatformServiceImpl(Application application) {
     isWindows = Platform.isWindows();
+    isOpenJRE = System.getProperty("java.runtime.name").contains("OpenJDK") || System.getProperty("java.runtime.name").contains("OpenJRE");
+
+    if (!isOpenJRE) {
+      this.hostServices = application.getHostServices();
+    } else {
+      this.hostServices = null;
+    }
   }
 
   /**
@@ -29,7 +42,11 @@ public class PlatformServiceImpl implements PlatformService {
    */
   @Override
   public void showDocument(String url) {
-    hostServices.showDocument(url);
+    if (!isOpenJRE) {
+      hostServices.showDocument(url);
+    } else {
+      logger.error("Couldn't open URL in browser due to running on OpenJRE.");
+    }
   }
 
   /**

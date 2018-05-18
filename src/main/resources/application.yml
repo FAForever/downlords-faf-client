@@ -24,6 +24,9 @@ faf-client:
     spookiesUrl: http://spooky.github.io/unitdb/#/
     rackOversUrl: http://direct.faforever.com/faf/unitsDB/?settings64=eyJwcmV2aWV3Q29ybmVyIjoiTm9uZSJ9
 
+  forms:
+    reportPlayerFormUrl: https://docs.google.com/forms/d/e/1FAIpQLSfeg4ywc4JVC4frnpkPi6udTRpPqti0d4lH1DEmlRhWOnpagg/viewform?c=0&w=1&entry.2143980939=%s&entry.187629554=%s
+
 spring:
   profiles:
     active: ${CLIENT_PROFILE:prod}

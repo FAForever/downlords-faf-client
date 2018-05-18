@@ -34,6 +34,7 @@
     <MenuItem fx:id="inviteItem" mnemonicParsing="false" disable="true" onAction="#onInviteToGame"
               text="%chat.userContext.inviteToGame"/>
     <SeparatorMenuItem fx:id="moderatorActionSeparator" mnemonicParsing="false" />
+    <MenuItem fx:id="reportItem" mnemonicParsing="false" onAction="#onReport" text="%chat.userContext.report"/>
     <MenuItem fx:id="kickItem" mnemonicParsing="false" disable="true" onAction="#onKick" text="%chat.userContext.kick"/>
     <MenuItem fx:id="banItem" mnemonicParsing="false" disable="true" onAction="#onBan" text="%chat.userContext.ban"/>
     <CustomMenuItem fx:id="avatarPickerMenuItem" hideOnClick="false" mnemonicParsing="false">

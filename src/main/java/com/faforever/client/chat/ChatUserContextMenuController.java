@@ -2,7 +2,9 @@ package com.faforever.client.chat;
 
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.GameService;
@@ -60,6 +62,7 @@ import static java.util.Locale.US;
 public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private final ClientProperties clientProperties;
   private final ChatService chatService;
   private final PreferencesService preferencesService;
   private final PlayerService playerService;
@@ -70,6 +73,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   private final JoinGameHelper joinGameHelper;
   private final AvatarService avatarService;
   private final UiService uiService;
+  private final PlatformService platformService;
   public ComboBox<AvatarBean> avatarComboBox;
   public CustomMenuItem avatarPickerMenuItem;
   public MenuItem sendPrivateMessageItem;
@@ -93,7 +97,8 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   private Player player;
 
   @Inject
-  public ChatUserContextMenuController(UserService userService, ChatService chatService, PreferencesService preferencesService, PlayerService playerService, GameService gameService, ReplayService replayService, NotificationService notificationService, I18n i18n, EventBus eventBus, JoinGameHelper joinGameHelper, AvatarService avatarService, UiService uiService) {
+  public ChatUserContextMenuController(ClientProperties clientProperties, UserService userService, ChatService chatService, PreferencesService preferencesService, PlayerService playerService, GameService gameService, ReplayService replayService, NotificationService notificationService, I18n i18n, EventBus eventBus, JoinGameHelper joinGameHelper, AvatarService avatarService, UiService uiService, PlatformService platformService) {
+    this.clientProperties = clientProperties;
     this.chatService = chatService;
     this.preferencesService = preferencesService;
     this.playerService = playerService;
@@ -104,6 +109,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     this.joinGameHelper = joinGameHelper;
     this.avatarService = avatarService;
     this.uiService = uiService;
+    this.platformService = platformService;
   }
 
   public void initialize() {
@@ -275,6 +281,10 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
   public void onInviteToGame() {
     //FIXME implement
+  }
+
+  public void onReport() {
+    platformService.showDocument(String.format(clientProperties.getForms().getReportPlayerFormUrl(), playerService.getCurrentPlayer().map(Player::getUsername).orElse("Username"), player.getUsername()));
   }
 
   public void onKick() {

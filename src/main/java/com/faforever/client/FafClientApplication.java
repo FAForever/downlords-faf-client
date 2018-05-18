@@ -83,7 +83,7 @@ public class FafClientApplication extends Application {
 
   @Bean
   public PlatformService platformService() {
-    return new PlatformServiceImpl(getHostServices());
+    return new PlatformServiceImpl(this);
   }
 
   private void showMainWindow() {
