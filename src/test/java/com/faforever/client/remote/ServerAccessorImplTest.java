@@ -126,7 +126,7 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
         .setHost(LOOPBACK_ADDRESS.getHostAddress())
         .setPort(fafLobbyServerSocket.getLocalPort());
 
-    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, clientProperties, reportingService);
+    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, clientProperties, reportingService, applicationEventPublisher);
 
     LoginPrefs loginPrefs = new LoginPrefs();
     loginPrefs.setUsername("junit");
@@ -311,7 +311,7 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void onUIDNotFound() throws Exception {
+  public void onUIDNotFound() {
     instance.onUIDNotExecuted(new Exception("UID not found"));
     verify(notificationService).addNotification(any(ImmediateNotification.class));
   }

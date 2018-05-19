@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.events.GalacticWarGameHostEvent;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
@@ -52,6 +53,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -410,6 +412,23 @@ public class GameServiceImpl implements GameService {
     synchronized (gameRunning) {
       return gameRunning.get();
     }
+  }
+
+  @EventListener
+  public void startGalacticWarGame(GalacticWarGameHostEvent galacticWarGameHostEvent) {
+    GameLaunchMessage gameLaunchMessage = galacticWarGameHostEvent.getGameLaunchMessage();
+    fafService.getFeaturedMods()
+        .thenCompose(featuredMods -> {
+          FeaturedMod featuredMod = featuredMods.stream().filter(mod -> mod.getTechnicalName().equals(KnownFeaturedMod.GALACTIC_WAR.getTechnicalName())).findAny().get();
+          return updateGameIfNecessary(featuredMod, null, emptyMap(), emptySet());
+        })
+        .thenCompose(aVoid -> downloadMapIfNecessary(gameLaunchMessage.getMapname()))
+        .thenRun(() -> startGame(gameLaunchMessage, null, RatingMode.NONE))
+        .exceptionally(throwable -> {
+          notificationService.addImmediateErrorNotification(throwable, "galacticWar.failedLaunching");
+          log.error("Galactic War failed to launch", throwable);
+          return null;
+        });
   }
 
   private void setGameRunning(boolean running) {

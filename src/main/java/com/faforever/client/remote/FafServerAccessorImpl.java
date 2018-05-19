@@ -4,10 +4,12 @@ import com.faforever.client.FafClientApplication;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Server;
+import com.faforever.client.events.GalacticWarGameHostEvent;
 import com.faforever.client.fa.relay.GpgClientMessageSerializer;
 import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.fa.relay.GpgServerMessageType;
 import com.faforever.client.game.Faction;
+import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.UidService;
@@ -81,6 +83,7 @@ import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -137,6 +140,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private Socket fafServerSocket;
   private CompletableFuture<List<Avatar>> avatarsFuture;
   private CompletableFuture<List<IceServer>> iceServersFuture;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   @Inject
   public FafServerAccessorImpl(PreferencesService preferencesService,
@@ -144,8 +148,10 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
                                NotificationService notificationService,
                                I18n i18n,
                                ClientProperties clientProperties,
-                               ReportingService reportingService) {
+                               ReportingService reportingService,
+                               ApplicationEventPublisher applicationEventPublisher) {
     this.clientProperties = clientProperties;
+    this.applicationEventPublisher = applicationEventPublisher;
     messageListeners = new HashMap<>();
     connectionState = new SimpleObjectProperty<>();
     sessionId = new SimpleObjectProperty<>();
@@ -482,6 +488,16 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   private void onGameLaunchInfo(GameLaunchMessage gameLaunchMessage) {
+    if (gameLaunchMessage.getMod().equals(KnownFeaturedMod.GALACTIC_WAR.getTechnicalName())) {
+      if (gameLaunchFuture == null) {
+        logger.debug("Received GameLaunchMessage without registered listener and mod gw, starting gw game");
+        applicationEventPublisher.publishEvent(new GalacticWarGameHostEvent(gameLaunchMessage));
+      } else {
+        notificationService.addNotification(new ImmediateNotification("warn", "galacticWar.notLaunchedDueToGameSearchRunning", Severity.WARN));
+      }
+      return;
+    }
+
     gameLaunchFuture.complete(gameLaunchMessage);
     gameLaunchFuture = null;
   }
