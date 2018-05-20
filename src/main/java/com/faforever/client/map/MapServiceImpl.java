@@ -333,7 +333,9 @@ public class MapServiceImpl implements MapService {
     return loadPreview(url, previewSize);
   }
 
-  private Image loadPreview(URL url, PreviewSize previewSize) {
+  @Override
+  @Cacheable(CacheNames.MAP_PREVIEW)
+  public Image loadPreview(URL url, PreviewSize previewSize) {
     return assetService.loadAndCacheImage(url, Paths.get("maps").resolve(previewSize.folderName),
         () -> uiService.getThemeImage(UiService.UNKNOWN_MAP_IMAGE));
   }
