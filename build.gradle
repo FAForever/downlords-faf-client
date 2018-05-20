@@ -147,15 +147,6 @@ jar {
   }
 }
 
-task webviewPatcherJar(type: Jar) {
-  manifest {
-    attributes "Premain-Class": "com.faforever.client.fx.TransparentWebViewPatch"
-  }
-  archiveName = 'webview-patch-agent.jar'
-  from sourceSets.main.output
-  include 'com/faforever/client/fx/TransparentWebViewPatch.class'
-}
-
 distributions {
   main {
     contents {
@@ -166,8 +157,7 @@ distributions {
             unpackIceAdapter.outputs.files,
             downloadIceAdapterLinux.outputs.files,
             downloadUnixUid.outputs.files,
-            downloadWindowsUid.outputs.files,
-            webviewPatcherJar.outputs.files
+            downloadWindowsUid.outputs.files
         ]
       }
       exclude('**/i4jruntime*.jar')
@@ -319,10 +309,12 @@ dependencies {
   compile("com.github.jasminb:jsonapi-converter:${jsonapiConverterVersion}")
   compile("com.github.Brutus5000:BiReUS-JCL:${bireusVersion}")
 //  compile("com.jfoenix:jfoenix:${jfoenixVersion}")
-  compile("com.github.micheljung:JFoenix:6d00b59ca5327ca2754c63c94285b92a3badf7c5")
-  compile 'org.javassist:javassist:3.20.0-GA'
-  provided("com.install4j:install4j-runtime:${install4jRuntimeVersion}")
 
+  // Not actually a dependency, but make sure it's built.
+  compileOnly project(":webview-patch")
+
+  compile("com.github.micheljung:JFoenix:6d00b59ca5327ca2754c63c94285b92a3badf7c5")
+  provided("com.install4j:install4j-runtime:${install4jRuntimeVersion}")
 
   testCompile 'junit:junit:4.11'
   testCompile("org.testfx:testfx-core:4.0.8-alpha") {

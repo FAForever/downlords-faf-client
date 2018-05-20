@@ -79,8 +79,8 @@ public class MapCardController implements Controller<Node> {
   public void setMap(MapBean map) {
     this.map = map;
     Image image;
-    if (map.getSmallThumbnailUrl() != null) {
-      image = mapService.loadPreview(map, PreviewSize.SMALL);
+    if (map.getLargeThumbnailUrl() != null) {
+      image = mapService.loadPreview(map.getLargeThumbnailUrl(), PreviewSize.LARGE);
     } else {
       image = IdenticonUtil.createIdenticon(map.getId());
     }
