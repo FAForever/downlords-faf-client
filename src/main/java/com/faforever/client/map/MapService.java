@@ -50,6 +50,8 @@ public interface MapService {
 
   Image loadPreview(MapBean map, PreviewSize previewSize);
 
+  Image loadPreview(URL url, PreviewSize previewSize);
+
   CompletableFuture<Void> uninstallMap(MapBean map);
 
   Path getPathForMap(MapBean map);
