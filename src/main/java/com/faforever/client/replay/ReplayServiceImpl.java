@@ -7,7 +7,6 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
-import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.DismissAction;
@@ -48,6 +47,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -150,8 +150,9 @@ public class ReplayServiceImpl implements ReplayService {
 
   @Override
   @SneakyThrows
-  public Collection<Replay> getLocalReplays() {
+  public CompletableFuture<Collection<Replay>> getLocalReplays() {
     Collection<Replay> replayInfos = new ArrayList<>();
+    ArrayList<CompletableFuture<LocalReplayInfo>> localReplayInfoFutures = new ArrayList<>();
 
     String replayFileGlob = clientProperties.getReplay().getReplayFileGlob();
 
@@ -163,28 +164,36 @@ public class ReplayServiceImpl implements ReplayService {
       for (Path replayFile : directoryStream) {
         try {
           LocalReplayInfo replayInfo = replayFileReader.parseMetaData(replayFile);
-          FeaturedMod featuredMod = modService.getFeaturedMod(replayInfo.getFeaturedMod()).getNow(FeaturedMod.UNKNOWN);
-
-          mapService.findByMapFolderName(replayInfo.getMapname())
-              .thenAccept(mapBean -> {
+          CompletableFuture<LocalReplayInfo> localReplayInfoCompletableFuture = modService.getFeaturedMod(replayInfo.getFeaturedMod()).
+              thenCombine(mapService.findByMapFolderName(replayInfo.getMapname()), (featuredMod, mapBean) -> {
                 if (!mapBean.isPresent()) {
                   notificationService.addNotification(new ImmediateNotification(
                       i18n.get("errorTitle"),
                       i18n.get("mapNotFound", replayInfo.getMapname()),
                       WARN
                   ));
-                  return;
+                  throw new IllegalStateException(MessageFormat.format("Map not available for replay with map name: '{}'", replayInfo.getMapname()));
                 }
                 replayInfos.add(new Replay(replayInfo, replayFile, featuredMod, mapBean.get()));
-              });
+                return replayInfo;
+              }).exceptionally(throwable -> {
+            onUnableToParseReplay(replayFile, throwable);
+            return null;
+          });
+          localReplayInfoFutures.add(localReplayInfoCompletableFuture);
         } catch (Exception e) {
-          logger.warn("Could not read replay file '{}'", replayFile, e);
-          moveCorruptedReplayFile(replayFile);
+          onUnableToParseReplay(replayFile, e);
         }
       }
     }
+    CompletableFuture[] arrayOfFutures = new CompletableFuture[localReplayInfoFutures.size()];
+    localReplayInfoFutures.toArray(arrayOfFutures);
+    return CompletableFuture.allOf(arrayOfFutures).thenApply(aVoid -> replayInfos);
+  }
 
-    return replayInfos;
+  private void onUnableToParseReplay(Path replayFile, Throwable throwable) {
+    logger.warn("Could not read replay file {}", replayFile, throwable);
+    moveCorruptedReplayFile(replayFile);
   }
 
   private void moveCorruptedReplayFile(Path replayFile) {

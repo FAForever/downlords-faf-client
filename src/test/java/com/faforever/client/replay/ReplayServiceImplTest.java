@@ -125,28 +125,28 @@ public class ReplayServiceImplTest {
   }
 
   @Test
-  public void testParseSupComVersion() throws Exception {
+  public void testParseSupComVersion() {
     Integer version = ReplayServiceImpl.parseSupComVersion(REPLAY_FIRST_BYTES);
 
     assertEquals((Integer) 3599, version);
   }
 
   @Test
-  public void testParseMapName() throws Exception {
+  public void testParseMapName() {
     String mapName = ReplayServiceImpl.parseMapName(REPLAY_FIRST_BYTES);
 
     assertEquals(TEST_MAP_NAME, mapName);
   }
 
   @Test
-  public void testGuessModByFileNameModIsMissing() throws Exception {
+  public void testGuessModByFileNameModIsMissing() {
     String mod = ReplayServiceImpl.guessModByFileName("110621-2128 Saltrock Colony.SCFAReplay");
 
     assertEquals(KnownFeaturedMod.DEFAULT.getTechnicalName(), mod);
   }
 
   @Test
-  public void testGuessModByFileNameModIsBlackops() throws Exception {
+  public void testGuessModByFileNameModIsBlackops() {
     String mod = ReplayServiceImpl.guessModByFileName("110621-2128 Saltrock Colony.blackops.SCFAReplay");
 
     assertEquals("blackops", mod);
@@ -160,7 +160,7 @@ public class ReplayServiceImplTest {
     doThrow(new RuntimeException("Junit test exception")).when(replayFileReader).parseMetaData(file1);
     doThrow(new RuntimeException("Junit test exception")).when(replayFileReader).parseMetaData(file2);
 
-    Collection<Replay> localReplays = instance.getLocalReplays();
+    Collection<Replay> localReplays = instance.getLocalReplays().get();
 
     assertThat(localReplays, empty());
 
@@ -184,7 +184,7 @@ public class ReplayServiceImplTest {
     when(modService.getFeaturedMod(any())).thenReturn(CompletableFuture.completedFuture(null));
     when(mapService.findByMapFolderName(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(MapBeanBuilder.create().defaultValues().get())));
 
-    Collection<Replay> localReplays = instance.getLocalReplays();
+    Collection<Replay> localReplays = instance.getLocalReplays().get();
 
     assertThat(localReplays, hasSize(1));
     assertThat(localReplays.iterator().next().getId(), is(123));
@@ -330,7 +330,7 @@ public class ReplayServiceImplTest {
   }
 
   @Test
-  public void testEnrich() throws Exception {
+  public void testEnrich() {
     Path path = Paths.get("foo.bar");
     when(replayFileReader.parseReplay(path)).thenReturn(new ReplayData(emptyList(), emptyList()));
 
