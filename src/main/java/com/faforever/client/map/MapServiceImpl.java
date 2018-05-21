@@ -205,7 +205,7 @@ public class MapServiceImpl implements MapService {
     installedSkirmishMaps.remove(pathToMap.remove(path));
   }
 
-  private void addSkirmishMap(Path path) throws MapLoadException {
+  private void addSkirmishMap(Path path) {
     try {
       MapBean mapBean = readMap(path);
       pathToMap.put(path, mapBean);

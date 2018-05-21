@@ -4,6 +4,6 @@ import com.faforever.client.remote.domain.GameLaunchMessage;
 import lombok.Data;
 
 @Data
-public class GalacticWarGameHostEvent {
+public class GalacticWarGameEvent {
   private final GameLaunchMessage gameLaunchMessage;
 }

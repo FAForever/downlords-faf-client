@@ -4,7 +4,7 @@ import com.faforever.client.FafClientApplication;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Server;
-import com.faforever.client.events.GalacticWarGameHostEvent;
+import com.faforever.client.events.GalacticWarGameEvent;
 import com.faforever.client.fa.relay.GpgClientMessageSerializer;
 import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.fa.relay.GpgServerMessageType;
@@ -488,10 +488,10 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   private void onGameLaunchInfo(GameLaunchMessage gameLaunchMessage) {
-    if (gameLaunchMessage.getMod().equals(KnownFeaturedMod.GALACTIC_WAR.getTechnicalName())) {
+    if (gameLaunchMessage.getMod().equals(KnownFeaturedMod.FAF_DEVELOP.getTechnicalName())) {
       if (gameLaunchFuture == null) {
         logger.debug("Received GameLaunchMessage without registered listener and mod gw, starting gw game");
-        applicationEventPublisher.publishEvent(new GalacticWarGameHostEvent(gameLaunchMessage));
+        applicationEventPublisher.publishEvent(new GalacticWarGameEvent(gameLaunchMessage));
       } else {
         notificationService.addNotification(new ImmediateNotification("warn", "galacticWar.notLaunchedDueToGameSearchRunning", Severity.WARN));
       }

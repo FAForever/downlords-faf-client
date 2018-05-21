@@ -22,6 +22,11 @@
         <option name="name" value="faf-client.api.base-url" />
         <option name="value" value="http://api.faf.micheljung.ch:10080" />
       </param>
+      <param>
+        <option name="enabled" value="true" />
+        <option name="name" value="faf-client.vault.base-url" />
+        <option name="value" value="http://content.faforever.com" />
+      </param>
     </additionalParameters>
     <method />
   </configuration>
