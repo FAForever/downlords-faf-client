@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="FAF Client Test Java Server" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" singleton="true">
+  <configuration default="false" name="FAF Client Yenon" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" singleton="true">
     <module name="downlords-faf-client_main" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="com.faforever.client.FafClientApplication" />
     <option name="ACTIVE_PROFILES" value="test" />
