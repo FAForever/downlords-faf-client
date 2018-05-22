@@ -221,10 +221,10 @@ public class IceAdapterImpl implements IceAdapter {
 
   private void setLobbyInitMode() {
     switch (lobbyInitMode) {
-      case DEFAULT_LOBBY:
+      case DEFAULT:
         iceAdapterProxy.setLobbyInitMode("normal");
         break;
-      case NO_LOBBY:
+      case NONE:
         iceAdapterProxy.setLobbyInitMode("auto");
         break;
     }
@@ -256,9 +256,9 @@ public class IceAdapterImpl implements IceAdapter {
   private void updateLobbyModeFromGameInfo(GameLaunchMessage gameLaunchMessage) {
     // TODO this should be sent by the server
     if (KnownFeaturedMod.LADDER_1V1.getTechnicalName().equals(gameLaunchMessage.getMod())) {
-      lobbyInitMode = LobbyMode.NO_LOBBY;
+      lobbyInitMode = LobbyMode.NONE;
     } else {
-      lobbyInitMode = LobbyMode.DEFAULT_LOBBY;
+      lobbyInitMode = LobbyMode.DEFAULT;
     }
   }
 
