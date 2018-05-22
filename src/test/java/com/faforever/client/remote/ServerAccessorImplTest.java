@@ -48,6 +48,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.DataInputStream;
@@ -105,6 +106,8 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
   @Mock
   private ReportingService reportingService;
+  @Mock
+  private ApplicationEventPublisher applicationEventPublisher;
 
   private FafServerAccessorImpl instance;
   private ServerSocket fafLobbyServerSocket;

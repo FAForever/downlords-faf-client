@@ -255,7 +255,8 @@ public class IceAdapterImpl implements IceAdapter {
 
   private void updateLobbyModeFromGameInfo(GameLaunchMessage gameLaunchMessage) {
     // TODO this should be sent by the server
-    if (KnownFeaturedMod.LADDER_1V1.getTechnicalName().equals(gameLaunchMessage.getMod())) {
+    if (KnownFeaturedMod.LADDER_1V1.getTechnicalName().equals(gameLaunchMessage.getMod()) ||
+        KnownFeaturedMod.GALACTIC_WAR.getTechnicalName().equals(gameLaunchMessage.getMod())) {
       lobbyInitMode = LobbyMode.NONE;
     } else {
       lobbyInitMode = LobbyMode.DEFAULT;
