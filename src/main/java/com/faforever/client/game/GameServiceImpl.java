@@ -435,9 +435,6 @@ public class GameServiceImpl implements GameService {
         })
         .thenCompose(aVoid -> {
           String mapname = gameLaunchMessage.getMapname();
-          mapname = mapname.replace("maps/", "");
-          mapname = mapname.replace(".zip", "");
-          //FIXME: Do proper convertion or change mapName to real map name on server
           return downloadMapIfNecessary(mapname);
         })
         .thenRun(() -> startGame(gameLaunchMessage, null, RatingMode.NONE))
