@@ -430,7 +430,7 @@ public class GameServiceImpl implements GameService {
     GameLaunchMessage gameLaunchMessage = galacticWarGameEvent.getGameLaunchMessage();
     fafService.getFeaturedMods()
         .thenCompose(featuredMods -> {
-          FeaturedMod featuredMod = featuredMods.stream().filter(mod -> mod.getTechnicalName().equals(KnownFeaturedMod.FAF_DEVELOP.getTechnicalName())).findAny().get();
+          FeaturedMod featuredMod = featuredMods.stream().filter(mod -> mod.getTechnicalName().equals(KnownFeaturedMod.GALACTIC_WAR.getTechnicalName())).findAny().get();
           return updateGameIfNecessary(featuredMod, null, emptyMap(), emptySet());
         })
         .thenCompose(aVoid -> {

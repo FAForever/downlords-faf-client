@@ -488,7 +488,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   private void onGameLaunchInfo(GameLaunchMessage gameLaunchMessage) {
-    if (gameLaunchMessage.getMod().equals(KnownFeaturedMod.FAF_DEVELOP.getTechnicalName())) {
+    if (gameLaunchMessage.getMod().equals(KnownFeaturedMod.GALACTIC_WAR.getTechnicalName())) {
       if (gameLaunchFuture == null) {
         logger.debug("Received GameLaunchMessage without registered listener and mod gw, starting gw game");
         applicationEventPublisher.publishEvent(new GalacticWarGameEvent(gameLaunchMessage));
