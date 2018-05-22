@@ -11,7 +11,7 @@ public enum LobbyMode {
   DEFAULT_LOBBY(0),
 
   /**
-   * The lobby is skipped; the preferences starts straight away,
+   * The lobby is skipped; the game starts straight away,
    */
   NO_LOBBY(1);
 
