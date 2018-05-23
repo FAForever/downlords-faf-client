@@ -10,6 +10,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.Action;
+import com.faforever.client.notification.Action.Type;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -50,6 +51,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -148,7 +150,7 @@ public class ReplayService {
     return KnownFeaturedMod.DEFAULT.getTechnicalName();
   }
 
-  
+
   @SneakyThrows
   public Collection<Replay> getLocalReplays() {
     Collection<Replay> replayInfos = new ArrayList<>();
@@ -166,7 +168,18 @@ public class ReplayService {
           FeaturedMod featuredMod = modService.getFeaturedMod(replayInfo.getFeaturedMod()).getNow(FeaturedMod.UNKNOWN);
 
           mapService.findByMapFolderName(replayInfo.getMapname())
-              .thenAccept(mapBean -> replayInfos.add(new Replay(replayInfo, replayFile, featuredMod, mapBean.orElse(null))));
+              .thenAccept(mapBean -> {
+                if (!mapBean.isPresent()) {
+                  notificationService.addNotification(new ImmediateNotification(
+                      i18n.get("errorTitle"),
+                      i18n.get("mapNotFound", replayInfo.getMapname(), replayInfo.getUid()),
+                      WARN,
+                      Collections.singletonList(new Action(i18n.get("replay.local.markAsCorrupted"), Type.OK_DONE, event -> moveCorruptedReplayFile(replayFile)))
+                  ));
+                  return;
+                }
+                replayInfos.add(new Replay(replayInfo, replayFile, featuredMod, mapBean.get()));
+              });
         } catch (Exception e) {
           logger.warn("Could not read replay file '{}'", replayFile, e);
           moveCorruptedReplayFile(replayFile);
@@ -195,7 +208,7 @@ public class ReplayService {
     ));
   }
 
-  
+
   public void runReplay(Replay item) {
     if (item.getReplayFile() != null) {
       runReplayFile(item.getReplayFile());
@@ -204,7 +217,7 @@ public class ReplayService {
     }
   }
 
-  
+
   public void runLiveReplay(int gameId, int playerId) {
     Game game = gameService.getByUid(gameId);
     if (game == null) {
@@ -222,7 +235,7 @@ public class ReplayService {
     noCatch(() -> runLiveReplay(uriBuilder.build()));
   }
 
-  
+
   public void runLiveReplay(URI uri) {
     logger.debug("Running replay from URL: {}", uri);
     if (!uri.getScheme().equals(FAF_LIFE_PROTOCOL)) {
@@ -252,43 +265,43 @@ public class ReplayService {
     }
   }
 
-  
+
   public CompletableFuture<Integer> startReplayServer(int gameUid) {
     return replayServer.start(gameUid);
   }
 
-  
+
   public void stopReplayServer() {
     replayServer.stop();
   }
 
-  
+
   public void runReplay(Integer replayId) {
     runOnlineReplay(replayId);
   }
 
-  
+
   public CompletableFuture<List<Replay>> getNewestReplays(int topElementCount, int page) {
     return fafService.getNewestReplays(topElementCount, page);
   }
 
-  
+
   public CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount, int page) {
     return fafService.getHighestRatedReplays(topElementCount, page);
   }
 
-  
+
   public CompletableFuture<List<Replay>> findByQuery(String query, int maxResults, int page, SortConfig sortConfig) {
     return fafService.findReplaysByQuery(query, maxResults, page, sortConfig);
   }
 
-  
+
   public CompletableFuture<Optional<Replay>> findById(int id) {
     return fafService.findReplayById(id);
 
   }
 
-  
+
   public CompletableFuture<Path> downloadReplay(int id) {
     ReplayDownloadTask task = applicationContext.getBean(ReplayDownloadTask.class);
     task.setReplayId(id);
@@ -310,7 +323,7 @@ public class ReplayService {
     );
   }
 
-  
+
   @SneakyThrows
   public CompletableFuture<Integer> getSize(int id) {
     return CompletableFuture.supplyAsync(() -> noCatch(() -> new URL(String.format(clientProperties.getVault().getReplayDownloadUrlFormat(), id))
@@ -318,7 +331,7 @@ public class ReplayService {
         .getContentLength()));
   }
 
-  
+
   public boolean replayChangedRating(Replay replay) {
     return replay.getTeamPlayerStats().values().stream()
         .flatMap(Collection::stream)
@@ -326,7 +339,7 @@ public class ReplayService {
   }
 
   @SneakyThrows
-  
+
   public void runReplayFile(Path path) {
     log.debug("Starting replay file: {}", path.toAbsolutePath());
 
