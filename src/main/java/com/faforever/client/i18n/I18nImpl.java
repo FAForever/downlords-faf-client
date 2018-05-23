@@ -48,8 +48,15 @@ public class I18nImpl implements I18n {
   }
 
   private void loadAvailableLanguages() throws IOException {
-    // This is the default language of messages.properties
-    availableLanguages.add(Locale.US);
+    // These are the default languages shipped with the client
+    availableLanguages.addAll(
+        Locale.US,
+        new Locale("cs"),
+        Locale.GERMAN,
+        Locale.FRENCH,
+        new Locale("ru"),
+        Locale.CHINESE
+    );
 
     Path languagesDirectory = preferencesService.getLanguagesDirectory();
     if (Files.notExists(languagesDirectory)) {
