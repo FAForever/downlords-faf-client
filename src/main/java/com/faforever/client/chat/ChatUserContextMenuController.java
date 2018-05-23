@@ -161,9 +161,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     colorPickerMenuItem.visibleProperty().bind(chatPrefs.chatColorModeProperty()
         .isEqualTo(CUSTOM));
 
-    if (player.getSocialStatus() != SocialStatus.SELF) {
-      avatarPickerMenuItem.setVisible(false);
-    } else {
+    if (player.getSocialStatus() == SocialStatus.SELF) {
       loadAvailableAvatars();
     }
 
