@@ -39,7 +39,6 @@ public class PrivateUserInfoController {
   public GameDetailController gameDetailController;
   public Pane gameDetailWrapper;
   public Label unlockedAchievementsLabel;
-  private Player player;
 
   public PrivateUserInfoController(CountryFlagService countryFlagService, I18n i18n, AchievementService achievementService) {
     this.countryFlagService = countryFlagService;
@@ -54,7 +53,6 @@ public class PrivateUserInfoController {
   }
 
   public void setPlayer(Player player) {
-    this.player = player;
     CountryCode countryCode = CountryCode.getByCode(player.getCountry());
 
     usernameLabel.setText(player.getUsername());

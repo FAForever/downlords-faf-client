@@ -2,7 +2,6 @@ package com.faforever.client.coop;
 
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.FeaturedModBeanBuilder;
-import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesTableController;
 import com.faforever.client.game.NewGameInfo;
@@ -10,14 +9,12 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Pane;
 import org.junit.Before;
@@ -51,8 +48,6 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private GameService gameService;
   @Mock
-  private PreferencesService preferencesService;
-  @Mock
   private UiService uiService;
   @Mock
   private GamesTableController gamesTableController;
@@ -64,8 +59,6 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
   private WebViewConfigurer webViewConfigurer;
   @Mock
   private ModService modService;
-
-  private SimpleObjectProperty<Game> selectedGameProperty;
 
   @Mock
   private ReplayService replayService;
