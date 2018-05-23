@@ -34,8 +34,6 @@ public class GameTileControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private MapService mapService;
 
-  @Mock
-  private GameTooltipController gameTooltipController;
   private Game game;
 
   @Mock
