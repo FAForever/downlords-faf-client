@@ -276,6 +276,15 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
+  public List<MapVersion> getOwnedMaps(int playerId, int loadMoreCount, int page) {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public void updateMapVersion(String id, MapVersion mapVersion) {
+  }
+
+  @Override
   public void changePassword(String username, String currentPasswordHash, String newPasswordHash) {
 
   }

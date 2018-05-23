@@ -124,4 +124,8 @@ public interface FafApiAccessor {
   List<Ladder1v1Map> getLadder1v1Maps(int count, int page);
 
   List<Tournament> getAllTournaments();
+
+  List<MapVersion> getOwnedMaps(int playerId, int loadMoreCount, int page);
+
+  void updateMapVersion(String id, MapVersion mapVersion);
 }

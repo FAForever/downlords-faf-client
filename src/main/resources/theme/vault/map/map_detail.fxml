@@ -16,7 +16,7 @@
 <?import java.lang.String?>
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mapDetailRoot" maxHeight="1.7976931348623157E308"
             maxWidth="1.7976931348623157E308" onMouseClicked="#onDimmerClicked" styleClass="dimmer"
-            xmlns="http://javafx.com/javafx/8.0.121" fx:controller="com.faforever.client.map.MapDetailController">
+            xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.map.MapDetailController">
   <children>
       <AnchorPane onMouseClicked="#onContentPaneClicked" styleClass="modal-popup" AnchorPane.bottomAnchor="50.0"
                   AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="50.0">
@@ -27,7 +27,7 @@
                   <VBox alignment="TOP_CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                         spacing="20.0">
                       <children>
-                          <GridPane hgap="20.0" vgap="10.0">
+                          <GridPane fx:id="gridPane" hgap="20.0" vgap="20.0">
                               <columnConstraints>
                                   <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
                                   <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
@@ -40,8 +40,10 @@
                                   <RowConstraints minHeight="10.0" vgrow="NEVER"/>
                                   <RowConstraints minHeight="10.0" vgrow="NEVER"/>
                                   <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-                                  <RowConstraints fillHeight="false" minHeight="10.0"/>
-                                  <RowConstraints fillHeight="false" minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS"/>
+                                  <RowConstraints fillHeight="false" minHeight="10.0" vgrow="ALWAYS"/>
+                                  <RowConstraints fx:id="hideRow" fillHeight="false"/>
+                                  <RowConstraints fillHeight="false" minHeight="10.0" vgrow="ALWAYS"/>
+                                  <RowConstraints fillHeight="false" minHeight="10.0" prefHeight="60.0" vgrow="ALWAYS"/>
                               </rowConstraints>
                               <children>
                                   <ImageView fx:id="thumbnailImageView" fitHeight="256.0" fitWidth="256.0"
@@ -76,11 +78,11 @@
                                                          mnemonicParsing="false" onAction="#onCreateGameButtonClicked"
                                                          text="%games.create"/>
                                               <JFXButton fx:id="installButton" defaultButton="true"
-                                                         mnemonicParsing="false"
-                                                      onAction="#onInstallButtonClicked"
-                                                      text="%mapVault.installButtonFormat"/>
+                                                         mnemonicParsing="false" onAction="#onInstallButtonClicked"
+                                                         text="%mapVault.installButtonFormat"/>
                                               <JFXButton fx:id="uninstallButton" mnemonicParsing="false"
-                                                         onAction="#onUninstallButtonClicked" text="%mapVault.uninstall"/>
+                                                         onAction="#onUninstallButtonClicked"
+                                                         text="%mapVault.uninstall"/>
                                           </children>
                                       </HBox>
                                       <VBox fx:id="loadingContainer" alignment="TOP_RIGHT" maxWidth="300.0">
@@ -96,11 +98,30 @@
                                          GridPane.valignment="TOP"/>
                                   <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%map.description"
                                          GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
-                                         GridPane.hgrow="ALWAYS" GridPane.rowIndex="3"/>
+                                         GridPane.hgrow="ALWAYS" GridPane.rowIndex="5"/>
                                   <Label fx:id="mapDescriptionLabel" maxWidth="1.7976931348623157E308" minWidth="0.0"
                                          text="&lt;Description&gt;" wrapText="true" GridPane.columnIndex="1"
-                                         GridPane.columnSpan="2147483647" GridPane.rowIndex="4"
+                                         GridPane.columnSpan="2147483647" GridPane.rowIndex="6"
                                          GridPane.valignment="TOP"/>
+                                  <HBox spacing="10.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
+                                        GridPane.rowIndex="3">
+                                      <children>
+                                          <Label maxHeight="1.7976931348623157E308" text="%map.ranked"/>
+                                          <Label fx:id="isRankedLabel" maxHeight="1.7976931348623157E308"/>
+                                          <JFXButton fx:id="unrankButton" mnemonicParsing="false" onAction="#unrankMap"
+                                                     text="%map.unrank"/>
+                                      </children>
+                                  </HBox>
+                                  <HBox fx:id="hideBox" spacing="10.0" GridPane.columnIndex="1"
+                                        GridPane.columnSpan="2147483647" GridPane.rowIndex="4">
+                                      <children>
+                                          <Label maxHeight="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
+                                                 text="%map.hidden"/>
+                                          <Label fx:id="isHiddenLabel" maxHeight="1.7976931348623157E308"/>
+                                          <JFXButton fx:id="hideButton" minHeight="0.0" minWidth="0.0"
+                                                     mnemonicParsing="false" onAction="#hideMap" text="%map.hide"/>
+                                      </children>
+                                  </HBox>
                               </children>
                               <VBox.margin>
                                   <Insets/>

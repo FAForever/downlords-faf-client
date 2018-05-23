@@ -111,7 +111,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testGetLocalMapsNoMaps() throws Exception {
+  public void testGetLocalMapsNoMaps() {
     assertThat(instance.getInstalledMaps(), hasSize(0));
   }
 
@@ -133,7 +133,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testReadMapOfNonFolderThrowsException() throws Exception {
+  public void testReadMapOfNonFolderThrowsException() {
     expectedException.expect(MapLoadException.class);
     expectedException.expectMessage(startsWith("Not a folder"));
 
@@ -174,7 +174,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testLoadPreview() throws Exception {
+  public void testLoadPreview() {
     for (PreviewSize previewSize : PreviewSize.values()) {
       Path cacheSubDir = Paths.get("maps").resolve(previewSize.folderName);
       instance.loadPreview("preview", previewSize);

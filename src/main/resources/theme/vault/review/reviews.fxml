@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="reviewsRoot" hgap="20.0" maxHeight="1.7976931348623157E308"
-          maxWidth="1.7976931348623157E308" minWidth="0.0" vgap="20.0" xmlns="http://javafx.com/javafx/8.0.111"
+          maxWidth="1.7976931348623157E308" minWidth="0.0" vgap="20.0" xmlns="http://javafx.com/javafx/8.0.141"
           fx:controller="com.faforever.client.vault.review.ReviewsController">
     <columnConstraints>
         <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
@@ -25,7 +25,7 @@
         <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
     </rowConstraints>
     <children>
-        <Label fx:id="ownReviewLabel" styleClass="h2" text="%reviews.myReview"/>
+        <Label fx:id="ownReviewLabel" styleClass="h2" text="%reviews.myReview" GridPane.columnSpan="2147483647"/>
         <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
                     GridPane.columnSpan="2147483647" GridPane.rowIndex="1">
             <children>

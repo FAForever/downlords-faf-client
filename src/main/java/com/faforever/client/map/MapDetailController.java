@@ -25,12 +25,15 @@ import javafx.collections.ObservableList;
 import javafx.collections.WeakListChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -53,6 +56,7 @@ public class MapDetailController implements Controller<Node> {
   private final ReportingService reportingService;
   private final PlayerService playerService;
   private final ReviewService reviewService;
+  private final EventBus eventBus;
 
   public Label progressLabel;
   public Button uninstallButton;
@@ -67,9 +71,14 @@ public class MapDetailController implements Controller<Node> {
   public Label dimensionsLabel;
   public Label maxPlayersLabel;
   public Label dateLabel;
+  public Label isHiddenLabel;
+  public Label isRankedLabel;
   public ReviewsController reviewsController;
   public VBox loadingContainer;
-  private final EventBus eventBus;
+  public RowConstraints hideRow;
+  public Button hideButton;
+  public Button unrankButton;
+  public HBox hideBox;
 
   private MapBean map;
   private ListChangeListener<MapBean> installStatusChangeListener;
@@ -97,6 +106,9 @@ public class MapDetailController implements Controller<Node> {
     progressLabel.managedProperty().bind(progressLabel.visibleProperty());
     progressLabel.visibleProperty().bind(progressBar.visibleProperty());
     loadingContainer.visibleProperty().bind(progressBar.visibleProperty());
+    hideButton.managedProperty().bind(hideButton.visibleProperty());
+    unrankButton.managedProperty().bind(unrankButton.visibleProperty());
+    hideBox.managedProperty().bind(hideBox.visibleProperty());
 
     reviewsController.setCanWriteReview(false);
 
@@ -124,6 +136,24 @@ public class MapDetailController implements Controller<Node> {
     };
   }
 
+  private void renewAuthorControls() {
+    Optional<Player> currentPlayer = playerService.getCurrentPlayer();
+    Player player = currentPlayer.orElseThrow(() -> new IllegalStateException("Player must be set in vault"));
+    boolean viewerIsAuthor = map.getAuthor() != null && String.valueOf(player.getUsername()).equals(map.getAuthor());
+    unrankButton.setVisible(viewerIsAuthor && map.isRanked());
+    hideButton.setVisible(viewerIsAuthor && !map.isHidden());
+    isHiddenLabel.setText(map.isHidden() ? i18n.get("yes") : i18n.get("no"));
+    isRankedLabel.setText(map.isRanked() ? i18n.get("yes") : i18n.get("no"));
+    removeHideRow(!viewerIsAuthor);
+  }
+
+  private void removeHideRow(boolean hide) {
+    hideBox.setVisible(!hide);
+    hideRow.setMaxHeight(hide ? 0d : Control.USE_COMPUTED_SIZE);
+    hideRow.setPrefHeight(hide ? 0d : Control.USE_COMPUTED_SIZE);
+    hideRow.setMinHeight(hide ? 0d : Control.USE_COMPUTED_SIZE);
+  }
+
   public void onCloseButtonClicked() {
     getRoot().setVisible(false);
   }
@@ -144,6 +174,7 @@ public class MapDetailController implements Controller<Node> {
     } else {
       thumbnailImageView.setImage(IdenticonUtil.createIdenticon(map.getId()));
     }
+    renewAuthorControls();
     nameLabel.setText(map.getDisplayName());
     authorLabel.setText(Optional.ofNullable(map.getAuthor()).orElse(i18n.get("map.unknownAuthor")));
     maxPlayersLabel.setText(i18n.number(map.getPlayers()));
@@ -269,5 +300,29 @@ public class MapDetailController implements Controller<Node> {
 
   public void onCreateGameButtonClicked() {
     eventBus.post(new HostGameEvent(map.getFolderName()));
+  }
+
+  public void hideMap() {
+    mapService.hideMapVersion(map).thenAccept(aVoid -> Platform.runLater(() -> {
+      map.setHidden(true);
+      renewAuthorControls();
+    })).exceptionally(throwable -> {
+      notificationService.addImmediateErrorNotification(throwable, "map.couldNotHide");
+      log.error("Could not hide map", throwable);
+      return null;
+    });
+  }
+
+  public void unrankMap() {
+    mapService.unrankMapVersion(map)
+        .thenAccept(aVoid -> Platform.runLater(() -> {
+          map.setRanked(false);
+          renewAuthorControls();
+        }))
+        .exceptionally(throwable -> {
+          notificationService.addImmediateErrorNotification(throwable, "map.couldNotUnrank");
+          log.error("Could not unrank map", throwable);
+          return null;
+        });
   }
 }
