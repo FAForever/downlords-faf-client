@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mapVaultRoot" xmlns="http://javafx.com/javafx/8.0.111"
+<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mapVaultRoot" xmlns="http://javafx.com/javafx/8.0.141"
            fx:controller="com.faforever.client.map.MapVaultController">
     <children>
         <ScrollPane fx:id="scrollPane" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
@@ -50,6 +50,8 @@
                             </columnConstraints>
                             <rowConstraints>
                                 <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
                                 <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                 <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
@@ -80,6 +82,14 @@
                                 <FlowPane fx:id="ladderPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                           prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
                                           GridPane.rowIndex="7"/>
+                                <Label fx:id="ownedMoreLabel" styleClass="h2" text="%mapVault.owned"
+                                       GridPane.rowIndex="8"/>
+                                <JFXButton fx:id="ownedMoreButton" mnemonicParsing="false" onAction="#showMoreOwnedMaps"
+                                           styleClass="button-raised" text="%more" GridPane.rowIndex="8"
+                                           GridPane.columnIndex="1"/>
+                                <FlowPane fx:id="ownedPane" hgap="10.0" maxWidth="1.7976931348623157E308"
+                                          prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
+                                          GridPane.rowIndex="9"/>
                             </children>
                         </GridPane>
                         <VBox fx:id="searchResultGroup" alignment="TOP_CENTER" spacing="10.0">

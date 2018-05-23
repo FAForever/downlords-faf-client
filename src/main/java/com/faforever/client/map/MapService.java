@@ -439,6 +439,20 @@ public class MapService {
         .thenAccept(aVoid -> noCatch(() -> addSkirmishMap(getPathForMap(folderName))));
   }
 
+  public CompletableFuture<List<MapBean>> getOwnedMaps(int playerId, int loadMoreCount, int page) {
+    return fafService.getOwnedMaps(playerId, loadMoreCount, page);
+  }
+
+  public CompletableFuture<Void> hideMapVersion(MapBean map) {
+    applicationContext.getBean(this.getClass()).evictCache();
+    return fafService.hideMapVersion(map);
+  }
+
+  public CompletableFuture<Void> unrankMapVersion(MapBean map) {
+    applicationContext.getBean(this.getClass()).evictCache();
+    return fafService.unrankeMapVersion(map);
+  }
+
   @PreDestroy
   private void preDestroy() {
     Optional.ofNullable(directoryWatcherThread).ifPresent(Thread::interrupt);

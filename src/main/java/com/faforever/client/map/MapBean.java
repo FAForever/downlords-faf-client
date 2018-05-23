@@ -3,9 +3,11 @@ package com.faforever.client.map;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.vault.review.Review;
 import javafx.beans.Observable;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -36,6 +38,8 @@ public class MapBean implements Comparable<MapBean> {
   private final ObjectProperty<ComparableVersion> version;
   private final StringProperty id;
   private final StringProperty author;
+  private final BooleanProperty hidden;
+  private final BooleanProperty ranked;
   private final ObjectProperty<URL> downloadUrl;
   private final ObjectProperty<URL> smallThumbnailUrl;
   private final ObjectProperty<URL> largeThumbnailUrl;
@@ -61,6 +65,8 @@ public class MapBean implements Comparable<MapBean> {
     type = new SimpleObjectProperty<>();
     reviews = new SimpleListProperty<>(FXCollections.observableArrayList(param
         -> new Observable[]{param.scoreProperty(), param.textProperty()}));
+    hidden = new SimpleBooleanProperty();
+    ranked = new SimpleBooleanProperty();
   }
 
   public static MapBean fromMapDto(com.faforever.client.api.dto.Map map) {
@@ -81,6 +87,8 @@ public class MapBean implements Comparable<MapBean> {
     mapBean.setLargeThumbnailUrl(mapVersion.getThumbnailUrlLarge());
     mapBean.setCreateTime(mapVersion.getCreateTime().toLocalDateTime());
     mapBean.setNumberOfPlays(map.getStatistics().getPlays());
+    mapBean.setRanked(mapVersion.getRanked());
+    mapBean.setHidden(mapVersion.getHidden());
     mapBean.getReviews().setAll(
         map.getVersions().stream()
             .filter(v -> v.getReviews() != null)
@@ -109,6 +117,8 @@ public class MapBean implements Comparable<MapBean> {
     mapBean.getReviews().setAll(mapVersion.getReviews().parallelStream()
         .map(Review::fromDto)
         .collect(Collectors.toList()));
+    mapBean.setHidden(mapVersion.getHidden());
+    mapBean.setRanked(mapVersion.getRanked());
     return mapBean;
   }
 
@@ -304,6 +314,30 @@ public class MapBean implements Comparable<MapBean> {
 
   public ListProperty<Review> reviewsProperty() {
     return reviews;
+  }
+
+  public boolean isHidden() {
+    return hidden.get();
+  }
+
+  public void setHidden(boolean hidden) {
+    this.hidden.set(hidden);
+  }
+
+  public BooleanProperty hiddenProperty() {
+    return hidden;
+  }
+
+  public boolean isRanked() {
+    return ranked.get();
+  }
+
+  public void setRanked(boolean ranked) {
+    this.ranked.set(ranked);
+  }
+
+  public BooleanProperty rankedProperty() {
+    return ranked;
   }
 
   public enum Type {

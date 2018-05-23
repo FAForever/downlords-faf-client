@@ -1,5 +1,6 @@
 package com.faforever.client.config;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.jasminb.jsonapi.ResourceConverter;
 import com.github.jasminb.jsonapi.annotations.Type;
@@ -19,6 +20,7 @@ public class JsonApiConfig {
 
   @Bean
   public ResourceConverter resourceConverter(ObjectMapper objectMapper) {
+    objectMapper.setSerializationInclusion(Include.NON_NULL);
     return new ResourceConverter(objectMapper, findJsonApiTypes("com.faforever.client.api.dto"));
   }
 

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.io.InputStream;
+import java.text.MessageFormat;
 import java.util.Collection;
 
 @Component
@@ -49,10 +50,13 @@ public class JsonApiMessageConverter extends AbstractHttpMessageConverter<Object
   @Override
   @SneakyThrows
   protected void writeInternal(Object o, HttpOutputMessage outputMessage) {
+    byte[] serializedObject;
     if (o instanceof Iterable) {
-      outputMessage.getBody().write(resourceConverter.writeDocumentCollection(new JSONAPIDocument<Iterable<?>>((Iterable<?>) o)));
+      serializedObject = resourceConverter.writeDocumentCollection(new JSONAPIDocument<Iterable<?>>((Iterable<?>) o));
     } else {
-      outputMessage.getBody().write(resourceConverter.writeDocument(new JSONAPIDocument<>(o)));
+      serializedObject = resourceConverter.writeDocument(new JSONAPIDocument<>(o));
     }
+    logger.trace(MessageFormat.format("Serialized ''{0}'' as ''{1}''", o, new String(serializedObject)));
+    outputMessage.getBody().write(serializedObject);
   }
 }

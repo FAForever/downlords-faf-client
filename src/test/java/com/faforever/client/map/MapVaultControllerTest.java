@@ -4,6 +4,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenMapVaultEvent;
 import com.faforever.client.main.event.ShowLadderMapsEvent;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.LogicalNodeController;
@@ -58,6 +59,8 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private SpecificationController specificationController;
   @Mock
+  private PlayerService playerService;
+  @Mock
   private ReportingService reportingService;
 
   private MapVaultController instance;
@@ -65,7 +68,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
-    instance = new MapVaultController(mapService, i18n, eventBus, preferencesService, uiService, notificationService, reportingService);
+    instance = new MapVaultController(mapService, i18n, eventBus, preferencesService, uiService, notificationService,reportingService, playerService);
 
     doAnswer(invocation -> {
       MapDetailController controller = mock(MapDetailController.class);
@@ -94,7 +97,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testEventBusRegistered() throws Exception {
+  public void testEventBusRegistered() {
     verify(eventBus).register(instance);
   }
 
@@ -140,7 +143,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testNotifyPropertyShowLadderInitialized() throws Exception {
+  public void testNotifyPropertyShowLadderInitialized() {
     List<MapBean> maps = new ArrayList<>();
     for (int i = 0; i < 5; i++) {
       maps.add(

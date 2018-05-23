@@ -415,6 +415,19 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
+  public List<MapVersion> getOwnedMaps(int playerId, int loadMoreCount, int page) {
+    return getPage("/data/mapVersion", loadMoreCount, page, ImmutableMap.of(
+        "include", "map,map.latestVersion,map.latestVersion.reviews,map.author,map.statistics",
+        "filter", rsql(qBuilder().string("map.author.id").eq(String.valueOf(playerId)))
+    ));
+  }
+
+  @Override
+  public void updateMapVersion(String id, MapVersion mapVersion) {
+    patch(String.format("/data/mapVersion/%s", id), mapVersion, Void.class);
+  }
+
+  @Override
   @Cacheable(CacheNames.CLAN)
   public Optional<Clan> getClanByTag(String tag) {
     List<Clan> clans = getMany("/data/clan", 1, ImmutableMap.of(
@@ -483,7 +496,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
     restOperations = restTemplateBuilder
         // Base URL can be changed in login window
-        .rootUri(clientProperties.getApi().getBaseUrl())
+        .rootUri(apiProperties.getBaseUrl())
         .configure(new OAuth2RestTemplate(details));
 
     authorizedLatch.countDown();
