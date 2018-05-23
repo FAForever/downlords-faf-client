@@ -52,6 +52,8 @@ public class SettingsControllerTest extends AbstractPlainJavaFxTest {
   private PlatformService platformService;
   @Mock
   private ClientProperties clientProperties;
+  @Mock
+  private AutoJoinChannelsController autoJoinChannelsController;
 
   private Preferences preferences;
   private SimpleSetProperty<Locale> availableLanguages;
@@ -61,6 +63,8 @@ public class SettingsControllerTest extends AbstractPlainJavaFxTest {
     preferences = new Preferences();
     when(preferenceService.getPreferences()).thenReturn(preferences);
     when(uiService.currentThemeProperty()).thenReturn(new SimpleObjectProperty<>());
+    when(uiService.loadFxml("theme/settings/auto_join_channels.fxml")).thenReturn(autoJoinChannelsController);
+    when(autoJoinChannelsController.getRoot()).thenReturn(new Pane());
 
     availableLanguages = new SimpleSetProperty<>(FXCollections.observableSet());
     when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlySetWrapper<>(availableLanguages));

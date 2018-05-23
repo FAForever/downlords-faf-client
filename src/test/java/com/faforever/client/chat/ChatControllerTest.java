@@ -32,6 +32,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -153,8 +154,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
     doAnswer(invocation -> {
       MapChangeListener.Change<? extends String, ? extends Channel> change = mock(MapChangeListener.Change.class);
       when(change.wasAdded()).thenReturn(true);
-      // Error here is caused by a bug in IntelliJ
-      when(change.getValueAdded()).thenReturn(new Channel(invocation.getArgument(0)));
+      doReturn(new Channel(invocation.getArgument(0))).when(change.getValueAdded());
       channelsListener.getValue().onChanged(change);
       return null;
     }).when(chatService).joinChannel(anyString());
@@ -167,8 +167,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
     MapChangeListener.Change<? extends String, ? extends ChatChannelUser> change = mock(MapChangeListener.Change.class);
     when(change.wasAdded()).thenReturn(true);
-    // Error here is caused by a bug in IntelliJ
-    when(change.getValueAdded()).thenReturn(new ChatChannelUser(TEST_USER_NAME, null, false));
+    doReturn(new ChatChannelUser(TEST_USER_NAME, null, false)).when(change.getValueAdded());
     onUsersListenerCaptor.getValue().onChanged(change);
 
     CountDownLatch tabAddedLatch = new CountDownLatch(1);
