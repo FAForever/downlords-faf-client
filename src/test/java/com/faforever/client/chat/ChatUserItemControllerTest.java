@@ -21,7 +21,7 @@ import com.google.common.eventbus.EventBus;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
-import javafx.stage.Window;
+import javafx.scene.layout.Pane;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -233,7 +233,7 @@ public class ChatUserItemControllerTest extends AbstractPlainJavaFxTest {
 
     verify(uiService).loadFxml("theme/chat/chat_user_context_menu.fxml");
     verify(contextMenuController).setPlayer(player);
-    verify(contextMenu).show(any(Window.class), anyDouble(), anyDouble());
+    verify(contextMenu).show(any(Pane.class), anyDouble(), anyDouble());
   }
 
   @Test
