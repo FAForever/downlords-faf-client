@@ -71,10 +71,10 @@ import java.util.regex.Pattern;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
-import static com.faforever.client.theme.UiService.CHAT_ENTRY;
-import static com.faforever.client.theme.UiService.CHAT_ENTRY_COMPACT;
-import static com.faforever.client.theme.UiService.CHAT_TEXT;
-import static com.faforever.client.theme.UiService.COMPACT_CHAT_TEXT;
+import static com.faforever.client.theme.UiService.CHAT_SECTION_COMPACT;
+import static com.faforever.client.theme.UiService.CHAT_SECTION_EXTENDED;
+import static com.faforever.client.theme.UiService.CHAT_TEXT_COMPACT;
+import static com.faforever.client.theme.UiService.CHAT_TEXT_EXTENDED;
 import static com.github.nocatch.NoCatch.noCatch;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
 import static java.time.temporal.ChronoUnit.MINUTES;
@@ -494,9 +494,9 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private void appendMessage(ChatMessage chatMessage) throws IOException {
     URL themeFileUrl;
     if (preferencesService.getPreferences().getChat().getChatFormat() == ChatFormat.COMPACT) {
-      themeFileUrl = uiService.getThemeFileUrl(COMPACT_CHAT_TEXT);
+      themeFileUrl = uiService.getThemeFileUrl(CHAT_TEXT_COMPACT);
     } else {
-      themeFileUrl = uiService.getThemeFileUrl(CHAT_TEXT);
+      themeFileUrl = uiService.getThemeFileUrl(CHAT_TEXT_EXTENDED);
     }
 
     String html = renderHtml(chatMessage, themeFileUrl, null);
@@ -507,9 +507,9 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private void appendChatMessageSection(ChatMessage chatMessage) throws IOException {
     URL themeFileURL;
     if (preferencesService.getPreferences().getChat().getChatFormat() == ChatFormat.COMPACT) {
-      themeFileURL = uiService.getThemeFileUrl(CHAT_ENTRY_COMPACT);
+      themeFileURL = uiService.getThemeFileUrl(CHAT_SECTION_COMPACT);
     } else {
-      themeFileURL = uiService.getThemeFileUrl(CHAT_ENTRY);
+      themeFileURL = uiService.getThemeFileUrl(CHAT_SECTION_EXTENDED);
     }
 
     String html = renderHtml(chatMessage, themeFileURL, ++lastEntryId);
