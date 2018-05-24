@@ -8,13 +8,16 @@ import com.faforever.client.fx.StringListCell;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.moderator.ModeratorService;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
@@ -25,15 +28,21 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.util.StringConverter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +74,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   private final JoinGameHelper joinGameHelper;
   private final AvatarService avatarService;
   private final UiService uiService;
+  private final ModeratorService moderatorService;
   public ComboBox<AvatarBean> avatarComboBox;
   public CustomMenuItem avatarPickerMenuItem;
   public MenuItem sendPrivateMessageItem;
@@ -80,12 +90,19 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public MenuItem viewReplaysItem;
   public MenuItem inviteItem;
   public SeparatorMenuItem moderatorActionSeparator;
-  public MenuItem kickItem;
   public MenuItem banItem;
   public ContextMenu chatUserContextMenuRoot;
   public MenuItem showUserInfo;
   public JFXButton removeCustomColorButton;
   private ChatChannelUser chatUser;
+  public MenuItem kickGameItem;
+  public MenuItem kickLobbyItem;
+  public TextField durationText;
+  public ChoiceBox<PeriodType> periodTypeChoiceBox;
+  public TextField reasonText;
+  public SeparatorMenuItem banSeperator;
+  public Label successsLabel;
+  public Button banButton;
 
   @SuppressWarnings("FieldCanBeLocal")
   private ChangeListener<Player> playerChangeListener;
@@ -93,7 +110,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public ChatUserContextMenuController(PreferencesService preferencesService,
                                        PlayerService playerService, ReplayService replayService,
                                        NotificationService notificationService, I18n i18n, EventBus eventBus,
-                                       JoinGameHelper joinGameHelper, AvatarService avatarService, UiService uiService) {
+                                       JoinGameHelper joinGameHelper, AvatarService avatarService, UiService uiService, ModeratorService moderatorService) {
     this.preferencesService = preferencesService;
     this.playerService = playerService;
     this.replayService = replayService;
@@ -103,6 +120,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     this.joinGameHelper = joinGameHelper;
     this.avatarService = avatarService;
     this.uiService = uiService;
+    this.moderatorService = moderatorService;
   }
 
   public void initialize() {
@@ -115,6 +133,37 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     // Workaround for the issue that the popup gets closed when the "custom color" button is clicked, causing an NPE
     // in the custom color popup window.
     colorPicker.focusedProperty().addListener((observable, oldValue, newValue) -> chatUserContextMenuRoot.setAutoHide(!newValue));
+  }
+
+  private void initModerator() {
+    moderatorService.isModerator().thenAccept(isModerator -> {
+      if (!isModerator || getPlayer().getSocialStatus().equals(SocialStatus.SELF)) {
+        return;
+      }
+
+      showModeratorOptions(true);
+      periodTypeChoiceBox.setConverter(new StringConverter<PeriodType>() {
+        @Override
+        public String toString(PeriodType object) {
+          return object.name();
+        }
+
+        @Override
+        public PeriodType fromString(String string) {
+          return PeriodType.valueOf(string);
+        }
+      });
+      periodTypeChoiceBox.setItems(FXCollections.observableArrayList(PeriodType.values()));
+      JavaFxUtil.makeNumericTextField(durationText, 5);
+    });
+  }
+
+  private void showModeratorOptions(boolean enable) {
+    moderatorActionSeparator.setVisible(enable);
+    kickGameItem.setVisible(enable);
+    kickLobbyItem.setVisible(enable);
+    banItem.setVisible(enable);
+    banSeperator.setVisible(enable);
   }
 
   @NotNull
@@ -139,6 +188,8 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     showUserInfo.visibleProperty().bind(chatUser.playerProperty().isNotNull());
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+
+    initModerator();
 
     String lowerCaseUsername = chatUser.getUsername().toLowerCase(US);
     colorPicker.setValue(chatPrefs.getUserToColor().getOrDefault(lowerCaseUsername, null));
@@ -169,7 +220,8 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
         loadAvailableAvatars(newValue);
       }
 
-      kickItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF));
+      kickGameItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF));
+      kickLobbyItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF));
       banItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF));
       moderatorActionSeparator.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF));
       sendPrivateMessageItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF));
@@ -283,12 +335,15 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     //FIXME implement
   }
 
-  public void onKickSelected() {
-    // FIXME implement
-  }
+  public void onBan(ActionEvent actionEvent) {
+    actionEvent.consume();
+    if (durationText.getText().isEmpty() || periodTypeChoiceBox.getSelectionModel().getSelectedIndex() < 0) {
+      return;
+    }
+    moderatorService.banPlayer(getPlayer().getId(), Integer.parseInt(durationText.getText()), periodTypeChoiceBox.getSelectionModel().getSelectedItem(), reasonText.getText());
+    successsLabel.setVisible(true);
+    banButton.setDisable(true);
 
-  public void onBanSelected() {
-    // FIXME implement
   }
 
   public void onJoinGameSelected() {
@@ -308,5 +363,18 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   @Override
   public ContextMenu getRoot() {
     return chatUserContextMenuRoot;
+  }
+
+  public void onKickGame() {
+    moderatorService.closePlayersGame(getPlayer().getId());
+  }
+
+  public void onKickLobby() {
+    moderatorService.closePlayersLobby(getPlayer().getId());
+  }
+
+
+  public void consumer(ActionEvent actionEvent) {
+    actionEvent.consume();
   }
 }

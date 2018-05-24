@@ -3,11 +3,16 @@
 <?import com.jfoenix.controls.JFXButton?>
 <?import com.jfoenix.controls.JFXColorPicker?>
 <?import com.jfoenix.controls.JFXComboBox?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.CustomMenuItem?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 <ContextMenu xmlns:fx="http://javafx.com/fxml/1" fx:id="chatUserContextMenuRoot"
              xmlns="http://javafx.com/javafx/8.0.141"
              fx:controller="com.faforever.client.chat.ChatUserContextMenuController">
@@ -48,10 +53,26 @@
       <MenuItem fx:id="inviteItem" disable="true" mnemonicParsing="false" onAction="#onInviteToGameSelected"
                 text="%chat.userContext.inviteToGame"/>
     <SeparatorMenuItem fx:id="moderatorActionSeparator" mnemonicParsing="false" />
-      <MenuItem fx:id="kickItem" disable="true" mnemonicParsing="false" onAction="#onKickSelected"
-                text="%chat.userContext.kick"/>
-      <MenuItem fx:id="banItem" disable="true" mnemonicParsing="false" onAction="#onBanSelected"
-                text="%chat.userContext.ban"/>
+      <MenuItem fx:id="kickGameItem" mnemonicParsing="false" onAction="#onKickGame" text="%chat.userContext.kickGame"
+                visible="false"/>
+      <MenuItem fx:id="kickLobbyItem" mnemonicParsing="false" onAction="#onKickLobby" text="%chat.userContext.kickLobby"
+                visible="false"/>
+
+      <SeparatorMenuItem fx:id="banSeperator" mnemonicParsing="false" visible="false"/>
+
+      <CustomMenuItem fx:id="banItem" mnemonicParsing="false" visible="false">
+          <content>
+              <VBox>
+                  <children>
+                      <TextField fx:id="reasonText" promptText="%chat.userContext.reason"/>
+                      <TextField fx:id="durationText" promptText="%chat.userContext.duration"/>
+                      <ChoiceBox fx:id="periodTypeChoiceBox" onAction="#consumer"/>
+                      <Button fx:id="banButton" onAction="#onBan" text="%chat.userContext.ban"/>
+                      <Label fx:id="successsLabel" text="%chat.userContext.success" visible="false"/>
+                  </children>
+              </VBox>
+          </content>
+      </CustomMenuItem>
     <CustomMenuItem fx:id="avatarPickerMenuItem" hideOnClick="false" mnemonicParsing="false">
       <content>
       </content>
@@ -59,5 +80,8 @@
           <JFXComboBox fx:id="avatarComboBox" maxWidth="1.7976931348623157E308"/>
       </content>
     </CustomMenuItem>
+
+
   </items>
+
 </ContextMenu>

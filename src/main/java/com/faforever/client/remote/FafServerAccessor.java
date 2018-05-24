@@ -8,6 +8,7 @@ import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
 import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.remote.domain.ServerMessage;
 import javafx.beans.property.ReadOnlyObjectProperty;
 
@@ -56,6 +57,14 @@ public interface FafServerAccessor {
   void selectAvatar(URL url);
 
   List<Avatar> getAvailableAvatars();
+
+  void banPlayer(int playerId, int duration, PeriodType periodType, String reason);
+
+  void closePlayersGame(int playerId);
+
+  void closePlayersLobby(int playerId);
+
+  void broadcastMessage(String message);
 
   CompletableFuture<List<IceServer>> getIceServers();
 

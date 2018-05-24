@@ -20,6 +20,7 @@ import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
 import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.remote.domain.Player;
 import com.faforever.client.remote.domain.PlayersMessage;
 import com.faforever.client.remote.domain.RatingRange;
@@ -278,6 +279,26 @@ public class MockFafServerAccessor implements FafServerAccessor {
 
   @Override
   public void selectAvatar(URL url) {
+
+  }
+
+  @Override
+  public void banPlayer(int playerId, int duration, PeriodType periodType, String reason) {
+
+  }
+
+  @Override
+  public void closePlayersGame(int playerId) {
+
+  }
+
+  @Override
+  public void closePlayersLobby(int playerId) {
+
+  }
+
+  @Override
+  public void broadcastMessage(String message) {
 
   }
 
