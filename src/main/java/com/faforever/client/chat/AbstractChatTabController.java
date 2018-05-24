@@ -3,7 +3,6 @@ package com.faforever.client.chat;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
@@ -106,7 +105,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private static final String MESSAGE_CSS_CLASS = "message";
   protected final UserService userService;
   protected final ChatService chatService;
-  protected final PlatformService platformService;
   protected final PreferencesService preferencesService;
   protected final PlayerService playerService;
   protected final AudioService audioService;
@@ -142,7 +140,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   // TODO cut dependencies
   public AbstractChatTabController(WebViewConfigurer webViewConfigurer,
                                    UserService userService, ChatService chatService,
-                                   PlatformService platformService, PreferencesService preferencesService,
+                                   PreferencesService preferencesService,
                                    PlayerService playerService, AudioService audioService,
                                    TimeService timeService, I18n i18n,
                                    ImageUploadService imageUploadService,
@@ -153,7 +151,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     this.uiService = uiService;
     this.chatService = chatService;
     this.userService = userService;
-    this.platformService = platformService;
     this.preferencesService = preferencesService;
     this.playerService = playerService;
     this.audioService = audioService;

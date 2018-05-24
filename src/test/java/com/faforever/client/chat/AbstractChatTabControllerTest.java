@@ -2,8 +2,6 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -75,8 +73,6 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private PlayerService playerService;
   @Mock
-  private PlatformService platformService;
-  @Mock
   private TimeService timeService;
   @Mock
   private AudioService audioService;
@@ -115,7 +111,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(userService.getUsername()).thenReturn("junit");
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
-    instance = new AbstractChatTabController(webViewConfigurer, userService, chatService, platformService, preferencesService,
+    instance = new AbstractChatTabController(webViewConfigurer, userService, chatService, preferencesService,
         playerService, audioService, timeService, i18n, imageUploadService, notificationService, reportingService, uiService,
         autoCompletionHelper, eventBus, countryFlagService) {
       private final Tab root = new Tab();

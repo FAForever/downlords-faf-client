@@ -62,7 +62,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
                                   ChatService chatService,
                                   WebViewConfigurer webViewConfigurer,
                                   CountryFlagService countryFlagService) {
-    super(webViewConfigurer, userService, chatService, platformService, preferencesService, playerService, audioService,
+    super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService,
         timeService, i18n, imageUploadService, notificationService, reportingService, uiService, autoCompletionHelper,
         eventBus, countryFlagService);
   }

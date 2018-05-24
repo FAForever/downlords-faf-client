@@ -112,7 +112,7 @@ public class ChannelTabController extends AbstractChatTabController {
                               WebViewConfigurer webViewConfigurer, ThreadPoolExecutor threadPoolExecutor,
                               TaskScheduler taskScheduler, CountryFlagService countryFlagService) {
 
-    super(webViewConfigurer, userService, chatService, platformService, preferencesService, playerService, audioService,
+    super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService,
         timeService, i18n, imageUploadService, notificationService, reportingService, uiService, autoCompletionHelper,
         eventBus, countryFlagService);
 
