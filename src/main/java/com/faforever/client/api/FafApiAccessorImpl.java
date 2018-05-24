@@ -360,6 +360,11 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
+  public Player getOwnPlayer() {
+    return getOne("/me?include=lobbyGroup", Player.class);
+  }
+
+  @Override
   public GameReview createGameReview(GameReview review) {
     return post("/data/game/" + review.getGame().getId() + "/reviews", review, GameReview.class);
   }

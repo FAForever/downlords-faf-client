@@ -32,6 +32,7 @@ import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.IceMessage;
 import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
 import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.replay.Replay;
 import com.faforever.client.tournament.TournamentBean;
@@ -475,5 +476,25 @@ public class FafService {
     mapVersion.setId(map.getId());
     fafApiAccessor.updateMapVersion(id, mapVersion);
     return CompletableFuture.completedFuture(null);
+  }
+
+  @Async
+  public void banPlayer(int playerId, int duration, PeriodType periodType, String reason) {
+    fafServerAccessor.banPlayer(playerId, duration, periodType, reason);
+  }
+
+  @Async
+  public void closePlayersGame(int playerId) {
+    fafServerAccessor.closePlayersGame(playerId);
+  }
+
+  @Async
+  public void closePlayersLobby(int playerId) {
+    fafServerAccessor.closePlayersLobby(playerId);
+  }
+
+  @Async
+  public void broadcastMessage(String message) {
+    fafServerAccessor.broadcastMessage(message);
   }
 }

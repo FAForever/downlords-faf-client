@@ -5,6 +5,7 @@ import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.moderator.ModeratorService;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
@@ -68,6 +69,8 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
   private JoinGameHelper joinGameHelper;
   @Mock
   private AvatarService avatarService;
+  @Mock
+  private ModeratorService moderatorService;
 
   private ChatUserContextMenuController instance;
   private Player player;
@@ -76,7 +79,7 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
   @Before
   public void setUp() throws Exception {
     instance = new ChatUserContextMenuController(preferencesService, playerService,
-        replayService, notificationService, i18n, eventBus, joinGameHelper, avatarService, uiService);
+        replayService, notificationService, i18n, eventBus, joinGameHelper, avatarService, uiService, moderatorService);
 
     Preferences preferences = mock(Preferences.class);
     ChatPrefs chatPrefs = mock(ChatPrefs.class);
@@ -91,6 +94,7 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
         new AvatarBean(new URL("http://www.example.com/avatar2.png"), "Avatar Number #2"),
         new AvatarBean(new URL("http://www.example.com/avatar3.png"), "Avatar Number #3")
     )));
+    when(moderatorService.isModerator()).thenReturn(CompletableFuture.completedFuture(true));
 
 
     loadFxml("theme/chat/chat_user_context_menu.fxml", clazz -> instance);

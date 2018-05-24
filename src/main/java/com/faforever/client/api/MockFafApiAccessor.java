@@ -290,6 +290,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
+  public Player getOwnPlayer() {
+    return null;
+  }
+
+  @Override
   public void changePassword(String username, String currentPasswordHash, String newPasswordHash) {
 
   }
