@@ -70,7 +70,7 @@ public class FafClientApplication extends Application {
     Platform.runLater(() -> applicationContext = new SpringApplicationBuilder(FafClientApplication.class)
         .profiles(getAdditionalProfiles())
         .bannerMode(Mode.OFF)
-        .run(getParameters().getRaw().toArray(new String[0]));
+        .run(getParameters().getRaw().toArray(new String[0])));
   }
 
   @Override

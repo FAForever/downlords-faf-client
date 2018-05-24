@@ -12,14 +12,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Collection;
 
 import static java.util.Collections.emptyList;
+import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.core.Is.is;
-import static org.hamcrest.text.IsEmptyString.isEmptyString;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -52,7 +52,7 @@ public class AutoCompletionHelperTest extends AbstractPlainJavaFxTest {
 
     simulate(keyEvent);
 
-    assertThat(textInputControl.getText(), isEmptyString());
+    assertThat(textInputControl.getText(), emptyString());
   }
 
   @NotNull

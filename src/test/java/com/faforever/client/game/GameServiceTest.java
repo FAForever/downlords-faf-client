@@ -36,7 +36,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.util.ReflectionUtils;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -71,7 +71,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyListOf;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -483,7 +483,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     instance.onRehostRequest(new RehostRequestEvent());
 
-    verify(forgedAllianceService).startGame(anyInt(), eq(null), anyListOf(String.class), eq(GLOBAL), anyInt(), eq(LOCAL_REPLAY_PORT), eq(true), eq(junitPlayer));
+    verify(forgedAllianceService).startGame(anyInt(), eq(null), anyList(), eq(GLOBAL), anyInt(), eq(LOCAL_REPLAY_PORT), eq(true), eq(junitPlayer));
   }
 
   @Test

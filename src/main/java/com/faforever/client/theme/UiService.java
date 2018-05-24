@@ -338,8 +338,8 @@ public class UiService {
 
   public String[] getStylesheets() {
     return new String[]{
-        UiServiceImpl.class.getResource("/css/jfoenix-fonts.css").toExternalForm(),
-        UiServiceImpl.class.getResource("/css/jfoenix-design.css").toExternalForm(),
+        UiService.class.getResource("/css/jfoenix-fonts.css").toExternalForm(),
+        UiService.class.getResource("/css/jfoenix-design.css").toExternalForm(),
         getThemeFile("theme/jfoenix.css"),
         getSceneStyleSheet()
     };

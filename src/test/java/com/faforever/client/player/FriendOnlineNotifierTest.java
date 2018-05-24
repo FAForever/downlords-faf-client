@@ -21,7 +21,7 @@ public class FriendOnlineNotifierTest {
   @Mock
   private AudioService audioService;
   @Mock
-  private PlayerServiceImpl playerService;
+  private PlayerService playerService;
 
   private PreferencesService preferencesService;
 

@@ -80,7 +80,6 @@ public class I18n {
     return get(userSpecificLocale, key, args);
   }
 
-  @Override
   public String get(Locale locale, String key, Object... args) {
     return messageSource.getMessage(key, args, locale);
   }
@@ -119,7 +118,6 @@ public class I18n {
     return String.format(userSpecificLocale, "%." + digits + "f", number);
   }
 
-  @Override
   public ReadOnlyListWrapper<Locale> getAvailableLanguages() {
     return new ReadOnlyListWrapper<>(availableLanguages);
   }

@@ -13,6 +13,7 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.property.ReadOnlyListWrapper;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -61,7 +62,7 @@ public class SettingsControllerTest extends AbstractPlainJavaFxTest {
     when(uiService.currentThemeProperty()).thenReturn(new SimpleObjectProperty<>());
 
     availableLanguages = new SimpleListProperty<>(FXCollections.observableArrayList());
-    when(i18n.getAvailableLanguages()).thenReturn(availableLanguages);
+    when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlyListWrapper<>(availableLanguages));
 
     instance = new SettingsController(userService, preferenceService, uiService, i18n, eventBus, notificationService, platformService, clientProperties);
     loadFxml("theme/settings/settings.fxml", param -> instance);
