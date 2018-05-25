@@ -43,8 +43,11 @@ a {
   border-bottom: 1px solid #424242;
 }
 
+.chat-section.compact .messages-wrapper {
+  display: table-cell;
+}
 .chat-section.compact {
-  padding: 0 .5em;
+  padding: .25em;
 }
 
 img.avatar,
@@ -125,11 +128,29 @@ img.country-flag[src=""] {
   float: right;
 }
 
+.chat-section.compact .author {
+  float: left;
+}
+
 .chat-section.compact .avatar,
 .chat-section.compact .country-flag,
 .chat-section.compact .author,
 .chat-section.compact .time {
   white-space: nowrap;
+}
+
+.chat-section.compact .clan-tag {
+  margin-left: auto;
+  width: 100%;
+}
+
+.chat-section.compact .author {
+  min-width: 14em;
+  text-align: right;
+}
+
+.chat-section.compact .avatar {
+  min-width: 40px;
 }
 
 .chat-section.text.action {
