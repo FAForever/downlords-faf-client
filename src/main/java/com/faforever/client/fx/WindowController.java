@@ -104,6 +104,7 @@ public class WindowController implements Controller<Node> {
     AnchorPane.setLeftAnchor(contentPane, 0d);
 
     AnchorPane.setRightAnchor(windowButtons, RESIZE_BORDER_WIDTH);
+    stage.setY(Math.max(0, stage.getY()));
   }
 
   public void onMaximizeButtonClicked() {
@@ -311,7 +312,7 @@ public class WindowController implements Controller<Node> {
       return;
     }
     if (stage.isMaximized()) {
-      return;
+      restore();
     }
     double newY = event.getScreenY() - dragOffset.getY();
     double newX = event.getScreenX() - dragOffset.getX();
@@ -344,6 +345,9 @@ public class WindowController implements Controller<Node> {
   public void onMouseReleased() {
     isResizing = false;
     dragOffset = null;
+    if (stage.getY() < 2) {
+      maximize();
+    }
   }
 
   public void onMouseExited() {
