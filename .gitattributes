@@ -1,12 +1,11 @@
 # Auto detect text files and perform LF normalization
 * text=auto eol=lf
 *.dll                   binary
+*.png                   binary
+*.psd                   binary
 *.ttf                   binary
 *.jpg                   binary
 *.mp3                   binary
 *.zip                   binary
 *.exe                   binary
 src/main/native/uid     binary
-
-*.png filter=lfs diff=lfs merge=lfs -text
-*.psd filter=lfs diff=lfs merge=lfs -text
