@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="mainRoot" minHeight="500.0" minWidth="600.0" styleClass="main-window"
-      xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.main.MainController">
+      xmlns="http://javafx.com/javafx/8.0.111" fx:controller="com.faforever.client.main.MainController">
     <children>
         <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
               VBox.vgrow="ALWAYS">
@@ -59,14 +59,17 @@
                         <ToggleButton fx:id="leaderboardsButton" mnemonicParsing="false"
                                       onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
                                       text="%main.leaderboards" toggleGroup="$mainNavigation"/>
+                        <ToggleButton fx:id="tournamentsButton" mnemonicParsing="false"
+                                      onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                                      text="%main.tournaments" toggleGroup="$mainNavigation"/>
                         <ToggleButton fx:id="unitsButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked"
                                       styleClass="main-navigation-button" text="%main.units"
                                       toggleGroup="$mainNavigation"/>
                         <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS"/>
                         <StackPane>
                             <children>
-                                <JFXButton contentDisplay="CENTER" styleClass="icon-button" text=""
-                                           onAction="#onNotificationsButtonClicked"/>
+                                <JFXButton contentDisplay="CENTER" onAction="#onNotificationsButtonClicked"
+                                           styleClass="icon-button" text=""/>
                                 <Label fx:id="notificationsBadge" alignment="CENTER" mouseTransparent="true"
                                        styleClass="notification-badge" text="3" StackPane.alignment="TOP_RIGHT">
                                     <StackPane.margin>

@@ -116,6 +116,7 @@ public class MainController implements Controller<Node> {
   public ToggleButton playButton;
   public ToggleButton vaultButton;
   public ToggleButton leaderboardsButton;
+  public ToggleButton tournamentsButton;
   public ToggleButton unitsButton;
   public Pane mainRoot;
   public StackPane contentWrapperPane;
@@ -154,6 +155,7 @@ public class MainController implements Controller<Node> {
     playButton.setUserData(NavigationItem.PLAY);
     vaultButton.setUserData(NavigationItem.VAULT);
     leaderboardsButton.setUserData(NavigationItem.LEADERBOARD);
+    tournamentsButton.setUserData(NavigationItem.TOURNAMENTS);
     unitsButton.setUserData(NavigationItem.UNITS);
     eventBus.register(this);
     windowController = uiService.loadFxml("theme/window.fxml");

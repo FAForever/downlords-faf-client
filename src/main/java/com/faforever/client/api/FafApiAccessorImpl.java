@@ -21,6 +21,7 @@ import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
+import com.faforever.client.api.dto.Tournament;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Api;
@@ -32,6 +33,7 @@ import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.io.ByteCountListener;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
@@ -61,6 +63,7 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.io.Serializable;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -76,6 +79,7 @@ import java.util.stream.Collectors;
 public class FafApiAccessorImpl implements FafApiAccessor {
 
   private static final String MAP_ENDPOINT = "/data/map";
+  private static final String TOURNAMENT_LIST_ENDPOINT = "/challonge/v1/tournaments.json";
   private static final String REPLAY_INCLUDES = "featuredMod,playerStats,playerStats.player,reviews,reviews.player,mapVersion,mapVersion.map,mapVersion.reviews,reviewsSummary";
   private static final String COOP_RESULT_INCLUDES = "game.playerStats.player";
   private static final String PLAYER_INCLUDES = "globalRating,ladder1v1Rating,names";
@@ -86,6 +90,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   private final RestTemplateBuilder restTemplateBuilder;
   private final ClientProperties clientProperties;
   private final HttpComponentsClientHttpRequestFactory requestFactory;
+  private final ObjectMapper objectMapper;
 
   private CountDownLatch authorizedLatch;
   private RestOperations restOperations;
@@ -93,9 +98,10 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Inject
   public FafApiAccessorImpl(EventBus eventBus, RestTemplateBuilder restTemplateBuilder,
                             ClientProperties clientProperties, JsonApiMessageConverter jsonApiMessageConverter,
-                            JsonApiErrorHandler jsonApiErrorHandler) {
+                            JsonApiErrorHandler jsonApiErrorHandler, ObjectMapper objectMapper) {
     this.eventBus = eventBus;
     this.clientProperties = clientProperties;
+    this.objectMapper = objectMapper;
     authorizedLatch = new CountDownLatch(1);
 
     requestFactory = new HttpComponentsClientHttpRequestFactory();
@@ -453,6 +459,13 @@ public class FafApiAccessorImpl implements FafApiAccessor {
         "include", COOP_RESULT_INCLUDES,
         "sort", "duration"
     ));
+  }
+
+  @Override
+  @SneakyThrows
+  @SuppressWarnings("unchecked")
+  public List<Tournament> getAllTournaments() {
+    return Arrays.asList(restOperations.getForObject(TOURNAMENT_LIST_ENDPOINT, Tournament[].class));
   }
 
   @Override
