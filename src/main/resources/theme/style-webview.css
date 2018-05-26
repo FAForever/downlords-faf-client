@@ -43,20 +43,13 @@ a {
   border-bottom: 1px solid #424242;
 }
 
-.chat-section.compact .messages-wrapper {
-  display: table-cell;
-}
-.chat-section.compact {
-  padding: .25em;
-}
-
 img.avatar,
 img.country-flag {
   margin-right: 0.2em;
 }
 
-img.avatar[src=""],
-img.country-flag[src=""] {
+.chat-section.extended img.avatar[src=""],
+.chat-section.extended img.country-flag[src=""] {
   display: none;
   padding: 0;
   margin: 0;
@@ -70,9 +63,9 @@ img.country-flag[src=""] {
   display: none;
 }
 
-.chat-section img.avatar,
-.chat-section img.country-flag,
-.chat-section div.author {
+.chat-section.extended img.avatar,
+.chat-section.extended img.country-flag,
+.chat-section.extended .author {
   display: inline-block;
   vertical-align: middle;
 }
@@ -91,12 +84,12 @@ img.country-flag[src=""] {
 .chat-section .username:hover {
   text-decoration: underline;
 }
+
 .chat-section .clan-tag {
   /* Use same as -fx-light-text-color */
   color: #DCDCDC;
   cursor: pointer;
   font-weight: bold;
-  margin-right: 0.5em;
 }
 
 .chat-section .clan-tag:hover {
@@ -112,7 +105,6 @@ img.country-flag[src=""] {
 .chat-section .text {
   /* Use same as -fx-light-text-color */
   color: #DCDCDC;
-  padding-left: 1em;
 }
 
 .chat-section.extended .text {
@@ -120,37 +112,49 @@ img.country-flag[src=""] {
 }
 
 .chat-section.compact .text {
-  padding-left: .5em;
+  padding-left: .2em;
+}
+
+.chat-section.compact {
+  padding: 0 .25em;
+}
+
+.chat-section.compact,
+.chat-section.compact .messages-wrapper {
   width: 100%;
 }
 
-.chat-section.compact .time {
-  float: right;
+.chat-section.compact img.avatar[src=""],
+.chat-section.compact img.country-flag[src=""] {
+  visibility: hidden;
 }
 
-.chat-section.compact .author {
-  float: left;
+.chat-section.compact td.author {
+  vertical-align: top;
 }
 
-.chat-section.compact .avatar,
-.chat-section.compact .country-flag,
-.chat-section.compact .author,
-.chat-section.compact .time {
+.chat-section.compact td.author * {
+  vertical-align: middle;
+  line-height: 1em;
+}
+
+.chat-section.compact .text {
+  display: block;
+  width: 100%;
+}
+
+.chat-section.compact td.author,
+.chat-section.compact td.time {
   white-space: nowrap;
-}
-
-.chat-section.compact .clan-tag {
-  margin-left: auto;
-  width: 100%;
-}
-
-.chat-section.compact .author {
-  min-width: 14em;
-  text-align: right;
+  vertical-align: top;
 }
 
 .chat-section.compact .avatar {
   min-width: 40px;
+}
+
+.chat-section.compact .country-flag {
+  min-width: 16px;
 }
 
 .chat-section.text.action {
@@ -173,6 +177,7 @@ img.country-flag[src=""] {
 .username.chat_only {
   color: #808080;
 }
+
 /* Username and mentions */
 
 .self,

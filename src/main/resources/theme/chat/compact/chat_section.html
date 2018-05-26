@@ -1,23 +1,23 @@
-<div class="chat-section compact chat-section-{username}">
-  <span class="time">{time}</span>
+<table class="chat-section compact chat-section-{username}">
+  <tr>
+    <td class="author">
+      <span class="author" style="{inline-style}">
+        <img class="avatar" src="{avatar}"/>
+        <img class="country-flag" src="{country-flag}"/>
+        <span class="clan-tag {css-classes}"
+              onmouseover="showClanInfo('{clan-tag}')"
+              onmouseout="hideClanInfo()"
+              onclick="showClanWebsite('{clan-tag}')">{decorated-clan-tag}</span>
 
-  <span class="author">
-    <img class="avatar" src="{avatar}"/>
-    <img class="country-flag" src="{country-flag}"/>
-    <span class="clan-tag {css-classes}"
-          onmouseover="showClanInfo('{clan-tag}')"
-          onmouseout="hideClanInfo()"
-          onclick="showClanWebsite('{clan-tag}')">{decorated-clan-tag}</span>
-
-    <span class="username {css-classes}"
-          onmouseover="showPlayerInfo('{username}')"
-          onmouseout="hidePlayerInfo()"
-          onclick="messagePlayer('{username}')"
-          style="{inline-style}">{username}</span>
-  </span>
-
-  <div id="chat-section-{section-id}" class="messages-wrapper">
-
-    <!-- chat_text.html will be added here for each message -->
-  </div>
-</div>
+        <span class="username {css-classes}"
+              onmouseover="showPlayerInfo('{username}')"
+              onmouseout="hidePlayerInfo()"
+              onclick="messagePlayer('{username}')">{username}</span>
+      </span>
+    </td>
+    <td id="chat-section-{section-id}" class="messages-wrapper">
+      <!-- chat_text.html will be added here for each message -->
+    </td>
+    <td class="time">{time}</td>
+  </tr>
+</table>
