@@ -504,7 +504,7 @@ public class MainController implements Controller<Node> {
   }
 
   private void displayImmediateNotification(ImmediateNotification notification) {
-    JFXAlert<?> dialog = new JFXAlert<>((Stage) mainRoot.getScene().getWindow());
+    JFXAlert<?> dialog = new JFXAlert<>((Stage) windowController.getWindowRoot().getScene().getWindow());
 
     ImmediateNotificationController controller = ((ImmediateNotificationController) uiService.loadFxml("theme/immediate_notification.fxml"))
         .setNotification(notification)
