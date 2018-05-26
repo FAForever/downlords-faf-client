@@ -22,6 +22,7 @@ import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
+import com.faforever.client.api.dto.Tournament;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
@@ -266,6 +267,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public List<Ladder1v1Map> getLadder1v1Maps(int count, int page) {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public List<Tournament> getAllTournaments() {
     return Collections.emptyList();
   }
 

@@ -8,6 +8,7 @@ public enum NavigationItem {
   PLAY("theme/play/play.fxml"),
   VAULT("theme/vault/vault.fxml"),
   LEADERBOARD("theme/leaderboard/leaderboards.fxml"),
+  TOURNAMENTS("theme/tournaments/tournaments.fxml"),
   UNITS("theme/units.fxml");
 
   private static final HashMap<String, NavigationItem> fromString;
