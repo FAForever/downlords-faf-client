@@ -16,7 +16,6 @@ import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.leaderboard.LeaderboardEntry;
 import com.faforever.client.mod.ModInfoBeanBuilder;
 import com.faforever.client.mod.ModVersion;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.eventbus.EventBus;
 import org.junit.Before;
 import org.junit.Rule;
@@ -71,8 +70,6 @@ public class FafApiAccessorImplTest {
   private JsonApiMessageConverter jsonApiMessageConverter;
   @Mock
   private JsonApiErrorHandler jsonApiErrorHandler;
-  @Mock
-  private ObjectMapper objectMapper;
 
   @Before
   public void setUp() throws Exception {
@@ -84,7 +81,7 @@ public class FafApiAccessorImplTest {
     when(restTemplateBuilder.errorHandler(any())).thenReturn(restTemplateBuilder);
     when(restTemplateBuilder.configure(any(OAuth2RestTemplate.class))).thenReturn(restOperations);
 
-    instance = new FafApiAccessorImpl(eventBus, restTemplateBuilder, new ClientProperties(), jsonApiMessageConverter, jsonApiErrorHandler, objectMapper);
+    instance = new FafApiAccessorImpl(eventBus, restTemplateBuilder, new ClientProperties(), jsonApiMessageConverter, jsonApiErrorHandler);
     instance.postConstruct();
     instance.authorize(123, "junit", "42");
   }

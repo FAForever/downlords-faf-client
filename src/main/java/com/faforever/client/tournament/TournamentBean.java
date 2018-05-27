@@ -1,8 +1,10 @@
 package com.faforever.client.tournament;
 
 import com.faforever.client.api.dto.Tournament;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -15,26 +17,29 @@ public class TournamentBean {
   private final StringProperty name;
   private final StringProperty description;
   private final StringProperty tournamentType;
+  private final ObjectProperty<OffsetDateTime> createdAt;
   private final IntegerProperty participantCount;
-  private final ObjectProperty<OffsetDateTime> startedAt;
+  private final ObjectProperty<OffsetDateTime> startingAt;
   private final ObjectProperty<OffsetDateTime> completedAt;
   private final StringProperty challongeUrl;
   private final StringProperty liveImageUrl;
   private final StringProperty signUpUrl;
+  private final BooleanProperty openForSignup;
 
   public TournamentBean() {
     id = new SimpleStringProperty();
     name = new SimpleStringProperty();
     description = new SimpleStringProperty();
     tournamentType = new SimpleStringProperty();
+    createdAt = new SimpleObjectProperty<>();
     participantCount = new SimpleIntegerProperty();
-    startedAt = new SimpleObjectProperty<>();
+    startingAt = new SimpleObjectProperty<>();
     completedAt = new SimpleObjectProperty<>();
     challongeUrl = new SimpleStringProperty();
     liveImageUrl = new SimpleStringProperty();
     signUpUrl = new SimpleStringProperty();
+    openForSignup = new SimpleBooleanProperty();
   }
-
 
   public static TournamentBean fromTournamentDto(Tournament tournament) {
     TournamentBean tournamentBean = new TournamentBean();
@@ -43,12 +48,14 @@ public class TournamentBean {
     tournamentBean.setName(tournament.getName());
     tournamentBean.setDescription(tournament.getDescription());
     tournamentBean.setTournamentType(tournament.getTournamentType());
+    tournamentBean.setCreatedAt(tournament.getCreatedAt());
     tournamentBean.setParticipantCount(tournament.getParticipantCount());
-    tournamentBean.setStartedAt(tournament.getStartedAt());
+    tournamentBean.setStartingAt(tournament.getStartingAt());
     tournamentBean.setCompletedAt(tournament.getCompletedAt());
     tournamentBean.setChallongeUrl(tournament.getChallongeUrl());
     tournamentBean.setLiveImageUrl(tournament.getLiveImageUrl());
     tournamentBean.setSignUpUrl(tournament.getSignUpUrl());
+    tournamentBean.setOpenForSignup(tournament.isOpenForSignup());
 
     return tournamentBean;
   }
@@ -101,6 +108,18 @@ public class TournamentBean {
     return tournamentType;
   }
 
+  public OffsetDateTime getCreatedAt() {
+    return createdAt.get();
+  }
+
+  public void setCreatedAt(OffsetDateTime createdAt) {
+    this.createdAt.set(createdAt);
+  }
+
+  public ObjectProperty<OffsetDateTime> createdAtProperty() {
+    return createdAt;
+  }
+
   public int getParticipantCount() {
     return participantCount.get();
   }
@@ -113,16 +132,16 @@ public class TournamentBean {
     return participantCount;
   }
 
-  public OffsetDateTime getStartedAt() {
-    return startedAt.get();
+  public OffsetDateTime getStartingAt() {
+    return startingAt.get();
   }
 
-  public void setStartedAt(OffsetDateTime startedAt) {
-    this.startedAt.set(startedAt);
+  public void setStartingAt(OffsetDateTime startingAt) {
+    this.startingAt.set(startingAt);
   }
 
-  public ObjectProperty<OffsetDateTime> startedAtProperty() {
-    return startedAt;
+  public ObjectProperty<OffsetDateTime> startingAtProperty() {
+    return startingAt;
   }
 
   public OffsetDateTime getCompletedAt() {
@@ -171,5 +190,17 @@ public class TournamentBean {
 
   public StringProperty signUpUrlProperty() {
     return signUpUrl;
+  }
+
+  public boolean isOpenForSignup() {
+    return openForSignup.get();
+  }
+
+  public void setOpenForSignup(boolean openForSignup) {
+    this.openForSignup.set(openForSignup);
+  }
+
+  public BooleanProperty openForSignupProperty() {
+    return openForSignup;
   }
 }

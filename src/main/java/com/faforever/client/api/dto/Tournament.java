@@ -23,10 +23,12 @@ public class Tournament {
   private String description;
   @JsonProperty("tournament_type")
   private String tournamentType;
+  @JsonProperty("created_at")
+  private OffsetDateTime createdAt;
   @JsonProperty("participants_count")
   private int participantCount;
-  @JsonProperty("started_at")
-  private OffsetDateTime startedAt;
+  @JsonProperty("start_at")
+  private OffsetDateTime startingAt;
   @JsonProperty("completed_at")
   private OffsetDateTime completedAt;
   @JsonProperty("full_challonge_url")
@@ -35,4 +37,6 @@ public class Tournament {
   private String liveImageUrl;
   @JsonProperty("sign_up_url")
   private String signUpUrl;
+  @JsonProperty("open_signup")
+  private boolean openForSignup;
 }
