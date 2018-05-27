@@ -765,22 +765,22 @@
   -fx-background-color: transparent;
 }
 
-/***************** News *****************/
+/***************** News & Tournaments *****************/
 
-.news-item {
+.news-item, .tournament-item {
   -fx-border-color: -divider-color;
   -fx-border-width: 0 0 1 0;
   -fx-padding: 20 10 20 10;
   -fx-background-radius: 0;
 }
 
-.news-item:hover {
+.news-item:hover, .tournament-item:hover {
   -fx-border-width: 0 0 1 4;
   -fx-padding: 20 10 20 6;
   -fx-border-color: transparent transparent -divider-color -dimmed-accent;
 }
 
-.news-item:selected {
+.news-item:selected, .tournament-item:selected {
   -fx-border-width: 0 0 1 4;
   -fx-padding: 20 10 20 6;
   -fx-border-color: transparent transparent -divider-color -fx-accent;

@@ -196,3 +196,17 @@ html.news-detail {
   max-width: 100%;
   height: auto !important;
 }
+
+/***************** Tournaments (WebView) *****************/
+
+html.tournament {
+  padding: 20px;
+}
+
+.tournament th {
+  text-align: left;
+}
+
+.tournament img {
+  background: rgba(255, 255, 255, .1);
+}

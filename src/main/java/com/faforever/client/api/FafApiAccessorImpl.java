@@ -33,7 +33,6 @@ import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.io.ByteCountListener;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
@@ -90,7 +89,6 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   private final RestTemplateBuilder restTemplateBuilder;
   private final ClientProperties clientProperties;
   private final HttpComponentsClientHttpRequestFactory requestFactory;
-  private final ObjectMapper objectMapper;
 
   private CountDownLatch authorizedLatch;
   private RestOperations restOperations;
@@ -98,10 +96,9 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Inject
   public FafApiAccessorImpl(EventBus eventBus, RestTemplateBuilder restTemplateBuilder,
                             ClientProperties clientProperties, JsonApiMessageConverter jsonApiMessageConverter,
-                            JsonApiErrorHandler jsonApiErrorHandler, ObjectMapper objectMapper) {
+                            JsonApiErrorHandler jsonApiErrorHandler) {
     this.eventBus = eventBus;
     this.clientProperties = clientProperties;
-    this.objectMapper = objectMapper;
     authorizedLatch = new CountDownLatch(1);
 
     requestFactory = new HttpComponentsClientHttpRequestFactory();
