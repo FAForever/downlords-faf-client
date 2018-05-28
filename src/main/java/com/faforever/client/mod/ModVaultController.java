@@ -300,7 +300,7 @@ public class ModVaultController extends AbstractViewController<Node> {
         .thenAccept(this::displayMods)
         .exceptionally(e -> {
           notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
-              i18n.get("vault.replays.searchError"), Severity.ERROR, e,
+              i18n.get("vault.mods.searchError"), Severity.ERROR, e,
               Collections.singletonList(new DismissAction(i18n))));
           enterShowroomState();
           return null;
