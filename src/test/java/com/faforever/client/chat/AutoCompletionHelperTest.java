@@ -18,7 +18,7 @@ import org.testfx.util.WaitForAsyncUtils;
 import java.util.Collection;
 
 import static java.util.Collections.emptyList;
-import static org.hamcrest.Matchers.emptyString;
+import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -52,7 +52,7 @@ public class AutoCompletionHelperTest extends AbstractPlainJavaFxTest {
 
     simulate(keyEvent);
 
-    assertThat(textInputControl.getText(), emptyString());
+    assertThat(textInputControl.getText(), isEmptyString());
   }
 
   @NotNull
