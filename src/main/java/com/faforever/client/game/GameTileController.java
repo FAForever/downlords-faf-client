@@ -11,6 +11,7 @@ import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
 import javafx.application.Platform;
 import javafx.beans.binding.StringBinding;
+import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -24,8 +25,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import javax.inject.Inject;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static javafx.beans.binding.Bindings.createObjectBinding;
 import static javafx.beans.binding.Bindings.createStringBinding;
@@ -103,10 +107,8 @@ public class GameTileController implements Controller<Node> {
         game.mapFolderNameProperty()
     ));
 
-    modsLabel.textProperty().bind(createStringBinding(
-        () -> Joiner.on(i18n.get("textSeparator")).join(game.getSimMods().values()),
-        game.getSimMods()
-    ));
+    ObservableMap<String, String> simMods = game.getSimMods();
+    modsLabel.textProperty().bind(createStringBinding(() -> getSimModsLabelContent(simMods), simMods));
 
     // TODO display "unknown map" image first since loading may take a while
     mapImageView.imageProperty().bind(createObjectBinding(
@@ -115,6 +117,18 @@ public class GameTileController implements Controller<Node> {
     ));
 
     lockIconLabel.visibleProperty().bind(game.passwordProtectedProperty());
+  }
+
+  private String getSimModsLabelContent(ObservableMap<String, String> simMods) {
+    List<String> modNames = simMods.entrySet().stream()
+        .limit(2)
+        .map(Entry::getValue)
+        .collect(Collectors.toList());
+
+    if (simMods.size() > 2) {
+      return i18n.get("game.mods.twoAndMore", modNames.get(0), modNames.size());
+    }
+    return Joiner.on(i18n.get("textSeparator")).join(modNames);
   }
 
   public void onClick(MouseEvent mouseEvent) {
