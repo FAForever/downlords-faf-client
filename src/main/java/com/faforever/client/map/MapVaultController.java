@@ -303,7 +303,7 @@ public class MapVaultController extends AbstractViewController<Node> {
         .thenAccept(this::displayMaps)
         .exceptionally(e -> {
           notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
-              i18n.get("vault.replays.searchError"), Severity.ERROR, e,
+              i18n.get("vault.maps.searchError"), Severity.ERROR, e,
               Collections.singletonList(new DismissAction(i18n))));
           enterShowroomState();
           return null;
@@ -327,7 +327,7 @@ public class MapVaultController extends AbstractViewController<Node> {
         })
         .exceptionally(e -> {
           notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
-              i18n.get("vault.replays.searchError"), Severity.ERROR, e,
+              i18n.get("vault.maps.searchError"), Severity.ERROR, e,
               Collections.singletonList(new DismissAction(i18n))));
           enterShowroomState();
           return null;
