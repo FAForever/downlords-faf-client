@@ -1,6 +1,7 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.api.dto.FeaturedModFile;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.DownloadService;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.preferences.PreferencesService;
@@ -30,21 +31,26 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
   private final FafService fafService;
   private final PreferencesService preferencesService;
   private final DownloadService downloadService;
+  private final I18n i18n;
 
   private FeaturedMod featuredMod;
   private Integer version;
 
-  public SimpleHttpFeaturedModUpdaterTask(FafService fafService, PreferencesService preferencesService, DownloadService downloadService) {
+  public SimpleHttpFeaturedModUpdaterTask(FafService fafService, PreferencesService preferencesService, DownloadService downloadService, I18n i18n) {
     super(Priority.HIGH);
 
     this.fafService = fafService;
     this.preferencesService = preferencesService;
     this.downloadService = downloadService;
+    this.i18n = i18n;
   }
 
   @Override
   protected PatchResult call() throws Exception {
     String initFileName = "init_" + featuredMod.getTechnicalName() + ".lua";
+
+    updateTitle(i18n.get("updater.taskTitle"));
+    updateMessage(i18n.get("updater.readingFileList"));
 
     List<FeaturedModFile> featuredModFiles = fafService.getFeaturedModFiles(featuredMod, version).get();
 
@@ -59,6 +65,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
         logger.debug("Already up to date: {}", targetPath);
       } else {
         Files.createDirectories(targetPath.getParent());
+        updateMessage(i18n.get("updater.downloadingFile", targetPath.getFileName()));
         downloadService.downloadFile(new URL(featuredModFile.getUrl()), targetPath, this::updateProgress);
       }
 
