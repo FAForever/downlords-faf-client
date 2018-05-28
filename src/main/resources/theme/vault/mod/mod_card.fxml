@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -7,7 +8,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="modTileRoot" hgap="10.0" onMouseClicked="#onShowModDetail"
-          prefWidth="200.0" styleClass="card,pointable" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.60"
+          prefWidth="200.0" styleClass="card,pointable" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.141"
           fx:controller="com.faforever.client.mod.ModCardController">
   <columnConstraints>
       <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
@@ -22,12 +23,24 @@
   </rowConstraints>
   <children>
       <ImageView fx:id="thumbnailImageView" fitHeight="128.0" fitWidth="128.0" pickOnBounds="true" preserveRatio="true"
-                 GridPane.columnSpan="2147483647" GridPane.halignment="CENTER"/>
+                 GridPane.columnSpan="2147483647" GridPane.halignment="CENTER">
+          <GridPane.margin>
+              <Insets top="10.0"/>
+          </GridPane.margin>
+      </ImageView>
       <Label fx:id="nameLabel" alignment="TOP_LEFT" maxWidth="1.7976931348623157E308"
              text="Long text to test whether it's being wrapped" wrapText="true" GridPane.columnSpan="2147483647"
-             GridPane.rowIndex="1" GridPane.valignment="TOP"/>
+             GridPane.rowIndex="1" GridPane.valignment="TOP">
+          <padding>
+              <Insets left="10.0" right="10.0"/>
+          </padding>
+      </Label>
       <Label fx:id="authorLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="secondary" text="Label"
-             wrapText="true" GridPane.columnSpan="2147483647" GridPane.rowIndex="2" GridPane.valignment="TOP"/>
+             wrapText="true" GridPane.columnSpan="2147483647" GridPane.rowIndex="2" GridPane.valignment="TOP">
+          <padding>
+              <Insets left="10.0" right="10.0"/>
+          </padding>
+      </Label>
       <Label fx:id="numberOfReviewsLabel" text="12345" GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
              GridPane.halignment="RIGHT" GridPane.rowIndex="3">
           <graphic>
@@ -37,9 +50,24 @@
                   </children>
               </HBox>
           </graphic>
+          <padding>
+              <Insets left="10.0" right="10.0"/>
+          </padding>
       </Label>
-      <Label fx:id="typeLabel" text="Type" GridPane.rowIndex="3"/>
-      <Label text="%map.created" GridPane.rowIndex="4"/>
-      <Label fx:id="createdLabel" text="&lt;Updated&gt;" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+      <Label fx:id="typeLabel" text="Type" GridPane.rowIndex="3">
+          <padding>
+              <Insets left="10.0" right="10.0"/>
+          </padding>
+      </Label>
+      <Label text="%map.created" GridPane.rowIndex="4">
+          <padding>
+              <Insets bottom="10.0" left="10.0" right="10.0"/>
+          </padding>
+      </Label>
+      <Label fx:id="createdLabel" text="&lt;Updated&gt;" GridPane.columnIndex="1" GridPane.rowIndex="4">
+          <padding>
+              <Insets bottom="10.0" left="10.0" right="10.0"/>
+          </padding>
+      </Label>
   </children>
 </GridPane>
