@@ -36,6 +36,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.concurrent.Worker;
 import javafx.css.PseudoClass;
+import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -128,6 +129,9 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private final List<ChatMessage> waitingMessages;
   private final IntegerProperty unreadMessagesCount;
   private final ChangeListener<Boolean> resetUnreadMessagesListener;
+  private final ChangeListener<Number> zoomChangeListener;
+  private final ChangeListener<Boolean> tabPaneFocusedListener;
+  private final ChangeListener<Boolean> stageFocusedListener;
   private int lastEntryId;
   private boolean isChatReady;
   /**
@@ -135,7 +139,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    */
   private String receiver;
   private Pattern mentionPattern;
-  private ChangeListener<Boolean> stageFocusedListener;
   private ChatMessage lastMessage;
   private WebEngine engine;
 
@@ -171,6 +174,22 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     resetUnreadMessagesListener = (observable, oldValue, newValue) -> {
       if (hasFocus()) {
         setUnread(false);
+      }
+    };
+    zoomChangeListener = (observable, oldValue, newValue) -> {
+      preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
+      preferencesService.storeInBackground();
+    };
+    stageFocusedListener = (window, windowFocusOld, windowFocusNew) -> {
+      if (getRoot() != null
+          && getRoot().getTabPane() != null
+          && getRoot().getTabPane().isVisible()) {
+        messageTextField().requestFocus();
+      }
+    };
+    tabPaneFocusedListener = (focusedTabPane, oldTabPaneFocus, newTabPaneFocus) -> {
+      if (newTabPaneFocus) {
+        messageTextField().requestFocus();
       }
     };
   }
@@ -244,6 +263,12 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     JavaFxUtil.addListener(getRoot().selectedProperty(), new WeakChangeListener<>(resetUnreadMessagesListener));
 
     autoCompletionHelper.bindTo(messageTextField());
+
+    getRoot().setOnClosed(this::onClosed);
+  }
+
+  protected void onClosed(Event event) {
+    // Subclasses may override
   }
 
   /**
@@ -263,18 +288,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       if (newTabPane == null) {
         return;
       }
-      stageFocusedListener = (window, windowFocusOld, windowFocusNew) -> {
-        if (newTabPane.isVisible()) {
-          messageTextField().requestFocus();
-        }
-      };
       JavaFxUtil.addListener(StageHolder.getStage().focusedProperty(), new WeakChangeListener<>(stageFocusedListener));
-
-      JavaFxUtil.addListener(newTabPane.focusedProperty(), (focusedTabPane, oldTabPaneFocus, newTabPaneFocus) -> {
-        if (newTabPaneFocus) {
-          messageTextField().requestFocus();
-        }
-      });
+      JavaFxUtil.addListener(newTabPane.focusedProperty(), new WeakChangeListener<>(tabPaneFocusedListener));
     });
   }
 
@@ -319,10 +334,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     WebView messagesWebView = getMessagesWebView();
     webViewConfigurer.configureWebView(messagesWebView);
 
-    messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
-      preferencesService.storeInBackground();
-    });
+    messagesWebView.zoomProperty().addListener(new WeakChangeListener<>(zoomChangeListener));
 
     configureBrowser(messagesWebView);
     loadChatContainer();
