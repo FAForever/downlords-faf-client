@@ -37,6 +37,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.lang.invoke.MethodHandles;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.DirectoryStream;
@@ -52,6 +54,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -110,7 +113,7 @@ public class UiService {
   private static final int THEME_VERSION = 1;
   private static final String METADATA_FILE_NAME = "theme.properties";
   private final Set<Scene> scenes;
-  private final Set<WebView> webViews;
+  private final Set<WeakReference<WebView>> webViews;
 
   private final PreferencesService preferencesService;
   private final ThreadPoolExecutor threadPoolExecutor;
@@ -349,10 +352,9 @@ public class UiService {
    * Registers a WebView against the theme service so it can be updated whenever the theme changes.
    */
   public void registerWebView(WebView webView) {
-    webViews.add(webView);
+    webViews.add(new WeakReference<>(webView));
     webView.getEngine().setUserStyleSheetLocation(getWebViewStyleSheet());
   }
-
 
   public void loadThemes() {
     themesByFolderName.clear();
@@ -412,9 +414,13 @@ public class UiService {
       Files.delete(currentTempStyleSheet);
     }
     currentTempStyleSheet = newTempStyleSheet;
-    webViews.forEach(webView -> Platform.runLater(() -> {
-      webView.getEngine().setUserStyleSheetLocation(noCatch(() -> currentTempStyleSheet.toUri().toURL()).toString());
-    }));
+
+    webViews.removeIf(reference -> reference.get() != null);
+    webViews.stream()
+        .map(Reference::get)
+        .filter(Objects::nonNull)
+        .forEach(webView -> Platform.runLater(
+            () -> webView.getEngine().setUserStyleSheetLocation(noCatch(() -> currentTempStyleSheet.toUri().toURL()).toString())));
     logger.debug("{} created and applied to all web views", newTempStyleSheet.getFileName());
   }
 }

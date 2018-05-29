@@ -106,7 +106,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     instance = new ChannelTabController(userService, chatService,
-        platformService, preferencesService, playerService,
+        preferencesService, playerService,
         audioService, timeService, i18n, imageUploadService,
         notificationService, reportingService,
         uiService, autoCompletionHelper,

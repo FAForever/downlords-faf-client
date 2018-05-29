@@ -85,10 +85,9 @@ public class ChatController extends AbstractViewController<Node> {
   }
 
   private void removeTab(String playerOrChannelName) {
-    nameToChatTabController.remove(playerOrChannelName);
-
-    if (nameToChatTabController.containsKey(playerOrChannelName)) {
-      tabPane.getTabs().remove(nameToChatTabController.remove(playerOrChannelName).getRoot());
+    AbstractChatTabController controller = nameToChatTabController.get(playerOrChannelName);
+    if (controller != null) {
+      tabPane.getTabs().remove(controller.getRoot());
     }
   }
 
