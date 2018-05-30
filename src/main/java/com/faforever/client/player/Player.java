@@ -2,38 +2,32 @@ package com.faforever.client.player;
 
 import com.faforever.client.api.dto.GlobalRating;
 import com.faforever.client.api.dto.Ladder1v1Rating;
-import com.faforever.client.chat.SocialStatus;
+import com.faforever.client.chat.ChatUser;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.remote.domain.GameStatus;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.FloatProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.SetProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleSetProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
 
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.faforever.client.chat.SocialStatus.OTHER;
+import static com.faforever.client.player.SocialStatus.OTHER;
 
 /**
- * Represents a player with username, clan, country, friend/foe flag and so on. Can also be a chat-only user. This
- * represents the combination of a PlayersInfo (from the FAF server) and a ChatUser (from IRC).
+ * Represents a player with username, clan, country, friend/foe flag and so on.
  */
 public class Player {
 
@@ -44,14 +38,13 @@ public class Player {
   private final StringProperty avatarUrl;
   private final StringProperty avatarTooltip;
   private final ObjectProperty<SocialStatus> socialStatus;
-  private final SetProperty<String> moderatorForChannels;
-  private final BooleanProperty chatOnly;
   private final FloatProperty globalRatingDeviation;
   private final FloatProperty globalRatingMean;
   private final FloatProperty leaderboardRatingDeviation;
   private final FloatProperty leaderboardRatingMean;
   private final ObjectProperty<Game> game;
-  private final SimpleObjectProperty<PlayerStatus> status;
+  private final ObjectProperty<PlayerStatus> status;
+  private final ObjectProperty<ChatUser> chatUser;
   private final IntegerProperty numberOfGames;
   private final ObjectProperty<Instant> idleSince;
   private final ObservableList<NameRecord> names;
@@ -76,13 +69,12 @@ public class Player {
     country = new SimpleStringProperty();
     avatarUrl = new SimpleStringProperty();
     avatarTooltip = new SimpleStringProperty();
-    moderatorForChannels = new SimpleSetProperty<>(FXCollections.observableSet());
-    chatOnly = new SimpleBooleanProperty(true);
     globalRatingDeviation = new SimpleFloatProperty();
     globalRatingMean = new SimpleFloatProperty();
     leaderboardRatingDeviation = new SimpleFloatProperty();
     leaderboardRatingMean = new SimpleFloatProperty();
     status = new SimpleObjectProperty<>(PlayerStatus.IDLE);
+    chatUser = new SimpleObjectProperty<>();
     game = new SimpleObjectProperty<>();
     numberOfGames = new SimpleIntegerProperty();
     socialStatus = new SimpleObjectProperty<>(OTHER);
@@ -222,30 +214,6 @@ public class Player {
     return avatarTooltip;
   }
 
-  public boolean isChatOnly() {
-    return chatOnly.get();
-  }
-
-  public BooleanProperty chatOnlyProperty() {
-    return chatOnly;
-  }
-
-  public ObservableSet<String> getModeratorForChannels() {
-    return moderatorForChannels.get();
-  }
-
-  public SetProperty<String> moderatorForChannelsProperty() {
-    return moderatorForChannels;
-  }
-
-  public boolean getChatOnly() {
-    return chatOnly.get();
-  }
-
-  public void setChatOnly(boolean chatOnly) {
-    this.chatOnly.set(chatOnly);
-  }
-
   public float getGlobalRatingDeviation() {
     return globalRatingDeviation.get();
   }
@@ -342,9 +310,20 @@ public class Player {
     return leaderboardRatingDeviation;
   }
 
+  public Optional<ChatUser> getChatUser() {
+    return Optional.ofNullable(chatUser.get());
+  }
+
+  public void setChatUser(ChatUser chatUser) {
+    this.chatUser.set(chatUser);
+  }
+
+  public ObjectProperty<ChatUser> chatUserProperty() {
+    return chatUser;
+  }
+
   public void updateFromPlayerInfo(com.faforever.client.remote.domain.Player player) {
     setId(player.getId());
-    setChatOnly(false);
     setClan(player.getClan());
     setCountry(player.getCountry());
 

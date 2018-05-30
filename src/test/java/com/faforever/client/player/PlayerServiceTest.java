@@ -17,8 +17,8 @@ import org.springframework.util.ReflectionUtils;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.faforever.client.chat.SocialStatus.FOE;
-import static com.faforever.client.chat.SocialStatus.FRIEND;
+import static com.faforever.client.player.SocialStatus.FOE;
+import static com.faforever.client.player.SocialStatus.FRIEND;
 import static com.natpryce.hamcrest.reflection.HasAnnotationMatcher.hasAnnotation;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsInAnyOrder;

@@ -26,6 +26,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,13 +68,14 @@ public class BrowserCallback {
     this.i18n = i18n;
 
     String urlFormat = clientProperties.getVault().getReplayDownloadUrlFormat();
-    String[] splittedFormat = urlFormat.split("%s");
-    replayUrlPattern = Pattern.compile(Pattern.quote(splittedFormat[0]) + "(\\d+)" + Pattern.compile(splittedFormat.length == 2 ? splittedFormat[1] : ""));
+    String[] splitFormat = urlFormat.split("%s");
+    replayUrlPattern = Pattern.compile(Pattern.quote(splitFormat[0]) + "(\\d+)" + Pattern.compile(splitFormat.length == 2 ? splitFormat[1] : ""));
   }
 
   /**
    * Called from JavaScript when user clicked a URL.
    */
+  @SuppressWarnings("unused")
   public void openUrl(String url) {
     Matcher replayUrlMatcher = replayUrlPattern.matcher(url);
     if (!replayUrlMatcher.matches()) {
@@ -90,6 +92,7 @@ public class BrowserCallback {
   /**
    * Called from JavaScript when user clicks on user name in chat
    */
+  @SuppressWarnings("unused")
   public void openPrivateMessageTab(String username) {
     eventBus.post(new InitiatePrivateChatEvent(username));
   }
@@ -97,6 +100,7 @@ public class BrowserCallback {
   /**
    * Called from JavaScript when user no longer hovers over an URL.
    */
+  @SuppressWarnings("unused")
   public void hideUrlPreview() {
     if (linkPreviewTooltip != null) {
       linkPreviewTooltip.hide();
@@ -107,6 +111,7 @@ public class BrowserCallback {
   /**
    * Called from JavaScript when user hovers over an URL.
    */
+  @SuppressWarnings("unused")
   public void previewUrl(String urlString) {
     urlPreviewResolver.resolvePreview(urlString).thenAccept(optionalPreview -> optionalPreview.ifPresent(preview -> {
       linkPreviewTooltip = new Tooltip(preview.getDescription());
@@ -121,6 +126,7 @@ public class BrowserCallback {
   /**
    * Called from JavaScript when user hovers over a clan tag.
    */
+  @SuppressWarnings("unused")
   public void showClanInfo(String clanTag) {
     clanService.getClanByTag(clanTag).thenAccept(clan -> Platform.runLater(() -> {
       if (!clan.isPresent() || clanTag.isEmpty()) {
@@ -141,6 +147,7 @@ public class BrowserCallback {
   /**
    * Called from JavaScript when user no longer hovers over a clan tag.
    */
+  @SuppressWarnings("unused")
   public void hideClanInfo() {
     if (clanInfoPopup == null) {
       return;
@@ -154,6 +161,7 @@ public class BrowserCallback {
   /**
    * Called from JavaScript when user clicks on clan tag.
    */
+  @SuppressWarnings("unused")
   public void showClanWebsite(String clanTag) {
     clanService.getClanByTag(clanTag).thenAccept(clan -> {
       if (!clan.isPresent()) {
@@ -166,11 +174,15 @@ public class BrowserCallback {
   /**
    * Called from JavaScript when user hovers over a user name.
    */
+  @SuppressWarnings("unused")
   public void showPlayerInfo(String username) {
-    Player player = playerService.getPlayerForUsername(username);
-    if (player == null || player.isChatOnly()) {
+    Optional<Player> playerOptional = playerService.getPlayerForUsername(username);
+
+    if (!playerOptional.isPresent()) {
       return;
     }
+
+    Player player = playerOptional.get();
 
     playerInfoPopup = new Popup();
     Label label = new Label();
@@ -191,6 +203,7 @@ public class BrowserCallback {
   /**
    * Called from JavaScript when user no longer hovers over a user name.
    */
+  @SuppressWarnings("unused")
   public void hidePlayerInfo() {
     if (playerInfoPopup == null) {
       return;

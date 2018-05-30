@@ -1,7 +1,6 @@
 package com.faforever.client.player;
 
 import com.faforever.client.audio.AudioService;
-import com.faforever.client.chat.SocialStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
@@ -43,14 +42,17 @@ public class FriendOfflineNotifier {
   @Subscribe
   public void onUserOnline(UserOfflineEvent event) {
     String username = event.getUsername();
-    Player player = playerService.getPlayerForUsername(username);
-    if (player != null && player.getSocialStatus() == SocialStatus.FRIEND) {
+    playerService.getPlayerForUsername(username).ifPresent(player -> {
+      if (player.getSocialStatus() != SocialStatus.FRIEND) {
+        return;
+      }
+
       audioService.playFriendOfflineSound();
       notificationService.addNotification(
           new TransientNotification(
               i18n.get("friend.nowOfflineNotification.title", username), "",
               IdenticonUtil.createIdenticon(player.getId())
           ));
-    }
+    });
   }
 }

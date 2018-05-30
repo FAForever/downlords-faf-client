@@ -1,6 +1,5 @@
 package com.faforever.client.player;
 
-import com.faforever.client.chat.SocialStatus;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.game.Game;
 

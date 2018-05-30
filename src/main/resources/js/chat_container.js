@@ -78,7 +78,7 @@ function updateUserMessageColor(user, color) {
   }
 }
 
-function setUserMessageClass(user, cssClass) {
+function addUserMessageClass(user, cssClass) {
   var userMessages = document.getElementsByClassName(user);
   for (var i = 0; i < userMessages.length; i++) {
     userMessages[i].classList.add(cssClass);
@@ -86,10 +86,20 @@ function setUserMessageClass(user, cssClass) {
 }
 
 function removeUserMessageClass(user, cssClass) {
+    if (!cssClass) {
+        return;
+    }
   var userMessages = document.getElementsByClassName(user);
   for (var i = 0; i < userMessages.length; i++) {
     userMessages[i].classList.remove(cssClass);
   }
+}
+
+function clearUserMessageClasses(user) {
+    var userMessages = document.getElementsByClassName(user);
+    for (var i = 0; i < userMessages.length; i++) {
+        userMessages[i].className = "";
+    }
 }
 
 function updateUserMessageDisplay(user, display) {

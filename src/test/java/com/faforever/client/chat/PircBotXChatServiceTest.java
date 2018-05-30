@@ -9,6 +9,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
@@ -167,7 +168,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
         .setReconnectDelay(100);
 
     instance = new PircBotXChatService(preferencesService, userService, taskService, fafService, i18n, pircBotXFactory,
-        threadPoolExecutor, eventBus, clientProperties, playerService);
+        threadPoolExecutor, eventBus, clientProperties);
 
     botShutdownLatch = new CountDownLatch(1);
 

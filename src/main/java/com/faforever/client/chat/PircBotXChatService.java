@@ -8,7 +8,8 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerService;
+import com.faforever.client.player.PlayerOnlineEvent;
+import com.faforever.client.player.SocialStatus;
 import com.faforever.client.player.UserOfflineEvent;
 import com.faforever.client.player.UserOnlineEvent;
 import com.faforever.client.preferences.ChatPrefs;
@@ -108,7 +109,6 @@ public class PircBotXChatService implements ChatService {
   private final SimpleIntegerProperty unreadMessagesCount;
 
   private final PreferencesService preferencesService;
-  private final PlayerService playerService;
   private final UserService userService;
   private final TaskService taskService;
   private final FafService fafService;
@@ -139,7 +139,7 @@ public class PircBotXChatService implements ChatService {
   public PircBotXChatService(PreferencesService preferencesService, UserService userService, TaskService taskService,
                              FafService fafService, I18n i18n, PircBotXFactory pircBotXFactory,
                              ThreadPoolExecutor threadPoolExecutor, EventBus eventBus,
-                             ClientProperties clientProperties, PlayerService playerService) {
+                             ClientProperties clientProperties) {
     this.preferencesService = preferencesService;
     this.userService = userService;
     this.taskService = taskService;
@@ -148,7 +148,6 @@ public class PircBotXChatService implements ChatService {
     this.pircBotXFactory = pircBotXFactory;
     this.threadPoolExecutor = threadPoolExecutor;
     this.eventBus = eventBus;
-    this.playerService = playerService;
 
     Irc irc = clientProperties.getIrc();
     this.ircHost = irc.getHost();
@@ -423,8 +422,11 @@ public class PircBotXChatService implements ChatService {
     }
     logger.debug("Received private message: {}", event);
 
-    Player sourcePlayer = playerService.getPlayerForUsername(user.getNick());
-    if (sourcePlayer != null && sourcePlayer.getSocialStatus() == SocialStatus.FOE && preferencesService.getPreferences().getChat().getHideFoeMessages()) {
+    ChatUser sender = getOrCreateChatUser(user.getNick());
+    if (sender != null
+        && sender.getPlayer().isPresent()
+        && sender.getPlayer().get().getSocialStatus() == SocialStatus.FOE
+        && preferencesService.getPreferences().getChat().getHideFoeMessages()) {
       log.debug("Suppressing chat message from foe '{}'", user.getNick());
       return;
     }
@@ -623,6 +625,15 @@ public class PircBotXChatService implements ChatService {
   @Override
   public ReadOnlyIntegerProperty unreadMessagesCount() {
     return unreadMessagesCount;
+  }
+
+  @Subscribe
+  public void onPlayerOnline(PlayerOnlineEvent event) {
+    Player player = event.getPlayer();
+
+    ChatUser chatUser = getOrCreateChatUser(player.getUsername());
+    player.setChatUser(chatUser);
+    chatUser.setPlayer(player);
   }
 
   interface ChatEventListener<T> {

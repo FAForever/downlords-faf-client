@@ -70,7 +70,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.faforever.client.chat.SocialStatus.FOE;
+import static com.faforever.client.player.SocialStatus.FOE;
 import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
 import static com.faforever.client.theme.UiService.CHAT_SECTION_COMPACT;
 import static com.faforever.client.theme.UiService.CHAT_SECTION_EXTENDED;
@@ -268,7 +268,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   protected void onClosed(Event event) {
-    // Subclasses may override
+    // Subclasses may override but need to call super
   }
 
   /**
@@ -541,8 +541,9 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     String decoratedClanTag = "";
     String countryFlagUrl = "";
 
-    Player player = playerService.getPlayerForUsername(chatMessage.getUsername());
-    if (player != null) {
+    Optional<Player> playerOptional = playerService.getPlayerForUsername(chatMessage.getUsername());
+    if (playerOptional.isPresent()) {
+      Player player = playerOptional.get();
       avatarUrl = player.getAvatarUrl();
       countryFlagUrl = countryFlagService.getCountryFlagUrl(player.getCountry())
           .map(URL::toString)
@@ -601,8 +602,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       return;
     }
 
-    Player player = playerService.getPlayerForUsername(chatMessage.getUsername());
-    String identiconSource = player != null ? String.valueOf(player.getId()) : chatMessage.getUsername();
+    Optional<Player> playerOptional = playerService.getPlayerForUsername(chatMessage.getUsername());
+    String identiconSource = playerOptional.map(player -> String.valueOf(player.getId())).orElseGet(chatMessage::getUsername);
 
     notificationService.addNotification(new TransientNotification(
         chatMessage.getUsername(),
@@ -617,29 +618,25 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   protected String getMessageCssClass(String login) {
-    String cssClass;
-    Player player = playerService.getPlayerForUsername(login);
-    if (player == null) {
+    Optional<Player> playerOptional = playerService.getPlayerForUsername(login);
+    if (!playerOptional.isPresent()) {
       return CSS_CLASS_CHAT_ONLY;
-    } else {
-      cssClass = player.getSocialStatus().getCssClass();
     }
 
-    if (cssClass.equals("") && player.isChatOnly()) {
-      cssClass = CSS_CLASS_CHAT_ONLY;
-    }
-    return cssClass;
+    return playerOptional.get().getSocialStatus().getCssClass();
   }
 
   @VisibleForTesting
   String getInlineStyle(String username) {
     ChatUser chatUser = chatService.getOrCreateChatUser(username);
-    Player player = playerService.getPlayerForUsername(username);
+
+    Optional<Player> playerOptional = playerService.getPlayerForUsername(username);
+
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     String color = "";
     String display = "";
 
-    if (chatPrefs.getHideFoeMessages() && player != null && player.getSocialStatus() == FOE) {
+    if (chatPrefs.getHideFoeMessages() && playerOptional.isPresent() && playerOptional.get().getSocialStatus() == FOE) {
       display = "display: none;";
     } else {
       ChatColorMode chatColorMode = chatPrefs.getChatColorMode();

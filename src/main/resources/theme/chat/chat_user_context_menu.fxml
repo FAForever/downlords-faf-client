@@ -12,10 +12,11 @@
              xmlns="http://javafx.com/javafx/8.0.141"
              fx:controller="com.faforever.client.chat.ChatUserContextMenuController">
   <items>
-      <MenuItem fx:id="showUserInfo" mnemonicParsing="false" onAction="#onUserInfo" text="%chat.userContext.userInfo"/>
-      <MenuItem fx:id="sendPrivateMessageItem" mnemonicParsing="false" onAction="#onSendPrivateMessage"
+      <MenuItem fx:id="showUserInfo" mnemonicParsing="false" onAction="#onShowUserInfoSelected"
+                text="%chat.userContext.userInfo"/>
+      <MenuItem fx:id="sendPrivateMessageItem" mnemonicParsing="false" onAction="#onSendPrivateMessageSelected"
                 text="%chat.userContext.privateMessage"/>
-      <MenuItem fx:id="copyUsernameItem" mnemonicParsing="false" onAction="#onCopyUsername"
+      <MenuItem fx:id="copyUsernameItem" mnemonicParsing="false" onAction="#onCopyUsernameSelected"
                 text="%chat.userContext.copyUsername"/>
     <CustomMenuItem fx:id="colorPickerMenuItem" hideOnClick="false" mnemonicParsing="false">
         <content>
@@ -29,21 +30,28 @@
         </content>
     </CustomMenuItem>
       <SeparatorMenuItem fx:id="socialSeparator" mnemonicParsing="false"/>
-    <MenuItem fx:id="addFriendItem" mnemonicParsing="false" onAction="#onAddFriend" text="%chat.userContext.addFriend" />
-    <MenuItem fx:id="removeFriendItem" mnemonicParsing="false" onAction="#onRemoveFriend" text="%chat.userContext.removeFriend" />
-    <MenuItem fx:id="addFoeItem" mnemonicParsing="false" onAction="#onAddFoe" text="%chat.userContext.addFoe" />
-    <MenuItem fx:id="removeFoeItem" mnemonicParsing="false" onAction="#onRemoveFoe" text="%chat.userContext.removeFoe" />
+      <MenuItem fx:id="addFriendItem" mnemonicParsing="false" onAction="#onAddFriendSelected"
+                text="%chat.userContext.addFriend"/>
+      <MenuItem fx:id="removeFriendItem" mnemonicParsing="false" onAction="#onRemoveFriendSelected"
+                text="%chat.userContext.removeFriend"/>
+      <MenuItem fx:id="addFoeItem" mnemonicParsing="false" onAction="#onAddFoeSelected"
+                text="%chat.userContext.addFoe"/>
+      <MenuItem fx:id="removeFoeItem" mnemonicParsing="false" onAction="#onRemoveFoeSelected"
+                text="%chat.userContext.removeFoe"/>
     <SeparatorMenuItem mnemonicParsing="false" />
-      <MenuItem fx:id="joinGameItem" mnemonicParsing="false" onAction="#onJoinGame" text="%chat.userContext.joinGame" />
-    <MenuItem fx:id="watchGameItem" mnemonicParsing="false" onAction="#onWatchGame" text="%chat.userContext.viewLiveReplay" />
-      <MenuItem fx:id="viewReplaysItem" disable="true" mnemonicParsing="false" onAction="#onViewReplays"
+      <MenuItem fx:id="joinGameItem" mnemonicParsing="false" onAction="#onJoinGameSelected"
+                text="%chat.userContext.joinGame"/>
+      <MenuItem fx:id="watchGameItem" mnemonicParsing="false" onAction="#onWatchGameSelected"
+                text="%chat.userContext.viewLiveReplay"/>
+      <MenuItem fx:id="viewReplaysItem" disable="true" mnemonicParsing="false" onAction="#onViewReplaysSelected"
                 text="%chat.userContext.viewReplays"/>
-      <MenuItem fx:id="inviteItem" disable="true" mnemonicParsing="false" onAction="#onInviteToGame"
+      <MenuItem fx:id="inviteItem" disable="true" mnemonicParsing="false" onAction="#onInviteToGameSelected"
                 text="%chat.userContext.inviteToGame"/>
     <SeparatorMenuItem fx:id="moderatorActionSeparator" mnemonicParsing="false" />
-      <MenuItem fx:id="kickItem" disable="true" mnemonicParsing="false" onAction="#onKick"
+      <MenuItem fx:id="kickItem" disable="true" mnemonicParsing="false" onAction="#onKickSelected"
                 text="%chat.userContext.kick"/>
-      <MenuItem fx:id="banItem" disable="true" mnemonicParsing="false" onAction="#onBan" text="%chat.userContext.ban"/>
+      <MenuItem fx:id="banItem" disable="true" mnemonicParsing="false" onAction="#onBanSelected"
+                text="%chat.userContext.ban"/>
     <CustomMenuItem fx:id="avatarPickerMenuItem" hideOnClick="false" mnemonicParsing="false">
       <content>
       </content>

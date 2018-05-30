@@ -12,6 +12,8 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ProgrammingError;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
@@ -19,24 +21,23 @@ import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.lang.invoke.MethodHandles;
 import java.util.List;
+import java.util.Optional;
 
 import static javafx.beans.binding.Bindings.createObjectBinding;
 import static javafx.beans.binding.Bindings.createStringBinding;
 
 @Component
+@Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class GameDetailController implements Controller<Pane> {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final I18n i18n;
   private final MapService mapService;
   private final ModService modService;
@@ -54,11 +55,13 @@ public class GameDetailController implements Controller<Pane> {
   public Label gameTitleLabel;
   public Node joinButton;
   public Node watchButton;
-  private Game game;
+  private ObjectProperty<Game> game;
+  @SuppressWarnings("FieldCanBeLocal")
   private InvalidationListener teamsInvalidationListener;
+  @SuppressWarnings("FieldCanBeLocal")
   private InvalidationListener gameStatusInvalidationListener;
   private WeakInvalidationListener weakTeamListener;
-  private WeakInvalidationListener weakStatusListener;
+  private WeakInvalidationListener weakGameStatusListener;
 
   public GameDetailController(I18n i18n, MapService mapService, ModService modService, PlayerService playerService,
                               UiService uiService, JoinGameHelper joinGameHelper) {
@@ -68,11 +71,27 @@ public class GameDetailController implements Controller<Pane> {
     this.playerService = playerService;
     this.uiService = uiService;
     this.joinGameHelper = joinGameHelper;
+
+    game = new SimpleObjectProperty<>();
   }
 
   public void initialize() {
     joinButton.managedProperty().bind(joinButton.visibleProperty());
     watchButton.managedProperty().bind(watchButton.visibleProperty());
+    gameTitleLabel.managedProperty().bind(gameTitleLabel.visibleProperty());
+    hostLabel.managedProperty().bind(hostLabel.visibleProperty());
+    mapLabel.managedProperty().bind(mapLabel.visibleProperty());
+    numberOfPlayersLabel.managedProperty().bind(numberOfPlayersLabel.visibleProperty());
+    mapImageView.managedProperty().bind(mapImageView.visibleProperty());
+    gameTypeLabel.managedProperty().bind(gameTypeLabel.visibleProperty());
+
+    gameTitleLabel.visibleProperty().bind(game.isNotNull());
+    hostLabel.visibleProperty().bind(game.isNotNull());
+    mapLabel.visibleProperty().bind(game.isNotNull());
+    numberOfPlayersLabel.visibleProperty().bind(game.isNotNull());
+    mapImageView.visibleProperty().bind(game.isNotNull());
+    gameTypeLabel.visibleProperty().bind(game.isNotNull());
+
     setGame(null);
 
     gameStatusInvalidationListener = observable -> onGameStatusChanged();
@@ -80,6 +99,11 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void onGameStatusChanged() {
+    Game game = this.game.get();
+    if (game == null) {
+      log.warn("Can't update game status when there is no game");
+      return;
+    }
     switch (game.getStatus()) {
       case PLAYING:
         joinButton.setVisible(false);
@@ -99,49 +123,47 @@ public class GameDetailController implements Controller<Pane> {
     }
   }
 
-  public void setGame(Game newGame) {
-    if (newGame == null) {
-      joinButton.setVisible(false);
-      watchButton.setVisible(false);
+  public void setGame(Game game) {
+    this.game.set(game);
+    if (game == null) {
       return;
     }
 
-    gameTitleLabel.textProperty().bind(newGame.titleProperty());
-    hostLabel.textProperty().bind(newGame.hostProperty());
-    mapLabel.textProperty().bind(newGame.mapFolderNameProperty());
+    gameTitleLabel.textProperty().bind(game.titleProperty());
+    hostLabel.textProperty().bind(game.hostProperty());
+    mapLabel.textProperty().bind(game.mapFolderNameProperty());
     numberOfPlayersLabel.textProperty().bind(createStringBinding(
-        () -> i18n.get("game.detail.players.format", newGame.getNumPlayers(), newGame.getMaxPlayers()),
-        newGame.numPlayersProperty(),
-        newGame.maxPlayersProperty()
+        () -> i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers()),
+        game.numPlayersProperty(),
+        game.maxPlayersProperty()
     ));
     mapImageView.imageProperty().bind(createObjectBinding(
-        () -> mapService.loadPreview(newGame.getMapFolderName(), PreviewSize.LARGE),
-        newGame.mapFolderNameProperty()
+        () -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE),
+        game.mapFolderNameProperty()
     ));
     gameTypeLabel.textProperty().bind(createStringBinding(() -> {
-      FeaturedMod gameType = modService.getFeaturedMod(newGame.getFeaturedMod()).get();
+      FeaturedMod gameType = modService.getFeaturedMod(game.getFeaturedMod()).get();
       String fullName = gameType != null ? gameType.getDisplayName() : null;
       return StringUtils.defaultString(fullName);
-    }, newGame.featuredModProperty()));
+    }, game.featuredModProperty()));
 
-    if (this.game != null && weakStatusListener != null && weakTeamListener != null) {
-      this.game.getTeams().removeListener(weakTeamListener);
-      this.game.statusProperty().removeListener(weakStatusListener);
-    }
+    Optional.ofNullable(weakGameStatusListener).ifPresent(listener -> game.getTeams().removeListener(listener));
+    Optional.ofNullable(weakTeamListener).ifPresent(listener -> game.statusProperty().removeListener(listener));
 
-    this.game = newGame;
 
-    teamsInvalidationListener.invalidated(newGame.getTeams());
     weakTeamListener = new WeakInvalidationListener(teamsInvalidationListener);
-    JavaFxUtil.addListener(newGame.getTeams(),weakTeamListener);
-    gameStatusInvalidationListener.invalidated(newGame.statusProperty());
-    weakStatusListener = new WeakInvalidationListener(gameStatusInvalidationListener);
-    JavaFxUtil.addListener(newGame.statusProperty(),weakStatusListener);
+    JavaFxUtil.addListener(game.getTeams(), weakTeamListener);
+    teamsInvalidationListener.invalidated(game.getTeams());
+
+    weakGameStatusListener = new WeakInvalidationListener(gameStatusInvalidationListener);
+    JavaFxUtil.addListener(game.statusProperty(), weakGameStatusListener);
+    gameStatusInvalidationListener.invalidated(game.statusProperty());
+
   }
 
   private void createTeams(ObservableMap<? extends String, ? extends List<String>> playersByTeamNumber, Game game) {
-    if (!game.equals(this.game)) {
-      logger.warn("Wrong game updated");
+    if (!game.equals(this.game.get())) {
+      log.warn("Wrong game updated");
       return;
     }
     teamListPane.getChildren().clear();
@@ -156,6 +178,6 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   public void onJoinButtonClicked(ActionEvent event) {
-    joinGameHelper.join(game);
+    joinGameHelper.join(game.get());
   }
 }

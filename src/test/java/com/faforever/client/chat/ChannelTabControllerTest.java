@@ -213,7 +213,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     when(playerService.createAndGetPlayerForUsername("junit")).thenReturn(player);
 
     when(i18n.get("chat.userCount", 1)).thenReturn("1 Players");
-    when(chatUserItemController.getPlayer()).thenReturn(player);
+    when(chatUserItemController.getChatUser()).thenReturn(player);
 
     // Actual test execution
     captor.getValue().onChanged(change);

@@ -7,6 +7,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
@@ -58,13 +59,14 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.faforever.client.chat.ChatColorMode.DEFAULT;
-import static com.faforever.client.chat.SocialStatus.FOE;
-import static com.faforever.client.chat.SocialStatus.OTHER;
-import static com.faforever.client.chat.SocialStatus.SELF;
+import static com.faforever.client.player.SocialStatus.FOE;
+import static com.faforever.client.player.SocialStatus.SELF;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -106,7 +108,7 @@ public class ChannelTabController extends AbstractChatTabController {
   private UserFilterController userFilterController;
   /** Prevents garbage collection of weak listeners. Key is the username. */
   @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-  private final Map<String, Collection<ChangeListener<Boolean>>> chatOnlyListeners;
+  private final Map<String, Collection<ChangeListener<Player>>> playerListeners;
   /** Prevents garbage collection of weak listeners. Key is the username. */
   @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
   private final Map<String, Collection<ChangeListener<Boolean>>> hideFoeMessagesListeners;
@@ -139,7 +141,7 @@ public class ChannelTabController extends AbstractChatTabController {
     this.threadPoolExecutor = threadPoolExecutor;
     this.taskScheduler = taskScheduler;
 
-    chatOnlyListeners = new HashMap<>();
+    playerListeners = new HashMap<>();
     hideFoeMessagesListeners = new HashMap<>();
     socialStatusMessagesListeners = new HashMap<>();
     moderatorForChannelListeners = new HashMap<>();
@@ -257,7 +259,7 @@ public class ChannelTabController extends AbstractChatTabController {
 
   @VisibleForTesting
   boolean isUsernameMatch(ChatUserItemController chatUserItemController) {
-    String lowerCaseSearchString = chatUserItemController.getPlayer().getUsername().toLowerCase();
+    String lowerCaseSearchString = chatUserItemController.getChatUser().getUsername().toLowerCase();
     return lowerCaseSearchString.contains(userSearchTextField.getText().toLowerCase());
   }
 
@@ -268,14 +270,18 @@ public class ChannelTabController extends AbstractChatTabController {
     ObservableList<Node> children = pane.getChildren();
 
     Pane chatUserItemRoot = chatUserItemController.getRoot();
-    if (chatUserItemController.getPlayer().getSocialStatus() == SELF) {
+    ChatUser chatUser = chatUserItemController.getChatUser();
+
+    Optional<Player> playerOptional = chatUser.getPlayer();
+
+    if (playerOptional.isPresent() && playerOptional.get().getSocialStatus() == SELF) {
       children.add(0, chatUserItemRoot);
       return;
     }
 
-    String thisUsername = chatUserItemController.getPlayer().getUsername();
+    String thisUsername = chatUser.getUsername();
     for (Node child : children) {
-      String otherUsername = ((ChatUserItemController) child.getUserData()).getPlayer().getUsername();
+      String otherUsername = ((ChatUserItemController) child.getUserData()).getChatUser().getUsername();
 
       if (otherUsername.equalsIgnoreCase(userService.getUsername())) {
         continue;
@@ -321,11 +327,16 @@ public class ChannelTabController extends AbstractChatTabController {
 
   @Override
   protected String getMessageCssClass(String login) {
-    Player player = playerService.getPlayerForUsername(login);
-    if (player != null
-        && !player.equals(playerService.getCurrentPlayer())
-        && player.getModeratorForChannels().contains(channel.getName())) {
-      return CSS_CLASS_MODERATOR;
+    ChatUser chatUser = chatService.getOrCreateChatUser(login);
+    Optional<Player> currentPlayerOptional = playerService.getCurrentPlayer();
+
+    if (currentPlayerOptional.isPresent()) {
+      Player currentPlayer = currentPlayerOptional.get();
+
+      if (!Objects.equals(login, currentPlayer.getUsername())
+          && chatUser.getModeratorInChannels().contains(channel.getName())) {
+        return CSS_CLASS_MODERATOR;
+      }
     }
 
     return super.getMessageCssClass(login);
@@ -355,45 +366,36 @@ public class ChannelTabController extends AbstractChatTabController {
     getJsObject().call("updateUserMessageColor", chatUser.getUsername(), color);
   }
 
-  private void removeUserMessageClass(Player player, String cssClass) {
+  private void removeUserMessageClass(ChatUser chatUser, String cssClass) {
     //TODO: DOM Exception 12 when cssClass string is empty string, not sure why cause .remove in the js should be able to handle it
     if (cssClass.isEmpty()) {
       return;
     }
-    Platform.runLater(() -> getJsObject().call("removeUserMessageClass", String.format(USER_CSS_CLASS_FORMAT, player.getUsername()), cssClass));
+    Platform.runLater(() -> getJsObject().call("removeUserMessageClass", String.format(USER_CSS_CLASS_FORMAT, chatUser.getUsername()), cssClass));
 
   }
 
-  private void setUserMessageClass(Player player, String cssClass) {
-    Platform.runLater(() -> getJsObject().call("setUserMessageClass", String.format(USER_CSS_CLASS_FORMAT, player.getUsername()), cssClass));
+  private void addUserMessageClass(ChatUser player, String cssClass) {
+    Platform.runLater(() -> getJsObject().call("addUserMessageClass", String.format(USER_CSS_CLASS_FORMAT, player.getUsername()), cssClass));
   }
 
-  private void updateUserMessageDisplay(Player player, String display) {
-    Platform.runLater(() -> getJsObject().call("updateUserMessageDisplay", player.getUsername(), display));
+  private void updateUserMessageDisplay(ChatUser chatUser, String display) {
+    Platform.runLater(() -> getJsObject().call("updateUserMessageDisplay", chatUser.getUsername(), display));
   }
 
   private synchronized void onUserJoinedChannel(ChatUser chatUser) {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-
     String username = chatUser.getUsername();
 
-    // TODO for "chat only" users, no player should be created. Then again, FAF will only allow players to join IRC in
-    // future, so "ChatUser" won't be a thing.
-    Player player = playerService.createAndGetPlayerForUsername(username);
-
-    JavaFxUtil.bind(player.moderatorForChannelsProperty(), chatUser.moderatorInChannelsProperty());
-    JavaFxUtil.bind(player.usernameProperty(), chatUser.usernameProperty());
-
-    JavaFxUtil.addListener(player.socialStatusProperty(), createWeakSocialStatusListener(chatPrefs, player));
-    JavaFxUtil.addListener(player.chatOnlyProperty(), createWeakChatOnlyListener(chatUser, username, player));
-    JavaFxUtil.addListener(player.getModeratorForChannels(), createWeakModeratorForChannelListener(player));
-    JavaFxUtil.addListener(chatPrefs.hideFoeMessagesProperty(), createWeakHideFoeMessagesListener(player));
+    JavaFxUtil.addListener(chatUser.getModeratorInChannels(), createWeakModeratorForChannelListener(chatUser));
+    JavaFxUtil.addListener(chatUser.playerProperty(), createWeakPlayerListener(chatUser));
+    JavaFxUtil.addListener(chatPrefs.hideFoeMessagesProperty(), createWeakHideFoeMessagesListener(chatUser));
     JavaFxUtil.addListener(chatUser.colorProperty(), createWeakColorPropertyListener(chatUser));
 
-    Collection<Pane> targetPanesForUser = getTargetPanesForUser(player);
+    Collection<Pane> targetPanesForUser = getTargetPanesForUser(chatUser);
 
     for (Pane pane : targetPanesForUser) {
-      ChatUserItemController chatUserItemController = createChatUserControlForPlayerIfNecessary(pane, player);
+      ChatUserItemController chatUserItemController = createChatUserControlIfNecessary(pane, chatUser);
 
       // Apply filter if exists
       if (!userSearchTextField.textProperty().get().isEmpty()) {
@@ -406,59 +408,57 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   @NotNull
-  private ChangeListener<Color> createWeakColorPropertyListener(ChatUser chatUser) {
+  private WeakChangeListener<Color> createWeakColorPropertyListener(ChatUser chatUser) {
     ChangeListener<Color> listener = (observable, oldValue, newValue) ->
         Platform.runLater(() -> updateUserMessageColor(chatUser));
+
     colorPropertyListeners.computeIfAbsent(chatUser.getUsername(), i -> new ArrayList<>()).add(listener);
     return new WeakChangeListener<>(listener);
   }
 
   @NotNull
-  private SetChangeListener<String> createWeakModeratorForChannelListener(Player player) {
+  private WeakSetChangeListener<String> createWeakModeratorForChannelListener(ChatUser chatUser) {
     SetChangeListener<String> listener = change -> {
       if (change.wasAdded()) {
-        addToPane(player, moderatorsPane);
-        removeFromPane(player, othersPane);
-        removeFromPane(player, chatOnlyPane);
-        setUserMessageClass(player, CSS_CLASS_MODERATOR);
+        removeFromPane(chatUser, othersPane);
+        removeFromPane(chatUser, chatOnlyPane);
+        removeUserMessageClass(chatUser, CSS_CLASS_CHAT_ONLY);
 
+        addToPane(chatUser, moderatorsPane);
+        addUserMessageClass(chatUser, CSS_CLASS_MODERATOR);
       } else {
-        removeFromPane(player, moderatorsPane);
-        SocialStatus socialStatus = player.getSocialStatus();
-        if (socialStatus == OTHER || socialStatus == SELF) {
-          addToPane(player, othersPane);
+        removeFromPane(chatUser, moderatorsPane);
+        removeUserMessageClass(chatUser, CSS_CLASS_MODERATOR);
+
+        Optional<Player> optionalPlayer = chatUser.getPlayer();
+        if (optionalPlayer.isPresent()) {
+          SocialStatus socialStatus = optionalPlayer.get().getSocialStatus();
+          addToPane(chatUser, getPaneForSocialStatus(socialStatus));
+        } else {
+          addToPane(chatUser, chatOnlyPane);
         }
-        removeUserMessageClass(player, CSS_CLASS_MODERATOR);
       }
     };
-    moderatorForChannelListeners.computeIfAbsent(player.getUsername(), i -> new ArrayList<>()).add(listener);
+    moderatorForChannelListeners.computeIfAbsent(chatUser.getUsername(), i -> new ArrayList<>()).add(listener);
     return new WeakSetChangeListener<>(listener);
   }
 
   @NotNull
-  private ChangeListener<SocialStatus> createWeakSocialStatusListener(ChatPrefs chatPrefs, Player player) {
+  private WeakChangeListener<SocialStatus> createWeakSocialStatusListener(ChatPrefs chatPrefs, ChatUser chatUser, Player player) {
     ChangeListener<SocialStatus> listener = (observable, oldValue, newValue) -> {
-      if (oldValue == OTHER && player.isChatOnly()) {
-        removeFromPane(player, chatOnlyPane);
-        removeUserMessageClass(player, CSS_CLASS_CHAT_ONLY);
-      } else {
-        removeFromPane(player, getPaneForSocialStatus(oldValue));
-        removeUserMessageClass(player, oldValue.getCssClass());
-      }
-      if (newValue == OTHER && player.isChatOnly()) {
-        addToPane(player, chatOnlyPane);
-        setUserMessageClass(player, CSS_CLASS_CHAT_ONLY);
-      } else {
-        addToPane(player, getPaneForSocialStatus(newValue));
-        setUserMessageClass(player, newValue.getCssClass());
-      }
+
+      removeFromPane(chatUser, getPaneForSocialStatus(oldValue));
+      addToPane(chatUser, getPaneForSocialStatus(newValue));
+
+      removeUserMessageClass(chatUser, oldValue.getCssClass());
+      addUserMessageClass(chatUser, newValue.getCssClass());
+
+      addToPane(chatUser, getPaneForSocialStatus(newValue));
 
       if (chatPrefs.getHideFoeMessages() && newValue == FOE) {
-        updateUserMessageDisplay(player, "none");
-      }
-
-      if (chatPrefs.getHideFoeMessages() && oldValue == FOE) {
-        updateUserMessageDisplay(player, "");
+        updateUserMessageDisplay(chatUser, "none");
+      } else {
+        updateUserMessageDisplay(chatUser, "");
       }
     };
     socialStatusMessagesListeners.computeIfAbsent(player.getUsername(), i -> new ArrayList<>()).add(listener);
@@ -466,34 +466,38 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   @NotNull
-  private ChangeListener<Boolean> createWeakHideFoeMessagesListener(Player player) {
+  private ChangeListener<Boolean> createWeakHideFoeMessagesListener(ChatUser chatUser) {
     ChangeListener<Boolean> listener = (observable, oldValue, newValue) -> {
-      if (newValue && player.getSocialStatus() == FOE) {
-        updateUserMessageDisplay(player, "none");
+      if (newValue && chatUser.getPlayer().isPresent() && chatUser.getPlayer().get().getSocialStatus() == FOE) {
+        updateUserMessageDisplay(chatUser, "none");
       } else {
-        updateUserMessageDisplay(player, "");
+        updateUserMessageDisplay(chatUser, "");
       }
     };
-    hideFoeMessagesListeners.computeIfAbsent(player.getUsername(), i -> new ArrayList<>()).add(listener);
+    hideFoeMessagesListeners.computeIfAbsent(chatUser.getUsername(), i -> new ArrayList<>()).add(listener);
     return new WeakChangeListener<>(listener);
   }
 
   @NotNull
-  private ChangeListener<Boolean> createWeakChatOnlyListener(ChatUser chatUser, String username, Player player) {
-    ChangeListener<Boolean> listener = (observable, oldValue, newValue) -> {
-      if (player.getSocialStatus() == OTHER && !chatUser.getModeratorInChannels().contains(username)) {
-        if (newValue) {
-          removeFromPane(player, othersPane);
-          addToPane(player, chatOnlyPane);
-          setUserMessageClass(player, CSS_CLASS_CHAT_ONLY);
-        } else {
-          removeFromPane(player, chatOnlyPane);
-          addToPane(player, getPaneForSocialStatus(player.getSocialStatus()));
-          removeUserMessageClass(player, CSS_CLASS_CHAT_ONLY);
-        }
+  private ChangeListener<Player> createWeakPlayerListener(ChatUser chatUser) {
+    ChangeListener<Player> listener = (observable, oldValue, newPlayer) -> {
+      if (newPlayer == null) {
+        removeFromPane(chatUser, getPaneForSocialStatus(oldValue.getSocialStatus()));
+
+        addToPane(chatUser, chatOnlyPane);
+        addUserMessageClass(chatUser, CSS_CLASS_CHAT_ONLY);
+        return;
       }
+
+      removeFromPane(chatUser, chatOnlyPane);
+      removeUserMessageClass(chatUser, CSS_CLASS_CHAT_ONLY);
+
+      addToPane(chatUser, getPaneForSocialStatus(newPlayer.getSocialStatus()));
+
+      ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+      JavaFxUtil.addListener(newPlayer.socialStatusProperty(), createWeakSocialStatusListener(chatPrefs, chatUser, newPlayer));
     };
-    chatOnlyListeners.computeIfAbsent(player.getUsername(), i -> new ArrayList<>()).add(listener);
+    playerListeners.computeIfAbsent(chatUser.getUsername(), i -> new ArrayList<>()).add(listener);
     return new WeakChangeListener<>(listener);
   }
 
@@ -511,7 +515,7 @@ public class ChannelTabController extends AbstractChatTabController {
   private void onUserLeft(String username) {
     JavaFxUtil.assertBackgroundThread();
 
-    chatOnlyListeners.remove(username);
+    playerListeners.remove(username);
     hideFoeMessagesListeners.remove(username);
     socialStatusMessagesListeners.remove(username);
     moderatorForChannelListeners.remove(username);
@@ -535,13 +539,13 @@ public class ChannelTabController extends AbstractChatTabController {
     }
   }
 
-  private ChatUserItemController addToPane(Player player, Pane pane) {
-    return createChatUserControlForPlayerIfNecessary(pane, player);
+  private ChatUserItemController addToPane(ChatUser chatUser, Pane pane) {
+    return createChatUserControlIfNecessary(pane, chatUser);
   }
 
-  private void removeFromPane(Player player, Pane pane) {
+  private void removeFromPane(ChatUser chatUser, Pane pane) {
     synchronized (userToChatUserControls) {
-      Map<Pane, ChatUserItemController> paneChatUserControlMap = userToChatUserControls.get(player.getUsername());
+      Map<Pane, ChatUserItemController> paneChatUserControlMap = userToChatUserControls.get(chatUser.getUsername());
       if (paneChatUserControlMap == null) {
         // User has not yet been added to this pane; no need to remove him
         return;
@@ -558,11 +562,11 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   /**
-   * Creates a {@link ChatUserItemController} for the given playerInfoBean and adds it to the given pane if there isn't
+   * Creates a {@link ChatUserItemController} for the given chat user and adds it to the given pane if there isn't
    * already such a control in this pane. After the control has been added, the user search filter is applied.
    */
-  private ChatUserItemController createChatUserControlForPlayerIfNecessary(Pane pane, Player player) {
-    String username = player.getUsername();
+  private ChatUserItemController createChatUserControlIfNecessary(Pane pane, ChatUser chatUser) {
+    String username = chatUser.getUsername();
     synchronized (userToChatUserControls) {
       Map<Pane, ChatUserItemController> paneToChatUserControlMap = userToChatUserControls
           .computeIfAbsent(username, s -> new HashMap<>(1, 1));
@@ -573,10 +577,10 @@ public class ChannelTabController extends AbstractChatTabController {
       }
 
       ChatUserItemController chatUserItemController = uiService.loadFxml("theme/chat/chat_user_item.fxml");
-      chatUserItemController.setPlayer(player);
+      chatUserItemController.setChatUser(chatUser);
       paneToChatUserControlMap.put(pane, chatUserItemController);
 
-      chatUserItemController.setRandomColorsAllowedInPane((pane == othersPane || pane == chatOnlyPane) && player.getSocialStatus() != SELF);
+      updateRandomColorsAllowed(pane, chatUser, chatUserItemController);
 
       Platform.runLater(() -> addChatUserItemSorted(pane, chatUserItemController));
 
@@ -584,18 +588,25 @@ public class ChannelTabController extends AbstractChatTabController {
     }
   }
 
-  private Collection<Pane> getTargetPanesForUser(Player player) {
+  private void updateRandomColorsAllowed(Pane pane, ChatUser chatUser, ChatUserItemController chatUserItemController) {
+    chatUserItemController.setRandomColorsAllowed(
+        (pane == othersPane || pane == chatOnlyPane)
+            && chatUser.getPlayer().isPresent()
+            && chatUser.getPlayer().get().getSocialStatus() != SELF
+    );
+  }
+
+  private Collection<Pane> getTargetPanesForUser(ChatUser chatUser) {
     ArrayList<Pane> panes = new ArrayList<>(3);
 
-    if (player.getModeratorForChannels().contains(channel.getName())) {
+    if (chatUser.getModeratorInChannels().contains(channel.getName())) {
       panes.add(moderatorsPane);
     }
 
-    Pane pane = getPaneForSocialStatus(player.getSocialStatus());
-    if (pane == othersPane && player.isChatOnly()) {
-      panes.add(chatOnlyPane);
+    if (chatUser.getPlayer().isPresent()) {
+      panes.add(getPaneForSocialStatus(chatUser.getPlayer().get().getSocialStatus()));
     } else {
-      panes.add(pane);
+      panes.add(chatOnlyPane);
     }
 
     return panes;

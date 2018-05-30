@@ -90,7 +90,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
     preferencesService.postConstruct();
     preferencesService.getPreferences().getMainWindow().setLastView(NavigationItem.CHAT.name());
 
-    instance = new PrivateChatTabController(userService, platformService, preferencesService, playerService, timeService,
+    instance = new PrivateChatTabController(userService, preferencesService, playerService, timeService,
         i18n, imageUploadService, notificationService, reportingService, uiService, autoCompletionHelper, eventBus,
         audioService, chatService, webViewConfigurer, countryFlagService);
 
@@ -168,8 +168,8 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void onPlayerConnectedTest() {
     assertFalse(instance.isUserOffline());
 
-    instance.onPlayerDisconnected(playerName, null);
-    instance.onPlayerConnected(playerName, null);
+    instance.onPlayerDisconnected(playerName);
+    instance.onPlayerConnected(playerName);
 
     assertFalse(instance.isUserOffline());
   }
@@ -178,7 +178,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void onPlayerDisconnected() {
     assertFalse(instance.isUserOffline());
 
-    instance.onPlayerDisconnected(playerName, null);
+    instance.onPlayerDisconnected(playerName);
 
     assertTrue(instance.isUserOffline());
   }
