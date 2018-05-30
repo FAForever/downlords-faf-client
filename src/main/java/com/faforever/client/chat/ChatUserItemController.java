@@ -4,7 +4,6 @@ import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.clan.Clan;
 import com.faforever.client.clan.ClanService;
 import com.faforever.client.clan.ClanTooltipController;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.PlayerStatus;
@@ -59,7 +58,7 @@ import static java.util.Locale.US;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 // TODO null safety for "player"
-public class ChatUserItemController implements Controller<Node> {
+public class ChatUserItemController implements ChatUserTreeItem<Node> {
 
   private static final String CLAN_TAG_FORMAT = "[%s]";
   private static final PseudoClass PRESENCE_STATUS_ONLINE = PseudoClass.getPseudoClass("online");
@@ -67,7 +66,6 @@ public class ChatUserItemController implements Controller<Node> {
   private final AvatarService avatarService;
   private final CountryFlagService countryFlagService;
   private final PreferencesService preferencesService;
-  private final ChatService chatService;
   private final I18n i18n;
   private final UiService uiService;
   private final EventBus eventBus;
@@ -82,7 +80,7 @@ public class ChatUserItemController implements Controller<Node> {
   public MenuButton clanMenu;
   public Label statusLabel;
   public Text presenceStatusIndicator;
-  private ChatUser chatUser;
+  private ChatChannelUser chatUser;
   private boolean randomColorsAllowed;
   private ChangeListener<ChatColorMode> colorModeChangeListener;
   private MapChangeListener<String, Color> colorPerUserMapChangeListener;
@@ -102,7 +100,7 @@ public class ChatUserItemController implements Controller<Node> {
   @Inject
   // TODO reduce dependencies, rely on eventBus instead
   public ChatUserItemController(PreferencesService preferencesService, AvatarService avatarService,
-                                CountryFlagService countryFlagService, ChatService chatService,
+                                CountryFlagService countryFlagService,
                                 I18n i18n, UiService uiService, EventBus eventBus,
                                 ClanService clanService, PlayerService playerService,
                                 PlatformService platformService, TimeService timeService) {
@@ -112,7 +110,6 @@ public class ChatUserItemController implements Controller<Node> {
     this.playerService = playerService;
     this.clanService = clanService;
     this.countryFlagService = countryFlagService;
-    this.chatService = chatService;
     this.i18n = i18n;
     this.uiService = uiService;
     this.eventBus = eventBus;
@@ -174,7 +171,6 @@ public class ChatUserItemController implements Controller<Node> {
 
     Color color = null;
     String lowerUsername = chatUser.getUsername().toLowerCase(US);
-    ChatUser chatUser = chatService.getOrCreateChatUser(lowerUsername);
 
     if (chatPrefs.getChatColorMode() == CUSTOM) {
       if (chatPrefs.getUserToColor().containsKey(lowerUsername)) {
@@ -248,11 +244,11 @@ public class ChatUserItemController implements Controller<Node> {
     return chatUserItemRoot;
   }
 
-  public ChatUser getChatUser() {
+  public ChatChannelUser getChatUser() {
     return chatUser;
   }
 
-  public void setChatUser(ChatUser chatUser) {
+  public void setChatUser(ChatChannelUser chatUser) {
     this.chatUser = chatUser;
     JavaFxUtil.bind(usernameLabel.textProperty(), chatUser.usernameProperty());
     addChatColorModeListener();
@@ -341,7 +337,7 @@ public class ChatUserItemController implements Controller<Node> {
     userTooltip = null;
   }
 
-  void setRandomColorsAllowed(boolean randomColorsAllowed) {
+  void setRandomColorAllowed(boolean randomColorsAllowed) {
     this.randomColorsAllowed = randomColorsAllowed;
     updateColor();
   }

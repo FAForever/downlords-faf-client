@@ -28,7 +28,6 @@ import javax.inject.Inject;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -123,17 +122,17 @@ public class MockChatService implements ChatService {
 
 
   @Override
-  public ChatUser getOrCreateChatUser(String username) {
-    return new ChatUser(username, Color.ALICEBLUE);
+  public ChatChannelUser getOrCreateChatUser(String username, String channel) {
+    return new ChatChannelUser(username, Color.ALICEBLUE);
   }
 
   @Override
-  public void addUsersListener(String channelName, MapChangeListener<String, ChatUser> listener) {
+  public void addUsersListener(String channelName, MapChangeListener<String, ChatChannelUser> listener) {
     getOrCreateChannel(channelName).addUsersListeners(listener);
   }
 
   @Override
-  public void addChatUsersByNameListener(MapChangeListener<String, ChatUser> listener) {
+  public void addChatUsersByNameListener(MapChangeListener<String, ChatChannelUser> listener) {
 
   }
 
@@ -143,7 +142,7 @@ public class MockChatService implements ChatService {
   }
 
   @Override
-  public void removeUsersListener(String channelName, MapChangeListener<String, ChatUser> listener) {
+  public void removeUsersListener(String channelName, MapChangeListener<String, ChatChannelUser> listener) {
 
   }
 
@@ -162,9 +161,9 @@ public class MockChatService implements ChatService {
     ConcurrentUtil.executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
-        ChatUser chatUser = new ChatUser(userService.getUsername(), null);
-        ChatUser mockUser = new ChatUser("MockUser", null);
-        ChatUser moderatorUser = new ChatUser("MockModerator", Collections.singleton(channelName), null);
+        ChatChannelUser chatUser = new ChatChannelUser(userService.getUsername(), null);
+        ChatChannelUser mockUser = new ChatChannelUser("MockUser", null);
+        ChatChannelUser moderatorUser = new ChatChannelUser("MockModerator", true, null);
 
         Channel channel = getOrCreateChannel(channelName);
         channel.addUser(chatUser);
@@ -205,7 +204,7 @@ public class MockChatService implements ChatService {
   }
 
   @Override
-  public ChatUser getOrCreateChatUser(User user) {
+  public ChatChannelUser getOrCreateChatUser(User user, String channel) {
     return null;
   }
 

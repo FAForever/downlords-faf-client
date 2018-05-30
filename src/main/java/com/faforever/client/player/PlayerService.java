@@ -1,5 +1,6 @@
 package com.faforever.client.player;
 
+import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.chat.event.ChatMessageEvent;
@@ -32,11 +33,13 @@ import javax.inject.Inject;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.faforever.client.player.SocialStatus.FOE;
 import static com.faforever.client.player.SocialStatus.FRIEND;
@@ -62,7 +65,7 @@ public class PlayerService {
     this.userService = userService;
     this.eventBus = eventBus;
 
-    playersByName = FXCollections.observableHashMap();
+    playersByName = FXCollections.observableMap(new ConcurrentHashMap<>());
     playersById = FXCollections.observableHashMap();
     friendList = new ArrayList<>();
     foeList = new ArrayList<>();
@@ -145,7 +148,7 @@ public class PlayerService {
         });
   }
 
-  
+
   public boolean isOnline(Integer playerId) {
     return playersById.containsKey(playerId);
   }
@@ -180,7 +183,7 @@ public class PlayerService {
   }
 
   public Set<String> getPlayerNames() {
-    return playersByName.keySet();
+    return new HashSet<>(playersByName.keySet());
   }
 
   public void addFriend(Player player) {
@@ -223,6 +226,13 @@ public class PlayerService {
 
   public CompletableFuture<List<Player>> getPlayersByIds(Collection<Integer> playerIds) {
     return fafService.getPlayersByIds(playerIds);
+  }
+
+  @Subscribe
+  public void onChatUserJoinedChannel(ChatUserJoinedChannelEvent event) {
+    ChatChannelUser chatChannelUser = event.getChatChannelUser();
+    Optional.ofNullable(playersByName.get(chatChannelUser.getUsername()))
+        .ifPresent(player -> player.getChatChannelUsers().add(chatChannelUser));
   }
 
   private void onPlayersInfo(PlayersMessage playersMessage) {

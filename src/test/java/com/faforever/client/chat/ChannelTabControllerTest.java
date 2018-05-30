@@ -197,14 +197,14 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     Channel channel = new Channel(CHANNEL_NAME);
     instance.setChannel(channel);
 
-    ArgumentCaptor<MapChangeListener<String, ChatUser>> captor = ArgumentCaptor.forClass(MapChangeListener.class);
+    ArgumentCaptor<MapChangeListener<String, ChatChannelUser>> captor = ArgumentCaptor.forClass(MapChangeListener.class);
     verify(chatService).addUsersListener(anyString(), captor.capture());
 
-    ChatUser chatUser = new ChatUser("junit", null);
-    ObservableMap<String, ChatUser> userMap = FXCollections.observableHashMap();
+    ChatChannelUser chatUser = new ChatChannelUser("junit", null);
+    ObservableMap<String, ChatChannelUser> userMap = FXCollections.observableHashMap();
     userMap.put("junit", chatUser);
 
-    Change<String, ChatUser> change = mock(Change.class);
+    Change<String, ChatChannelUser> change = mock(Change.class);
     when(change.wasAdded()).thenReturn(true);
     when(change.getValueAdded()).thenReturn(chatUser);
     when(change.getMap()).thenReturn(userMap);

@@ -3,16 +3,16 @@
 <?import com.jfoenix.controls.JFXButton?>
 <?import com.jfoenix.controls.JFXTextField?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
-<?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.TreeTableColumn?>
+<?import javafx.scene.control.TreeTableView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.web.WebView?>
-<Tab xmlns:fx="http://javafx.com/fxml/1" fx:id="channelTabRoot" xmlns="http://javafx.com/javafx/8.0.60"
+<Tab xmlns:fx="http://javafx.com/fxml/1" fx:id="channelTabRoot" xmlns="http://javafx.com/javafx/8.0.141"
      fx:controller="com.faforever.client.chat.ChannelTabController">
   <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" onKeyReleased="#onKeyReleased">
     <children>
@@ -38,46 +38,23 @@
                 <children>
                     <JFXTextField fx:id="userSearchTextField" maxWidth="1.7976931348623157E308" minWidth="10.0"
                                   prefColumnCount="5" HBox.hgrow="ALWAYS"/>
-                  <ToggleButton fx:id="advancedUserFilter" mnemonicParsing="false" onAction="#onAdvancedUserFilter"
-                                styleClass="icon-button" text="" HBox.hgrow="NEVER"/>
+                    <ToggleButton fx:id="advancedUserFilter" mnemonicParsing="false" onAction="#onAdvancedUserFilter"
+                                  styleClass="icon-button" text="" HBox.hgrow="NEVER"/>
                 </children>
                         <VBox.margin>
                            <Insets left="10.0" />
                         </VBox.margin>
               </HBox>
-              <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="chat-user-list" VBox.vgrow="ALWAYS">
-                <content>
-                  <VBox fx:id="usersVBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
-                    <children>
-                      <TitledPane fx:id="moderatorsTitlePane" focusTraversable="false" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="channel-tab-moderators-title" text="%chat.category.moderators">
-                        <content>
-                          <VBox fx:id="moderatorsPane" minWidth="0.0" styleClass="channel-tab-moderators-users" />
-                        </content>
-                      </TitledPane>
-                      <TitledPane fx:id="friendsTitlePane" focusTraversable="false" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="channel-tab-friends-title" text="%chat.category.friends">
-                        <content>
-                          <VBox fx:id="friendsPane" minWidth="0.0" styleClass="channel-tab-friends-users" />
-                        </content>
-                      </TitledPane>
-                      <TitledPane fx:id="othersTitlePane" focusTraversable="false" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="channel-tab-others-title" text="%chat.category.others">
-                        <content>
-                          <VBox fx:id="othersPane" minWidth="0.0" styleClass="channel-tab-others-users" />
-                        </content>
-                      </TitledPane>
-                      <TitledPane fx:id="chatOnlyTitlePane" focusTraversable="false" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="channel-tab-chat-only-title" text="%chat.category.chatOnly">
-                        <content>
-                          <VBox fx:id="chatOnlyPane" minWidth="0.0" styleClass="channel-tab-irc-users" />
-                        </content>
-                      </TitledPane>
-                      <TitledPane fx:id="foesTitlePane" focusTraversable="false" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="channel-tab-foes-title" text="%chat.category.foes">
-                        <content>
-                          <VBox fx:id="foesPane" minWidth="0.0" styleClass="channel-tab-foes-users" />
-                        </content>
-                      </TitledPane>
-                    </children>
-                  </VBox>
-                </content>
-              </ScrollPane>
+                <TreeTableView fx:id="chatUserTableView" maxHeight="1.7976931348623157E308"
+                               maxWidth="1.7976931348623157E308" showRoot="false" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TreeTableColumn fx:id="chatUserColumn" editable="false" prefWidth="-1.0" resizable="false"
+                                         sortable="false" text="User"/>
+                    </columns>
+                    <columnResizePolicy>
+                        <TreeTableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                    </columnResizePolicy>
+                </TreeTableView>
             </children>
           </VBox>
         </items>

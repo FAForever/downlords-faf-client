@@ -59,7 +59,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   @Captor
   private ArgumentCaptor<MapChangeListener<String, Channel>> channelsListener;
   @Captor
-  private ArgumentCaptor<MapChangeListener<String, ChatUser>> onUsersListenerCaptor;
+  private ArgumentCaptor<MapChangeListener<String, ChatChannelUser>> onUsersListenerCaptor;
 
   private ChatController instance;
   private SimpleObjectProperty<ConnectionState> connectionState;
@@ -165,10 +165,10 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
     verify(chatService).joinChannel(TEST_CHANNEL_NAME);
     verify(chatService).addUsersListener(eq(TEST_CHANNEL_NAME), onUsersListenerCaptor.capture());
 
-    MapChangeListener.Change<? extends String, ? extends ChatUser> change = mock(MapChangeListener.Change.class);
+    MapChangeListener.Change<? extends String, ? extends ChatChannelUser> change = mock(MapChangeListener.Change.class);
     when(change.wasAdded()).thenReturn(true);
     // Error here is caused by a bug in IntelliJ
-    when(change.getValueAdded()).thenReturn(new ChatUser(TEST_USER_NAME, null));
+    when(change.getValueAdded()).thenReturn(new ChatChannelUser(TEST_USER_NAME, null));
     onUsersListenerCaptor.getValue().onChanged(change);
 
     CountDownLatch tabAddedLatch = new CountDownLatch(1);

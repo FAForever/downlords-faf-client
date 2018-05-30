@@ -223,7 +223,7 @@ public class ChatController extends AbstractViewController<Node> {
     }
   }
 
-  private void onUserJoinedChannel(String channelName, ChatUser chatUser) {
+  private void onUserJoinedChannel(String channelName, ChatChannelUser chatUser) {
     Platform.runLater(() -> {
       if (isCurrentUser(chatUser)) {
         onConnected();
@@ -231,7 +231,7 @@ public class ChatController extends AbstractViewController<Node> {
     });
   }
 
-  private boolean isCurrentUser(ChatUser chatUser) {
+  private boolean isCurrentUser(ChatChannelUser chatUser) {
     return chatUser.getUsername().equalsIgnoreCase(userService.getUsername());
   }
 

@@ -107,8 +107,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   private static final int IRC_SERVER_PORT = 123;
   private PircBotXChatService instance;
 
-  private ChatUser chatUser1;
-  private ChatUser chatUser2;
+  private ChatChannelUser chatUser1;
+  private ChatChannelUser chatUser2;
 
   @Mock
   private User user1;
@@ -215,8 +215,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     when(user2.getUserLevels(defaultChannel)).thenReturn(ImmutableSortedSet.of(UserLevel.VOICE));
 
 
-    chatUser1 = instance.getOrCreateChatUser(user1);
-    chatUser2 = instance.getOrCreateChatUser(user2);
+    chatUser1 = instance.getOrCreateChatUser(user1, channel);
+    chatUser2 = instance.getOrCreateChatUser(user2, channel);
 
     instance.postConstruct();
 
@@ -304,13 +304,13 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   private void joinChannel(org.pircbotx.Channel channel, User user) throws Exception {
-    CompletableFuture<ChatUser> future = listenForUserJoined(channel);
+    CompletableFuture<ChatChannelUser> future = listenForUserJoined(channel);
     firePircBotXEvent(createJoinEvent(channel, user));
     future.get(TIMEOUT, TIMEOUT_UNIT);
   }
 
-  private CompletableFuture<ChatUser> listenForUserJoined(org.pircbotx.Channel channel) {
-    CompletableFuture<ChatUser> future = new CompletableFuture<>();
+  private CompletableFuture<ChatChannelUser> listenForUserJoined(org.pircbotx.Channel channel) {
+    CompletableFuture<ChatChannelUser> future = new CompletableFuture<>();
     instance.addUsersListener(channel.getName(), change -> {
       if (change.wasAdded()) {
         future.complete(change.getValueAdded());
@@ -333,11 +333,11 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     joinChannel(defaultChannel, user1);
 
-    CompletableFuture<ChatUser> user2JoinedFuture = listenForUserJoined(defaultChannel);
+    CompletableFuture<ChatChannelUser> user2JoinedFuture = listenForUserJoined(defaultChannel);
     firePircBotXEvent(createJoinEvent(defaultChannel, user2));
     user2JoinedFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
-    CompletableFuture<ChatUser> user1PartFuture = listenForUserParted(defaultChannel);
+    CompletableFuture<ChatChannelUser> user1PartFuture = listenForUserParted(defaultChannel);
     firePircBotXEvent(createPartEvent(defaultChannel, user1));
     user1PartFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
@@ -345,8 +345,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     assertThat(channel.getUser(chatUser2.getUsername()), sameInstance(chatUser2));
   }
 
-  private CompletableFuture<ChatUser> listenForUserParted(org.pircbotx.Channel channel) {
-    CompletableFuture<ChatUser> future = new CompletableFuture<>();
+  private CompletableFuture<ChatChannelUser> listenForUserParted(org.pircbotx.Channel channel) {
+    CompletableFuture<ChatChannelUser> future = new CompletableFuture<>();
     instance.addUsersListener(channel.getName(), change -> {
       if (change.wasRemoved()) {
         future.complete(change.getValueRemoved());
@@ -376,13 +376,13 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   private void quit(User user) throws Exception {
-    CompletableFuture<ChatUser> future = listenForUserQuit();
+    CompletableFuture<ChatChannelUser> future = listenForUserQuit();
     firePircBotXEvent(createQuitEvent(user));
     future.get(TIMEOUT, TIMEOUT_UNIT);
   }
 
-  private CompletableFuture<ChatUser> listenForUserQuit() {
-    CompletableFuture<ChatUser> future = new CompletableFuture<>();
+  private CompletableFuture<ChatChannelUser> listenForUserQuit() {
+    CompletableFuture<ChatChannelUser> future = new CompletableFuture<>();
     instance.addUsersListener(DEFAULT_CHANNEL_NAME, change -> {
       if (change.wasRemoved()) {
         future.complete(change.getValueRemoved());
@@ -529,21 +529,21 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     joinChannel(defaultChannel, user1);
 
-    assertThat(chatUser1.getModeratorInChannels(), empty());
+    assertThat(chatUser1.getModerator(), empty());
 
     CompletableFuture<Set<String>> user1OpEvent = listenForUserOp(chatUser1);
     firePircBotXEvent(createOpEvent(defaultChannel, user1));
     user1OpEvent.get(TIMEOUT, TIMEOUT_UNIT);
 
-    ObservableSet<String> moderatorInChannels = chatUser1.getModeratorInChannels();
+    ObservableSet<String> moderatorInChannels = chatUser1.getModerator();
     assertThat(moderatorInChannels, hasSize(1));
     assertThat(moderatorInChannels.iterator().next(), is(DEFAULT_CHANNEL_NAME));
   }
 
   @SuppressWarnings("unchecked")
-  private CompletableFuture<Set<String>> listenForUserOp(ChatUser chatUser) {
+  private CompletableFuture<Set<String>> listenForUserOp(ChatChannelUser chatUser) {
     CompletableFuture<Set<String>> future = new CompletableFuture<>();
-    JavaFxUtil.addListener(chatUser.getModeratorInChannels(), (SetChangeListener<String>) change -> {
+    JavaFxUtil.addListener(chatUser.getModerator(), (SetChangeListener<String>) change -> {
       if (change.wasAdded()) {
         future.complete((Set<String>) change.getSet());
       }
@@ -622,11 +622,11 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     joinChannel(defaultChannel, user1);
     joinChannel(otherChannel, user2);
 
-    List<ChatUser> usersInDefaultChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUsers();
+    List<ChatChannelUser> usersInDefaultChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUsers();
     assertThat(usersInDefaultChannel, hasSize(1));
     assertThat(usersInDefaultChannel.iterator().next(), sameInstance(chatUser1));
 
-    List<ChatUser> usersInOtherChannel = instance.getOrCreateChannel(OTHER_CHANNEL_NAME).getUsers();
+    List<ChatChannelUser> usersInOtherChannel = instance.getOrCreateChannel(OTHER_CHANNEL_NAME).getUsers();
     assertThat(usersInOtherChannel, hasSize(1));
     assertThat(usersInOtherChannel.iterator().next(), sameInstance(chatUser2));
   }
@@ -639,7 +639,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     Channel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
 
-    List<ChatUser> users = channel.getUsers();
+    List<ChatChannelUser> users = channel.getUsers();
     assertThat(users, hasSize(2));
     assertThat(users, containsInAnyOrder(chatUser1, chatUser2));
   }
@@ -648,7 +648,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   public void testAddChannelUserListListener() throws Exception {
     connect();
     @SuppressWarnings("unchecked")
-    MapChangeListener<String, ChatUser> listener = mock(MapChangeListener.class);
+    MapChangeListener<String, ChatChannelUser> listener = mock(MapChangeListener.class);
 
     instance.addUsersListener(DEFAULT_CHANNEL_NAME, listener);
 
@@ -687,8 +687,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   public void testUsersListenerJoinPart() throws Exception {
     connect();
 
-    CompletableFuture<ChatUser> userJoinedFuture = listenForUserJoined(defaultChannel);
-    CompletableFuture<ChatUser> userPartFuture = listenForUserParted(defaultChannel);
+    CompletableFuture<ChatChannelUser> userJoinedFuture = listenForUserJoined(defaultChannel);
+    CompletableFuture<ChatChannelUser> userPartFuture = listenForUserParted(defaultChannel);
 
     firePircBotXEvent(createJoinEvent(defaultChannel, user1));
     assertThat(userJoinedFuture.get(TIMEOUT, TIMEOUT_UNIT), is(chatUser1));
@@ -701,11 +701,11 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   public void testUsersListenerJoinQuit() throws Exception {
     connect();
 
-    CompletableFuture<ChatUser> userJoinedFuture = listenForUserJoined(defaultChannel);
+    CompletableFuture<ChatChannelUser> userJoinedFuture = listenForUserJoined(defaultChannel);
     firePircBotXEvent(createJoinEvent(defaultChannel, user1));
     assertThat(userJoinedFuture.get(TIMEOUT, TIMEOUT_UNIT), is(chatUser1));
 
-    CompletableFuture<ChatUser> userQuitFuture = listenForUserParted(defaultChannel);
+    CompletableFuture<ChatChannelUser> userQuitFuture = listenForUserParted(defaultChannel);
     firePircBotXEvent(createQuitEvent(user1));
     assertThat(userQuitFuture.get(TIMEOUT, TIMEOUT_UNIT), is(chatUser1));
   }
@@ -768,8 +768,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCreateOrGetChatUserStringPopulatedMap() throws Exception {
-    ChatUser addedUser = instance.getOrCreateChatUser(chatUser1.getUsername());
-    ChatUser returnedUser = instance.getOrCreateChatUser(chatUser1.getUsername());
+    ChatChannelUser addedUser = instance.getOrCreateChatUser(chatUser1.getUsername(), );
+    ChatChannelUser returnedUser = instance.getOrCreateChatUser(chatUser1.getUsername(), );
 
     assertThat(returnedUser, is(addedUser));
     assertEquals(returnedUser, addedUser);
@@ -777,8 +777,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCreateOrGetChatUserUserObjectPopulatedMap() throws Exception {
-    ChatUser addedUser = instance.getOrCreateChatUser(user1);
-    ChatUser returnedUser = instance.getOrCreateChatUser(user1);
+    ChatChannelUser addedUser = instance.getOrCreateChatUser(user1, channel);
+    ChatChannelUser returnedUser = instance.getOrCreateChatUser(user1, channel);
 
     assertThat(returnedUser, is(addedUser));
     assertEquals(returnedUser, addedUser);
@@ -786,7 +786,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void getOrCreateChatUserFoeNoNotification() throws Exception {
-    instance.getOrCreateChatUser(CHAT_USER_NAME);
+    instance.getOrCreateChatUser(CHAT_USER_NAME, );
 
     verify(notificationService, never()).addNotification(any(TransientNotification.class));
   }
@@ -804,8 +804,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     firePircBotXEvent(createJoinEvent(defaultChannel, moderator));
 
-    ChatUser chatUserModerator = instance.getOrCreateChatUser(moderator.getNick());
-    assertTrue(chatUserModerator.moderatorInChannelsProperty().getValue().contains(DEFAULT_CHANNEL_NAME));
+    ChatChannelUser chatUserModerator = instance.getOrCreateChatUser(moderator.getNick(), );
+    assertTrue(chatUserModerator.moderatorProperty().getValue().contains(DEFAULT_CHANNEL_NAME));
   }
 
   private ChannelSnapshot channelSnapshot(org.pircbotx.Channel channel) {

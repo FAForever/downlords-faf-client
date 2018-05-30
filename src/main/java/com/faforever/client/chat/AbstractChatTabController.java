@@ -15,7 +15,6 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
@@ -70,7 +69,6 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.faforever.client.player.SocialStatus.FOE;
 import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
 import static com.faforever.client.theme.UiService.CHAT_SECTION_COMPACT;
 import static com.faforever.client.theme.UiService.CHAT_SECTION_EXTENDED;
@@ -626,27 +624,9 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     return playerOptional.get().getSocialStatus().getCssClass();
   }
 
-  @VisibleForTesting
-  String getInlineStyle(String username) {
-    ChatUser chatUser = chatService.getOrCreateChatUser(username);
-
-    Optional<Player> playerOptional = playerService.getPlayerForUsername(username);
-
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    String color = "";
-    String display = "";
-
-    if (chatPrefs.getHideFoeMessages() && playerOptional.isPresent() && playerOptional.get().getSocialStatus() == FOE) {
-      display = "display: none;";
-    } else {
-      ChatColorMode chatColorMode = chatPrefs.getChatColorMode();
-      if ((chatColorMode == ChatColorMode.CUSTOM || chatColorMode == ChatColorMode.RANDOM)
-          && chatUser.getColor() != null) {
-        color = createInlineStyleFromColor(chatUser.getColor());
-      }
-    }
-
-    return String.format("%s%s", color, display);
+  protected String getInlineStyle(String username) {
+    // To be overridden by subclasses
+    return "";
   }
 
   @VisibleForTesting

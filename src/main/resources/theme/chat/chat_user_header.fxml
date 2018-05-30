@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<?import javafx.scene.control.Label?>
+<Label xmlns:fx="http://javafx.com/fxml/1" fx:id="titleLabel"
+       fx:controller="com.faforever.client.chat.ChatUserHeaderController" text="Label"
+       xmlns="http://javafx.com/javafx/8.0.141"/>

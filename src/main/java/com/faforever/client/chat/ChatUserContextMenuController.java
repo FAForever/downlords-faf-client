@@ -90,7 +90,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public ContextMenu chatUserContextMenuRoot;
   public MenuItem showUserInfo;
   public JFXButton removeCustomColorButton;
-  private ChatUser chatUser;
+  private ChatChannelUser chatUser;
 
   @SuppressWarnings("FieldCanBeLocal")
   private ChangeListener<Player> playerChangeListener;
@@ -139,7 +139,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     return chatUserContextMenuRoot;
   }
 
-  public void setChatUser(ChatUser chatUser) {
+  public void setChatUser(ChatChannelUser chatUser) {
     this.chatUser = chatUser;
     showUserInfo.visibleProperty().bind(chatUser.playerProperty().isNotNull());
 

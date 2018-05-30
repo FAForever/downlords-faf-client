@@ -13,7 +13,7 @@ import java.util.List;
 
 public class Channel {
 
-  private final ObservableMap<String, ChatUser> users;
+  private final ObservableMap<String, ChatChannelUser> users;
   private final StringProperty topic;
   private String name;
 
@@ -39,11 +39,11 @@ public class Channel {
     users.remove(username);
   }
 
-  public void addUsers(List<ChatUser> users) {
+  public void addUsers(List<ChatChannelUser> users) {
     users.forEach(user -> this.users.put(user.getUsername(), user));
   }
 
-  public void addUser(ChatUser chatUser) {
+  public void addUser(ChatChannelUser chatUser) {
     users.put(chatUser.getUsername(), chatUser);
   }
 
@@ -51,29 +51,29 @@ public class Channel {
     users.clear();
   }
 
-  public void addUsersListeners(MapChangeListener<String, ChatUser> listener) {
+  public void addUsersListeners(MapChangeListener<String, ChatChannelUser> listener) {
     JavaFxUtil.addListener(users, listener);
   }
 
-  public void removeUserListener(MapChangeListener<String, ChatUser> listener) {
+  public void removeUserListener(MapChangeListener<String, ChatChannelUser> listener) {
     users.removeListener(listener);
   }
 
-  public void setModerator(String username) {
-    ChatUser chatUser = users.get(username);
+  public void addModerator(String username) {
+    ChatChannelUser chatUser = users.get(username);
     if (chatUser != null) {
-      chatUser.getModeratorInChannels().add(name);
+      chatUser.setModerator(true);
     }
   }
 
   /**
    * Returns an unmodifiable copy of the current users.
    */
-  public List<ChatUser> getUsers() {
+  public List<ChatChannelUser> getUsers() {
     return Collections.unmodifiableList(new ArrayList<>(users.values()));
   }
 
-  public ChatUser getUser(String username) {
+  public ChatChannelUser getUser(String username) {
     return users.get(username);
   }
 
