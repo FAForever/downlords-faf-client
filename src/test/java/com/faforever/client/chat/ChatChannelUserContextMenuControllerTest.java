@@ -45,7 +45,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
+public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   private static final String TEST_USER_NAME = "junit";
 
   @Mock

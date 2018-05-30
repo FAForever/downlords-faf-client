@@ -45,7 +45,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ChatUserItemControllerTest extends AbstractPlainJavaFxTest {
+public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
 
   private ChatUserItemController instance;
   @Mock
@@ -75,11 +75,11 @@ public class ChatUserItemControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ChatUserItemController(preferencesService, avatarService, countryFlagService, chatService, i18n, uiService, joinGameHelper, eventBus, clanService, playerService, platformService, timeService);
+    instance = new ChatUserItemController(preferencesService, avatarService, countryFlagService, i18n, uiService, joinGameHelper, eventBus, clanService, playerService, platformService, timeService);
 
     Preferences preferences = new Preferences();
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(chatService.getOrCreateChatUser("junit")).thenReturn(new ChatUser("junit", null));
+    when(chatService.getOrCreateChatUser("junit", )).thenReturn(new ChatChannelUser("junit", null));
     when(i18n.get(eq("user.status.hosting"), anyString())).thenReturn("Hosting");
     when(i18n.get(eq("user.status.waiting"), anyString())).thenReturn("Waiting");
     when(i18n.get(eq("user.status.playing"), anyString())).thenReturn("Playing");

@@ -2,7 +2,7 @@ package com.faforever.client.player;
 
 import com.faforever.client.api.dto.GlobalRating;
 import com.faforever.client.api.dto.Ladder1v1Rating;
-import com.faforever.client.chat.ChatUser;
+import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.remote.domain.GameStatus;
@@ -44,7 +44,7 @@ public class Player {
   private final FloatProperty leaderboardRatingMean;
   private final ObjectProperty<Game> game;
   private final ObjectProperty<PlayerStatus> status;
-  private final ObjectProperty<ChatUser> chatUser;
+  private final ObservableList<ChatChannelUser> chatChannelUsers;
   private final IntegerProperty numberOfGames;
   private final ObjectProperty<Instant> idleSince;
   private final ObservableList<NameRecord> names;
@@ -74,7 +74,7 @@ public class Player {
     leaderboardRatingDeviation = new SimpleFloatProperty();
     leaderboardRatingMean = new SimpleFloatProperty();
     status = new SimpleObjectProperty<>(PlayerStatus.IDLE);
-    chatUser = new SimpleObjectProperty<>();
+    chatChannelUsers = FXCollections.observableArrayList();
     game = new SimpleObjectProperty<>();
     numberOfGames = new SimpleIntegerProperty();
     socialStatus = new SimpleObjectProperty<>(OTHER);
@@ -310,16 +310,8 @@ public class Player {
     return leaderboardRatingDeviation;
   }
 
-  public Optional<ChatUser> getChatUser() {
-    return Optional.ofNullable(chatUser.get());
-  }
-
-  public void setChatUser(ChatUser chatUser) {
-    this.chatUser.set(chatUser);
-  }
-
-  public ObjectProperty<ChatUser> chatUserProperty() {
-    return chatUser;
+  public ObservableList<ChatChannelUser> getChatChannelUsers() {
+    return chatChannelUsers;
   }
 
   public void updateFromPlayerInfo(com.faforever.client.remote.domain.Player player) {

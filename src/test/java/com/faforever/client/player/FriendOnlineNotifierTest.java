@@ -41,7 +41,7 @@ public class FriendOnlineNotifierTest {
     preferencesService.getPreferences().getNotification().setFriendOnlineSoundEnabled(false);
     preferencesService.getPreferences().getNotification().setFriendOnlineToastEnabled(false);
 
-    instance.onUserOnline(new UserOnlineEvent("axel12"));
+    instance.onUserOnline(new PlayerOnlineEvent(new Player("axel12")));
 
     Mockito.verifyZeroInteractions(notificationService, audioService);
   }

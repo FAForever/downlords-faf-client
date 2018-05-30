@@ -7,11 +7,11 @@ import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
+import com.faforever.client.player.ChatUserJoinedChannelEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerOnlineEvent;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.player.UserOfflineEvent;
-import com.faforever.client.player.UserOnlineEvent;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
@@ -74,6 +74,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -105,7 +106,8 @@ public class PircBotXChatService implements ChatService {
    * Maps channels by name.
    */
   private final ObservableMap<String, Channel> channels;
-  private final ObservableMap<String, ChatUser> chatUsersByName;
+  /** Key is username plus channel, e.g. {@code user#channel}. */
+  private final ObservableMap<String, ChatChannelUser> chatChannelUsersByChannelAndName;
   private final SimpleIntegerProperty unreadMessagesCount;
 
   private final PreferencesService preferencesService;
@@ -138,7 +140,8 @@ public class PircBotXChatService implements ChatService {
   @Inject
   public PircBotXChatService(PreferencesService preferencesService, UserService userService, TaskService taskService,
                              FafService fafService, I18n i18n, PircBotXFactory pircBotXFactory,
-                             ThreadPoolExecutor threadPoolExecutor, EventBus eventBus,
+                             @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") ThreadPoolExecutor threadPoolExecutor,
+                             EventBus eventBus,
                              ClientProperties clientProperties) {
     this.preferencesService = preferencesService;
     this.userService = userService;
@@ -158,7 +161,7 @@ public class PircBotXChatService implements ChatService {
     connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
     eventListeners = new ConcurrentHashMap<>();
     channels = observableHashMap();
-    chatUsersByName = observableHashMap();
+    chatChannelUsersByChannelAndName = observableHashMap();
     unreadMessagesCount = new SimpleIntegerProperty();
     identifiedLatch = new CountDownLatch(1);
   }
@@ -179,8 +182,8 @@ public class PircBotXChatService implements ChatService {
     addEventListener(NoticeEvent.class, this::onNotice);
     addEventListener(ConnectEvent.class, event -> connectionState.set(ConnectionState.CONNECTED));
     addEventListener(DisconnectEvent.class, event -> connectionState.set(ConnectionState.DISCONNECTED));
-    addEventListener(UserListEvent.class, event -> onChatUserList(event.getChannel().getName(), chatUsers(event.getUsers())));
-    addEventListener(JoinEvent.class, event -> onUserJoinedChannel(event.getChannel().getName(), getOrCreateChatUser(event.getUser())));
+    addEventListener(UserListEvent.class, event -> onChatUserList(event.getChannel().getName(), chatUsers(event.getUsers(), event.getChannel().getName())));
+    addEventListener(JoinEvent.class, event -> onUserJoinedChannel(event.getChannel().getName(), getOrCreateChatUser(event.getUser(), event.getChannel().getName())));
     addEventListener(PartEvent.class, event -> onChatUserLeftChannel(event.getChannel().getName(), event.getUser().getNick()));
     addEventListener(QuitEvent.class, event -> onChatUserQuit(event.getUser().getNick()));
     addEventListener(TopicEvent.class, event -> getOrCreateChannel(event.getChannel().getName()).setTopic(event.getTopic()));
@@ -200,22 +203,22 @@ public class PircBotXChatService implements ChatService {
         (MapChangeListener<? super String, ? super Color>) change -> preferencesService.store()
     );
     JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), (observable, oldValue, newValue) -> {
-      synchronized (chatUsersByName) {
+      synchronized (chatChannelUsersByChannelAndName) {
         switch (newValue) {
           case CUSTOM:
-            chatUsersByName.values().stream()
+            chatChannelUsersByChannelAndName.values().stream()
                 .filter(chatUser -> chatPrefs.getUserToColor().containsKey(chatUser.getUsername().toLowerCase(US)))
                 .forEach(chatUser -> chatUser.setColor(chatPrefs.getUserToColor().get(chatUser.getUsername().toLowerCase(US))));
             break;
 
           case RANDOM:
-            for (ChatUser chatUser : chatUsersByName.values()) {
+            for (ChatChannelUser chatUser : chatChannelUsersByChannelAndName.values()) {
               chatUser.setColor(ColorGeneratorUtil.generateRandomColor(chatUser.getUsername().hashCode()));
             }
             break;
 
           default:
-            for (ChatUser chatUser : chatUsersByName.values()) {
+            for (ChatChannelUser chatUser : chatChannelUsersByChannelAndName.values()) {
               chatUser.setColor(null);
             }
         }
@@ -298,22 +301,17 @@ public class PircBotXChatService implements ChatService {
     eventListeners.get(eventClass).add(listener);
   }
 
-  private void onChatUserList(String channelName, List<ChatUser> users) {
+  private void onChatUserList(String channelName, List<ChatChannelUser> users) {
     getOrCreateChannel(channelName).addUsers(users);
   }
 
-  private List<ChatUser> chatUsers(ImmutableSortedSet<User> users) {
-    return users.stream().map(this::getOrCreateChatUser).collect(Collectors.toList());
+  private List<ChatChannelUser> chatUsers(ImmutableSortedSet<User> users, String channel) {
+    return users.stream().map(user -> getOrCreateChatUser(user, channel)).collect(Collectors.toList());
   }
 
-  private void onUserJoinedChannel(String channelName, ChatUser chatUser) {
+  private void onUserJoinedChannel(String channelName, ChatChannelUser chatUser) {
     getOrCreateChannel(channelName).addUser(chatUser);
-    // This should actually be posted by the player service, but since the server doesn't yet tell us about users
-    // leaving, have to rely on IRC for that. To keep things consistent (and avoid redundant events) we chose to rely
-    // on IRC, for now. As soon as the server informs about leaving users, we'll rely on the server instead.
-    if (defaultChannelName.equals(channelName)) {
-      eventBus.post(new UserOnlineEvent(chatUser.getUsername()));
-    }
+    eventBus.post(new ChatUserJoinedChannelEvent(chatUser));
   }
 
   private void onChatUserLeftChannel(String channelName, String username) {
@@ -328,15 +326,17 @@ public class PircBotXChatService implements ChatService {
 
   private void onChatUserQuit(String username) {
     synchronized (channels) {
-      channels.values().forEach(channel -> channel.removeUser(username));
-    }
-    synchronized (chatUsersByName) {
-      chatUsersByName.remove(username);
+      synchronized (chatChannelUsersByChannelAndName) {
+        channels.values().forEach(channel -> {
+          channel.removeUser(username);
+          chatChannelUsersByChannelAndName.remove(username + channel.getName());
+        });
+      }
     }
   }
 
   private void onModeratorSet(String channelName, String username) {
-    getOrCreateChannel(channelName).setModerator(username);
+    getOrCreateChannel(channelName).addModerator(username);
   }
 
   private void init() {
@@ -422,7 +422,7 @@ public class PircBotXChatService implements ChatService {
     }
     logger.debug("Received private message: {}", event);
 
-    ChatUser sender = getOrCreateChatUser(user.getNick());
+    ChatChannelUser sender = getOrCreateChatUser(user.getNick(), event.getUser().getNick());
     if (sender != null
         && sender.getPlayer().isPresent()
         && sender.getPlayer().get().getSocialStatus() == SocialStatus.FOE
@@ -494,10 +494,10 @@ public class PircBotXChatService implements ChatService {
   }
 
   @Override
-  public ChatUser getOrCreateChatUser(String username) {
-    synchronized (chatUsersByName) {
+  public ChatChannelUser getOrCreateChatUser(String username, String channel) {
+    synchronized (chatChannelUsersByChannelAndName) {
       String lowerUsername = username.toLowerCase(US);
-      if (!chatUsersByName.containsKey(lowerUsername)) {
+      if (!chatChannelUsersByChannelAndName.containsKey(lowerUsername)) {
         ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
         Color color = null;
         if (chatPrefs.getChatColorMode() == CUSTOM && chatPrefs.getUserToColor().containsKey(lowerUsername)) {
@@ -506,21 +506,21 @@ public class PircBotXChatService implements ChatService {
           color = ColorGeneratorUtil.generateRandomColor(lowerUsername.hashCode());
         }
 
-        chatUsersByName.put(lowerUsername, new ChatUser(username, color));
+        chatChannelUsersByChannelAndName.put(lowerUsername, new ChatChannelUser(username, color));
       }
-      return chatUsersByName.get(lowerUsername);
+      return chatChannelUsersByChannelAndName.get(lowerUsername);
     }
   }
 
   @Override
-  public void addUsersListener(String channelName, MapChangeListener<String, ChatUser> listener) {
+  public void addUsersListener(String channelName, MapChangeListener<String, ChatChannelUser> listener) {
     getOrCreateChannel(channelName).addUsersListeners(listener);
   }
 
   @Override
-  public void addChatUsersByNameListener(MapChangeListener<String, ChatUser> listener) {
-    synchronized (chatUsersByName) {
-      JavaFxUtil.addListener(chatUsersByName, listener);
+  public void addChatUsersByNameListener(MapChangeListener<String, ChatChannelUser> listener) {
+    synchronized (chatChannelUsersByChannelAndName) {
+      JavaFxUtil.addListener(chatChannelUsersByChannelAndName, listener);
     }
   }
 
@@ -532,7 +532,7 @@ public class PircBotXChatService implements ChatService {
   }
 
   @Override
-  public void removeUsersListener(String channelName, MapChangeListener<String, ChatUser> listener) {
+  public void removeUsersListener(String channelName, MapChangeListener<String, ChatChannelUser> listener) {
     getOrCreateChannel(channelName).removeUserListener(listener);
   }
 
@@ -581,23 +581,24 @@ public class PircBotXChatService implements ChatService {
   }
 
   @Override
-  public ChatUser getOrCreateChatUser(User user) {
-    synchronized (chatUsersByName) {
+  public ChatChannelUser getOrCreateChatUser(User user, String channel) {
+    synchronized (chatChannelUsersByChannelAndName) {
       String username = user.getNick();
       String lowerUsername = username.toLowerCase(US);
-      if (!chatUsersByName.containsKey(lowerUsername)) {
+      String key = lowerUsername + channel;
+      if (!chatChannelUsersByChannelAndName.containsKey(key)) {
         ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
         Color color = null;
 
         if (chatPrefs.getChatColorMode() == CUSTOM && chatPrefs.getUserToColor().containsKey(lowerUsername)) {
-          color = chatPrefs.getUserToColor().get(lowerUsername);
+          color = chatPrefs.getUserToColor().get(key);
         } else if (chatPrefs.getChatColorMode() == RANDOM) {
           color = ColorGeneratorUtil.generateRandomColor(lowerUsername.hashCode());
         }
 
-        chatUsersByName.put(lowerUsername, ChatUser.fromIrcUser(user, color));
+        chatChannelUsersByChannelAndName.put(key, ChatChannelUser.fromIrcUser(user, color, channel));
       }
-      return chatUsersByName.get(lowerUsername);
+      return chatChannelUsersByChannelAndName.get(key);
     }
   }
 
@@ -631,9 +632,13 @@ public class PircBotXChatService implements ChatService {
   public void onPlayerOnline(PlayerOnlineEvent event) {
     Player player = event.getPlayer();
 
-    ChatUser chatUser = getOrCreateChatUser(player.getUsername());
-    player.setChatUser(chatUser);
-    chatUser.setPlayer(player);
+    List<ChatChannelUser> channelUsers = channels.values().stream()
+        .map(channel -> chatChannelUsersByChannelAndName.get(player.getUsername() + channel.getName()))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+
+    player.getChatChannelUsers().addAll(channelUsers);
+    channelUsers.forEach(chatChannelUser -> chatChannelUser.setPlayer(player));
   }
 
   interface ChatEventListener<T> {

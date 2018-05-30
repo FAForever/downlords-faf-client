@@ -70,7 +70,7 @@ public class PrivateUserInfoController implements Controller<Node> {
     gameDetailWrapper.managedProperty().bind(gameDetailWrapper.visibleProperty());
   }
 
-  public void setChatUser(ChatUser chatUser) {
+  public void setChatUser(ChatChannelUser chatUser) {
     Optional<Player> playerOptional = chatUser.getPlayer();
 
     if (playerOptional.isPresent()) {
@@ -80,7 +80,7 @@ public class PrivateUserInfoController implements Controller<Node> {
     }
   }
 
-  private void displayChatUserInfo(ChatUser chatUser) {
+  private void displayChatUserInfo(ChatChannelUser chatUser) {
     usernameLabel.textProperty().bind(chatUser.usernameProperty());
     userImageView.setVisible(false);
     countryLabel.setVisible(false);

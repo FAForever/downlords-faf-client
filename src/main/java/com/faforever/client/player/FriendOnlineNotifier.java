@@ -47,31 +47,29 @@ public class FriendOnlineNotifier {
   }
 
   @Subscribe
-  public void onUserOnline(UserOnlineEvent event) {
+  public void onUserOnline(PlayerOnlineEvent event) {
     NotificationsPrefs notification = preferencesService.getPreferences().getNotification();
-    String username = event.getUsername();
+    Player player = event.getPlayer();
 
-    playerService.getPlayerForUsername(username).ifPresent(player -> {
-      if (player.getSocialStatus() != SocialStatus.FRIEND) {
-        return;
-      }
+    if (player.getSocialStatus() != SocialStatus.FRIEND) {
+      return;
+    }
 
-      if (notification.isFriendOnlineSoundEnabled()) {
-        audioService.playFriendOnlineSound();
-      }
+    if (notification.isFriendOnlineSoundEnabled()) {
+      audioService.playFriendOnlineSound();
+    }
 
-      if (notification.isFriendOnlineToastEnabled()) {
-        notificationService.addNotification(
-            new TransientNotification(
-                i18n.get("friend.nowOnlineNotification.title", username),
-                i18n.get("friend.nowOnlineNotification.action"),
-                IdenticonUtil.createIdenticon(player.getId()),
-                actionEvent -> {
-                  eventBus.post(new NavigateEvent(NavigationItem.CHAT));
-                  eventBus.post(new InitiatePrivateChatEvent(username));
-                }
-            ));
-      }
-    });
+    if (notification.isFriendOnlineToastEnabled()) {
+      notificationService.addNotification(
+          new TransientNotification(
+              i18n.get("friend.nowOnlineNotification.title", player.getUsername()),
+              i18n.get("friend.nowOnlineNotification.action"),
+              IdenticonUtil.createIdenticon(player.getId()),
+              actionEvent -> {
+                eventBus.post(new NavigateEvent(NavigationItem.CHAT));
+                eventBus.post(new InitiatePrivateChatEvent(player.getUsername()));
+              }
+          ));
+    }
   }
 }

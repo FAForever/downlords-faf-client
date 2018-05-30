@@ -14,8 +14,8 @@ import javafx.scene.Node;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.TreeItem;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -63,10 +63,10 @@ public class UserFilterController implements Controller<Node> {
   }
 
   private void filterUsers() {
-    Map<String, Map<Pane, ChatUserItemController>> userToChatUserControls = channelTabController.getUserToChatUserControls();
+    Map<String, Map<TreeItem<ChatUserTreeItem>, ChatUserItemController>> userToChatUserControls = channelTabController.getUserToChatUserControls();
     synchronized (userToChatUserControls) {
-      for (Map<Pane, ChatUserItemController> chatUserControlMap : userToChatUserControls.values()) {
-        for (Map.Entry<Pane, ChatUserItemController> chatUserControlEntry : chatUserControlMap.entrySet()) {
+      for (Map<TreeItem<ChatUserTreeItem>, ChatUserItemController> chatUserControlMap : userToChatUserControls.values()) {
+        for (Map.Entry<TreeItem<ChatUserTreeItem>, ChatUserItemController> chatUserControlEntry : chatUserControlMap.entrySet()) {
           ChatUserItemController chatUserItemController = chatUserControlEntry.getValue();
           chatUserItemController.setVisible(filterUser(chatUserItemController));
         }
@@ -96,7 +96,7 @@ public class UserFilterController implements Controller<Node> {
       return true;
     }
 
-    ChatUser chatUser = chatUserItemController.getChatUser();
+    ChatChannelUser chatUser = chatUserItemController.getChatUser();
     Optional<Player> playerOptional = chatUser.getPlayer();
 
     if (!playerOptional.isPresent()) {
@@ -119,7 +119,7 @@ public class UserFilterController implements Controller<Node> {
       return true;
     }
 
-    ChatUser chatUser = chatUserItemController.getChatUser();
+    ChatChannelUser chatUser = chatUserItemController.getChatUser();
     Optional<Player> optionalPlayer = chatUser.getPlayer();
 
     if (!optionalPlayer.isPresent()) {
@@ -152,7 +152,7 @@ public class UserFilterController implements Controller<Node> {
       return true;
     }
 
-    ChatUser chatUser = chatUserItemController.getChatUser();
+    ChatChannelUser chatUser = chatUserItemController.getChatUser();
     Optional<Player> playerOptional = chatUser.getPlayer();
 
     if (!playerOptional.isPresent()) {

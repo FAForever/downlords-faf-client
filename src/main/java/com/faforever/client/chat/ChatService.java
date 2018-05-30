@@ -22,15 +22,15 @@ public interface ChatService {
    */
   Channel getOrCreateChannel(String channelName);
 
-  ChatUser getOrCreateChatUser(String username);
+  ChatChannelUser getOrCreateChatUser(String username, String channel);
 
-  void addUsersListener(String channelName, MapChangeListener<String, ChatUser> listener);
+  void addUsersListener(String channelName, MapChangeListener<String, ChatChannelUser> listener);
 
-  void addChatUsersByNameListener(MapChangeListener<String, ChatUser> listener);
+  void addChatUsersByNameListener(MapChangeListener<String, ChatChannelUser> listener);
 
   void addChannelsListener(MapChangeListener<String, Channel> listener);
 
-  void removeUsersListener(String channelName, MapChangeListener<String, ChatUser> listener);
+  void removeUsersListener(String channelName, MapChangeListener<String, ChatChannelUser> listener);
 
   void leaveChannel(String channelName);
 
@@ -42,7 +42,7 @@ public interface ChatService {
 
   void close();
 
-  ChatUser getOrCreateChatUser(User user);
+  ChatChannelUser getOrCreateChatUser(User user, String channel);
 
   ReadOnlyObjectProperty<ConnectionState> connectionStateProperty();
 
