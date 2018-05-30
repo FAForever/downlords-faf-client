@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.JoinGameHelper;
@@ -21,6 +22,8 @@ import com.google.common.eventbus.EventBus;
 import com.jfoenix.controls.JFXButton;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ColorPicker;
@@ -47,10 +50,10 @@ import java.net.URL;
 import java.util.Objects;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
-import static com.faforever.client.chat.SocialStatus.FOE;
-import static com.faforever.client.chat.SocialStatus.FRIEND;
-import static com.faforever.client.chat.SocialStatus.SELF;
 import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
+import static com.faforever.client.player.SocialStatus.FOE;
+import static com.faforever.client.player.SocialStatus.FRIEND;
+import static com.faforever.client.player.SocialStatus.SELF;
 import static java.util.Locale.US;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -58,7 +61,6 @@ import static java.util.Locale.US;
 public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private final ChatService chatService;
   private final PreferencesService preferencesService;
   private final PlayerService playerService;
   private final ReplayService replayService;
@@ -88,13 +90,15 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public ContextMenu chatUserContextMenuRoot;
   public MenuItem showUserInfo;
   public JFXButton removeCustomColorButton;
-  private Player player;
+  private ChatUser chatUser;
 
-  public ChatUserContextMenuController(ChatService chatService, PreferencesService preferencesService,
+  @SuppressWarnings("FieldCanBeLocal")
+  private ChangeListener<Player> playerChangeListener;
+
+  public ChatUserContextMenuController(PreferencesService preferencesService,
                                        PlayerService playerService, ReplayService replayService,
                                        NotificationService notificationService, I18n i18n, EventBus eventBus,
                                        JoinGameHelper joinGameHelper, AvatarService avatarService, UiService uiService) {
-    this.chatService = chatService;
     this.preferencesService = preferencesService;
     this.playerService = playerService;
     this.replayService = replayService;
@@ -135,23 +139,22 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     return chatUserContextMenuRoot;
   }
 
-  public void setPlayer(Player player) {
-    this.player = player;
-    showUserInfo.visibleProperty().bind(Bindings.createBooleanBinding(() -> player.getId() > 0, player.idProperty()));
+  public void setChatUser(ChatUser chatUser) {
+    this.chatUser = chatUser;
+    showUserInfo.visibleProperty().bind(chatUser.playerProperty().isNotNull());
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
-    String lowerCaseUsername = player.getUsername().toLowerCase(US);
+    String lowerCaseUsername = chatUser.getUsername().toLowerCase(US);
     colorPicker.setValue(chatPrefs.getUserToColor().getOrDefault(lowerCaseUsername, null));
 
     colorPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
-      String lowerUsername = player.getUsername().toLowerCase(US);
+      String lowerUsername = chatUser.getUsername().toLowerCase(US);
       if (newValue == null) {
         chatPrefs.getUserToColor().remove(lowerUsername);
       } else {
         chatPrefs.getUserToColor().put(lowerUsername, newValue);
       }
-      ChatUser chatUser = chatService.getOrCreateChatUser(lowerUsername);
       chatUser.setColor(newValue);
       chatUserContextMenuRoot.hide();
     });
@@ -161,29 +164,36 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     colorPickerMenuItem.visibleProperty().bind(chatPrefs.chatColorModeProperty()
         .isEqualTo(CUSTOM));
 
-    if (player.getSocialStatus() == SELF) {
-      loadAvailableAvatars();
-    }
 
-    kickItem.visibleProperty().bind(player.socialStatusProperty().isNotEqualTo(SELF));
-    banItem.visibleProperty().bind(player.socialStatusProperty().isNotEqualTo(SELF));
-    moderatorActionSeparator.visibleProperty().bind(player.socialStatusProperty().isNotEqualTo(SELF));
+    playerChangeListener = (observable, oldValue, newValue) -> {
+      if (newValue == null) {
+        return;
+      }
 
-    sendPrivateMessageItem.visibleProperty().bind(player.socialStatusProperty().isNotEqualTo(SELF));
+      if (newValue.getSocialStatus() == SELF) {
+        loadAvailableAvatars(newValue);
+      }
 
-    addFriendItem.visibleProperty().bind(
-        player.socialStatusProperty().isNotEqualTo(FRIEND).and(player.socialStatusProperty().isNotEqualTo(SELF))
-    );
-    removeFriendItem.visibleProperty().bind(player.socialStatusProperty().isEqualTo(FRIEND));
-    addFoeItem.visibleProperty().bind(player.socialStatusProperty().isNotEqualTo(FOE).and(player.socialStatusProperty().isNotEqualTo(SELF)));
-    removeFoeItem.visibleProperty().bind(player.socialStatusProperty().isEqualTo(FOE));
+      kickItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF));
+      banItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF));
+      moderatorActionSeparator.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF));
+      sendPrivateMessageItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF));
+      addFriendItem.visibleProperty().bind(
+          newValue.socialStatusProperty().isNotEqualTo(FRIEND).and(newValue.socialStatusProperty().isNotEqualTo(SELF))
+      );
+      removeFriendItem.visibleProperty().bind(newValue.socialStatusProperty().isEqualTo(FRIEND));
+      addFoeItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(FOE).and(newValue.socialStatusProperty().isNotEqualTo(SELF)));
+      removeFoeItem.visibleProperty().bind(newValue.socialStatusProperty().isEqualTo(FOE));
 
-    joinGameItem.visibleProperty().bind(player.socialStatusProperty().isNotEqualTo(SELF)
-        .and(player.statusProperty().isEqualTo(PlayerStatus.LOBBYING)
-            .or(player.statusProperty().isEqualTo(PlayerStatus.HOSTING))));
-    watchGameItem.visibleProperty().bind(player.statusProperty().isEqualTo(PlayerStatus.PLAYING));
-    inviteItem.visibleProperty().bind(player.socialStatusProperty().isNotEqualTo(SELF)
-        .and(player.statusProperty().isNotEqualTo(PlayerStatus.PLAYING)));
+      joinGameItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF)
+          .and(newValue.statusProperty().isEqualTo(PlayerStatus.LOBBYING)
+              .or(newValue.statusProperty().isEqualTo(PlayerStatus.HOSTING))));
+      watchGameItem.visibleProperty().bind(newValue.statusProperty().isEqualTo(PlayerStatus.PLAYING));
+      inviteItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF)
+          .and(newValue.statusProperty().isNotEqualTo(PlayerStatus.PLAYING)));
+    };
+    JavaFxUtil.addListener(chatUser.playerProperty(), new WeakChangeListener<>(playerChangeListener));
+
 
     socialSeparator.visibleProperty().bind(addFriendItem.visibleProperty().or(
         removeFriendItem.visibleProperty().or(
@@ -191,11 +201,10 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
                 removeFoeItem.visibleProperty()))));
   }
 
-  private void loadAvailableAvatars() {
+  private void loadAvailableAvatars(Player player) {
     avatarService.getAvailableAvatars().thenAccept(avatars -> {
       ObservableList<AvatarBean> items = FXCollections.observableArrayList(avatars);
       items.add(0, new AvatarBean(null, i18n.get("chat.userContext.noAvatar")));
-
 
       String currentAvatarUrl = player.getAvatarUrl();
       Platform.runLater(() -> {
@@ -216,9 +225,9 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     });
   }
 
-  public void onUserInfo() {
+  public void onShowUserInfoSelected() {
     UserInfoWindowController userInfoWindowController = uiService.loadFxml("theme/user_info_window.fxml");
-    userInfoWindowController.setPlayer(player);
+    userInfoWindowController.setPlayer(chatUser.getPlayer().orElseThrow(() -> new IllegalStateException("No player for chat user: " + chatUser)));
 
     Stage userInfoWindow = new Stage(StageStyle.TRANSPARENT);
     userInfoWindow.initModality(Modality.NONE);
@@ -230,39 +239,44 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     userInfoWindow.show();
   }
 
-  public void onSendPrivateMessage() {
-    eventBus.post(new InitiatePrivateChatEvent(player.getUsername()));
+  public void onSendPrivateMessageSelected() {
+    eventBus.post(new InitiatePrivateChatEvent(chatUser.getUsername()));
   }
 
-  public void onCopyUsername() {
+  public void onCopyUsernameSelected() {
     ClipboardContent clipboardContent = new ClipboardContent();
-    clipboardContent.putString(player.getUsername());
+    clipboardContent.putString(chatUser.getUsername());
     Clipboard.getSystemClipboard().setContent(clipboardContent);
   }
 
-  public void onAddFriend() {
+  public void onAddFriendSelected() {
+    Player player = getPlayer();
     if (player.getSocialStatus() == FOE) {
       playerService.removeFoe(player);
     }
     playerService.addFriend(player);
   }
 
-  public void onRemoveFriend() {
+  public void onRemoveFriendSelected() {
+    Player player = getPlayer();
     playerService.removeFriend(player);
   }
 
-  public void onAddFoe() {
+  public void onAddFoeSelected() {
+    Player player = getPlayer();
     if (player.getSocialStatus() == FRIEND) {
       playerService.removeFriend(player);
     }
     playerService.addFoe(player);
   }
 
-  public void onRemoveFoe() {
+  public void onRemoveFoeSelected() {
+    Player player = getPlayer();
     playerService.removeFoe(player);
   }
 
-  public void onWatchGame() {
+  public void onWatchGameSelected() {
+    Player player = getPlayer();
     try {
       replayService.runLiveReplay(player.getGame().getId(), player.getId());
     } catch (Exception e) {
@@ -273,24 +287,30 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     }
   }
 
-  public void onViewReplays() {
+  public void onViewReplaysSelected() {
     // FIXME implement
   }
 
-  public void onInviteToGame() {
+  public void onInviteToGameSelected() {
     //FIXME implement
   }
 
-  public void onKick() {
+  public void onKickSelected() {
     // FIXME implement
   }
 
-  public void onBan() {
+  public void onBanSelected() {
     // FIXME implement
   }
 
-  public void onJoinGame() {
+  public void onJoinGameSelected() {
+    Player player = getPlayer();
     joinGameHelper.join(player.getGame());
+  }
+
+  @NotNull
+  private Player getPlayer() {
+    return chatUser.getPlayer().orElseThrow(() -> new IllegalStateException("No player for chat user:" + chatUser));
   }
 
   public void onRemoveCustomColor() {

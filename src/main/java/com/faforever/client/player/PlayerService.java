@@ -1,6 +1,5 @@
 package com.faforever.client.player;
 
-import com.faforever.client.chat.SocialStatus;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.chat.event.ChatMessageEvent;
@@ -39,10 +38,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import static com.faforever.client.chat.SocialStatus.FOE;
-import static com.faforever.client.chat.SocialStatus.FRIEND;
-import static com.faforever.client.chat.SocialStatus.OTHER;
-import static com.faforever.client.chat.SocialStatus.SELF;
+import static com.faforever.client.player.SocialStatus.FOE;
+import static com.faforever.client.player.SocialStatus.FRIEND;
+import static com.faforever.client.player.SocialStatus.OTHER;
+import static com.faforever.client.player.SocialStatus.SELF;
 
 @Service
 public class PlayerService {
@@ -123,24 +122,18 @@ public class PlayerService {
 
   @Subscribe
   public void onChatMessage(ChatMessageEvent event) {
-    resetIdleTime(getPlayerForUsername(event.getMessage().getUsername()));
+    getPlayerForUsername(event.getMessage().getUsername()).ifPresent(this::resetIdleTime);
   }
 
   private void resetIdleTime(Player playerForUsername) {
     Optional.ofNullable(playerForUsername).ifPresent(player -> player.setIdleSince(Instant.now()));
   }
 
-  private boolean gameContainsPlayer(Game game, Player player) {
-    return game.getTeams().entrySet().stream()
-        .flatMap(team -> team.getValue().stream())
-        .filter(Objects::nonNull)
-        .noneMatch(teamMembers -> teamMembers.equals(player.getUsername()));
-  }
-
   private void updateGamePlayers(List<String> players, Game game) {
     players.stream()
         .map(this::getPlayerForUsername)
-        .filter(Objects::nonNull)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
         .forEach(player -> {
           resetIdleTime(player);
           if (game == null) {
@@ -157,32 +150,17 @@ public class PlayerService {
     return playersById.containsKey(playerId);
   }
 
-
-
   /**
    * Returns the PlayerInfoBean for the specified username. Returns null if no such player is known.
    */
-  @Nullable
-  // TODO Use Optional
-  public Player getPlayerForUsername(@Nullable String username) {
-    return playersByName.get(username);
+  public Optional<Player> getPlayerForUsername(@Nullable String username) {
+    return Optional.ofNullable(playersByName.get(username));
   }
 
   /**
-   * Returns the PlayerInfoBean for the specified id. Returns null if no such player is known.
+   * Gets a player for the given username. A new player is created and registered if it does not yet exist.
    */
-  
-  public Optional<Player> getPlayerForId(int id) {
-    return Optional.ofNullable(playersById.get(id));
-  }
-
-
-
-  /**
-   * Gets a player for the given username. A new user is created and registered if it does not yet exist.
-   */
-  
-  public Player createAndGetPlayerForUsername(@NotNull String username) {
+  Player createAndGetPlayerForUsername(@NotNull String username) {
     Assert.checkNullArgument(username, "username must not be null");
 
     synchronized (playersByName) {
@@ -201,12 +179,10 @@ public class PlayerService {
     return playersByName.get(username);
   }
 
-  
   public Set<String> getPlayerNames() {
     return playersByName.keySet();
   }
 
-  
   public void addFriend(Player player) {
     playersByName.get(player.getUsername()).setSocialStatus(FRIEND);
     friendList.add(player.getId());
@@ -215,7 +191,6 @@ public class PlayerService {
     fafService.addFriend(player);
   }
 
-  
   public void removeFriend(Player player) {
     playersByName.get(player.getUsername()).setSocialStatus(OTHER);
     friendList.remove((Integer) player.getId());
@@ -223,7 +198,6 @@ public class PlayerService {
     fafService.removeFriend(player);
   }
 
-  
   public void addFoe(Player player) {
     playersByName.get(player.getUsername()).setSocialStatus(FOE);
     foeList.add(player.getId());
@@ -232,7 +206,6 @@ public class PlayerService {
     fafService.addFoe(player);
   }
 
-  
   public void removeFoe(Player player) {
     playersByName.get(player.getUsername()).setSocialStatus(OTHER);
     foeList.remove((Integer) player.getId());
@@ -240,17 +213,14 @@ public class PlayerService {
     fafService.removeFoe(player);
   }
 
-  
   public Optional<Player> getCurrentPlayer() {
     return Optional.ofNullable(currentPlayer.get());
   }
 
-  
   public ReadOnlyObjectProperty<Player> currentPlayerProperty() {
     return currentPlayer;
   }
 
-  
   public CompletableFuture<List<Player>> getPlayersByIds(Collection<Integer> playerIds) {
     return fafService.getPlayersByIds(playerIds);
   }
@@ -286,23 +256,25 @@ public class PlayerService {
     }
   }
 
-  private void onPlayerInfo(com.faforever.client.remote.domain.Player player) {
-    if (player.getLogin().equalsIgnoreCase(userService.getUsername())) {
+  private void onPlayerInfo(com.faforever.client.remote.domain.Player dto) {
+    if (dto.getLogin().equalsIgnoreCase(userService.getUsername())) {
       Player playerInfoBean = getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
-      playerInfoBean.updateFromPlayerInfo(player);
+      playerInfoBean.updateFromPlayerInfo(dto);
       playerInfoBean.setSocialStatus(SELF);
     } else {
-      Player playerInfoBean = createAndGetPlayerForUsername(player.getLogin());
+      Player player = createAndGetPlayerForUsername(dto.getLogin());
 
-      if (friendList.contains(player.getId())) {
-        playerInfoBean.setSocialStatus(FRIEND);
-      } else if (foeList.contains(player.getId())) {
-        playerInfoBean.setSocialStatus(FOE);
+      if (friendList.contains(dto.getId())) {
+        player.setSocialStatus(FRIEND);
+      } else if (foeList.contains(dto.getId())) {
+        player.setSocialStatus(FOE);
       } else {
-        playerInfoBean.setSocialStatus(OTHER);
+        player.setSocialStatus(OTHER);
       }
 
-      playerInfoBean.updateFromPlayerInfo(player);
+      player.updateFromPlayerInfo(dto);
+
+      eventBus.post(new PlayerOnlineEvent(player));
     }
   }
 }

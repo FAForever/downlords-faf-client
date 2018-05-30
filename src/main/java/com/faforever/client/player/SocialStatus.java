@@ -1,4 +1,4 @@
-package com.faforever.client.chat;
+package com.faforever.client.player;
 
 public enum SocialStatus {
   FRIEND("friend"),

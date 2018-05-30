@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.api.dto.AchievementState;
+import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameDetailController;
@@ -13,6 +14,7 @@ import com.neovisionaries.i18n.CountryCode;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
@@ -21,12 +23,13 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class PrivateUserInfoController {
+public class PrivateUserInfoController implements Controller<Node> {
   private final CountryFlagService countryFlagService;
   private final I18n i18n;
   private final AchievementService achievementService;
@@ -41,6 +44,7 @@ public class PrivateUserInfoController {
   public GameDetailController gameDetailController;
   public Pane gameDetailWrapper;
   public Label unlockedAchievementsLabel;
+  public Node privateUserInfoRoot;
 
   @SuppressWarnings("FieldCanBeLocal")
   private InvalidationListener globalRatingInvalidationListener;
@@ -55,19 +59,45 @@ public class PrivateUserInfoController {
     this.achievementService = achievementService;
   }
 
+  @Override
+  public Node getRoot() {
+    return privateUserInfoRoot;
+  }
+
   public void initialize() {
     onPlayerGameChanged(null);
 
     gameDetailWrapper.managedProperty().bind(gameDetailWrapper.visibleProperty());
   }
 
-  public void setPlayer(Player player) {
+  public void setChatUser(ChatUser chatUser) {
+    Optional<Player> playerOptional = chatUser.getPlayer();
+
+    if (playerOptional.isPresent()) {
+      displayPlayerInfo(playerOptional.get());
+    } else {
+      displayChatUserInfo(chatUser);
+    }
+  }
+
+  private void displayChatUserInfo(ChatUser chatUser) {
+    usernameLabel.textProperty().bind(chatUser.usernameProperty());
+    userImageView.setVisible(false);
+    countryLabel.setVisible(false);
+    gameDetailController.setGame(null);
+  }
+
+  private void displayPlayerInfo(Player player) {
     CountryCode countryCode = CountryCode.getByCode(player.getCountry());
 
-    usernameLabel.setText(player.getUsername());
+    usernameLabel.textProperty().bind(player.usernameProperty());
+
     userImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
+    userImageView.setVisible(true);
+
     countryFlagService.loadCountryFlag(player.getCountry()).ifPresent(image -> countryImageView.setImage(image));
     countryLabel.setText(countryCode == null ? player.getCountry() : countryCode.getName());
+    countryLabel.setVisible(true);
 
     globalRatingInvalidationListener = (observable) -> loadReceiverGlobalRatingInformation(player);
     JavaFxUtil.addListener(player.globalRatingMeanProperty(), new WeakInvalidationListener(globalRatingInvalidationListener));

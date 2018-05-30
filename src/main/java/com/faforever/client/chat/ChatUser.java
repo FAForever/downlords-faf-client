@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.player.Player;
 import com.google.common.collect.ImmutableSortedSet;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SetProperty;
@@ -15,13 +16,15 @@ import org.pircbotx.User;
 import org.pircbotx.UserLevel;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 public class ChatUser {
 
-  private StringProperty username;
-  private SetProperty<String> moderatorInChannels;
-  private ObjectProperty<Color> color;
+  private final StringProperty username;
+  private final SetProperty<String> moderatorInChannels;
+  private final ObjectProperty<Color> color;
+  private final ObjectProperty<Player> player;
 
   public ChatUser(String username, Color color) {
     this(username, new HashSet<>(), color);
@@ -31,6 +34,19 @@ public class ChatUser {
     this.username = new SimpleStringProperty(username);
     this.moderatorInChannels = new SimpleSetProperty<>(FXCollections.observableSet(moderatorInChannels));
     this.color = new SimpleObjectProperty<>(color);
+    this.player = new SimpleObjectProperty<>();
+  }
+
+  public Optional<Player> getPlayer() {
+    return Optional.ofNullable(player.get());
+  }
+
+  public void setPlayer(Player player) {
+    this.player.set(player);
+  }
+
+  public ObjectProperty<Player> playerProperty() {
+    return player;
   }
 
   public Color getColor() {

@@ -30,10 +30,10 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
-import static com.faforever.client.chat.SocialStatus.FOE;
-import static com.faforever.client.chat.SocialStatus.FRIEND;
-import static com.faforever.client.chat.SocialStatus.OTHER;
-import static com.faforever.client.chat.SocialStatus.SELF;
+import static com.faforever.client.player.SocialStatus.FOE;
+import static com.faforever.client.player.SocialStatus.FRIEND;
+import static com.faforever.client.player.SocialStatus.OTHER;
+import static com.faforever.client.player.SocialStatus.SELF;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -74,7 +74,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ChatUserContextMenuController(chatService, preferencesService, playerService,
+    instance = new ChatUserContextMenuController(preferencesService, playerService,
         replayService, notificationService, i18n, eventBus, joinGameHelper, avatarService, uiService);
 
     Preferences preferences = mock(Preferences.class);
@@ -95,12 +95,12 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
     loadFxml("theme/chat/chat_user_context_menu.fxml", clazz -> instance);
 
     player = PlayerBuilder.create(TEST_USER_NAME).socialStatus(SELF).avatar(null).game(new Game()).get();
-    instance.setPlayer(player);
+    instance.setChatUser(player);
   }
 
   @Test
   public void testOnSendPrivateMessage() {
-    instance.onSendPrivateMessage();
+    instance.onSendPrivateMessageSelected();
 
     verify(eventBus).post(any(InitiatePrivateChatEvent.class));
   }
@@ -109,7 +109,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   public void testOnAddFriendWithFoe() {
     player.setSocialStatus(FOE);
 
-    instance.onAddFriend();
+    instance.onAddFriendSelected();
 
     verify(playerService).removeFoe(player);
     verify(playerService).addFriend(player);
@@ -119,7 +119,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   public void testOnAddFriendWithNeutral() {
     player.setSocialStatus(OTHER);
 
-    instance.onAddFriend();
+    instance.onAddFriendSelected();
 
     verify(playerService, never()).removeFoe(player);
     verify(playerService).addFriend(player);
@@ -127,7 +127,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnRemoveFriend() {
-    instance.onRemoveFriend();
+    instance.onRemoveFriendSelected();
 
     verify(playerService).removeFriend(player);
   }
@@ -136,7 +136,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   public void testOnAddFoeWithFriend() {
     player.setSocialStatus(FRIEND);
 
-    instance.onAddFoe();
+    instance.onAddFoeSelected();
 
     verify(playerService).removeFriend(player);
     verify(playerService).addFoe(player);
@@ -146,7 +146,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   public void testOnAddFoeWithNeutral() {
     player.setSocialStatus(OTHER);
 
-    instance.onAddFoe();
+    instance.onAddFoeSelected();
 
     verify(playerService, never()).removeFriend(player);
     verify(playerService).addFoe(player);
@@ -154,14 +154,14 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnRemoveFoe() {
-    instance.onRemoveFoe();
+    instance.onRemoveFoeSelected();
 
     verify(playerService).removeFoe(player);
   }
 
   @Test
   public void testOnWatchGame() {
-    instance.onWatchGame();
+    instance.onWatchGameSelected();
 
     verify(replayService).runLiveReplay(player.getGame().getId(), player.getId());
   }
@@ -170,14 +170,14 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   public void testOnWatchGameThrowsIoExceptionTriggersNotification() {
     doThrow(new RuntimeException("Error in runLiveReplay")).when(replayService).runLiveReplay(anyInt(), anyInt());
 
-    instance.onWatchGame();
+    instance.onWatchGameSelected();
 
     verify(notificationService).addNotification(any(ImmediateNotification.class));
   }
 
   @Test
   public void testOnJoinGame() {
-    instance.onJoinGame();
+    instance.onJoinGameSelected();
 
     verify(joinGameHelper).join(any());
   }
@@ -199,7 +199,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testHideUserInfoOnIdBeingNull() {
     Player player = PlayerBuilder.create("xyz").get();
-    instance.setPlayer(player);
+    instance.setChatUser(player);
     assertThat(instance.showUserInfo.isVisible(), is(false));
   }
 }

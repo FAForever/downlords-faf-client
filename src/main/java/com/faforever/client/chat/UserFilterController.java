@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.player.Player;
 import com.faforever.client.util.ProgrammingError;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.annotations.VisibleForTesting;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.faforever.client.game.PlayerStatus.HOSTING;
 import static com.faforever.client.game.PlayerStatus.IDLE;
@@ -76,7 +78,7 @@ public class UserFilterController implements Controller<Node> {
   boolean filterUser(ChatUserItemController chatUserItemController) {
     return channelTabController.isUsernameMatch(chatUserItemController)
         && isInClan(chatUserItemController)
-        && isBoundedByRating(chatUserItemController)
+        && isBoundByRating(chatUserItemController)
         && isGameStatusMatch(chatUserItemController);
   }
 
@@ -94,22 +96,39 @@ public class UserFilterController implements Controller<Node> {
       return true;
     }
 
-    String clan = chatUserItemController.getPlayer().getClan();
+    ChatUser chatUser = chatUserItemController.getChatUser();
+    Optional<Player> playerOptional = chatUser.getPlayer();
+
+    if (!playerOptional.isPresent()) {
+      return false;
+    }
+
+    Player player = playerOptional.get();
+    String clan = player.getClan();
     if (clan == null) {
       return false;
-    } else {
-      String lowerCaseSearchString = clan.toLowerCase();
-      return lowerCaseSearchString.contains(clanFilterField.getText().toLowerCase());
     }
+
+    String lowerCaseSearchString = clan.toLowerCase();
+    return lowerCaseSearchString.contains(clanFilterField.getText().toLowerCase());
   }
 
   @VisibleForTesting
-  boolean isBoundedByRating(ChatUserItemController chatUserItemController) {
+  boolean isBoundByRating(ChatUserItemController chatUserItemController) {
     if (minRatingFilterField.getText().isEmpty() && maxRatingFilterField.getText().isEmpty()) {
       return true;
     }
 
-    int globalRating = RatingUtil.getGlobalRating(chatUserItemController.getPlayer());
+    ChatUser chatUser = chatUserItemController.getChatUser();
+    Optional<Player> optionalPlayer = chatUser.getPlayer();
+
+    if (!optionalPlayer.isPresent()) {
+      return false;
+    }
+
+    Player player = optionalPlayer.get();
+
+    int globalRating = RatingUtil.getGlobalRating(player);
     int minRating;
     int maxRating;
 
@@ -133,7 +152,15 @@ public class UserFilterController implements Controller<Node> {
       return true;
     }
 
-    PlayerStatus playerStatus = chatUserItemController.getPlayer().getStatus();
+    ChatUser chatUser = chatUserItemController.getChatUser();
+    Optional<Player> playerOptional = chatUser.getPlayer();
+
+    if (!playerOptional.isPresent()) {
+      return false;
+    }
+
+    Player player = playerOptional.get();
+    PlayerStatus playerStatus = player.getStatus();
     if (playerStatusFilter == LOBBYING) {
       return LOBBYING == playerStatus || HOSTING == playerStatus;
     } else {

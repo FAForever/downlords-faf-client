@@ -2,7 +2,6 @@ package com.faforever.client.player;
 
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.InitiatePrivateChatEvent;
-import com.faforever.client.chat.SocialStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
@@ -51,9 +50,11 @@ public class FriendOnlineNotifier {
   public void onUserOnline(UserOnlineEvent event) {
     NotificationsPrefs notification = preferencesService.getPreferences().getNotification();
     String username = event.getUsername();
-    Player player = playerService.getPlayerForUsername(username);
 
-    if (player != null && player.getSocialStatus() == SocialStatus.FRIEND) {
+    playerService.getPlayerForUsername(username).ifPresent(player -> {
+      if (player.getSocialStatus() != SocialStatus.FRIEND) {
+        return;
+      }
 
       if (notification.isFriendOnlineSoundEnabled()) {
         audioService.playFriendOnlineSound();
@@ -71,7 +72,6 @@ public class FriendOnlineNotifier {
                 }
             ));
       }
-    }
-
+    });
   }
 }

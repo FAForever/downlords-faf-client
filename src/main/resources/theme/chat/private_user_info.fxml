@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<GridPane xmlns:fx="http://javafx.com/fxml/1" hgap="20.0" minWidth="160.0" vgap="20.0"
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="privateUserInfoRoot" hgap="20.0" minWidth="160.0" vgap="20.0"
           xmlns="http://javafx.com/javafx/8.0.111" fx:controller="com.faforever.client.chat.PrivateUserInfoController">
     <columnConstraints>
         <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>

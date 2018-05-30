@@ -37,7 +37,7 @@ public class UserFilterControllerTest extends AbstractPlainJavaFxTest {
     // TODO convert to constructor parameter
     instance.channelTabController = channelTabController;
 
-    when(chatUserItemController.getPlayer()).thenReturn(player);
+    when(chatUserItemController.getChatUser()).thenReturn(player);
 
     loadFxml("theme/chat/user_filter.fxml", clazz -> instance);
   }
@@ -64,7 +64,7 @@ public class UserFilterControllerTest extends AbstractPlainJavaFxTest {
     instance.minRatingFilterField.setText("300");
     instance.maxRatingFilterField.setText("700");
 
-    assertTrue(instance.isBoundedByRating(chatUserItemController));
+    assertTrue(instance.isBoundByRating(chatUserItemController));
   }
 
   @Test
@@ -74,7 +74,7 @@ public class UserFilterControllerTest extends AbstractPlainJavaFxTest {
     instance.minRatingFilterField.setText("600");
     instance.maxRatingFilterField.setText("300");
 
-    assertFalse(instance.isBoundedByRating(chatUserItemController));
+    assertFalse(instance.isBoundByRating(chatUserItemController));
   }
 
   @Test

@@ -23,7 +23,7 @@ import org.springframework.util.Assert;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -64,7 +64,8 @@ public class WatchButtonController implements Controller<Node> {
     List<MenuItem> menuItems = game.getTeams().values().stream()
         .flatMap(Collection::stream)
         .map(playerService::getPlayerForUsername)
-        .filter(Objects::nonNull)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
         .map(player -> createMenuItem(game, player))
         .collect(Collectors.toList());
 

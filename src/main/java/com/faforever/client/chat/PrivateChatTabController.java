@@ -3,7 +3,6 @@ package com.faforever.client.chat;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -29,8 +28,9 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.time.Instant;
+import java.util.Optional;
 
-import static com.faforever.client.chat.SocialStatus.FOE;
+import static com.faforever.client.player.SocialStatus.FOE;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -47,7 +47,6 @@ public class PrivateChatTabController extends AbstractChatTabController {
   @Inject
   // TODO cut dependencies
   public PrivateChatTabController(UserService userService,
-                                  PlatformService platformService,
                                   PreferencesService preferencesService,
                                   PlayerService playerService,
                                   TimeService timeService,
@@ -83,8 +82,8 @@ public class PrivateChatTabController extends AbstractChatTabController {
     privateChatTabRoot.setId(username);
     privateChatTabRoot.setText(username);
 
-    Player player = playerService.getPlayerForUsername(username);
-    privateUserInfoController.setPlayer(player);
+    ChatUser chatUser = chatService.getOrCreateChatUser(username);
+    privateUserInfoController.setChatUser(chatUser);
   }
 
   public void initialize() {
@@ -93,10 +92,10 @@ public class PrivateChatTabController extends AbstractChatTabController {
     userOffline = false;
     chatService.addChatUsersByNameListener(change -> {
       if (change.wasRemoved()) {
-        onPlayerDisconnected(change.getKey(), change.getValueRemoved());
+        onPlayerDisconnected(change.getKey());
       }
       if (change.wasAdded()) {
-        onPlayerConnected(change.getKey(), change.getValueRemoved());
+        onPlayerConnected(change.getKey());
       }
     });
   }
@@ -113,10 +112,10 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   @Override
   public void onChatMessage(ChatMessage chatMessage) {
-    Player player = playerService.getPlayerForUsername(chatMessage.getUsername());
+    Optional<Player> playerOptional = playerService.getPlayerForUsername(chatMessage.getUsername());
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
-    if (player != null && player.getSocialStatus() == FOE && chatPrefs.getHideFoeMessages()) {
+    if (playerOptional.isPresent() && playerOptional.get().getSocialStatus() == FOE && chatPrefs.getHideFoeMessages()) {
       return;
     }
 
@@ -132,7 +131,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
   }
 
   @VisibleForTesting
-  void onPlayerDisconnected(String userName, ChatUser userItem) {
+  void onPlayerDisconnected(String userName) {
     if (!userName.equals(getReceiver())) {
       return;
     }
@@ -141,7 +140,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
   }
 
   @VisibleForTesting
-  void onPlayerConnected(String userName, ChatUser userItem) {
+  void onPlayerConnected(String userName) {
     if (!userOffline || !userName.equals(getReceiver())) {
       return;
     }

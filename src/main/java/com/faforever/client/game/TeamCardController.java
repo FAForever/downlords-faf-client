@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -51,6 +52,8 @@ public class TeamCardController implements Controller<Node> {
     for (Map.Entry<? extends String, ? extends List<String>> entry : teamsList.entrySet()) {
       List<Player> players = entry.getValue().stream()
           .map(playerService::getPlayerForUsername)
+          .filter(Optional::isPresent)
+          .map(Optional::get)
           .collect(Collectors.toList());
 
       TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
