@@ -54,7 +54,7 @@ logging:
     com.faforever.client.FafClientApplication: info
     com.faforever.client.api: info
     com.faforever.client.connectivity: info
-    com.faforever.client.chat: info
+    com.faforever.client.chat: debug
     com.faforever.client.preferences: info
     com.faforever.client.map: info
     com.faforever.client.mod: info

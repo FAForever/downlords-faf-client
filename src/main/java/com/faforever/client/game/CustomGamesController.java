@@ -108,10 +108,10 @@ public class CustomGamesController extends AbstractViewController<Node> {
     });
 
     chooseSortingTypeChoiceBox.setVisible(false);
-    chooseSortingTypeChoiceBox.setConverter(new StringConverter<TilesSortingOrder>() {
+    chooseSortingTypeChoiceBox.setConverter(new StringConverter<>() {
       @Override
       public String toString(TilesSortingOrder tilesSortingOrder) {
-        return i18n.get(tilesSortingOrder.getDisplayNameKey());
+        return tilesSortingOrder == null ? "null" : i18n.get(tilesSortingOrder.getDisplayNameKey());
       }
 
       @Override

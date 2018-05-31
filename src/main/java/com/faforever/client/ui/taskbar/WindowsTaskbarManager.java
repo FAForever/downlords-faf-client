@@ -59,7 +59,7 @@ public class WindowsTaskbarManager {
   private void initTaskBar() {
     try {
       threadPoolExecutor.execute(() -> noCatch(() -> taskBarList = COMRuntime.newInstance(ITaskbarList3.class)));
-      long hwndVal = com.sun.glass.ui.Window.getWindows().get(0).getNativeWindow();
+      long hwndVal = JavaFxUtil.getNativeWindow();
       taskBarPointer = Pointer.pointerToAddress(hwndVal, (PointerIO) null);
     } catch (NoClassDefFoundError e) {
       taskBarPointer = null;

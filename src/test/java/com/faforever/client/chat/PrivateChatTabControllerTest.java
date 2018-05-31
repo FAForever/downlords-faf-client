@@ -1,7 +1,6 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
-import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
@@ -19,8 +18,8 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.google.common.eventbus.EventBus;
-import com.sun.javafx.scene.control.skin.TabPaneSkin;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.skin.TabPaneSkin;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -31,6 +30,7 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Optional;
 
 import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
 import static junit.framework.TestCase.assertTrue;
@@ -50,8 +50,6 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   private UserService userService;
   @Mock
   private PlayerService playerService;
-  @Mock
-  private PlatformService platformService;
   @Mock
   private TimeService timeService;
   @Mock
@@ -98,7 +96,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
     playerName = "testUser";
     Player player = new Player(playerName);
 
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(player);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(Optional.of(player));
     when(userService.getUsername()).thenReturn(playerName);
     when(uiService.getThemeFileUrl(CHAT_CONTAINER)).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));
 
@@ -129,14 +127,14 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnChatMessageUnfocusedTriggersNotification() throws Exception {
+  public void testOnChatMessageUnfocusedTriggersNotification() {
     WaitForAsyncUtils.waitForAsyncFx(5000, () -> getRoot().getScene().getWindow().hide());
     instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
     verify(notificationService).addNotification(any(TransientNotification.class));
   }
 
   @Test
-  public void testOnChatMessageFocusedDoesntTriggersNotification() throws Exception {
+  public void testOnChatMessageFocusedDoesntTriggersNotification() {
     instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
     verifyZeroInteractions(notificationService);
   }

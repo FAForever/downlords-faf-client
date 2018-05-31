@@ -103,11 +103,20 @@
 .list-view,
 .table-view,
 .tree-table-view,
+.tree-table-row-cell,
 .titled-pane,
 .html-editor {
   -fx-background-color: transparent;
   -fx-background-insets: 0;
   -fx-padding: 0;
+}
+
+.tree-table-view.invisible-selection .tree-table-row-cell {
+  -fx-background-color: transparent;
+}
+
+.tree-table-view.invisible-selection .tree-table-row-cell:hover {
+  -fx-background-color: -grey-700;
 }
 
 .split-pane > .split-pane-divider {
@@ -634,8 +643,8 @@
   -fx-font-size: 0.8em;
 }
 
-.chat-user-item:hover {
-  -fx-background-color: -grey-800;
+.chat-user-list-view .list-cell {
+  -fx-background-color: transparent;
 }
 
 /***************** Chat User Control *****************/

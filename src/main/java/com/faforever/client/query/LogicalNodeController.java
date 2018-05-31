@@ -40,7 +40,7 @@ public class LogicalNodeController implements Controller<Node> {
   public void initialize() {
     logicalOperatorField.setItems(FXCollections.observableArrayList(LogicalOperator.AND, LogicalOperator.OR));
     logicalOperatorField.getSelectionModel().select(0);
-    logicalOperatorField.setConverter(new StringConverter<LogicalOperator>() {
+    logicalOperatorField.setConverter(new StringConverter<>() {
       @Override
       public String toString(LogicalOperator object) {
         return i18n.get(object.i18nKey);

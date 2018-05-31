@@ -7,7 +7,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
-import com.faforever.client.player.Player;
+import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.Preferences;
@@ -22,8 +22,6 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.eventbus.EventBus;
 import com.google.common.hash.Hashing;
 import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableSet;
-import javafx.collections.SetChangeListener;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -64,7 +62,6 @@ import java.net.InetAddress;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -73,6 +70,7 @@ import java.util.function.Consumer;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
@@ -215,8 +213,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     when(user2.getUserLevels(defaultChannel)).thenReturn(ImmutableSortedSet.of(UserLevel.VOICE));
 
 
-    chatUser1 = instance.getOrCreateChatUser(user1, channel);
-    chatUser2 = instance.getOrCreateChatUser(user2, channel);
+    chatUser1 = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME, false);
+    chatUser2 = instance.getOrCreateChatUser(user2.getNick(), DEFAULT_CHANNEL_NAME, false);
 
     instance.postConstruct();
 
@@ -529,23 +527,22 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     joinChannel(defaultChannel, user1);
 
-    assertThat(chatUser1.getModerator(), empty());
+    assertThat(chatUser1.isModerator(), is(false));
 
-    CompletableFuture<Set<String>> user1OpEvent = listenForUserOp(chatUser1);
+    CompletableFuture<Boolean> user1OpEvent = listenForUserOp(chatUser1);
     firePircBotXEvent(createOpEvent(defaultChannel, user1));
     user1OpEvent.get(TIMEOUT, TIMEOUT_UNIT);
 
-    ObservableSet<String> moderatorInChannels = chatUser1.getModerator();
-    assertThat(moderatorInChannels, hasSize(1));
-    assertThat(moderatorInChannels.iterator().next(), is(DEFAULT_CHANNEL_NAME));
+    boolean isModerator = chatUser1.isModerator();
+    assertThat(isModerator, is(true));
   }
 
   @SuppressWarnings("unchecked")
-  private CompletableFuture<Set<String>> listenForUserOp(ChatChannelUser chatUser) {
-    CompletableFuture<Set<String>> future = new CompletableFuture<>();
-    JavaFxUtil.addListener(chatUser.getModerator(), (SetChangeListener<String>) change -> {
-      if (change.wasAdded()) {
-        future.complete((Set<String>) change.getSet());
+  private CompletableFuture<Boolean> listenForUserOp(ChatChannelUser chatUser) {
+    CompletableFuture<Boolean> future = new CompletableFuture<>();
+    JavaFxUtil.addListener(chatUser.moderatorProperty(), (observable, oldValue, newValue) -> {
+      if (newValue) {
+        future.complete(newValue);
       }
     });
     return future;
@@ -617,7 +614,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testGetChatUsersForChannelTwoUsersInDifferentChannel() throws Exception {
+  public void testGetChatUsersForChannelTwoUsersInDifferentChannels() throws Exception {
     connect();
     joinChannel(defaultChannel, user1);
     joinChannel(otherChannel, user2);
@@ -628,7 +625,9 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     List<ChatChannelUser> usersInOtherChannel = instance.getOrCreateChannel(OTHER_CHANNEL_NAME).getUsers();
     assertThat(usersInOtherChannel, hasSize(1));
-    assertThat(usersInOtherChannel.iterator().next(), sameInstance(chatUser2));
+    // It's expected to create one chat channel user per channel, so the instances should be different
+    assertThat(usersInOtherChannel.iterator().next(), not(sameInstance(chatUser2)));
+    assertThat(usersInOtherChannel.iterator().next(), is(chatUser2));
   }
 
   @Test
@@ -768,8 +767,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCreateOrGetChatUserStringPopulatedMap() throws Exception {
-    ChatChannelUser addedUser = instance.getOrCreateChatUser(chatUser1.getUsername(), );
-    ChatChannelUser returnedUser = instance.getOrCreateChatUser(chatUser1.getUsername(), );
+    ChatChannelUser addedUser = instance.getOrCreateChatUser(chatUser1.getUsername(), DEFAULT_CHANNEL_NAME, false);
+    ChatChannelUser returnedUser = instance.getOrCreateChatUser(chatUser1.getUsername(), DEFAULT_CHANNEL_NAME, false);
 
     assertThat(returnedUser, is(addedUser));
     assertEquals(returnedUser, addedUser);
@@ -777,8 +776,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCreateOrGetChatUserUserObjectPopulatedMap() throws Exception {
-    ChatChannelUser addedUser = instance.getOrCreateChatUser(user1, channel);
-    ChatChannelUser returnedUser = instance.getOrCreateChatUser(user1, channel);
+    ChatChannelUser addedUser = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME, false);
+    ChatChannelUser returnedUser = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME, false);
 
     assertThat(returnedUser, is(addedUser));
     assertEquals(returnedUser, addedUser);
@@ -786,7 +785,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void getOrCreateChatUserFoeNoNotification() throws Exception {
-    instance.getOrCreateChatUser(CHAT_USER_NAME, );
+    instance.getOrCreateChatUser(CHAT_USER_NAME, DEFAULT_CHANNEL_NAME, false);
 
     verify(notificationService, never()).addNotification(any(TransientNotification.class));
   }
@@ -804,8 +803,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     firePircBotXEvent(createJoinEvent(defaultChannel, moderator));
 
-    ChatChannelUser chatUserModerator = instance.getOrCreateChatUser(moderator.getNick(), );
-    assertTrue(chatUserModerator.moderatorProperty().getValue().contains(DEFAULT_CHANNEL_NAME));
+    ChatChannelUser chatUserModerator = instance.getOrCreateChatUser(moderator.getNick(), DEFAULT_CHANNEL_NAME, true);
+    assertThat(chatUserModerator.isModerator(), is(true));
   }
 
   private ChannelSnapshot channelSnapshot(org.pircbotx.Channel channel) {
@@ -823,13 +822,33 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     User user = mock(User.class);
     when(user.getNick()).thenReturn(chatUser1.getUsername());
-    Player playerMock = mock(Player.class);
-    when(playerService.getPlayerForUsername(chatUser1.getUsername())).thenReturn(playerMock);
-    when(playerMock.getSocialStatus()).thenReturn(SocialStatus.FOE);
+    chatUser1.setPlayer(PlayerBuilder.create(chatUser1.getUsername()).socialStatus(SocialStatus.FOE).get());
 
     connect();
     firePircBotXEvent(createPrivateMessageEvent(user, message));
 
-    verify(eventBus, never()).post(any(Object.class));
+    verify(eventBus, never()).post(any(ChatMessageEvent.class));
+  }
+
+  @Test
+  public void testPrivateMessage() throws Exception {
+    String message = "private message";
+
+    preferences.getChat().setHideFoeMessages(true);
+
+    User user = mock(User.class);
+    when(user.getNick()).thenReturn(chatUser1.getUsername());
+
+    connect();
+    firePircBotXEvent(createPrivateMessageEvent(user, message));
+
+    CountDownLatch latch = new CountDownLatch(1);
+    doAnswer(invocation -> {
+      latch.countDown();
+      return null;
+    }).when(eventBus).post(any(ChatMessageEvent.class));
+
+    latch.await(500, TimeUnit.SECONDS);
+    verify(eventBus).post(any(ChatMessageEvent.class));
   }
 }

@@ -238,7 +238,7 @@ public final class JavaFxUtil {
    * Since the JavaFX properties API is not thread safe, adding listeners must be synchronized on the property - which
    * is what this method does.
    */
-  public static <T> void addListener(Observable observable, InvalidationListener listener) {
+  public static void addListener(Observable observable, InvalidationListener listener) {
     synchronized (observable) {
       observable.addListener(listener);
     }
@@ -285,6 +285,26 @@ public final class JavaFxUtil {
   }
 
   /**
+   * Since the JavaFX properties API is not thread safe, removing listeners must be synchronized on the property - which
+   * is what this method does.
+   */
+  public static <T> void removeListener(ObservableValue<T> observableValue, ChangeListener<? super T> listener) {
+    synchronized (observableValue) {
+      observableValue.removeListener(listener);
+    }
+  }
+
+  /**
+   * Since the JavaFX properties API is not thread safe, removing listeners must be synchronized on the property - which
+   * is what this method does.
+   */
+  public static void removeListener(Observable observable, InvalidationListener listener) {
+    synchronized (observable) {
+      observable.removeListener(listener);
+    }
+  }
+
+  /**
    * Since the JavaFX properties API is not thread safe, binding a property must be synchronized on the property - which
    * is what this method does.
    */
@@ -321,6 +341,20 @@ public final class JavaFxUtil {
       synchronized (property2) {
         property1.bindBidirectional(property2);
       }
+    }
+  }
+
+  public static long getNativeWindow() {
+    // FIXME
+//    WinDef.HWND hWnd = User32.INSTANCE.FindWindow(null, "FIXME");
+    return 0;
+  }
+
+  public static void runLater(Runnable runnable) {
+    if (Platform.isFxApplicationThread()) {
+      runnable.run();
+    } else {
+      Platform.runLater(runnable);
     }
   }
 }

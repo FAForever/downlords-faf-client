@@ -19,6 +19,7 @@ import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.client.util.Assert;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -29,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,7 +59,6 @@ public class PlayerService {
   private final UserService userService;
   private final EventBus eventBus;
 
-  @Inject
   public PlayerService(FafService fafService, UserService userService, EventBus eventBus) {
     this.fafService = fafService;
     this.userService = userService;
@@ -232,7 +231,10 @@ public class PlayerService {
   public void onChatUserJoinedChannel(ChatUserJoinedChannelEvent event) {
     ChatChannelUser chatChannelUser = event.getChatChannelUser();
     Optional.ofNullable(playersByName.get(chatChannelUser.getUsername()))
-        .ifPresent(player -> player.getChatChannelUsers().add(chatChannelUser));
+        .ifPresent(player -> Platform.runLater(() -> {
+          chatChannelUser.setPlayer(player);
+          player.getChatChannelUsers().add(chatChannelUser);
+        }));
   }
 
   private void onPlayersInfo(PlayersMessage playersMessage) {
@@ -268,9 +270,9 @@ public class PlayerService {
 
   private void onPlayerInfo(com.faforever.client.remote.domain.Player dto) {
     if (dto.getLogin().equalsIgnoreCase(userService.getUsername())) {
-      Player playerInfoBean = getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
-      playerInfoBean.updateFromPlayerInfo(dto);
-      playerInfoBean.setSocialStatus(SELF);
+      Player player = getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
+      player.updateFromDto(dto);
+      player.setSocialStatus(SELF);
     } else {
       Player player = createAndGetPlayerForUsername(dto.getLogin());
 
@@ -282,7 +284,7 @@ public class PlayerService {
         player.setSocialStatus(OTHER);
       }
 
-      player.updateFromPlayerInfo(dto);
+      player.updateFromDto(dto);
 
       eventBus.post(new PlayerOnlineEvent(player));
     }

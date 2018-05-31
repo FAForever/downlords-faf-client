@@ -24,7 +24,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -44,7 +43,6 @@ public class ChatController extends AbstractViewController<Node> {
   public VBox noOpenTabsContainer;
   public TextField channelNameTextField;
 
-  @Inject
   public ChatController(ChatService chatService, UiService uiService, UserService userService, EventBus eventBus) {
     this.chatService = chatService;
     this.uiService = uiService;
@@ -55,29 +53,43 @@ public class ChatController extends AbstractViewController<Node> {
   }
 
   private void onChannelLeft(Channel channel) {
-    removeTab(channel.getName());
+    Platform.runLater(() -> removeTab(channel.getName()));
   }
 
   private void onChannelJoined(Channel channel) {
-    Platform.runLater(() -> getOrCreateChannelTab(channel.getName()));
+    String channelName = channel.getName();
+    chatService.addUsersListener(channelName, change -> {
+      if (change.wasRemoved()) {
+        onChatUserLeftChannel(channelName, change.getValueRemoved().getUsername());
+      }
+      if (change.wasAdded()) {
+        onUserJoinedChannel(change.getValueAdded(), channelName);
+      }
+    });
   }
 
   private void onDisconnected() {
-    connectingProgressPane.setVisible(true);
-    tabPane.setVisible(false);
-    noOpenTabsContainer.setVisible(false);
+    Platform.runLater(() -> {
+      connectingProgressPane.setVisible(true);
+      tabPane.setVisible(false);
+      noOpenTabsContainer.setVisible(false);
+    });
   }
 
   private void onConnected() {
-    connectingProgressPane.setVisible(false);
-    tabPane.setVisible(true);
-    noOpenTabsContainer.setVisible(false);
+    Platform.runLater(() -> {
+      connectingProgressPane.setVisible(false);
+      tabPane.setVisible(true);
+      noOpenTabsContainer.setVisible(false);
+    });
   }
 
   private void onConnecting() {
-    connectingProgressPane.setVisible(true);
-    tabPane.setVisible(false);
-    noOpenTabsContainer.setVisible(false);
+    Platform.runLater(() -> {
+      connectingProgressPane.setVisible(true);
+      tabPane.setVisible(false);
+      noOpenTabsContainer.setVisible(false);
+    });
   }
 
   private void onLoggedOut() {
@@ -105,6 +117,12 @@ public class ChatController extends AbstractViewController<Node> {
     JavaFxUtil.assertApplicationThread();
     nameToChatTabController.put(playerOrChannelName, tabController);
     tabPane.getTabs().add(tabController.getRoot());
+    tabPane.getTabs().sort((o1, o2) -> {
+      if (o1.getId().equalsIgnoreCase(chatService.getDefaultChannelName())) {
+        return -1;
+      }
+      return o1.getId().compareToIgnoreCase(o2.getId());
+    });
   }
 
   @Override
@@ -144,7 +162,7 @@ public class ChatController extends AbstractViewController<Node> {
         onDisconnected();
         break;
       case CONNECTED:
-        onConnected();
+//        onConnected();
         break;
       case CONNECTING:
         onConnecting();
@@ -202,14 +220,6 @@ public class ChatController extends AbstractViewController<Node> {
   }
 
   private void joinChannel(String channelName) {
-    chatService.addUsersListener(channelName, change -> {
-      if (change.wasRemoved()) {
-        onChatUserLeftChannel(channelName, change.getValueRemoved().getUsername());
-      }
-      if (change.wasAdded()) {
-        onUserJoinedChannel(channelName, change.getValueAdded());
-      }
-    });
     chatService.joinChannel(channelName);
   }
 
@@ -219,14 +229,18 @@ public class ChatController extends AbstractViewController<Node> {
     }
     AbstractChatTabController chatTab = nameToChatTabController.get(channelName);
     if (chatTab != null) {
-      tabPane.getTabs().remove(chatTab.getRoot());
+      Platform.runLater(() -> tabPane.getTabs().remove(chatTab.getRoot()));
     }
   }
 
-  private void onUserJoinedChannel(String channelName, ChatChannelUser chatUser) {
+  private void onUserJoinedChannel(ChatChannelUser chatUser, String channelName) {
     Platform.runLater(() -> {
       if (isCurrentUser(chatUser)) {
+        AbstractChatTabController tabController = getOrCreateChannelTab(channelName);
         onConnected();
+        if (channelName.equals(chatService.getDefaultChannelName())) {
+          tabPane.getSelectionModel().select(tabController.getRoot());
+        }
       }
     });
   }
