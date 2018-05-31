@@ -1,32 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import com.jfoenix.controls.JFXButton?>
-<?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.Separator?>
+<?import com.jfoenix.controls.JFXSpinner?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.web.WebView?>
-<HBox xmlns:fx="http://javafx.com/fxml/1" fx:id="newsRoot" maxHeight="1.7976931348623157E308"
-      maxWidth="1.7976931348623157E308"
-      minHeight="0.0" minWidth="0.0" xmlns="http://javafx.com/javafx/8.0.40"
+<HBox xmlns:fx="http://javafx.com/fxml/1" fx:id="newsRoot" alignment="CENTER" maxHeight="1.7976931348623157E308"
+      maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" xmlns="http://javafx.com/javafx/8.0.141"
       fx:controller="com.faforever.client.news.NewsController">
   <children>
-    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" minHeight="0.0" minWidth="0.0" HBox.hgrow="NEVER">
-      <content>
-        <VBox fx:id="newsListPane" minHeight="0.0" minWidth="0.0"/>
-      </content>
-    </ScrollPane>
-    <Separator orientation="VERTICAL"/>
-    <AnchorPane HBox.hgrow="ALWAYS">
-      <children>
-        <WebView fx:id="newsDetailWebView" prefHeight="-1.0" prefWidth="-1.0"
-                 AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                 AnchorPane.topAnchor="0.0"/>
-          <JFXButton text="%news.showLadderMaps" fx:id="showLadderMapsButton" onAction="#showLadderMaps"
-                     AnchorPane.rightAnchor="0.0"
-                     AnchorPane.topAnchor="0.0"/>
-      </children>
-    </AnchorPane>
+      <SplitPane dividerPositions="0.2" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                 HBox.hgrow="ALWAYS">
+          <items>
+              <ListView fx:id="newsListView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"/>
+              <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+                  <children>
+                      <WebView fx:id="newsDetailWebView" prefHeight="-1.0" prefWidth="-1.0"
+                               AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                               AnchorPane.topAnchor="0.0"/>
+                      <JFXButton fx:id="showLadderMapsButton" onAction="#showLadderMaps" text="%news.showLadderMaps"
+                                 AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                  </children>
+              </AnchorPane>
+          </items>
+      </SplitPane>
+      <Label fx:id="loadingIndicator" contentDisplay="TOP" text="%loading" HBox.hgrow="ALWAYS">
+          <graphic>
+              <JFXSpinner maxHeight="80.0" maxWidth="80.0"/>
+          </graphic>
+      </Label>
   </children>
 </HBox>

@@ -2,7 +2,6 @@ package com.faforever.client.fx;
 
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
-import com.sun.javafx.webkit.Accessor;
 import javafx.concurrent.Worker.State;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
@@ -40,7 +39,7 @@ public class WebViewConfigurer {
 
   public void configureWebView(WebView webView) {
     WebEngine engine = webView.getEngine();
-    Accessor.getPageFor(engine).setBackgroundColor(0);
+//    Accessor.getPageFor(engine).setBackgroundColor(0);
     webView.setContextMenuEnabled(false);
     webView.setOnScroll(event -> {
       if (event.isControlDown()) {

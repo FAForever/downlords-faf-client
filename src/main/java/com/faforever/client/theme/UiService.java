@@ -6,6 +6,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.github.nocatch.NoCatch.NoCatchRunnable;
+import com.jfoenix.assets.JFoenixResources;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -341,8 +342,8 @@ public class UiService {
 
   public String[] getStylesheets() {
     return new String[]{
-        UiService.class.getResource("/css/jfoenix-fonts.css").toExternalForm(),
-        UiService.class.getResource("/css/jfoenix-design.css").toExternalForm(),
+        JFoenixResources.load("css/jfoenix-fonts.css").toExternalForm(),
+        JFoenixResources.load("css/jfoenix-design.css").toExternalForm(),
         getThemeFile("theme/jfoenix.css"),
         getSceneStyleSheet()
     };

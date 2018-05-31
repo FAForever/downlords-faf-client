@@ -93,17 +93,9 @@ public class GameDetailController implements Controller<Pane> {
     gameTypeLabel.visibleProperty().bind(game.isNotNull());
 
     setGame(null);
-
-    gameStatusInvalidationListener = observable -> onGameStatusChanged();
-    teamsInvalidationListener = observable -> createTeams(game.getTeams(), game);
   }
 
-  private void onGameStatusChanged() {
-    Game game = this.game.get();
-    if (game == null) {
-      log.warn("Can't update game status when there is no game");
-      return;
-    }
+  private void onGameStatusChanged(Game game) {
     switch (game.getStatus()) {
       case PLAYING:
         joinButton.setVisible(false);
@@ -128,6 +120,9 @@ public class GameDetailController implements Controller<Pane> {
     if (game == null) {
       return;
     }
+
+    gameStatusInvalidationListener = observable -> onGameStatusChanged(game);
+    teamsInvalidationListener = observable -> createTeams(game.getTeams(), game);
 
     gameTitleLabel.textProperty().bind(game.titleProperty());
     hostLabel.textProperty().bind(game.hostProperty());

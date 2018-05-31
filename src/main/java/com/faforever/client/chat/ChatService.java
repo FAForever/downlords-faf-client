@@ -4,7 +4,6 @@ import com.faforever.client.net.ConnectionState;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.MapChangeListener;
-import org.pircbotx.User;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -22,7 +21,7 @@ public interface ChatService {
    */
   Channel getOrCreateChannel(String channelName);
 
-  ChatChannelUser getOrCreateChatUser(String username, String channel);
+  ChatChannelUser getOrCreateChatUser(String username, String channel, boolean isModerator);
 
   void addUsersListener(String channelName, MapChangeListener<String, ChatChannelUser> listener);
 
@@ -42,8 +41,6 @@ public interface ChatService {
 
   void close();
 
-  ChatChannelUser getOrCreateChatUser(User user, String channel);
-
   ReadOnlyObjectProperty<ConnectionState> connectionStateProperty();
 
   void reconnect();
@@ -58,4 +55,8 @@ public interface ChatService {
   void incrementUnreadMessagesCount(int delta);
 
   ReadOnlyIntegerProperty unreadMessagesCount();
+
+  ChatChannelUser getChatUser(String username, String channelName);
+
+  String getDefaultChannelName();
 }

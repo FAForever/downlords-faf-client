@@ -18,7 +18,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.MapChangeListener;
 import javafx.concurrent.Task;
 import javafx.scene.paint.Color;
-import org.pircbotx.User;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -120,10 +119,9 @@ public class MockChatService implements ChatService {
     return channelUserListListeners.get(channelName);
   }
 
-
   @Override
-  public ChatChannelUser getOrCreateChatUser(String username, String channel) {
-    return new ChatChannelUser(username, Color.ALICEBLUE);
+  public ChatChannelUser getOrCreateChatUser(String username, String channel, boolean isModerator) {
+    return null;
   }
 
   @Override
@@ -161,9 +159,9 @@ public class MockChatService implements ChatService {
     ConcurrentUtil.executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
-        ChatChannelUser chatUser = new ChatChannelUser(userService.getUsername(), null);
-        ChatChannelUser mockUser = new ChatChannelUser("MockUser", null);
-        ChatChannelUser moderatorUser = new ChatChannelUser("MockModerator", true, null);
+        ChatChannelUser chatUser = new ChatChannelUser(userService.getUsername(), null, false);
+        ChatChannelUser mockUser = new ChatChannelUser("MockUser", null, false);
+        ChatChannelUser moderatorUser = new ChatChannelUser("MockModerator", null, true);
 
         Channel channel = getOrCreateChannel(channelName);
         channel.addUser(chatUser);
@@ -204,11 +202,6 @@ public class MockChatService implements ChatService {
   }
 
   @Override
-  public ChatChannelUser getOrCreateChatUser(User user, String channel) {
-    return null;
-  }
-
-  @Override
   public ObjectProperty<ConnectionState> connectionStateProperty() {
     return connectionState;
   }
@@ -233,5 +226,15 @@ public class MockChatService implements ChatService {
   @Override
   public ReadOnlyIntegerProperty unreadMessagesCount() {
     return unreadMessagesCount;
+  }
+
+  @Override
+  public ChatChannelUser getChatUser(String username, String channelName) {
+    return new ChatChannelUser(username, Color.ALICEBLUE, false);
+  }
+
+  @Override
+  public String getDefaultChannelName() {
+    return channelUserListListeners.keySet().iterator().next();
   }
 }

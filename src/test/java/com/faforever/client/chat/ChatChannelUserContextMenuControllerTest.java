@@ -71,6 +71,7 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
 
   private ChatUserContextMenuController instance;
   private Player player;
+  private ChatChannelUser chatUser;
 
   @Before
   public void setUp() throws Exception {
@@ -95,7 +96,8 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
     loadFxml("theme/chat/chat_user_context_menu.fxml", clazz -> instance);
 
     player = PlayerBuilder.create(TEST_USER_NAME).socialStatus(SELF).avatar(null).game(new Game()).get();
-    instance.setChatUser(player);
+    chatUser = ChatChannelUserBuilder.create(TEST_USER_NAME).defaultValues().setPlayer(player).get();
+    instance.setChatUser(chatUser);
   }
 
   @Test
@@ -186,7 +188,7 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
   public void onSelectAvatar() throws Exception {
     instance.avatarComboBox.show();
 
-    WaitForAsyncUtils.waitForAsyncFx(100000, () -> instance.avatarComboBox.getSelectionModel().select(2));
+    WaitForAsyncUtils.waitForAsyncFx(100_000, () -> instance.avatarComboBox.getSelectionModel().select(2));
 
     ArgumentCaptor<AvatarBean> captor = ArgumentCaptor.forClass(AvatarBean.class);
     verify(avatarService).changeAvatar(captor.capture());
@@ -197,9 +199,9 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
   }
 
   @Test
-  public void testHideUserInfoOnIdBeingNull() {
-    Player player = PlayerBuilder.create("xyz").get();
-    instance.setChatUser(player);
+  public void testHideUserInfoIfNoPlayer() {
+    chatUser.setPlayer(null);
+    instance.setChatUser(chatUser);
     assertThat(instance.showUserInfo.isVisible(), is(false));
   }
 }

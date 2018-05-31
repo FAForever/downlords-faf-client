@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.util.ReflectionUtils;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -27,7 +28,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -66,24 +66,18 @@ public class PlayerServiceTest {
 
   @Test
   public void testGetPlayerForUsernameUsernameDoesNotExist() throws Exception {
-    Player player = instance.getPlayerForUsername("junit");
-    assertNull(player);
+    Optional<Player> player = instance.getPlayerForUsername("junit");
+    assertFalse(player.isPresent());
   }
 
   @Test
   public void testGetPlayerForUsernameUsernameExists() throws Exception {
     instance.createAndGetPlayerForUsername("junit");
 
-    Player player = instance.getPlayerForUsername("junit");
+    Optional<Player> player = instance.getPlayerForUsername("junit");
 
-    assertNotNull(player);
-    assertEquals("junit", player.getUsername());
-  }
-
-  @Test
-  public void testGetPlayerForUsernameNull() throws Exception {
-    Player player = instance.getPlayerForUsername(null);
-    assertNull(player);
+    assertTrue(player.isPresent());
+    assertEquals("junit", player.get().getUsername());
   }
 
   @Test

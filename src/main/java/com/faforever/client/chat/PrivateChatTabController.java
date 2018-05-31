@@ -82,7 +82,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
     privateChatTabRoot.setId(username);
     privateChatTabRoot.setText(username);
 
-    ChatChannelUser chatUser = chatService.getOrCreateChatUser(username, username);
+    ChatChannelUser chatUser = chatService.getOrCreateChatUser(username, username, false);
     privateUserInfoController.setChatUser(chatUser);
   }
 

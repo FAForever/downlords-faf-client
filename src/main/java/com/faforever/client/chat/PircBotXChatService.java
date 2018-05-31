@@ -42,6 +42,7 @@ import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
 import org.pircbotx.UserHostmask;
+import org.pircbotx.UserLevel;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.Event;
@@ -59,8 +60,6 @@ import org.pircbotx.hooks.events.QuitEvent;
 import org.pircbotx.hooks.events.TopicEvent;
 import org.pircbotx.hooks.events.UserListEvent;
 import org.pircbotx.hooks.types.GenericEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -69,26 +68,27 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static com.faforever.client.chat.ChatColorMode.RANDOM;
 import static com.faforever.client.task.CompletableTask.Priority.HIGH;
-import static com.github.nocatch.NoCatch.noCatch;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Locale.US;
 import static javafx.collections.FXCollections.observableHashMap;
+import static javafx.collections.FXCollections.observableMap;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 
 @Lazy
@@ -97,7 +97,7 @@ import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 @Profile("!" + FafClientApplication.PROFILE_OFFLINE)
 public class PircBotXChatService implements ChatService {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final List<UserLevel> MODERATOR_USER_LEVELS = Arrays.asList(UserLevel.OP, UserLevel.HALFOP, UserLevel.SUPEROP, UserLevel.OWNER);
   private static final int SOCKET_TIMEOUT = 10000;
   @VisibleForTesting
   final ObjectProperty<ConnectionState> connectionState;
@@ -125,7 +125,8 @@ public class PircBotXChatService implements ChatService {
 
   private Configuration configuration;
   private PircBotX pircBotX;
-  private CountDownLatch identifiedLatch;
+  /** Called when the IRC server has confirmed our identity. */
+  private CompletableFuture<Void> identifiedFuture;
   private Task<Void> connectionTask;
   /**
    * A list of channels the server wants us to join.
@@ -161,9 +162,9 @@ public class PircBotXChatService implements ChatService {
     connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
     eventListeners = new ConcurrentHashMap<>();
     channels = observableHashMap();
-    chatChannelUsersByChannelAndName = observableHashMap();
+    chatChannelUsersByChannelAndName = observableMap(new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
     unreadMessagesCount = new SimpleIntegerProperty();
-    identifiedLatch = new CountDownLatch(1);
+    identifiedFuture = new CompletableFuture<>();
   }
 
   @PostConstruct
@@ -183,7 +184,7 @@ public class PircBotXChatService implements ChatService {
     addEventListener(ConnectEvent.class, event -> connectionState.set(ConnectionState.CONNECTED));
     addEventListener(DisconnectEvent.class, event -> connectionState.set(ConnectionState.DISCONNECTED));
     addEventListener(UserListEvent.class, event -> onChatUserList(event.getChannel().getName(), chatUsers(event.getUsers(), event.getChannel().getName())));
-    addEventListener(JoinEvent.class, event -> onUserJoinedChannel(event.getChannel().getName(), getOrCreateChatUser(event.getUser(), event.getChannel().getName())));
+    addEventListener(JoinEvent.class, this::onJoinEvent);
     addEventListener(PartEvent.class, event -> onChatUserLeftChannel(event.getChannel().getName(), event.getUser().getNick()));
     addEventListener(QuitEvent.class, event -> onChatUserQuit(event.getUser().getNick()));
     addEventListener(TopicEvent.class, event -> getOrCreateChannel(event.getChannel().getName()).setTopic(event.getTopic()));
@@ -191,12 +192,7 @@ public class PircBotXChatService implements ChatService {
     addEventListener(ActionEvent.class, this::onAction);
     addEventListener(PrivateMessageEvent.class, this::onPrivateMessage);
     addEventListener(MotdEvent.class, this::onMotd);
-    addEventListener(OpEvent.class, event -> {
-      User recipient = event.getRecipient();
-      if (recipient != null) {
-        onModeratorSet(event.getChannel().getName(), recipient.getNick());
-      }
-    });
+    addEventListener(OpEvent.class, this::onOp);
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     JavaFxUtil.addListener(chatPrefs.userToColorProperty(),
@@ -207,8 +203,8 @@ public class PircBotXChatService implements ChatService {
         switch (newValue) {
           case CUSTOM:
             chatChannelUsersByChannelAndName.values().stream()
-                .filter(chatUser -> chatPrefs.getUserToColor().containsKey(chatUser.getUsername().toLowerCase(US)))
-                .forEach(chatUser -> chatUser.setColor(chatPrefs.getUserToColor().get(chatUser.getUsername().toLowerCase(US))));
+                .filter(chatUser -> chatPrefs.getUserToColor().containsKey(userToColorKey(chatUser.getUsername())))
+                .forEach(chatUser -> chatUser.setColor(chatPrefs.getUserToColor().get(userToColorKey(chatUser.getUsername()))));
             break;
 
           case RANDOM:
@@ -226,6 +222,35 @@ public class PircBotXChatService implements ChatService {
     });
   }
 
+  private void onOp(OpEvent event) {
+    User recipient = event.getRecipient();
+    if (recipient != null) {
+      onModeratorSet(event.getChannel().getName(), recipient.getNick());
+    }
+  }
+
+  @NotNull
+  private String userToColorKey(String username) {
+    return username.toLowerCase(US);
+  }
+
+  private void onJoinEvent(JoinEvent event) {
+    User user = Objects.requireNonNull(event.getUser());
+    log.debug("User joined channel: {}", user);
+    onJoinEvent(event.getChannel().getName(), getOrCreateChatUser(user, event.getChannel().getName()));
+  }
+
+  private ChatChannelUser getOrCreateChatUser(User user, String channelName) {
+    String username = user.getNick() != null ? user.getNick() : user.getLogin();
+
+    boolean isModerator = user.getChannels().stream()
+        .filter(channel -> channel.getName().equals(channelName))
+        .flatMap(channel -> user.getUserLevels(channel).stream())
+        .anyMatch(MODERATOR_USER_LEVELS::contains);
+
+    return getOrCreateChatUser(username, channelName, isModerator);
+  }
+
   private void onMotd(MotdEvent event) {
     sendIdentify(event.getBot().getConfiguration());
   }
@@ -238,7 +263,6 @@ public class PircBotXChatService implements ChatService {
   @Subscribe
   public void onLoggedOutEvent(LoggedOutEvent event) {
     disconnect();
-    autoChannelsJoined = false;
     eventBus.post(UpdateApplicationBadgeEvent.ofNewValue(0));
   }
 
@@ -267,20 +291,21 @@ public class PircBotXChatService implements ChatService {
   }
 
   private void onIdentified() {
-    identifiedLatch.countDown();
-
-    if (!autoChannelsJoined) {
-      joinAutoChannels();
-    } else {
-      synchronized (channels) {
-        logger.debug("Joining all channels: {}", channels);
-        channels.keySet().forEach(this::joinChannel);
+    identifiedFuture.thenAccept(aVoid -> {
+      if (!autoChannelsJoined) {
+        joinAutoChannels();
+      } else {
+        synchronized (channels) {
+          log.debug("Joining all channels: {}", channels);
+          channels.keySet().forEach(this::joinChannel);
+        }
       }
-    }
+    });
+    identifiedFuture.complete(null);
   }
 
   private void joinAutoChannels() {
-    logger.debug("Joining auto channel: {}", autoChannels);
+    log.debug("Joining auto channel: {}", autoChannels);
     if (autoChannels == null) {
       return;
     }
@@ -289,16 +314,14 @@ public class PircBotXChatService implements ChatService {
   }
 
   private void onDisconnected() {
+    autoChannelsJoined = false;
     synchronized (channels) {
       channels.values().forEach(Channel::clearUsers);
     }
   }
 
   private <T extends GenericEvent> void addEventListener(Class<T> eventClass, ChatEventListener<T> listener) {
-    if (!eventListeners.containsKey(eventClass)) {
-      eventListeners.put(eventClass, new ArrayList<>());
-    }
-    eventListeners.get(eventClass).add(listener);
+    eventListeners.computeIfAbsent(eventClass, aClass -> new ArrayList<>()).add(listener);
   }
 
   private void onChatUserList(String channelName, List<ChatChannelUser> users) {
@@ -309,16 +332,25 @@ public class PircBotXChatService implements ChatService {
     return users.stream().map(user -> getOrCreateChatUser(user, channel)).collect(Collectors.toList());
   }
 
-  private void onUserJoinedChannel(String channelName, ChatChannelUser chatUser) {
+  private void onJoinEvent(String channelName, ChatChannelUser chatUser) {
     getOrCreateChannel(channelName).addUser(chatUser);
     eventBus.post(new ChatUserJoinedChannelEvent(chatUser));
   }
 
   private void onChatUserLeftChannel(String channelName, String username) {
-    getOrCreateChannel(channelName).removeUser(username);
-    if (userService.getUsername().equalsIgnoreCase(username)) {
-      channels.remove(channelName);
+    if (getOrCreateChannel(channelName).removeUser(username) == null) {
+      return;
     }
+    log.debug("User '{}' left channel: {}", username, channelName);
+    if (userService.getUsername().equalsIgnoreCase(username)) {
+      synchronized (channels) {
+        channels.remove(channelName);
+      }
+    }
+    synchronized (chatChannelUsersByChannelAndName) {
+      chatChannelUsersByChannelAndName.remove(username, channelName);
+    }
+    // The server doesn't yet tell us when a user goes offline, so we have to rely on the user leaving IRC.
     if (defaultChannelName.equals(channelName)) {
       eventBus.post(new UserOfflineEvent(username));
     }
@@ -326,12 +358,7 @@ public class PircBotXChatService implements ChatService {
 
   private void onChatUserQuit(String username) {
     synchronized (channels) {
-      synchronized (chatChannelUsersByChannelAndName) {
-        channels.values().forEach(channel -> {
-          channel.removeUser(username);
-          chatChannelUsersByChannelAndName.remove(username + channel.getName());
-        });
-      }
+      channels.values().forEach(channel -> onChatUserLeftChannel(channel.getName(), username));
     }
   }
 
@@ -386,7 +413,7 @@ public class PircBotXChatService implements ChatService {
   private void onAction(ActionEvent event) {
     User user = event.getUser();
     if (user == null) {
-      logger.warn("Action event without user: {}", event);
+      log.warn("Action event without user: {}", event);
       return;
     }
 
@@ -403,7 +430,7 @@ public class PircBotXChatService implements ChatService {
   private void onMessage(MessageEvent event) {
     User user = event.getUser();
     if (user == null) {
-      logger.warn("Action event without user: {}", event);
+      log.warn("Action event without user: {}", event);
       return;
     }
 
@@ -417,12 +444,12 @@ public class PircBotXChatService implements ChatService {
   private void onPrivateMessage(PrivateMessageEvent event) {
     User user = event.getUser();
     if (user == null) {
-      logger.warn("Private message without user: {}", event);
+      log.warn("Private message without user: {}", event);
       return;
     }
-    logger.debug("Received private message: {}", event);
+    log.debug("Received private message: {}", event);
 
-    ChatChannelUser sender = getOrCreateChatUser(user.getNick(), event.getUser().getNick());
+    ChatChannelUser sender = getOrCreateChatUser(user.getNick(), event.getUser().getNick(), false);
     if (sender != null
         && sender.getPlayer().isPresent()
         && sender.getPlayer().get().getSocialStatus() == SocialStatus.FOE
@@ -439,12 +466,12 @@ public class PircBotXChatService implements ChatService {
 
     connectionTask = new Task<Void>() {
       @Override
-      protected Void call() throws Exception {
+      protected Void call() {
         while (!isCancelled()) {
           try {
             connectionState.set(ConnectionState.CONNECTING);
             Configuration.ServerEntry server = configuration.getServers().get(0);
-            logger.info("Connecting to IRC at {}:{}", server.getHostname(), server.getPort());
+            log.info("Connecting to IRC at {}:{}", server.getHostname(), server.getPort());
             pircBotX.startBot();
           } catch (IOException | IrcException | RuntimeException e) {
             connectionState.set(ConnectionState.DISCONNECTED);
@@ -458,16 +485,18 @@ public class PircBotXChatService implements ChatService {
 
   @Override
   public void disconnect() {
-    logger.info("Disconnecting from IRC");
+    log.info("Disconnecting from IRC");
     if (connectionTask != null) {
       connectionTask.cancel(false);
     }
     if (pircBotX.isConnected()) {
       pircBotX.stopBotReconnect();
       pircBotX.sendIRC().quitServer();
-      channels.clear();
+      synchronized (channels) {
+        channels.clear();
+      }
     }
-    identifiedLatch = new CountDownLatch(1);
+    identifiedFuture = new CompletableFuture<>();
   }
 
   @Override
@@ -475,7 +504,7 @@ public class PircBotXChatService implements ChatService {
     eventBus.post(new ChatMessageEvent(new ChatMessage(target, Instant.now(), userService.getUsername(), message)));
     return taskService.submitTask(new CompletableTask<String>(HIGH) {
       @Override
-      protected String call() throws Exception {
+      protected String call() {
         updateTitle(i18n.get("chat.sendMessageTask.title"));
         pircBotX.sendIRC().message(target, message);
         return message;
@@ -494,21 +523,22 @@ public class PircBotXChatService implements ChatService {
   }
 
   @Override
-  public ChatChannelUser getOrCreateChatUser(String username, String channel) {
+  public ChatChannelUser getOrCreateChatUser(String username, String channel, boolean isModerator) {
     synchronized (chatChannelUsersByChannelAndName) {
-      String lowerUsername = username.toLowerCase(US);
-      if (!chatChannelUsersByChannelAndName.containsKey(lowerUsername)) {
+      String key = mapKey(username, channel);
+      if (!chatChannelUsersByChannelAndName.containsKey(key)) {
         ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
         Color color = null;
-        if (chatPrefs.getChatColorMode() == CUSTOM && chatPrefs.getUserToColor().containsKey(lowerUsername)) {
-          color = chatPrefs.getUserToColor().get(lowerUsername);
+
+        if (chatPrefs.getChatColorMode() == CUSTOM && chatPrefs.getUserToColor().containsKey(userToColorKey(username))) {
+          color = chatPrefs.getUserToColor().get(userToColorKey(username));
         } else if (chatPrefs.getChatColorMode() == RANDOM) {
-          color = ColorGeneratorUtil.generateRandomColor(lowerUsername.hashCode());
+          color = ColorGeneratorUtil.generateRandomColor(userToColorKey(username).hashCode());
         }
 
-        chatChannelUsersByChannelAndName.put(lowerUsername, new ChatChannelUser(username, color));
+        chatChannelUsersByChannelAndName.put(key, new ChatChannelUser(username, color, isModerator));
       }
-      return chatChannelUsersByChannelAndName.get(lowerUsername);
+      return chatChannelUsersByChannelAndName.get(key);
     }
   }
 
@@ -526,9 +556,7 @@ public class PircBotXChatService implements ChatService {
 
   @Override
   public void addChannelsListener(MapChangeListener<String, Channel> listener) {
-    synchronized (channels) {
-      JavaFxUtil.addListener(channels, listener);
-    }
+    JavaFxUtil.addListener(channels, listener);
   }
 
   @Override
@@ -545,7 +573,7 @@ public class PircBotXChatService implements ChatService {
   public CompletableFuture<String> sendActionInBackground(String target, String action) {
     return taskService.submitTask(new CompletableTask<String>(HIGH) {
       @Override
-      protected String call() throws Exception {
+      protected String call() {
         updateTitle(i18n.get("chat.sendActionTask.title"));
 
         pircBotX.sendIRC().action(target, action);
@@ -556,10 +584,11 @@ public class PircBotXChatService implements ChatService {
 
   @Override
   public void joinChannel(String channelName) {
-    logger.debug("Joining channel (waiting for identification): {}", channelName);
-    noCatch(() -> identifiedLatch.await());
-    logger.debug("Joining channel: {}", channelName);
-    pircBotX.sendIRC().joinChannel(channelName);
+    log.debug("Joining channel (waiting for identification): {}", channelName);
+    identifiedFuture.thenAccept(aVoid -> {
+      log.debug("Joining channel: {}", channelName);
+      pircBotX.sendIRC().joinChannel(channelName);
+    });
   }
 
   @Override
@@ -571,34 +600,12 @@ public class PircBotXChatService implements ChatService {
   @PreDestroy
   public void close() {
     // TODO clean up disconnect() and close()
-    identifiedLatch.countDown();
+    identifiedFuture.cancel(false);
     if (connectionTask != null) {
       connectionTask.cancel();
     }
     if (pircBotX != null) {
       pircBotX.sendIRC().quitServer();
-    }
-  }
-
-  @Override
-  public ChatChannelUser getOrCreateChatUser(User user, String channel) {
-    synchronized (chatChannelUsersByChannelAndName) {
-      String username = user.getNick();
-      String lowerUsername = username.toLowerCase(US);
-      String key = lowerUsername + channel;
-      if (!chatChannelUsersByChannelAndName.containsKey(key)) {
-        ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-        Color color = null;
-
-        if (chatPrefs.getChatColorMode() == CUSTOM && chatPrefs.getUserToColor().containsKey(lowerUsername)) {
-          color = chatPrefs.getUserToColor().get(key);
-        } else if (chatPrefs.getChatColorMode() == RANDOM) {
-          color = ColorGeneratorUtil.generateRandomColor(lowerUsername.hashCode());
-        }
-
-        chatChannelUsersByChannelAndName.put(key, ChatChannelUser.fromIrcUser(user, color, channel));
-      }
-      return chatChannelUsersByChannelAndName.get(key);
     }
   }
 
@@ -628,17 +635,34 @@ public class PircBotXChatService implements ChatService {
     return unreadMessagesCount;
   }
 
+  @Override
+  public ChatChannelUser getChatUser(String username, String channelName) {
+    return Optional.ofNullable(chatChannelUsersByChannelAndName.get(mapKey(username, channelName)))
+        .orElseThrow(() -> new IllegalArgumentException("Chat user '" + username + "' is unknown for channel '" + channelName + "'"));
+  }
+
+  @Override
+  public String getDefaultChannelName() {
+    return defaultChannelName;
+  }
+
+  private String mapKey(String username, String channelName) {
+    return username + channelName;
+  }
+
   @Subscribe
   public void onPlayerOnline(PlayerOnlineEvent event) {
     Player player = event.getPlayer();
 
-    List<ChatChannelUser> channelUsers = channels.values().stream()
-        .map(channel -> chatChannelUsersByChannelAndName.get(player.getUsername() + channel.getName()))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+    synchronized (channels) {
+      List<ChatChannelUser> channelUsers = channels.values().stream()
+          .map(channel -> chatChannelUsersByChannelAndName.get(mapKey(player.getUsername(), channel.getName())))
+          .filter(Objects::nonNull)
+          .peek(chatChannelUser -> chatChannelUser.setPlayer(player))
+          .collect(Collectors.toList());
 
-    player.getChatChannelUsers().addAll(channelUsers);
-    channelUsers.forEach(chatChannelUser -> chatChannelUser.setPlayer(player));
+      player.getChatChannelUsers().addAll(channelUsers);
+    }
   }
 
   interface ChatEventListener<T> {

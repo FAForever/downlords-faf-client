@@ -6,7 +6,6 @@ import com.faforever.client.clan.ClanService;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameBuilder;
-import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
@@ -61,8 +60,6 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private UiService uiService;
   @Mock
-  private JoinGameHelper joinGameHelper;
-  @Mock
   private EventBus eventBus;
   @Mock
   private ClanService clanService;
@@ -75,16 +72,15 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ChatUserItemController(preferencesService, avatarService, countryFlagService, i18n, uiService, joinGameHelper, eventBus, clanService, playerService, platformService, timeService);
-
     Preferences preferences = new Preferences();
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(chatService.getOrCreateChatUser("junit", )).thenReturn(new ChatChannelUser("junit", null));
+
     when(i18n.get(eq("user.status.hosting"), anyString())).thenReturn("Hosting");
     when(i18n.get(eq("user.status.waiting"), anyString())).thenReturn("Waiting");
     when(i18n.get(eq("user.status.playing"), anyString())).thenReturn("Playing");
     when(clanService.getClanByTag(anyString())).thenReturn(CompletableFuture.completedFuture(Optional.of(new Clan())));
 
+    instance = new ChatUserItemController(preferencesService, avatarService, countryFlagService, i18n, uiService, eventBus, clanService, playerService, platformService, timeService);
     loadFxml("theme/chat/chat_user_item.fxml", param -> instance);
   }
 
@@ -95,26 +91,33 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testSetPlayer() throws Exception {
-    instance.setChatUser(PlayerBuilder.create("junit").defaultValues().get());
+  public void testSetChatUser() throws Exception {
+    Player player = PlayerBuilder.create("junit").defaultValues().clan("e").get();
+    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().setPlayer(player).get());
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.clanMenu.getText(), is("[e]"));
-    assertThat(instance.countryImageView.isVisible(), is(true));
+    assertThat(instance.clanMenu.isVisible(), is(true));
     verify(countryFlagService).loadCountryFlag("US");
   }
 
   @Test
   public void testGetPlayer() throws Exception {
-    Player player = PlayerBuilder.create("junit").defaultValues().get();
-    instance.setChatUser(player);
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit").defaultValues().get();
+    instance.setChatUser(chatUser);
 
-    assertThat(instance.getChatUser(), is(player));
+    assertThat(instance.getChatUser(), is(chatUser));
   }
 
   @Test
   public void testOpenGameSetsStatusToWaiting() throws Exception {
     Player player = PlayerBuilder.create("junit").defaultValues().get();
-    instance.setChatUser(player);
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
+        .defaultValues()
+        .setPlayer(player)
+        .get();
+    instance.setChatUser(chatUser);
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.statusLabel.getText(), is(""));
 
@@ -127,7 +130,13 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testHostedGameSetsStatusToHosting() throws Exception {
     Player player = PlayerBuilder.create("junit").defaultValues().get();
-    instance.setChatUser(player);
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
+        .defaultValues()
+        .setPlayer(player)
+        .get();
+
+    instance.setChatUser(chatUser);
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.statusLabel.getText(), is(""));
 
@@ -140,7 +149,12 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testActiveGameSetsStatusToPlaying() throws Exception {
     Player player = PlayerBuilder.create("junit").defaultValues().get();
-    instance.setChatUser(player);
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
+        .defaultValues()
+        .setPlayer(player)
+        .get();
+    instance.setChatUser(chatUser);
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.statusLabel.getText(), is(""));
 
@@ -153,7 +167,11 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testNullGameSetsStatusToNothing() throws Exception {
     Player player = PlayerBuilder.create("junit").defaultValues().get();
-    instance.setChatUser(player);
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
+        .defaultValues()
+        .setPlayer(player)
+        .get();
+    instance.setChatUser(chatUser);
     player.setGame(GameBuilder.create().defaultValues().host("junit").state(GameStatus.PLAYING).get());
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -166,7 +184,8 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnMouseEnterUsername() throws Exception {
-    instance.setChatUser(PlayerBuilder.create("junit").defaultValues().get());
+    Player player = new Player("junit");
+    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().setPlayer(player).get());
     WaitForAsyncUtils.asyncFx(() -> instance.onMouseEnteredUsername());
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -185,8 +204,12 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnMouseEnterUsernameIfClanNull() throws Exception {
-    instance.setChatUser(PlayerBuilder.create("junit").defaultValues().get());
-    instance.getChatUser().setClan("");
+    Player player = PlayerBuilder.create("junit").defaultValues().clan("").get();
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
+        .defaultValues()
+        .setPlayer(player)
+        .get();
+    instance.setChatUser(chatUser);
 
     WaitForAsyncUtils.asyncFx(() -> instance.onMouseEnteredUsername());
     WaitForAsyncUtils.waitForFxEvents();
@@ -204,7 +227,7 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testDoubleClickInitiatesPrivateChat() throws Exception {
-    instance.setChatUser(PlayerBuilder.create("junit").defaultValues().get());
+    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().get());
     WaitForAsyncUtils.waitForFxEvents();
 
     instance.onItemClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 2));
@@ -219,8 +242,8 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
   public void testOnContextMenuRequested() throws Exception {
     WaitForAsyncUtils.asyncFx(() -> getRoot().getChildren().setAll(instance.chatUserItemRoot));
 
-    Player player = PlayerBuilder.create("junit").defaultValues().get();
-    instance.setChatUser(player);
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit").defaultValues().get();
+    instance.setChatUser(chatUser);
     WaitForAsyncUtils.waitForFxEvents();
 
     ChatUserContextMenuController contextMenuController = mock(ChatUserContextMenuController.class);
@@ -232,7 +255,7 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
     instance.onContextMenuRequested(event);
 
     verify(uiService).loadFxml("theme/chat/chat_user_context_menu.fxml");
-    verify(contextMenuController).setChatUser(player);
+    verify(contextMenuController).setChatUser(chatUser);
     verify(contextMenu).show(any(Pane.class), anyDouble(), anyDouble());
   }
 
@@ -253,9 +276,14 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnMouseEnteredTag() throws Exception {
+    Player player = PlayerBuilder.create("junit").clan("e").get();
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit").defaultValues().setPlayer(player).get();
+
     instance.clanMenu.setVisible(false);
-    instance.setChatUser(PlayerBuilder.create("junit").defaultValues().get());
+    instance.setChatUser(chatUser);
     instance.onMouseEnteredClanTag();
+
+    WaitForAsyncUtils.waitForFxEvents();
     assertThat(instance.clanMenu.getPrefWidth(), not(0.0));
     assertThat(instance.clanMenu.isVisible(), is(true));
   }

@@ -1,11 +1,9 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
-import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
@@ -26,18 +24,19 @@ import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.springframework.scheduling.TaskScheduler;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.Instant;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.Optional;
 
+import static com.faforever.client.player.SocialStatus.FOE;
 import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
@@ -54,7 +53,7 @@ import static org.mockito.Mockito.when;
 
 public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
-  public static final String USER_NAME = "junit";
+  private static final String USER_NAME = "junit";
   private static final String CHANNEL_NAME = "#testChannel";
 
   @Rule
@@ -71,8 +70,6 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private PlayerService playerService;
   @Mock
-  private PlatformService platformService;
-  @Mock
   private TimeService timeService;
   @Mock
   private ImageUploadService imageUploadService;
@@ -81,10 +78,6 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private NotificationService notificationService;
   @Mock
-  private ThreadPoolExecutor threadPoolExecutor;
-  @Mock
-  private TaskScheduler taskScheduler;
-  @Mock
   private AutoCompletionHelper autoCompletionHelper;
   @Mock
   private UiService uiService;
@@ -92,6 +85,8 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   private UserFilterController userFilterController;
   @Mock
   private ChatUserItemController chatUserItemController;
+  @Mock
+  private ChatUserItemCategoryController chatUserItemCategoryController;
   @Mock
   private WebViewConfigurer webViewConfigurer;
   @Mock
@@ -102,6 +97,8 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   private EventBus eventBus;
   @Mock
   private CountryFlagService countryFlagService;
+  private Preferences preferences;
+  private Channel defaultChannel;
 
   @Before
   public void setUp() throws Exception {
@@ -110,14 +107,16 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
         audioService, timeService, i18n, imageUploadService,
         notificationService, reportingService,
         uiService, autoCompletionHelper,
-        eventBus, webViewConfigurer, threadPoolExecutor, taskScheduler,
-        countryFlagService
+        eventBus, webViewConfigurer, countryFlagService
     );
 
-    when(preferencesService.getPreferences()).thenReturn(new Preferences());
+    defaultChannel = new Channel(CHANNEL_NAME);
+    preferences = new Preferences();
+    when(preferencesService.getPreferences()).thenReturn(this.preferences);
     when(userService.getUsername()).thenReturn(USER_NAME);
     when(uiService.loadFxml("theme/chat/user_filter.fxml")).thenReturn(userFilterController);
     when(uiService.loadFxml("theme/chat/chat_user_item.fxml")).thenReturn(chatUserItemController);
+    when(uiService.loadFxml("theme/chat/chat_user_category.fxml")).thenReturn(chatUserItemCategoryController);
     when(userFilterController.getRoot()).thenReturn(new Pane());
     when(userFilterController.filterAppliedProperty()).thenReturn(new SimpleBooleanProperty(false));
     when(chatUserItemController.getRoot()).thenReturn(new Pane());
@@ -132,45 +131,45 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
 
   @Test
-  public void testGetMessagesWebView() throws Exception {
+  public void testGetMessagesWebView() {
     assertNotNull(instance.getMessagesWebView());
   }
 
   @Test
-  public void testGetMessageTextField() throws Exception {
+  public void testGetMessageTextField() {
     assertNotNull(instance.messageTextField());
   }
 
   @Test
-  public void testSetChannelName() throws Exception {
-    Channel channel = new Channel(CHANNEL_NAME);
-
-    instance.setChannel(channel);
+  public void testSetChannelName() {
+    instance.setChannel(defaultChannel);
 
     verify(chatService).addUsersListener(eq(CHANNEL_NAME), any());
   }
 
   @Test
-  public void testGetMessageCssClassModerator() throws Exception {
-    Channel channel = new Channel(CHANNEL_NAME);
+  public void testGetMessageCssClassModerator() {
     String playerName = "junit";
 
-    Player player = new Player(playerName);
-    player.moderatorForChannelsProperty().set(FXCollections.observableSet(CHANNEL_NAME));
-    instance.setChannel(channel);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(player);
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create(playerName).defaultValues().moderator(true).get();
+
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.empty());
+    when(chatService.getChatUser(playerName, defaultChannel.getName())).thenReturn(chatUser);
+
+    instance.setChannel(defaultChannel);
+
     assertEquals(instance.getMessageCssClass(playerName), ChannelTabController.CSS_CLASS_MODERATOR);
   }
 
   @Test
-  public void onSearchFieldCloseTest() throws Exception {
+  public void onSearchFieldCloseTest() {
     instance.onSearchFieldClose();
     assertTrue(!instance.searchField.isVisible());
     assertEquals("", instance.searchField.getText());
   }
 
   @Test
-  public void onKeyReleasedTestEscape() throws Exception {
+  public void onKeyReleasedTestEscape() {
     KeyEvent keyEvent = new KeyEvent(null, null, null, null, null, KeyCode.ESCAPE, false, false, false, false);
 
     assertTrue(!instance.searchField.isVisible());
@@ -180,7 +179,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void onKeyReleasedTestCtrlF() throws Exception {
+  public void onKeyReleasedTestCtrlF() {
     KeyEvent keyEvent = new KeyEvent(null, null, null, null, null, KeyCode.F, false, true, false, false);
 
     assertTrue(!instance.searchField.isVisible());
@@ -193,14 +192,13 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testOnUserJoinsChannel() throws Exception {
-    Channel channel = new Channel(CHANNEL_NAME);
-    instance.setChannel(channel);
+  public void testOnUserJoinsChannel() {
+    instance.setChannel(defaultChannel);
 
     ArgumentCaptor<MapChangeListener<String, ChatChannelUser>> captor = ArgumentCaptor.forClass(MapChangeListener.class);
     verify(chatService).addUsersListener(anyString(), captor.capture());
 
-    ChatChannelUser chatUser = new ChatChannelUser("junit", null);
+    ChatChannelUser chatUser = new ChatChannelUser("junit", null, false);
     ObservableMap<String, ChatChannelUser> userMap = FXCollections.observableHashMap();
     userMap.put("junit", chatUser);
 
@@ -209,18 +207,11 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     when(change.getValueAdded()).thenReturn(chatUser);
     when(change.getMap()).thenReturn(userMap);
 
-    Player player = PlayerBuilder.create("Hans").defaultValues().get();
-    when(playerService.createAndGetPlayerForUsername("junit")).thenReturn(player);
-
     when(i18n.get("chat.userCount", 1)).thenReturn("1 Players");
-    when(chatUserItemController.getChatUser()).thenReturn(player);
 
-    // Actual test execution
     captor.getValue().onChanged(change);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertThat(player.usernameProperty().isBound(), is(true));
-    assertThat(player.getUsername(), is("junit"));
     assertThat(instance.userSearchTextField.getPromptText(), is("1 Players"));
   }
 
@@ -254,5 +245,86 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     preferencesService.getPreferences().getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(true);
     instance.onMention(new ChatMessage("junit", Instant.now(), "junit", "hello " + USER_NAME + "!!"));
     verify(audioService, never()).playChatMentionSound();
+  }
+
+  @Test
+  public void getInlineStyleRandomOther() {
+    String somePlayer = "somePlayer";
+    Color color = ColorGeneratorUtil.generateRandomColor();
+
+    ChatChannelUser chatUser = new ChatChannelUser(somePlayer, color, false);
+
+    preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
+    when(chatService.getChatUser(somePlayer, CHANNEL_NAME)).thenReturn(chatUser);
+    preferences.getChat().setHideFoeMessages(false);
+    instance.setChannel(defaultChannel);
+
+    String expected = instance.createInlineStyleFromColor(color);
+    String result = instance.getInlineStyle(somePlayer);
+    assertEquals(expected, result);
+  }
+
+  @Test
+  public void getInlineStyleRandomChatOnly() {
+    Color color = ColorGeneratorUtil.generateRandomColor();
+    String somePlayer = "somePlayer";
+
+    ChatChannelUser chatUser = new ChatChannelUser(somePlayer, color, false);
+
+    preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
+    when(chatService.getChatUser(somePlayer, CHANNEL_NAME)).thenReturn(chatUser);
+    preferences.getChat().setHideFoeMessages(false);
+    instance.setChannel(defaultChannel);
+
+    String expected = instance.createInlineStyleFromColor(color);
+    String result = instance.getInlineStyle(somePlayer);
+    assertEquals(expected, result);
+  }
+
+  @Test
+  public void getInlineStyleCustom() {
+    Color color = ColorGeneratorUtil.generateRandomColor();
+    String colorStyle = instance.createInlineStyleFromColor(color);
+    String username = "somePlayer";
+    ChatChannelUser chatUser = new ChatChannelUser(username, color, false);
+
+    instance.setChannel(defaultChannel);
+    preferences.getChat().setChatColorMode(ChatColorMode.CUSTOM);
+    when(chatService.getChatUser(username, CHANNEL_NAME)).thenReturn(chatUser);
+    preferences.getChat().setHideFoeMessages(false);
+
+    String expected = String.format("%s%s", colorStyle, "");
+    String result = instance.getInlineStyle(username);
+    assertEquals(expected, result);
+  }
+
+  @Test
+  public void getInlineStyleRandomFoeHide() {
+    String playerName = "playerName";
+    ChatChannelUser chatUser = new ChatChannelUser(playerName, null, false);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(Optional.of(PlayerBuilder.create(playerName).socialStatus(FOE).get()));
+
+    preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
+    when(chatService.getChatUser(playerName, CHANNEL_NAME)).thenReturn(chatUser);
+    preferences.getChat().setHideFoeMessages(true);
+    instance.setChannel(defaultChannel);
+
+    String result = instance.getInlineStyle(playerName);
+    assertEquals("display: none;", result);
+  }
+
+  @Test
+  public void getInlineStyleRandomFoeShow() {
+    String playerName = "somePlayer";
+    ChatChannelUser chatUser = new ChatChannelUser(playerName, null, false);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(Optional.of(PlayerBuilder.create(playerName).socialStatus(FOE).get()));
+
+    preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
+    when(chatService.getChatUser(playerName, CHANNEL_NAME)).thenReturn(chatUser);
+    preferences.getChat().setHideFoeMessages(false);
+    instance.setChannel(defaultChannel);
+
+    String result = instance.getInlineStyle(playerName);
+    assertEquals("", result);
   }
 }

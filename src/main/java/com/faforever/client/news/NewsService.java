@@ -1,29 +1,27 @@
 package com.faforever.client.news;
 
-import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.preferences.PreferencesService;
 import com.google.common.eventbus.EventBus;
 import com.rometools.rome.feed.synd.SyndCategory;
 import com.rometools.rome.feed.synd.SyndEntry;
-import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static com.github.nocatch.NoCatch.noCatch;
 
@@ -31,10 +29,8 @@ import static com.github.nocatch.NoCatch.noCatch;
 @Service
 public class NewsService {
 
-  /**
-   * The delay (in seconds) between polling for new news.
-   */
-  private static final long POLL_DELAY = Duration.ofMinutes(5).toMillis();
+  /** The delay (in seconds) between polling for new news. */
+  private static final long POLL_DELAY = Duration.ofMinutes(10).toMillis();
 
   private final String newsFeedUrl;
 
@@ -42,7 +38,6 @@ public class NewsService {
   private final EventBus eventBus;
   private final TaskScheduler taskScheduler;
 
-  @Inject
   public NewsService(ClientProperties clientProperties, PreferencesService preferencesService, EventBus eventBus,
                      TaskScheduler taskScheduler) {
     this.newsFeedUrl = clientProperties.getNews().getFeedUrl();
@@ -59,40 +54,38 @@ public class NewsService {
   }
 
   private void pollForNews() {
-    fetchNews().stream().findFirst()
+    fetchNews().thenAccept(newsItems -> newsItems.stream().findFirst()
         .ifPresent(newsItem -> {
           String lastReadNewsUrl = preferencesService.getPreferences().getNews().getLastReadNewsUrl();
           if (!Objects.equals(newsItem.getLink(), lastReadNewsUrl)) {
             eventBus.post(new UnreadNewsEvent(true));
           }
-        });
+        }));
   }
 
-  @Cacheable(CacheNames.NEWS)
-  public List<NewsItem> fetchNews() {
-    List<NewsItem> result = new ArrayList<>();
+  @Async
+  public CompletableFuture<List<NewsItem>> fetchNews() {
+    return CompletableFuture.completedFuture(
+        noCatch(() -> new SyndFeedInput().build(new XmlReader(new URL(newsFeedUrl)))).getEntries().stream()
+            .map(this::toNewsItem)
+            .sorted(Comparator.comparing(NewsItem::getDate).reversed())
+            .collect(Collectors.toList()));
+  }
 
-    SyndFeedInput input = new SyndFeedInput();
+  private NewsItem toNewsItem(SyndEntry syndEntry) {
+    String author = syndEntry.getAuthor();
+    String link = syndEntry.getLink();
+    String title = syndEntry.getTitle();
+    String content = syndEntry.getContents().get(0).getValue();
+    Date publishedDate = syndEntry.getPublishedDate();
 
-    SyndFeed feed = noCatch(() -> input.build(new XmlReader(new URL(newsFeedUrl))));
+    NewsCategory newsCategory = syndEntry.getCategories().stream()
+        .filter(Objects::nonNull)
+        .findFirst()
+        .map(SyndCategory::getName)
+        .map(NewsCategory::fromString)
+        .orElse(NewsCategory.UNCATEGORIZED);
 
-    for (SyndEntry syndEntry : feed.getEntries()) {
-      String author = syndEntry.getAuthor();
-      String link = syndEntry.getLink();
-      String title = syndEntry.getTitle();
-      String content = syndEntry.getContents().get(0).getValue();
-      Date publishedDate = syndEntry.getPublishedDate();
-
-      NewsCategory newsCategory = syndEntry.getCategories().stream()
-          .filter(Objects::nonNull)
-          .findFirst()
-          .map(SyndCategory::getName)
-          .map(NewsCategory::fromString)
-          .orElse(NewsCategory.UNCATEGORIZED);
-
-      result.add(new NewsItem(author, link, title, content, publishedDate, newsCategory));
-    }
-    result.sort(Comparator.comparing(NewsItem::getDate).reversed());
-    return result;
+    return new NewsItem(author, link, title, content, publishedDate, newsCategory);
   }
 }

@@ -66,6 +66,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -198,12 +199,12 @@ public class GameService {
     JavaFxUtil.attachListToMap(games, uidToGameInfoBean);
   }
 
-  
+
   public ReadOnlyBooleanProperty gameRunningProperty() {
     return gameRunning;
   }
 
-  
+
   public CompletableFuture<Void> hostGame(NewGameInfo newGameInfo) {
     if (isRunning()) {
       logger.debug("Game is running, ignoring host request");
@@ -218,7 +219,7 @@ public class GameService {
         .thenAccept(gameLaunchMessage -> startGame(gameLaunchMessage, null, RatingMode.GLOBAL));
   }
 
-  
+
   public CompletableFuture<Void> joinGame(Game game, String password) {
     if (isRunning()) {
       logger.debug("Game is running, ignoring join request");
@@ -268,7 +269,7 @@ public class GameService {
   /**
    * @param path a replay file that is readable by the preferences without any further conversion
    */
-  
+
   public void runWithReplay(Path path, @Nullable Integer replayId, String featuredMod, Integer version, Map<String, Integer> modVersions, Set<String> simMods, String mapName) {
     if (isRunning()) {
       logger.warn("Forged Alliance is already running, not starting replay");
@@ -303,7 +304,7 @@ public class GameService {
     );
   }
 
-  
+
   public CompletableFuture<Void> runWithLiveReplay(URI replayUrl, Integer gameId, String gameType, String mapName) {
     if (isRunning()) {
       logger.warn("Forged Alliance is already running, not starting live replay");
@@ -330,12 +331,12 @@ public class GameService {
     return playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
   }
 
-  
+
   public ObservableList<Game> getGames() {
     return games;
   }
 
-  
+
   public Game getByUid(int uid) {
     Game game = uidToGameInfoBean.get(uid);
     if (game == null) {
@@ -344,12 +345,12 @@ public class GameService {
     return game;
   }
 
-  
+
   public void addOnRankedMatchNotificationListener(Consumer<MatchmakerMessage> listener) {
     fafService.addOnMessageListener(MatchmakerMessage.class, listener);
   }
 
-  
+
   public CompletableFuture<Void> startSearchLadder1v1(Faction faction) {
     if (isRunning()) {
       logger.debug("Game is running, ignoring 1v1 search request");
@@ -382,7 +383,7 @@ public class GameService {
         });
   }
 
-  
+
   public void stopSearchLadder1v1() {
     if (searching1v1.get()) {
       fafService.stopSearchingRanked();
@@ -390,7 +391,7 @@ public class GameService {
     }
   }
 
-  
+
   public BooleanProperty searching1v1Property() {
     return searching1v1;
   }
@@ -399,7 +400,7 @@ public class GameService {
    * Returns the preferences the player is currently in. Returns {@code null} if not in a preferences.
    */
   @Nullable
-  
+
   public Game getCurrentGame() {
     synchronized (currentGame) {
       return currentGame.get();
@@ -414,7 +415,7 @@ public class GameService {
     return gameUpdater.update(featuredMod, version, featuredModVersions, simModUids);
   }
 
-  
+
   public boolean isGameRunning() {
     synchronized (gameRunning) {
       return gameRunning.get();
@@ -568,37 +569,40 @@ public class GameService {
       return;
     }
 
-    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
+    // We may receive game info before we receive our player info
+    Optional<Player> currentPlayerOptional = playerService.getCurrentPlayer();
 
     Game game = createOrUpdateGame(gameInfoMessage);
     if (GameStatus.CLOSED == game.getStatus()) {
-      if (currentPlayer.getGame() == game) {
-        // Don't remove the game until the current player closed it. TODO: Why?
-        JavaFxUtil.addListener(currentPlayer.gameProperty(), (observable, oldValue, newValue) -> {
-          if (newValue == null && oldValue.getStatus() == GameStatus.CLOSED) {
-            removeGame(gameInfoMessage);
-          }
-        });
-      } else {
+      if (!currentPlayerOptional.isPresent() || currentPlayerOptional.get().getGame() != game) {
         removeGame(gameInfoMessage);
+        return;
       }
-      return;
+
+      // Don't remove the game until the current player closed it. TODO: Why?
+      JavaFxUtil.addListener(currentPlayerOptional.get().gameProperty(), (observable, oldValue, newValue) -> {
+        if (newValue == null && oldValue.getStatus() == GameStatus.CLOSED) {
+          removeGame(gameInfoMessage);
+        }
+      });
     }
 
-    // TODO the following can be removed as soon as the server tells us which game a player is in.
-    boolean currentPlayerInGame = gameInfoMessage.getTeams().values().stream()
-        .anyMatch(team -> team.contains(currentPlayer.getUsername()));
+    if (currentPlayerOptional.isPresent()) {
+      // TODO the following can be removed as soon as the server tells us which game a player is in.
+      boolean currentPlayerInGame = gameInfoMessage.getTeams().values().stream()
+          .anyMatch(team -> team.contains(currentPlayerOptional.get().getUsername()));
 
-    if (currentPlayerInGame && GameStatus.OPEN == gameInfoMessage.getState()) {
-      synchronized (currentGame) {
-        currentGame.set(game);
+      if (currentPlayerInGame && GameStatus.OPEN == gameInfoMessage.getState()) {
+        synchronized (currentGame) {
+          currentGame.set(game);
+        }
       }
     }
 
     JavaFxUtil.addListener(game.statusProperty(), (observable, oldValue, newValue) -> {
       if (oldValue == GameStatus.OPEN
           && newValue == GameStatus.PLAYING
-          && game.getTeams().values().stream().anyMatch(team -> team.contains(currentPlayer.getUsername()))
+          && game.getTeams().values().stream().anyMatch(team -> playerService.getCurrentPlayer().isPresent() && team.contains(playerService.getCurrentPlayer().get().getUsername()))
           && !platformService.isWindowFocused(faWindowTitle)) {
         platformService.focusWindow(faWindowTitle);
       }

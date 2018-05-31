@@ -4,6 +4,7 @@ import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.clan.Clan;
 import com.faforever.client.clan.ClanService;
 import com.faforever.client.clan.ClanTooltipController;
+import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.PlayerStatus;
@@ -14,8 +15,8 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
+import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.value.ChangeListener;
@@ -36,16 +37,16 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.PopupWindow;
+import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import javax.inject.Inject;
 import java.time.Duration;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static com.faforever.client.game.PlayerStatus.IDLE;
@@ -57,12 +58,14 @@ import static java.util.Locale.US;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Slf4j
 // TODO null safety for "player"
-public class ChatUserItemController implements ChatUserTreeItem<Node> {
+public class ChatUserItemController implements Controller<Node> {
 
   private static final String CLAN_TAG_FORMAT = "[%s]";
   private static final PseudoClass PRESENCE_STATUS_ONLINE = PseudoClass.getPseudoClass("online");
   private static final PseudoClass PRESENCE_STATUS_IDLE = PseudoClass.getPseudoClass("idle");
+
   private final AvatarService avatarService;
   private final CountryFlagService countryFlagService;
   private final PreferencesService preferencesService;
@@ -73,6 +76,24 @@ public class ChatUserItemController implements ChatUserTreeItem<Node> {
   private final ClanService clanService;
   private final PlatformService platformService;
   private final TimeService timeService;
+  private final InvalidationListener colorChangeListener;
+  private final MapChangeListener<String, Color> colorPerUserMapChangeListener;
+  private final ChangeListener<String> avatarChangeListener;
+  private final ChangeListener<String> clanChangeListener;
+  private final ChangeListener<String> countryChangeListener;
+  private final ChangeListener<PlayerStatus> gameStatusChangeListener;
+  private final ChangeListener<Player> playerChangeListener;
+  private final InvalidationListener userActivityListener;
+  private final InvalidationListener usernameInvalidationListener;
+  private final WeakChangeListener<Player> weakPlayerChangeListener;
+  private final WeakInvalidationListener weakUsernameInvalidationListener;
+  private final WeakInvalidationListener weakColorInvalidationListener;
+  private final WeakInvalidationListener weakUserActivityListener;
+  private final WeakChangeListener<PlayerStatus> weakGameStatusListener;
+  private final WeakChangeListener<String> weakAvatarChangeListener;
+  private final WeakChangeListener<String> weakClanChangeListener;
+  private final WeakChangeListener<String> weakCountryChangeListener;
+
   public Pane chatUserItemRoot;
   public ImageView countryImageView;
   public ImageView avatarImageView;
@@ -82,22 +103,13 @@ public class ChatUserItemController implements ChatUserTreeItem<Node> {
   public Text presenceStatusIndicator;
   private ChatChannelUser chatUser;
   private boolean randomColorsAllowed;
-  private ChangeListener<ChatColorMode> colorModeChangeListener;
-  private MapChangeListener<String, Color> colorPerUserMapChangeListener;
-  private ChangeListener<String> avatarChangeListener;
-  private ChangeListener<String> clanChangeListener;
-  private ChangeListener<PlayerStatus> gameStatusChangeListener;
-  private InvalidationListener userActivityListener;
   private ClanTooltipController clanTooltipController;
   private Tooltip countryTooltip;
   private Tooltip clanTooltip;
   private Tooltip avatarTooltip;
   private Tooltip userTooltip;
+  private Optional<Runnable> onSocialStatusUpdatedListener;
 
-  @SuppressWarnings("FieldCanBeLocal")
-  private InvalidationListener invalidationListener;
-
-  @Inject
   // TODO reduce dependencies, rely on eventBus instead
   public ChatUserItemController(PreferencesService preferencesService, AvatarService avatarService,
                                 CountryFlagService countryFlagService,
@@ -114,11 +126,78 @@ public class ChatUserItemController implements ChatUserTreeItem<Node> {
     this.uiService = uiService;
     this.eventBus = eventBus;
     this.timeService = timeService;
+
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+    colorChangeListener = observable -> updateColor();
+    weakColorInvalidationListener = new WeakInvalidationListener(colorChangeListener);
+    JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), weakColorInvalidationListener);
+
+    colorPerUserMapChangeListener = change -> {
+      String lowerUsername = chatUser.getUsername().toLowerCase(US);
+      if (lowerUsername.equalsIgnoreCase(change.getKey())) {
+        Color newColor = chatPrefs.getUserToColor().get(lowerUsername);
+        assignColor(newColor);
+      }
+    };
+    userActivityListener = (observable) -> JavaFxUtil.runLater(this::onUserActivity);
+    gameStatusChangeListener = (observable, oldValue, newValue) -> JavaFxUtil.runLater(this::updateGameStatus);
+    avatarChangeListener = (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> setAvatarUrl(newValue));
+    clanChangeListener = (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> setClanTag(newValue));
+    countryChangeListener = (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> setCountry(newValue));
+
+    weakUserActivityListener = new WeakInvalidationListener(userActivityListener);
+    weakGameStatusListener = new WeakChangeListener<>(gameStatusChangeListener);
+    weakAvatarChangeListener = new WeakChangeListener<>(avatarChangeListener);
+    weakClanChangeListener = new WeakChangeListener<>(clanChangeListener);
+    weakCountryChangeListener = new WeakChangeListener<>(countryChangeListener);
+
+    playerChangeListener = (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> {
+      if (oldValue != null) {
+        JavaFxUtil.removeListener(oldValue.idleSinceProperty(), weakUserActivityListener);
+        JavaFxUtil.removeListener(oldValue.statusProperty(), weakUserActivityListener);
+        JavaFxUtil.removeListener(oldValue.statusProperty(), weakGameStatusListener);
+        JavaFxUtil.removeListener(oldValue.avatarUrlProperty(), weakAvatarChangeListener);
+        JavaFxUtil.removeListener(oldValue.clanProperty(), weakClanChangeListener);
+        JavaFxUtil.removeListener(oldValue.countryProperty(), weakCountryChangeListener);
+
+        weakGameStatusListener.changed(oldValue.statusProperty(), oldValue.getStatus(), null);
+        weakAvatarChangeListener.changed(oldValue.avatarUrlProperty(), oldValue.getAvatarUrl(), null);
+        weakClanChangeListener.changed(oldValue.clanProperty(), oldValue.getClan(), null);
+        weakCountryChangeListener.changed(oldValue.countryProperty(), oldValue.getCountry(), null);
+      }
+
+      if (newValue != null) {
+        JavaFxUtil.addListener(newValue.idleSinceProperty(), weakUserActivityListener);
+        JavaFxUtil.addListener(newValue.statusProperty(), weakUserActivityListener);
+        JavaFxUtil.addListener(newValue.statusProperty(), weakGameStatusListener);
+        JavaFxUtil.addListener(newValue.avatarUrlProperty(), weakAvatarChangeListener);
+        JavaFxUtil.addListener(newValue.clanProperty(), weakClanChangeListener);
+        JavaFxUtil.addListener(newValue.countryProperty(), weakCountryChangeListener);
+
+        weakUserActivityListener.invalidated(newValue.idleSinceProperty());
+        weakGameStatusListener.changed(newValue.statusProperty(), null, newValue.getStatus());
+        weakAvatarChangeListener.changed(newValue.avatarUrlProperty(), null, newValue.getAvatarUrl());
+        weakClanChangeListener.changed(newValue.clanProperty(), null, newValue.getClan());
+        weakCountryChangeListener.changed(newValue.countryProperty(), null, newValue.getCountry());
+      }
+
+      if (this.chatUser != null) {
+        userActivityListener.invalidated(null);
+      }
+    });
+    weakPlayerChangeListener = new WeakChangeListener<>(playerChangeListener);
+
+    usernameInvalidationListener = observable -> {
+      if (this.chatUser == null) {
+        usernameLabel.setText("");
+      } else {
+        usernameLabel.setText(this.chatUser.getUsername());
+      }
+    };
+    weakUsernameInvalidationListener = new WeakInvalidationListener(usernameInvalidationListener);
   }
 
   public void initialize() {
-    userActivityListener = (observable) -> Platform.runLater(this::onUserActivity);
-
     // TODO until server side support is available, the presence status is initially set to "unknown" until the user
     // does something
     presenceStatusIndicator.setText("\uF10C");
@@ -132,24 +211,12 @@ public class ChatUserItemController implements ChatUserTreeItem<Node> {
     clanMenu.managedProperty().bind(clanMenu.visibleProperty());
     clanMenu.setVisible(false);
 
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-
-    colorModeChangeListener = (observable, oldValue, newValue) -> updateColor();
-    colorPerUserMapChangeListener = change -> {
-      String lowerUsername = chatUser.getUsername().toLowerCase(US);
-      if (lowerUsername.equalsIgnoreCase(change.getKey())) {
-        Color newColor = chatPrefs.getUserToColor().get(lowerUsername);
-        assignColor(newColor);
-      }
-    };
-    avatarChangeListener = (observable, oldValue, newValue) -> Platform.runLater(() -> setAvatarUrl(newValue));
-    clanChangeListener = (observable, oldValue, newValue) -> Platform.runLater(() -> setClanTag(newValue));
-    gameStatusChangeListener = (observable, oldValue, newValue) -> Platform.runLater(this::updateGameStatus);
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {
     ChatUserContextMenuController contextMenuController = uiService.loadFxml("theme/chat/chat_user_context_menu.fxml");
     contextMenuController.setChatUser(chatUser);
+    contextMenuController.setOnSocialStatusChangedListener(onSocialStatusUpdatedListener);
     contextMenuController.getContextMenu().show(chatUserItemRoot, event.getScreenX(), event.getScreenY());
   }
 
@@ -160,6 +227,9 @@ public class ChatUserItemController implements ChatUserTreeItem<Node> {
   }
 
   private void updateColor() {
+    if (chatUser == null) {
+      return;
+    }
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
     chatUser.getPlayer().ifPresent(player -> {
@@ -197,10 +267,11 @@ public class ChatUserItemController implements ChatUserTreeItem<Node> {
   }
 
   private void setAvatarUrl(@Nullable String avatarUrl) {
-    if (StringUtils.isEmpty(avatarUrl)) {
+    if (Strings.isNullOrEmpty(avatarUrl)) {
       avatarImageView.setVisible(false);
     } else {
-      CompletableFuture.supplyAsync(() -> avatarService.loadAvatar(avatarUrl)).thenAccept(image -> avatarImageView.setImage(image));
+      // Loading the avatar image asynchronously would be better but asynchronous list cell updates don't work well
+      avatarImageView.setImage(avatarService.loadAvatar(avatarUrl));
       avatarImageView.setVisible(true);
     }
   }
@@ -217,6 +288,9 @@ public class ChatUserItemController implements ChatUserTreeItem<Node> {
   }
 
   private void updateGameStatus() {
+    if (chatUser == null) {
+      return;
+    }
     Optional<Player> playerOptional = chatUser.getPlayer();
     if (!playerOptional.isPresent()) {
       statusLabel.setText("");
@@ -248,63 +322,37 @@ public class ChatUserItemController implements ChatUserTreeItem<Node> {
     return chatUser;
   }
 
-  public void setChatUser(ChatChannelUser chatUser) {
+  public void setChatUser(@Nullable ChatChannelUser chatUser) {
+    if (this.chatUser == chatUser) {
+      return;
+    }
+
+    if (this.chatUser != null) {
+      removeListeners(this.chatUser);
+    }
+
     this.chatUser = chatUser;
-    JavaFxUtil.bind(usernameLabel.textProperty(), chatUser.usernameProperty());
-    addChatColorModeListener();
-
-    invalidationListener = observable -> {
-      chatUser.getPlayer().ifPresent(player -> {
-        JavaFxUtil.addListener(player.idleSinceProperty(), new WeakInvalidationListener(userActivityListener));
-        JavaFxUtil.addListener(player.statusProperty(), new WeakInvalidationListener(userActivityListener));
-      });
-
-      Platform.runLater(() -> {
-        updateGameStatus();
-        updateColor();
-        updateCountryImageView();
-        updateAvatarImageView();
-        updateClanMenu();
-        configureGameStatusView();
-      });
-    };
-    chatUser.playerProperty().addListener(new WeakInvalidationListener(invalidationListener));
-    chatUser.usernameProperty().addListener(new WeakInvalidationListener(invalidationListener));
-    chatUser.colorProperty().addListener(new WeakInvalidationListener(invalidationListener));
-    invalidationListener.invalidated(chatUser.playerProperty());
+    if (this.chatUser != null) {
+      addListeners(this.chatUser);
+    }
   }
 
-  private void addChatColorModeListener() {
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), new WeakChangeListener<>(colorModeChangeListener));
+  private void addListeners(@NotNull ChatChannelUser chatUser) {
+    JavaFxUtil.addListener(chatUser.usernameProperty(), weakUsernameInvalidationListener);
+    JavaFxUtil.addListener(chatUser.colorProperty(), weakColorInvalidationListener);
+    JavaFxUtil.addListener(chatUser.playerProperty(), weakPlayerChangeListener);
+
+    weakUsernameInvalidationListener.invalidated(chatUser.usernameProperty());
+    weakColorInvalidationListener.invalidated(chatUser.colorProperty());
+    weakPlayerChangeListener.changed(chatUser.playerProperty(), null, chatUser.getPlayer().orElse(null));
   }
 
-  private void updateCountryImageView() {
-    chatUser.getPlayer().ifPresent(player -> {
-      setCountry(player.getCountry());
-      countryImageView.setVisible(true);
-    });
-  }
+  private void removeListeners(@NotNull ChatChannelUser chatUser) {
+    JavaFxUtil.removeListener(chatUser.usernameProperty(), weakUsernameInvalidationListener);
+    JavaFxUtil.removeListener(chatUser.colorProperty(), weakColorInvalidationListener);
+    JavaFxUtil.removeListener(chatUser.playerProperty(), weakPlayerChangeListener);
 
-  private void updateAvatarImageView() {
-    chatUser.getPlayer().ifPresent(player -> {
-      JavaFxUtil.addListener(player.avatarUrlProperty(), new WeakChangeListener<>(avatarChangeListener));
-      setAvatarUrl(player.getAvatarUrl());
-    });
-  }
-
-  private void updateClanMenu() {
-    chatUser.getPlayer().ifPresent(player -> {
-      setClanTag(player.getClan());
-      JavaFxUtil.addListener(player.clanProperty(), new WeakChangeListener<>(clanChangeListener));
-    });
-  }
-
-  private void configureGameStatusView() {
-    chatUser.getPlayer().ifPresent(player -> {
-      JavaFxUtil.addListener(player.statusProperty(), new WeakChangeListener<>(gameStatusChangeListener));
-      updateGameStatus();
-    });
+    weakPlayerChangeListener.changed(chatUser.playerProperty(), chatUser.getPlayer().orElse(null), null);
   }
 
   private void setCountry(String country) {
@@ -382,6 +430,7 @@ public class ChatUserItemController implements ChatUserTreeItem<Node> {
     // TODO only until server-side support
     presenceStatusIndicator.setText("\uF111");
     updatePresenceStatusIndicator();
+    updateGameStatus();
   }
 
   public void onMouseEnteredCountryImageView() {
@@ -402,7 +451,7 @@ public class ChatUserItemController implements ChatUserTreeItem<Node> {
   }
 
   private void updateClanMenu(Player player) {
-    clanService.getClanByTag(player.getClan()).thenAccept(this::updateClanMenu);
+    clanService.getClanByTag(player.getClan()).thenAccept(optionalClan -> JavaFxUtil.runLater(() -> updateClanMenu(optionalClan)));
   }
 
   private void updateClanMenu(Optional<Clan> optionalClan) {
@@ -453,5 +502,9 @@ public class ChatUserItemController implements ChatUserTreeItem<Node> {
   public void onMouseExitedAvatarImageView() {
     Tooltip.uninstall(avatarImageView, avatarTooltip);
     avatarTooltip = null;
+  }
+
+  public void setOnSocialStatusUpdatedListener(Optional<Runnable> onSocialStatusUpdatedListener) {
+    this.onSocialStatusUpdatedListener = onSocialStatusUpdatedListener;
   }
 }

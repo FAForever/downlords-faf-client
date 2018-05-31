@@ -5,24 +5,23 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
-<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="newsItemRoot" hgap="20.0" onMouseClicked="#onMouseClicked"
-          styleClass="news-item,pointable" xmlns="http://javafx.com/javafx/8.0.141"
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="newsItemRoot" hgap="20.0" maxWidth="1.7976931348623157E308"
+          minWidth="100.0" styleClass="news-item,pointable" xmlns="http://javafx.com/javafx/8.0.141"
           fx:controller="com.faforever.client.news.NewsListItemController">
   <columnConstraints>
       <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="10.0"/>
-      <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="10.0" prefWidth="230.0"/>
+      <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="10.0"/>
   </columnConstraints>
   <rowConstraints>
       <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-      <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+      <RowConstraints minHeight="10.0" valignment="TOP" vgrow="ALWAYS"/>
   </rowConstraints>
   <children>
       <ImageView fx:id="imageView" fitHeight="78.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true"
                  styleClass="news-item-image" GridPane.rowSpan="2"/>
-      <Label fx:id="titleLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-             styleClass="news-item-title" text="&lt;News title&gt;" wrapText="true" GridPane.columnIndex="1"
-             GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="TOP"/>
-      <Label fx:id="authoredLabel" styleClass="news-item-authored" text="&lt;Name on 23.06.2015&gt;"
+      <Label fx:id="titleLabel" minWidth="20.0" styleClass="news-item-title" text="&lt;News title&gt;" wrapText="true"
+             GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="TOP"/>
+      <Label fx:id="authoredLabel" minWidth="20.0" styleClass="news-item-authored" text="&lt;Name on 23.06.2015&gt;"
              GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.valignment="TOP"/>
   </children>
 </GridPane>

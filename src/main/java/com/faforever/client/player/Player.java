@@ -18,6 +18,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
 
 import java.time.Instant;
 import java.util.Objects;
@@ -44,7 +45,7 @@ public class Player {
   private final FloatProperty leaderboardRatingMean;
   private final ObjectProperty<Game> game;
   private final ObjectProperty<PlayerStatus> status;
-  private final ObservableList<ChatChannelUser> chatChannelUsers;
+  private final ObservableSet<ChatChannelUser> chatChannelUsers;
   private final IntegerProperty numberOfGames;
   private final ObjectProperty<Instant> idleSince;
   private final ObservableList<NameRecord> names;
@@ -74,7 +75,7 @@ public class Player {
     leaderboardRatingDeviation = new SimpleFloatProperty();
     leaderboardRatingMean = new SimpleFloatProperty();
     status = new SimpleObjectProperty<>(PlayerStatus.IDLE);
-    chatChannelUsers = FXCollections.observableArrayList();
+    chatChannelUsers = FXCollections.observableSet();
     game = new SimpleObjectProperty<>();
     numberOfGames = new SimpleIntegerProperty();
     socialStatus = new SimpleObjectProperty<>(OTHER);
@@ -310,11 +311,11 @@ public class Player {
     return leaderboardRatingDeviation;
   }
 
-  public ObservableList<ChatChannelUser> getChatChannelUsers() {
+  public ObservableSet<ChatChannelUser> getChatChannelUsers() {
     return chatChannelUsers;
   }
 
-  public void updateFromPlayerInfo(com.faforever.client.remote.domain.Player player) {
+  public void updateFromDto(com.faforever.client.remote.domain.Player player) {
     setId(player.getId());
     setClan(player.getClan());
     setCountry(player.getCountry());

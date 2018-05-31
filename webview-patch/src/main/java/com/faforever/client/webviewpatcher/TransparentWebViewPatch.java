@@ -55,30 +55,7 @@ public class TransparentWebViewPatch implements ClassFileTransformer {
             + "setBackgroundColor(0);\n"
             + "}");
 
-        // DEPRECATED CODE: NOT WORKING FROM JAVA 1.8.0_66
-        // Then, we edit the the paint2GC method in order to call
-        // clearRect every time right before it
-        // start to draw a clip (clips are parts of the rendered frame).
-        // We need this because when the webpage is rendered with the
-        // backbuffer enabled,
-        // every clip is just drawn over the old rendered frame without
-        // care about the alpha channel.
-        // NOTE: there is a system property
-        // com.sun.webkit.pagebackbuffer that could do the trick without
-        // this entire patch, but i didn't succeed in getting anything
-        // useful out of it...
-        // CtMethod
-        // paint2GC_method=ct_class.getDeclaredMethod("paint2GC");
-        // paint2GC_method.insertAt(696,
-        // "{\n" +
-        // " com.sun.webkit.graphics.WCRectangle clip=$1.getClip(); \n"
-        // +
-        // "
-        // $1.clearRect(clip.getX(),clip.getY(),clip.getWidth(),clip.getHeight());\n"
-        // +
-        // "}"
-        // );
-        // END OF DEPRECATED CODE
+        _CLASS_POOL.importPackage("com.sun.webkit.graphics");
 
         // Then we replace the scroll method body in order to force the
         // repaint of the entire frame

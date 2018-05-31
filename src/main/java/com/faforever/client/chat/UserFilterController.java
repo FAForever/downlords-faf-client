@@ -9,19 +9,15 @@ import com.faforever.client.util.RatingUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.control.TreeItem;
 import javafx.scene.layout.GridPane;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
-import java.util.Map;
 import java.util.Optional;
 
 import static com.faforever.client.game.PlayerStatus.HOSTING;
@@ -46,7 +42,6 @@ public class UserFilterController implements Controller<Node> {
   @VisibleForTesting
   PlayerStatus playerStatusFilter;
 
-  @Inject
   public UserFilterController(I18n i18n) {
     this.i18n = i18n;
     this.filterApplied = new SimpleBooleanProperty(false);
@@ -63,23 +58,24 @@ public class UserFilterController implements Controller<Node> {
   }
 
   private void filterUsers() {
-    Map<String, Map<TreeItem<ChatUserTreeItem>, ChatUserItemController>> userToChatUserControls = channelTabController.getUserToChatUserControls();
-    synchronized (userToChatUserControls) {
-      for (Map<TreeItem<ChatUserTreeItem>, ChatUserItemController> chatUserControlMap : userToChatUserControls.values()) {
-        for (Map.Entry<TreeItem<ChatUserTreeItem>, ChatUserItemController> chatUserControlEntry : chatUserControlMap.entrySet()) {
-          ChatUserItemController chatUserItemController = chatUserControlEntry.getValue();
-          chatUserItemController.setVisible(filterUser(chatUserItemController));
-        }
-      }
-    }
-    filterApplied.set(!maxRatingFilterField.getText().isEmpty() || !minRatingFilterField.getText().isEmpty() || !clanFilterField.getText().isEmpty() || playerStatusFilter != null);
+    channelTabController.setUserFilter(this::filterUser);
+    filterApplied.set(
+        !maxRatingFilterField.getText().isEmpty()
+            || !minRatingFilterField.getText().isEmpty()
+            || !clanFilterField.getText().isEmpty()
+            || playerStatusFilter != null
+    );
   }
 
-  boolean filterUser(ChatUserItemController chatUserItemController) {
-    return channelTabController.isUsernameMatch(chatUserItemController)
-        && isInClan(chatUserItemController)
-        && isBoundByRating(chatUserItemController)
-        && isGameStatusMatch(chatUserItemController);
+  private boolean filterUser(CategoryOrChatUserListItem userListItem) {
+    if (userListItem.getUser() == null) {
+      return false;
+    }
+    ChatChannelUser user = userListItem.getUser();
+    return channelTabController.isUsernameMatch(user)
+        && isInClan(user)
+        && isBoundByRating(user)
+        && isGameStatusMatch(user);
   }
 
   public BooleanProperty filterAppliedProperty() {
@@ -91,12 +87,11 @@ public class UserFilterController implements Controller<Node> {
   }
 
   @VisibleForTesting
-  boolean isInClan(ChatUserItemController chatUserItemController) {
+  boolean isInClan(ChatChannelUser chatUser) {
     if (clanFilterField.getText().isEmpty()) {
       return true;
     }
 
-    ChatChannelUser chatUser = chatUserItemController.getChatUser();
     Optional<Player> playerOptional = chatUser.getPlayer();
 
     if (!playerOptional.isPresent()) {
@@ -114,12 +109,11 @@ public class UserFilterController implements Controller<Node> {
   }
 
   @VisibleForTesting
-  boolean isBoundByRating(ChatUserItemController chatUserItemController) {
+  boolean isBoundByRating(ChatChannelUser chatUser) {
     if (minRatingFilterField.getText().isEmpty() && maxRatingFilterField.getText().isEmpty()) {
       return true;
     }
 
-    ChatChannelUser chatUser = chatUserItemController.getChatUser();
     Optional<Player> optionalPlayer = chatUser.getPlayer();
 
     if (!optionalPlayer.isPresent()) {
@@ -147,12 +141,11 @@ public class UserFilterController implements Controller<Node> {
   }
 
   @VisibleForTesting
-  boolean isGameStatusMatch(ChatUserItemController chatUserItemController) {
+  boolean isGameStatusMatch(ChatChannelUser chatUser) {
     if (playerStatusFilter == null) {
       return true;
     }
 
-    ChatChannelUser chatUser = chatUserItemController.getChatUser();
     Optional<Player> playerOptional = chatUser.getPlayer();
 
     if (!playerOptional.isPresent()) {
@@ -168,17 +161,17 @@ public class UserFilterController implements Controller<Node> {
     }
   }
 
-  public void onGameStatusPlaying(ActionEvent actionEvent) {
+  public void onGameStatusPlaying() {
     updateGameStatusMenuText(playerStatusFilter == PLAYING ? null : PLAYING);
     filterUsers();
   }
 
-  public void onGameStatusLobby(ActionEvent actionEvent) {
+  public void onGameStatusLobby() {
     updateGameStatusMenuText(playerStatusFilter == LOBBYING ? null : LOBBYING);
     filterUsers();
   }
 
-  public void onGameStatusNone(ActionEvent actionEvent) {
+  public void onGameStatusNone() {
     updateGameStatusMenuText(playerStatusFilter == IDLE ? null : IDLE);
     filterUsers();
   }

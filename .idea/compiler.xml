@@ -5,13 +5,11 @@
     <annotationProcessing>
       <profile default="true" name="Default" enabled="true" />
     </annotationProcessing>
-    <bytecodeTargetLevel target="1.8">
-      <module name="downlords-faf-client-webview-patch_main" target="1.8" />
-      <module name="downlords-faf-client-webview-patch_test" target="1.8" />
-      <module name="downlords-faf-client_main" target="1.8" />
-      <module name="downlords-faf-client_test" target="1.8" />
-      <module name="webview-patch_main" target="1.8" />
-      <module name="webview-patch_test" target="1.8" />
+    <bytecodeTargetLevel>
+      <module name="downlords-faf-client_main" target="1.10" />
+      <module name="downlords-faf-client_test" target="1.10" />
+      <module name="webview-patch_main" target="1.10" />
+      <module name="webview-patch_test" target="1.10" />
     </bytecodeTargetLevel>
   </component>
 </project>

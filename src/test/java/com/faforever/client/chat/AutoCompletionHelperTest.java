@@ -7,6 +7,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import org.hamcrest.Matchers;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,7 +19,6 @@ import org.testfx.util.WaitForAsyncUtils;
 import java.util.Collection;
 
 import static java.util.Collections.emptyList;
-import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -52,7 +52,7 @@ public class AutoCompletionHelperTest extends AbstractPlainJavaFxTest {
 
     simulate(keyEvent);
 
-    assertThat(textInputControl.getText(), emptyString());
+    assertThat(textInputControl.getText(), Matchers.isEmptyString());
   }
 
   @NotNull

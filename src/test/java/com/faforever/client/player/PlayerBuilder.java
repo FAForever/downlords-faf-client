@@ -17,7 +17,6 @@ public class PlayerBuilder {
 
   public PlayerBuilder defaultValues() {
     return id(1)
-        .chatOnly(false)
         .leaderboardRatingDeviation(250)
         .leaderboardRatingMean(1500)
         .socialStatus(SocialStatus.OTHER)
@@ -25,7 +24,7 @@ public class PlayerBuilder {
         .country("US");
   }
 
-  private PlayerBuilder clan(String clan) {
+  public PlayerBuilder clan(String clan) {
     player.setClan(clan);
     return this;
   }
@@ -37,11 +36,6 @@ public class PlayerBuilder {
 
   public Player get() {
     return player;
-  }
-
-  public PlayerBuilder chatOnly(boolean chatOnly) {
-    player.setChatOnly(chatOnly);
-    return this;
   }
 
   public PlayerBuilder socialStatus(SocialStatus socialStatus) {

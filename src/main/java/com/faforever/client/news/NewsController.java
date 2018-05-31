@@ -9,8 +9,12 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import com.google.common.io.CharStreams;
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Control;
+import javafx.scene.control.ListView;
 import javafx.scene.layout.Pane;
 import javafx.scene.web.WebView;
 import lombok.SneakyThrows;
@@ -21,7 +25,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.List;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -35,9 +38,11 @@ public class NewsController extends AbstractViewController<Node> {
   private final EventBus eventBus;
   private final WebViewConfigurer webViewConfigurer;
   public Pane newsRoot;
-  public Pane newsListPane;
   public WebView newsDetailWebView;
   public Button showLadderMapsButton;
+  public ListView<NewsItem> newsListView;
+  public Control loadingIndicator;
+  private ChangeListener<Boolean> loadingIndicatorListener;
 
   public NewsController(PreferencesService preferencesService, I18n i18n, NewsService newsService, UiService uiService, EventBus eventBus, WebViewConfigurer webViewConfigurer) {
     this.preferencesService = preferencesService;
@@ -46,44 +51,56 @@ public class NewsController extends AbstractViewController<Node> {
     this.uiService = uiService;
     this.eventBus = eventBus;
     this.webViewConfigurer = webViewConfigurer;
+
+    loadingIndicatorListener = (observable, oldValue, newValue)
+        -> loadingIndicator.getParent().getChildrenUnmodifiable().stream()
+        .filter(node -> node != loadingIndicator)
+        .forEach(node -> node.setVisible(!newValue));
+  }
+
+  @Override
+  public void initialize() {
+    newsListView.setCellFactory(param -> new NewsItemListCell(uiService));
+    newsListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> displayNewsItem(newValue));
+
+    loadingIndicator.managedProperty().bind(loadingIndicator.visibleProperty());
+    loadingIndicator.visibleProperty().addListener(loadingIndicatorListener);
+    loadingIndicatorListener.changed(loadingIndicator.visibleProperty(), null, true);
+
+    loadingIndicator.getParent().getChildrenUnmodifiable()
+        .forEach(node -> node.managedProperty().bind(node.visibleProperty()));
+  }
+
+  private void onLoadingStart() {
+    Platform.runLater(() -> loadingIndicator.setVisible(true));
+  }
+
+  private void onLoadingStop() {
+    Platform.runLater(() -> loadingIndicator.setVisible(false));
   }
 
   @Override
   public void onDisplay(NavigateEvent navigateEvent) {
-    if (!newsListPane.getChildren().isEmpty()) {
+    if (!newsListView.getItems().isEmpty()) {
       return;
     }
+
     showLadderMapsButton.managedProperty().bind(showLadderMapsButton.visibleProperty());
     showLadderMapsButton.setVisible(false);
     newsDetailWebView.setContextMenuEnabled(false);
     webViewConfigurer.configureWebView(newsDetailWebView);
 
-    boolean firstItemSelected = false;
-
-    List<NewsItem> newsItems = newsService.fetchNews();
-    for (NewsItem newsItem : newsItems) {
-      NewsListItemController newsListItemController = createAndAddNewsItem(newsItem);
-
-      if (!firstItemSelected) {
-        preferencesService.getPreferences().getNews().setLastReadNewsUrl(newsItem.getLink());
+    onLoadingStart();
+    newsService.fetchNews().thenAccept(newsItems -> {
+      newsListView.getItems().setAll(newsItems);
+      onLoadingStop();
+      if (!newsItems.isEmpty()) {
+        NewsItem mostRecentItem = newsItems.get(0);
+        preferencesService.getPreferences().getNews().setLastReadNewsUrl(mostRecentItem.getLink());
         preferencesService.storeInBackground();
-        newsListItemController.onMouseClicked();
-        firstItemSelected = true;
       }
-    }
-  }
-
-  private NewsListItemController createAndAddNewsItem(NewsItem newsItem) {
-    NewsListItemController newsListItemController = uiService.loadFxml("theme/news_list_item.fxml");
-    newsListItemController.setNewsItem(newsItem);
-    newsListItemController.setOnItemSelectedListener((item) -> {
-      newsListPane.getChildren().forEach(node -> node.pseudoClassStateChanged(NewsListItemController.SELECTED_PSEUDO_CLASS, false));
-      displayNewsItem(item);
-      newsListItemController.getRoot().pseudoClassStateChanged(NewsListItemController.SELECTED_PSEUDO_CLASS, true);
+      newsListView.getSelectionModel().selectFirst();
     });
-
-    newsListPane.getChildren().add(newsListItemController.getRoot());
-    return newsListItemController;
   }
 
   @SneakyThrows
@@ -91,12 +108,13 @@ public class NewsController extends AbstractViewController<Node> {
     showLadderMapsButton.setVisible(newsItem.getNewsCategory().equals(NewsCategory.LADDER));
     eventBus.post(new UnreadNewsEvent(false));
 
-    Reader reader = new InputStreamReader(NEWS_DETAIL_HTML_RESOURCE.getInputStream());
-    String html = CharStreams.toString(reader).replace("{title}", newsItem.getTitle())
-        .replace("{content}", newsItem.getContent())
-        .replace("{authored}", i18n.get("news.authoredFormat", newsItem.getAuthor(), newsItem.getDate()));
+    try (Reader reader = new InputStreamReader(NEWS_DETAIL_HTML_RESOURCE.getInputStream())) {
+      String html = CharStreams.toString(reader).replace("{title}", newsItem.getTitle())
+          .replace("{content}", newsItem.getContent())
+          .replace("{authored}", i18n.get("news.authoredFormat", newsItem.getAuthor(), newsItem.getDate()));
 
-    newsDetailWebView.getEngine().loadContent(html);
+      Platform.runLater(() -> newsDetailWebView.getEngine().loadContent(html));
+    }
   }
 
   public Node getRoot() {
