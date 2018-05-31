@@ -225,7 +225,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Cacheable(CacheNames.MAPS)
   public List<Map> getMostPlayedMaps(int count, int page) {
     return this.<MapStatistics>getPage("/data/mapStatistics", count, page, ImmutableMap.of(
-        "include", "map,map.latestVersion,map.author,map.versions.reviews,map.versions.reviews.player",
+        "include", "map,map.statistics,map.latestVersion,map.author,map.versions.reviews,map.versions.reviews.player",
         "sort", "-plays")).stream()
         .map(MapStatistics::getMap)
         .collect(Collectors.toList());
@@ -234,7 +234,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   public List<Map> getHighestRatedMaps(int count, int page) {
     return this.<MapStatistics>getPage("/data/mapStatistics", count, page, ImmutableMap.of(
-        "include", "map,map.latestVersion,map.author,map.versions.reviews,map.versions.reviews.player,map.latestVersion.reviewsSummary",
+        "include", "map.statistics,map,map.latestVersion,map.author,map.versions.reviews,map.versions.reviews.player,map.latestVersion.reviewsSummary",
         "sort", "-map.latestVersion.reviewsSummary.lowerBound")).stream()
         .map(MapStatistics::getMap)
         .collect(Collectors.toList());
@@ -243,7 +243,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   public List<Map> getNewestMaps(int count, int page) {
     return getPage(MAP_ENDPOINT, count, page, ImmutableMap.of(
-        "include", "latestVersion,author,versions.reviews,versions.reviews.player",
+        "include", "statistics,latestVersion,author,versions.reviews,versions.reviews.player",
         "sort", "-updateTime"));
   }
 
