@@ -499,6 +499,7 @@ public class FafService {
     fafServerAccessor.sendGpgMessage(new IceMessage(remotePlayerId, message));
   }
 
+  @Async
   public CompletableFuture<List<TournamentBean>> getAllTournaments() {
     return CompletableFuture.completedFuture(fafApiAccessor.getAllTournaments()
         .stream()
