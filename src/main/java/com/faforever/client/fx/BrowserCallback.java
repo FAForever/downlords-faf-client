@@ -6,9 +6,12 @@ import com.faforever.client.clan.ClanService;
 import com.faforever.client.clan.ClanTooltipController;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.ShowReplayEvent;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.replay.ExternalReplayInfoGenerator;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
@@ -41,12 +44,12 @@ public class BrowserCallback {
   private final UrlPreviewResolver urlPreviewResolver;
   private final ReplayService replayService;
   private final EventBus eventBus;
-  private final ExternalReplayInfoGenerator externalReplayInfoGenerator;
   private final Pattern replayUrlPattern;
   private final ClanService clanService;
   private final UiService uiService;
   private final PlayerService playerService;
   private final I18n i18n;
+  private final NotificationService notificationService;
   @VisibleForTesting
   Popup clanInfoPopup;
   private Tooltip linkPreviewTooltip;
@@ -56,16 +59,17 @@ public class BrowserCallback {
 
   BrowserCallback(PlatformService platformService, ClientProperties clientProperties,
                   UrlPreviewResolver urlPreviewResolver, ReplayService replayService, EventBus eventBus,
-                  ExternalReplayInfoGenerator externalReplayInfoGenerator, ClanService clanService, UiService uiService, PlayerService playerService, I18n i18n) {
+                  ClanService clanService, UiService uiService, PlayerService playerService, I18n i18n,
+                  NotificationService notificationService) {
     this.platformService = platformService;
     this.urlPreviewResolver = urlPreviewResolver;
     this.replayService = replayService;
     this.eventBus = eventBus;
-    this.externalReplayInfoGenerator = externalReplayInfoGenerator;
     this.clanService = clanService;
     this.uiService = uiService;
     this.playerService = playerService;
     this.i18n = i18n;
+    this.notificationService = notificationService;
 
     String urlFormat = clientProperties.getVault().getReplayDownloadUrlFormat();
     String[] splitFormat = urlFormat.split("%s");
@@ -86,7 +90,13 @@ public class BrowserCallback {
     String replayId = replayUrlMatcher.group(1);
 
     replayService.findById(Integer.parseInt(replayId))
-        .thenAccept(replay -> Platform.runLater(() -> externalReplayInfoGenerator.showExternalReplayInfo(replay, replayId)));
+        .thenAccept(replay -> Platform.runLater(() -> {
+          if (replay.isPresent()) {
+            eventBus.post(new ShowReplayEvent(replay.get()));
+          } else {
+            notificationService.addNotification(new ImmediateNotification(i18n.get("replay.notFoundTitle"), i18n.get("replay.replayNotFoundText", replayId), Severity.WARN));
+          }
+        }));
   }
 
   /**
