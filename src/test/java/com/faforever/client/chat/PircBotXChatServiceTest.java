@@ -608,7 +608,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testGetChatUsersForChannelEmpty() throws Exception {
+  public void testGetChatUsersForChannelEmpty() {
     Channel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
     assertThat(channel.getUsers(), empty());
   }
@@ -658,7 +658,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testLeaveChannel() throws Exception {
+  public void testLeaveChannel() {
     OutputChannel outputChannel = mock(OutputChannel.class);
 
     when(userChannelDao.getChannel(DEFAULT_CHANNEL_NAME)).thenReturn(defaultChannel);
@@ -725,7 +725,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testIsDefaultChannel() throws Exception {
+  public void testIsDefaultChannel() {
     assertTrue(instance.isDefaultChannel(DEFAULT_CHANNEL_NAME));
   }
 
@@ -766,7 +766,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testCreateOrGetChatUserStringPopulatedMap() throws Exception {
+  public void testCreateOrGetChatUserStringPopulatedMap() {
     ChatChannelUser addedUser = instance.getOrCreateChatUser(chatUser1.getUsername(), DEFAULT_CHANNEL_NAME, false);
     ChatChannelUser returnedUser = instance.getOrCreateChatUser(chatUser1.getUsername(), DEFAULT_CHANNEL_NAME, false);
 
@@ -775,7 +775,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testCreateOrGetChatUserUserObjectPopulatedMap() throws Exception {
+  public void testCreateOrGetChatUserUserObjectPopulatedMap() {
     ChatChannelUser addedUser = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME, false);
     ChatChannelUser returnedUser = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME, false);
 
@@ -784,7 +784,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void getOrCreateChatUserFoeNoNotification() throws Exception {
+  public void getOrCreateChatUserFoeNoNotification() {
     instance.getOrCreateChatUser(CHAT_USER_NAME, DEFAULT_CHANNEL_NAME, false);
 
     verify(notificationService, never()).addNotification(any(TransientNotification.class));

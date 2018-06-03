@@ -5,6 +5,7 @@ import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
+import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -17,6 +18,8 @@ import com.faforever.client.vault.search.SearchController.SearchConfig;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
@@ -148,9 +151,23 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   @Override
   public void onDisplay(NavigateEvent navigateEvent) {
     super.onDisplay(navigateEvent);
-
     if (state.get() == State.UNINITIALIZED) {
+      if (navigateEvent instanceof ShowReplayEvent) {
+        state.addListener(new ChangeListener<State>() {
+          @Override
+          public void changed(ObservableValue<? extends State> observable, State oldValue, State newValue) {
+            if (newValue != State.UNINITIALIZED) {
+              Platform.runLater(() -> onShowReplayDetail(((ShowReplayEvent) navigateEvent).getReplay()));
+              state.removeListener(this);
+            }
+          }
+        });
+      }
       refresh();
+      return;
+    }
+    if (navigateEvent instanceof ShowReplayEvent) {
+      onShowReplayDetail(((ShowReplayEvent) navigateEvent).getReplay());
     }
   }
 

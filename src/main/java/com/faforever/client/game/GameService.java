@@ -8,6 +8,7 @@ import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
@@ -22,6 +23,7 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.remote.FafService;
@@ -29,7 +31,6 @@ import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.LoginMessage;
-import com.faforever.client.replay.ExternalReplayInfoGenerator;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.google.common.annotations.VisibleForTesting;
@@ -41,7 +42,8 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.WeakChangeListener;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -121,7 +123,6 @@ public class GameService {
   private final ModService modService;
   private final PlatformService platformService;
   private final String faWindowTitle;
-  private final ExternalReplayInfoGenerator externalReplayInfoGenerator;
 
   //TODO: circular reference
   @Inject
@@ -140,8 +141,7 @@ public class GameService {
                      PreferencesService preferencesService, GameUpdater gameUpdater,
                      NotificationService notificationService, I18n i18n, Executor executor,
                      PlayerService playerService, ReportingService reportingService, EventBus eventBus,
-                     IceAdapter iceAdapter, ModService modService, PlatformService platformService,
-                     ExternalReplayInfoGenerator externalReplayInfoGenerator) {
+                     IceAdapter iceAdapter, ModService modService, PlatformService platformService) {
     this.fafService = fafService;
     this.forgedAllianceService = forgedAllianceService;
     this.mapService = mapService;
@@ -158,7 +158,6 @@ public class GameService {
     this.platformService = platformService;
 
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
-    this.externalReplayInfoGenerator = externalReplayInfoGenerator;
     uidToGameInfoBean = FXCollections.observableMap(new ConcurrentHashMap<>());
     searching1v1 = new SimpleBooleanProperty();
     gameRunning = new SimpleBooleanProperty();
@@ -169,11 +168,18 @@ public class GameService {
         return;
       }
 
-      JavaFxUtil.addListener(newValue.statusProperty(), new WeakChangeListener<>((observable1, oldValue1, newValue1) -> {
-        if (newValue1 == GameStatus.CLOSED) {
-          onCurrentGameEnded();
+      ChangeListener<GameStatus> currentGameEndedListener = new ChangeListener<GameStatus>() {
+        @Override
+        public void changed(ObservableValue<? extends GameStatus> observable1, GameStatus oldStatus, GameStatus newStatus) {
+          if (oldStatus == GameStatus.PLAYING && newStatus == GameStatus.CLOSED) {
+            GameService.this.onCurrentGameEnded();
+          }
+          if (newStatus == GameStatus.CLOSED) {
+            newValue.statusProperty().removeListener(this);
+          }
         }
-      }));
+      };
+      JavaFxUtil.addListener(newValue.statusProperty(), currentGameEndedListener);
     });
 
     games = FXCollections.observableList(new ArrayList<>(),
@@ -199,11 +205,9 @@ public class GameService {
     JavaFxUtil.attachListToMap(games, uidToGameInfoBean);
   }
 
-
   public ReadOnlyBooleanProperty gameRunningProperty() {
     return gameRunning;
   }
-
 
   public CompletableFuture<Void> hostGame(NewGameInfo newGameInfo) {
     if (isRunning()) {
@@ -218,7 +222,6 @@ public class GameService {
         .thenCompose(aVoid -> fafService.requestHostGame(newGameInfo))
         .thenAccept(gameLaunchMessage -> startGame(gameLaunchMessage, null, RatingMode.GLOBAL));
   }
-
 
   public CompletableFuture<Void> joinGame(Game game, String password) {
     if (isRunning()) {
@@ -304,7 +307,6 @@ public class GameService {
     );
   }
 
-
   public CompletableFuture<Void> runWithLiveReplay(URI replayUrl, Integer gameId, String gameType, String mapName) {
     if (isRunning()) {
       logger.warn("Forged Alliance is already running, not starting live replay");
@@ -331,7 +333,6 @@ public class GameService {
     return playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
   }
 
-
   public ObservableList<Game> getGames() {
     return games;
   }
@@ -345,11 +346,9 @@ public class GameService {
     return game;
   }
 
-
   public void addOnRankedMatchNotificationListener(Consumer<MatchmakerMessage> listener) {
     fafService.addOnMessageListener(MatchmakerMessage.class, listener);
   }
-
 
   public CompletableFuture<Void> startSearchLadder1v1(Faction faction) {
     if (isRunning()) {
@@ -383,14 +382,12 @@ public class GameService {
         });
   }
 
-
   public void stopSearchLadder1v1() {
     if (searching1v1.get()) {
       fafService.stopSearchingRanked();
       searching1v1.set(false);
     }
   }
-
 
   public BooleanProperty searching1v1Property() {
     return searching1v1;
@@ -414,7 +411,6 @@ public class GameService {
   private CompletableFuture<Void> updateGameIfNecessary(FeaturedMod featuredMod, @Nullable Integer version, @NotNull Map<String, Integer> featuredModVersions, @NotNull Set<String> simModUids) {
     return gameUpdater.update(featuredMod, version, featuredModVersions, simModUids);
   }
-
 
   public boolean isGameRunning() {
     synchronized (gameRunning) {
@@ -466,12 +462,23 @@ public class GameService {
   }
 
   private void onCurrentGameEnded() {
+    NotificationsPrefs notification = preferencesService.getPreferences().getNotification();
+    if (!notification.isAfterGameReviewEnabled() || !notification.isTransientNotificationsEnabled()) {
+      return;
+    }
+
     synchronized (currentGame) {
-      int currentGameId = currentGame.get().getId();
+      int id = currentGame.get().getId();
       notificationService.addNotification(new PersistentNotification(i18n.get("game.ended", currentGame.get().getTitle()),
           Severity.INFO,
-          singletonList(new Action(i18n.get("game.rate"), actionEvent -> replayService.findById(currentGameId)
-              .thenAccept(replay -> externalReplayInfoGenerator.showExternalReplayInfo(replay, String.valueOf(currentGameId)))))));
+          singletonList(new Action(i18n.get("game.rate"), actionEvent -> replayService.findById(id)
+              .thenAccept(replay -> Platform.runLater(() -> {
+                if (replay.isPresent()) {
+                  eventBus.post(new ShowReplayEvent(replay.get()));
+                } else {
+                  notificationService.addNotification(new ImmediateNotification(i18n.get("replay.notFoundTitle"), i18n.get("replay.replayNotFoundText", id), Severity.WARN));
+                }
+              }))))));
     }
   }
 

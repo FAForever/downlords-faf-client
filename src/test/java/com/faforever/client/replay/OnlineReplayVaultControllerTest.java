@@ -2,6 +2,7 @@ package com.faforever.client.replay;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenOnlineReplayVaultEvent;
+import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
@@ -24,6 +25,7 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -69,11 +71,17 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
+    when(replayDetailController.getRoot()).thenReturn(new Pane());
+
     when(uiService.loadFxml("theme/vault/replay/replay_card.fxml")).thenAnswer(invocation -> {
       ReplayCardController controller = mock(ReplayCardController.class);
       when(controller.getRoot()).thenReturn(new Pane());
       return controller;
     });
+    when(uiService.loadFxml("theme/vault/replay/replay_detail.fxml")).thenAnswer(invocation -> replayDetailController);
+
+    when(replayService.getNewestReplays(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
+    when(replayService.getHighestRatedReplays(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
     sortOrder = preferencesService.getPreferences().getVaultPrefs().getOnlineReplaySortConfig();
     standardSearchConfig = new SearchConfig(sortOrder, "query");
@@ -103,7 +111,7 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnDisplayPopulatesReplays() throws Exception {
+  public void testOnDisplayPopulatesReplays() {
     List<Replay> replays = Arrays.asList(new Replay(), new Replay());
     when(replayService.getNewestReplays(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(replays));
     when(replayService.getHighestRatedReplays(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(replays));
@@ -116,7 +124,7 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnSearchButtonClicked() throws Exception {
+  public void testOnSearchButtonClicked() {
     Consumer<SearchConfig> searchListener = searchListenerCaptor.getValue();
     when(replayService.findByQuery("query", MAX_RESULTS, 1, sortOrder))
         .thenReturn(CompletableFuture.completedFuture(Arrays.asList(new Replay(), new Replay())));
@@ -129,7 +137,24 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnSearchButtonClickedHandlesException() throws Exception {
+  public void testShowReplayEventWhenUninitialized() {
+    Replay replay = new Replay();
+    instance.onDisplay(new ShowReplayEvent(replay));
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(replayDetailController).setReplay(replay);
+  }
+
+  @Test
+  public void testShowReplayEventWhenInitialized() {
+    Replay replay = new Replay();
+    instance.onDisplay(new OpenOnlineReplayVaultEvent());
+    WaitForAsyncUtils.waitForFxEvents();
+    instance.onDisplay(new ShowReplayEvent(replay));
+    verify(replayDetailController).setReplay(replay);
+  }
+
+  @Test
+  public void testOnSearchButtonClickedHandlesException() {
     Consumer<SearchConfig> searchListener = searchListenerCaptor.getValue();
     CompletableFuture<List<Replay>> completableFuture = new CompletableFuture<>();
     completableFuture.completeExceptionally(new RuntimeException("JUnit test exception"));
@@ -141,7 +166,7 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testMoreButton() throws Exception {
+  public void testMoreButton() {
     Consumer<SearchConfig> searchListener = searchListenerCaptor.getValue();
     List<Replay> list = new ArrayList<>();
     for (int i = 0; i != 100; i++) {

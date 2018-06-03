@@ -178,6 +178,7 @@
                                         <RowConstraints minHeight="10.0" vgrow="NEVER"/>
                                         <RowConstraints minHeight="10.0" vgrow="NEVER"/>
                                         <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+                                        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
                                     </rowConstraints>
                                     <children>
                                         <VBox GridPane.rowIndex="3">
@@ -277,13 +278,18 @@
                                                      mnemonicParsing="false" GridPane.columnIndex="2"
                                                      GridPane.halignment="CENTER" GridPane.rowIndex="9"
                                                      GridPane.valignment="CENTER"/>
+                                        <JFXCheckBox fx:id="afterGameReviewCheckBox"
+                                                     mnemonicParsing="false" GridPane.columnIndex="2"
+                                                     GridPane.halignment="CENTER" GridPane.rowIndex="12"
+                                                     GridPane.valignment="CENTER"/>
+                                        <Label text="%settings.notifications.afterGameReview" GridPane.rowIndex="12"/>
                                         <Label text="%settings.notifications.ranked1v1" GridPane.rowIndex="11"/>
                                         <Label text="%settings.notifications.pmReceived" GridPane.rowIndex="10"/>
                                         <Label text="%settings.notifications.friendPlaysGame" GridPane.rowIndex="9"/>
                                         <Label text="%settings.notifications.friendJoinsGame" GridPane.rowIndex="8"/>
                                         <Label text="%settings.notifications.friendOffline" GridPane.rowIndex="7"/>
                                         <Label text="%settings.notifications.friendOnline" GridPane.rowIndex="6"/>
-                                        <Label styleClass="h3" text="%settings.notifications.displayToast"
+                                        <Label styleClass="h3" text="%settings.notifications.displayNotification"
                                                GridPane.columnIndex="2" GridPane.halignment="CENTER"
                                                GridPane.rowIndex="5"/>
                                         <Label styleClass="h3" text="%settings.notifications.playSound"
