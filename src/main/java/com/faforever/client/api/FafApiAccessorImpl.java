@@ -21,6 +21,7 @@ import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
+import com.faforever.client.api.dto.VotingSubject;
 import com.faforever.client.api.dto.Tournament;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
@@ -412,6 +413,13 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   public List<Ladder1v1Map> getLadder1v1Maps(int count, int page) {
     return getPage("/data/ladder1v1Map", count, page, ImmutableMap.of(
         "include", "mapVersion,mapVersion.map,mapVersion.map.latestVersion,mapVersion.map.latestVersion.reviews,mapVersion.map.author,mapVersion.map.statistics"));
+  }
+
+  @Override
+  public List<VotingSubject> getOutStandingVotingSubjects() {
+    return getAll("/voting/votingSubjectsAbleToVote", ImmutableMap.of(
+        "include", "votingQuestions,votingQuestions.votingChoices"
+    ));
   }
 
   @Override

@@ -24,3 +24,6 @@ faf-client:
 
   forged-alliance:
     exe-url: http://content.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe
+
+  voting:
+    base-url: http://voting.faforever.com/

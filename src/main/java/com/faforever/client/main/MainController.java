@@ -15,6 +15,8 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.main.event.Open1v1Event;
 import com.faforever.client.news.UnreadNewsEvent;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.Action.Type;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.ImmediateNotificationController;
 import com.faforever.client.notification.NotificationService;
@@ -36,6 +38,7 @@ import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
+import com.faforever.client.voting.VotingService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -108,6 +111,8 @@ public class MainController implements Controller<Node> {
   private final int ratingBeta;
   private final GamePathHandler gamePathHandler;
   private final PlatformService platformService;
+  private final VotingService votingService;
+  private final ClientProperties clientProperties;
   public Pane mainHeaderPane;
   public Labeled notificationsBadge;
   public Pane contentPane;
@@ -132,7 +137,7 @@ public class MainController implements Controller<Node> {
   public MainController(PreferencesService preferencesService, I18n i18n, NotificationService notificationService,
                         PlayerService playerService, GameService gameService, ClientUpdateService clientUpdateService,
                         UiService uiService, EventBus eventBus, ClientProperties clientProperties, GamePathHandler gamePathHandler,
-                        PlatformService platformService) {
+                        PlatformService platformService, VotingService votingService) {
     this.preferencesService = preferencesService;
     this.i18n = i18n;
     this.notificationService = notificationService;
@@ -146,6 +151,8 @@ public class MainController implements Controller<Node> {
     this.ratingBeta = clientProperties.getTrueSkill().getBeta();
     this.gamePathHandler = gamePathHandler;
     this.platformService = platformService;
+    this.votingService = votingService;
+    this.clientProperties = clientProperties;
     this.viewCache = CacheBuilder.newBuilder().build();
   }
 
@@ -415,6 +422,36 @@ public class MainController implements Controller<Node> {
   private void enterLoggedInState() {
     Stage stage = StageHolder.getStage();
     stage.setTitle(mainWindowTitle);
+    openMainView();
+
+    votingService.getOutStandingVotingSubjects()
+        .thenAccept(votingSubjects -> {
+          if (votingSubjects.isEmpty()) {
+            log.info("No open VotingSubjects found");
+          } else {
+            StringBuilder votes = new StringBuilder();
+            votes.append("<ul>");
+            votingSubjects.forEach(votingSubject -> {
+              votes.append("<li>");
+              votes.append(votingSubject.getSubject());
+              votes.append("</li>");
+            });
+            votes.append("</ul>");
+            notificationService.addNotification(
+                new ImmediateNotification(i18n.get("voting.voteFound"), i18n.get("voting.voteFoundMessage", votes.toString()), Severity.INFO, Collections.singletonList(
+                    new Action(i18n.get("voting.vote"), Type.OK_DONE, event -> platformService.showDocument(clientProperties.getVoting().getVotingUrl()))
+                )
+                )
+            );
+          }
+        }).exceptionally(throwable -> {
+      log.error("Requesting open VotingSubjects failed", throwable);
+      notificationService.addImmediateErrorNotification(throwable, "voting.checkForVotesFailed");
+      return null;
+    });
+  }
+
+  private void openMainView() {
     windowController.setContent(mainRoot);
 
     clientUpdateService.checkForUpdateInBackground();
@@ -556,7 +593,7 @@ public class MainController implements Controller<Node> {
           transientNotificationsPopup.setAnchorLocation(AnchorLocation.CONTENT_BOTTOM_RIGHT);
           break;
       }
-      transientNotificationsPopup.show(mainRoot.getScene().getWindow(), anchorX, anchorY);
+      transientNotificationsPopup.show(windowController.getWindowRoot().getScene().getWindow(), anchorX, anchorY);
     }
   }
 }

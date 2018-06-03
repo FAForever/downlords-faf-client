@@ -38,6 +38,7 @@ import com.faforever.client.tournament.TournamentBean;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
+import com.faforever.client.voting.VotingSubject;
 import com.faforever.commons.io.ByteCountListener;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -505,5 +506,12 @@ public class FafService {
         .stream()
         .map(TournamentBean::fromTournamentDto)
         .collect(toList()));
+  }
+
+  @Async
+  public CompletableFuture<List<VotingSubject>> getOutStandingVotingSubjects() {
+    List<com.faforever.client.api.dto.VotingSubject> outStandingVotingSubjects = fafApiAccessor.getOutStandingVotingSubjects();
+    List<VotingSubject> subjects = outStandingVotingSubjects.stream().map(VotingSubject::fromDto).collect(toList());
+    return CompletableFuture.completedFuture(subjects);
   }
 }

@@ -22,12 +22,14 @@ import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
+import com.faforever.client.api.dto.VotingSubject;
 import com.faforever.client.api.dto.Tournament;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.io.ByteCountListener;
+import javafx.collections.FXCollections;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -273,6 +275,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
   @Override
   public List<Tournament> getAllTournaments() {
     return Collections.emptyList();
+  }
+
+  @Override
+  public List<VotingSubject> getOutStandingVotingSubjects() {
+    return FXCollections.emptyObservableList();
   }
 
   @Override

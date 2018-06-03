@@ -23,6 +23,7 @@ public class ClientProperties {
   private UnitDatabase unitDatabase = new UnitDatabase();
   private Website website = new Website();
   private String translationProjectUrl;
+  private Voting voting = new Voting();
 
   @Data
   public static class News {
@@ -134,5 +135,11 @@ public class ClientProperties {
   public static class UnitDatabase {
     private String spookiesUrl;
     private String rackOversUrl;
+  }
+
+  @Data
+  public static class Voting {
+    private String baseUrl;
+    private String votingUrl;
   }
 }

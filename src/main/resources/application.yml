@@ -26,6 +26,9 @@ faf-client:
 
   translation-project-url: https://poeditor.com/join/project/2oWfdaZQZj
 
+  voting:
+    voting-url: ${faf-client.voting.base-url}/login/
+
 spring:
   profiles:
     active: ${CLIENT_PROFILE:prod}

@@ -8,6 +8,7 @@ import com.faforever.client.game.GamePathHandler;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.LoginController;
+import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.TransientNotification;
@@ -27,6 +28,8 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.event.LoginSuccessEvent;
+import com.faforever.client.voting.VotingService;
+import com.faforever.client.voting.VotingSubject;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -50,7 +53,9 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -114,6 +119,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private GamePathHandler gamePathHandler;
   @Mock
   private ChatController chatController;
+  @Mock
+  private VotingService votingService;
   private MainController instance;
   private CountDownLatch mainControllerInitializedLatch;
   private BooleanProperty gameRunningProperty;
@@ -127,7 +134,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
         .setInitialStandardDeviation(500);
 
     instance = new MainController(preferencesService, i18n, notificationService, playerService, gameService, clientUpdateService,
-        uiService, eventBus, clientProperties, gamePathHandler, platformService);
+        uiService, eventBus, clientProperties, gamePathHandler, platformService, votingService);
 
     gameRunningProperty = new SimpleBooleanProperty();
 
@@ -161,7 +168,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testHideNotifications() throws Exception {
+  public void testHideNotifications() {
     Platform.runLater(() -> instance.new ToastDisplayer(transientNotificationsController).invalidated(mock(SimpleBooleanProperty.class)));
     assertFalse(instance.transientNotificationsPopup.isShowing());
   }
@@ -192,7 +199,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnNotificationsButtonClicked() throws Exception {
+  public void testOnNotificationsButtonClicked() {
     attachToRoot();
     WaitForAsyncUtils.waitForAsyncFx(1000, instance::onNotificationsButtonClicked);
 
@@ -200,7 +207,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnSettingsItemSelected() throws Exception {
+  public void testOnSettingsItemSelected() {
     attachToRoot();
     Pane root = new Pane();
     when(settingsController.getRoot()).thenReturn(root);
@@ -214,7 +221,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   @Ignore("Needs UI for testing")
-  public void testOnChoseGameDirectory() throws Exception {
+  public void testOnChoseGameDirectory() {
   }
 
   @Test
@@ -231,7 +238,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnChat() throws Exception {
+  public void testOnChat() {
     instance.chatButton.pseudoClassStateChanged(HIGHLIGHTED, true);
     instance.onChat(new ActionEvent(instance.chatButton, Event.NULL_SOURCE_TARGET));
     assertThat(instance.chatButton.getPseudoClassStates().contains(HIGHLIGHTED), is(false));
@@ -342,7 +349,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnRevealMapFolder() throws Exception {
+  public void testOnRevealMapFolder() {
     Path expectedPath = Paths.get("C:\\test\\path_map");
     when(forgedAlliancePrefs.getCustomMapsDirectory()).thenReturn(expectedPath);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
@@ -351,7 +358,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnRevealModFolder() throws Exception {
+  public void testOnRevealModFolder() {
     Path expectedPath = Paths.get("C:\\test\\path_mod");
     when(forgedAlliancePrefs.getModsDirectory()).thenReturn(expectedPath);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
@@ -360,10 +367,34 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnRevealLogFolder() throws Exception {
+  public void testOnRevealLogFolder() {
     Path expectedPath = Paths.get("C:\\test\\path_log");
     when(preferencesService.getFafLogDirectory()).thenReturn(expectedPath);
     instance.onRevealLogFolder();
     verify(platformService).reveal(expectedPath);
+  }
+
+  @Test
+  public void testOnLoggedInEventWithVotingSubjects() {
+    VotingSubject votingSubject = new VotingSubject();
+    votingSubject.setSubject("subject");
+    when(votingService.getOutStandingVotingSubjects()).thenReturn(CompletableFuture.completedFuture(singletonList(votingSubject)));
+    instance.onLoginSuccessEvent(new LoginSuccessEvent("axel12", "password", 1));
+
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(windowController).setContent(any());
+  }
+
+  @Test
+  public void testOnLoggedInEventWithoutVotingSubjects() {
+    when(votingService.getOutStandingVotingSubjects()).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
+    instance.onLoginSuccessEvent(new LoginSuccessEvent("axel12", "password", 1));
+
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(notificationService, never()).addNotification(any(ImmediateNotification.class));
+    verify(windowController).setContent(any());
   }
 }
