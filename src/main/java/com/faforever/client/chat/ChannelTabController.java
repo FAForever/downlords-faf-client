@@ -202,12 +202,15 @@ public class ChannelTabController extends AbstractChatTabController {
    */
   private void filterChatUserControlsBySearchString() {
     synchronized (userToChatUserControls) {
-      for (Map<Pane, ChatUserItemController> chatUserControlMap : userToChatUserControls.values()) {
-        for (Map.Entry<Pane, ChatUserItemController> chatUserControlEntry : chatUserControlMap.entrySet()) {
-          ChatUserItemController chatUserItemController = chatUserControlEntry.getValue();
-          chatUserItemController.setVisible(isUsernameMatch(chatUserItemController));
-        }
-      }
+      userToChatUserControls.values().forEach(chatUserControlMap -> {
+        chatUserControlMap.values().forEach(chatUserItemController -> {
+          if (userFilterController.isFilterApplied()) {
+            chatUserItemController.setVisible(userFilterController.filterUser(chatUserItemController));
+          } else {
+            chatUserItemController.setVisible(isUsernameMatch(chatUserItemController));
+          }
+        });
+      });
     }
   }
 
@@ -441,6 +444,7 @@ public class ChannelTabController extends AbstractChatTabController {
         chatUserItemController.setVisible(isUsernameMatch(chatUserItemController));
       }
       if (userFilterController.isFilterApplied()) {
+        // below includes filtering for username
         chatUserItemController.setVisible(userFilterController.filterUser(chatUserItemController));
       }
     }
