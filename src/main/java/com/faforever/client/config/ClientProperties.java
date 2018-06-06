@@ -26,6 +26,7 @@ public class ClientProperties {
   private boolean useRemotePreferences;
   private Duration clientConfigConnectTimeout = Duration.ofSeconds(30);
   private boolean showIceAdapterDebugWindow;
+  private String statusPageUrl;
 
   @Data
   public static class News {
