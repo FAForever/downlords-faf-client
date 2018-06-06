@@ -11,6 +11,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.update.ClientConfiguration.Endpoints;
 import com.faforever.client.user.UserService;
 import com.google.common.base.Strings;
+import com.jfoenix.controls.JFXButton;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -58,6 +59,7 @@ public class LoginController implements Controller<Node> {
   public TextField replayServerHostField;
   public TextField replayServerPortField;
   public TextField apiBaseUrlField;
+  public JFXButton serverStatusButton;
 
   public LoginController(
       UserService userService,
@@ -82,6 +84,9 @@ public class LoginController implements Controller<Node> {
 
     serverConfigPane.managedProperty().bind(serverConfigPane.visibleProperty());
     serverConfigPane.setVisible(false);
+
+    serverStatusButton.managedProperty().bind(serverStatusButton.visibleProperty());
+    serverStatusButton.setVisible(clientProperties.getStatusPageUrl() != null);
 
     populateEndpointFields(
         clientProperties.getServer().getHost(),
@@ -219,5 +224,13 @@ public class LoginController implements Controller<Node> {
     if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
       serverConfigPane.setVisible(true);
     }
+  }
+
+  public void seeServerStatus() {
+    String statusPageUrl = clientProperties.getStatusPageUrl();
+    if (statusPageUrl == null) {
+      return;
+    }
+    platformService.showDocument(statusPageUrl);
   }
 }
