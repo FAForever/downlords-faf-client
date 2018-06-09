@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.util.Locale;
+import java.util.Optional;
 
 @Service
 public class I18nImpl implements I18n {
@@ -44,8 +45,8 @@ public class I18nImpl implements I18n {
   }
 
   @Override
-  public String getCountryNameLocalized(String isoCode) {
-    return isoCode == null ? null : new Locale("", isoCode).getDisplayCountry(this.userSpecificLocale);
+  public Optional<String> getCountryNameLocalized(String isoCode) {
+    return Optional.ofNullable(isoCode).map(code -> new Locale("", code).getDisplayCountry(this.userSpecificLocale));
   }
 
   @Override

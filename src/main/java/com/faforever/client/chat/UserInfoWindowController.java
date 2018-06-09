@@ -232,7 +232,7 @@ public class UserInfoWindowController implements Controller<Node> {
 
     updateNameHistory(player);
 
-    countryLabel.setText(i18n.getCountryNameLocalized(player.getCountry()));
+    i18n.getCountryNameLocalized(player.getCountry()).ifPresent(countryName -> countryLabel.setText(countryName));
 
     globalButton.fire();
     globalButton.setSelected(true);

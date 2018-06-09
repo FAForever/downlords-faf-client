@@ -1,6 +1,7 @@
 package com.faforever.client.i18n;
 
 import java.util.Locale;
+import java.util.Optional;
 
 public interface I18n {
 
@@ -10,7 +11,7 @@ public interface I18n {
 
   Locale getUserSpecificLocale();
 
-  String getCountryNameLocalized(String isoCode);
+  Optional<String> getCountryNameLocalized(String isoCode);
 
   String number(int number);
 

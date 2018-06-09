@@ -466,15 +466,14 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   /**
    * Called from JavaScript when user hovers over a country flag.
    */
-  public void countryInfo(String flagPath) {
+  public void countryInfo(String countryCode) {
     countryInfoPopup = new Popup();
     Label label = new Label();
     label.getStyleClass().add("tooltip");
     countryInfoPopup.getContent().setAll(label);
     
-    String flagName = FilenameUtils.getBaseName(flagPath);
-    label.setText(i18n.getCountryNameLocalized(flagName));
-
+    i18n.getCountryNameLocalized(countryCode).ifPresent(label::setText);
+    
     countryInfoPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
     countryInfoPopup.show(getRoot().getTabPane(), lastMouseX, lastMouseY - 10);
   }
@@ -715,11 +714,13 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       String avatarUrl = "";
       String clanTag = "";
       String countryFlagUrl = "";
+      String countryCode = "";
       if (player != null) {
         avatarUrl = player.getAvatarUrl();
         countryFlagUrl = countryFlagService.getCountryFlagUrl(player.getCountry())
             .map(URL::toString)
             .orElse("");
+        countryCode = player.getCountry();
 
         if (StringUtils.isNotEmpty(player.getClan())) {
           clanTag = i18n.get("chat.clanTagFormat", player.getClan());
@@ -732,6 +733,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
           .replace("{username}", login)
           .replace("{clan-tag}", clanTag)
           .replace("{country-flag}", StringUtils.defaultString(countryFlagUrl))
+          .replace("{country-code}", StringUtils.defaultString(countryCode))
           .replace("{section-id}", String.valueOf(++lastEntryId));
 
       Collection<String> cssClasses = new ArrayList<>();
