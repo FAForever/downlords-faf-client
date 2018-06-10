@@ -320,23 +320,25 @@
               <Label styleClass="icon" text=""/>
           </graphic>
         </Tab>
-          <Tab text="%userInfo.nameHistory">
-              <TableView fx:id="nameHistoryTable">
-                  <placeholder>
-                      <Label text="%userInfo.nameHistory.noHistory"/>
-                  </placeholder>
-                  <columns>
-                      <TableColumn fx:id="changeDateColumn" editable="false" prefWidth="150"
-                                   text="%userInfo.nameHistory.date"/>
-                      <TableColumn fx:id="nameColumn" editable="false" prefWidth="150"
-                                   text="%userInfo.nameHistory.name"/>
-                  </columns>
-                  <columnResizePolicy>
-                      <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
-                  </columnResizePolicy>
-              </TableView>
+          <Tab closable="false" text="%userInfo.nameHistory">
+              <content>
+                  <TableView fx:id="nameHistoryTable">
+                      <placeholder>
+                          <Label text="%userInfo.nameHistory.noHistory"/>
+                      </placeholder>
+                      <columns>
+                          <TableColumn fx:id="changeDateColumn" editable="false" prefWidth="150"
+                                       text="%userInfo.nameHistory.date"/>
+                          <TableColumn fx:id="nameColumn" editable="false" prefWidth="150"
+                                       text="%userInfo.nameHistory.name"/>
+                      </columns>
+                      <columnResizePolicy>
+                          <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                      </columnResizePolicy>
+                  </TableView>
+              </content>
               <graphic>
-                  <Label styleClass="icon" text=""/>
+                  <Label styleClass="icon" text=""/>
               </graphic>
           </Tab>
       </tabs>
