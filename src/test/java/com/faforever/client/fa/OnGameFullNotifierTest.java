@@ -19,7 +19,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;

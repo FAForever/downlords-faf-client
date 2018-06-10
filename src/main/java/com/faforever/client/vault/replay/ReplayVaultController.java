@@ -4,7 +4,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
-import com.faforever.client.map.MapServiceImpl.PreviewSize;
+import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -122,7 +122,7 @@ public class ReplayVaultController implements Controller<Node> {
 
   @NotNull
   private TableRow<Replay> replayRowFactory() {
-    TableRow<Replay> row = new TableRow();
+    TableRow<Replay> row = new TableRow<>();
     row.setOnMouseClicked(event -> {
       // If ID == 0, this isn't an entry but root node
       if (event.getClickCount() == 2 && !row.isEmpty() && row.getItem().getId() != 0) {

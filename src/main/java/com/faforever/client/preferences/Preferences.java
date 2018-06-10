@@ -14,6 +14,7 @@ import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.TableColumn.SortType;
@@ -80,7 +81,7 @@ public class Preferences {
     gameListSorting = new SimpleListProperty<>(observableArrayList());
     vaultPrefs = new VaultPrefs();
     unitDataBaseType = new SimpleObjectProperty<>(UnitDataBaseType.RACKOVER);
-    storedCookies = new SimpleMapProperty<>();
+    storedCookies = new SimpleMapProperty<>(FXCollections.observableHashMap());
     showPasswordProtectedGames = new SimpleBooleanProperty(true);
     showModdedGames = new SimpleBooleanProperty(true);
   }
@@ -271,7 +272,7 @@ public class Preferences {
   }
 
   public ObservableMap<URI, ArrayList<HttpCookie>> getStoredCookies() {
-    return storedCookies;
+    return storedCookies.get();
   }
 
   public enum UnitDataBaseType {

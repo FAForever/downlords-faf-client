@@ -1,0 +1,22 @@
+<div id="chat-section-{section-id}" class="chat-section extended chat-section-{username}">
+  <div class="chat-section-head">
+    <img class="avatar" src="{avatar}"/>
+    <img class="country-flag" src="{country-flag}"
+      onmouseover="showCountryInfo('{country-code}')"
+      onmouseout="hideCountryInfo()"
+    />
+    <div class="author" style="{inline-style}">
+      <span class="clan-tag {css-classes}"
+            onmouseover="showClanInfo('{clan-tag}')"
+            onmouseout="hideClanInfo()"
+            onclick="showClanWebsite('{clan-tag}')">{decorated-clan-tag}</span>
+
+      <span class="username {css-classes}"
+            onmouseover="showPlayerInfo('{username}')"
+            onmouseout="hidePlayerInfo()"
+            onclick="messagePlayer('{username}')">{username}</span>
+      <span class="time">{time}</span>
+    </div>
+  </div>
+  <!-- chat_text.html will be added here for each text -->
+</div>

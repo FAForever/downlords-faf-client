@@ -35,7 +35,12 @@ public class ForgedAlliancePrefs {
     }
   }
 
-  private final ObjectProperty<Path> executablePath;
+  /**
+   * @deprecated use {@code installationPath} instead.
+   */
+  @Deprecated
+  private final ObjectProperty<Path> path;
+  private final ObjectProperty<Path> installationPath;
   private final ObjectProperty<Path> customMapsDirectory;
   private final ObjectProperty<Path> preferencesFile;
   private final ObjectProperty<Path> officialMapsDirectory;
@@ -56,7 +61,8 @@ public class ForgedAlliancePrefs {
 
   public ForgedAlliancePrefs() {
     port = new SimpleIntegerProperty(6112);
-    executablePath = new SimpleObjectProperty<>();
+    path = new SimpleObjectProperty<>();
+    installationPath = new SimpleObjectProperty<>();
     customMapsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("Maps"));
     officialMapsDirectory = new SimpleObjectProperty<>(STEAM_FA_PATH.resolve("Maps"));
     modsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("Mods"));
@@ -86,16 +92,25 @@ public class ForgedAlliancePrefs {
     this.officialMapsDirectory.set(officialMapsDirectory);
   }
 
-  public Path getExecutablePath() {
-    return executablePath.get();
+  /**
+   * @deprecated use {@code installationPath} instead.
+   */
+  @Deprecated
+  public Path getPath() {
+    return path.get();
   }
 
-  public void setExecutablePath(Path executablePath) {
-    this.executablePath.set(executablePath);
+  /**
+   * @deprecated use {@code installationPath} instead.
+   */
+  @Deprecated
+  public void setPath(Path path) {
+    this.path.set(path);
+    this.installationPath.set(path);
   }
 
-  public ObjectProperty<Path> executablePathProperty() {
-    return executablePath;
+  public ObjectProperty<Path> pathProperty() {
+    return path;
   }
 
   public int getPort() {
@@ -172,5 +187,17 @@ public class ForgedAlliancePrefs {
 
   public ObjectProperty<Path> executionDirectoryProperty() {
     return executionDirectory;
+  }
+
+  public Path getInstallationPath() {
+    return installationPath.get();
+  }
+
+  public void setInstallationPath(Path installationPath) {
+    this.installationPath.set(installationPath);
+  }
+
+  public ObjectProperty<Path> installationPathProperty() {
+    return installationPath;
   }
 }

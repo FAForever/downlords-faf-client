@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
+<?import com.jfoenix.controls.JFXButton?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import java.lang.String?>
@@ -16,30 +16,30 @@
     <HBox fx:id="windowButtons" alignment="TOP_RIGHT" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <children>
 
-        <Button fx:id="minimizeButton" focusTraversable="false" onAction="#onMinimizeButtonClicked">
+          <JFXButton fx:id="minimizeButton" focusTraversable="false" onAction="#onMinimizeButtonClicked">
           <styleClass>
             <String fx:value="window-button"/>
             <String fx:value="minimize-button"/>
           </styleClass>
-        </Button>
-        <Button fx:id="maximizeButton" focusTraversable="false" onAction="#onMaximizeButtonClicked">
+          </JFXButton>
+          <JFXButton fx:id="maximizeButton" focusTraversable="false" onAction="#onMaximizeButtonClicked">
           <styleClass>
             <String fx:value="window-button"/>
             <String fx:value="maximize-button"/>
           </styleClass>
-        </Button>
-        <Button fx:id="restoreButton" focusTraversable="false" onAction="#onRestoreButtonClicked">
+          </JFXButton>
+          <JFXButton fx:id="restoreButton" focusTraversable="false" onAction="#onRestoreButtonClicked">
           <styleClass>
             <String fx:value="window-button"/>
             <String fx:value="restore-button"/>
           </styleClass>
-        </Button>
-        <Button fx:id="closeButton" focusTraversable="false" onAction="#onCloseButtonClicked">
+          </JFXButton>
+          <JFXButton fx:id="closeButton" focusTraversable="false" onAction="#onCloseButtonClicked">
           <styleClass>
             <String fx:value="window-button"/>
             <String fx:value="close-button"/>
           </styleClass>
-        </Button>
+          </JFXButton>
 
       </children>
     </HBox>

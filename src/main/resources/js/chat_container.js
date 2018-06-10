@@ -13,9 +13,9 @@ function link(input) {
             tagName: "a",
             attrs: {
               "href": "javascript:void(0);",
-              "onClick": "chatTab.openUrl('" + match.getUrl() + "')",
-              "onMouseOver": "chatTab.previewUrl('" + match.getUrl() + "')",
-              "onMouseOut": "chatTab.hideUrlPreview()"
+                "onClick": "java.openUrl('" + match.getUrl() + "')",
+                "onMouseOver": "java.previewUrl('" + match.getUrl() + "')",
+                "onMouseOut": "java.hideUrlPreview()"
             },
             innerHtml: match.getAnchorText()
           });
@@ -23,16 +23,17 @@ function link(input) {
       }
   );
 }
-function showClanInfo(node) {
-  chatTab.clanInfo(node.textContent);
+
+function showClanInfo(clanTag) {
+    java.clanInfo(clanTag);
 }
 
 function hideClanInfo() {
-  chatTab.hideClanInfo();
+    java.hideClanInfo();
 }
 
-function showClanWebsite(node) {
-  chatTab.showClanWebsite(node.textContent);
+function showClanWebsite(clanTag) {
+    java.showClanWebsite(clanTag);
 }
 
 function showCountryInfo(countryCode) {
@@ -43,16 +44,16 @@ function hideCountryInfo() {
   chatTab.hideCountryInfo();
 }
 
-function showPlayerInfo(node) {
-  chatTab.playerInfo(node.textContent);
+function showPlayerInfo(playerName) {
+    java.playerInfo(playerName);
 }
 
 function hidePlayerInfo() {
-  chatTab.hidePlayerInfo();
+    java.hidePlayerInfo();
 }
 
-function messagePlayer(node) {
-  chatTab.openPrivateMessageTab(node.textContent);
+function messagePlayer(playerName) {
+    java.openPrivateMessageTab(playerName);
 }
 
 function scrollToBottomIfDesired() {

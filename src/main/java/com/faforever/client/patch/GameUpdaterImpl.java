@@ -5,6 +5,7 @@ import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.ProgrammingError;
@@ -15,6 +16,7 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.context.ApplicationContext;
 
 import javax.inject.Inject;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -47,16 +49,18 @@ public class GameUpdaterImpl implements GameUpdater {
   private final TaskService taskService;
   private final FafService fafService;
   private final FaInitGenerator faInitGenerator;
+  private final PreferencesService preferencesService;
 
   @Inject
   public GameUpdaterImpl(ModService modService, ApplicationContext applicationContext, TaskService taskService,
-                         FafService fafService, FaInitGenerator faInitGenerator) {
-    featuredModUpdaters = new ArrayList<>();
+                         FafService fafService, FaInitGenerator faInitGenerator, PreferencesService preferencesService) {
+    this.preferencesService = preferencesService;
     this.modService = modService;
     this.applicationContext = applicationContext;
     this.taskService = taskService;
     this.fafService = fafService;
     this.faInitGenerator = faInitGenerator;
+    featuredModUpdaters = new ArrayList<>();
   }
 
   @Override
@@ -90,9 +94,23 @@ public class GameUpdaterImpl implements GameUpdater {
           if (patchResults.stream().noneMatch(patchResult -> patchResult.getLegacyInitFile() != null)) {
             generateInitFile(patchResults);
           } else {
-            copyLegacyInitFile(patchResults);
+            Path initFile = patchResults.stream()
+                .map(PatchResult::getLegacyInitFile)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElseThrow(() -> new ProgrammingError("No legacy init file is available"));
+
+            createFaPathLuaFile(initFile.getParent().getParent());
+            copyLegacyInitFile(initFile);
           }
         });
+  }
+
+  @SneakyThrows
+  private void createFaPathLuaFile(Path parent) {
+    Path path = preferencesService.getPreferences().getForgedAlliance().getPath();
+    String content = String.format("fa_path = \"%s\"", path.toString().replace("\\", "/"));
+    Files.write(parent.resolve("fa_path.lua"), content.getBytes(StandardCharsets.UTF_8));
   }
 
   private void generateInitFile(List<PatchResult> patchResults) {
@@ -108,13 +126,7 @@ public class GameUpdaterImpl implements GameUpdater {
   }
 
   @SneakyThrows
-  private void copyLegacyInitFile(List<PatchResult> patchResults) {
-    Path initFile = patchResults.stream()
-        .map(PatchResult::getLegacyInitFile)
-        .filter(Objects::nonNull)
-        .findFirst()
-        .orElseThrow(() -> new ProgrammingError("No legacy init file is available"));
-
+  private void copyLegacyInitFile(Path initFile) {
     Files.copy(initFile, initFile.resolveSibling(ForgedAlliancePrefs.INIT_FILE_NAME), StandardCopyOption.REPLACE_EXISTING);
   }
 

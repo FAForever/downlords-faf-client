@@ -296,6 +296,11 @@ public class MockFafServerAccessor implements FafServerAccessor {
 
   }
 
+  @Override
+  public void ping() {
+
+  }
+
 
   private GameInfoMessage createGameInfo(int uid, String title, GameAccess access, String featuredMod, String mapName, int numPlayers, int maxPlayers, String host) {
     GameInfoMessage gameInfoMessage = new GameInfoMessage();

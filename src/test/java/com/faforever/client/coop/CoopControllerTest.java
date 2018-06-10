@@ -2,7 +2,6 @@ package com.faforever.client.coop;
 
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.FeaturedModBeanBuilder;
-import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesTableController;
 import com.faforever.client.game.NewGameInfo;
@@ -10,13 +9,12 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Pane;
 import org.junit.Before;
@@ -36,8 +34,8 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -49,8 +47,6 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
   private CoopService coopService;
   @Mock
   private GameService gameService;
-  @Mock
-  private PreferencesService preferencesService;
   @Mock
   private UiService uiService;
   @Mock
@@ -64,8 +60,6 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ModService modService;
 
-  private SimpleObjectProperty<Game> selectedGameProperty;
-
   @Mock
   private ReplayService replayService;
   @Mock
@@ -78,7 +72,7 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     instance = new CoopController(replayService, gameService, coopService, notificationService, i18n, reportingService,
-        mapService, preferencesService, uiService, timeService, webViewConfigurer, modService);
+        mapService, uiService, timeService, webViewConfigurer, modService);
 
     when(coopService.getLeaderboard(any(), anyInt())).thenReturn(CompletableFuture.completedFuture(emptyList()));
     when(coopService.getMissions()).thenReturn(CompletableFuture.completedFuture(emptyList()));
@@ -95,7 +89,7 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void onPlayButtonClicked() {
     when(coopService.getMissions()).thenReturn(completedFuture(singletonList(new CoopMission())));
-    instance.initialize();
+    Platform.runLater(() -> instance.initialize());
 
     WaitForAsyncUtils.waitForFxEvents();
     instance.onPlayButtonClicked();

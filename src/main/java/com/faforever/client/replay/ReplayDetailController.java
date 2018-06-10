@@ -10,7 +10,7 @@ import com.faforever.client.game.TeamCardController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
-import com.faforever.client.map.MapServiceImpl.PreviewSize;
+import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.rating.RatingService;

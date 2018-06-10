@@ -21,7 +21,7 @@ import com.google.common.eventbus.EventBus;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
-import javafx.stage.Window;
+import javafx.scene.layout.Pane;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,10 +36,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyDouble;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -233,7 +233,7 @@ public class ChatUserItemControllerTest extends AbstractPlainJavaFxTest {
 
     verify(uiService).loadFxml("theme/chat/chat_user_context_menu.fxml");
     verify(contextMenuController).setPlayer(player);
-    verify(contextMenu).show(any(Window.class), anyDouble(), anyDouble());
+    verify(contextMenu).show(any(Pane.class), anyDouble(), anyDouble());
   }
 
   @Test

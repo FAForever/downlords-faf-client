@@ -1,6 +1,7 @@
 package com.faforever.client.notification;
 
 import com.faforever.client.fx.Controller;
+import com.jfoenix.controls.JFXButton;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -76,7 +77,7 @@ public class PersistentNotificationController implements Controller<Node> {
 
     List<Button> actionButtons = new ArrayList<>();
     for (Action action : actions) {
-      Button button = new Button(action.getTitle());
+      Button button = new JFXButton(action.getTitle());
       button.setFocusTraversable(false);
       button.setOnAction(event -> {
         action.call(event);

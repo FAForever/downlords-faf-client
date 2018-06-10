@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mapTileRoot" hgap="10.0" onMouseClicked="#onShowMapDetail"
-          prefWidth="220.0" styleClass="card,pointable" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.111"
+          prefWidth="224.0" styleClass="card,pointable" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.141"
           fx:controller="com.faforever.client.map.MapCardController">
   <columnConstraints>
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
@@ -16,33 +18,41 @@
       <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
   </columnConstraints>
   <rowConstraints>
-      <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-      <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-      <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
+      <RowConstraints fillHeight="false" minHeight="10.0" vgrow="ALWAYS"/>
       <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
       <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
   </rowConstraints>
   <children>
-      <ImageView fx:id="thumbnailImageView" fitHeight="128.0" fitWidth="128.0" pickOnBounds="true" preserveRatio="true"
+      <ImageView fx:id="thumbnailImageView" fitHeight="224.0" fitWidth="224.0" pickOnBounds="true" preserveRatio="true"
                  GridPane.columnSpan="2147483647" GridPane.halignment="CENTER"/>
-      <Label fx:id="nameLabel" alignment="TOP_LEFT" maxWidth="1.7976931348623157E308"
-             text="Long text to test whether it's being wrapped" wrapText="true" GridPane.columnSpan="2147483647"
-             GridPane.rowIndex="1" GridPane.valignment="TOP"/>
-      <Label fx:id="authorLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="secondary" text="Label"
-             wrapText="true" GridPane.columnSpan="2147483647" GridPane.rowIndex="2" GridPane.valignment="TOP"/>
-      <Label fx:id="numberOfPlaysLabel" text="Label" GridPane.columnSpan="2" GridPane.rowIndex="3">
+      <VBox alignment="BOTTOM_LEFT" styleClass="card-dimmer" GridPane.columnSpan="2147483647" GridPane.hgrow="NEVER"
+            GridPane.valignment="BOTTOM" GridPane.vgrow="NEVER">
+          <children>
+              <Label fx:id="nameLabel" alignment="BOTTOM_LEFT" maxWidth="1.7976931348623157E308" styleClass="card-title"
+                     text="Long text to test whether it's being wrapped" wrapText="true"/>
+              <Label fx:id="authorLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="card-subtitle"
+                     text="Label" wrapText="true"/>
+          </children>
+      </VBox>
+      <Label fx:id="numberOfPlaysLabel" text="Label" GridPane.columnSpan="2" GridPane.rowIndex="1">
           <graphic>
               <Label styleClass="icon" text=""/>
           </graphic>
+          <padding>
+              <Insets left="10.0" right="10.0"/>
+          </padding>
       </Label>
       <Label fx:id="sizeLabel" text="Label" GridPane.columnIndex="2" GridPane.columnSpan="2147483647"
-             GridPane.halignment="RIGHT" GridPane.rowIndex="3">
+             GridPane.halignment="RIGHT" GridPane.rowIndex="1">
           <graphic>
               <Label styleClass="icon" text=""/>
           </graphic>
+          <padding>
+              <Insets left="10.0" right="10.0"/>
+          </padding>
       </Label>
       <Label fx:id="numberOfReviewsLabel" text="12345" GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
-             GridPane.halignment="RIGHT" GridPane.rowIndex="4">
+             GridPane.halignment="RIGHT" GridPane.rowIndex="2">
           <graphic>
               <HBox styleClass="small-stars">
                   <children>
@@ -50,11 +60,17 @@
                   </children>
               </HBox>
           </graphic>
+          <padding>
+              <Insets bottom="10.0" left="10.0" right="10.0"/>
+          </padding>
       </Label>
-      <Label fx:id="maxPlayersLabel" text="Label" GridPane.rowIndex="4">
+      <Label fx:id="maxPlayersLabel" text="Label" GridPane.rowIndex="2">
           <graphic>
               <Label styleClass="icon" text=""/>
           </graphic>
+          <padding>
+              <Insets bottom="10.0" left="10.0" right="10.0"/>
+          </padding>
       </Label>
   </children>
 </GridPane>

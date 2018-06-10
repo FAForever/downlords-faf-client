@@ -5,7 +5,6 @@ import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.fx.WindowController;
-import com.faforever.client.game.GameService;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
@@ -18,8 +17,8 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
+import com.jfoenix.controls.JFXButton;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -43,7 +42,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.util.Objects;
@@ -74,7 +72,6 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public CustomMenuItem avatarPickerMenuItem;
   public MenuItem sendPrivateMessageItem;
   public SeparatorMenuItem socialSeparator;
-  public MenuItem removeCustomColorItem;
   public CustomMenuItem colorPickerMenuItem;
   public ColorPicker colorPicker;
   public MenuItem joinGameItem;
@@ -90,10 +87,13 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public MenuItem banItem;
   public ContextMenu chatUserContextMenuRoot;
   public MenuItem showUserInfo;
+  public JFXButton removeCustomColorButton;
   private Player player;
 
-  @Inject
-  public ChatUserContextMenuController(UserService userService, ChatService chatService, PreferencesService preferencesService, PlayerService playerService, GameService gameService, ReplayService replayService, NotificationService notificationService, I18n i18n, EventBus eventBus, JoinGameHelper joinGameHelper, AvatarService avatarService, UiService uiService) {
+  public ChatUserContextMenuController(ChatService chatService, PreferencesService preferencesService,
+                                       PlayerService playerService, ReplayService replayService,
+                                       NotificationService notificationService, I18n i18n, EventBus eventBus,
+                                       JoinGameHelper joinGameHelper, AvatarService avatarService, UiService uiService) {
     this.chatService = chatService;
     this.preferencesService = preferencesService;
     this.playerService = playerService;
@@ -109,6 +109,13 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public void initialize() {
     avatarComboBox.setCellFactory(param -> avatarCell());
     avatarComboBox.setButtonCell(avatarCell());
+    removeCustomColorButton.managedProperty().bind(removeCustomColorButton.visibleProperty());
+
+    avatarPickerMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() -> !avatarComboBox.getItems().isEmpty(), avatarComboBox.getItems()));
+
+    // Workaround for the issue that the popup gets closed when the "custom color" button is clicked, causing an NPE
+    // in the custom color popup window.
+    colorPicker.focusedProperty().addListener((observable, oldValue, newValue) -> chatUserContextMenuRoot.setAutoHide(!newValue));
   }
 
   @NotNull
@@ -149,14 +156,12 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
       chatUserContextMenuRoot.hide();
     });
 
-    removeCustomColorItem.visibleProperty().bind(chatPrefs.chatColorModeProperty().isEqualTo(CUSTOM)
+    removeCustomColorButton.visibleProperty().bind(chatPrefs.chatColorModeProperty().isEqualTo(CUSTOM)
         .and(colorPicker.valueProperty().isNotNull()));
     colorPickerMenuItem.visibleProperty().bind(chatPrefs.chatColorModeProperty()
         .isEqualTo(CUSTOM));
 
-    if (player.getSocialStatus() != SocialStatus.SELF) {
-      avatarPickerMenuItem.setVisible(false);
-    } else {
+    if (player.getSocialStatus() == SELF) {
       loadAvailableAvatars();
     }
 
@@ -194,7 +199,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
       String currentAvatarUrl = player.getAvatarUrl();
       Platform.runLater(() -> {
-        avatarComboBox.setItems(items);
+        avatarComboBox.getItems().setAll(items);
         avatarComboBox.getSelectionModel().select(items.stream()
             .filter(avatarBean -> Objects.equals(Objects.toString(avatarBean.getUrl(), null), currentAvatarUrl))
             .findFirst()
@@ -208,7 +213,6 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
           avatarService.changeAvatar(newValue);
         });
       });
-
     });
   }
 

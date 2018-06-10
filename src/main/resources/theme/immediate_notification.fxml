@@ -1,33 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.web.WebView?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="notificationRoot" maxHeight="1.7976931348623157E308" prefHeight="600.0"
-      prefWidth="600.0" styleClass="immediate-notification" xmlns="http://javafx.com/javafx/8.0.60"
+<VBox xmlns:fx="http://javafx.com/fxml/1" maxHeight="1.7976931348623157E308" spacing="20.0" styleClass="content"
+      VBox.vgrow="ALWAYS" fx:id="immediateNotificationRoot"
+      xmlns="http://javafx.com/javafx/8.0.141"
       fx:controller="com.faforever.client.notification.ImmediateNotificationController">
-  <children>
-    <Label fx:id="titleLabel" styleClass="header" text="&lt;Title&gt;" />
-    <Separator />
-    <VBox maxHeight="1.7976931348623157E308" spacing="20.0" styleClass="content" VBox.vgrow="ALWAYS">
-      <children>
-          <WebView fx:id="errorMessageView" minHeight="20.0" minWidth="100.0" prefHeight="100.0" prefWidth="-1.0"/>
-          <Label fx:id="exceptionAreaTitleLabel" styleClass="h2" text="%errorDetails"/>
-          <TextArea fx:id="exceptionTextArea" editable="false" maxHeight="1.7976931348623157E308"
-                    maxWidth="1.7976931348623157E308" wrapText="true" VBox.vgrow="ALWAYS"/>
-      </children>
-        <VBox.margin>
-            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-        </VBox.margin>
-    </VBox>
-    <ButtonBar fx:id="buttonBar">
-        <VBox.margin>
-            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-        </VBox.margin>
-    </ButtonBar>
-  </children>
+    <children>
+        <WebView fx:id="errorMessageView" minHeight="20.0" minWidth="100.0" prefHeight="100.0"
+                 prefWidth="-1.0"/>
+        <Label fx:id="exceptionAreaTitleLabel" styleClass="h2" text="%errorDetails"/>
+        <TextArea fx:id="exceptionTextArea" editable="false" maxHeight="1.7976931348623157E308"
+                  maxWidth="1.7976931348623157E308" wrapText="true" VBox.vgrow="ALWAYS"/>
+    </children>
+    <VBox.margin>
+        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+    </VBox.margin>
 </VBox>

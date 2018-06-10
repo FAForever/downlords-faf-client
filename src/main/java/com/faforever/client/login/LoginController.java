@@ -122,11 +122,15 @@ public class LoginController implements Controller<Node> {
   private void onLoginFailed(Throwable e) {
     logger.warn("Login failed", e);
     Platform.runLater(() -> {
-      if (!(e instanceof CancellationException)) {
-        loginErrorLabel.setText(e.getCause().getLocalizedMessage());
-        loginErrorLabel.setVisible(true);
-      } else {
+      if (e instanceof CancellationException) {
         loginErrorLabel.setVisible(false);
+      } else {
+        if (e instanceof LoginFailedException) {
+          loginErrorLabel.setText(e.getMessage());
+        } else {
+          loginErrorLabel.setText(e.getCause().getLocalizedMessage());
+        }
+        loginErrorLabel.setVisible(true);
       }
 
       setShowLoginProgress(false);

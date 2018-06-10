@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXCheckBox?>
+<?import com.jfoenix.controls.JFXComboBox?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.CheckBox?>
-<?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.ToggleButton?>
@@ -16,7 +16,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="gamesRoot" xmlns="http://javafx.com/javafx/8.0.60"
+<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="gamesRoot" xmlns="http://javafx.com/javafx/8.0.141"
            fx:controller="com.faforever.client.game.CustomGamesController">
    <children>
       <GridPane>
@@ -33,11 +33,14 @@
               <children>
                 <HBox alignment="BASELINE_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0">
                   <children>
-                      <Button fx:id="createGameButton" defaultButton="true" mnemonicParsing="false" onAction="#onCreateGameButtonClicked" text="%games.create" />
-                      <CheckBox fx:id="showPasswordProtectedGamesCheckBox" mnemonicParsing="false"
-                                text="%games.showPasswordProtectedGames"/>
-                      <CheckBox fx:id="showModdedGamesCheckBox" mnemonicParsing="false" text="%games.showModdedGames"/>
-                      <ChoiceBox fx:id="chooseSortingTypeChoiceBox"/>
+                      <JFXButton fx:id="createGameButton" defaultButton="true" mnemonicParsing="false"
+                                 onAction="#onCreateGameButtonClicked" styleClass="create-game-button"
+                                 text="%games.create"/>
+                      <JFXCheckBox fx:id="showPasswordProtectedGamesCheckBox" mnemonicParsing="false"
+                                   text="%games.showPasswordProtectedGames"/>
+                      <JFXCheckBox fx:id="showModdedGamesCheckBox" mnemonicParsing="false"
+                                   text="%games.showModdedGames"/>
+                      <JFXComboBox fx:id="chooseSortingTypeChoiceBox"/>
                       <Pane HBox.hgrow="ALWAYS" />
                     <HBox alignment="BASELINE_LEFT">
                       <children>
@@ -66,7 +69,7 @@
             </VBox>
         <ScrollPane fx:id="gameDetailPane" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowSpan="2147483647">
           <content>
-              <fx:include source="game_detail.fxml" fx:id="gameDetail"/>
+              <fx:include fx:id="gameDetail" source="game_detail.fxml"/>
           </content>
         </ScrollPane>
         <AnchorPane fx:id="gameViewContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.rowIndex="1" />

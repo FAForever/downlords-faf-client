@@ -13,10 +13,8 @@ Please take a look at the [contribution guidelines](https://github.com/FAForever
 # How to run
 
 1. Clone the project with git
-1. Import the project into IntelliJ as "Gradle Project"
+1. Open the project into IntelliJ Ultimate
 1. Make sure you have the IntelliJ [Lombok plugin](https://plugins.jetbrains.com/idea/plugin/6317-lombok-plugin) installed
 1. Make sure you have `Enable annotation processing` enabled in the settings
-1. For some reasons, IntelliJ deletes launch configurations after import. Please revert such deleted files first (Version Control (Alt+F9) -> Local Changes)
-
-# JxBrowser disclaimer
-Downlords-faf-client uses JxBrowser http://www.teamdev.com/jxbrowser, which is a proprietary software. The use of JxBrowser is governed by JxBrowser Product Licence Agreement http://www.teamdev.com/jxbrowser-licence-agreement. If you would like to use JxBrowser in your development, please contact TeamDev.
+1. Run the Gradle task `:webview-patch build` to build the webview-patch JAR which is referenced by the run configurations
+1. Run the Gradle task `:downlords-faf-client downloadNativeDependencies` to download the ICE adapter

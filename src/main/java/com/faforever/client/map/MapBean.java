@@ -15,6 +15,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -199,6 +200,7 @@ public class MapBean implements Comparable<MapBean> {
     return players;
   }
 
+  @Nullable
   public ComparableVersion getVersion() {
     return version.get();
   }

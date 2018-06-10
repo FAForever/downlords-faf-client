@@ -62,10 +62,12 @@ public class UserFilterController implements Controller<Node> {
 
   private void filterUsers() {
     Map<String, Map<Pane, ChatUserItemController>> userToChatUserControls = channelTabController.getUserToChatUserControls();
-    for (Map<Pane, ChatUserItemController> chatUserControlMap : userToChatUserControls.values()) {
-      for (Map.Entry<Pane, ChatUserItemController> chatUserControlEntry : chatUserControlMap.entrySet()) {
-        ChatUserItemController chatUserItemController = chatUserControlEntry.getValue();
-        chatUserItemController.setVisible(filterUser(chatUserItemController));
+    synchronized (userToChatUserControls) {
+      for (Map<Pane, ChatUserItemController> chatUserControlMap : userToChatUserControls.values()) {
+        for (Map.Entry<Pane, ChatUserItemController> chatUserControlEntry : chatUserControlMap.entrySet()) {
+          ChatUserItemController chatUserItemController = chatUserControlEntry.getValue();
+          chatUserItemController.setVisible(filterUser(chatUserItemController));
+        }
       }
     }
     filterApplied.set(!maxRatingFilterField.getText().isEmpty() || !minRatingFilterField.getText().isEmpty() || !clanFilterField.getText().isEmpty() || playerStatusFilter != null);

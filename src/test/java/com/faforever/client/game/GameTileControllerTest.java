@@ -7,7 +7,6 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.VBox;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -15,8 +14,8 @@ import org.mockito.Mock;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,8 +34,6 @@ public class GameTileControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private MapService mapService;
 
-  @Mock
-  private GameTooltipController gameTooltipController;
   private Game game;
 
   @Mock
@@ -52,9 +49,6 @@ public class GameTileControllerTest extends AbstractPlainJavaFxTest {
     when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(CompletableFuture.completedFuture(
         FeaturedModBeanBuilder.create().defaultValues().get()
     ));
-
-    when(uiService.loadFxml("theme/play/game_tooltip.fxml")).thenReturn(gameTooltipController);
-    when(gameTooltipController.getRoot()).thenReturn(new VBox());
 
     loadFxml("theme/play/game_card.fxml", clazz -> instance);
 

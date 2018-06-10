@@ -7,7 +7,7 @@ import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import javafx.collections.FXCollections;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
 import lombok.Setter;
@@ -25,7 +25,7 @@ import java.util.Optional;
 public class LogicalNodeController implements Controller<Node> {
 
   private final I18n i18n;
-  public ChoiceBox<LogicalOperator> logicalOperatorField;
+  public ComboBox<LogicalOperator> logicalOperatorField;
   public SpecificationController specificationController;
   public Pane logicalNodeRoot;
   public Button removeCriteriaButton;

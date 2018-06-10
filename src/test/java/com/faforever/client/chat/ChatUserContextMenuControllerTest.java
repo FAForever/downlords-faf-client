@@ -3,7 +3,6 @@ package com.faforever.client.chat;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.game.Game;
-import com.faforever.client.game.GameService;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
@@ -17,7 +16,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -39,8 +37,8 @@ import static com.faforever.client.chat.SocialStatus.SELF;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -48,10 +46,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
-  public static final String TEST_USER_NAME = "junit";
+  private static final String TEST_USER_NAME = "junit";
 
-  @Mock
-  private UserService userService;
   @Mock
   private ChatService chatService;
   @Mock
@@ -60,8 +56,6 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   private UiService uiService;
   @Mock
   private PlayerService playerService;
-  @Mock
-  private GameService gameService;
   @Mock
   private ReplayService replayService;
   @Mock
@@ -80,7 +74,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ChatUserContextMenuController(userService, chatService, preferencesService, playerService, gameService,
+    instance = new ChatUserContextMenuController(chatService, preferencesService, playerService,
         replayService, notificationService, i18n, eventBus, joinGameHelper, avatarService, uiService);
 
     Preferences preferences = mock(Preferences.class);
@@ -166,14 +160,14 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnWatchGame() throws Exception {
+  public void testOnWatchGame() {
     instance.onWatchGame();
 
     verify(replayService).runLiveReplay(player.getGame().getId(), player.getId());
   }
 
   @Test
-  public void testOnWatchGameThrowsIoExceptionTriggersNotification() throws Exception {
+  public void testOnWatchGameThrowsIoExceptionTriggersNotification() {
     doThrow(new RuntimeException("Error in runLiveReplay")).when(replayService).runLiveReplay(anyInt(), anyInt());
 
     instance.onWatchGame();

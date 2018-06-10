@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.VBox?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="teamPaneRoot" prefWidth="200.0" spacing="20.0" styleClass="card"
-      xmlns="http://javafx.com/javafx/8.0.60" fx:controller="com.faforever.client.game.TeamCardController">
+      xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.game.TeamCardController">
     <children>
         <Label fx:id="teamNameLabel" styleClass="h3" text="Label"/>
         <VBox fx:id="teamPane"/>
     </children>
+    <padding>
+        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+    </padding>
 </VBox>

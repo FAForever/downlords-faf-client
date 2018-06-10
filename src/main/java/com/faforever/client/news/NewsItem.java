@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-public class NewsItem {
+class NewsItem {
 
   private final String author;
   private final String link;
@@ -13,5 +13,4 @@ public class NewsItem {
   private final String content;
   private final Date date;
   private final NewsCategory newsCategory;
-
 }

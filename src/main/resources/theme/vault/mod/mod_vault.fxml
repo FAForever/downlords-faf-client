@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXSpinner?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -25,23 +26,23 @@
                         <Separator maxWidth="1.7976931348623157E308"/>
                         <HBox spacing="10.0">
                             <children>
-                                <Button fx:id="backButton" mnemonicParsing="false" onAction="#onBackButtonClicked"
-                                        text="%back">
+                                <JFXButton fx:id="backButton" mnemonicParsing="false" onAction="#onBackButtonClicked"
+                                           text="%back">
                                     <graphic>
                                         <Label styleClass="icon" text=""/>
                                     </graphic>
-                                </Button>
-                                <Button mnemonicParsing="false" onAction="#onRefreshButtonClicked" text="%refresh">
+                                </JFXButton>
+                                <JFXButton mnemonicParsing="false" onAction="#onRefreshButtonClicked" text="%refresh">
                                     <graphic>
                                         <Label styleClass="icon" text=""/>
                                     </graphic>
-                                </Button>
-                                <Button mnemonicParsing="false" onAction="#onUploadModButtonClicked"
+                                </JFXButton>
+                                <JFXButton mnemonicParsing="false" onAction="#onUploadModButtonClicked"
                                         text="%modVault.upload">
                                     <graphic>
                                         <Label styleClass="icon" text=""/>
                                     </graphic>
-                                </Button>
+                                </JFXButton>
                             </children>
                         </HBox>
                         <GridPane fx:id="showroomGroup" vgap="10.0">
@@ -65,16 +66,16 @@
                                           prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
                                           GridPane.rowIndex="1"/>
                                 <Label styleClass="h2" text="%modVault.newestMods" GridPane.rowIndex="2"/>
-                                <Button mnemonicParsing="false" onAction="#showMoreNewestMods"
-                                        styleClass="button-raised"
-                                        text="%more" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                                <JFXButton mnemonicParsing="false" onAction="#showMoreNewestMods"
+                                           styleClass="button-raised"
+                                           text="%more" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
                                 <FlowPane fx:id="newestPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                           prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
                                           GridPane.rowIndex="3"/>
                                 <Label styleClass="h2" text="%modVault.highestRated" GridPane.rowIndex="6"/>
-                                <Button mnemonicParsing="false" onAction="#showMoreHighestRatedMods"
-                                        styleClass="button-raised"
-                                        text="%more" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+                                <JFXButton mnemonicParsing="false" onAction="#showMoreHighestRatedMods"
+                                           styleClass="button-raised"
+                                           text="%more" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
                                 <FlowPane fx:id="highestRatedPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                           prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
                                           GridPane.rowIndex="7"/>
@@ -84,15 +85,16 @@
                             <children>
                                 <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%searchResult"/>
                                 <FlowPane fx:id="searchResultPane" hgap="10.0" vgap="10.0"/>
-                                <Button fx:id="moreButton" mnemonicParsing="false" onAction="#onLoadMoreButtonClicked"
-                                        text="%vault.more"/>
+                                <JFXButton fx:id="moreButton" mnemonicParsing="false"
+                                           onAction="#onLoadMoreButtonClicked"
+                                           text="%vault.more"/>
                             </children>
                         </VBox>
                         <Label fx:id="loadingLabel" alignment="CENTER" contentDisplay="TOP"
                                maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                                text="%modVault.loadingMods" VBox.vgrow="ALWAYS">
                             <graphic>
-                                <ProgressIndicator/>
+                                <JFXSpinner/>
                             </graphic>
                         </Label>
                     </children>

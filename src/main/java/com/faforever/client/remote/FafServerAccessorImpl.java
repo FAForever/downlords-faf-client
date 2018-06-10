@@ -43,6 +43,7 @@ import com.faforever.client.remote.domain.LoginClientMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.MessageTarget;
 import com.faforever.client.remote.domain.NoticeMessage;
+import com.faforever.client.remote.domain.PingMessage;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.remote.domain.RemoveFoeMessage;
 import com.faforever.client.remote.domain.RemoveFriendMessage;
@@ -82,6 +83,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -386,7 +388,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     serverWriter.write(message);
   }
 
-  public void onServerMessage(String message) throws IOException {
+  public void onServerMessage(String message) {
     ServerCommand serverCommand = ServerCommand.fromString(message);
     if (serverCommand != null) {
       dispatchServerMessage(serverCommand);
@@ -395,11 +397,15 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     }
   }
 
-  private void dispatchServerMessage(ServerCommand serverCommand) throws IOException {
+  private void dispatchServerMessage(ServerCommand serverCommand) {
     switch (serverCommand) {
       case PING:
         logger.debug("Server PINGed");
         onServerPing();
+        break;
+
+      case PONG:
+        logger.debug("Server PONGed");
         break;
 
       default:
@@ -478,5 +484,14 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private void onGameLaunchInfo(GameLaunchMessage gameLaunchMessage) {
     gameLaunchFuture.complete(gameLaunchMessage);
     gameLaunchFuture = null;
+  }
+
+  @Scheduled(fixedRate = 60_000, initialDelay = 60_000)
+  @Override
+  public void ping() {
+    if (fafServerSocket == null || !fafServerSocket.isConnected() || serverWriter == null) {
+      return;
+    }
+    writeToServer(PingMessage.INSTANCE);
   }
 }

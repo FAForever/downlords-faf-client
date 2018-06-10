@@ -8,6 +8,8 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.preferences.NotificationsPrefs;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.IdenticonUtil;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -26,16 +28,18 @@ public class FriendOnlineNotifier {
   private final I18n i18n;
   private final EventBus eventBus;
   private final AudioService audioService;
-  private final PlayerServiceImpl playerService;
+  private final PlayerService playerService;
+  private final PreferencesService preferencesService;
 
   @Inject
   public FriendOnlineNotifier(NotificationService notificationService, I18n i18n, EventBus eventBus,
-                              AudioService audioService, PlayerServiceImpl playerService) {
+                              AudioService audioService, PlayerService playerService, PreferencesService preferencesService) {
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.eventBus = eventBus;
     this.audioService = audioService;
     this.playerService = playerService;
+    this.preferencesService = preferencesService;
   }
 
   @PostConstruct
@@ -45,20 +49,29 @@ public class FriendOnlineNotifier {
 
   @Subscribe
   public void onUserOnline(UserOnlineEvent event) {
+    NotificationsPrefs notification = preferencesService.getPreferences().getNotification();
     String username = event.getUsername();
     Player player = playerService.getPlayerForUsername(username);
+
     if (player != null && player.getSocialStatus() == SocialStatus.FRIEND) {
-      audioService.playFriendOnlineSound();
-      notificationService.addNotification(
-          new TransientNotification(
-              i18n.get("friend.nowOnlineNotification.title", username),
-              i18n.get("friend.nowOnlineNotification.action"),
-              IdenticonUtil.createIdenticon(player.getId()),
-              actionEvent -> {
-                eventBus.post(new NavigateEvent(NavigationItem.CHAT));
-                eventBus.post(new InitiatePrivateChatEvent(username));
-              }
-          ));
+
+      if (notification.isFriendOnlineSoundEnabled()) {
+        audioService.playFriendOnlineSound();
+      }
+
+      if (notification.isFriendOnlineToastEnabled()) {
+        notificationService.addNotification(
+            new TransientNotification(
+                i18n.get("friend.nowOnlineNotification.title", username),
+                i18n.get("friend.nowOnlineNotification.action"),
+                IdenticonUtil.createIdenticon(player.getId()),
+                actionEvent -> {
+                  eventBus.post(new NavigateEvent(NavigationItem.CHAT));
+                  eventBus.post(new InitiatePrivateChatEvent(username));
+                }
+            ));
+      }
     }
+
   }
 }

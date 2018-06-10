@@ -20,7 +20,6 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.Node;
-import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.layout.HBox;
@@ -69,6 +68,7 @@ import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.RE
 public class SpecificationController implements Controller<Node> {
 
   private static final Map<ComparisonOperator, String> operatorToI18nKey = ImmutableMap.<ComparisonOperator, String>builder()
+      .put(RE, "query.contains")
       .put(EQ, "query.equals")
       .put(NE, "query.notEquals")
       .put(GT, "query.greaterThan")
@@ -77,7 +77,6 @@ public class SpecificationController implements Controller<Node> {
       .put(LTE, "query.lessThanEquals")
       .put(IN, "query.in")
       .put(NIN, "query.notIn")
-      .put(RE, "query.contains")
       .build();
 
   private static final Map<Class<?>, Collection<ComparisonOperator>> VALID_OPERATORS =
@@ -93,7 +92,7 @@ public class SpecificationController implements Controller<Node> {
   private final I18n i18n;
   private final FilteredList<ComparisonOperator> comparisonOperators;
   public ComboBox<String> propertyField;
-  public ChoiceBox<ComparisonOperator> operationField;
+  public ComboBox<ComparisonOperator> operationField;
   public ComboBox<Object> valueField;
   public HBox specificationRoot;
   public DatePicker datePicker;
@@ -111,6 +110,8 @@ public class SpecificationController implements Controller<Node> {
     datePicker.setVisible(false);
 
     valueField.managedProperty().bind(valueField.visibleProperty());
+    // JFXComboBox throws an exception if the field is bound bidirectionally but editable (or so...)
+    valueField.editableProperty().bind(valueField.visibleProperty());
 
     operationField.setItems(comparisonOperators);
     operationField.setConverter(new StringConverter<ComparisonOperator>() {

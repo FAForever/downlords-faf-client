@@ -63,7 +63,6 @@ import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -78,6 +77,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   private static final String MAP_ENDPOINT = "/data/map";
   private static final String REPLAY_INCLUDES = "featuredMod,playerStats,playerStats.player,reviews,reviews.player,mapVersion,mapVersion.map,mapVersion.reviews,reviewsSummary";
+  private static final String COOP_RESULT_INCLUDES = "game.playerStats.player";
   private static final String PLAYER_INCLUDES = "globalRating,ladder1v1Rating,names";
   private static final String MOD_ENDPOINT = "/data/mod";
   private static final String OAUTH_TOKEN_PATH = "/oauth/token";
@@ -225,7 +225,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Cacheable(CacheNames.MAPS)
   public List<Map> getMostPlayedMaps(int count, int page) {
     return this.<MapStatistics>getPage("/data/mapStatistics", count, page, ImmutableMap.of(
-        "include", "map,map.latestVersion,map.author,map.versions.reviews,map.versions.reviews.player",
+        "include", "map,map.statistics,map.latestVersion,map.author,map.versions.reviews,map.versions.reviews.player",
         "sort", "-plays")).stream()
         .map(MapStatistics::getMap)
         .collect(Collectors.toList());
@@ -234,7 +234,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   public List<Map> getHighestRatedMaps(int count, int page) {
     return this.<MapStatistics>getPage("/data/mapStatistics", count, page, ImmutableMap.of(
-        "include", "map,map.latestVersion,map.author,map.versions.reviews,map.versions.reviews.player,map.latestVersion.reviewsSummary",
+        "include", "map.statistics,map,map.latestVersion,map.author,map.versions.reviews,map.versions.reviews.player,map.latestVersion.reviewsSummary",
         "sort", "-map.latestVersion.reviewsSummary.lowerBound")).stream()
         .map(MapStatistics::getMap)
         .collect(Collectors.toList());
@@ -243,7 +243,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   public List<Map> getNewestMaps(int count, int page) {
     return getPage(MAP_ENDPOINT, count, page, ImmutableMap.of(
-        "include", "latestVersion,author,versions.reviews,versions.reviews.player",
+        "include", "statistics,latestVersion,author,versions.reviews,versions.reviews.player",
         "sort", "-updateTime"));
   }
 
@@ -273,13 +273,12 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @Override
   public void changePassword(String username, String currentPasswordHash, String newPasswordHash) {
-    java.util.Map<String, String> body = new HashMap<>();
-    // TODO this should not be necessary; we are oauthed so the server knows our username
-    body.put("name", username);
-    body.put("pw_hash_old", currentPasswordHash);
-    body.put("pw_hash_new", newPasswordHash);
+    java.util.Map<String, String> body = ImmutableMap.of(
+        "currentPassword", currentPasswordHash,
+        "newPassword", newPasswordHash
+    );
 
-    post("/users/change_password", body, true);
+    post("/users/changePassword", body, true);
   }
 
   @Override
@@ -389,7 +388,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   public List<Mod> findModsByQuery(SearchConfig searchConfig, int page, int count) {
     MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
     if (searchConfig.hasQuery()) {
-      parameterMap.add("filter", searchConfig.getSearchQuery());
+      parameterMap.add("filter", searchConfig.getSearchQuery() + ";latestVersion.hidden==\"false\"");
     }
     parameterMap.add("include", "latestVersion,latestVersion.reviews,latestVersion.reviews.player,latestVersion.reviewsSummary");
     parameterMap.add("sort", searchConfig.getSortConfig().toQuery());
@@ -427,7 +426,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   public List<Map> findMapsByQuery(String query, int page, int maxResults, SortConfig sortConfig) {
     return getPage(MAP_ENDPOINT, maxResults, page, ImmutableMap.of(
-        "filter", query,
+        "filter", query + ";latestVersion.hidden==\"false\"",
         "include", "latestVersion,latestVersion.reviews,latestVersion.reviews.player,author,statistics",
         "sort", sortConfig.toQuery()
     ));
@@ -449,8 +448,10 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Cacheable(CacheNames.COOP_LEADERBOARD)
   public List<CoopResult> getCoopLeaderboard(String missionId, int numberOfPlayers) {
     return getMany("/data/coopResult", 1000, ImmutableMap.of(
-        "filter", rsql(qBuilder().intNum("playerCount").eq(numberOfPlayers)),
-        "sort", "-duration"
+        "filter", rsql(qBuilder().intNum("playerCount").eq(numberOfPlayers)
+            .and().string("mission").eq(missionId)),
+        "include", COOP_RESULT_INCLUDES,
+        "sort", "duration"
     ));
   }
 

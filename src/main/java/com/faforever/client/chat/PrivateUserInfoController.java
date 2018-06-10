@@ -29,7 +29,6 @@ import java.util.concurrent.CompletableFuture;
 public class PrivateUserInfoController {
   private final CountryFlagService countryFlagService;
   private final I18n i18n;
-  private final InvalidationListener gameInvalidationListener;
   private final AchievementService achievementService;
 
   public ImageView userImageView;
@@ -42,14 +41,18 @@ public class PrivateUserInfoController {
   public GameDetailController gameDetailController;
   public Pane gameDetailWrapper;
   public Label unlockedAchievementsLabel;
-  private Player player;
+
+  @SuppressWarnings("FieldCanBeLocal")
+  private InvalidationListener globalRatingInvalidationListener;
+  @SuppressWarnings("FieldCanBeLocal")
+  private InvalidationListener leaderboardRatingInvalidationListener;
+  @SuppressWarnings("FieldCanBeLocal")
+  private InvalidationListener gameInvalidationListener;
 
   public PrivateUserInfoController(CountryFlagService countryFlagService, I18n i18n, AchievementService achievementService) {
     this.countryFlagService = countryFlagService;
     this.i18n = i18n;
     this.achievementService = achievementService;
-
-    gameInvalidationListener = observable -> onPlayerGameChanged(player.getGame());
   }
 
   public void initialize() {
@@ -59,7 +62,6 @@ public class PrivateUserInfoController {
   }
 
   public void setPlayer(Player player) {
-    this.player = player;
     CountryCode countryCode = CountryCode.getByCode(player.getCountry());
 
     usernameLabel.setText(player.getUsername());
@@ -67,18 +69,21 @@ public class PrivateUserInfoController {
     countryFlagService.loadCountryFlag(player.getCountry()).ifPresent(image -> countryImageView.setImage(image));
     countryLabel.setText(countryCode == null ? player.getCountry() : countryCode.getName());
 
-    JavaFxUtil.addListener(player.globalRatingMeanProperty(), (observable) -> loadReceiverGlobalRatingInformation(player));
-    JavaFxUtil.addListener(player.globalRatingDeviationProperty(), (observable) -> loadReceiverGlobalRatingInformation(player));
+    globalRatingInvalidationListener = (observable) -> loadReceiverGlobalRatingInformation(player);
+    JavaFxUtil.addListener(player.globalRatingMeanProperty(), new WeakInvalidationListener(globalRatingInvalidationListener));
+    JavaFxUtil.addListener(player.globalRatingDeviationProperty(), new WeakInvalidationListener(globalRatingInvalidationListener));
     loadReceiverGlobalRatingInformation(player);
 
-    JavaFxUtil.addListener(player.leaderboardRatingMeanProperty(), (observable) -> loadReceiverLadderRatingInformation(player));
-    JavaFxUtil.addListener(player.leaderboardRatingDeviationProperty(), (observable) -> loadReceiverLadderRatingInformation(player));
+    leaderboardRatingInvalidationListener = (observable) -> loadReceiverLadderRatingInformation(player);
+    JavaFxUtil.addListener(player.leaderboardRatingMeanProperty(), new WeakInvalidationListener(leaderboardRatingInvalidationListener));
+    JavaFxUtil.addListener(player.leaderboardRatingDeviationProperty(), new WeakInvalidationListener(leaderboardRatingInvalidationListener));
     loadReceiverLadderRatingInformation(player);
 
+    gameInvalidationListener = observable -> onPlayerGameChanged(player.getGame());
     JavaFxUtil.addListener(player.gameProperty(), new WeakInvalidationListener(gameInvalidationListener));
-    gameInvalidationListener.invalidated(player.gameProperty());
+    onPlayerGameChanged(player.getGame());
 
-    gamesPlayedLabel.textProperty().bind(player.numberOfGamesProperty().asString());
+    JavaFxUtil.bind(gamesPlayedLabel.textProperty(), player.numberOfGamesProperty().asString());
 
     populateUnlockedAchievementsLabel(player);
   }
@@ -110,12 +115,12 @@ public class PrivateUserInfoController {
   }
 
   private void loadReceiverGlobalRatingInformation(Player player) {
-    globalRatingLevel.setText(i18n.get("chat.privateMessage.ratingFormat",
-        RatingUtil.getRating(player.getGlobalRatingMean(), player.getGlobalRatingDeviation())));
+    Platform.runLater(() -> globalRatingLevel.setText(i18n.get("chat.privateMessage.ratingFormat",
+        RatingUtil.getRating(player.getGlobalRatingMean(), player.getGlobalRatingDeviation()))));
   }
 
   private void loadReceiverLadderRatingInformation(Player player) {
-    leaderboardRatingLevel.setText(i18n.get("chat.privateMessage.ratingFormat",
-        RatingUtil.getRating(player.getLeaderboardRatingMean(), player.getLeaderboardRatingDeviation())));
+    Platform.runLater(() -> leaderboardRatingLevel.setText(i18n.get("chat.privateMessage.ratingFormat",
+        RatingUtil.getRating(player.getLeaderboardRatingMean(), player.getLeaderboardRatingDeviation()))));
   }
 }
