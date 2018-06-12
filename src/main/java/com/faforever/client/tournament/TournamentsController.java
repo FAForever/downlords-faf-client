@@ -11,13 +11,13 @@ import com.google.common.io.CharStreams;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.web.WebView;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.text.MessageFormat;
@@ -94,6 +94,7 @@ public class TournamentsController extends AbstractViewController<Node> {
     return tournamentListItemController;
   }
 
+  @SneakyThrows
   private void displayTournamentItem(TournamentBean tournamentBean) {
     String startingDate = i18n.get("tournament.noStartingDate");
     if (tournamentBean.getStartingAt() != null) {
@@ -104,18 +105,16 @@ public class TournamentsController extends AbstractViewController<Node> {
     if (tournamentBean.getCompletedAt() != null) {
       completedDate = MessageFormat.format("{0} {1}", timeService.asDate(tournamentBean.getCompletedAt()), timeService.asShortTime(tournamentBean.getCompletedAt()));
     }
-    try (Reader reader = new InputStreamReader(TOURNAMENT_DETAIL_HTML_RESOURCE.getInputStream())) {
-      String html = CharStreams.toString(reader).replace("{name}", tournamentBean.getName())
-          .replace("{challonge-url}", tournamentBean.getChallongeUrl())
-          .replace("{tournament-type}", tournamentBean.getTournamentType())
-          .replace("{starting-date}", startingDate)
-          .replace("{completed-date}", completedDate)
-          .replace("{description}", tournamentBean.getDescription())
-          .replace("{tournament-image}", tournamentBean.getLiveImageUrl());
 
-      tournamentDetailWebView.getEngine().loadContent(html);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    Reader reader = new InputStreamReader(TOURNAMENT_DETAIL_HTML_RESOURCE.getInputStream());
+    String html = CharStreams.toString(reader).replace("{name}", tournamentBean.getName())
+        .replace("{challonge-url}", tournamentBean.getChallongeUrl())
+        .replace("{tournament-type}", tournamentBean.getTournamentType())
+        .replace("{starting-date}", startingDate)
+        .replace("{completed-date}", completedDate)
+        .replace("{description}", tournamentBean.getDescription())
+        .replace("{tournament-image}", tournamentBean.getLiveImageUrl());
+
+    tournamentDetailWebView.getEngine().loadContent(html);
   }
 }
