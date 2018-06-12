@@ -98,12 +98,12 @@ public class TournamentsController extends AbstractViewController<Node> {
   private void displayTournamentItem(TournamentBean tournamentBean) {
     String startingDate = i18n.get("tournament.noStartingDate");
     if (tournamentBean.getStartingAt() != null) {
-      startingDate = MessageFormat.format("{0} {1}", timeService.asDate(tournamentBean.getStartingAt()), timeService.asShortTime(tournamentBean.getStartingAt()));
+      startingDate = MessageFormat.format(i18n.get("dateWithTime"), timeService.asDate(tournamentBean.getStartingAt()), timeService.asShortTime(tournamentBean.getStartingAt()));
     }
 
     String completedDate = i18n.get("tournament.noCompletionDate");
     if (tournamentBean.getCompletedAt() != null) {
-      completedDate = MessageFormat.format("{0} {1}", timeService.asDate(tournamentBean.getCompletedAt()), timeService.asShortTime(tournamentBean.getCompletedAt()));
+      completedDate = MessageFormat.format(i18n.get("dateWithTime"), timeService.asDate(tournamentBean.getCompletedAt()), timeService.asShortTime(tournamentBean.getCompletedAt()));
     }
 
     Reader reader = new InputStreamReader(TOURNAMENT_DETAIL_HTML_RESOURCE.getInputStream());
