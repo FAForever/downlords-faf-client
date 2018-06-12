@@ -8,6 +8,7 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.google.common.io.CharStreams;
+import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.web.WebView;
@@ -66,19 +67,24 @@ public class TournamentsController extends AbstractViewController<Node> {
 
     tournamentService.getAllTournaments()
         .thenAccept(tournaments -> {
-          boolean firstItemSelected = false;
+          Platform.runLater(() -> {
+            boolean firstItemSelected = false;
 
-          tournaments.sort((o1, o2) -> -o1.getCreatedAt().compareTo(o2.getCreatedAt()));
+            tournaments.sort((o1, o2) -> -o1.getCreatedAt().compareTo(o2.getCreatedAt()));
 
-          for (TournamentBean tournamentBean : tournaments) {
-            TournamentListItemController tournamentListItemController = createAndAddTournamentItem(tournamentBean);
+            for (TournamentBean tournamentBean : tournaments) {
+              TournamentListItemController tournamentListItemController = createAndAddTournamentItem(tournamentBean);
 
-            if (!firstItemSelected) {
-              tournamentListItemController.onMouseClicked();
-              firstItemSelected = true;
+              if (!firstItemSelected) {
+                tournamentListItemController.onMouseClicked();
+                firstItemSelected = true;
+              }
             }
-          }
-        });
+          });
+        }).exceptionally(throwable -> {
+      log.error("Tournaments could not be loaded", throwable);
+      return null;
+    });
   }
 
   private TournamentListItemController createAndAddTournamentItem(TournamentBean tournamentBean) {
