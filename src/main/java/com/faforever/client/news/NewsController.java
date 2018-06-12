@@ -13,12 +13,12 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.layout.Pane;
 import javafx.scene.web.WebView;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.List;
@@ -86,19 +86,17 @@ public class NewsController extends AbstractViewController<Node> {
     return newsListItemController;
   }
 
+  @SneakyThrows
   private void displayNewsItem(NewsItem newsItem) {
     showLadderMapsButton.setVisible(newsItem.getNewsCategory().equals(NewsCategory.LADDER));
     eventBus.post(new UnreadNewsEvent(false));
 
-    try (Reader reader = new InputStreamReader(NEWS_DETAIL_HTML_RESOURCE.getInputStream())) {
-      String html = CharStreams.toString(reader).replace("{title}", newsItem.getTitle())
-          .replace("{content}", newsItem.getContent())
-          .replace("{authored}", i18n.get("news.authoredFormat", newsItem.getAuthor(), newsItem.getDate()));
+    Reader reader = new InputStreamReader(NEWS_DETAIL_HTML_RESOURCE.getInputStream());
+    String html = CharStreams.toString(reader).replace("{title}", newsItem.getTitle())
+        .replace("{content}", newsItem.getContent())
+        .replace("{authored}", i18n.get("news.authoredFormat", newsItem.getAuthor(), newsItem.getDate()));
 
-      newsDetailWebView.getEngine().loadContent(html);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    newsDetailWebView.getEngine().loadContent(html);
   }
 
   public Node getRoot() {
