@@ -36,10 +36,11 @@ public class PlayerCardTooltipController implements Controller<Node> {
       return;
     }
     countryFlagService.loadCountryFlag(player.getCountry()).ifPresent(image -> countryImageView.setImage(image));
-    
-    if (!StringUtils.isEmpty(player.getCountry())) { // empty (non-null) string -> empty tooltip
-      i18n.getCountryNameLocalized(player.getCountry()).ifPresent(country -> //
-        Tooltip.install(playerInfo, new Tooltip(country)) // countryImageView won't work because part of label.
+
+    // prevents empty tooltip caused by an empty (non-null) string
+    if (!StringUtils.isEmpty(player.getCountry())) {
+      // installing tooltip on countryImageView won't work because it's part of label.
+      i18n.getCountryNameLocalized(player.getCountry()).ifPresent(country -> Tooltip.install(playerInfo, new Tooltip(country))
       );
     }
     
