@@ -6,12 +6,15 @@ import org.springframework.util.StringUtils;
 
 import java.net.Inet4Address;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 
 public class LaunchCommandBuilder {
 
@@ -21,6 +24,8 @@ public class LaunchCommandBuilder {
   private Float deviation;
   private String country;
   private String clan;
+  private String nameAva;
+  private String tooltipAva;
   private String username;
   private Integer uid;
   private Path executable;
@@ -92,6 +97,16 @@ public class LaunchCommandBuilder {
     return this;
   }
 
+  public LaunchCommandBuilder nameAva(String nameAva){
+    this.nameAva = nameAva;
+    return this;
+  }
+
+  public LaunchCommandBuilder tooltipAva(String tooltipAva){
+    this.tooltipAva=tooltipAva;
+    return this;
+  }
+
   public LaunchCommandBuilder username(String username) {
     this.username = username;
     return this;
@@ -116,6 +131,7 @@ public class LaunchCommandBuilder {
     this.replayFile = replayFile;
     return this;
   }
+
 
   public LaunchCommandBuilder replayUri(URI replayUri) {
     this.replayUri = replayUri;
@@ -167,6 +183,21 @@ public class LaunchCommandBuilder {
     if (localGpgPort != null) {
       command.add("/gpgnet");
       command.add(localIp + ":" + localGpgPort);
+    }
+
+
+    if(nameAva != null) {
+      String nm = null;
+      try {
+        nm = Paths.get(new URI(nameAva).getPath()).getFileName().toString();
+      } catch (URISyntaxException e) { 
+        e.printStackTrace();
+      }
+      command.add("/avatarurl");
+      command.add(String.valueOf(nm)); 
+
+      command.add("/avatartlp");
+      command.add(String.valueOf(tooltipAva));
     }
 
     if (mean != null) {
