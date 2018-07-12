@@ -146,7 +146,7 @@ public class LaunchCommandBuilder {
     return this;
   }
 
-  public List<String> build() throws URISyntaxException {
+  public List<String> build() {
     if (executableDecorator == null) {
       throw new IllegalStateException("executableDecorator has not been set");
     }
@@ -186,7 +186,9 @@ public class LaunchCommandBuilder {
 
     if(nameAva != null) {
       String nm = null;
-	  nm = Paths.get(new URI(nameAva).getPath()).getFileName().toString();
+      try {
+        nm = Paths.get(new URI(nameAva).getPath()).getFileName().toString();
+      } catch (URISyntaxException e) { }
       command.add("/avatarurl");
       command.add(String.valueOf(nm)); 
 
