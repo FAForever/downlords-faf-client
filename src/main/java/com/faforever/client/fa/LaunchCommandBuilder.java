@@ -5,9 +5,7 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import org.springframework.util.StringUtils;
 
 import java.net.Inet4Address;
-import java.net.URI;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -184,8 +182,7 @@ public class LaunchCommandBuilder {
 
 
     if(nameAva != null) {
-      String nm = null;
-      nm = Paths.get(URI.create(nameAva).getPath()).getFileName().toString();
+	  String nm = nameAva.substring(nameAva.lastIndexOf('/')+1, nameAva.length());
       command.add("/avatarurl");
       command.add(String.valueOf(nm)); 
 
