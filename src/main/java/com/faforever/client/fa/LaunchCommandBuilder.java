@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 public class LaunchCommandBuilder {
 
   private static final Pattern QUOTED_STRING_PATTERN = Pattern.compile("([^\"]\\S*|\".+?\")\\s*");
@@ -132,7 +131,6 @@ public class LaunchCommandBuilder {
     return this;
   }
 
-
   public LaunchCommandBuilder replayUri(URI replayUri) {
     this.replayUri = replayUri;
     return this;
@@ -190,9 +188,7 @@ public class LaunchCommandBuilder {
       String nm = null;
       try {
         nm = Paths.get(new URI(nameAva).getPath()).getFileName().toString();
-      } catch (URISyntaxException e) { 
-        e.printStackTrace();
-      }
+      } catch (URISyntaxException e) { }
       command.add("/avatarurl");
       command.add(String.valueOf(nm)); 
 
