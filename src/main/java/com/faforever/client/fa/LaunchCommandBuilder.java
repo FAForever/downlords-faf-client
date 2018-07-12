@@ -6,6 +6,7 @@ import org.springframework.util.StringUtils;
 
 import java.net.Inet4Address;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -183,7 +184,8 @@ public class LaunchCommandBuilder {
 
 
     if(nameAva != null) {
-	  String nm = nameAva.substring(nameAva.lastIndexOf('/')+1, nameAva.length());
+	  String nm = null;
+	  nm = Paths.get(URI.create(nameAva).getPath()).getFileName().toString();
       command.add("/avatarurl");
       command.add(String.valueOf(nm)); 
 
