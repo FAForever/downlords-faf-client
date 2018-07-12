@@ -5,6 +5,7 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import org.springframework.util.StringUtils;
 
 import java.net.Inet4Address;
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
