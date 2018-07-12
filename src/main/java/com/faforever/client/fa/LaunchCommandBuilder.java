@@ -22,8 +22,8 @@ public class LaunchCommandBuilder {
   private Float deviation;
   private String country;
   private String clan;
-  private String nameAva;
-  private String tooltipAva;
+  private String avatarUrl;
+  private String avatarTooltip;
   private String username;
   private Integer uid;
   private Path executable;
@@ -95,13 +95,13 @@ public class LaunchCommandBuilder {
     return this;
   }
 
-  public LaunchCommandBuilder nameAva(String nameAva){
-    this.nameAva = nameAva;
+  public LaunchCommandBuilder avatarUrl(String avatarUrl){
+    this.avatarUrl = avatarUrl;
     return this;
   }
 
-  public LaunchCommandBuilder tooltipAva(String tooltipAva){
-    this.tooltipAva=tooltipAva;
+  public LaunchCommandBuilder avatarTooltip(String avatarTooltip){
+    this.avatarTooltip=avatarTooltip;
     return this;
   }
 
@@ -183,14 +183,14 @@ public class LaunchCommandBuilder {
     }
 
 
-    if(nameAva != null) {
-	  String nm = null;
-	  nm = Paths.get(URI.create(nameAva).getPath()).getFileName().toString();
-      command.add("/avatarurl");
-      command.add(String.valueOf(nm)); 
+    if(avatarUrl != null) {
+	  String urlTOfilename = null; // In lobby it is easier to use the name of the avatar file than the link itself.
+	  urlTOfilename = Paths.get(URI.create(avatarUrl).getPath()).getFileName().toString();
+      command.add("/avatarurl");   // If you change the command, you need to remember to change in lobby.
+      command.add(String.valueOf(urlTOfilename)); 
 
       command.add("/avatartlp");
-      command.add(String.valueOf(tooltipAva));
+      command.add(String.valueOf(avatarTooltip));
     }
 
     if (mean != null) {
