@@ -186,8 +186,7 @@ public class LaunchCommandBuilder {
 
     if(nameAva != null) {
       String nm = null;
-      try {nm = Paths.get(new URI(nameAva).getPath()).getFileName().toString();
-      } catch (URISyntaxException ignored) {}
+      nm = Paths.get(URI.create(nameAva).getPath()).getFileName().toString();
       command.add("/avatarurl");
       command.add(String.valueOf(nm)); 
 
