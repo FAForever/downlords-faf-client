@@ -7,6 +7,7 @@ import org.springframework.util.StringUtils;
 import java.net.Inet4Address;
 import java.net.URI;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,6 +22,8 @@ public class LaunchCommandBuilder {
   private Float deviation;
   private String country;
   private String clan;
+  private String avatarUrl;
+  private String avatarTooltip;
   private String username;
   private Integer uid;
   private Path executable;
@@ -89,6 +92,16 @@ public class LaunchCommandBuilder {
 
   public LaunchCommandBuilder clan(String clan) {
     this.clan = clan;
+    return this;
+  }
+
+  public LaunchCommandBuilder avatarUrl(String avatarUrl){
+    this.avatarUrl = avatarUrl;
+    return this;
+  }
+
+  public LaunchCommandBuilder avatarTooltip(String avatarTooltip){
+    this.avatarTooltip=avatarTooltip;
     return this;
   }
 
@@ -167,6 +180,17 @@ public class LaunchCommandBuilder {
     if (localGpgPort != null) {
       command.add("/gpgnet");
       command.add(localIp + ":" + localGpgPort);
+    }
+
+
+    if(avatarUrl != null) {
+	  String urlTOfilename = null; // In lobby it is easier to use the name of the avatar file than the link itself.
+	  urlTOfilename = Paths.get(URI.create(avatarUrl).getPath()).getFileName().toString();
+      command.add("/avatarurl");   // If you change the command, you need to remember to change in lobby.
+      command.add(String.valueOf(urlTOfilename)); 
+
+      command.add("/avatartlp");
+      command.add(String.valueOf(avatarTooltip));
     }
 
     if (mean != null) {
