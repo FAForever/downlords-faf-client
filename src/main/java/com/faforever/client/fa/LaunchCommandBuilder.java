@@ -179,18 +179,18 @@ public class LaunchCommandBuilder {
     String localIp = Inet4Address.getLoopbackAddress().getHostAddress();
     if (localGpgPort != null) {
       command.add("/gpgnet");
-      command.add(localIp + ":" + localGpgPort);
+      command.add(String.format("%s:%d", localIp, localGpgPort));
     }
 
 
     if(avatarUrl != null) {
-	  String urlTOfilename = null; // In lobby it is easier to use the name of the avatar file than the link itself.
-	  urlTOfilename = Paths.get(URI.create(avatarUrl).getPath()).getFileName().toString();
-      command.add("/avatarurl");   // If you change the command, you need to remember to change in lobby.
-      command.add(String.valueOf(urlTOfilename)); 
+	  String urlToFilename = null;
+	  urlToFilename = Paths.get(URI.create(avatarUrl).getPath()).getFileName().toString();
+      command.add("/avatarurl");
+      command.add(urlToFilename);
 
       command.add("/avatartooltip");
-      command.add(String.valueOf(avatarTooltip));
+      command.add(avatarTooltip);
     }
 
     if (mean != null) {
