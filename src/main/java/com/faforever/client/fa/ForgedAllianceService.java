@@ -63,6 +63,8 @@ public class ForgedAllianceService {
         .country(currentPlayer.getCountry())
         .deviation(deviation)
         .mean(mean)
+        .avatarUrl(currentPlayer.getAvatarUrl())
+        .avatarTooltip(currentPlayer.getAvatarTooltip())
         .username(currentPlayer.getUsername())
         .additionalArgs(additionalArgs)
         .logFile(preferencesService.getFafLogDirectory().resolve("game.log"))
