@@ -47,7 +47,7 @@ public class ChatPrefs {
     userToColor = new SimpleMapProperty<>(FXCollections.observableHashMap());
     chatColorMode = new SimpleObjectProperty<>(CUSTOM);
     idleThreshold = new SimpleIntegerProperty(10);
-    chatFormat = new SimpleObjectProperty<>(ChatFormat.EXTENDED);
+    chatFormat = new SimpleObjectProperty<>(ChatFormat.COMPACT);
   }
 
   public ChatColorMode getChatColorMode() {
