@@ -170,7 +170,7 @@ public class ReplayService {
           .forEach(replayFile -> {
             try {
               LocalReplayInfo replayInfo = replayFileReader.parseMetaData(replayFile);
-              FeaturedMod featuredMod = modService.getFeaturedMod(replayInfo.getFeaturedMod()).getNow(FeaturedMod.UNKNOWN);
+              FeaturedMod featuredMod = modService.getFeaturedMod(replayInfo.getFeaturedMod()).get();
 
               mapService.findByMapFolderName(replayInfo.getMapname())
                   .thenAccept(mapBean -> replayInfos.add(new Replay(replayInfo, replayFile, featuredMod, mapBean.orElse(null))));
