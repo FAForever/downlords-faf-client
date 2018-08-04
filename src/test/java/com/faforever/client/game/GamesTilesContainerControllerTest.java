@@ -5,6 +5,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
+import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -36,13 +37,15 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
   private UiService uiService;
   @Mock
   private PreferencesService preferencesService;
+  @Mock
+  private GameService gameService;
 
   private GamesTilesContainerController instance;
   private Preferences preferences;
 
   @Before
   public void setUp() throws Exception {
-    instance = new GamesTilesContainerController(uiService, preferencesService);
+    instance = new GamesTilesContainerController(uiService, preferencesService, gameService);
 
     when(uiService.loadFxml("theme/play/game_card.fxml")).thenReturn(gameTileController);
     preferences = new Preferences();
@@ -56,7 +59,14 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
   public void testCreateTiledFlowPaneWithEmptyList() throws Exception {
     ObservableList<Game> observableList = FXCollections.observableArrayList();
 
-    instance.createTiledFlowPane(observableList, new ComboBox<>());
+    CountDownLatch createdTiledFlowPaneCountDown = new CountDownLatch(1);
+
+    Platform.runLater(() -> {
+      instance.createTiledFlowPane(observableList, new ComboBox<>());
+      createdTiledFlowPaneCountDown.countDown();
+    });
+
+    createdTiledFlowPaneCountDown.await();
 
     assertThat(instance.tiledFlowPane.getChildren(), empty());
   }
@@ -67,8 +77,14 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
     ObservableList<Game> observableList = FXCollections.observableArrayList();
     observableList.add(new Game());
 
-    instance.createTiledFlowPane(observableList, new ComboBox<>());
+    CountDownLatch initializedCountDown = new CountDownLatch(1);
 
+    Platform.runLater(() -> {
+      instance.createTiledFlowPane(observableList, new ComboBox<>());
+      initializedCountDown.countDown();
+    });
+
+    initializedCountDown.await();
     assertThat(instance.tiledFlowPane.getChildren(), hasSize(1));
   }
 
@@ -81,8 +97,10 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
 
     ObservableList<Game> observableList = FXCollections.observableArrayList();
 
-    instance.createTiledFlowPane(observableList, new ComboBox<>());
-    observableList.add(new Game());
+    Platform.runLater(() -> {
+      instance.createTiledFlowPane(observableList, new ComboBox<>());
+      observableList.add(new Game());
+    });
 
     latch.await();
     assertThat(instance.tiledFlowPane.getChildren(), hasSize(1));
@@ -90,17 +108,19 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCreateTiledFlowPaneWithPopulatedListAndPostInstantiatedGameInfoBean() throws Exception {
-    CountDownLatch latch = new CountDownLatch(2);
+    CountDownLatch latch = new CountDownLatch(3);
     ObservableList<Node> children = instance.tiledFlowPane.getChildren();
     children.addListener((Observable observable) -> latch.countDown());
 
     doAnswer(invocation -> new Pane()).when(gameTileController).getRoot();
 
     ObservableList<Game> observableList = FXCollections.observableArrayList();
-
-    observableList.add(GameBuilder.create().defaultValues().get());
-    instance.createTiledFlowPane(observableList, new ComboBox<>());
-    observableList.add(GameBuilder.create().defaultValues().get());
+    Platform.runLater(() -> {
+      observableList.add(GameBuilder.create().defaultValues().get());
+      instance.createTiledFlowPane(observableList, new ComboBox<>());
+      observableList.add(GameBuilder.create().defaultValues().get());
+      latch.countDown();
+    });
 
     latch.await();
 
@@ -127,10 +147,15 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
 
 
     observableList.addAll(game1, game2);
-
     preferences.setGameTileSortingOrder(TilesSortingOrder.PLAYER_ASC);
 
-    instance.createTiledFlowPane(observableList, new ComboBox<>());
+    CountDownLatch createdTiledFlowPaneCountDown = new CountDownLatch(1);
+    Platform.runLater(() -> {
+      instance.createTiledFlowPane(observableList, new ComboBox<>());
+      createdTiledFlowPaneCountDown.countDown();
+    });
+    createdTiledFlowPaneCountDown.await();
+
     assertEquals(instance.uidToGameCard.get(game2.getId()), instance.tiledFlowPane.getChildren().get(0));
   }
 }

@@ -83,6 +83,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
   public CheckBox showPasswordProtectedGamesCheckBox;
   private final ChangeListener<Boolean> filterConditionsChangedListener = (observable, oldValue, newValue) -> updateFilteredItems();
   private GamesTilesContainerController gamesTilesContainerController;
+  private final ChangeListener<Game> gameChangeListener;
 
   public CustomGamesController(UiService uiService, GameService gameService, PreferencesService preferencesService,
                                EventBus eventBus, I18n i18n) {
@@ -91,6 +92,8 @@ public class CustomGamesController extends AbstractViewController<Node> {
     this.preferencesService = preferencesService;
     this.eventBus = eventBus;
     this.i18n = i18n;
+
+    gameChangeListener = (observable, oldValue, newValue) -> setSelectedGame(newValue);
   }
 
   public void initialize() {
@@ -130,8 +133,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
     } else {
       viewToggleGroup.selectToggle(tableButton);
       tableButton.getOnAction().handle(null);
-      gamesTableController.setModsColumnVisibility(showModdedGamesCheckBox.selectedProperty().getValue());
-      gamesTableController.setPasswordProtectionColumnVisibility(showPasswordProtectedGamesCheckBox.selectedProperty().getValue());
     }
     viewToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == null) {
@@ -167,10 +168,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
     filteredItems.setPredicate(OPEN_CUSTOM_GAMES_PREDICATE.and(gameInfoBean ->
         (showPasswordProtectedGames || !gameInfoBean.getPasswordProtected())
             && (showModdedGames || gameInfoBean.getSimMods().isEmpty())));
-    if (tableButton.isSelected()) {
-      gamesTableController.setModsColumnVisibility(showModdedGamesCheckBox.selectedProperty().getValue());
-      gamesTableController.setPasswordProtectionColumnVisibility(showPasswordProtectedGamesCheckBox.selectedProperty().getValue());
-    }
   }
 
   public void onCreateGameButtonClicked() {
@@ -224,7 +221,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   public void onTilesButtonClicked() {
     gamesTilesContainerController = uiService.loadFxml("theme/play/games_tiles_container.fxml");
-    gamesTilesContainerController.selectedGameProperty().addListener((observable, oldValue, newValue) -> setSelectedGame(newValue));
+    JavaFxUtil.addListener(gamesTilesContainerController.selectedGameProperty(), new WeakChangeListener<>(gameChangeListener));
     chooseSortingTypeChoiceBox.getItems().clear();
 
     Platform.runLater(() -> {

@@ -52,9 +52,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.InitializingBean;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -269,7 +269,6 @@ public class GameService implements InitializingBean {
   /**
    * @param path a replay file that is readable by the preferences without any further conversion
    */
-
   public void runWithReplay(Path path, @Nullable Integer replayId, String featuredMod, Integer version, Map<String, Integer> modVersions, Set<String> simMods, String mapName) {
     if (isRunning()) {
       logger.warn("Forged Alliance is already running, not starting replay");
@@ -334,7 +333,6 @@ public class GameService implements InitializingBean {
     return games;
   }
 
-
   public Game getByUid(int uid) {
     Game game = uidToGameInfoBean.get(uid);
     if (game == null) {
@@ -394,7 +392,6 @@ public class GameService implements InitializingBean {
    * Returns the preferences the player is currently in. Returns {@code null} if not in a preferences.
    */
   @Nullable
-
   public Game getCurrentGame() {
     synchronized (currentGame) {
       return currentGame.get();
