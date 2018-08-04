@@ -1,6 +1,7 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.discord.DiscordSpectateEvent;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
@@ -35,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -388,5 +390,13 @@ public class ReplayService {
     String gameType = guessModByFileName(fileName);
 
     gameService.runWithReplay(path, null, gameType, version, emptyMap(), emptySet(), mapName);
+  }
+
+  @EventListener
+  public void onDiscordGameJoinEvent(DiscordSpectateEvent discordSpectateEvent) {
+    Integer replayId = discordSpectateEvent.getReplayId();
+    Integer playerId = discordSpectateEvent.getPlayerId();
+
+    runLiveReplay(replayId, playerId);
   }
 }
