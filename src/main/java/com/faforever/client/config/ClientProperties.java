@@ -22,6 +22,7 @@ public class ClientProperties {
   private UnitDatabase unitDatabase = new UnitDatabase();
   private Website website = new Website();
   private String translationProjectUrl;
+  private BugsnagConfig bugsnagConfig = new BugsnagConfig();
   private String clientConfigUrl;
   private boolean useRemotePreferences;
   private Duration clientConfigConnectTimeout = Duration.ofSeconds(30);
@@ -33,6 +34,12 @@ public class ClientProperties {
      * URL to fetch the RSS news feed from.
      */
     private String feedUrl;
+  }
+
+  @Data
+  public static class BugsnagConfig {
+    private String token;
+    private int logLinesSent;
   }
 
   @Data

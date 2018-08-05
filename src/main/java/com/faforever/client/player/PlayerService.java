@@ -2,6 +2,7 @@ package com.faforever.client.player;
 
 import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.chat.ChatUserCreatedEvent;
+import com.bugsnag.Bugsnag;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.chat.event.ChatMessageEvent;
@@ -56,12 +57,14 @@ public class PlayerService implements InitializingBean {
   private final List<Integer> foeList;
   private final List<Integer> friendList;
   private final ObjectProperty<Player> currentPlayer;
+  private final Bugsnag bugsnag;
 
   private final FafService fafService;
   private final UserService userService;
   private final EventBus eventBus;
 
-  public PlayerService(FafService fafService, UserService userService, EventBus eventBus) {
+  public PlayerService(Bugsnag bugsnag, FafService fafService, UserService userService, EventBus eventBus) {
+    this.bugsnag = bugsnag;
     this.fafService = fafService;
     this.userService = userService;
     this.eventBus = eventBus;
@@ -112,6 +115,11 @@ public class PlayerService implements InitializingBean {
     player.setId(event.getUserId());
     currentPlayer.set(player);
     player.setIdleSince(Instant.now());
+
+    bugsnag.addCallback(report -> {
+      report.setUserName(event.getUsername());
+      report.setUserId(String.valueOf(event.getUserId()));
+    });
   }
 
   @Subscribe

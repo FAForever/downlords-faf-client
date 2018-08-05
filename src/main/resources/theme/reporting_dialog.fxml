@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXCheckBox?>
+<?import com.jfoenix.controls.JFXComboBox?>
+<?import com.jfoenix.controls.JFXTextField?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="root" prefHeight="400.0" prefWidth="600.0" spacing="10.0"
+      xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.reporting.ReportingDialogController">
+    <HBox spacing="10.0">
+        <Label text="%report.logLinesToBeSent"/>
+        <JFXTextField validators="" fx:id="logLinesTextField"/>
+    </HBox>
+    <HBox spacing="10.0">
+        <Label text="%report.severity"/>
+        <JFXComboBox fx:id="severityChoiceBox"/>
+    </HBox>
+    <JFXCheckBox fx:id="contactMeCheckBox" text="%report.contact" selected="true"/>
+    <Label styleClass="h2" text="%report.feedback"/>
+    <TextArea fx:id="feedbackText" VBox.vgrow="ALWAYS"/>
+    <HBox nodeOrientation="RIGHT_TO_LEFT" spacing="10">
+        <JFXButton onAction="#submit" text="%report.submit" defaultButton="true"/>
+        <JFXButton onAction="#cancel" text="%report.cancel" cancelButton="true"/>
+    </HBox>
+    <padding>
+        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+    </padding>
+</VBox>

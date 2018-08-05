@@ -3,6 +3,7 @@ package com.faforever.client.player;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameAddedEvent;
 import com.faforever.client.game.GameRemovedEvent;
+import com.bugsnag.Bugsnag;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.PlayersMessage;
 import com.faforever.client.remote.domain.SocialMessage;
@@ -50,6 +51,8 @@ public class PlayerServiceTest {
   private UserService userService;
   @Mock
   private EventBus eventBus;
+  @Mock
+  private Bugsnag bugsnag;
 
   private PlayerService instance;
 
@@ -57,7 +60,7 @@ public class PlayerServiceTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new PlayerService(fafService, userService, eventBus);
+    instance = new PlayerService(bugsnag, fafService, userService, eventBus);
 
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
 
@@ -66,19 +69,19 @@ public class PlayerServiceTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testPostConstruct() throws Exception {
+  public void testPostConstruct() {
     verify(fafService).addOnMessageListener(eq(PlayersMessage.class), any(Consumer.class));
     verify(fafService).addOnMessageListener(eq(SocialMessage.class), any(Consumer.class));
   }
 
   @Test
-  public void testGetPlayerForUsernameUsernameDoesNotExist() throws Exception {
+  public void testGetPlayerForUsernameUsernameDoesNotExist() {
     Optional<Player> player = instance.getPlayerForUsername("junit");
     assertFalse(player.isPresent());
   }
 
   @Test
-  public void testGetPlayerForUsernameUsernameExists() throws Exception {
+  public void testGetPlayerForUsernameUsernameExists() {
     instance.createAndGetPlayerForUsername("junit");
 
     Optional<Player> player = instance.getPlayerForUsername("junit");
@@ -88,7 +91,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testRegisterAndGetPlayerForUsernameDoesNotExist() throws Exception {
+  public void testRegisterAndGetPlayerForUsernameDoesNotExist() {
     Player player = instance.createAndGetPlayerForUsername("junit");
 
     assertNotNull(player);
@@ -96,18 +99,18 @@ public class PlayerServiceTest {
   }
 
   @Test(expected = IllegalArgumentException.class)
-  public void testRegisterAndGetPlayerForUsernameNull() throws Exception {
+  public void testRegisterAndGetPlayerForUsernameNull() {
     instance.createAndGetPlayerForUsername(null);
   }
 
   @Test
-  public void testGetPlayerNamesEmpty() throws Exception {
+  public void testGetPlayerNamesEmpty() {
     Set<String> playerNames = instance.getPlayerNames();
     assertThat(playerNames, empty());
   }
 
   @Test
-  public void testGetPlayerNamesSomeInstances() throws Exception {
+  public void testGetPlayerNamesSomeInstances() {
     instance.createAndGetPlayerForUsername("player1");
     instance.createAndGetPlayerForUsername("player2");
 
@@ -118,7 +121,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testAddFriend() throws Exception {
+  public void testAddFriend() {
     Player lisa = instance.createAndGetPlayerForUsername("lisa");
     Player ashley = instance.createAndGetPlayerForUsername("ashley");
 
@@ -133,7 +136,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testAddFriendIsFoe() throws Exception {
+  public void testAddFriendIsFoe() {
     Player player = instance.createAndGetPlayerForUsername("player");
     player.setSocialStatus(FOE);
 
@@ -143,7 +146,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testRemoveFriend() throws Exception {
+  public void testRemoveFriend() {
     Player player1 = instance.createAndGetPlayerForUsername("player1");
     Player player2 = instance.createAndGetPlayerForUsername("player2");
 
@@ -161,7 +164,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testAddFoe() throws Exception {
+  public void testAddFoe() {
     Player player1 = instance.createAndGetPlayerForUsername("player1");
     Player player2 = instance.createAndGetPlayerForUsername("player2");
 
@@ -175,7 +178,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testAddFoeIsFriend() throws Exception {
+  public void testAddFoeIsFriend() {
     Player player = instance.createAndGetPlayerForUsername("player");
     player.setSocialStatus(FRIEND);
 
@@ -185,7 +188,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testRemoveFoe() throws Exception {
+  public void testRemoveFoe() {
     Player player = instance.createAndGetPlayerForUsername("player");
 
     instance.addFriend(player);
@@ -195,7 +198,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testGetCurrentPlayer() throws Exception {
+  public void testGetCurrentPlayer() {
     LoginSuccessEvent event = new LoginSuccessEvent("junit", "", 1);
     instance.onLoginSuccess(event);
 
@@ -212,7 +215,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testEventBusRegistered() throws Exception {
+  public void testEventBusRegistered() {
     verify(eventBus).register(instance);
   }
 

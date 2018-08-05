@@ -29,6 +29,7 @@
                                 <MenuItem onAction="#onSettingsSelected" text="%menu.settings"/>
                                 <SeparatorMenuItem mnemonicParsing="false"/>
                                 <MenuItem disable="true" text="%menu.feedback"/>
+                                <MenuItem onAction="#onSupport" text="%menu.support"/>
                                 <SeparatorMenuItem mnemonicParsing="false"/>
                                 <MenuItem onAction="#onRevealLogFolder" text="%menu.revealLogFolder"/>
                                 <MenuItem onAction="#onRevealMapFolder" text="%menu.revealMapFolder"/>

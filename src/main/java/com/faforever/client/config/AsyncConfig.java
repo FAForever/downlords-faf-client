@@ -1,7 +1,8 @@
 package com.faforever.client.config;
 
+import com.faforever.client.reporting.ReportingService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
-import org.springframework.aop.interceptor.SimpleAsyncUncaughtExceptionHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
@@ -13,14 +14,24 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.beans.factory.DisposableBean;
 
+import javax.annotation.PreDestroy;
+import javax.inject.Inject;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@Slf4j
 @EnableAsync
 @EnableScheduling
 @Configuration
 public class AsyncConfig implements AsyncConfigurer, SchedulingConfigurer, DisposableBean {
+
+  private final ReportingService reportingService;
+
+  @Inject
+  public AsyncConfig(ReportingService reportingService) {
+    this.reportingService = reportingService;
+  }
 
   @Override
   public Executor getAsyncExecutor() {
@@ -29,7 +40,10 @@ public class AsyncConfig implements AsyncConfigurer, SchedulingConfigurer, Dispo
 
   @Override
   public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
-    return new SimpleAsyncUncaughtExceptionHandler();
+    return (ex, method, params) -> {
+      reportingService.silentlyReport(ex, false);
+      log.error("Uncaught exception in async", ex);
+    };
   }
 
   @Override

@@ -22,6 +22,7 @@ import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.remote.domain.RatingRange;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
@@ -110,6 +111,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private GamePathHandler gamePathHandler;
   @Mock
   private ChatController chatController;
+  @Mock
+  private ReportingService reportingService;
   private MainController instance;
   private BooleanProperty gameRunningProperty;
 
@@ -128,7 +131,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
         .setInitialStandardDeviation(500);
 
     instance = new MainController(preferencesService, i18n, notificationService, playerService, gameService, clientUpdateService,
-        uiService, eventBus, clientProperties, gamePathHandler, platformService);
+        uiService, eventBus, clientProperties, gamePathHandler, platformService, reportingService);
 
     gameRunningProperty = new SimpleBooleanProperty();
     ObjectProperty<Path> backgroundImagePathProperty = new SimpleObjectProperty<>();
@@ -164,7 +167,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testHideNotifications() throws Exception {
+  public void testHideNotifications() {
     Platform.runLater(() -> instance.new ToastDisplayer(transientNotificationsController).invalidated(mock(SimpleBooleanProperty.class)));
     assertFalse(instance.transientNotificationsPopup.isShowing());
   }
@@ -216,7 +219,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   @Ignore("Needs UI for testing")
-  public void testOnChoseGameDirectory() throws Exception {
+  public void testOnChoseGameDirectory() {
   }
 
   @Test
@@ -233,7 +236,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnChat() throws Exception {
+  public void testOnChat() {
     instance.chatButton.pseudoClassStateChanged(HIGHLIGHTED, true);
     instance.onChat(new ActionEvent(instance.chatButton, Event.NULL_SOURCE_TARGET));
     assertThat(instance.chatButton.getPseudoClassStates().contains(HIGHLIGHTED), is(false));
@@ -335,7 +338,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnRevealMapFolder() throws Exception {
+  public void testOnRevealMapFolder() {
     Path expectedPath = Paths.get("C:\\test\\path_map");
     when(forgedAlliancePrefs.getCustomMapsDirectory()).thenReturn(expectedPath);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
@@ -344,7 +347,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnRevealModFolder() throws Exception {
+  public void testOnRevealModFolder() {
     Path expectedPath = Paths.get("C:\\test\\path_mod");
     when(forgedAlliancePrefs.getModsDirectory()).thenReturn(expectedPath);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
@@ -353,7 +356,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnRevealLogFolder() throws Exception {
+  public void testOnRevealLogFolder() {
     Path expectedPath = Paths.get("C:\\test\\path_log");
     when(preferencesService.getFafLogDirectory()).thenReturn(expectedPath);
     instance.onRevealLogFolder();

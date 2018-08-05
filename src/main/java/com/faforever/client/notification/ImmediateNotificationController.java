@@ -86,11 +86,6 @@ public class ImmediateNotificationController implements Controller<Node> {
         break;
     }
 
-    // Until implemented
-    if (action instanceof ReportAction) {
-      button.setDisable(true);
-    }
-
     return button;
   }
 

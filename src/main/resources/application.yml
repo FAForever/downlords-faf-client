@@ -29,6 +29,10 @@ faf-client:
   client-config-connect-timeout: 10s
   show-ice-adapter-debug-Window: ${SHOW_ICE_ADAPTER_DEBUG_WINDOW:false}
 
+  bugsnag-config:
+    token: 1b62174670c1235a71edadf62fa5a927
+    log-lines-sent: 300
+
 spring:
   profiles:
     active: ${CLIENT_PROFILE:prod}

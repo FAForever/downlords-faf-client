@@ -30,6 +30,8 @@ import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.remote.domain.RatingRange;
+import com.faforever.client.reporting.ReportingDialogController;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
@@ -113,6 +115,7 @@ public class MainController implements Controller<Node> {
   private final int ratingBeta;
   private final GamePathHandler gamePathHandler;
   private final PlatformService platformService;
+  private final ReportingService reportingService;
   public Pane mainHeaderPane;
   public Labeled notificationsBadge;
   public Pane contentPane;
@@ -137,7 +140,7 @@ public class MainController implements Controller<Node> {
   public MainController(PreferencesService preferencesService, I18n i18n, NotificationService notificationService,
                         PlayerService playerService, GameService gameService, ClientUpdateService clientUpdateService,
                         UiService uiService, EventBus eventBus, ClientProperties clientProperties, GamePathHandler gamePathHandler,
-                        PlatformService platformService) {
+                        PlatformService platformService, ReportingService reportingService) {
     this.preferencesService = preferencesService;
     this.i18n = i18n;
     this.notificationService = notificationService;
@@ -151,6 +154,7 @@ public class MainController implements Controller<Node> {
     this.ratingBeta = clientProperties.getTrueSkill().getBeta();
     this.gamePathHandler = gamePathHandler;
     this.platformService = platformService;
+    this.reportingService = reportingService;
     this.viewCache = CacheBuilder.newBuilder().build();
   }
 
@@ -184,6 +188,7 @@ public class MainController implements Controller<Node> {
     notificationService.addImmediateNotificationListener(notification -> runLater(() -> displayImmediateNotification(notification)));
     notificationService.addTransientNotificationListener(notification -> runLater(() -> transientNotificationsController.addNotification(notification)));
     gameService.addOnRankedMatchNotificationListener(this::onMatchmakerMessage);
+    reportingService.setReportDialogListener(this::displayReportingWindow);
     // Always load chat immediately so messages or joined channels don't need to be cached until we display them.
     getView(NavigationItem.CHAT);
   }
@@ -563,6 +568,22 @@ public class MainController implements Controller<Node> {
     dialog.setContent(controller.getJfxDialogLayout());
     dialog.setAnimation(JFXAlertAnimation.TOP_ANIMATION);
     dialog.show();
+  }
+
+  private void displayReportingWindow(int defaultLogLines, Throwable exception) {
+    JFXAlert<?> dialog = new JFXAlert<>((Stage) windowController.getWindowRoot().getScene().getWindow());
+
+    ReportingDialogController controller = ((ReportingDialogController) uiService.loadFxml("theme/reporting_dialog.fxml"))
+        .setThrowable(exception)
+        .setDefaultLogLines(defaultLogLines)
+        .setCloseListener(dialog::close);
+    dialog.setContent(controller.getRoot());
+    dialog.setAnimation(JFXAlertAnimation.TOP_ANIMATION);
+    dialog.show();
+  }
+
+  public void onSupport() {
+    reportingService.supportRequest();
   }
 
   public class ToastDisplayer implements InvalidationListener {
