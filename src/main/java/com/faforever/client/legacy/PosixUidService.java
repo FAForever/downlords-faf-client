@@ -22,7 +22,9 @@ public class PosixUidService implements UidService {
   public String generate(String sessionId, Path logFile) throws IOException {
     String uidDir = System.getProperty("nativeDir", "lib");
     Path uidPath = Paths.get(uidDir).resolve("faf-uid");
-    Files.setPosixFilePermissions(uidPath, Sets.immutableEnumSet(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_EXECUTE));
+    if (Files.getOwner(uidPath).getName().equals(System.getProperty("user.name"))) {
+      Files.setPosixFilePermissions(uidPath, Sets.immutableEnumSet(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_EXECUTE));
+    }
     return OsUtils.execAndGetOutput(String.format("%s %s", uidPath.toAbsolutePath(), sessionId));
   }
 }
