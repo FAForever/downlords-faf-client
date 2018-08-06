@@ -15,7 +15,7 @@
 <?import java.lang.String?>
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="modDetailRoot" maxHeight="1.7976931348623157E308"
             maxWidth="1.7976931348623157E308" onMouseClicked="#onDimmerClicked" styleClass="dimmer"
-            xmlns="http://javafx.com/javafx/8.0.111" fx:controller="com.faforever.client.mod.ModDetailController">
+            xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.mod.ModDetailController">
     <children>
         <AnchorPane onMouseClicked="#onContentPaneClicked" styleClass="modal-popup" AnchorPane.bottomAnchor="50.0"
                     AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="50.0">
@@ -59,9 +59,9 @@
                                                    GridPane.columnIndex="2" GridPane.halignment="RIGHT"
                                                    GridPane.rowIndex="1"/>
                                         <JFXButton fx:id="installButton" mnemonicParsing="false"
-                                                onAction="#onInstallButtonClicked" styleClass="highlighted-button"
-                                                text="%modVault.install" GridPane.columnIndex="2"
-                                                GridPane.halignment="RIGHT" GridPane.rowIndex="1"/>
+                                                   onAction="#onInstallButtonClicked" styleClass="highlighted-button"
+                                                   text="%modVault.install" GridPane.columnIndex="2"
+                                                   GridPane.halignment="RIGHT" GridPane.rowIndex="1"/>
                                     </children>
                                 </GridPane>
                                 <Label fx:id="modDescriptionLabel" maxHeight="1.7976931348623157E308"
@@ -79,30 +79,22 @@
                                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
                                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
                                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
-                                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0"/>
                                     </columnConstraints>
                                     <rowConstraints>
                                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
                                         <RowConstraints minHeight="10.0" prefHeight="40.0" vgrow="SOMETIMES"/>
-                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
                                     </rowConstraints>
                                     <children>
                                         <Label styleClass="h3" text="%mod.detail.updated"/>
                                         <Label styleClass="h3" text="%mod.detail.size" GridPane.columnIndex="1"/>
-                                        <Label layoutX="114.0" layoutY="15.0" styleClass="h3"
-                                               text="%mod.detail.installations" GridPane.columnIndex="2"/>
                                         <Label layoutX="217.0" layoutY="15.0" styleClass="h3" text="%mod.detail.version"
-                                               GridPane.rowIndex="2"/>
+                                               GridPane.columnIndex="2"/>
                                         <Label fx:id="updatedLabel" text="&lt;Updated&gt;" GridPane.rowIndex="1"
                                                GridPane.valignment="TOP"/>
                                         <Label fx:id="sizeLabel" text="&lt;Size&gt;" GridPane.columnIndex="1"
                                                GridPane.rowIndex="1" GridPane.valignment="TOP"/>
-                                        <Label fx:id="installationsLabel" text="&lt;Installations&gt;"
-                                               GridPane.columnIndex="2" GridPane.rowIndex="1"
-                                               GridPane.valignment="TOP"/>
-                                        <Label fx:id="versionLabel" text="&lt;Version&gt;" GridPane.rowIndex="3"
-                                               GridPane.valignment="TOP"/>
+                                        <Label fx:id="versionLabel" text="&lt;Version&gt;" GridPane.columnIndex="2"
+                                               GridPane.rowIndex="1" GridPane.valignment="TOP"/>
                                     </children>
                                 </GridPane>
                                 <Label fx:id="dependenciesTitle" styleClass="h2" text="%mod.detail.dependencies"/>
