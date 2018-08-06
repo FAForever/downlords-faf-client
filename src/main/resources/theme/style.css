@@ -969,6 +969,14 @@
   -fx-cursor: hand;
 }
 
+.review-star-background {
+  -fx-fill: -fx-mid-text-color;
+}
+
+.review-star-fill {
+  -fx-fill: -fx-light-text-color;
+}
+
 .large-stars .review-stars {
   -fx-spacing: 10;
 }
