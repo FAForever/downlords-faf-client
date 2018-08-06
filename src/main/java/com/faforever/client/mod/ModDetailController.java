@@ -52,7 +52,6 @@ public class ModDetailController implements Controller<Node> {
 
   public Label updatedLabel;
   public Label sizeLabel;
-  public Label installationsLabel;
   public Label versionLabel;
   public Label dependenciesTitle;
   public VBox dependenciesContainer;
@@ -153,7 +152,6 @@ public class ModDetailController implements Controller<Node> {
 
     updatedLabel.setText(timeService.asDate(modVersion.getUpdateTime()));
     sizeLabel.setText(Bytes.formatSize(getModSize(), i18n.getUserSpecificLocale()));
-    installationsLabel.setText(String.format(i18n.getUserSpecificLocale(), "%d", modVersion.getDownloads()));
     versionLabel.setText(modVersion.getVersion().toString());
 
     Player player = playerService.getCurrentPlayer()

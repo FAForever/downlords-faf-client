@@ -50,7 +50,6 @@ public class ModVersion {
   private final IntegerProperty played;
   private final ObjectProperty<LocalDateTime> createTime;
   private final ObjectProperty<LocalDateTime> updateTime;
-  private final IntegerProperty downloads;
   private final ObjectProperty<URL> downloadUrl;
   private final ListProperty<MountInfo> mountPoints;
   private final ListProperty<String> hookDirectories;
@@ -78,7 +77,6 @@ public class ModVersion {
     createTime = new SimpleObjectProperty<>();
     updateTime = new SimpleObjectProperty<>();
     reviewsSummary = new SimpleObjectProperty<>();
-    downloads = new SimpleIntegerProperty();
     thumbnailUrl = new SimpleObjectProperty<>();
     comments = new SimpleListProperty<>(FXCollections.observableArrayList());
     downloadUrl = new SimpleObjectProperty<>();
@@ -305,18 +303,6 @@ public class ModVersion {
 
   public void setCreateTime(LocalDateTime createTime) {
     this.createTime.set(createTime);
-  }
-
-  public int getDownloads() {
-    return downloads.get();
-  }
-
-  public void setDownloads(int downloads) {
-    this.downloads.set(downloads);
-  }
-
-  public IntegerProperty downloadsProperty() {
-    return downloads;
   }
 
   public URL getThumbnailUrl() {
