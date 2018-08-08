@@ -18,3 +18,6 @@ Please take a look at the [contribution guidelines](https://github.com/FAForever
 1. Make sure you have `Enable annotation processing` enabled in the settings
 1. Run the Gradle task `:webview-patch build` to build the webview-patch JAR which is referenced by the run configurations
 1. Run the Gradle task `:downlords-faf-client downloadNativeDependencies` to download the ICE adapter
+
+
+<img src="https://slack-files2.s3-us-west-2.amazonaws.com/avatars/2017-12-13/286651735269_a5ab3167acef52b0111e_512.png" width="48">Thanks to [bugsnag](https://www.bugsnag.com) for their [open source license](https://www.bugsnag.com/open-source/). We use bugsnag for our error reporting.
