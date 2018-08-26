@@ -24,7 +24,6 @@ import com.nbarraille.jjsonrpc.JJsonPeer;
 import com.nbarraille.jjsonrpc.TcpClient;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.bridj.Platform;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -155,6 +154,8 @@ public class IceAdapterImpl implements IceAdapter {
 
       Path workDirectory = Paths.get(nativeDir).toAbsolutePath();
       String[] cmd = new String[]{
+          Paths.get(System.getProperty("java.home")).resolve("bin").resolve("java.exe").toAbsolutePath().toString(),
+          "-jar",
           getBinaryName(workDirectory),
           "--id", String.valueOf(currentPlayer.getId()),
           "--login", currentPlayer.getUsername(),
@@ -207,7 +208,8 @@ public class IceAdapterImpl implements IceAdapter {
   }
 
   private String getBinaryName(Path workDirectory) {
-    return Platform.isWindows() ? workDirectory.resolve("faf-ice-adapter.exe").toString() : "./faf-ice-adapter";
+//    return Platform.isWindows() ? workDirectory.resolve("faf-ice-adapter.exe").toString() : "./faf-ice-adapter";
+    return workDirectory.resolve("faf-ice-adapter.jar").toString();
   }
 
   private void setIceServers() {
