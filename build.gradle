@@ -142,7 +142,6 @@ distributions {
         [
             configurations.runtime,
             jar,
-            unpackIceAdapter.outputs.files,
             downloadIceAdapterLinux.outputs.files,
             downloadUnixUid.outputs.files,
             downloadWindowsUid.outputs.files
@@ -199,21 +198,9 @@ task downloadIceAdapter(type: Download) {
 
 task downloadIceAdapterLinux(type: Download) {
   group "native dependencies"
-  src "https://github.com/FAForever/ice-adapter/releases/download/v${faf_ice_adapter_version}/faf-ice-adapter-linux64.tar.gz"
-  dest file("${buildDir}/tmp/faf-ice-adapter-linux.tar.gz")
+  src "https://geosearchef.de/faf-ice-adapter.jar"
+  dest file("${buildDir}/resources/native/faf-ice-adapter.jar")
   onlyIfNewer true
-}
-
-task unpackIceAdapter(type: Copy, dependsOn: downloadIceAdapter) {
-  group "native dependencies"
-  from zipTree(downloadIceAdapter.outputs.files.singleFile)
-  into file("${buildDir}/resources/native")
-}
-
-task unpackIceAdapterLinux(type: Copy, dependsOn: downloadIceAdapterLinux) {
-  group "native dependencies"
-  from tarTree(resources.gzip(downloadIceAdapterLinux.outputs.files.singleFile))
-  into file("${buildDir}/resources/native")
 }
 
 task downloadUnixUid(type: Download) {
@@ -230,7 +217,7 @@ task downloadWindowsUid(type: Download) {
   onlyIfNewer true
 }
 
-task downloadNativeDependencies(dependsOn: [unpackIceAdapter, downloadUnixUid, downloadWindowsUid, unpackIceAdapterLinux]) {
+task downloadNativeDependencies(dependsOn: [downloadUnixUid, downloadWindowsUid, downloadIceAdapterLinux]) {
   group "native dependencies"
 }
 
