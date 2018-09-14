@@ -169,7 +169,8 @@ public class IceAdapterImpl implements IceAdapter {
           "--id", String.valueOf(currentPlayer.getId()),
           "--login", currentPlayer.getUsername(),
           "--rpc-port", String.valueOf(adapterPort),
-          "--gpgnet-port", String.valueOf(gpgPort)
+          "--gpgnet-port", String.valueOf(gpgPort),
+          "--log-directory", "iceAdapterLogs"
       };
 
       try {
