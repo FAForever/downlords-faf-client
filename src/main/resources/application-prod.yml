@@ -1,26 +1,27 @@
 faf-client:
   server:
-    host: lobby.faforever.com
+    host: faf.micheljung.ch
+    port: 18001
 
   irc:
-    host: irc.faforever.com
+    host: irc.test.faforever.com
 
   vault:
-    base-url: http://content.faforever.com
+    base-url: http://content.test.faforever.com
 
   news:
     feed-url: http://direct.faforever.com/news/feed
 
   replay:
-    remote-host: lobby.faforever.com
+    remote-host: test.faforever.com
 
   website:
-    base-url: https://www.faforever.com
+    base-url: https://www.test.faforever.com
 
   api:
-    base-url: https://api.faforever.com
+    base-url: http://api.faf.micheljung.ch:10080
     client-id: 3bc8282c-7730-11e5-8bcf-feff819cdc9f
     client-secret: 6035bd78-7730-11e5-8bcf-feff819cdc9f
 
   forged-alliance:
-    exe-url: http://content.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe
+    exe-url: http://content.test.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe
