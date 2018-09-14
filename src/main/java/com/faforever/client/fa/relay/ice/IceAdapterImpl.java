@@ -18,13 +18,13 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.IceServerMessage;
 import com.faforever.client.remote.domain.IceServersServerMessage;
+import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.nbarraille.jjsonrpc.JJsonPeer;
 import com.nbarraille.jjsonrpc.TcpClient;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -40,6 +40,7 @@ import java.lang.reflect.Proxy;
 import java.net.ConnectException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -92,26 +93,34 @@ public class IceAdapterImpl implements IceAdapter {
   }
 
   @SneakyThrows
-  private List<Map<String, String>> toIceServers(List<IceServersServerMessage.IceServer> iceServers) {
-    return iceServers.stream()
-        .map(this::toIceServer)
-        .collect(Collectors.toList());
+  private List<Map<String, Object>> toIceServers(List<IceServersServerMessage.IceServer> iceServers) {
+//    return iceServers.stream()
+//        .map(this::toIceServer)
+//        .collect(Collectors.toList());
+    Map<String, Object> map = new HashMap<>();
+    map.put("urls", iceServers.stream().map(IceServer::getUrl).collect(Collectors.toList()));
+
+    map.put("credential", iceServers.get(2).getCredential());//TODO: Make sure this is the turn iceServer
+    map.put("credentialType", "token");//FIXME
+    map.put("username", iceServers.get(2).getUsername());
+
+    return (Arrays.asList(map));
   }
 
-  @NotNull
-  private Map<String, String> toIceServer(IceServersServerMessage.IceServer iceServer) {
-    Map<String, String> map = new HashMap<>();
-    map.put("url", iceServer.getUrl());
-
-    if (iceServer.getCredential() != null) {
-      map.put("credential", iceServer.getCredential());
-      map.put("credentialType", iceServer.getCredentialType());
-    }
-    if (iceServer.getUsername() != null) {
-      map.put("username", iceServer.getUsername());
-    }
-    return map;
-  }
+//  @NotNull
+//  private Map<String, String> toIceServer(IceServersServerMessage.IceServer iceServer) {
+//    Map<String, String> map = new HashMap<>();
+//    map.put("url", iceServer.getUrl());
+//
+//    if (iceServer.getCredential() != null) {
+//      map.put("credential", iceServer.getCredential());
+//      map.put("credentialType", iceServer.getCredentialType());
+//    }
+//    if (iceServer.getUsername() != null) {
+//      map.put("username", iceServer.getUsername());
+//    }
+//    return map;
+//  }
 
   @Subscribe
   public void onIceAdapterStateChanged(IceAdapterStateChanged event) {
@@ -244,7 +253,7 @@ public class IceAdapterImpl implements IceAdapter {
             log.warn("Ignoring call to ICE adapter as we are not connected: {}({})", method.getName(), argList);
             return null;
           }
-          log.debug("Calling {}({})", method.getName(), argList);
+          log.warn("Calling {}({})", method.getName(), argList);
           if (method.getReturnType() == void.class) {
             peer.sendAsyncRequest(method.getName(), argList, null, true);
             return null;
