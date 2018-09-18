@@ -74,6 +74,9 @@ public class GameDetailController implements Controller<Pane> {
     joinButton.managedProperty().bind(joinButton.visibleProperty());
     watchButton.managedProperty().bind(watchButton.visibleProperty());
     setGame(null);
+
+    gameStatusInvalidationListener = observable -> onGameStatusChanged();
+    teamsInvalidationListener = observable -> createTeams(game.getTeams(), game);
   }
 
   private void onGameStatusChanged() {
@@ -103,9 +106,6 @@ public class GameDetailController implements Controller<Pane> {
       return;
     }
 
-    gameStatusInvalidationListener = new WeakInvalidationListener(observable -> onGameStatusChanged());
-    teamsInvalidationListener = new WeakInvalidationListener(observable -> createTeams(newGame.getTeams(), newGame));
-
     gameTitleLabel.textProperty().bind(newGame.titleProperty());
     hostLabel.textProperty().bind(newGame.hostProperty());
     mapLabel.textProperty().bind(newGame.mapFolderNameProperty());
@@ -134,9 +134,9 @@ public class GameDetailController implements Controller<Pane> {
     teamsInvalidationListener.invalidated(newGame.getTeams());
     weakTeamListener = new WeakInvalidationListener(teamsInvalidationListener);
     JavaFxUtil.addListener(newGame.getTeams(),weakTeamListener);
+    gameStatusInvalidationListener.invalidated(newGame.statusProperty());
     weakStatusListener = new WeakInvalidationListener(gameStatusInvalidationListener);
     JavaFxUtil.addListener(newGame.statusProperty(),weakStatusListener);
-    gameStatusInvalidationListener.invalidated(newGame.statusProperty());
   }
 
   private void createTeams(ObservableMap<? extends String, ? extends List<String>> playersByTeamNumber, Game game) {
