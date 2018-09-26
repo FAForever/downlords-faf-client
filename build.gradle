@@ -16,14 +16,14 @@ buildscript {
 
   dependencies {
     classpath("org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.4.0")
-    classpath("com.install4j:gradle-plugin:6.0")
+    classpath("gradle.plugin.install4j.install4j:gradle_plugin:7.0.7")
     classpath("org.springframework.build.gradle:propdeps-plugin:${propdepsVersion}")
     classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
   }
 }
 
 plugins {
-  id "com.install4j.gradle" version "6.1.1"
+  id "com.install4j.gradle" version "7.0.7"
   id "co.riiid.gradle" version "0.4.2"
   id "de.undercouch.download" version "3.2.0"
   id "io.franzbecker.gradle-lombok" version "1.14"
@@ -173,6 +173,9 @@ distributions {
 install4j {
   if (project.hasProperty('install4jHomeDir')) {
     installDir = file(install4jHomeDir)
+  }
+  if (project.hasProperty('install4jLicense')) {
+    license = install4jLicense
   }
 }
 

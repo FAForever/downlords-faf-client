@@ -1,21 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module external.linked.project.id="downlords-faf-client" external.linked.project.path="$MODULE_DIR$/../.." external.root.project.path="$MODULE_DIR$/../.." external.system.id="GRADLE" external.system.module.group="" external.system.module.version="0.9.0-beta-rc.3" type="JAVA_MODULE" version="4">
-  <component name="FacetManager">
-    <facet type="Spring" name="Spring">
-      <configuration>
-        <fileset id="fileset" name="Spring Application Context" removed="false">
-          <file>file://$MODULE_DIR$/../../src/main/java/com/faforever/client/config/ServiceConfig.java</file>
-          <file>file://$MODULE_DIR$/../../src/main/java/com/faforever/client/config/CacheConfig.java</file>
-          <file>file://$MODULE_DIR$/../../src/main/java/com/faforever/client/config/TaskConfig.java</file>
-          <file>file://$MODULE_DIR$/../../src/main/java/com/faforever/client/config/LuceneConfig.java</file>
-          <file>file://$MODULE_DIR$/../../src/main/java/com/faforever/client/config/UiConfig.java</file>
-          <file>file://$MODULE_DIR$/../../src/main/java/com/faforever/client/config/BaseConfig.java</file>
-          <file>file://$MODULE_DIR$/../../src/main/java/com/faforever/client/Main.java</file>
-        </fileset>
-      </configuration>
-    </facet>
-  </component>
   <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
     <content url="file://$MODULE_DIR$/../..">
       <excludeFolder url="file://$MODULE_DIR$/../../.gradle" />
       <excludeFolder url="file://$MODULE_DIR$/../../build" />
@@ -23,12 +9,5 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-  </component>
-  <component name="sonarModuleSettings">
-    <option name="alternativeWorkingDirPath" value="" />
-    <option name="localAnalysisScripName" value="&lt;PROJECT&gt;" />
-    <option name="serverName" value="&lt;PROJECT&gt;" />
-    <option name="useAlternativeWorkingDir" value="false" />
-    <option name="workingDirSelection" value="&lt;MODULE&gt;" />
   </component>
 </module>

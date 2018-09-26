@@ -8,14 +8,26 @@ sudo: false
 install: true
 
 before_install:
-  - "export DISPLAY=:99.0"
-  - "sh -e /etc/init.d/xvfb start"
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+  # Download install4j and the required JRE, only if it doesn't already exist (from cache)
+  - if [ ! -d "$HOME/install4j/install4j7.0.7" -a -n "${TRAVIS_TAG}" ]; then
+      mkdir -p "$HOME/install4j" &&
+      curl https://download-keycdn.ej-technologies.com/install4j/install4j_unix_7_0_7.tar.gz -o "$HOME/install4j/install4j.tar.gz" &&
+      mkdir -p "$HOME/install4j/install4j7.0.7/jres/" &&
+      curl http://content.faforever.com/jre/windows-amd64-10.0.2.tar.gz -o "$HOME/install4j/install4j7.0.7/jres/windows-amd64-10.0.2.tar.gz" &&
+      tar xzf "$HOME/install4j/install4j.tar.gz" -C "$HOME/install4j";
+    fi
+  - VERSION=$([ -z "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG#*v}" || echo "${TRAVIS_BRANCH##*/}")
 
 script:
 - ./gradlew --stacktrace check
 
 after_success:
-- ./gradlew jacocoTestReport coveralls
+  - ./gradlew jacocoTestReport coveralls
+  - if [ -n "${TRAVIS_TAG}" ]; then
+      ./gradlew --stacktrace -Pversion=${VERSION} -Pinstall4jHomeDir="$HOME/install4j/install4j7.0.7" -Pinstall4jLicense=${install4jLicense} buildInstall4jMediaFiles;
+    fi
 
 env:
   global:
@@ -37,6 +49,7 @@ before_cache:
 
 cache:
   directories:
+    - $HOME/install4j/
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
     - /home/travis/build/FAForever/downlords-faf-client/build/cache/
