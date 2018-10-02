@@ -375,7 +375,7 @@ public class ChannelTabController extends AbstractChatTabController {
 
       ChatChannelUser user = listItem.getUser();
 
-      return user != null && user.getUsername().toLowerCase(US).contains(searchString.toLowerCase(US));
+      return listItem.getCategory() != null || user.getUsername().toLowerCase(US).contains(searchString.toLowerCase(US));
     });
   }
 
@@ -429,7 +429,9 @@ public class ChannelTabController extends AbstractChatTabController {
     Arrays.stream(ChatUserCategory.values())
         .filter(chatUserCategory -> !chatUserCategories.contains(chatUserCategory))
         .map(categoriesToUserListItems::get)
-        .forEach(chatUserListItems::removeAll);
+        .flatMap(Collection::stream)
+        .filter(categoryOrChatUserListItem -> categoryOrChatUserListItem.getUser() != null && categoryOrChatUserListItem.getUser().equals(chatUser))
+        .forEach(chatUserListItems::remove);
 
     CategoryOrChatUserListItem listItem = new CategoryOrChatUserListItem(null, chatUser);
     chatUserCategories.stream()
@@ -439,6 +441,7 @@ public class ChannelTabController extends AbstractChatTabController {
 
   private void addToTreeItemSorted(CategoryOrChatUserListItem parent, CategoryOrChatUserListItem child) {
     Platform.runLater(() -> {
+      categoriesToUserListItems.get(parent.getCategory()).add(child);
       for (int index = chatUserListItems.indexOf(parent) + 1; index < chatUserListItems.size(); index++) {
         CategoryOrChatUserListItem otherItem = chatUserListItems.get(index);
 
@@ -483,6 +486,7 @@ public class ChannelTabController extends AbstractChatTabController {
       } else {
         updateUserMessageDisplay(chatUser, "");
       }
+      updateChatUserListItemsForCategories(chatUser);
     };
     socialStatusMessagesListeners.computeIfAbsent(player.getUsername(), i -> new ArrayList<>()).add(listener);
     return new WeakChangeListener<>(listener);

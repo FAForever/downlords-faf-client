@@ -108,7 +108,6 @@ public class ChatUserItemController implements Controller<Node> {
   private Tooltip clanTooltip;
   private Tooltip avatarTooltip;
   private Tooltip userTooltip;
-  private Optional<Runnable> onSocialStatusUpdatedListener;
 
   // TODO reduce dependencies, rely on eventBus instead
   public ChatUserItemController(PreferencesService preferencesService, AvatarService avatarService,
@@ -216,7 +215,6 @@ public class ChatUserItemController implements Controller<Node> {
   public void onContextMenuRequested(ContextMenuEvent event) {
     ChatUserContextMenuController contextMenuController = uiService.loadFxml("theme/chat/chat_user_context_menu.fxml");
     contextMenuController.setChatUser(chatUser);
-    contextMenuController.setOnSocialStatusChangedListener(onSocialStatusUpdatedListener);
     contextMenuController.getContextMenu().show(chatUserItemRoot, event.getScreenX(), event.getScreenY());
   }
 
@@ -502,9 +500,5 @@ public class ChatUserItemController implements Controller<Node> {
   public void onMouseExitedAvatarImageView() {
     Tooltip.uninstall(avatarImageView, avatarTooltip);
     avatarTooltip = null;
-  }
-
-  public void setOnSocialStatusUpdatedListener(Optional<Runnable> onSocialStatusUpdatedListener) {
-    this.onSocialStatusUpdatedListener = onSocialStatusUpdatedListener;
   }
 }
