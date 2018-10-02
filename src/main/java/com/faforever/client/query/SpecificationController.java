@@ -114,9 +114,12 @@ public class SpecificationController implements Controller<Node> {
     valueField.editableProperty().bind(valueField.visibleProperty());
 
     operationField.setItems(comparisonOperators);
-    operationField.setConverter(new StringConverter<ComparisonOperator>() {
+    operationField.setConverter(new StringConverter<>() {
       @Override
       public String toString(ComparisonOperator object) {
+        if (object == null) {
+          return "";
+        }
         return i18n.get(operatorToI18nKey.get(object));
       }
 

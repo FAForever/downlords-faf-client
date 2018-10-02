@@ -43,6 +43,9 @@ public class LogicalNodeController implements Controller<Node> {
     logicalOperatorField.setConverter(new StringConverter<>() {
       @Override
       public String toString(LogicalOperator object) {
+        if (object == null) {
+          return "";
+        }
         return i18n.get(object.i18nKey);
       }
 

@@ -840,7 +840,6 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     when(user.getNick()).thenReturn(chatUser1.getUsername());
 
     connect();
-    firePircBotXEvent(createPrivateMessageEvent(user, message));
 
     CountDownLatch latch = new CountDownLatch(1);
     doAnswer(invocation -> {
@@ -848,7 +847,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
       return null;
     }).when(eventBus).post(any(ChatMessageEvent.class));
 
-    latch.await(500, TimeUnit.SECONDS);
+    firePircBotXEvent(createPrivateMessageEvent(user, message));
+    latch.await(100, TimeUnit.SECONDS);
     verify(eventBus).post(any(ChatMessageEvent.class));
   }
 }

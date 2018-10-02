@@ -4,13 +4,11 @@ import com.faforever.client.theme.UiService;
 import javafx.scene.control.ListCell;
 
 import java.util.Objects;
-import java.util.Optional;
 
 public class ChatUserListCell extends ListCell<CategoryOrChatUserListItem> {
 
   private final ChatUserItemController chatUserItemController;
   private final ChatUserItemCategoryController chatUserCategoryController;
-  private Optional<Runnable> onSocialStatusUpdatedListener;
   private Object oldItem;
 
   public ChatUserListCell(UiService uiService) {
@@ -18,11 +16,6 @@ public class ChatUserListCell extends ListCell<CategoryOrChatUserListItem> {
     chatUserCategoryController = uiService.loadFxml("theme/chat/chat_user_category.fxml");
 
     setText(null);
-  }
-
-  // TODO check whether or not this is meant to be used. Fix accordingly.
-  public void setOnSocialStatusUpdatedListener(Runnable onSocialStatusUpdatedListener) {
-    this.onSocialStatusUpdatedListener = Optional.ofNullable(onSocialStatusUpdatedListener);
   }
 
   @Override
@@ -44,7 +37,6 @@ public class ChatUserListCell extends ListCell<CategoryOrChatUserListItem> {
     if (item.getUser() != null) {
       chatUserCategoryController.setChatUserCategory(null);
       chatUserItemController.setChatUser(item.getUser());
-      chatUserItemController.setOnSocialStatusUpdatedListener(onSocialStatusUpdatedListener);
       setGraphic(chatUserItemController.getRoot());
     } else {
       chatUserItemController.setChatUser(null);
