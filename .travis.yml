@@ -10,10 +10,9 @@ install: true
 before_install:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
-  - "curl https://download-keycdn.ej-technologies.com/install4j/install4j_unix_7_0_7.tar.gz | tar xzf -C /tmp"
 
 script:
-- ./gradlew --stacktrace -Pinstall4jHomeDir=/tmp/install4j7.0.7 buildInstall4jMediaFiles
+- ./gradlew --stacktrace check
 
 after_success:
 - ./gradlew jacocoTestReport coveralls
