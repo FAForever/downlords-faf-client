@@ -15,6 +15,7 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
@@ -103,11 +104,12 @@ public class ChatUserItemController implements Controller<Node> {
   public Text presenceStatusIndicator;
   private ChatChannelUser chatUser;
   private boolean randomColorsAllowed;
-  private ClanTooltipController clanTooltipController;
-  private Tooltip countryTooltip;
-  private Tooltip clanTooltip;
-  private Tooltip avatarTooltip;
-  private Tooltip userTooltip;
+  @VisibleForTesting
+  protected Tooltip countryTooltip;
+  @VisibleForTesting
+  protected Tooltip avatarTooltip;
+  @VisibleForTesting
+  protected Tooltip userTooltip;
 
   // TODO reduce dependencies, rely on eventBus instead
   public ChatUserItemController(PreferencesService preferencesService, AvatarService avatarService,
@@ -187,6 +189,7 @@ public class ChatUserItemController implements Controller<Node> {
     weakPlayerChangeListener = new WeakChangeListener<>(playerChangeListener);
 
     usernameInvalidationListener = observable -> {
+      updateNameLabelTooltip();
       if (this.chatUser == null) {
         usernameLabel.setText("");
       } else {
@@ -209,7 +212,6 @@ public class ChatUserItemController implements Controller<Node> {
     statusLabel.visibleProperty().bind(statusLabel.textProperty().isNotEmpty());
     clanMenu.managedProperty().bind(clanMenu.visibleProperty());
     clanMenu.setVisible(false);
-
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {
@@ -265,6 +267,7 @@ public class ChatUserItemController implements Controller<Node> {
   }
 
   private void setAvatarUrl(@Nullable String avatarUrl) {
+    updateAvatarTooltip();
     if (Strings.isNullOrEmpty(avatarUrl)) {
       avatarImageView.setVisible(false);
     } else {
@@ -274,15 +277,14 @@ public class ChatUserItemController implements Controller<Node> {
     }
   }
 
-  private void setClanTag(String newValue) {
-    if (StringUtils.isEmpty(newValue)) {
+  private void setClanTag(String clanTag) {
+    if (!chatUser.getPlayer().isPresent() || Strings.isNullOrEmpty(clanTag)) {
       clanMenu.setVisible(false);
       return;
     }
-    Optional.ofNullable(usernameLabel.getTooltip()).ifPresent(tooltip -> usernameLabel.setTooltip(null));
-    Optional.ofNullable(clanMenu.getTooltip()).ifPresent(tooltip -> clanMenu.setTooltip(null));
-    clanMenu.setText(String.format(CLAN_TAG_FORMAT, newValue));
+    clanMenu.setText(String.format("[%s]", clanTag));
     clanMenu.setVisible(true);
+    updateClanMenu();
   }
 
   private void updateGameStatus() {
@@ -335,6 +337,40 @@ public class ChatUserItemController implements Controller<Node> {
     }
   }
 
+  private void updateCountryTooltip() {
+    Optional.ofNullable(countryTooltip).ifPresent(imageView -> Tooltip.uninstall(countryImageView, countryTooltip));
+
+    chatUser.getPlayer().ifPresent(player -> {
+      countryTooltip = new Tooltip(player.getCountry());
+      countryTooltip.setText(player.getCountry());
+      Tooltip.install(countryImageView, countryTooltip);
+    });
+  }
+
+  private void updateClanMenu() {
+    chatUser.getPlayer().ifPresent(this::updateClanMenu);
+  }
+
+  private void updateNameLabelTooltip() {
+    Optional.ofNullable(usernameLabel.getTooltip()).ifPresent(tooltip -> usernameLabel.setTooltip(null));
+
+    if (chatUser == null || !chatUser.getPlayer().isPresent()) {
+      return;
+    }
+
+    chatUser.getPlayer().ifPresent(player -> {
+      userTooltip = new Tooltip();
+      usernameLabel.setTooltip(userTooltip);
+      updateNameLabelText(player);
+    });
+  }
+
+  private void updateNameLabelText(Player player) {
+    userTooltip.setText(String.format("%s\n%s",
+        i18n.get("userInfo.ratingFormat", getGlobalRating(player), getLeaderboardRating(player)),
+        i18n.get("userInfo.idleTimeFormat", timeService.timeAgo(player.getIdleSince()))));
+  }
+
   private void addListeners(@NotNull ChatChannelUser chatUser) {
     JavaFxUtil.addListener(chatUser.usernameProperty(), weakUsernameInvalidationListener);
     JavaFxUtil.addListener(chatUser.colorProperty(), weakColorInvalidationListener);
@@ -360,29 +396,12 @@ public class ChatUserItemController implements Controller<Node> {
       countryFlagService.loadCountryFlag(country).ifPresent(image -> {
         countryImageView.setImage(image);
         countryImageView.setVisible(true);
+        updateCountryTooltip();
       });
     }
   }
 
-  public void onMouseEnteredUsername() {
-    if (chatUser == null || !chatUser.getPlayer().isPresent() || usernameLabel.getTooltip() != null) {
-      return;
-    }
-
-    chatUser.getPlayer().ifPresent(player -> {
-      userTooltip = new Tooltip();
-      usernameLabel.setTooltip(userTooltip);
-      userTooltip.setText(String.format("%s\n%s",
-          i18n.get("userInfo.ratingFormat", getGlobalRating(player), getLeaderboardRating(player)),
-          i18n.get("userInfo.idleTimeFormat", timeService.timeAgo(player.getIdleSince()))));
-    });
-  }
-
-  public void onMouseExitedUsername() {
-    Tooltip.uninstall(usernameLabel, userTooltip);
-    userTooltip = null;
-  }
-
+  //TODO: see where this should be called
   void setRandomColorAllowed(boolean randomColorsAllowed) {
     this.randomColorsAllowed = randomColorsAllowed;
     updateColor();
@@ -429,27 +448,18 @@ public class ChatUserItemController implements Controller<Node> {
     presenceStatusIndicator.setText("\uF111");
     updatePresenceStatusIndicator();
     updateGameStatus();
-  }
-
-  public void onMouseEnteredCountryImageView() {
-    chatUser.getPlayer().ifPresent(player -> {
-      countryTooltip = new Tooltip(player.getCountry());
-      countryTooltip.textProperty().bind(player.countryProperty());
-      Tooltip.install(countryImageView, countryTooltip);
-    });
-  }
-
-  public void onMouseExitedCountryImageView() {
-    Tooltip.uninstall(countryImageView, countryTooltip);
-    countryTooltip = null;
-  }
-
-  public void onMouseEnteredClanTag() {
-    chatUser.getPlayer().ifPresent(this::updateClanMenu);
+    if (chatUser.getPlayer().isPresent() && userTooltip != null) {
+      updateNameLabelText(chatUser.getPlayer().get());
+    }
   }
 
   private void updateClanMenu(Player player) {
-    clanService.getClanByTag(player.getClan()).thenAccept(optionalClan -> JavaFxUtil.runLater(() -> updateClanMenu(optionalClan)));
+    clanService.getClanByTag(player.getClan())
+        .thenAccept(optionalClan -> JavaFxUtil.runLater(() -> updateClanMenu(optionalClan)))
+        .exceptionally(throwable -> {
+          log.warn("Clan was not updated", throwable);
+          return null;
+        });
   }
 
   private void updateClanMenu(Optional<Clan> optionalClan) {
@@ -472,22 +482,21 @@ public class ChatUserItemController implements Controller<Node> {
     });
     clanMenu.getItems().add(visitClanPageAction);
 
-    clanTooltipController = uiService.loadFxml("theme/chat/clan_tooltip.fxml");
+    Optional.ofNullable(clanMenu.getTooltip()).ifPresent(tooltip -> clanMenu.setTooltip(null));
+
+    ClanTooltipController clanTooltipController = uiService.loadFxml("theme/chat/clan_tooltip.fxml");
     clanTooltipController.setClan(clan);
 
-    clanTooltip = new Tooltip();
+    Tooltip clanTooltip = new Tooltip();
     clanTooltip.setMaxHeight(clanTooltipController.getRoot().getHeight());
     clanTooltip.setGraphic(clanTooltipController.getRoot());
 
     Tooltip.install(clanMenu, clanTooltip);
   }
 
-  public void onMouseExitedClanTag() {
-    Tooltip.uninstall(clanMenu, clanTooltip);
-    clanTooltipController = null;
-  }
+  public void updateAvatarTooltip() {
+    Optional.ofNullable(avatarTooltip).ifPresent(tooltip -> Tooltip.uninstall(avatarImageView, tooltip));
 
-  public void onMouseEnteredAvatarImageView() {
     chatUser.getPlayer().ifPresent(player -> {
       avatarTooltip = new Tooltip(player.getAvatarTooltip());
       avatarTooltip.textProperty().bind(player.avatarTooltipProperty());
@@ -497,8 +506,7 @@ public class ChatUserItemController implements Controller<Node> {
     });
   }
 
-  public void onMouseExitedAvatarImageView() {
-    Tooltip.uninstall(avatarImageView, avatarTooltip);
-    avatarTooltip = null;
+  public void onMouseEnteredUserNameLabel() {
+    chatUser.getPlayer().ifPresent(this::updateNameLabelText);
   }
 }
