@@ -10,6 +10,7 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ProgrammingError;
+import com.faforever.client.vault.replay.WatchButtonController;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.ObjectProperty;
@@ -54,7 +55,7 @@ public class GameDetailController implements Controller<Pane> {
   public ImageView mapImageView;
   public Label gameTitleLabel;
   public Node joinButton;
-  public Node watchButton;
+  public WatchButtonController watchButtonController;
   private ObjectProperty<Game> game;
   @SuppressWarnings("FieldCanBeLocal")
   private InvalidationListener teamsInvalidationListener;
@@ -62,6 +63,7 @@ public class GameDetailController implements Controller<Pane> {
   private InvalidationListener gameStatusInvalidationListener;
   private WeakInvalidationListener weakTeamListener;
   private WeakInvalidationListener weakGameStatusListener;
+  private Node watchButton;
 
   public GameDetailController(I18n i18n, MapService mapService, ModService modService, PlayerService playerService,
                               UiService uiService, JoinGameHelper joinGameHelper) {
@@ -76,6 +78,8 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   public void initialize() {
+    watchButton = watchButtonController.getRoot();
+
     joinButton.managedProperty().bind(joinButton.visibleProperty());
     watchButton.managedProperty().bind(watchButton.visibleProperty());
     gameTitleLabel.managedProperty().bind(gameTitleLabel.visibleProperty());
@@ -100,6 +104,7 @@ public class GameDetailController implements Controller<Pane> {
       case PLAYING:
         joinButton.setVisible(false);
         watchButton.setVisible(true);
+        watchButtonController.setGame(game);
         break;
       case OPEN:
         joinButton.setVisible(true);
@@ -153,7 +158,6 @@ public class GameDetailController implements Controller<Pane> {
     weakGameStatusListener = new WeakInvalidationListener(gameStatusInvalidationListener);
     JavaFxUtil.addListener(game.statusProperty(), weakGameStatusListener);
     gameStatusInvalidationListener.invalidated(game.statusProperty());
-
   }
 
   private void createTeams(ObservableMap<? extends String, ? extends List<String>> playersByTeamNumber, Game game) {

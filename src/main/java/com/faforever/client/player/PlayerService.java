@@ -1,6 +1,7 @@
 package com.faforever.client.player;
 
 import com.faforever.client.chat.ChatChannelUser;
+import com.faforever.client.chat.ChatUserCreatedEvent;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.chat.event.ChatMessageEvent;
@@ -228,7 +229,7 @@ public class PlayerService {
   }
 
   @Subscribe
-  public void onChatUserJoinedChannel(ChatUserJoinedChannelEvent event) {
+  public void onChatUserCreated(ChatUserCreatedEvent event) {
     ChatChannelUser chatChannelUser = event.getChatChannelUser();
     Optional.ofNullable(playersByName.get(chatChannelUser.getUsername()))
         .ifPresent(player -> Platform.runLater(() -> {

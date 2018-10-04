@@ -29,10 +29,14 @@ public class ChatChannelUser {
   private final ObjectProperty<Instant> lastActive;
 
   ChatChannelUser(String username, Color color, boolean moderator) {
+    this(username, color, moderator, null);
+  }
+
+  ChatChannelUser(String username, Color color, boolean moderator, Player player) {
     this.username = new SimpleStringProperty(username);
     this.moderator = new SimpleBooleanProperty(moderator);
     this.color = new SimpleObjectProperty<>(color);
-    this.player = new SimpleObjectProperty<>();
+    this.player = new SimpleObjectProperty<>(player);
     this.lastActive = new SimpleObjectProperty<>();
   }
 

@@ -38,6 +38,7 @@ import java.awt.image.BufferedImage;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.file.Files.createDirectories;
@@ -356,5 +357,9 @@ public final class JavaFxUtil {
     } else {
       Platform.runLater(runnable);
     }
+  }
+
+  public static void bindManagedToVisible(Node... nodes) {
+    Arrays.stream(nodes).forEach(node -> node.managedProperty().bind(node.visibleProperty()));
   }
 }
