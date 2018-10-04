@@ -33,7 +33,8 @@
                            preserveRatio="true"/>
             </graphic>
         </Label>
-        <Label minWidth="0.0" text="%chat.privateMessage.globalRating" wrapText="true" GridPane.rowIndex="2"/>
+        <Label fx:id="globalRatingLabelLabel" minWidth="0.0" text="%chat.privateMessage.globalRating" wrapText="true"
+               GridPane.rowIndex="2"/>
         <Label fx:id="countryLabel" graphicTextGap="10.0" maxWidth="1.7976931348623157E308" minWidth="0.0"
                styleClass="private-chat-user-info-data" text="&lt;country&gt;" wrapText="true"
                GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
@@ -42,12 +43,14 @@
                            preserveRatio="true"/>
             </graphic>
         </Label>
-        <Label fx:id="globalRatingLevel" minWidth="0.0" styleClass="private-chat-user-info-data"
+        <Label fx:id="globalRatingLabel" minWidth="0.0" styleClass="private-chat-user-info-data"
                text="&lt;global rating&gt;" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-        <Label minWidth="0.0" text="%chat.privateMessage.ladder1v1Rating" wrapText="true" GridPane.rowIndex="3"/>
-        <Label fx:id="leaderboardRatingLevel" minWidth="0.0" styleClass="private-chat-user-info-data"
+        <Label fx:id="leaderboardRatingLabelLabel" minWidth="0.0" text="%chat.privateMessage.ladder1v1Rating"
+               wrapText="true" GridPane.rowIndex="3"/>
+        <Label fx:id="leaderboardRatingLabel" minWidth="0.0" styleClass="private-chat-user-info-data"
                text="&lt;ladder1v1 rating&gt;" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-        <Label minWidth="0.0" text="%chat.privateMessage.gamesPlayed" wrapText="true" GridPane.rowIndex="4"/>
+        <Label fx:id="gamesPlayedLabelLabel" minWidth="0.0" text="%chat.privateMessage.gamesPlayed" wrapText="true"
+               GridPane.rowIndex="4"/>
         <Label fx:id="gamesPlayedLabel" minWidth="0.0" styleClass="private-chat-user-info-data"
                text="&lt;games played&gt;" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
         <VBox fx:id="gameDetailWrapper" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
@@ -58,7 +61,8 @@
             </children>
         </VBox>
         <Separator prefWidth="200.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="6"/>
-        <Label text="%chat.privateMessage.achievements.unlocked" GridPane.rowIndex="5"/>
+        <Label fx:id="unlockedAchievementsLabelLabel" text="%chat.privateMessage.achievements.unlocked"
+               GridPane.rowIndex="5"/>
         <Label fx:id="unlockedAchievementsLabel" maxWidth="1.7976931348623157E308" text="%notAvailable"
                GridPane.columnIndex="1" GridPane.rowIndex="5"/>
     </children>

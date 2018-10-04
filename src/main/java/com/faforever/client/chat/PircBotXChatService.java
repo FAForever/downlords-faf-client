@@ -7,7 +7,6 @@ import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.player.ChatUserJoinedChannelEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerOnlineEvent;
 import com.faforever.client.player.SocialStatus;
@@ -106,7 +105,7 @@ public class PircBotXChatService implements ChatService {
    * Maps channels by name.
    */
   private final ObservableMap<String, Channel> channels;
-  /** Key is username plus channel, e.g. {@code user#channel}. */
+  /** Key is the result of {@link #mapKey(String, String)}. */
   private final ObservableMap<String, ChatChannelUser> chatChannelUsersByChannelAndName;
   private final SimpleIntegerProperty unreadMessagesCount;
 
@@ -334,7 +333,6 @@ public class PircBotXChatService implements ChatService {
 
   private void onJoinEvent(String channelName, ChatChannelUser chatUser) {
     getOrCreateChannel(channelName).addUser(chatUser);
-    eventBus.post(new ChatUserJoinedChannelEvent(chatUser));
   }
 
   private void onChatUserLeftChannel(String channelName, String username) {
@@ -348,7 +346,7 @@ public class PircBotXChatService implements ChatService {
       }
     }
     synchronized (chatChannelUsersByChannelAndName) {
-      chatChannelUsersByChannelAndName.remove(username, channelName);
+      chatChannelUsersByChannelAndName.remove(mapKey(username, channelName));
     }
     // The server doesn't yet tell us when a user goes offline, so we have to rely on the user leaving IRC.
     if (defaultChannelName.equals(channelName)) {
@@ -536,7 +534,9 @@ public class PircBotXChatService implements ChatService {
           color = ColorGeneratorUtil.generateRandomColor(userToColorKey(username).hashCode());
         }
 
-        chatChannelUsersByChannelAndName.put(key, new ChatChannelUser(username, color, isModerator));
+        ChatChannelUser chatChannelUser = new ChatChannelUser(username, color, isModerator);
+        eventBus.post(new ChatUserCreatedEvent(chatChannelUser));
+        chatChannelUsersByChannelAndName.put(key, chatChannelUser);
       }
       return chatChannelUsersByChannelAndName.get(key);
     }

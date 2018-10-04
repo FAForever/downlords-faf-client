@@ -446,7 +446,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   public void testChatMessageEventTriggeredByPrivateMessage() throws Exception {
     CompletableFuture<ChatMessage> chatMessageFuture = new CompletableFuture<>();
     doAnswer(invocation -> chatMessageFuture.complete(((ChatMessageEvent) invocation.getArgument(0)).getMessage()))
-        .when(eventBus).post(any());
+        .when(eventBus).post(any(ChatMessageEvent.class));
 
     String message = "private message";
 

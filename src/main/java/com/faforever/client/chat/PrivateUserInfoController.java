@@ -19,11 +19,11 @@ import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Component
@@ -38,13 +38,17 @@ public class PrivateUserInfoController implements Controller<Node> {
   public Label usernameLabel;
   public ImageView countryImageView;
   public Label countryLabel;
-  public Label globalRatingLevel;
-  public Label leaderboardRatingLevel;
+  public Label globalRatingLabel;
+  public Label leaderboardRatingLabel;
   public Label gamesPlayedLabel;
   public GameDetailController gameDetailController;
   public Pane gameDetailWrapper;
   public Label unlockedAchievementsLabel;
   public Node privateUserInfoRoot;
+  public Label globalRatingLabelLabel;
+  public Label leaderboardRatingLabelLabel;
+  public Label gamesPlayedLabelLabel;
+  public Label unlockedAchievementsLabelLabel;
 
   @SuppressWarnings("FieldCanBeLocal")
   private InvalidationListener globalRatingInvalidationListener;
@@ -65,29 +69,55 @@ public class PrivateUserInfoController implements Controller<Node> {
   }
 
   public void initialize() {
+    JavaFxUtil.bindManagedToVisible(
+        gameDetailWrapper,
+        countryLabel,
+        gamesPlayedLabel,
+        unlockedAchievementsLabel,
+        globalRatingLabel,
+        leaderboardRatingLabel,
+        globalRatingLabelLabel,
+        leaderboardRatingLabelLabel,
+        gamesPlayedLabelLabel,
+        unlockedAchievementsLabelLabel
+    );
     onPlayerGameChanged(null);
-
-    gameDetailWrapper.managedProperty().bind(gameDetailWrapper.visibleProperty());
   }
 
-  public void setChatUser(ChatChannelUser chatUser) {
-    Optional<Player> playerOptional = chatUser.getPlayer();
-
-    if (playerOptional.isPresent()) {
-      displayPlayerInfo(playerOptional.get());
-    } else {
+  public void setChatUser(@NotNull ChatChannelUser chatUser) {
+    chatUser.getPlayer().ifPresentOrElse(this::displayPlayerInfo, () -> {
+      chatUser.playerProperty().addListener((observable, oldValue, newValue) -> {
+        if (newValue != null) {
+          displayPlayerInfo(newValue);
+        } else {
+          displayChatUserInfo(chatUser);
+        }
+      });
       displayChatUserInfo(chatUser);
-    }
+    });
   }
 
   private void displayChatUserInfo(ChatChannelUser chatUser) {
     usernameLabel.textProperty().bind(chatUser.usernameProperty());
-    userImageView.setVisible(false);
-    countryLabel.setVisible(false);
-    gameDetailController.setGame(null);
+    onPlayerGameChanged(null);
+    setPlayerInfoVisible(false);
+  }
+
+  private void setPlayerInfoVisible(boolean visible) {
+    userImageView.setVisible(visible);
+    countryLabel.setVisible(visible);
+    globalRatingLabel.setVisible(visible);
+    globalRatingLabelLabel.setVisible(visible);
+    leaderboardRatingLabel.setVisible(visible);
+    leaderboardRatingLabelLabel.setVisible(visible);
+    gamesPlayedLabel.setVisible(visible);
+    gamesPlayedLabelLabel.setVisible(visible);
+    unlockedAchievementsLabel.setVisible(visible);
+    unlockedAchievementsLabelLabel.setVisible(visible);
   }
 
   private void displayPlayerInfo(Player player) {
+    setPlayerInfoVisible(true);
     CountryCode countryCode = CountryCode.getByCode(player.getCountry());
 
     usernameLabel.textProperty().bind(player.usernameProperty());
@@ -145,12 +175,12 @@ public class PrivateUserInfoController implements Controller<Node> {
   }
 
   private void loadReceiverGlobalRatingInformation(Player player) {
-    Platform.runLater(() -> globalRatingLevel.setText(i18n.get("chat.privateMessage.ratingFormat",
+    Platform.runLater(() -> globalRatingLabel.setText(i18n.get("chat.privateMessage.ratingFormat",
         RatingUtil.getRating(player.getGlobalRatingMean(), player.getGlobalRatingDeviation()))));
   }
 
   private void loadReceiverLadderRatingInformation(Player player) {
-    Platform.runLater(() -> leaderboardRatingLevel.setText(i18n.get("chat.privateMessage.ratingFormat",
+    Platform.runLater(() -> leaderboardRatingLabel.setText(i18n.get("chat.privateMessage.ratingFormat",
         RatingUtil.getRating(player.getLeaderboardRatingMean(), player.getLeaderboardRatingDeviation()))));
   }
 }
