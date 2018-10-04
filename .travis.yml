@@ -29,6 +29,18 @@ after_success:
       ./gradlew --stacktrace -Pversion=${VERSION} -Pinstall4jHomeDir="$HOME/install4j/install4j7.0.7" -Pinstall4jLicense=${install4jLicense} buildInstall4jMediaFiles;
     fi
 
+deploy:
+  provider: releases
+  api_key: ${gitHubToken}
+  file_glob: true
+  file: build/install4j/*
+  skip_cleanup: true
+  name: v${VERSION}
+  draft: true
+  prerelease: true
+  on:
+    tags: true
+
 env:
   global:
    - secure: "UVIbeoJpx9n0KSWHbpdWZuR4zeZfXw3JQBq2Zb1h0/j4uREfXWiGFuNVQBPjsdtYi2+LkecjJ/MgKWo+SS0SjsvTa/ZPkOXt4408H1qYgwVnvWoeL/g1QQ6T8ADNysl/4ZtJLnSp0WXYEBkfHYZJD++vgDwkpVhnCLVzSFVAHls="
