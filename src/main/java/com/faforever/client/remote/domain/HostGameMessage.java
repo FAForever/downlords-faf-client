@@ -36,5 +36,6 @@ public class HostGameMessage extends ClientMessage {
     this.password = password;
     this.version = version;
     this.visibility = gameVisibility;
+    this.relayAddress = relayAddress;
   }
 }
