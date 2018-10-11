@@ -18,7 +18,6 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.IceServerMessage;
 import com.faforever.client.remote.domain.IceServersServerMessage;
-import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.nbarraille.jjsonrpc.JJsonPeer;
@@ -43,11 +42,11 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 import static com.faforever.client.os.OsUtils.gobbleLines;
 import static java.util.Arrays.asList;
@@ -97,14 +96,27 @@ public class IceAdapterImpl implements IceAdapter {
 //    return iceServers.stream()
 //        .map(this::toIceServer)
 //        .collect(Collectors.toList());
-    Map<String, Object> map = new HashMap<>();
-    map.put("urls", iceServers.stream().map(IceServer::getUrl).collect(Collectors.toList()));
+    List<Map<String, Object>> result = new LinkedList<>();
+    for (IceServersServerMessage.IceServer iceServer : iceServers) {
+      Map<String, Object> map = new HashMap<>();
+      List<String> urls = new LinkedList<>();
+      if (iceServer.getUrl() != null && !iceServer.getUrl().equals("null")) {
+        urls.add(iceServer.getUrl());
+      }
+      if (iceServer.getUrls() != null) {
+        urls.addAll(Arrays.asList(iceServer.getUrls()));
+      }
 
-    map.put("credential", iceServers.get(2).getCredential());//TODO: Make sure this is the turn iceServer
-    map.put("credentialType", "token");//FIXME
-    map.put("username", iceServers.get(2).getUsername());
+      map.put("urls", urls);
 
-    return (Arrays.asList(map));
+      map.put("credential", iceServer.getCredential());
+      map.put("credentialType", "token");
+      map.put("username", iceServers.get(2).getUsername());
+
+      result.add(map);
+    }
+
+    return (result);
   }
 
 //  @NotNull
@@ -170,7 +182,8 @@ public class IceAdapterImpl implements IceAdapter {
           "--login", currentPlayer.getUsername(),
           "--rpc-port", String.valueOf(adapterPort),
           "--gpgnet-port", String.valueOf(gpgPort),
-          "--log-directory", "iceAdapterLogs"
+          "--log-directory", "iceAdapterLogs",
+          "--debug-window"
       };
 
       try {
