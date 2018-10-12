@@ -28,7 +28,7 @@ after_success:
   - if [ -n "${TRAVIS_TAG}" ]; then
       ./gradlew --stacktrace -Pversion=${VERSION} -Pinstall4jHomeDir="$HOME/install4j/install4j7.0.7" -Pinstall4jLicense=${install4jLicense} buildInstall4jMediaFiles &&
     RELEASE_BODY=$(python build-release-body.py ${VERSION}) &&
-    echo "Release body\n:${RELEASE_BODY}"
+    echo "Release body\n:${RELEASE_BODY}";
     fi
 
 deploy:
@@ -42,7 +42,7 @@ deploy:
     - build/install4j/*.deb
     - build/install4j/*.rpm
   skip_cleanup: true
-  name: v${VERSION}
+  name: ${VERSION}
   draft: true
   prerelease: true
   # Doesn't yet work, see https://github.com/travis-ci/dpl/issues/155
