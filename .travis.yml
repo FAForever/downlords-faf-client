@@ -10,6 +10,7 @@ install: true
 before_install:
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
+  - sudo apt-get update && sudo apt-get install python3
   # Download install4j and the required JRE, only if it doesn't already exist (from cache)
   - if [ ! -d "$HOME/install4j/install4j7.0.7" -a -n "${TRAVIS_TAG}" ]; then
       mkdir -p "$HOME/install4j" &&
@@ -27,7 +28,7 @@ after_success:
   - ./gradlew jacocoTestReport coveralls
   - if [ -n "${TRAVIS_TAG}" ]; then
       ./gradlew --stacktrace -Pversion=${VERSION} -Pinstall4jHomeDir="$HOME/install4j/install4j7.0.7" -Pinstall4jLicense=${install4jLicense} buildInstall4jMediaFiles &&
-    RELEASE_BODY=$(python build-release-body.py ${VERSION}) &&
+    RELEASE_BODY=$(python3 build-release-body.py ${VERSION}) &&
     echo "Release body\n:${RELEASE_BODY}";
     fi
 
