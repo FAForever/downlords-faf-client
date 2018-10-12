@@ -27,7 +27,8 @@ after_success:
   - ./gradlew jacocoTestReport coveralls
   - if [ -n "${TRAVIS_TAG}" ]; then
       ./gradlew --stacktrace -Pversion=${VERSION} -Pinstall4jHomeDir="$HOME/install4j/install4j7.0.7" -Pinstall4jLicense=${install4jLicense} buildInstall4jMediaFiles &&
-      RELEASE_BODY=$(python build-release-body.py ${VERSION});
+    RELEASE_BODY=$(python build-release-body.py ${VERSION}) &&
+    echo "Release body\n:${RELEASE_BODY}"
     fi
 
 deploy:
@@ -44,7 +45,8 @@ deploy:
   name: v${VERSION}
   draft: true
   prerelease: true
-  body: ${RELEASE_BODY}
+  # Doesn't yet work, see https://github.com/travis-ci/dpl/issues/155
+  #  body: ${RELEASE_BODY}
   on:
     tags: true
 
