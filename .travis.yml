@@ -19,7 +19,7 @@ before_install:
       curl http://content.faforever.com/jre/windows-amd64-10.0.2.tar.gz -o "$HOME/install4j/install4j7.0.7/jres/windows-amd64-10.0.2.tar.gz" &&
       tar xzf "$HOME/install4j/install4j.tar.gz" -C "$HOME/install4j";
     fi
-  - VERSION=$([ -z "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG#*v}" || echo "${TRAVIS_BRANCH##*/}")
+  - VERSION=$([ -n "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG#*v}" || echo "${TRAVIS_BRANCH##*/}") && echo "VERSION is ${VERSION}"
 
 script:
 - ./gradlew --stacktrace check
@@ -28,8 +28,8 @@ after_success:
   - ./gradlew jacocoTestReport coveralls
   - if [ -n "${TRAVIS_TAG}" ]; then
       ./gradlew --stacktrace -Pversion=${VERSION} -Pinstall4jHomeDir="$HOME/install4j/install4j7.0.7" -Pinstall4jLicense=${install4jLicense} buildInstall4jMediaFiles &&
-    RELEASE_BODY=$(python3 build-release-body.py ${VERSION}) &&
-    echo "Release body\n:${RELEASE_BODY}";
+    RELEASE_BODY=$(python3 build-release-body.py v${VERSION}) &&
+    echo "Release body:\n${RELEASE_BODY}";
     fi
 
 deploy:
@@ -43,11 +43,14 @@ deploy:
     - build/install4j/*.deb
     - build/install4j/*.rpm
   skip_cleanup: true
-  name: ${VERSION}
+  name: v${VERSION}
   draft: true
   prerelease: true
   # Doesn't yet work, see https://github.com/travis-ci/dpl/issues/155
   #  body: ${RELEASE_BODY}
+  # See https://github.com/travis-ci/travis-ci/issues/8248
+  target_commitish: ${TRAVIS_COMMIT}
+  tag_name: ${TRAVIS_TAG}
   on:
     tags: true
 

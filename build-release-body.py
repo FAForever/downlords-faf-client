@@ -1,13 +1,20 @@
 from __future__ import print_function
+
 import json
 import sys
-from urllib.request import urlopen
+import urllib.request
+
+GITHUB_BASE_URL = "https://api.github.com/repos/FAForever/downlords-faf-client"
+
+
+def call_github(path):
+    request = urllib.request.Request(GITHUB_BASE_URL + path)
+    request.add_header('User-Agent', 'micheljung')
+    return urllib.request.urlopen(request)
 
 
 def build_release_body(version_string):
-    GITHUB_BASE_URL = "https://api.github.com/repos/FAForever/downlords-faf-client"
-
-    response = urlopen(GITHUB_BASE_URL + "/milestones?state=all")
+    response = call_github("/milestones?state=all")
     milestones = json.loads(response.read().decode('utf-8'))
     milestone_number = None
     for milestone in milestones:
@@ -19,8 +26,7 @@ def build_release_body(version_string):
         return ""
 
     body = ""
-    response = urlopen(
-        GITHUB_BASE_URL + "/issues?state=closed&sort=created&direction=asc&milestone=" + str(milestone_number))
+    response = call_github("/issues?state=closed&sort=created&direction=asc&milestone=" + str(milestone_number))
     issues = json.loads(response.read().decode('utf-8'))
     for issue in issues:
         body += "* Fixed #{0}: {1}\n".format(issue['number'], issue['title'])
