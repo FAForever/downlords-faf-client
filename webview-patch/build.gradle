@@ -6,6 +6,10 @@ repositories {
   mavenCentral()
 }
 
+configurations {
+  jar.archiveName = 'webview-patch.jar'
+}
+
 jar {
   manifest {
     attributes "Premain-Class": "com.faforever.client.webviewpatcher.TransparentWebViewPatch"
