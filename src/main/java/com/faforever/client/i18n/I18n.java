@@ -14,7 +14,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -63,16 +65,20 @@ public class I18n {
       return;
     }
 
+    Set<String> currentBaseNames = messageSource.getBasenameSet();
+    Set<String> newBaseNames = new LinkedHashSet<>();
     try (Stream<Path> dir = Files.list(languagesDirectory)) {
       dir
           .map(path -> MESSAGES_FILE_PATTERN.matcher(path.toString()))
           .filter(Matcher::matches)
           .forEach(matcher -> {
-            messageSource.addBasenames(Paths.get(matcher.group(1)).toUri().toString());
-
+            newBaseNames.add(Paths.get(matcher.group(1)).toUri().toString());
             availableLanguages.add(new Locale(matcher.group(2), Strings.nullToEmpty(matcher.group(3))));
           });
     }
+    // Make sure that current base names are added last; the files above have precedence
+    newBaseNames.addAll(currentBaseNames);
+    messageSource.setBasenames(newBaseNames.toArray(new String[0]));
   }
 
 
