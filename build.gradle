@@ -159,7 +159,7 @@ distributions {
         [
             configurations.runtime,
             jar,
-            downloadIceAdapterLinux.outputs.files,
+            downloadIceAdapter.outputs.files,
             downloadUnixUid.outputs.files,
             downloadWindowsUid.outputs.files
         ]
@@ -216,9 +216,9 @@ task githubRelease(type: ReleaseTask, overwrite: true) {
 }
 
 
-task downloadIceAdapterLinux(type: Download) {
+task downloadIceAdapter(type: Download) {
   group "native dependencies"
-  src "https://geosearchef.de/faf-ice-adapter.jar"
+  src "https://github.com/FAForever/java-ice-adapter/releases/download/v${faf_ice_adapter_version}/faf-ice-adapter.jar"
   dest file("${buildDir}/resources/native/faf-ice-adapter.jar")
   onlyIfNewer true
 }
@@ -237,7 +237,7 @@ task downloadWindowsUid(type: Download) {
   onlyIfNewer true
 }
 
-task downloadNativeDependencies(dependsOn: [downloadUnixUid, downloadWindowsUid, downloadIceAdapterLinux]) {
+task downloadNativeDependencies(dependsOn: [downloadUnixUid, downloadWindowsUid, downloadIceAdapter]) {
   group "native dependencies"
 }
 
