@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="7.0.7" transformSequenceNumber="7">
-  <directoryPresets config="./src/media/appicon" />
+<install4j version="7.0.6" transformSequenceNumber="7">
+  <directoryPresets config="./build/resources" />
   <application name="Downlord's FAF Client" distributionSourceDir="" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="dfc" publisher="Downlord" publisherWeb="https://github.com/FAForever/downlords-faf-client" version="" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" macVolumeId="e230e730a6fc064c" javaMinVersion="10" javaMaxVersion="10" allowBetaVM="true" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
