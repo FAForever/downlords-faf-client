@@ -95,7 +95,7 @@ public class IceAdapterImpl implements IceAdapter {
   private List<Map<String, Object>> toIceServers(List<IceServersServerMessage.IceServer> iceServers) {
 //    return iceServers.stream()
 //        .map(this::toIceServer)
-//        .collect(Collectors.toList());
+//        .collect(Collectors.toList());private final PlatformService platformService;
     List<Map<String, Object>> result = new LinkedList<>();
     for (IceServersServerMessage.IceServer iceServer : iceServers) {
       Map<String, Object> map = new HashMap<>();
@@ -175,7 +175,7 @@ public class IceAdapterImpl implements IceAdapter {
 
       Path workDirectory = Paths.get(nativeDir).toAbsolutePath();
       String[] cmd = new String[]{
-          Paths.get(System.getProperty("java.home")).resolve("bin").resolve("java.exe").toAbsolutePath().toString(),
+          Paths.get(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString(),
           "-jar",
           getBinaryName(workDirectory),
           "--id", String.valueOf(currentPlayer.getId()),
