@@ -209,7 +209,7 @@ public class MapService {
     try {
       MapBean mapBean = readMap(path);
       pathToMap.put(path, mapBean);
-      if (!installedSkirmishMaps.contains(mapBean) && mapBean.getType() == Type.SKIRMISH) {
+      if (!mapsByFolderName.containsKey(mapBean.getFolderName()) && mapBean.getType() == Type.SKIRMISH) {
         installedSkirmishMaps.add(mapBean);
       }
     } catch (MapLoadException e) {
