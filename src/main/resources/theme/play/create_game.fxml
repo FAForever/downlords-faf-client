@@ -22,7 +22,8 @@
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="256.0"/>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="256.0"/>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="256.0"/>
-        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="256.0"/>
+        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="128.0"/>
+        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="128.0"/>
     </columnConstraints>
     <rowConstraints>
         <RowConstraints vgrow="NEVER"/>
@@ -49,11 +50,14 @@
                       GridPane.rowIndex="4"/>
         <ListView fx:id="mapListView" maxHeight="1.7976931348623157E308" prefHeight="100.0" GridPane.columnIndex="2"
                   GridPane.rowIndex="5" GridPane.rowSpan="2" GridPane.vgrow="ALWAYS"/>
+        <JFXButton fx:id="createGameButton1" layoutX="828.0" layoutY="462.0" maxWidth="1.7976931348623157E308"
+                   mnemonicParsing="false" onAction="#onCreateButtonClicked" text="%cancel" GridPane.columnIndex="3"
+                   GridPane.rowIndex="7"/>
         <JFXButton fx:id="createGameButton" defaultButton="true" maxWidth="1.7976931348623157E308"
                    mnemonicParsing="false" onAction="#onCreateButtonClicked" text="%game.create.create"
-                   GridPane.columnIndex="3" GridPane.columnSpan="2147483647" GridPane.rowIndex="7"/>
+                   GridPane.columnIndex="4" GridPane.rowIndex="7"/>
         <HBox alignment="CENTER" maxWidth="1.7976931348623157E308" spacing="10.0" GridPane.columnIndex="3"
-              GridPane.rowIndex="1">
+              GridPane.columnSpan="2147483647" GridPane.rowIndex="1">
             <children>
                 <JFXTextField fx:id="minRankingTextField" minWidth="30.0" prefWidth="60.0"
                               promptText="%games.create.minRating" HBox.hgrow="NEVER"/>
@@ -70,16 +74,18 @@
         <Label alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308" text="%game.create.rating"
                textAlignment="JUSTIFY" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
         <Pane fx:id="mapPreviewPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-              styleClass="map-preview" GridPane.columnIndex="3" GridPane.rowIndex="3" GridPane.rowSpan="3"/>
-        <VBox alignment="BOTTOM_LEFT" styleClass="card-dimmer" GridPane.columnIndex="3" GridPane.rowIndex="3"
-              GridPane.rowSpan="3">
+              styleClass="map-preview" GridPane.columnIndex="3" GridPane.columnSpan="2147483647"
+              GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.rowSpan="3" GridPane.valignment="CENTER"/>
+        <VBox alignment="BOTTOM_LEFT" styleClass="card-dimmer" GridPane.columnIndex="3" GridPane.columnSpan="2147483647"
+              GridPane.rowIndex="3" GridPane.rowSpan="3">
             <children>
                 <Label fx:id="mapNameLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="card-title"
                        text="&lt;Very long map title to see if wrapping works&gt;" wrapText="true"/>
             </children>
         </VBox>
         <GridPane hgap="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-                  GridPane.columnIndex="3" GridPane.rowIndex="6" GridPane.vgrow="ALWAYS">
+                  GridPane.columnIndex="3" GridPane.columnSpan="2147483647" GridPane.rowIndex="6"
+                  GridPane.vgrow="ALWAYS">
             <columnConstraints>
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
@@ -127,8 +133,8 @@
                 <JFXButton mnemonicParsing="false" onAction="#onReloadModsButtonClicked" text="%game.create.reload"/>
             </children>
         </HBox>
-        <JFXCheckBox fx:id="onlyForFriendsCheckBox" text="%game.create.onlyFriends" mnemonicParsing="false"
-                  GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+        <JFXCheckBox fx:id="onlyForFriendsCheckBox" mnemonicParsing="false" text="%game.create.onlyFriends"
+                     GridPane.columnIndex="1" GridPane.rowIndex="1"/>
     </children>
     <padding>
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>

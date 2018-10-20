@@ -12,10 +12,8 @@ import com.faforever.client.map.MapSize;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.mod.ModVersion;
-import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.ReportAction;
-import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferenceUpdateListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
@@ -55,7 +53,6 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.ref.WeakReference;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -385,12 +382,12 @@ public class CreateGameController implements Controller<Pane> {
     gameService.hostGame(newGameInfo).exceptionally(throwable -> {
       logger.warn("Game could not be hosted", throwable);
       notificationService.addNotification(
-          new ImmediateNotification(
+          new ImmediateErrorNotification(
               i18n.get("errorTitle"),
               i18n.get("game.create.failed"),
-              Severity.WARN,
               throwable,
-              Collections.singletonList(new ReportAction(i18n, reportingService, throwable))));
+              i18n, reportingService
+          ));
       return null;
     });
 

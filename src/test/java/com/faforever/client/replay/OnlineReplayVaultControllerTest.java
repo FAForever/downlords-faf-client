@@ -9,6 +9,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.LogicalNodeController;
 import com.faforever.client.query.SpecificationController;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
@@ -63,6 +64,8 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   private SearchController searchController;
   @Mock
   private PreferencesService preferencesService;
+  @Mock
+  private ReportingService reportingService;
 
   @Captor
   private ArgumentCaptor<Consumer<SearchConfig>> searchListenerCaptor;
@@ -86,7 +89,7 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     sortOrder = preferencesService.getPreferences().getVaultPrefs().getOnlineReplaySortConfig();
     standardSearchConfig = new SearchConfig(sortOrder, "query");
 
-    instance = new OnlineReplayVaultController(replayService, uiService, notificationService, i18n, preferencesService);
+    instance = new OnlineReplayVaultController(replayService, uiService, notificationService, i18n, preferencesService, reportingService);
 
     loadFxml("theme/vault/replay/online_replays.fxml", clazz -> {
       if (SearchController.class.isAssignableFrom(clazz)) {

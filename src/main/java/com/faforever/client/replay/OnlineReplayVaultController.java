@@ -6,12 +6,11 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.ShowReplayEvent;
-import com.faforever.client.notification.DismissAction;
-import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.SearchableProperties;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
@@ -34,9 +33,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -55,6 +52,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   private final NotificationService notificationService;
   private final I18n i18n;
   private final PreferencesService preferencesService;
+  private final ReportingService reportingService;
 
   public Pane replayVaultRoot;
   public Pane newestPane;
@@ -75,13 +73,13 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   private Supplier<CompletableFuture<List<Replay>>> currentSupplier;
   private final ObjectProperty<State> state;
 
-  @Inject
-  public OnlineReplayVaultController(ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, PreferencesService preferencesService) {
+  public OnlineReplayVaultController(ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, PreferencesService preferencesService, ReportingService reportingService) {
     this.replayService = replayService;
     this.uiService = uiService;
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.preferencesService = preferencesService;
+    this.reportingService = reportingService;
 
     state = new SimpleObjectProperty<>(State.UNINITIALIZED);
   }
@@ -245,10 +243,10 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     this.currentSupplier = mapsSupplier;
     mapsSupplier.get()
         .thenAccept(this::displaySearchResult)
-        .exceptionally(e -> {
-          notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
-              i18n.get("vault.replays.searchError"), Severity.ERROR, e,
-              Collections.singletonList(new DismissAction(i18n))));
+        .exceptionally(throwable -> {
+          notificationService.addNotification(new ImmediateErrorNotification(
+              i18n.get("errorTitle"), i18n.get("vault.replays.searchError"), throwable, i18n, reportingService
+          ));
           enterResultState();
           return null;
         });

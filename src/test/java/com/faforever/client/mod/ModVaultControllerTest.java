@@ -8,6 +8,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.LogicalNodeController;
 import com.faforever.client.query.SpecificationController;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
@@ -60,11 +61,13 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private SpecificationController specificationController;
   private ModDetailController modDetailController;
+  @Mock
+  private ReportingService reportingService;
 
   @Before
   public void setUp() throws Exception {
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
-    instance = new ModVaultController(modService, i18n, eventBus, preferencesService, uiService, notificationService);
+    instance = new ModVaultController(modService, i18n, eventBus, preferencesService, uiService, notificationService, reportingService);
 
     doAnswer(invocation -> {
       ModCardController modCardController = mock(ModCardController.class);

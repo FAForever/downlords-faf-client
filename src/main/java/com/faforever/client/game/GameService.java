@@ -14,11 +14,10 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.DismissAction;
+import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
-import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.player.Player;
@@ -63,7 +62,6 @@ import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -78,7 +76,6 @@ import java.util.function.Consumer;
 
 import static com.faforever.client.fa.RatingMode.NONE;
 import static com.faforever.client.game.KnownFeaturedMod.LADDER_1V1;
-import static com.faforever.client.notification.Severity.ERROR;
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
@@ -299,12 +296,12 @@ public class GameService {
 
   private void notifyCantPlayReplay(@Nullable Integer replayId, Throwable throwable) {
     logger.error("Could not play replay '" + replayId + "'", throwable);
-    notificationService.addNotification(new ImmediateNotification(
+    notificationService.addNotification(new ImmediateErrorNotification(
         i18n.get("errorTitle"),
         i18n.get("replayCouldNotBeStarted", replayId),
-        ERROR, throwable,
-        singletonList(new Action(i18n.get("report"))))
-    );
+        throwable,
+        i18n, reportingService
+    ));
   }
 
   public CompletableFuture<Void> runWithLiveReplay(URI replayUrl, Integer gameId, String gameType, String mapName) {
@@ -452,9 +449,7 @@ public class GameService {
         .exceptionally(throwable -> {
           logger.warn("Game could not be started", throwable);
           notificationService.addNotification(
-              new ImmediateNotification(i18n.get("errorTitle"),
-                  i18n.get("game.start.couldNotStart"), ERROR, throwable, Arrays.asList(
-                  new ReportAction(i18n, reportingService, throwable), new DismissAction(i18n)))
+              new ImmediateErrorNotification(i18n.get("errorTitle"), i18n.get("game.start.couldNotStart"), throwable, i18n, reportingService)
           );
           setGameRunning(false);
           return null;

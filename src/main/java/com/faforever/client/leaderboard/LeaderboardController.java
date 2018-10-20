@@ -5,11 +5,8 @@ import com.faforever.client.fx.StringCell;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
-import com.faforever.client.notification.DismissAction;
-import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.ReportAction;
-import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.Validator;
@@ -27,7 +24,6 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
-import java.util.Arrays;
 
 import static javafx.collections.FXCollections.observableList;
 
@@ -123,13 +119,9 @@ public class LeaderboardController extends AbstractViewController<Node> {
     }).exceptionally(throwable -> {
       contentPane.setVisible(false);
       logger.warn("Error while loading leaderboard entries", throwable);
-      notificationService.addNotification(new ImmediateNotification(
+      notificationService.addNotification(new ImmediateErrorNotification(
           i18n.get("errorTitle"), i18n.get("leaderboard.failedToLoad"),
-          Severity.ERROR, throwable,
-          Arrays.asList(
-              new ReportAction(i18n, reportingService, throwable),
-              new DismissAction(i18n)
-          )
+          throwable, i18n, reportingService
       ));
       return null;
     });

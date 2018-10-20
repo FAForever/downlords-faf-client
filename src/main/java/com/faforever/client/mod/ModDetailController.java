@@ -3,10 +3,8 @@ package com.faforever.client.mod;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.ReportAction;
-import com.faforever.client.notification.Severity;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
@@ -34,8 +32,6 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.util.Optional;
-
-import static java.util.Collections.singletonList;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -208,10 +204,11 @@ public class ModDetailController implements Controller<Node> {
     modService.downloadAndInstallMod(modVersion, progressBar.progressProperty(), progressLabel.textProperty())
         .thenRun(() -> uninstallButton.setVisible(true))
         .exceptionally(throwable -> {
-          notificationService.addNotification(new ImmediateNotification(
+          notificationService.addNotification(new ImmediateErrorNotification(
               i18n.get("errorTitle"),
               i18n.get("modVault.installationFailed", modVersion.getDisplayName(), throwable.getLocalizedMessage()),
-              Severity.ERROR, throwable, singletonList(new ReportAction(i18n, reportingService, throwable))));
+              throwable, i18n, reportingService
+          ));
           return null;
         });
   }
@@ -222,10 +219,11 @@ public class ModDetailController implements Controller<Node> {
     uninstallButton.setVisible(false);
 
     modService.uninstallMod(modVersion).exceptionally(throwable -> {
-      notificationService.addNotification(new ImmediateNotification(
+      notificationService.addNotification(new ImmediateErrorNotification(
           i18n.get("errorTitle"),
           i18n.get("modVault.couldNotDeleteMod", modVersion.getDisplayName(), throwable.getLocalizedMessage()),
-          Severity.ERROR, throwable, singletonList(new ReportAction(i18n, reportingService, throwable))));
+          throwable, i18n, reportingService
+      ));
       return null;
     });
   }

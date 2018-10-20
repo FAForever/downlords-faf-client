@@ -7,11 +7,8 @@ import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
-import com.faforever.client.notification.DismissAction;
-import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.ReportAction;
-import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
@@ -62,7 +59,6 @@ import java.io.Reader;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -422,11 +418,9 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       messageTextField.requestFocus();
     }).exceptionally(throwable -> {
       logger.warn("Message could not be sent: {}", text, throwable);
-      notificationService.addNotification(new ImmediateNotification(
-          i18n.get("errorTitle"), i18n.get("chat.sendFailed"), Severity.ERROR, throwable, Arrays.asList(
-          new ReportAction(i18n, reportingService, throwable),
-          new DismissAction(i18n))
-      ));
+      notificationService.addNotification(new ImmediateErrorNotification(
+          i18n.get("errorTitle"), i18n.get("chat.sendFailed"), throwable, i18n, reportingService)
+      );
 
       messageTextField.setDisable(false);
       messageTextField.requestFocus();
