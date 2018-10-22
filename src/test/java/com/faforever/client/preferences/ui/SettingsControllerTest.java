@@ -13,9 +13,9 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
-import javafx.beans.property.ReadOnlyListWrapper;
-import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.ReadOnlySetWrapper;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleSetProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Pane;
 import org.junit.Before;
@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.Locale;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -53,7 +54,7 @@ public class SettingsControllerTest extends AbstractPlainJavaFxTest {
   private ClientProperties clientProperties;
 
   private Preferences preferences;
-  private SimpleListProperty<Locale> availableLanguages;
+  private SimpleSetProperty<Locale> availableLanguages;
 
   @Before
   public void setUp() throws Exception {
@@ -61,8 +62,8 @@ public class SettingsControllerTest extends AbstractPlainJavaFxTest {
     when(preferenceService.getPreferences()).thenReturn(preferences);
     when(uiService.currentThemeProperty()).thenReturn(new SimpleObjectProperty<>());
 
-    availableLanguages = new SimpleListProperty<>(FXCollections.observableArrayList());
-    when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlyListWrapper<>(availableLanguages));
+    availableLanguages = new SimpleSetProperty<>(FXCollections.observableSet());
+    when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlySetWrapper<>(availableLanguages));
 
     instance = new SettingsController(userService, preferenceService, uiService, i18n, eventBus, notificationService, platformService, clientProperties);
     loadFxml("theme/settings/settings.fxml", param -> instance);
@@ -99,7 +100,8 @@ public class SettingsControllerTest extends AbstractPlainJavaFxTest {
     when(languageItemController.getRoot()).thenReturn(new Pane());
     when(uiService.loadFxml("theme/settings/language_item.fxml")).thenReturn(languageItemController);
 
-    availableLanguages.setAll(Locale.FRENCH);
+    availableLanguages.clear();
+    availableLanguages.addAll(Set.of(Locale.FRENCH));
 
     verify(languageItemController).setLocale(Locale.FRENCH);
     verify(languageItemController).setOnSelectedListener(any());
