@@ -15,22 +15,24 @@ buildscript {
   }
 
   dependencies {
-    classpath("org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.4.0")
     classpath("gradle.plugin.install4j.install4j:gradle_plugin:7.0.7")
     classpath("org.springframework.build.gradle:propdeps-plugin:${propdepsVersion}")
-    classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+    classpath("org.kt3k.gradle.plugin:coveralls-gradle-plugin:${coverallsGradlePluginVersion}")
   }
 }
 
 plugins {
   id "com.install4j.gradle" version "7.0.7"
   id "co.riiid.gradle" version "0.4.2"
-  id "de.undercouch.download" version "3.2.0"
+  id "de.undercouch.download" version "3.4.3"
   id "io.franzbecker.gradle-lombok" version "1.14"
+  id 'net.ltgt.apt' version '0.19'
 }
 
 apply plugin: 'java'
 apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
 apply plugin: 'propdeps'
 apply plugin: 'jacoco'
 apply plugin: 'com.github.kt3k.coveralls'
@@ -59,6 +61,8 @@ lombok {
   version = "${lombokVersion}"
   sha256 = ""
 }
+
+project.ext['javafx.platform'] = "win"
 
 class HttpBuilder extends HTTPBuilder {
 
@@ -277,44 +281,39 @@ repositories {
   maven { url 'https://maven.ej-technologies.com/repository' }
   maven { url "http://dl.bintray.com/typesafe/maven-releases" }
   maven { url "http://maven.teamdev.com/repository/products" }
+  maven { url "https://repo.spring.io/milestone/" }
 }
 
 jacoco {
-  toolVersion = "0.8.1"
-}
-
-dependencyManagement {
-  dependencies {
-    dependency "org.mockito:mockito-core:${mockitoVersion}"
-  }
+  toolVersion = "${jacocoVersion}"
 }
 
 dependencies {
   compile("org.springframework.boot:spring-boot-starter")
   compile("org.springframework.boot:spring-boot-starter-cache")
   compile("org.springframework.boot:spring-boot-starter-logging")
-  compile("org.springframework.security.oauth:spring-security-oauth2")
+  compile("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:${springSecurityOauth2AutoconfigureVersion}")
   compile("org.springframework:spring-web")
 
   compile("com.github.FAForever:faf-java-commons:${fafCommonsVersion}")
-  compile("com.google.code.gson:gson:2.3.1")
+  compile("com.google.code.gson:gson:2.8.5")
   compile("org.pircbotx:pircbotx:2.1") {
     exclude module: 'guava'
   }
-  compile("com.google.guava:guava:18.0")
-  compile("org.apache.commons:commons-compress:1.9")
-  compile("net.java.dev.jna:jna:4.2.1")
-  compile("net.java.dev.jna:jna-platform:4.2.1")
-  compile("org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r")
-  compile("org.jetbrains:annotations:13.0")
+  compile("com.google.guava:guava:27.0-jre")
+  compile("org.apache.commons:commons-compress:1.18")
+  compile("net.java.dev.jna:jna:${jnaVersion}")
+  compile("net.java.dev.jna:jna-platform:${jnaVersion}")
+  compile("org.eclipse.jgit:org.eclipse.jgit:5.1.3.201810200350-r")
+  compile("org.jetbrains:annotations:16.0.3")
   compile("net.sf.jtidy:jtidy:r938")
-  compile("com.neovisionaries:nv-i18n:1.15")
-  compile("com.rometools:rome:1.5.0")
-  compile("org.jsoup:jsoup:1.8.2")
+  compile("com.neovisionaries:nv-i18n:1.23")
+  compile("com.rometools:rome:1.11.1")
+  compile("org.jsoup:jsoup:1.11.3")
   compile("com.nativelibs4java:bridj:0.7.0")
   compile("com.github.nocatch:nocatch:1.1")
   compile("org.luaj:luaj-jse:3.0.1")
-  compile("commons-validator:commons-validator:1.5.1")
+  compile("commons-validator:commons-validator:1.6")
   compile("com.github.micheljung:JJsonRpc:01a7fba5f4")
   compile("javax.inject:javax.inject:1")
   compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonDatatypeJsr310Version}")
@@ -324,6 +323,16 @@ dependencies {
   compile("com.github.Brutus5000:BiReUS-JCL:${bireusVersion}")
   compile("com.jfoenix:jfoenix:${jfoenixVersion}")
   compile("javax.annotation:javax.annotation-api:1.3.1")
+  compile("com.github.ben-manes.caffeine:caffeine")
+  compile("org.apache.httpcomponents:httpclient")
+
+  compile("org.openjfx:javafx-base:${javafxVersion}:${javafxPlatform}")
+  compile("org.openjfx:javafx-controls:${javafxVersion}:${javafxPlatform}")
+  compile("org.openjfx:javafx-graphics:${javafxVersion}:${javafxPlatform}")
+  compile("org.openjfx:javafx-swing:${javafxVersion}:${javafxPlatform}")
+  compile("org.openjfx:javafx-fxml:${javafxVersion}:${javafxPlatform}")
+  compile("org.openjfx:javafx-web:${javafxVersion}:${javafxPlatform}")
+  compile("org.openjfx:javafx-media:${javafxVersion}:${javafxPlatform}")
 
   compile project(":webview-patch")
   compile ("org.javassist:javassist:${project.ext['javassist.version']}")

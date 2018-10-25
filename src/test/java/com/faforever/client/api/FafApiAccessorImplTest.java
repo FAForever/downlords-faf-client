@@ -29,7 +29,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 
 import java.nio.file.Files;
@@ -38,6 +37,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -75,7 +75,7 @@ public class FafApiAccessorImplTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    when(restTemplateBuilder.requestFactory(any(ClientHttpRequestFactory.class))).thenReturn(restTemplateBuilder);
+    when(restTemplateBuilder.requestFactory(any(Supplier.class))).thenReturn(restTemplateBuilder);
     when(restTemplateBuilder.additionalMessageConverters(any(JsonApiMessageConverter.class))).thenReturn(restTemplateBuilder);
     when(restTemplateBuilder.rootUri(any())).thenReturn(restTemplateBuilder);
     when(restTemplateBuilder.errorHandler(any())).thenReturn(restTemplateBuilder);
