@@ -103,7 +103,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
     requestFactory = new HttpComponentsClientHttpRequestFactory();
     this.restTemplateBuilder = restTemplateBuilder
-        .requestFactory(requestFactory)
+        .requestFactory(() -> requestFactory)
         .additionalMessageConverters(jsonApiMessageConverter)
         .errorHandler(jsonApiErrorHandler);
   }
