@@ -30,12 +30,12 @@ import com.google.common.net.UrlEscapers;
 import com.google.common.primitives.Bytes;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
@@ -218,15 +218,16 @@ public class ReplayService {
       throw new RuntimeException("There's no game with ID: " + gameId);
     }
 
-    URIBuilder uriBuilder = new URIBuilder();
-    uriBuilder.setScheme(FAF_LIFE_PROTOCOL);
-    // TODO check if this host is correct
-    uriBuilder.setHost(clientProperties.getReplay().getRemoteHost());
-    uriBuilder.setPath("/" + gameId + "/" + playerId + SUP_COM_REPLAY_FILE_ENDING);
-    uriBuilder.addParameter("map", UrlEscapers.urlFragmentEscaper().escape(game.getMapFolderName()));
-    uriBuilder.addParameter("mod", game.getFeaturedMod());
+    URI uri = UriComponentsBuilder.newInstance()
+        .scheme(FAF_LIFE_PROTOCOL)
+        .host(clientProperties.getReplay().getRemoteHost())
+        .path("/" + gameId + "/" + playerId + SUP_COM_REPLAY_FILE_ENDING)
+        .queryParam("map", UrlEscapers.urlFragmentEscaper().escape(game.getMapFolderName()))
+        .queryParam("mod", game.getFeaturedMod())
+        .build()
+        .toUri();
 
-    noCatch(() -> runLiveReplay(uriBuilder.build()));
+    noCatch(() -> runLiveReplay(uri));
   }
 
 
