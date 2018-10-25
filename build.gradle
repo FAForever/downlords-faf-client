@@ -1,4 +1,3 @@
-import co.riiid.gradle.ReleaseTask
 import com.install4j.gradle.Install4jTask
 import de.undercouch.gradle.tasks.download.Download
 import groovy.json.JsonSlurper
@@ -6,6 +5,7 @@ import groovyx.net.http.ContentType
 import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.Method
 import groovyx.net.http.ParserRegistry
+import org.gradle.internal.os.OperatingSystem
 
 buildscript {
   repositories {
@@ -15,22 +15,24 @@ buildscript {
   }
 
   dependencies {
-    classpath("org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.4.0")
     classpath("gradle.plugin.install4j.install4j:gradle_plugin:7.0.7")
     classpath("org.springframework.build.gradle:propdeps-plugin:${propdepsVersion}")
-    classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+    classpath("org.kt3k.gradle.plugin:coveralls-gradle-plugin:${coverallsGradlePluginVersion}")
   }
 }
 
 plugins {
   id "com.install4j.gradle" version "7.0.7"
   id "co.riiid.gradle" version "0.4.2"
-  id "de.undercouch.download" version "3.2.0"
+  id "de.undercouch.download" version "3.4.3"
   id "io.franzbecker.gradle-lombok" version "1.14"
+  id 'net.ltgt.apt' version '0.19'
 }
 
 apply plugin: 'java'
 apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
 apply plugin: 'propdeps'
 apply plugin: 'jacoco'
 apply plugin: 'com.github.kt3k.coveralls'
@@ -40,7 +42,27 @@ apply plugin: 'distribution'
 sourceCompatibility = JavaVersion.VERSION_1_10
 targetCompatibility = JavaVersion.VERSION_1_10
 
+// These are read from gradle.properties
 version "${version}"
+project.ext.javafxPlatform = "${javafxPlatform}"
+
+bootJar.enabled = false
+jar.enabled = true
+
+if (javafxPlatform == "unspecified") {
+  switch (OperatingSystem.current()) {
+    case OperatingSystem.LINUX:
+      project.ext.javafxPlatform = "linux"
+      break
+    case OperatingSystem.MAC_OS:
+      project.ext.javafxPlatform = "mac"
+      break
+    case OperatingSystem.WINDOWS:
+      project.ext.javafxPlatform = "win"
+      break
+  }
+}
+println "Platform is: ${javafxPlatform}"
 
 compileJava.dependsOn(processResources)
 processResources {
@@ -94,45 +116,6 @@ def httpRequest(Method method, String url, onSuccess) {
   }
 }
 
-def buildReleaseBody() {
-  def GITHUB_BASE_URL = "https://api.github.com/repos/FAForever/downlords-faf-client"
-  def versionString = "v" + project.version
-
-  def milestones
-  httpRequest(Method.GET, "${GITHUB_BASE_URL}/milestones?state=all", { resp, json ->
-    milestones = json
-  })
-
-  if (milestones == null) throw new GradleException("Milestones could not be loaded")
-
-  def milestoneNumber
-  for (Object milestone : milestones) {
-    if (versionString == milestone.title) {
-      milestoneNumber = milestone.number
-    }
-  }
-
-  if (milestoneNumber == null) throw new GradleException("No such milestone: " + versionString)
-
-  def body = ""
-  httpRequest(Method.GET, "${GITHUB_BASE_URL}/issues?state=closed&sort=created&direction=asc&milestone=${milestoneNumber}", { resp, json ->
-    for (Object issue : json) {
-      body += "* Fixed #${issue.number}: ${issue.title}\n"
-    }
-  })
-
-  return body
-}
-
-def buildAssetList() {
-  return file("build/install4j").list(new FilenameFilter() {
-    @Override
-    boolean accept(File dir, String name) {
-      return name =~ /\.(exe|zip|tar\.gz|rpm|deb)/
-    }
-  }).collect({ file -> "build/install4j/${file}" })
-}
-
 jacocoTestReport {
   reports {
     xml.enabled = true
@@ -182,36 +165,27 @@ install4j {
 task buildInstall4jMediaFiles(type: Install4jTask) {
   group "distribution"
   description 'Creates install4j media files'
-  dependsOn 'clean'
-  dependsOn 'jar'
   dependsOn 'installDist'
 
   projectFile = file('downlords-faf-client.install4j')
   release = version
 
+  switch (project.ext.javafxPlatform) {
+    case "linux":
+      mediaTypes = ['unixInstaller', 'unixArchive']
+      break
+    case "mac":
+      mediaTypes = ['macos', 'macosFolder', 'macosArchive', 'macosFolderArchive']
+      break
+    case "win":
+      mediaTypes = ['windows', 'windowsArchive']
+      break
+  }
+
   doFirst {
     println "Building version ${version}"
     if (!project.hasProperty('install4jHomeDir')) {
       throw new RuntimeException('Specify install4jHomeDir in gradle.properties and set it to an install4j installation directory')
-    }
-  }
-}
-
-task githubRelease(type: ReleaseTask, overwrite: true) {
-  group "distribution"
-  description 'Creates a new release on Github and closes the according milestone'
-  dependsOn 'buildInstall4jMediaFiles'
-
-  doFirst {
-    project.github {
-      owner = 'FAForever'
-      repo = 'downlords-faf-client'
-      token = System.properties['githubAccessToken']
-      tagName = "v" + project.version
-      name = "v" + project.version
-      prerelease = project.version =~ /alpha|beta|RC/
-      body = buildReleaseBody()
-      assets = buildAssetList()
     }
   }
 }
@@ -277,44 +251,39 @@ repositories {
   maven { url 'https://maven.ej-technologies.com/repository' }
   maven { url "http://dl.bintray.com/typesafe/maven-releases" }
   maven { url "http://maven.teamdev.com/repository/products" }
+  maven { url "https://repo.spring.io/milestone/" }
 }
 
 jacoco {
-  toolVersion = "0.8.1"
-}
-
-dependencyManagement {
-  dependencies {
-    dependency "org.mockito:mockito-core:${mockitoVersion}"
-  }
+  toolVersion = "${jacocoVersion}"
 }
 
 dependencies {
   compile("org.springframework.boot:spring-boot-starter")
   compile("org.springframework.boot:spring-boot-starter-cache")
   compile("org.springframework.boot:spring-boot-starter-logging")
-  compile("org.springframework.security.oauth:spring-security-oauth2")
+  compile("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:${springSecurityOauth2AutoconfigureVersion}")
   compile("org.springframework:spring-web")
 
   compile("com.github.FAForever:faf-java-commons:${fafCommonsVersion}")
-  compile("com.google.code.gson:gson:2.3.1")
+  compile("com.google.code.gson:gson:2.8.5")
   compile("org.pircbotx:pircbotx:2.1") {
     exclude module: 'guava'
   }
-  compile("com.google.guava:guava:18.0")
-  compile("org.apache.commons:commons-compress:1.9")
-  compile("net.java.dev.jna:jna:4.2.1")
-  compile("net.java.dev.jna:jna-platform:4.2.1")
-  compile("org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r")
-  compile("org.jetbrains:annotations:13.0")
+  compile("com.google.guava:guava:27.0-jre")
+  compile("org.apache.commons:commons-compress:1.18")
+  compile("net.java.dev.jna:jna:${jnaVersion}")
+  compile("net.java.dev.jna:jna-platform:${jnaVersion}")
+  compile("org.eclipse.jgit:org.eclipse.jgit:5.1.3.201810200350-r")
+  compile("org.jetbrains:annotations:16.0.3")
   compile("net.sf.jtidy:jtidy:r938")
-  compile("com.neovisionaries:nv-i18n:1.15")
-  compile("com.rometools:rome:1.5.0")
-  compile("org.jsoup:jsoup:1.8.2")
+  compile("com.neovisionaries:nv-i18n:1.23")
+  compile("com.rometools:rome:1.11.1")
+  compile("org.jsoup:jsoup:1.11.3")
   compile("com.nativelibs4java:bridj:0.7.0")
   compile("com.github.nocatch:nocatch:1.1")
   compile("org.luaj:luaj-jse:3.0.1")
-  compile("commons-validator:commons-validator:1.5.1")
+  compile("commons-validator:commons-validator:1.6")
   compile("com.github.micheljung:JJsonRpc:01a7fba5f4")
   compile("javax.inject:javax.inject:1")
   compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonDatatypeJsr310Version}")
@@ -324,9 +293,19 @@ dependencies {
   compile("com.github.Brutus5000:BiReUS-JCL:${bireusVersion}")
   compile("com.jfoenix:jfoenix:${jfoenixVersion}")
   compile("javax.annotation:javax.annotation-api:1.3.1")
+  compile("com.github.ben-manes.caffeine:caffeine")
+  compile("org.apache.httpcomponents:httpclient")
+
+  compile("org.openjfx:javafx-base:${javafxVersion}:${javafxPlatform}")
+  compile("org.openjfx:javafx-controls:${javafxVersion}:${javafxPlatform}")
+  compile("org.openjfx:javafx-graphics:${javafxVersion}:${javafxPlatform}")
+  compile("org.openjfx:javafx-swing:${javafxVersion}:${javafxPlatform}")
+  compile("org.openjfx:javafx-fxml:${javafxVersion}:${javafxPlatform}")
+  compile("org.openjfx:javafx-web:${javafxVersion}:${javafxPlatform}")
+  compile("org.openjfx:javafx-media:${javafxVersion}:${javafxPlatform}")
 
   compile project(":webview-patch")
-  compile ("org.javassist:javassist:${project.ext['javassist.version']}")
+  compile("org.javassist:javassist:${project.ext['javassist.version']}")
 
   provided("com.install4j:install4j-runtime:${install4jRuntimeVersion}")
 
