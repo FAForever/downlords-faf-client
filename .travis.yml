@@ -20,6 +20,8 @@ before_install:
       tar xzf "$HOME/install4j/install4j.tar.gz" -C "$HOME/install4j";
     fi
   - VERSION=$([ -n "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG#*v}" || echo "${TRAVIS_BRANCH##*/}") && echo "VERSION is ${VERSION}"
+  - rm "${JAVA_HOME}/lib/security/cacerts"
+  - ln -s /etc/ssl/certs/java/cacerts "${JAVA_HOME}/lib/security/cacerts"
 
 script:
 - ./gradlew --stacktrace check
