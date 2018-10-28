@@ -24,12 +24,12 @@ before_install:
   - ln -s /etc/ssl/certs/java/cacerts "${JAVA_HOME}/lib/security/cacerts"
 
 script:
-- ./gradlew --stacktrace check
+- ./gradlew --stacktrace -PjavafxPlatform=${PLATFORM} --info check
 
 after_success:
   - ./gradlew jacocoTestReport coveralls
   - if [ -n "${TRAVIS_TAG}" ]; then
-      ./gradlew --stacktrace -Pversion=${VERSION} -Pinstall4jHomeDir="$HOME/install4j/install4j7.0.7" -Pinstall4jLicense=${install4jLicense} buildInstall4jMediaFiles &&
+    ./gradlew --stacktrace -Pversion=${VERSION} -PjavafxPlatform=${PLATFORM} -Pinstall4jHomeDir="$HOME/install4j/install4j7.0.7" -Pinstall4jLicense=${install4jLicense} buildInstall4jMediaFiles &&
     RELEASE_BODY=$(python3 build-release-body.py v${VERSION}) &&
     echo "Release body:\n${RELEASE_BODY}";
     fi
@@ -58,7 +58,12 @@ deploy:
 
 env:
   global:
-   - secure: "UVIbeoJpx9n0KSWHbpdWZuR4zeZfXw3JQBq2Zb1h0/j4uREfXWiGFuNVQBPjsdtYi2+LkecjJ/MgKWo+SS0SjsvTa/ZPkOXt4408H1qYgwVnvWoeL/g1QQ6T8ADNysl/4ZtJLnSp0WXYEBkfHYZJD++vgDwkpVhnCLVzSFVAHls="
+  - secure: "UVIbeoJpx9n0KSWHbpdWZuR4zeZfXw3JQBq2Zb1h0/j4uREfXWiGFuNVQBPjsdtYi2+LkecjJ/MgKWo+SS0SjsvTa/ZPkOXt4408H1qYgwVnvWoeL/g1QQ6T8ADNysl/4ZtJLnSp0WXYEBkfHYZJD++vgDwkpVhnCLVzSFVAHls="
+  - JAVA_TOOL_OPTIONS=-Dprism.verbose=true
+  matrix:
+    PLATFORM=win
+    PLATFORM=linux
+    PLATFORM=mac
 
 addons:
   coverity_scan:

@@ -6,6 +6,7 @@ import groovyx.net.http.ContentType
 import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.Method
 import groovyx.net.http.ParserRegistry
+import org.gradle.internal.os.OperatingSystem
 
 buildscript {
   repositories {
@@ -42,7 +43,24 @@ apply plugin: 'distribution'
 sourceCompatibility = JavaVersion.VERSION_1_10
 targetCompatibility = JavaVersion.VERSION_1_10
 
+// These are read from gradle.properties
 version "${version}"
+project.ext.javafxPlatform = "${javafxPlatform}"
+
+if (javafxPlatform == "unspecified") {
+  switch (OperatingSystem.current()) {
+    case OperatingSystem.LINUX:
+      project.ext.javafxPlatform = "linux"
+      break
+    case OperatingSystem.MAC_OS:
+      project.ext.javafxPlatform = "mac"
+      break
+    case OperatingSystem.WINDOWS:
+      project.ext.javafxPlatform = "win"
+      break
+  }
+}
+println "Platform is: ${javafxPlatform}"
 
 compileJava.dependsOn(processResources)
 processResources {
@@ -61,8 +79,6 @@ lombok {
   version = "${lombokVersion}"
   sha256 = ""
 }
-
-project.ext['javafx.platform'] = "win"
 
 class HttpBuilder extends HTTPBuilder {
 
