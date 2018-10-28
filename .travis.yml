@@ -66,6 +66,10 @@ env:
     PLATFORM=mac
 
 addons:
+  apt:
+    update: true
+    packages:
+    - openjfx
   coverity_scan:
     project:
       name: "micheljung/downlords-faf-client"
