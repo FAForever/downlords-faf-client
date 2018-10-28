@@ -11,13 +11,19 @@ before_install:
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
   - sudo apt-get update && sudo apt-get install python3
-  # Download install4j and the required JRE, only if it doesn't already exist (from cache)
+# Download install4j and the required JRE, only if it doesn't already exist (from Travis cache)
   - if [ ! -d "$HOME/install4j/install4j7.0.7" -a -n "${TRAVIS_TAG}" ]; then
       mkdir -p "$HOME/install4j" &&
       curl https://download-keycdn.ej-technologies.com/install4j/install4j_unix_7_0_7.tar.gz -o "$HOME/install4j/install4j.tar.gz" &&
       mkdir -p "$HOME/install4j/install4j7.0.7/jres/" &&
       curl http://content.faforever.com/jre/windows-amd64-10.0.2.tar.gz -o "$HOME/install4j/install4j7.0.7/jres/windows-amd64-10.0.2.tar.gz" &&
       tar xzf "$HOME/install4j/install4j.tar.gz" -C "$HOME/install4j";
+    fi
+# Download JavaFX only if it doesn't already exist (from Travis cache)
+  - if [ ! -d "$HOME/openjfx/javafx-sdk-11" -a -n "${TRAVIS_TAG}" ]; then
+    mkdir -p "$HOME/openjfx" &&
+    curl http://content.faforever.com/openjfx/openjfx-11_linux-x64_bin-sdk.zip -o "$HOME/openjfx/openjfx.zip" &&
+    unzip -d "$HOME/openjfx" "$HOME/openjfx/openjfx.zip";
     fi
   - VERSION=$([ -n "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG#*v}" || echo "${TRAVIS_BRANCH##*/}") && echo "VERSION is ${VERSION}"
   - rm "${JAVA_HOME}/lib/security/cacerts"
@@ -58,8 +64,8 @@ deploy:
 
 env:
   global:
-  - secure: "UVIbeoJpx9n0KSWHbpdWZuR4zeZfXw3JQBq2Zb1h0/j4uREfXWiGFuNVQBPjsdtYi2+LkecjJ/MgKWo+SS0SjsvTa/ZPkOXt4408H1qYgwVnvWoeL/g1QQ6T8ADNysl/4ZtJLnSp0WXYEBkfHYZJD++vgDwkpVhnCLVzSFVAHls="
-  - JAVA_TOOL_OPTIONS=-Dprism.verbose=true
+    secure: "UVIbeoJpx9n0KSWHbpdWZuR4zeZfXw3JQBq2Zb1h0/j4uREfXWiGFuNVQBPjsdtYi2+LkecjJ/MgKWo+SS0SjsvTa/ZPkOXt4408H1qYgwVnvWoeL/g1QQ6T8ADNysl/4ZtJLnSp0WXYEBkfHYZJD++vgDwkpVhnCLVzSFVAHls="
+    JAVA_TOOL_OPTIONS=-Dprism.verbose=true -Djava.library.path=$HOME/openjfx/javafx-sdk-11/lib
   matrix:
     PLATFORM=win
     PLATFORM=linux
@@ -67,9 +73,8 @@ env:
 
 addons:
   apt:
-    update: true
     packages:
-    - openjfx
+    - unzip
   coverity_scan:
     project:
       name: "micheljung/downlords-faf-client"
