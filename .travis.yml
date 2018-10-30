@@ -7,51 +7,39 @@ sudo: false
 
 install: true
 
+env:
+  global:
+  - secure: "UVIbeoJpx9n0KSWHbpdWZuR4zeZfXw3JQBq2Zb1h0/j4uREfXWiGFuNVQBPjsdtYi2+LkecjJ/MgKWo+SS0SjsvTa/ZPkOXt4408H1qYgwVnvWoeL/g1QQ6T8ADNysl/4ZtJLnSp0WXYEBkfHYZJD++vgDwkpVhnCLVzSFVAHls="
+
 before_install:
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
-  - sudo apt-get update && sudo apt-get install python3
-# Download install4j and the required JRE, only if it doesn't already exist (from Travis cache)
-  - if [ ! -d "$HOME/install4j/install4j7.0.7" -a -n "${TRAVIS_TAG}" ]; then
-      mkdir -p "$HOME/install4j" &&
-      curl https://download-keycdn.ej-technologies.com/install4j/install4j_unix_7_0_7.tar.gz -o "$HOME/install4j/install4j.tar.gz" &&
-      mkdir -p "$HOME/install4j/install4j7.0.7/jres/" &&
-      curl http://content.faforever.com/jre/windows-amd64-10.0.2.tar.gz -o "$HOME/install4j/install4j7.0.7/jres/windows-amd64-10.0.2.tar.gz" &&
-      tar xzf "$HOME/install4j/install4j.tar.gz" -C "$HOME/install4j";
-    fi
-# Download JavaFX only if it doesn't already exist (from Travis cache)
-  - if [ ! -d "$HOME/openjfx/javafx-sdk-11" -a -n "${TRAVIS_TAG}" ]; then
-    mkdir -p "$HOME/openjfx" &&
-    curl http://content.faforever.com/openjfx/openjfx-11_linux-x64_bin-sdk.zip -o "$HOME/openjfx/openjfx.zip" &&
-    unzip -d "$HOME/openjfx" "$HOME/openjfx/openjfx.zip";
-    fi
-  - VERSION=$([ -n "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG#*v}" || echo "${TRAVIS_BRANCH##*/}") && echo "VERSION is ${VERSION}"
-  - rm "${JAVA_HOME}/lib/security/cacerts"
-  - ln -s /etc/ssl/certs/java/cacerts "${JAVA_HOME}/lib/security/cacerts"
+- export DISPLAY=:99.0
+- sh -e /etc/init.d/xvfb start
+- rm "${JAVA_HOME}/lib/security/cacerts"
+- ln -s /etc/ssl/certs/java/cacerts "${JAVA_HOME}/lib/security/cacerts"
+- export JAVA_TOOL_OPTIONS="-Dprism.verbose=true -Dprism.order=sw -Djava.library.path=$HOME/openjfx/javafx-sdk-11/lib"
+- export APP_VERSION=$([ -n "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG#*v}" || echo "${TRAVIS_BRANCH##*/}")
+- export GITHUB_RELEASE_VERSION=$([ -n "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG}" || echo "${TRAVIS_BRANCH##*/}")
 
 script:
-- ./gradlew --stacktrace -PjavafxPlatform=${PLATFORM} --info check
+- chmod +x ./scripts/build.sh && ./scripts/build.sh
+- chmod +x ./scripts/test.sh && ./scripts/test.sh
+- chmod +x ./scripts/test-report.sh && ./scripts/test-report.sh
 
 after_success:
-  - ./gradlew jacocoTestReport coveralls
-  - if [ -n "${TRAVIS_TAG}" ]; then
-    ./gradlew --stacktrace -Pversion=${VERSION} -PjavafxPlatform=${PLATFORM} -Pinstall4jHomeDir="$HOME/install4j/install4j7.0.7" -Pinstall4jLicense=${install4jLicense} buildInstall4jMediaFiles &&
-    RELEASE_BODY=$(python3 build-release-body.py v${VERSION}) &&
-    echo "Release body:\n${RELEASE_BODY}";
-    fi
+- if [ -n "${TRAVIS_TAG}" ]; then chmod +x ./scripts/github-release.sh && ./scripts/github-release.sh; fi
 
 deploy:
   provider: releases
   api_key: ${gitHubToken}
   file_glob: true
   file:
-    - build/install4j/*.exe
-    - build/install4j/*.zip
-    - build/install4j/*.gz
-    - build/install4j/*.deb
-    - build/install4j/*.rpm
+  - build/install4j/*.exe
+  - build/install4j/*.zip
+  - build/install4j/*.gz
+  - build/install4j/*.deb
+  - build/install4j/*.rpm
   skip_cleanup: true
-  name: v${VERSION}
+  name: ${GITHUB_RELEASE_VERSION}
   draft: true
   prerelease: true
   # Doesn't yet work, see https://github.com/travis-ci/dpl/issues/155
@@ -62,19 +50,11 @@ deploy:
   on:
     tags: true
 
-env:
-  global:
-    secure: "UVIbeoJpx9n0KSWHbpdWZuR4zeZfXw3JQBq2Zb1h0/j4uREfXWiGFuNVQBPjsdtYi2+LkecjJ/MgKWo+SS0SjsvTa/ZPkOXt4408H1qYgwVnvWoeL/g1QQ6T8ADNysl/4ZtJLnSp0WXYEBkfHYZJD++vgDwkpVhnCLVzSFVAHls="
-    JAVA_TOOL_OPTIONS=-Dprism.verbose=true -Djava.library.path=$HOME/openjfx/javafx-sdk-11/lib
-  matrix:
-    PLATFORM=win
-    PLATFORM=linux
-    PLATFORM=mac
-
 addons:
   apt:
     packages:
     - unzip
+    - python3
   coverity_scan:
     project:
       name: "micheljung/downlords-faf-client"
@@ -85,12 +65,13 @@ addons:
     branch_pattern: coverity_scan
 
 before_cache:
-  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
-  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+- rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+- rm -fr $HOME/.gradle/caches/*/plugin-resolution/
 
 cache:
   directories:
-    - $HOME/install4j/
-    - $HOME/.gradle/caches/
-    - $HOME/.gradle/wrapper/
-    - /home/travis/build/FAForever/downlords-faf-client/build/cache/
+  - $HOME/install4j/
+  - $HOME/openjfx/
+  - $HOME/.gradle/caches/
+  - $HOME/.gradle/wrapper/
+  - /home/travis/build/FAForever/downlords-faf-client/build/cache/

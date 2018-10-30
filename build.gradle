@@ -1,4 +1,3 @@
-import co.riiid.gradle.ReleaseTask
 import com.install4j.gradle.Install4jTask
 import de.undercouch.gradle.tasks.download.Download
 import groovy.json.JsonSlurper
@@ -46,6 +45,9 @@ targetCompatibility = JavaVersion.VERSION_1_10
 // These are read from gradle.properties
 version "${version}"
 project.ext.javafxPlatform = "${javafxPlatform}"
+
+bootJar.enabled = false
+jar.enabled = true
 
 if (javafxPlatform == "unspecified") {
   switch (OperatingSystem.current()) {
@@ -114,45 +116,6 @@ def httpRequest(Method method, String url, onSuccess) {
   }
 }
 
-def buildReleaseBody() {
-  def GITHUB_BASE_URL = "https://api.github.com/repos/FAForever/downlords-faf-client"
-  def versionString = "v" + project.version
-
-  def milestones
-  httpRequest(Method.GET, "${GITHUB_BASE_URL}/milestones?state=all", { resp, json ->
-    milestones = json
-  })
-
-  if (milestones == null) throw new GradleException("Milestones could not be loaded")
-
-  def milestoneNumber
-  for (Object milestone : milestones) {
-    if (versionString == milestone.title) {
-      milestoneNumber = milestone.number
-    }
-  }
-
-  if (milestoneNumber == null) throw new GradleException("No such milestone: " + versionString)
-
-  def body = ""
-  httpRequest(Method.GET, "${GITHUB_BASE_URL}/issues?state=closed&sort=created&direction=asc&milestone=${milestoneNumber}", { resp, json ->
-    for (Object issue : json) {
-      body += "* Fixed #${issue.number}: ${issue.title}\n"
-    }
-  })
-
-  return body
-}
-
-def buildAssetList() {
-  return file("build/install4j").list(new FilenameFilter() {
-    @Override
-    boolean accept(File dir, String name) {
-      return name =~ /\.(exe|zip|tar\.gz|rpm|deb)/
-    }
-  }).collect({ file -> "build/install4j/${file}" })
-}
-
 jacocoTestReport {
   reports {
     xml.enabled = true
@@ -202,36 +165,27 @@ install4j {
 task buildInstall4jMediaFiles(type: Install4jTask) {
   group "distribution"
   description 'Creates install4j media files'
-  dependsOn 'clean'
-  dependsOn 'jar'
   dependsOn 'installDist'
 
   projectFile = file('downlords-faf-client.install4j')
   release = version
 
+  switch (project.ext.javafxPlatform) {
+    case "linux":
+      mediaTypes = ['unixInstaller', 'unixArchive']
+      break
+    case "mac":
+      mediaTypes = ['macos', 'macosFolder', 'macosArchive', 'macosFolderArchive']
+      break
+    case "win":
+      mediaTypes = ['windows', 'windowsArchive']
+      break
+  }
+
   doFirst {
     println "Building version ${version}"
     if (!project.hasProperty('install4jHomeDir')) {
       throw new RuntimeException('Specify install4jHomeDir in gradle.properties and set it to an install4j installation directory')
-    }
-  }
-}
-
-task githubRelease(type: ReleaseTask, overwrite: true) {
-  group "distribution"
-  description 'Creates a new release on Github and closes the according milestone'
-  dependsOn 'buildInstall4jMediaFiles'
-
-  doFirst {
-    project.github {
-      owner = 'FAForever'
-      repo = 'downlords-faf-client'
-      token = System.properties['githubAccessToken']
-      tagName = "v" + project.version
-      name = "v" + project.version
-      prerelease = project.version =~ /alpha|beta|RC/
-      body = buildReleaseBody()
-      assets = buildAssetList()
     }
   }
 }
@@ -341,7 +295,6 @@ dependencies {
   compile("javax.annotation:javax.annotation-api:1.3.1")
   compile("com.github.ben-manes.caffeine:caffeine")
   compile("org.apache.httpcomponents:httpclient")
-  compile("javax.xml.bind:jaxb-api")
 
   compile("org.openjfx:javafx-base:${javafxVersion}:${javafxPlatform}")
   compile("org.openjfx:javafx-controls:${javafxVersion}:${javafxPlatform}")
@@ -352,7 +305,7 @@ dependencies {
   compile("org.openjfx:javafx-media:${javafxVersion}:${javafxPlatform}")
 
   compile project(":webview-patch")
-  compile ("org.javassist:javassist:${project.ext['javassist.version']}")
+  compile("org.javassist:javassist:${project.ext['javassist.version']}")
 
   provided("com.install4j:install4j-runtime:${install4jRuntimeVersion}")
 
