@@ -26,22 +26,19 @@ public class I18nTest {
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   private I18n instance;
-  private ReloadableResourceBundleMessageSource messageSource;
 
   @Mock
   private PreferencesService preferencesService;
 
-  private Preferences preferences;
-
   @Before
   public void setUp() throws Exception {
-    preferences = new Preferences();
+    Preferences preferences = new Preferences();
     preferences.getLocalization().setLanguage(Locale.GERMAN);
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.getLanguagesDirectory()).thenReturn(temporaryFolder.newFolder("languages").toPath());
 
-    messageSource = new ReloadableResourceBundleMessageSource();
+    ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
     messageSource.setBasenames("classpath:i18n/messages");
     messageSource.setDefaultEncoding(StandardCharsets.UTF_8.name());
 
