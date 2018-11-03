@@ -18,6 +18,7 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.eventbus.EventBus;
 import com.google.common.hash.Hashing;
@@ -263,7 +264,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     when(configuration.getNickservNick()).thenReturn("nickserv");
     when(configuration.getNickservOnSuccess()).thenReturn("you are now");
 
-    firePircBotXEvent(new NoticeEvent(pircBotX, nickServHostMask, null, null, "", "you are now identified"));
+    firePircBotXEvent(new NoticeEvent(pircBotX, nickServHostMask, null, null, "", "you are now identified", ImmutableMap.of()));
 
     SocialMessage socialMessage = new SocialMessage();
     socialMessage.setChannels(Collections.emptyList());
@@ -355,7 +356,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @NotNull
   private PartEvent createPartEvent(org.pircbotx.Channel channel, User user) {
-    return new PartEvent(pircBotX, daoSnapshot, channelSnapshot(channel), user, new UserSnapshot(user), "");
+    return new PartEvent(pircBotX, daoSnapshot, channelSnapshot(channel), channel.getName(), mock(UserHostmask.class), new UserSnapshot(user), "");
   }
 
   @Test
@@ -439,7 +440,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   private ActionEvent createActionEvent(org.pircbotx.Channel channel, User user, String action) {
-    return new ActionEvent(pircBotX, user, user, channel, channel.getName(), action);
+    return new ActionEvent(pircBotX, user, user, channel, channel.getName(), action, ImmutableMap.of());
   }
 
   @Test
@@ -466,7 +467,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   private PrivateMessageEvent createPrivateMessageEvent(User sender, String message) {
-    return new PrivateMessageEvent(pircBotX, sender, sender, message);
+    return new PrivateMessageEvent(pircBotX, sender, sender, message, ImmutableMap.of());
   }
 
   @Test
@@ -740,7 +741,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     UserHostmask nickServHostMask = mock(UserHostmask.class);
     when(nickServHostMask.getHostmask()).thenReturn("nickserv");
-    firePircBotXEvent(new NoticeEvent(pircBotX, nickServHostMask, null, null, "", "User foo isn't registered"));
+    firePircBotXEvent(new NoticeEvent(pircBotX, nickServHostMask, null, null, "", "User foo isn't registered", ImmutableMap.of()));
 
     instance.connectionState.set(ConnectionState.CONNECTED);
 
