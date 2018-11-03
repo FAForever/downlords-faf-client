@@ -116,13 +116,14 @@ public class ChatController extends AbstractViewController<Node> {
   private void addTab(String playerOrChannelName, AbstractChatTabController tabController) {
     JavaFxUtil.assertApplicationThread();
     nameToChatTabController.put(playerOrChannelName, tabController);
-    tabPane.getTabs().add(tabController.getRoot());
-    tabPane.getTabs().sort((o1, o2) -> {
-      if (o1.getId().equalsIgnoreCase(chatService.getDefaultChannelName())) {
-        return -1;
-      }
-      return o1.getId().compareToIgnoreCase(o2.getId());
-    });
+    Tab tab = tabController.getRoot();
+
+    if (chatService.isDefaultChannel(playerOrChannelName)) {
+      tabPane.getTabs().add(0, tab);
+      tabPane.getSelectionModel().select(tab);
+    } else {
+      tabPane.getTabs().add(tab);
+    }
   }
 
   @Override
