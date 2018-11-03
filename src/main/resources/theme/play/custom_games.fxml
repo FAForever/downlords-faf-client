@@ -16,8 +16,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="gamesRoot" xmlns="http://javafx.com/javafx/8.0.141"
-           fx:controller="com.faforever.client.game.CustomGamesController">
+<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="gamesRoot" xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.game.CustomGamesController">
    <children>
       <GridPane>
          <columnConstraints>
@@ -25,7 +24,7 @@
             <ColumnConstraints hgrow="SOMETIMES" minWidth="300.0" prefWidth="300.0" />
          </columnConstraints>
          <rowConstraints>
-             <RowConstraints vgrow="SOMETIMES"/>
+             <RowConstraints vgrow="SOMETIMES" />
             <RowConstraints minHeight="10.0" vgrow="ALWAYS" />
          </rowConstraints>
          <children>
@@ -33,14 +32,10 @@
               <children>
                 <HBox alignment="BASELINE_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0">
                   <children>
-                      <JFXButton fx:id="createGameButton" defaultButton="true" mnemonicParsing="false"
-                                 onAction="#onCreateGameButtonClicked" styleClass="create-game-button"
-                                 text="%games.create"/>
-                      <JFXCheckBox fx:id="showPasswordProtectedGamesCheckBox" mnemonicParsing="false"
-                                   text="%games.showPasswordProtectedGames"/>
-                      <JFXCheckBox fx:id="showModdedGamesCheckBox" mnemonicParsing="false"
-                                   text="%games.showModdedGames"/>
-                      <JFXComboBox fx:id="chooseSortingTypeChoiceBox"/>
+                      <JFXButton fx:id="createGameButton" defaultButton="true" minWidth="-Infinity" mnemonicParsing="false" onAction="#onCreateGameButtonClicked" styleClass="create-game-button" text="%games.create" />
+                      <JFXCheckBox fx:id="showPasswordProtectedGamesCheckBox" mnemonicParsing="false" text="%games.showPasswordProtectedGames" />
+                      <JFXCheckBox fx:id="showModdedGamesCheckBox" mnemonicParsing="false" text="%games.showModdedGames" />
+                      <JFXComboBox fx:id="chooseSortingTypeChoiceBox" />
                       <Pane HBox.hgrow="ALWAYS" />
                     <HBox alignment="BASELINE_LEFT">
                       <children>
@@ -49,7 +44,7 @@
                               <ToggleGroup fx:id="viewToggleGroup" />
                           </toggleGroup>
                                  <graphic>
-                                     <Label styleClass="icon" text=""/>
+                                     <Label styleClass="icon" text="" />
                                  </graphic>
                         </ToggleButton>
                           <ToggleButton fx:id="tilesButton" mnemonicParsing="false" onAction="#onTilesButtonClicked" selected="true" text="%view.tiles" toggleGroup="$viewToggleGroup">
@@ -69,7 +64,7 @@
             </VBox>
         <ScrollPane fx:id="gameDetailPane" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowSpan="2147483647">
           <content>
-              <fx:include fx:id="gameDetail" source="game_detail.fxml"/>
+              <fx:include fx:id="gameDetail" source="game_detail.fxml" />
           </content>
         </ScrollPane>
         <AnchorPane fx:id="gameViewContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.rowIndex="1" />
