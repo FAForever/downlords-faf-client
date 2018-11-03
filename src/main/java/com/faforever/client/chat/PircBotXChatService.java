@@ -43,6 +43,7 @@ import org.pircbotx.User;
 import org.pircbotx.UserHostmask;
 import org.pircbotx.UserLevel;
 import org.pircbotx.UtilSSLSocketFactory;
+import org.pircbotx.delay.StaticDelay;
 import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.Event;
 import org.pircbotx.hooks.events.ActionEvent;
@@ -377,8 +378,8 @@ public class PircBotXChatService implements ChatService {
         .setEncoding(UTF_8)
         .addListener(this::onEvent)
         .setSocketTimeout(SOCKET_TIMEOUT)
-        .setMessageDelay(0)
-        .setAutoReconnectDelay(reconnectDelay)
+        .setMessageDelay(new StaticDelay(0))
+        .setAutoReconnectDelay(new StaticDelay(reconnectDelay))
         .setNickservPassword(getPassword())
         .setAutoReconnect(true)
         .buildConfiguration();

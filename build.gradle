@@ -267,7 +267,7 @@ dependencies {
 
   compile("com.github.FAForever:faf-java-commons:${fafCommonsVersion}")
   compile("com.google.code.gson:gson:2.8.5")
-  compile("org.pircbotx:pircbotx:2.1") {
+  compile("com.github.micheljung:pircbotx:18481dcbfd") {
     exclude module: 'guava'
   }
   compile("com.google.guava:guava:27.0-jre")
