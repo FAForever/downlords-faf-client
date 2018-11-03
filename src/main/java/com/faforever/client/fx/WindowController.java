@@ -37,7 +37,7 @@ import static com.faforever.client.fx.WindowController.WindowButtonType.MINIMIZE
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class WindowController implements Controller<Node> {
 
-  private static final double RESIZE_BORDER_WIDTH = 4d;
+  private static final double RESIZE_BORDER_WIDTH = 6d;
   private static final String PROPERTY_WINDOW_DECORATOR = "windowDecorator";
   private static final PseudoClass MAXIMIZED_PSEUDO_STATE = PseudoClass.getPseudoClass("maximized");
   private final UiService uiService;
