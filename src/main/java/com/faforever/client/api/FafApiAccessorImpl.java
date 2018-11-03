@@ -415,6 +415,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
+  @Cacheable(CacheNames.CLAN)
   public Optional<Clan> getClanByTag(String tag) {
     List<Clan> clans = getMany("/data/clan", 1, ImmutableMap.of(
         "include", "leader,founder,memberships,memberships.player",

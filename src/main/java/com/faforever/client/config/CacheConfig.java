@@ -19,6 +19,7 @@ import static com.faforever.client.config.CacheNames.ACHIEVEMENTS;
 import static com.faforever.client.config.CacheNames.ACHIEVEMENT_IMAGES;
 import static com.faforever.client.config.CacheNames.AVAILABLE_AVATARS;
 import static com.faforever.client.config.CacheNames.AVATARS;
+import static com.faforever.client.config.CacheNames.CLAN;
 import static com.faforever.client.config.CacheNames.COOP_LEADERBOARD;
 import static com.faforever.client.config.CacheNames.COOP_MAPS;
 import static com.faforever.client.config.CacheNames.COUNTRY_FLAGS;
@@ -59,6 +60,7 @@ public class CacheConfig extends CachingConfigurerSupport {
         new CaffeineCache(NEWS, newBuilder().expireAfterWrite(1, MINUTES).build()),
         new CaffeineCache(RATING_HISTORY, newBuilder().expireAfterWrite(1, MINUTES).build()),
         new CaffeineCache(COOP_LEADERBOARD, newBuilder().expireAfterWrite(1, MINUTES).build()),
+        new CaffeineCache(CLAN, newBuilder().expireAfterWrite(1, MINUTES).build()),
         new CaffeineCache(FEATURED_MODS, newBuilder().build()),
         new CaffeineCache(FEATURED_MOD_FILES, newBuilder().expireAfterWrite(10, MINUTES).build()),
 
