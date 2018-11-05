@@ -1,5 +1,6 @@
 package com.faforever.client.theme;
 
+import ch.micheljung.fxborderlessscene.borderless.BorderlessScene;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
@@ -15,9 +16,12 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.web.WebView;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import lombok.SneakyThrows;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
@@ -33,7 +37,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -131,7 +134,6 @@ public class UiService {
   private Path currentTempStyleSheet;
   private MessageSourceResourceBundle resources;
 
-  @Inject
   public UiService(PreferencesService preferencesService, ThreadPoolExecutor threadPoolExecutor,
                    CacheManager cacheManager, MessageSource messageSource, ApplicationContext applicationContext,
                    I18n i18n) {
@@ -319,21 +321,28 @@ public class UiService {
   /**
    * Unregisters a scene so it's no longer updated when the theme (or its CSS) changes.
    */
-  public void unregisterScene(Scene scene) {
+  private void unregisterScene(Scene scene) {
     scenes.remove(scene);
   }
 
   /**
    * Registers a scene against the theme service so it can be updated whenever the theme (or its CSS) changes.
    */
-  public void registerScene(Scene scene) {
+  private void registerScene(Scene scene) {
     scenes.add(scene);
 
-    JavaFxUtil.addListener(scene.getWindow().showingProperty(), (observable, oldValue, newValue) -> {
-      if (!newValue) {
-        unregisterScene(scene);
-      } else {
-        registerScene(scene);
+    JavaFxUtil.addListener(scene.windowProperty(), (windowProperty, oldWindow, newWindow) -> {
+      if (oldWindow != null) {
+        throw new UnsupportedOperationException("Not supposed to happen");
+      }
+      if (newWindow != null) {
+        JavaFxUtil.addListener(newWindow.showingProperty(), (observable, oldValue, newValue) -> {
+          if (!newValue) {
+            unregisterScene(scene);
+          } else {
+            registerScene(scene);
+          }
+        });
       }
     });
     scene.getStylesheets().setAll(getStylesheets());
@@ -423,5 +432,12 @@ public class UiService {
         .forEach(webView -> Platform.runLater(
             () -> webView.getEngine().setUserStyleSheetLocation(noCatch(() -> currentTempStyleSheet.toUri().toURL()).toString())));
     logger.debug("{} created and applied to all web views", newTempStyleSheet.getFileName());
+  }
+
+  public BorderlessScene createScene(Stage stage, Parent mainRoot) {
+    BorderlessScene scene = new BorderlessScene(stage, mainRoot, 0, 0);
+    scene.setMoveControl(mainRoot);
+    registerScene(scene);
+    return scene;
   }
 }

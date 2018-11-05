@@ -1,12 +1,12 @@
 package com.faforever.client.main;
 
+import ch.micheljung.fxborderlessscene.borderless.BorderlessScene;
 import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.GamePathHandler;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -47,6 +47,8 @@ import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
@@ -80,9 +82,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
-import static com.faforever.client.fx.WindowController.WindowButtonType.MAXIMIZE_RESTORE;
-import static com.faforever.client.fx.WindowController.WindowButtonType.MINIMIZE;
 import static com.github.nocatch.NoCatch.noCatch;
 import static javafx.application.Platform.runLater;
 
@@ -126,7 +125,7 @@ public class MainController implements Controller<Node> {
   @VisibleForTesting
   Popup persistentNotificationsPopup;
   private NavigationItem currentItem;
-  private WindowController windowController;
+  private BorderlessScene mainScene;
 
   @Inject
   public MainController(PreferencesService preferencesService, I18n i18n, NotificationService notificationService,
@@ -158,7 +157,6 @@ public class MainController implements Controller<Node> {
     tournamentsButton.setUserData(NavigationItem.TOURNAMENTS);
     unitsButton.setUserData(NavigationItem.UNITS);
     eventBus.register(this);
-    windowController = uiService.loadFxml("theme/window.fxml");
 
     PersistentNotificationsController persistentNotificationsController = uiService.loadFxml("theme/persistent_notifications.fxml");
     persistentNotificationsPopup = new Popup();
@@ -331,13 +329,18 @@ public class MainController implements Controller<Node> {
     eventBus.post(UpdateApplicationBadgeEvent.ofNewValue(0));
 
     Stage stage = StageHolder.getStage();
-    windowController.configure(stage, mainRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
+
+    mainScene = uiService.createScene(stage, mainRoot);
+    stage.setScene(mainScene);
+
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
     double x = mainWindowPrefs.getX();
     double y = mainWindowPrefs.getY();
     int width = mainWindowPrefs.getWidth();
     int height = mainWindowPrefs.getHeight();
 
+    stage.setMinWidth(10);
+    stage.setMinHeight(10);
     stage.setWidth(width);
     stage.setHeight(height);
     stage.show();
@@ -353,7 +356,7 @@ public class MainController implements Controller<Node> {
       stage.setY(y);
     }
     if (mainWindowPrefs.getMaximized()) {
-      WindowController.maximize(stage);
+      getMainScene().maximizeStage();
     }
     registerWindowListeners();
   }
@@ -362,8 +365,17 @@ public class MainController implements Controller<Node> {
     Stage stage = StageHolder.getStage();
     stage.setTitle(i18n.get("login.title"));
     LoginController loginController = uiService.loadFxml("theme/login.fxml");
-    windowController.setContent(loginController.getRoot());
+
+    getMainScene().setContent(loginController.getRoot());
+    getMainScene().setMoveControl(loginController.getRoot());
     loginController.display();
+  }
+
+  private BorderlessScene getMainScene() {
+    if (mainScene == null) {
+      throw new IllegalStateException("'borderlessScene' isn't initialized yet, make sure to call display() first");
+    }
+    return mainScene;
   }
 
   private void registerWindowListeners() {
@@ -415,7 +427,8 @@ public class MainController implements Controller<Node> {
   private void enterLoggedInState() {
     Stage stage = StageHolder.getStage();
     stage.setTitle(mainWindowTitle);
-    windowController.setContent(mainRoot);
+    getMainScene().setContent(mainRoot);
+    getMainScene().setMoveControl(mainRoot);
 
     clientUpdateService.checkForUpdateInBackground();
 
@@ -444,9 +457,18 @@ public class MainController implements Controller<Node> {
     stage.initOwner(mainRoot.getScene().getWindow());
 
     SettingsController settingsController = uiService.loadFxml("theme/settings/settings.fxml");
-    WindowController windowController = uiService.loadFxml("theme/window.fxml");
-    windowController.configure(stage, settingsController.getRoot(), true, CLOSE);
-    windowController.setOnHiding(event -> preferencesService.storeInBackground());
+
+    BorderlessScene borderlessScene = uiService.createScene(stage, settingsController.getRoot());
+    stage.setScene(borderlessScene);
+    stage.showingProperty().addListener(new ChangeListener<>() {
+      @Override
+      public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+        if (!newValue) {
+          stage.showingProperty().removeListener(this);
+          preferencesService.storeInBackground();
+        }
+      }
+    });
 
     stage.setTitle(i18n.get("settings.windowTitle"));
     stage.show();
@@ -506,7 +528,7 @@ public class MainController implements Controller<Node> {
   }
 
   private void displayImmediateNotification(ImmediateNotification notification) {
-    JFXAlert<?> dialog = new JFXAlert<>((Stage) windowController.getWindowRoot().getScene().getWindow());
+    JFXAlert<?> dialog = new JFXAlert<>((Stage) getMainScene().getWindow());
 
     ImmediateNotificationController controller = ((ImmediateNotificationController) uiService.loadFxml("theme/immediate_notification.fxml"))
         .setNotification(notification)

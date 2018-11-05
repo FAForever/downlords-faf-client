@@ -1,5 +1,8 @@
 package com.faforever.client.fx;
 
+import com.sun.jna.Pointer;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -41,6 +44,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 
 import static com.github.nocatch.NoCatch.noCatch;
+import static com.sun.jna.platform.win32.WinUser.GWL_STYLE;
 import static java.nio.file.Files.createDirectories;
 import static javax.imageio.ImageIO.write;
 
@@ -345,10 +349,9 @@ public final class JavaFxUtil {
     }
   }
 
-  public static long getNativeWindow() {
-    // FIXME
-//    WinDef.HWND hWnd = User32.INSTANCE.FindWindow(null, "FIXME");
-    return 0;
+  public static Pointer getNativeWindow() {
+
+    return User32.INSTANCE.GetActiveWindow().getPointer();
   }
 
   public static void runLater(Runnable runnable) {
@@ -361,5 +364,21 @@ public final class JavaFxUtil {
 
   public static void bindManagedToVisible(Node... nodes) {
     Arrays.stream(nodes).forEach(node -> node.managedProperty().bind(node.visibleProperty()));
+  }
+
+
+  /**
+   * Uniconifies stages when clicking on the icon in the task bar. Source: http://stackoverflow.com/questions/26972683/javafx-minimizing-undecorated-stage
+   * Bug report: https://bugs.openjdk.java.net/browse/JDK-8089296
+   */
+  public static void fixJDK8089296() {
+    if (!org.bridj.Platform.isWindows()) {
+      return;
+    }
+    Pointer lpVoid = getNativeWindow();
+    WinDef.HWND hwnd = new WinDef.HWND(lpVoid);
+    final User32 user32 = User32.INSTANCE;
+    int newStyle = user32.GetWindowLong(hwnd, GWL_STYLE) | 0x00020000; //WS_MINIMIZEBOX
+    user32.SetWindowLong(hwnd, GWL_STYLE, newStyle);
   }
 }

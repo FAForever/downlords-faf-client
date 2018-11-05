@@ -1,14 +1,14 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.WindowController;
 import com.faforever.client.theme.UiService;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.Region;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -19,8 +19,6 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 
-import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
-
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class EnterPasswordController implements Controller<Node> {
@@ -30,7 +28,7 @@ public class EnterPasswordController implements Controller<Node> {
   public Label titleLabel;
   public TextField passwordField;
   public ButtonBar buttonBar;
-  public Region enterPasswordRoot;
+  public Parent enterPasswordRoot;
   public Button joinButton;
   public Button cancelButton;
   private OnPasswordEnteredListener listener;
@@ -63,7 +61,7 @@ public class EnterPasswordController implements Controller<Node> {
     getRoot().getScene().getWindow().hide();
   }
 
-  public Region getRoot() {
+  public Parent getRoot() {
     return enterPasswordRoot;
   }
 
@@ -84,9 +82,8 @@ public class EnterPasswordController implements Controller<Node> {
     userInfoWindow.initModality(Modality.NONE);
     userInfoWindow.initOwner(owner);
 
-    WindowController windowController = uiService.loadFxml("theme/window.fxml");
-    windowController.configure(userInfoWindow, getRoot(), true, CLOSE);
-
+    Scene scene = uiService.createScene(userInfoWindow, getRoot());
+    userInfoWindow.setScene(scene);
     userInfoWindow.show();
   }
 
