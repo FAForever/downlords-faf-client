@@ -191,13 +191,6 @@ task buildInstall4jMediaFiles(type: Install4jTask) {
 
 task downloadIceAdapter(type: Download) {
   group "native dependencies"
-  src "https://github.com/FAForever/ice-adapter/releases/download/v${faf_ice_adapter_version}/faf-ice-adapter-win32.zip"
-  dest file("${buildDir}/tmp/faf-ice-adapter.zip")
-  onlyIfNewer true
-}
-
-task downloadIceAdapter(type: Download) {
-  group "native dependencies"
   src "https://github.com/FAForever/java-ice-adapter/releases/download/v${faf_ice_adapter_version}/faf-ice-adapter.jar"
   dest file("${buildDir}/resources/native/faf-ice-adapter.jar")
   onlyIfNewer true
