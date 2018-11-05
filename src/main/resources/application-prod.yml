@@ -1,7 +1,7 @@
 faf-client:
   server:
-    host: faf.micheljung.ch
-    port: 18001
+    host: test.faforever.com
+    port: 8001
 
   irc:
     host: irc.test.faforever.com
@@ -19,7 +19,7 @@ faf-client:
     base-url: https://www.test.faforever.com
 
   api:
-    base-url: http://api.faf.micheljung.ch:10080
+    base-url: https://api.test.faforever.com
     client-id: 3bc8282c-7730-11e5-8bcf-feff819cdc9f
     client-secret: 6035bd78-7730-11e5-8bcf-feff819cdc9f
 
