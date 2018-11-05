@@ -131,6 +131,7 @@ img.country-flag {
 
 .chat-section.compact td.author {
   vertical-align: top;
+  min-width: 200px;
 }
 
 .chat-section.compact td.author * {
