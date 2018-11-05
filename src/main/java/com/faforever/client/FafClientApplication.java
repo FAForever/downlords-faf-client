@@ -7,6 +7,7 @@ import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
+import com.faforever.client.ui.taskbar.WindowsTaskbarProgressUpdater;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.text.Font;
@@ -35,7 +36,6 @@ public class FafClientApplication extends Application {
   public static final String PROFILE_LOCAL = "local";
   public static final String PROFILE_OFFLINE = "offline";
   public static final String PROFILE_WINDOWS = "windows";
-  public static final String PROFILE_WINDOWS_7 = "windows7";
   public static final String PROFILE_LINUX = "linux";
   public static final String PROFILE_MAC = "mac";
 
@@ -51,9 +51,6 @@ public class FafClientApplication extends Application {
 
     if (org.bridj.Platform.isWindows()) {
       additionalProfiles.add(PROFILE_WINDOWS);
-      if (org.bridj.Platform.isWindows7()) {
-        additionalProfiles.add(PROFILE_WINDOWS_7);
-      }
     } else if (org.bridj.Platform.isLinux()) {
       additionalProfiles.add(PROFILE_LINUX);
     } else if (org.bridj.Platform.isMacOSX()) {
@@ -78,6 +75,8 @@ public class FafClientApplication extends Application {
     StageHolder.setStage(stage);
     stage.initStyle(StageStyle.UNDECORATED);
     showMainWindow();
+    JavaFxUtil.fixJDK8089296();
+    applicationContext.getBean(WindowsTaskbarProgressUpdater.class).initTaskBar();
   }
 
   @Bean

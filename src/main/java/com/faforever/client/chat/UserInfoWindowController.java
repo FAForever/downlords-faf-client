@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import ch.micheljung.fxborderlessscene.borderless.BorderlessScene;
 import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.achievements.AchievementService.AchievementState;
@@ -11,7 +12,6 @@ import com.faforever.client.events.EventService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.OffsetDateTimeCell;
-import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -82,7 +82,6 @@ import static com.faforever.client.events.EventService.EVENT_SERAPHIM_PLAYS;
 import static com.faforever.client.events.EventService.EVENT_SERAPHIM_WINS;
 import static com.faforever.client.events.EventService.EVENT_UEF_PLAYS;
 import static com.faforever.client.events.EventService.EVENT_UEF_WINS;
-import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 import static javafx.collections.FXCollections.observableList;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -467,9 +466,8 @@ public class UserInfoWindowController implements Controller<Node> {
     userInfoWindow.initModality(Modality.NONE);
     userInfoWindow.initOwner(ownerWindow);
 
-    WindowController windowController = uiService.loadFxml("theme/window.fxml");
-    windowController.configure(userInfoWindow, userInfoRoot, true, CLOSE);
-
+    BorderlessScene scene = uiService.createScene(userInfoWindow, userInfoRoot);
+    userInfoWindow.setScene(scene);
     userInfoWindow.show();
   }
 

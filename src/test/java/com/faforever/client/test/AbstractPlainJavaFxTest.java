@@ -39,9 +39,20 @@ public abstract class AbstractPlainJavaFxTest extends ApplicationTest {
     this.stage = stage;
     StageHolder.setStage(stage);
 
-    scene = new Scene(getRoot(), 1, 1);
+    scene = createScene(stage);
     stage.setScene(scene);
-    stage.show();
+
+    if (showStage()) {
+      stage.show();
+    }
+  }
+
+  protected Scene createScene(Stage stage) {
+    return new Scene(getRoot(), 1, 1);
+  }
+
+  protected boolean showStage() {
+    return true;
   }
 
   protected Pane getRoot() {

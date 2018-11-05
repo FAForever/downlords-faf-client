@@ -1,9 +1,9 @@
 package com.faforever.client.main;
 
+import ch.micheljung.fxborderlessscene.borderless.BorderlessScene;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.GamePathHandler;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -34,11 +34,13 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Region;
 import javafx.stage.Screen;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
@@ -51,8 +53,6 @@ import org.testfx.util.WaitForAsyncUtils;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static java.util.Collections.singletonList;
@@ -62,12 +62,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyVararg;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -105,8 +103,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private LoginController loginController;
   @Mock
-  private WindowController windowController;
-  @Mock
   private UiService uiService;
   @Mock
   private EventBus eventBus;
@@ -115,8 +111,13 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ChatController chatController;
   private MainController instance;
-  private CountDownLatch mainControllerInitializedLatch;
   private BooleanProperty gameRunningProperty;
+
+  @Override
+  protected boolean showStage() {
+    // Don't show the stage yet as it will be done by MainController.display()
+    return false;
+  }
 
   @Before
   public void setUp() throws Exception {
@@ -133,14 +134,18 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
+    when(loginController.getRoot()).thenReturn(new Pane());
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(uiService.loadFxml("theme/window.fxml")).thenReturn(windowController);
+    when(uiService.createScene(any(), any())).thenAnswer(invocation -> {
+      Stage stage = invocation.getArgument(0);
+      Parent root = invocation.getArgument(1);
+      return new BorderlessScene(stage, root, 0, 0);
+    });
     when(preferences.getMainWindow()).thenReturn(mainWindowPrefs);
     when(preferences.getNotification()).thenReturn(notificationPrefs);
     when(gameService.gameRunningProperty()).thenReturn(gameRunningProperty);
     when(uiService.loadFxml("theme/persistent_notifications.fxml")).thenReturn(persistentNotificationsController);
     when(uiService.loadFxml("theme/transient_notifications.fxml")).thenReturn(transientNotificationsController);
-    when(uiService.loadFxml("theme/window.fxml")).thenReturn(windowController);
     when(uiService.loadFxml("theme/settings/settings.fxml")).thenReturn(settingsController);
     when(uiService.loadFxml("theme/login.fxml")).thenReturn(loginController);
     when(uiService.loadFxml("theme/chat/chat.fxml")).thenReturn(chatController);
@@ -151,13 +156,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
       }
       return mock(clazz);
     });
-
-    mainControllerInitializedLatch = new CountDownLatch(1);
-    // As the login check is executed AFTER the main controller has been switched to logged in state, we hook to it
-    doAnswer(invocation -> {
-      mainControllerInitializedLatch.countDown();
-      return null;
-    }).when(clientUpdateService).checkForUpdateInBackground();
+    WaitForAsyncUtils.asyncFx(() -> instance.display());
+    WaitForAsyncUtils.waitForFxEvents();
   }
 
   @Test
@@ -188,28 +188,27 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
   private void fakeLogin() throws InterruptedException {
     instance.onLoginSuccessEvent(new LoginSuccessEvent("junit", "", 1));
-    assertTrue(mainControllerInitializedLatch.await(3000, TimeUnit.SECONDS));
+    WaitForAsyncUtils.waitForFxEvents();
   }
 
   @Test
   public void testOnNotificationsButtonClicked() throws Exception {
-    attachToRoot();
-    WaitForAsyncUtils.waitForAsyncFx(1000, instance::onNotificationsButtonClicked);
+    fakeLogin();
+    WaitForAsyncUtils.asyncFx(instance::onNotificationsButtonClicked);
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.persistentNotificationsPopup.isShowing(), is(true));
   }
 
   @Test
   public void testOnSettingsItemSelected() throws Exception {
-    attachToRoot();
+    fakeLogin();
+
     Pane root = new Pane();
     when(settingsController.getRoot()).thenReturn(root);
     WaitForAsyncUtils.waitForAsyncFx(1000, instance::onSettingsSelected);
 
-    verify(windowController).configure(
-        any(), eq(root), eq(true), eq(WindowController.WindowButtonType.CLOSE)
-    );
-    verify(windowController).setOnHiding(any(EventHandler.class));
+    verify(uiService).createScene(any(), eq(root));
   }
 
   @Test
@@ -309,33 +308,24 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(mainWindowPrefs.getY()).thenReturn(visualBounds.getMaxY() + 1);
     when(mainWindowPrefs.getX()).thenReturn(visualBounds.getMaxX() + 1);
 
-    doAnswer(invocation -> {
-      getRoot().getChildren().setAll((Region) invocation.getArgument(1));
-      return null;
-    }).when(windowController).configure(any(), any(), anyBoolean(), anyVararg());
+    WaitForAsyncUtils.asyncFx(() -> instance.display());
+    WaitForAsyncUtils.waitForFxEvents();
+    fakeLogin();
 
-    CountDownLatch latch = new CountDownLatch(1);
-    Platform.runLater(() -> {
-      instance.display();
-      latch.countDown();
-    });
-
-    assertTrue(latch.await(5, TimeUnit.SECONDS));
-
-    verify(windowController).configure(any(), any(), anyBoolean(), anyVararg());
+    // Twice; once from setUp(), once from above
+    verify(uiService, times(2)).createScene(any(), any());
 
     Window window = instance.getRoot().getScene().getWindow();
     Rectangle2D bounds = new Rectangle2D(window.getX(), window.getY(), window.getWidth(), window.getHeight());
     assertTrue(Screen.getPrimary().getBounds().contains(bounds));
 
-    //trying faulty restore
-    CountDownLatch restoreLatch = new CountDownLatch(1);
-    Platform.runLater(() -> {
-      StageHolder.getStage().setMaximized(true);
-      StageHolder.getStage().setMaximized(false);
-      restoreLatch.countDown();
+    // Test if maximize/restore also centers
+    WaitForAsyncUtils.asyncFx(() -> {
+      BorderlessScene scene = (BorderlessScene) StageHolder.getStage().getScene();
+      scene.maximizeStage();
+      scene.maximizeStage();
     });
-    assertTrue(latch.await(5, TimeUnit.SECONDS));
+    WaitForAsyncUtils.waitForFxEvents();
 
     Rectangle2D newBounds = new Rectangle2D(window.getX(), window.getY(), window.getWidth(), window.getHeight());
     assertTrue(Screen.getPrimary().getBounds().contains(newBounds));

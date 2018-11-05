@@ -1,8 +1,8 @@
 package com.faforever.client.mod;
 
+import ch.micheljung.fxborderlessscene.borderless.BorderlessScene;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.mod.event.ModUploadedEvent;
@@ -47,8 +47,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -224,9 +222,8 @@ public class ModVaultController extends AbstractViewController<Node> {
     modUploadWindow.initModality(Modality.NONE);
     modUploadWindow.initOwner(getRoot().getScene().getWindow());
 
-    WindowController windowController = uiService.loadFxml("theme/window.fxml");
-    windowController.configure(modUploadWindow, modUploadController.getRoot(), true, CLOSE);
-
+    BorderlessScene scene = uiService.createScene(modUploadWindow, modUploadController.getRoot());
+    modUploadWindow.setScene(scene);
     modUploadWindow.show();
   }
 

@@ -2,7 +2,6 @@ package com.faforever.client.map;
 
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.ShowLadderMapsEvent;
@@ -47,8 +46,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -229,8 +226,7 @@ public class MapVaultController extends AbstractViewController<Node> {
     mapUploadWindow.initModality(Modality.NONE);
     mapUploadWindow.initOwner(getRoot().getScene().getWindow());
 
-    WindowController windowController = uiService.loadFxml("theme/window.fxml");
-    windowController.configure(mapUploadWindow, mapUploadController.getRoot(), true, CLOSE);
+    uiService.createScene(mapUploadWindow, mapUploadController.getRoot());
 
     mapUploadWindow.show();
   }

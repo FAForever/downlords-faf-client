@@ -5,7 +5,6 @@ import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringListCell;
-import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
@@ -50,7 +49,6 @@ import java.net.URL;
 import java.util.Objects;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
-import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 import static com.faforever.client.player.SocialStatus.FOE;
 import static com.faforever.client.player.SocialStatus.FRIEND;
 import static com.faforever.client.player.SocialStatus.SELF;
@@ -233,8 +231,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     userInfoWindow.initModality(Modality.NONE);
     userInfoWindow.initOwner(chatUserContextMenuRoot.getOwnerWindow());
 
-    WindowController windowController = uiService.loadFxml("theme/window.fxml");
-    windowController.configure(userInfoWindow, userInfoWindowController.getRoot(), true, CLOSE);
+    uiService.createScene(userInfoWindow, userInfoWindowController.getRoot());
 
     userInfoWindow.show();
   }
