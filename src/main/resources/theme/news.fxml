@@ -12,7 +12,7 @@
   <children>
       <SplitPane dividerPositions="0.2" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
           <items>
-              <JFXListView fx:id="newsListView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="100.0" prefWidth="240.0" />
+              <JFXListView fx:id="newsListView" styleClass="news-list" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="100.0" prefWidth="240.0" />
               <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                   <children>
                       <WebView fx:id="newsDetailWebView" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
