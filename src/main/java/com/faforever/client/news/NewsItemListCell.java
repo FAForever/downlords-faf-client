@@ -9,6 +9,7 @@ public class NewsItemListCell extends ListCell<NewsItem> {
 
   public NewsItemListCell(UiService uiService) {
     controller = uiService.loadFxml("theme/news_list_item.fxml");
+    setPrefWidth(0);
   }
 
   @Override
