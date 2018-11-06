@@ -1,6 +1,5 @@
 package com.faforever.client.mod;
 
-import ch.micheljung.fxborderlessscene.borderless.BorderlessScene;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
@@ -21,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.jfoenix.controls.JFXDialog;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -28,10 +28,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +75,7 @@ public class ModVaultController extends AbstractViewController<Node> {
   public Pane highestRatedUiPane;
   public Pane newestPane;
   public Pane highestRatedPane;
-  public Pane modVaultRoot;
+  public StackPane modVaultRoot;
   public ScrollPane scrollPane;
   public Button backButton;
   public SearchController searchController;
@@ -218,13 +216,9 @@ public class ModVaultController extends AbstractViewController<Node> {
     ModUploadController modUploadController = uiService.loadFxml("theme/vault/mod/mod_upload.fxml");
     modUploadController.setModPath(path);
 
-    Stage modUploadWindow = new Stage(StageStyle.TRANSPARENT);
-    modUploadWindow.initModality(Modality.NONE);
-    modUploadWindow.initOwner(getRoot().getScene().getWindow());
-
-    BorderlessScene scene = uiService.createScene(modUploadWindow, modUploadController.getRoot());
-    modUploadWindow.setScene(scene);
-    modUploadWindow.show();
+    Node root = modUploadController.getRoot();
+    JFXDialog dialog = uiService.showInDialog(modVaultRoot, root, i18n.get("modVault.upload.title"));
+    modUploadController.setOnCancelButtonClickedListener(dialog::close);
   }
 
   public void onRefreshButtonClicked() {
