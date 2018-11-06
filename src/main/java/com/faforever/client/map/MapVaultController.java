@@ -18,6 +18,7 @@ import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.google.common.collect.Iterators;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.jfoenix.controls.JFXDialog;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -28,10 +29,8 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -79,7 +78,7 @@ public class MapVaultController extends AbstractViewController<Node> {
   public Pane newestPane;
   public Pane mostPlayedPane;
   public Pane mostLikedPane;
-  public Pane mapVaultRoot;
+  public StackPane mapVaultRoot;
   public ScrollPane scrollPane;
   public Button backButton;
   public SearchController searchController;
@@ -222,13 +221,9 @@ public class MapVaultController extends AbstractViewController<Node> {
     MapUploadController mapUploadController = uiService.loadFxml("theme/vault/map/map_upload.fxml");
     mapUploadController.setMapPath(path);
 
-    Stage mapUploadWindow = new Stage(StageStyle.TRANSPARENT);
-    mapUploadWindow.initModality(Modality.NONE);
-    mapUploadWindow.initOwner(getRoot().getScene().getWindow());
-
-    uiService.createScene(mapUploadWindow, mapUploadController.getRoot());
-
-    mapUploadWindow.show();
+    Node root = mapUploadController.getRoot();
+    JFXDialog dialog = uiService.showInDialog(mapVaultRoot, root, i18n.get("mapVault.upload.title"));
+//    mapUploadController.setOnCloseButtonClickedListener(dialog::close);
   }
 
   public void onRefreshButtonClicked() {

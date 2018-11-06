@@ -8,6 +8,9 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.github.nocatch.NoCatch.NoCatchRunnable;
 import com.jfoenix.assets.JFoenixResources;
+import com.jfoenix.controls.JFXDialog;
+import com.jfoenix.controls.JFXDialog.DialogTransition;
+import com.jfoenix.controls.JFXDialogLayout;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -16,9 +19,13 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import lombok.SneakyThrows;
@@ -438,5 +445,24 @@ public class UiService {
     scene.setMoveControl(mainRoot);
     registerScene(scene);
     return scene;
+  }
+
+  public JFXDialog showInDialog(StackPane parent, Node content, String title) {
+    JFXDialogLayout dialogLayout = new JFXDialogLayout();
+    dialogLayout.setHeading(new Label(title));
+    dialogLayout.setBody(content);
+
+    JFXDialog dialog = new JFXDialog();
+    dialog.setContent(dialogLayout);
+    dialog.setTransitionType(DialogTransition.TOP);
+
+    parent.setOnKeyPressed(event -> {
+      if (event.getCode() == KeyCode.ESCAPE) {
+        dialog.close();
+      }
+    });
+
+    dialog.show(parent);
+    return dialog;
   }
 }
