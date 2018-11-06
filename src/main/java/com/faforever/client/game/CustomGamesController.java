@@ -13,8 +13,6 @@ import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.jfoenix.controls.JFXDialog;
-import com.jfoenix.controls.JFXDialog.DialogTransition;
-import com.jfoenix.controls.JFXDialogLayout;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
@@ -24,11 +22,9 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -197,22 +193,8 @@ public class CustomGamesController extends AbstractViewController<Node> {
     }
 
     Pane root = createGameController.getRoot();
-    JFXDialogLayout dialogLayout = new JFXDialogLayout();
-    dialogLayout.setHeading(new Label(i18n.get("games.create")));
-    dialogLayout.setBody(root);
-
-    JFXDialog dialog = new JFXDialog();
-    dialog.setContent(dialogLayout);
-    dialog.setTransitionType(DialogTransition.TOP);
-
-    createGameController.setOnClosedButtonClickedListener(dialog::close);
-    gamesRoot.setOnKeyPressed(event -> {
-      if (event.getCode() == KeyCode.ESCAPE) {
-        dialog.close();
-      }
-    });
-
-    dialog.show(gamesRoot);
+    JFXDialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("games.create"));
+    createGameController.setOnCloseButtonClickedListener(dialog::close);
 
     root.requestFocus();
   }

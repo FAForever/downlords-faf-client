@@ -95,7 +95,7 @@ public class CreateGameController implements Controller<Pane> {
   public CheckBox onlyForFriendsCheckBox;
   @VisibleForTesting
   FilteredList<MapBean> filteredMapBeans;
-  private Runnable onClosedButtonClickedListener;
+  private Runnable onCloseButtonClickedListener;
   private PreferenceUpdateListener preferenceUpdateListener;
   /**
    * Remembers if the controller's init method was called, to avoid memory leaks by adding several listeners
@@ -173,7 +173,7 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   public void onCloseButtonClicked() {
-    onClosedButtonClickedListener.run();
+    onCloseButtonClickedListener.run();
   }
 
 
@@ -424,7 +424,7 @@ public class CreateGameController implements Controller<Pane> {
     return true;
   }
 
-  void setOnClosedButtonClickedListener(Runnable onClosedButtonClickedListener) {
-    this.onClosedButtonClickedListener = onClosedButtonClickedListener;
+  void setOnCloseButtonClickedListener(Runnable onCloseButtonClickedListener) {
+    this.onCloseButtonClickedListener = onCloseButtonClickedListener;
   }
 }
