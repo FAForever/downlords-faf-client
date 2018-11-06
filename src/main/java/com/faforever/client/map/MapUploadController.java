@@ -30,7 +30,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.concurrent.CancellationException;
@@ -70,8 +69,8 @@ public class MapUploadController implements Controller<Node> {
   private Path mapPath;
   private MapBean mapInfo;
   private CompletableTask<Void> uploadMapTask;
+  private Runnable cancelButtonClickedListener;
 
-  @Inject
   public MapUploadController(MapService mapService, ThreadPoolExecutor threadPoolExecutor, NotificationService notificationService, ReportingService reportingService, I18n i18n, EventBus eventBus) {
     this.mapService = mapService;
     this.threadPoolExecutor = threadPoolExecutor;
@@ -207,10 +206,14 @@ public class MapUploadController implements Controller<Node> {
   }
 
   public void onCancelClicked() {
-    getRoot().getScene().getWindow().hide();
+    cancelButtonClickedListener.run();
   }
 
   public Region getRoot() {
     return mapUploadRoot;
+  }
+
+  void setOnCancelButtonClickedListener(Runnable cancelButtonClickedListener) {
+    this.cancelButtonClickedListener = cancelButtonClickedListener;
   }
 }

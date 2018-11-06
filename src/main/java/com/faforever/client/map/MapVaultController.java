@@ -223,7 +223,7 @@ public class MapVaultController extends AbstractViewController<Node> {
 
     Node root = mapUploadController.getRoot();
     JFXDialog dialog = uiService.showInDialog(mapVaultRoot, root, i18n.get("mapVault.upload.title"));
-//    mapUploadController.setOnCloseButtonClickedListener(dialog::close);
+    mapUploadController.setOnCancelButtonClickedListener(dialog::close);
   }
 
   public void onRefreshButtonClicked() {

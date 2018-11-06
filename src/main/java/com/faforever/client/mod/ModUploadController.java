@@ -38,7 +38,7 @@ import static java.util.Arrays.asList;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class ModUploadController  implements Controller<Node> {
+public class ModUploadController implements Controller<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final ModService modService;
@@ -63,6 +63,7 @@ public class ModUploadController  implements Controller<Node> {
   private Path modPath;
   private CompletableTask<Void> modUploadTask;
   private ModVersion modVersionInfo;
+  private Runnable cancelButtonClickedListener;
 
   @Inject
   public ModUploadController(ModService modService, ThreadPoolExecutor threadPoolExecutor, NotificationService notificationService, ReportingService reportingService, I18n i18n, EventBus eventBus) {
@@ -187,10 +188,14 @@ public class ModUploadController  implements Controller<Node> {
   }
 
   public void onCancelClicked() {
-    getRoot().getScene().getWindow().hide();
+    cancelButtonClickedListener.run();
   }
 
   public Region getRoot() {
     return modUploadRoot;
+  }
+
+  public void setOnCancelButtonClickedListener(Runnable cancelButtonClickedListener) {
+    this.cancelButtonClickedListener = cancelButtonClickedListener;
   }
 }
