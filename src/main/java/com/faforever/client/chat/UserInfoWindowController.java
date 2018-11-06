@@ -187,17 +187,6 @@ public class UserInfoWindowController implements Controller<Node> {
         unlockedAchievementsHeaderLabel.setText(i18n.get("achievements.unlocked", unlockedAchievementsContainer.getChildren().size()))
     );
 
-    JavaFxUtil.addListener(getRoot().sceneProperty(), (observable, oldValue, newValue) -> {
-      if (newValue != null) {
-        JavaFxUtil.addListener(newValue.getWindow().showingProperty(), (observable11, oldValue11, newValue11) -> {
-          if (!newValue11) {
-            // Fixes #241
-            userInfoRoot.getChildren().clear();
-          }
-        });
-      }
-    });
-
     nameColumn.setCellValueFactory(param -> param.getValue().nameProperty());
     changeDateColumn.setCellValueFactory(param -> param.getValue().changeDateProperty());
     changeDateColumn.setCellFactory(param -> new OffsetDateTimeCell<>(timeService));
@@ -469,6 +458,11 @@ public class UserInfoWindowController implements Controller<Node> {
     BorderlessScene scene = uiService.createScene(userInfoWindow, userInfoRoot);
     userInfoWindow.setScene(scene);
     userInfoWindow.show();
+    userInfoWindow.showingProperty().addListener((observable, oldValue, newValue) -> {
+      if(!newValue) {
+        userInfoRoot.getChildren().clear();
+      }
+    });
   }
 
   public void setOwnerWindow(Window ownerWindow) {
