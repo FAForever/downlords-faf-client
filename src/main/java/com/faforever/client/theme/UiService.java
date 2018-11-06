@@ -21,7 +21,6 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import lombok.SneakyThrows;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
