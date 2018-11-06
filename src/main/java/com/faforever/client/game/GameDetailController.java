@@ -12,6 +12,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ProgrammingError;
 import com.faforever.client.vault.replay.WatchButtonController;
 import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -141,11 +142,13 @@ public class GameDetailController implements Controller<Pane> {
         () -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE),
         game.mapFolderNameProperty()
     ));
-    gameTypeLabel.textProperty().bind(createStringBinding(() -> {
-      FeaturedMod gameType = modService.getFeaturedMod(game.getFeaturedMod()).get();
-      String fullName = gameType != null ? gameType.getDisplayName() : null;
-      return StringUtils.defaultString(fullName);
-    }, game.featuredModProperty()));
+
+    game.featuredModProperty().addListener(observable -> modService.getFeaturedMod(game.getFeaturedMod())
+        .thenAccept(featuredMod -> {
+          gameTypeLabel.setText(i18n.get("loading"));
+          String fullName = featuredMod != null ? featuredMod.getDisplayName() : null;
+          gameTypeLabel.setText(StringUtils.defaultString(fullName));
+        }));
 
     Optional.ofNullable(weakGameStatusListener).ifPresent(listener -> game.getTeams().removeListener(listener));
     Optional.ofNullable(weakTeamListener).ifPresent(listener -> game.statusProperty().removeListener(listener));
