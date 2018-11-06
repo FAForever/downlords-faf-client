@@ -8,7 +8,7 @@
   <columns>
     <TableColumn fx:id="passwordProtectionColumn" editable="false" maxWidth="30.0" minWidth="30.0" prefWidth="20.0"
                  resizable="false"/>
-    <TableColumn fx:id="mapPreviewColumn" editable="false" minWidth="-1.0" prefWidth="36.0" resizable="false"
+    <TableColumn fx:id="mapPreviewColumn" editable="false" minWidth="45.0" prefWidth="45.0" resizable="false"
                  text="%game.map"/>
     <TableColumn fx:id="gameTitleColumn" editable="false" minWidth="20.0" prefWidth="1000.0" text="%game.title"/>
     <TableColumn fx:id="playersColumn" editable="false" minWidth="20.0" prefWidth="100.0" text="%game.players"/>
