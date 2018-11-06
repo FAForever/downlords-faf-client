@@ -191,6 +191,10 @@
   -fx-padding: 0.7em 1em;
   -jfx-button-type: RAISED;
   -fx-background-color: white;
+  -fx-text-fill: -fx-dark-text-color;
+}
+.button-raised .icon {
+  -fx-text-fill: -fx-dark-text-color;
 }
 
 .button:default:hover,
