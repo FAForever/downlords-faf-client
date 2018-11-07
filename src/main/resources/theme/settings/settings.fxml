@@ -17,7 +17,7 @@
 <?import javafx.scene.layout.*?>
 <?import java.lang.String?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="settingsRoot" maxHeight="1.7976931348623157E308" prefHeight="640.0"
-      prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.141"
+      prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.141" styleClass="decorated-window"
       fx:controller="com.faforever.client.preferences.ui.SettingsController">
     <children>
         <HBox styleClass="header">

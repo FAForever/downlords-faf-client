@@ -31,7 +31,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -52,7 +51,6 @@ public class LiveReplayController extends AbstractViewController<Node> {
   public TableColumn<Game, String> hostColumn;
   public TableColumn<Game, Game> watchColumn;
 
-  @Inject
   public LiveReplayController(GameService gameService, UiService uiService, I18n i18n, MapService mapService) {
     this.gameService = gameService;
     this.uiService = uiService;
