@@ -5,14 +5,12 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
-import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ProgrammingError;
 import com.faforever.client.vault.replay.WatchButtonController;
 import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -65,6 +63,9 @@ public class GameDetailController implements Controller<Pane> {
   private WeakInvalidationListener weakTeamListener;
   private WeakInvalidationListener weakGameStatusListener;
   private Node watchButton;
+
+  @SuppressWarnings("FieldCanBeLocal")
+  private InvalidationListener featuredModInvalidationListener;
 
   public GameDetailController(I18n i18n, MapService mapService, ModService modService, PlayerService playerService,
                               UiService uiService, JoinGameHelper joinGameHelper) {
@@ -143,12 +144,14 @@ public class GameDetailController implements Controller<Pane> {
         game.mapFolderNameProperty()
     ));
 
-    game.featuredModProperty().addListener(observable -> modService.getFeaturedMod(game.getFeaturedMod())
+    featuredModInvalidationListener = observable -> modService.getFeaturedMod(game.getFeaturedMod())
         .thenAccept(featuredMod -> {
           gameTypeLabel.setText(i18n.get("loading"));
           String fullName = featuredMod != null ? featuredMod.getDisplayName() : null;
           gameTypeLabel.setText(StringUtils.defaultString(fullName));
-        }));
+        });
+    game.featuredModProperty().addListener(new WeakInvalidationListener(featuredModInvalidationListener));
+    featuredModInvalidationListener.invalidated(game.featuredModProperty());
 
     Optional.ofNullable(weakGameStatusListener).ifPresent(listener -> game.getTeams().removeListener(listener));
     Optional.ofNullable(weakTeamListener).ifPresent(listener -> game.statusProperty().removeListener(listener));
