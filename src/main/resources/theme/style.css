@@ -424,13 +424,13 @@
 
 /***************** Window decoration *****************/
 
-.decorated-window {
+.borderless-window {
   -fx-background-color: -grey-900;
   -fx-border-width: 1;
   -fx-border-color: -fx-box-border;
 }
 
-.decorated-window:maximized {
+.borderless-window:maximized {
   -fx-border-width: 0;
 }
 

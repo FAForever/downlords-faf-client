@@ -442,6 +442,7 @@ public class UiService {
 
   public BorderlessScene createScene(Stage stage, Parent mainRoot) {
     BorderlessScene scene = new BorderlessScene(stage, mainRoot, 0, 0);
+    scene.getRoot().getStyleClass().add("decorated-window");
     scene.setMoveControl(mainRoot);
     registerScene(scene);
     return scene;
