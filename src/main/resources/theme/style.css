@@ -638,8 +638,7 @@
 /***************** Chat User List *****************/
 
 .chat-user-item {
-  -fx-pref-height: 3em;
-  -fx-padding: 0.5em 1em;
+  -fx-padding: 0;
 }
 
 .chat-user-item-status {
