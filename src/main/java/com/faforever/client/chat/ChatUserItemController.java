@@ -63,9 +63,9 @@ import static java.util.Locale.US;
 // TODO null safety for "player"
 public class ChatUserItemController implements Controller<Node> {
 
-  private static final String CLAN_TAG_FORMAT = "[%s]";
   private static final PseudoClass PRESENCE_STATUS_ONLINE = PseudoClass.getPseudoClass("online");
   private static final PseudoClass PRESENCE_STATUS_IDLE = PseudoClass.getPseudoClass("idle");
+  private static final PseudoClass COMPACT = PseudoClass.getPseudoClass("compact");
 
   private final AvatarService avatarService;
   private final CountryFlagService countryFlagService;
@@ -78,6 +78,7 @@ public class ChatUserItemController implements Controller<Node> {
   private final PlatformService platformService;
   private final TimeService timeService;
   private final InvalidationListener colorChangeListener;
+  private final InvalidationListener formatChangeListener;
   private final MapChangeListener<String, Color> colorPerUserMapChangeListener;
   private final ChangeListener<String> avatarChangeListener;
   private final ChangeListener<String> clanChangeListener;
@@ -89,6 +90,7 @@ public class ChatUserItemController implements Controller<Node> {
   private final WeakChangeListener<Player> weakPlayerChangeListener;
   private final WeakInvalidationListener weakUsernameInvalidationListener;
   private final WeakInvalidationListener weakColorInvalidationListener;
+  private final WeakInvalidationListener weakFormatInvalidationListener;
   private final WeakInvalidationListener weakUserActivityListener;
   private final WeakChangeListener<PlayerStatus> weakGameStatusListener;
   private final WeakChangeListener<String> weakAvatarChangeListener;
@@ -130,8 +132,12 @@ public class ChatUserItemController implements Controller<Node> {
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     colorChangeListener = observable -> updateColor();
+    formatChangeListener = observable -> updateFormat();
     weakColorInvalidationListener = new WeakInvalidationListener(colorChangeListener);
+    weakFormatInvalidationListener = new WeakInvalidationListener(formatChangeListener);
+
     JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), weakColorInvalidationListener);
+    JavaFxUtil.addListener(chatPrefs.chatFormatProperty(), weakFormatInvalidationListener);
 
     colorPerUserMapChangeListener = change -> {
       String lowerUsername = chatUser.getUsername().toLowerCase(US);
@@ -199,6 +205,13 @@ public class ChatUserItemController implements Controller<Node> {
     weakUsernameInvalidationListener = new WeakInvalidationListener(usernameInvalidationListener);
   }
 
+  private void updateFormat() {
+    getRoot().pseudoClassStateChanged(
+        COMPACT,
+        preferencesService.getPreferences().getChat().getChatFormat() == ChatFormat.COMPACT
+    );
+  }
+
   public void initialize() {
     // TODO until server side support is available, the presence status is initially set to "unknown" until the user
     // does something
@@ -212,6 +225,10 @@ public class ChatUserItemController implements Controller<Node> {
     statusLabel.visibleProperty().bind(statusLabel.textProperty().isNotEmpty());
     clanMenu.managedProperty().bind(clanMenu.visibleProperty());
     clanMenu.setVisible(false);
+
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+    weakColorInvalidationListener.invalidated(chatPrefs.chatColorModeProperty());
+    weakFormatInvalidationListener.invalidated(chatPrefs.chatFormatProperty());
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {
