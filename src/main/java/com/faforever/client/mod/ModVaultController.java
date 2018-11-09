@@ -5,11 +5,8 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.mod.event.ModUploadedEvent;
-import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateErrorNotification;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.SearchableProperties;
 import com.faforever.client.reporting.ReportingService;
@@ -40,7 +37,6 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -289,13 +285,18 @@ public class ModVaultController extends AbstractViewController<Node> {
   }
 
   private void displayModsFromSupplier(Supplier<CompletableFuture<List<ModVersion>>> modsSupplier) {
+    currentPage = 0;
     this.currentSupplier = modsSupplier;
     modsSupplier.get()
         .thenAccept(this::displayMods)
-        .exceptionally(e -> {
-          notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
-              i18n.get("vault.mods.searchError"), Severity.ERROR, e,
-              Collections.singletonList(new DismissAction(i18n))));
+        .exceptionally(throwable -> {
+          notificationService.addNotification(new ImmediateErrorNotification(
+              i18n.get("errorTitle"),
+              i18n.get("vault.mods.searchError"),
+              throwable,
+              i18n,
+              reportingService
+          ));
           enterShowroomState();
           return null;
         });
@@ -316,10 +317,11 @@ public class ModVaultController extends AbstractViewController<Node> {
           appendSearchResult(mods, searchResultPane);
           enterSearchResultState();
         })
-        .exceptionally(e -> {
-          notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
-              i18n.get("vault.mod.searchError"), Severity.ERROR, e,
-              Collections.singletonList(new DismissAction(i18n))));
+        .exceptionally(throwable -> {
+          notificationService.addNotification(new ImmediateErrorNotification(
+              i18n.get("errorTitle"), i18n.get("vault.mods.searchError"),
+              throwable, i18n, reportingService
+          ));
           enterShowroomState();
           return null;
         });

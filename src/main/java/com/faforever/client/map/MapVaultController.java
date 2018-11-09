@@ -14,7 +14,6 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
-import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.google.common.collect.Iterators;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -37,7 +36,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
@@ -85,12 +83,9 @@ public class MapVaultController extends AbstractViewController<Node> {
   public Button moreButton;
   public FlowPane ladderPane;
   private MapDetailController mapDetailController;
-  private String query;
   private int currentPage;
   private Supplier<CompletableFuture<List<MapBean>>> currentSupplier;
-  private SortConfig sortConfig;
 
-  @Inject
   public MapVaultController(MapService mapService, I18n i18n, EventBus eventBus, PreferencesService preferencesService,
                             UiService uiService, NotificationService notificationService, ReportingService reportingService) {
     this.mapService = mapService;
@@ -133,10 +128,9 @@ public class MapVaultController extends AbstractViewController<Node> {
   }
 
   private void searchByQuery(SearchConfig searchConfig) {
-    this.query = searchConfig.getSearchQuery() + ";latestVersion.hidden==\"false\"";
-    this.sortConfig = searchConfig.getSortConfig();
+    SearchConfig newSearchConfig = new SearchConfig(searchConfig.getSortConfig(), searchConfig.getSearchQuery() + ";latestVersion.hidden==\"false\"");
     enterLoadingState();
-    displayMapsFromSupplier(() -> mapService.findByQuery(query, ++currentPage, MAX_SEARCH_RESULTS, sortConfig));
+    displayMapsFromSupplier(() -> mapService.findByQuery(newSearchConfig, ++currentPage, MAX_SEARCH_RESULTS));
   }
 
   @Override
@@ -233,7 +227,17 @@ public class MapVaultController extends AbstractViewController<Node> {
         displayShowroomMaps();
         break;
       case SEARCH_RESULT:
-        displayMapsFromSupplier(() -> mapService.findByQuery(query, 1, MAX_SEARCH_RESULTS, sortConfig));
+        currentPage--;
+        currentSupplier.get()
+            .thenAccept(this::displayMaps)
+            .exceptionally(throwable -> {
+              notificationService.addNotification(new ImmediateErrorNotification(
+                  i18n.get("errorTitle"), i18n.get("vault.mods.searchError"),
+                  throwable, i18n, reportingService
+              ));
+              enterShowroomState();
+              return null;
+            });
         break;
       default:
         // Do nothing

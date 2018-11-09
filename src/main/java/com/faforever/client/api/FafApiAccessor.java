@@ -109,7 +109,7 @@ public interface FafApiAccessor {
 
   Optional<Clan> getClanByTag(String tag);
 
-  List<Map> findMapsByQuery(String query, int page, int maxResults, SortConfig sortConfig);
+  List<Map> findMapsByQuery(SearchConfig searchConfig, int page, int count);
 
   Optional<MapVersion> findMapVersionById(String id);
 
