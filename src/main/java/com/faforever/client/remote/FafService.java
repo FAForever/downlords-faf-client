@@ -291,8 +291,8 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<List<MapBean>> findMapsByQuery(String query, int page, int maxSearchResults, SortConfig sortConfig) {
-    return CompletableFuture.completedFuture(fafApiAccessor.findMapsByQuery(query, page, maxSearchResults, sortConfig)
+  public CompletableFuture<List<MapBean>> findMapsByQuery(SearchConfig query, int page, int count) {
+    return CompletableFuture.completedFuture(fafApiAccessor.findMapsByQuery(query, page, count)
         .parallelStream()
         .map(MapBean::fromMapDto)
         .collect(toList()));

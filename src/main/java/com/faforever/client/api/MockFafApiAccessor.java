@@ -232,17 +232,17 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public Optional<Clan> getClanByTag(String tag) {
-    return null;
+    return Optional.empty();
   }
 
   @Override
-  public List<Map> findMapsByQuery(String query, int page, int maxResults, SortConfig sortConfig) {
+  public List<Map> findMapsByQuery(SearchConfig searchConfig, int page, int count) {
     return Collections.emptyList();
   }
 
   @Override
   public Optional<MapVersion> findMapVersionById(String id) {
-    return null;
+    return Optional.empty();
   }
 
   @Override

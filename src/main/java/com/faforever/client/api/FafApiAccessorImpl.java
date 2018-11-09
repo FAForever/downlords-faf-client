@@ -428,12 +428,14 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public List<Map> findMapsByQuery(String query, int page, int maxResults, SortConfig sortConfig) {
-    return getPage(MAP_ENDPOINT, maxResults, page, ImmutableMap.of(
-        "filter", query + ";latestVersion.hidden==\"false\"",
-        "include", "latestVersion,latestVersion.reviews,latestVersion.reviews.player,author,statistics",
-        "sort", sortConfig.toQuery()
-    ));
+  public List<Map> findMapsByQuery(SearchConfig searchConfig, int page, int count) {
+    MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
+    if (searchConfig.hasQuery()) {
+      parameterMap.add("filter", searchConfig.getSearchQuery() + ";latestVersion.hidden==\"false\"");
+    }
+    parameterMap.add("include", "latestVersion,latestVersion.reviews,latestVersion.reviews.player,author,statistics,latestVersion.reviewsSummary");
+    parameterMap.add("sort", searchConfig.getSortConfig().toQuery());
+    return getPage(MOD_ENDPOINT, count, page, parameterMap);
   }
 
   @Override

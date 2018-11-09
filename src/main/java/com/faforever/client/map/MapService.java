@@ -15,7 +15,7 @@ import com.faforever.client.task.CompletableTask.Priority;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ProgrammingError;
-import com.faforever.client.vault.search.SearchController.SortConfig;
+import com.faforever.client.vault.search.SearchController.SearchConfig;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -409,8 +409,8 @@ public class MapService {
   }
 
 
-  public CompletableFuture<List<MapBean>> findByQuery(String query, int page, int maxSearchResults, SortConfig sortConfig) {
-    return fafService.findMapsByQuery(query, page, maxSearchResults, sortConfig);
+  public CompletableFuture<List<MapBean>> findByQuery(SearchConfig searchConfig, int page, int count) {
+    return fafService.findMapsByQuery(searchConfig, page, count);
   }
 
 
