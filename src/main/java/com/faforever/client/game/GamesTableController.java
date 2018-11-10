@@ -185,7 +185,7 @@ public class GamesTableController implements Controller<Node> {
 
   private TableCell<Game, Boolean> passwordIndicatorColumn() {
     return new StringCell<>(
-        isPasswordProtected -> isPasswordProtected ? i18n.get("game.protected.symbol") : "",
+        isPasswordProtected -> isPasswordProtected ? "\uD83D\uDD12" : "",
         Pos.CENTER, UiService.CSS_CLASS_ICON);
   }
 
