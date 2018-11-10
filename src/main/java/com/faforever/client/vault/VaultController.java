@@ -60,22 +60,22 @@ public class VaultController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void onDisplay(NavigateEvent navigateEvent) {
+  protected void onDisplay(NavigateEvent navigateEvent) {
     isHandlingEvent = true;
 
     try {
       if (Objects.equals(navigateEvent.getClass(), NavigateEvent.class)
           || navigateEvent instanceof OpenMapVaultEvent) {
         vaultRoot.getSelectionModel().select(mapVaultTab);
-        mapVaultController.onDisplay(navigateEvent);
+        mapVaultController.display(navigateEvent);
       }
       if (navigateEvent instanceof OpenModVaultEvent) {
         vaultRoot.getSelectionModel().select(modVaultTab);
-        modVaultController.onDisplay(navigateEvent);
+        modVaultController.display(navigateEvent);
       }
       if (navigateEvent instanceof OpenOnlineReplayVaultEvent) {
         vaultRoot.getSelectionModel().select(onlineReplayVaultTab);
-        onlineReplayVaultController.onDisplay(navigateEvent);
+        onlineReplayVaultController.display(navigateEvent);
       }
     } finally {
       isHandlingEvent = false;

@@ -109,7 +109,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void onDisplay(NavigateEvent navigateEvent) {
+  protected void onDisplay(NavigateEvent navigateEvent) {
     Assert.checkNullIllegalState(ratingType, "ratingType must not be null");
 
     contentPane.setVisible(false);

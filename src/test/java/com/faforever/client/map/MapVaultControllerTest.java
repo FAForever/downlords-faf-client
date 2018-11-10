@@ -126,7 +126,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     waitUntilInitialized(instance.newestPane, latch);
     waitUntilInitialized(instance.mostPlayedPane, latch);
 
-    instance.onDisplay(new OpenMapVaultEvent());
+    instance.display(new OpenMapVaultEvent());
 
     assertTrue(latch.await(5000, TimeUnit.MILLISECONDS));
   }

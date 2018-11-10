@@ -130,7 +130,7 @@ public class ModVaultController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void onDisplay(NavigateEvent navigateEvent) {
+  protected void onDisplay(NavigateEvent navigateEvent) {
     if (initialized) {
       return;
     }

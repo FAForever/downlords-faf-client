@@ -127,7 +127,7 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
     waitUntilInitialized(instance.newestPane, latch);
     waitUntilInitialized(instance.highestRatedPane, latch);
 
-    instance.onDisplay(new OpenModVaultEvent());
+    instance.display(new OpenModVaultEvent());
 
     assertTrue(latch.await(5000, TimeUnit.MILLISECONDS));
   }

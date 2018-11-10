@@ -147,8 +147,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void onDisplay(NavigateEvent navigateEvent) {
-    super.onDisplay(navigateEvent);
+  protected void onDisplay(NavigateEvent navigateEvent) {
     if (state.get() == State.UNINITIALIZED) {
       if (navigateEvent instanceof ShowReplayEvent) {
         state.addListener(new ChangeListener<State>() {

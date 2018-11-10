@@ -80,7 +80,7 @@ public class NewsController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void onDisplay(NavigateEvent navigateEvent) {
+  protected void onDisplay(NavigateEvent navigateEvent) {
     if (!newsListView.getItems().isEmpty()) {
       return;
     }

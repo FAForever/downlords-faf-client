@@ -57,18 +57,18 @@ public class LeaderboardsController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void onDisplay(NavigateEvent navigateEvent) {
+  protected void onDisplay(NavigateEvent navigateEvent) {
     isHandlingEvent = true;
 
     try {
       if (Objects.equals(navigateEvent.getClass(), NavigateEvent.class)
           || navigateEvent instanceof OpenLadder1v1LeaderboardEvent) {
         leaderboardRoot.getSelectionModel().select(ladder1v1LeaderboardTab);
-        ladder1v1LeaderboardController.onDisplay(navigateEvent);
+        ladder1v1LeaderboardController.display(navigateEvent);
       }
       if (navigateEvent instanceof OpenGlobalLeaderboardEvent) {
         leaderboardRoot.getSelectionModel().select(globalLeaderboardTab);
-        globalLeaderboardController.onDisplay(navigateEvent);
+        globalLeaderboardController.display(navigateEvent);
       }
     } finally {
       isHandlingEvent = false;

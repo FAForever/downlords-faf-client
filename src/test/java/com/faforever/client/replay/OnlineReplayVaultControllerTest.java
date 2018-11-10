@@ -119,7 +119,7 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     when(replayService.getNewestReplays(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(replays));
     when(replayService.getHighestRatedReplays(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(replays));
 
-    instance.onDisplay(new OpenOnlineReplayVaultEvent());
+    instance.display(new OpenOnlineReplayVaultEvent());
 
     verify(replayService).getNewestReplays(anyInt(), eq(1));
     verify(replayService).getHighestRatedReplays(anyInt(), eq(1));
@@ -142,7 +142,7 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testShowReplayEventWhenUninitialized() {
     Replay replay = new Replay();
-    instance.onDisplay(new ShowReplayEvent(replay));
+    instance.display(new ShowReplayEvent(replay));
     WaitForAsyncUtils.waitForFxEvents();
     verify(replayDetailController).setReplay(replay);
   }
@@ -150,9 +150,9 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testShowReplayEventWhenInitialized() {
     Replay replay = new Replay();
-    instance.onDisplay(new OpenOnlineReplayVaultEvent());
+    instance.display(new OpenOnlineReplayVaultEvent());
     WaitForAsyncUtils.waitForFxEvents();
-    instance.onDisplay(new ShowReplayEvent(replay));
+    instance.display(new ShowReplayEvent(replay));
     verify(replayDetailController).setReplay(replay);
   }
 

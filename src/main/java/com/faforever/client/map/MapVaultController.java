@@ -134,7 +134,7 @@ public class MapVaultController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void onDisplay(NavigateEvent navigateEvent) {
+  protected void onDisplay(NavigateEvent navigateEvent) {
     if (navigateEvent instanceof ShowLadderMapsEvent) {
       showMoreLadderdMaps();
     } else if (state.get() == State.UNINITIALIZED) {

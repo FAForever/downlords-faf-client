@@ -32,7 +32,7 @@ public class UnitsController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void onDisplay(NavigateEvent navigateEvent) {
+  protected void onDisplay(NavigateEvent navigateEvent) {
     if (Strings.isNullOrEmpty(unitsRoot.getEngine().getLocation())) {
       cookieService.setUpCookieManger();
       loadUnitDataBase(preferencesService.getPreferences().getUnitDataBaseType());

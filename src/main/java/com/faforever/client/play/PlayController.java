@@ -55,26 +55,33 @@ public class PlayController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void onDisplay(NavigateEvent navigateEvent) {
+  protected void onDisplay(NavigateEvent navigateEvent) {
     isHandlingEvent = true;
 
     try {
       if (Objects.equals(navigateEvent.getClass(), NavigateEvent.class)
           || navigateEvent instanceof OpenCustomGamesEvent) {
         playRootTabPane.getSelectionModel().select(customGamesTab);
-        customGamesController.onDisplay(navigateEvent);
+        customGamesController.display(navigateEvent);
       }
       if (navigateEvent instanceof Open1v1Event) {
         playRootTabPane.getSelectionModel().select(ladderTab);
-        ladderController.onDisplay(navigateEvent);
+        ladderController.display(navigateEvent);
       }
       if (navigateEvent instanceof OpenCoopEvent) {
         playRootTabPane.getSelectionModel().select(coopTab);
-        coopController.onDisplay(navigateEvent);
+        coopController.display(navigateEvent);
       }
     } finally {
       isHandlingEvent = false;
     }
+  }
+
+  @Override
+  protected void onHide() {
+    customGamesController.hide();
+    ladderController.hide();
+    coopController.hide();
   }
 
   @Override

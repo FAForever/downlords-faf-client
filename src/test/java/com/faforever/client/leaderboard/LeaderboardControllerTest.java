@@ -53,7 +53,7 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
     instance.ratingTable.itemsProperty().addListener(observable -> loadedLatch.countDown());
     instance.setRatingType(KnownFeaturedMod.LADDER_1V1);
 
-    instance.onDisplay(new OpenLadder1v1LeaderboardEvent());
+    instance.display(new OpenLadder1v1LeaderboardEvent());
 
     assertTrue(loadedLatch.await(3, TimeUnit.SECONDS));
     verifyZeroInteractions(notificationService);
@@ -70,7 +70,7 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
         entry1, entry2
     )));
     instance.setRatingType(KnownFeaturedMod.LADDER_1V1);
-    instance.onDisplay(new OpenLadder1v1LeaderboardEvent());
+    instance.display(new OpenLadder1v1LeaderboardEvent());
 
     assertThat(instance.ratingTable.getSelectionModel().getSelectedItem(), nullValue());
 
@@ -90,7 +90,7 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
         entry1, entry2
     )));
     instance.setRatingType(KnownFeaturedMod.LADDER_1V1);
-    instance.onDisplay(new OpenLadder1v1LeaderboardEvent());
+    instance.display(new OpenLadder1v1LeaderboardEvent());
 
     assertThat(instance.ratingTable.getSelectionModel().getSelectedItem(), nullValue());
 

@@ -82,7 +82,7 @@ public class TournamentsController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void onDisplay(NavigateEvent navigateEvent) {
+  protected void onDisplay(NavigateEvent navigateEvent) {
     if (contentPane.isVisible()) {
       return;
     }

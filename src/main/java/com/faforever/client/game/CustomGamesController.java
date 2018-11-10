@@ -35,7 +35,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
@@ -85,7 +84,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
   private final ChangeListener<Boolean> filterConditionsChangedListener = (observable, oldValue, newValue) -> updateFilteredItems();
   private GamesTilesContainerController gamesTilesContainerController;
 
-  @Inject
   public CustomGamesController(UiService uiService, GameService gameService, PreferencesService preferencesService,
                                EventBus eventBus, I18n i18n) {
     this.uiService = uiService;
@@ -153,10 +151,11 @@ public class CustomGamesController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void onDisplay(NavigateEvent navigateEvent) {
+  protected void onDisplay(NavigateEvent navigateEvent) {
     if (navigateEvent instanceof HostGameEvent) {
       onCreateGame(((HostGameEvent) navigateEvent).getMapFolderName());
     }
+    updateFilteredItems();
   }
 
   private void updateFilteredItems() {
@@ -249,5 +248,11 @@ public class CustomGamesController extends AbstractViewController<Node> {
   @VisibleForTesting
   void setFilteredList(ObservableList<Game> games) {
     filteredItems = new FilteredList<>(games, s -> true);
+  }
+
+  @Override
+  protected void onHide() {
+    // Hide all games to free up memory
+    filteredItems.setPredicate(game -> false);
   }
 }

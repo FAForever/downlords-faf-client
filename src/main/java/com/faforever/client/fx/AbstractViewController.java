@@ -14,7 +14,7 @@ public abstract class AbstractViewController<ROOT extends Node> implements Contr
   /**
    * Subclasses may override in order to perform actions when the view is being displayed.
    */
-  public void onDisplay(NavigateEvent navigateEvent) {
+  protected void onDisplay(NavigateEvent navigateEvent) {
     // To be overridden by subclass
   }
 
