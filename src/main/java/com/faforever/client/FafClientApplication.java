@@ -76,7 +76,11 @@ public class FafClientApplication extends Application {
     stage.initStyle(StageStyle.UNDECORATED);
     showMainWindow();
     JavaFxUtil.fixJDK8089296();
-    applicationContext.getBean(WindowsTaskbarProgressUpdater.class).initTaskBar();
+
+    // TODO publish event instead
+    if (!applicationContext.getBeansOfType(WindowsTaskbarProgressUpdater.class).isEmpty()) {
+      applicationContext.getBean(WindowsTaskbarProgressUpdater.class).initTaskBar();
+    }
   }
 
   @Bean
