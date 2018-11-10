@@ -2,14 +2,17 @@ package com.faforever.client.tournament;
 
 
 import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.google.common.io.CharStreams;
 import javafx.application.Platform;
 import javafx.scene.Node;
+import javafx.scene.control.ListView;
 import javafx.scene.layout.Pane;
 import javafx.scene.web.WebView;
 import lombok.SneakyThrows;
@@ -22,6 +25,7 @@ import org.springframework.stereotype.Component;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.text.MessageFormat;
+import java.util.Comparator;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -34,17 +38,21 @@ public class TournamentsController extends AbstractViewController<Node> {
   private final TournamentService tournamentService;
   private final UiService uiService;
   private final WebViewConfigurer webViewConfigurer;
+  private final PreferencesService preferencesService;
 
   public Pane tournamentRoot;
-  public Pane tournamentListPane;
   public WebView tournamentDetailWebView;
+  public Pane loadingIndicator;
+  public Node contentPane;
+  public ListView<TournamentBean> tournamentListView;
 
-  public TournamentsController(TimeService timeService, I18n i18n, TournamentService tournamentService, UiService uiService, WebViewConfigurer webViewConfigurer) {
+  public TournamentsController(TimeService timeService, I18n i18n, TournamentService tournamentService, UiService uiService, WebViewConfigurer webViewConfigurer, PreferencesService preferencesService) {
     this.timeService = timeService;
     this.i18n = i18n;
     this.tournamentService = tournamentService;
     this.uiService = uiService;
     this.webViewConfigurer = webViewConfigurer;
+    this.preferencesService = preferencesService;
   }
 
   @Override
@@ -54,50 +62,45 @@ public class TournamentsController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
-    super.initialize();
+    contentPane.managedProperty().bind(contentPane.visibleProperty());
+    contentPane.setVisible(false);
+
+    tournamentListView.setCellFactory(param -> new TournamentItemListCell(uiService));
+    tournamentListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> displayTournamentItem(newValue));
+  }
+
+  private void onLoadingStart() {
+    Platform.runLater(() -> loadingIndicator.setVisible(true));
+  }
+
+  private void onLoadingStop() {
+    JavaFxUtil.runLater(() -> {
+      tournamentRoot.getChildren().remove(loadingIndicator);
+      loadingIndicator = null;
+      contentPane.setVisible(true);
+    });
   }
 
   @Override
   public void onDisplay(NavigateEvent navigateEvent) {
-    if (!tournamentListPane.getChildren().isEmpty()) {
+    if (contentPane.isVisible()) {
       return;
     }
+    onLoadingStart();
+
     tournamentDetailWebView.setContextMenuEnabled(false);
     webViewConfigurer.configureWebView(tournamentDetailWebView);
 
     tournamentService.getAllTournaments()
-        .thenAccept(tournaments -> {
-          Platform.runLater(() -> {
-            boolean firstItemSelected = false;
-
-            tournaments.sort((o1, o2) -> -o1.getCreatedAt().compareTo(o2.getCreatedAt()));
-
-            for (TournamentBean tournamentBean : tournaments) {
-              TournamentListItemController tournamentListItemController = createAndAddTournamentItem(tournamentBean);
-
-              if (!firstItemSelected) {
-                tournamentListItemController.onMouseClicked();
-                firstItemSelected = true;
-              }
-            }
-          });
-        }).exceptionally(throwable -> {
-      log.error("Tournaments could not be loaded", throwable);
+        .thenAccept(tournaments -> Platform.runLater(() -> {
+          tournaments.sort(Comparator.comparing(TournamentBean::getCreatedAt));
+          tournamentListView.getItems().setAll(tournaments);
+          tournamentListView.getSelectionModel().selectFirst();
+          onLoadingStop();
+        })).exceptionally(throwable -> {
+      log.warn("Tournaments could not be loaded", throwable);
       return null;
     });
-  }
-
-  private TournamentListItemController createAndAddTournamentItem(TournamentBean tournamentBean) {
-    TournamentListItemController tournamentListItemController = uiService.loadFxml("theme/tournaments/tournament_list_item.fxml");
-    tournamentListItemController.setTournamentBean(tournamentBean);
-    tournamentListItemController.setOnItemSelectedListener((item) -> {
-      tournamentListPane.getChildren().forEach(node -> node.pseudoClassStateChanged(TournamentListItemController.SELECTED_PSEUDO_CLASS, false));
-      displayTournamentItem(item);
-      tournamentListItemController.getRoot().pseudoClassStateChanged(TournamentListItemController.SELECTED_PSEUDO_CLASS, true);
-    });
-
-    tournamentListPane.getChildren().add(tournamentListItemController.getRoot());
-    return tournamentListItemController;
   }
 
   @SneakyThrows
@@ -119,7 +122,13 @@ public class TournamentsController extends AbstractViewController<Node> {
         .replace("{starting-date}", startingDate)
         .replace("{completed-date}", completedDate)
         .replace("{description}", tournamentBean.getDescription())
-        .replace("{tournament-image}", tournamentBean.getLiveImageUrl());
+        .replace("{tournament-image}", tournamentBean.getLiveImageUrl())
+        .replace("{open-on-challonge-label}", i18n.get("tournament.openOnChallonge"))
+        .replace("{game-type-label}", i18n.get("tournament.gameType"))
+        .replace("{starting-at-label}", i18n.get("tournament.startingAt"))
+        .replace("{completed-at-label}", i18n.get("tournament.completedAt"))
+        .replace("{loading-label}", i18n.get("loading"))
+        ;
 
     tournamentDetailWebView.getEngine().loadContent(html);
   }

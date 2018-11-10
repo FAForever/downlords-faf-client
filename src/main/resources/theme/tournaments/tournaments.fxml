@@ -1,27 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.Separator?>
+<?import com.jfoenix.controls.JFXListView?>
+<?import com.jfoenix.controls.JFXSpinner?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.web.WebView?>
-<HBox xmlns:fx="http://javafx.com/fxml/1" fx:id="tournamentRoot" maxHeight="1.7976931348623157E308"
-      maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" xmlns="http://javafx.com/javafx/8.0.111"
-      fx:controller="com.faforever.client.tournament.TournamentsController">
-    <children>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" minHeight="0.0" minWidth="0.0" HBox.hgrow="NEVER">
-            <content>
-                <VBox fx:id="tournamentListPane" minHeight="0.0" minWidth="0.0"/>
-            </content>
-        </ScrollPane>
-        <Separator orientation="VERTICAL"/>
-        <AnchorPane HBox.hgrow="ALWAYS">
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="tournamentRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.tournament.TournamentsController">
+   <children>
+        <VBox fx:id="loadingIndicator" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <children>
-                <WebView fx:id="tournamentDetailWebView" prefHeight="-1.0" prefWidth="-1.0"
-                         AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                         AnchorPane.topAnchor="0.0"/>
+                <JFXSpinner prefHeight="80.0" prefWidth="80.0" />
+                <Label text="%loading">
+                    <VBox.margin>
+                        <Insets bottom="28.0" top="14.0" />
+                    </VBox.margin>
+                </Label>
             </children>
-        </AnchorPane>
-    </children>
-</HBox>
+        </VBox>
+      <SplitPane fx:id="contentPane" dividerPositions="0.2" layoutX="143.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <items>
+             <JFXListView fx:id="tournamentListView" styleClass="tournament-list" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="100.0" prefWidth="240.0" />
+              <AnchorPane maxWidth="1.7976931348623157E308">
+                  <children>
+                      <WebView fx:id="tournamentDetailWebView" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  </children>
+              </AnchorPane>
+         </items>
+      </SplitPane>
+   </children>
+</AnchorPane>

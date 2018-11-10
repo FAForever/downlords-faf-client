@@ -6,37 +6,30 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import java.lang.String?>
-<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="tournamentItemRoot" hgap="20.0" onMouseClicked="#onMouseClicked"
-          xmlns="http://javafx.com/javafx/8.0.111"
-          fx:controller="com.faforever.client.tournament.TournamentListItemController">
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="tournamentItemRoot" hgap="20.0" maxWidth="1.7976931348623157E308" minWidth="0.0" xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.tournament.TournamentListItemController">
     <columnConstraints>
-        <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="10.0"/>
-        <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="10.0" prefWidth="230.0"/>
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="10.0" />
+        <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="100.0" />
     </columnConstraints>
     <rowConstraints>
-        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+        <RowConstraints minHeight="10.0" vgrow="NEVER" />
+        <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
     </rowConstraints>
     <children>
-        <Label fx:id="nameLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0"
-               minWidth="0.0" styleClass="news-item-title" text="&lt;Tournament name&gt;" wrapText="true"
-               GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="TOP"/>
-        <HBox GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.valignment="TOP">
+        <Label fx:id="nameLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" styleClass="tournament-item-title" text="&lt;Tournament name&gt;" wrapText="true" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.valignment="TOP" />
+        <HBox maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.hgrow="ALWAYS" GridPane.valignment="TOP">
             <children>
-                <Label fx:id="statusLabel" styleClass="news-item-authored" text="&lt;Status&gt;"/>
-                <Label fx:id="startingLabel" alignment="CENTER_RIGHT" contentDisplay="RIGHT"
-                       maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0"
-                       minWidth="0.0" styleClass="news-item-authored" text="&lt;Starting on 23.06.2015&gt;"
-                       HBox.hgrow="ALWAYS">
+                <Label fx:id="statusLabel" maxWidth="1.7976931348623157E308" styleClass="news-item-authored" text="&lt;Status&gt;" HBox.hgrow="ALWAYS" />
+                <Label fx:id="startingLabel" alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" styleClass="news-item-authored" text="&lt;Starting on 23.06.2015&gt;">
                     <graphic>
-                        <Label styleClass="icon, small" text=""/>
+                        <Label styleClass="icon, small" text="" />
                     </graphic>
                 </Label>
             </children>
         </HBox>
     </children>
     <styleClass>
-        <String fx:value="tournament-item"/>
-        <String fx:value="pointable"/>
+        <String fx:value="tournament-item" />
+        <String fx:value="pointable" />
     </styleClass>
 </GridPane>

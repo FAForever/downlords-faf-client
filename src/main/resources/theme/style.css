@@ -792,7 +792,7 @@
   -fx-border-color: transparent transparent -divider-color -dimmed-accent;
 }
 
-.news-list .list-cell:filled:selected .news-item, .tournament-item:selected {
+.news-list .list-cell:filled:selected .news-item, .tournament-list .list-cell:filled:selected .tournament-item {
   -fx-border-width: 0 0 1 4;
   -fx-padding: 20 10 20 6;
   -fx-border-color: transparent transparent -divider-color -fx-accent;
