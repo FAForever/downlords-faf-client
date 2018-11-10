@@ -103,7 +103,7 @@ public class GameTileController implements Controller<Node> {
         game.maxPlayersProperty()
     ));
     mapImageView.imageProperty().bind(createObjectBinding(
-        () -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE),
+        () -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL),
         game.mapFolderNameProperty()
     ));
 
