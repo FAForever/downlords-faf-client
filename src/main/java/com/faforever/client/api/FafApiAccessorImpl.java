@@ -435,7 +435,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     }
     parameterMap.add("include", "latestVersion,latestVersion.reviews,latestVersion.reviews.player,author,statistics,latestVersion.reviewsSummary");
     parameterMap.add("sort", searchConfig.getSortConfig().toQuery());
-    return getPage(MOD_ENDPOINT, count, page, parameterMap);
+    return getPage(MAP_ENDPOINT, count, page, parameterMap);
   }
 
   @Override
