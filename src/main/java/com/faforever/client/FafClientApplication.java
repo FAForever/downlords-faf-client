@@ -8,6 +8,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.taskbar.WindowsTaskbarProgressUpdater;
+import com.github.nocatch.NoCatch.NoCatchRunnable;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.text.Font;
@@ -24,6 +25,9 @@ import org.springframework.context.annotation.Bean;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+
+import static com.github.nocatch.NoCatch.noCatch;
 
 @SpringBootApplication(exclude = {
     JmxAutoConfiguration.class,
@@ -64,10 +68,17 @@ public class FafClientApplication extends Application {
     Font.loadFont(FafClientApplication.class.getResourceAsStream("/font/dfc-icons.ttf"), 10);
     JavaFxUtil.fixTooltipDuration();
 
-    Platform.runLater(() -> applicationContext = new SpringApplicationBuilder(FafClientApplication.class)
-        .profiles(getAdditionalProfiles())
-        .bannerMode(Mode.OFF)
-        .run(getParameters().getRaw().toArray(new String[0])));
+    CountDownLatch runAndWaitLatch = new CountDownLatch(1);
+
+    Platform.runLater(() -> {
+      applicationContext = new SpringApplicationBuilder(FafClientApplication.class)
+          .profiles(getAdditionalProfiles())
+          .bannerMode(Mode.OFF)
+          .run(getParameters().getRaw().toArray(new String[0]));
+      runAndWaitLatch.countDown();
+    });
+
+    noCatch((NoCatchRunnable) runAndWaitLatch::await);
   }
 
   @Override
