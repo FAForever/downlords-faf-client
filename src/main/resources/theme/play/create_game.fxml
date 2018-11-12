@@ -45,7 +45,9 @@
         <Label styleClass="h2" text="%game.create.map" GridPane.columnIndex="2" GridPane.rowIndex="3" />
         <JFXTextField fx:id="mapSearchTextField" promptText="%game.create.searchMap" GridPane.columnIndex="2" GridPane.rowIndex="4" />
         <ListView fx:id="mapListView" maxHeight="1.7976931348623157E308" prefHeight="100.0" GridPane.columnIndex="2" GridPane.rowIndex="5" GridPane.rowSpan="2" GridPane.vgrow="ALWAYS" />
-        <JFXButton fx:id="createGameButton1" layoutX="828.0" layoutY="462.0" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onCreateButtonClicked" text="%cancel" GridPane.columnIndex="3" GridPane.rowIndex="7" />
+        <JFXButton layoutX="828.0" layoutY="462.0" maxWidth="1.7976931348623157E308"
+                   mnemonicParsing="false" onAction="#onCloseButtonClicked" text="%cancel" GridPane.columnIndex="3"
+                   GridPane.rowIndex="7"/>
         <JFXButton fx:id="createGameButton" defaultButton="true" maxWidth="1.7976931348623157E308" minWidth="-Infinity" mnemonicParsing="false" onAction="#onCreateButtonClicked" text="%game.create.create" GridPane.columnIndex="4" GridPane.rowIndex="7" />
         <HBox alignment="CENTER" maxWidth="1.7976931348623157E308" spacing="10.0" GridPane.columnIndex="3" GridPane.columnSpan="2147483647" GridPane.rowIndex="1">
             <children>
