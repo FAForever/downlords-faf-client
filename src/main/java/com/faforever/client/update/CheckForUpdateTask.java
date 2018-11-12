@@ -23,6 +23,7 @@ import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 
 @Component
@@ -79,7 +80,13 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
         return null;
       }
 
-      GitHubAsset gitHubAsset = gitHubRelease.getAssets()[0];
+      boolean windows = org.bridj.Platform.isWindows();
+
+      GitHubAsset gitHubAsset = Arrays.stream(gitHubRelease.getAssets())
+          .filter(asset -> windows ? asset.getName().endsWith(".exe") : asset.getName().endsWith("tar.gz"))
+          .findFirst()
+          .orElseThrow(() -> new IllegalStateException("No installer found"));
+
       return new UpdateInfo(
           gitHubRelease.getName(),
           gitHubAsset.getName(),

@@ -91,7 +91,7 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
   }
 
   private void install(Path binaryPath) {
-    // TODO probably need to make this executable on unix
+    // TODO probably need to make this executable on unix See #1026
     String command = binaryPath.toAbsolutePath().toString();
     try {
       logger.info("Starting installer at {}", command);
