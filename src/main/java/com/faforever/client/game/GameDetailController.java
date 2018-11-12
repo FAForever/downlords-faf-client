@@ -60,9 +60,9 @@ public class GameDetailController implements Controller<Pane> {
   @SuppressWarnings("FieldCanBeLocal")
   private InvalidationListener teamsInvalidationListener;
   @SuppressWarnings("FieldCanBeLocal")
-  private InvalidationListener gameStatusInvalidationListener;
-  private WeakInvalidationListener weakTeamListener;
-  private WeakInvalidationListener weakGameStatusListener;
+  private final InvalidationListener gameStatusInvalidationListener;
+  private final WeakInvalidationListener weakTeamListener;
+  private final WeakInvalidationListener weakGameStatusListener;
   private Node watchButton;
 
   @SuppressWarnings("FieldCanBeLocal")
@@ -78,6 +78,11 @@ public class GameDetailController implements Controller<Pane> {
     this.joinGameHelper = joinGameHelper;
 
     game = new SimpleObjectProperty<>();
+
+    gameStatusInvalidationListener = observable -> onGameStatusChanged();
+    teamsInvalidationListener = observable -> createTeams();
+    weakTeamListener = new WeakInvalidationListener(teamsInvalidationListener);
+    weakGameStatusListener = new WeakInvalidationListener(gameStatusInvalidationListener);
   }
 
   public void initialize() {
@@ -102,7 +107,8 @@ public class GameDetailController implements Controller<Pane> {
     setGame(null);
   }
 
-  private void onGameStatusChanged(Game game) {
+  private void onGameStatusChanged() {
+    Game game = this.game.get();
     switch (game.getStatus()) {
       case PLAYING:
         joinButton.setVisible(false);
@@ -124,13 +130,15 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   public void setGame(Game game) {
+    Optional.ofNullable(this.game.get()).ifPresent(oldGame -> {
+      Optional.ofNullable(weakTeamListener).ifPresent(listener -> oldGame.getTeams().removeListener(listener));
+      Optional.ofNullable(weakGameStatusListener).ifPresent(listener -> oldGame.statusProperty().removeListener(listener));
+    });
+
     this.game.set(game);
     if (game == null) {
       return;
     }
-
-    gameStatusInvalidationListener = observable -> onGameStatusChanged(game);
-    teamsInvalidationListener = observable -> createTeams(game.getTeams(), game);
 
     gameTitleLabel.textProperty().bind(game.titleProperty());
     hostLabel.textProperty().bind(game.hostProperty());
@@ -154,27 +162,18 @@ public class GameDetailController implements Controller<Pane> {
     game.featuredModProperty().addListener(new WeakInvalidationListener(featuredModInvalidationListener));
     featuredModInvalidationListener.invalidated(game.featuredModProperty());
 
-    Optional.ofNullable(weakGameStatusListener).ifPresent(listener -> game.getTeams().removeListener(listener));
-    Optional.ofNullable(weakTeamListener).ifPresent(listener -> game.statusProperty().removeListener(listener));
-
-
-    weakTeamListener = new WeakInvalidationListener(teamsInvalidationListener);
     JavaFxUtil.addListener(game.getTeams(), weakTeamListener);
     teamsInvalidationListener.invalidated(game.getTeams());
 
-    weakGameStatusListener = new WeakInvalidationListener(gameStatusInvalidationListener);
     JavaFxUtil.addListener(game.statusProperty(), weakGameStatusListener);
     gameStatusInvalidationListener.invalidated(game.statusProperty());
   }
 
-  private void createTeams(ObservableMap<? extends String, ? extends List<String>> playersByTeamNumber, Game game) {
-    if (!game.equals(this.game.get())) {
-      log.warn("Wrong game updated");
-      return;
-    }
+  private void createTeams() {
     teamListPane.getChildren().clear();
-    synchronized (playersByTeamNumber) {
-      TeamCardController.createAndAdd(playersByTeamNumber, playerService, uiService, teamListPane);
+    ObservableMap<String, List<String>> teams = this.game.get().getTeams();
+    synchronized (teams) {
+      TeamCardController.createAndAdd(teams, playerService, uiService, teamListPane);
     }
   }
 
