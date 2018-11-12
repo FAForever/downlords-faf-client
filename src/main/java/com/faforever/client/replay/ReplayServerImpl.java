@@ -18,8 +18,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -102,7 +102,7 @@ public class ReplayServerImpl implements ReplayServer {
         future.complete(serverSocket.getLocalPort());
 
         try (Socket remoteReplayServerSocket = new Socket(remoteReplayServerHost, remoteReplayServerPort)) {
-          recordAndRelay(gameId, localSocket, new BufferedOutputStream(remoteReplayServerSocket.getOutputStream()));
+          recordAndRelay(gameId, localSocket, new DataOutputStream(remoteReplayServerSocket.getOutputStream()));
         } catch (ConnectException e) {
           log.warn("Could not connect to remote replay server", e);
           notificationService.addNotification(new PersistentNotification(i18n.get("replayServer.unreachable"), Severity.WARN));
