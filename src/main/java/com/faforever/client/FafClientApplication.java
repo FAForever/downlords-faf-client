@@ -70,13 +70,20 @@ public class FafClientApplication extends Application {
 
     CountDownLatch runAndWaitLatch = new CountDownLatch(1);
 
-    Platform.runLater(() -> {
+    Runnable initRunnable = () -> {
       applicationContext = new SpringApplicationBuilder(FafClientApplication.class)
           .profiles(getAdditionalProfiles())
           .bannerMode(Mode.OFF)
           .run(getParameters().getRaw().toArray(new String[0]));
       runAndWaitLatch.countDown();
-    });
+    };
+
+    if (!Platform.isFxApplicationThread()) {
+      //Dangerous if we are on Application Thread, because initRunnable will wait on runAndWaitLatch::await
+      Platform.runLater(initRunnable);
+    } else {
+      initRunnable.run();
+    }
 
     noCatch((NoCatchRunnable) runAndWaitLatch::await);
   }
