@@ -14,7 +14,7 @@ public enum KnownFeaturedMod {
   BALANCE_TESTING("balancetesting"),
   LADDER_1V1("ladder1v1"),
   COOP("coop"),
-  GALACTIC_WAR("faf"), // TODO: remove this once featured mod is in place
+  GALACTIC_WAR("fafdevelop"), // TODO: remove this once featured mod is in place
   MATCHMAKER("matchmaker");
 
   public static final KnownFeaturedMod DEFAULT = FAF;

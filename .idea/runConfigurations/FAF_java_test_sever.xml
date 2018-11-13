@@ -10,7 +10,7 @@
       <param>
         <option name="enabled" value="true" />
         <option name="name" value="faf-client.server.host" />
-        <option name="value" value="faf.micheljung.ch" />
+        <option name="value" value="local.geosearchef.de" />
       </param>
       <param>
         <option name="enabled" value="true" />
