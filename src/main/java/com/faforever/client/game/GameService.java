@@ -3,6 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.discord.DiscordJoinEvent;
 import com.faforever.client.discord.DiscordRichPresenceService;
+import com.faforever.client.events.GalacticWarGameEvent;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
@@ -26,6 +27,7 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
@@ -288,6 +290,36 @@ public class GameService implements InitializingBean {
         .exceptionally(throwable -> {
           log.warn("Game could not be joined", throwable);
           notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
+          return null;
+        });
+  }
+
+  @EventListener
+  public void startGalacticWarGame(GalacticWarGameEvent galacticWarGameEvent) {
+    if (isRunning()) {
+      notificationService.addNotification(new ImmediateNotification(i18n.get("warn"), i18n.get("galacticWar.canNotLaunchGameRunning"), Severity.WARN));
+      return;
+    }
+
+    if (preferencesService.getPreferences().getForgedAlliance().getInstallationPath() == null) {
+      eventBus.post(new MissingGamePathEvent(true));
+      return;
+    }
+
+    GameLaunchMessage gameLaunchMessage = galacticWarGameEvent.getGameLaunchMessage();
+    fafService.getFeaturedMods()
+        .thenCompose(featuredMods -> {
+          FeaturedMod featuredMod = featuredMods.stream().filter(mod -> mod.getTechnicalName().equals(KnownFeaturedMod.GALACTIC_WAR.getTechnicalName())).findAny().get();
+          return updateGameIfNecessary(featuredMod, null, emptyMap(), emptySet());
+        })
+        .thenCompose(aVoid -> {
+          String mapname = gameLaunchMessage.getMapname();
+          return downloadMapIfNecessary(mapname);
+        })
+        .thenRun(() -> startGame(gameLaunchMessage, null, RatingMode.NONE))
+        .exceptionally(throwable -> {
+          notificationService.addImmediateErrorNotification(throwable, "galacticWar.failedLaunching");
+          log.error("Galactic War failed to launch", throwable);
           return null;
         });
   }

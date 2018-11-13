@@ -48,6 +48,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.DataInputStream;
@@ -105,6 +106,8 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
   @Mock
   private ReportingService reportingService;
+  @Mock
+  private ApplicationEventPublisher applicationEventPublisher;
 
   private FafServerAccessorImpl instance;
   private ServerSocket fafLobbyServerSocket;
@@ -126,7 +129,7 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
         .setHost(LOOPBACK_ADDRESS.getHostAddress())
         .setPort(fafLobbyServerSocket.getLocalPort());
 
-    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, clientProperties, reportingService);
+    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, clientProperties, reportingService, applicationEventPublisher);
 
     LoginPrefs loginPrefs = new LoginPrefs();
     loginPrefs.setUsername("junit");
