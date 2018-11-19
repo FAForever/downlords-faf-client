@@ -5,7 +5,6 @@ import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
-import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -113,8 +112,6 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private EventBus eventBus;
   @Mock
-  private IceAdapter iceAdapter;
-  @Mock
   private ModService modService;
   @Mock
   private NotificationService notificationService;
@@ -144,7 +141,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     instance = new GameService(clientProperties, fafService, forgedAllianceService, mapService,
         preferencesService, gameUpdater, notificationService, i18n, executor, playerService,
-        reportingService, eventBus, iceAdapter, modService, platformService, connectivityService, localRelayServer);
+        reportingService, eventBus, modService, platformService, connectivityService, localRelayServer);
     instance.replayService = replayService;
 
     Preferences preferences = new Preferences();

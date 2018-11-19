@@ -5,7 +5,6 @@ import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
-import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
@@ -93,7 +92,6 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 public class GameService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final boolean ICE_ADAPTER_ENABLED = false;
 
   @VisibleForTesting
   final BooleanProperty gameRunning;
@@ -119,7 +117,6 @@ public class GameService {
   private final PlayerService playerService;
   private final ReportingService reportingService;
   private final EventBus eventBus;
-  private final IceAdapter iceAdapter;
   private final ModService modService;
   private final PlatformService platformService;
   private final String faWindowTitle;
@@ -139,12 +136,12 @@ public class GameService {
 
   @Inject
   public GameService(ClientProperties clientProperties, FafService fafService,
-                         ForgedAllianceService forgedAllianceService, MapService mapService,
-                         PreferencesService preferencesService, GameUpdater gameUpdater,
-                         NotificationService notificationService, I18n i18n, Executor executor,
-                         PlayerService playerService, ReportingService reportingService, EventBus eventBus,
-                         IceAdapter iceAdapter, ModService modService, PlatformService platformService,
-                         ConnectivityService connectivityService, LocalRelayServer localRelayServer) {
+                     ForgedAllianceService forgedAllianceService, MapService mapService,
+                     PreferencesService preferencesService, GameUpdater gameUpdater,
+                     NotificationService notificationService, I18n i18n, Executor executor,
+                     PlayerService playerService, ReportingService reportingService, EventBus eventBus,
+                     ModService modService, PlatformService platformService,
+                     ConnectivityService connectivityService, LocalRelayServer localRelayServer) {
 
     this.fafService = fafService;
     this.forgedAllianceService = forgedAllianceService;
@@ -157,7 +154,6 @@ public class GameService {
     this.playerService = playerService;
     this.reportingService = reportingService;
     this.eventBus = eventBus;
-    this.iceAdapter = iceAdapter;
     this.modService = modService;
     this.platformService = platformService;
 
@@ -450,19 +446,10 @@ public class GameService {
     replayService.startReplayServer(gameLaunchMessage.getUid())
         .thenCompose(port -> {
           localReplayPort = port;
-          // FIXME clean up when ICE gets enabled
-          if (!ICE_ADAPTER_ENABLED) {
-            return CompletableFuture.completedFuture(0);
-          }
-          return iceAdapter.start();
+          return CompletableFuture.completedFuture(0);
         })
         .thenAccept(adapterPort -> {
-          int port;
-          if (!ICE_ADAPTER_ENABLED) {
-            port = localRelayServer.getPort();
-          } else {
-            port = adapterPort;
-          }
+          int port = localRelayServer.getPort();
           List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
           process = noCatch(() -> forgedAllianceService.startGame(gameLaunchMessage.getUid(), faction, args, ratingMode,
               port, localReplayPort, rehostRequested, getCurrentPlayer()));
@@ -530,7 +517,6 @@ public class GameService {
           localRelayServer.close();
           fafService.notifyGameEnded();
           replayService.stopReplayServer();
-          iceAdapter.stop();
 
           if (rehostRequested) {
             rehost();
