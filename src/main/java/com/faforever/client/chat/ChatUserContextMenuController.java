@@ -34,9 +34,6 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -226,14 +223,8 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public void onShowUserInfoSelected() {
     UserInfoWindowController userInfoWindowController = uiService.loadFxml("theme/user_info_window.fxml");
     userInfoWindowController.setPlayer(chatUser.getPlayer().orElseThrow(() -> new IllegalStateException("No player for chat user: " + chatUser)));
-
-    Stage userInfoWindow = new Stage(StageStyle.TRANSPARENT);
-    userInfoWindow.initModality(Modality.NONE);
-    userInfoWindow.initOwner(chatUserContextMenuRoot.getOwnerWindow());
-
-    uiService.createScene(userInfoWindow, userInfoWindowController.getRoot());
-
-    userInfoWindow.show();
+    userInfoWindowController.setOwnerWindow(chatUserContextMenuRoot.getOwnerWindow());
+    userInfoWindowController.show();
   }
 
   public void onSendPrivateMessageSelected() {
