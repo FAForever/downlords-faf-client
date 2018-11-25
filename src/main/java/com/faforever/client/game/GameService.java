@@ -307,8 +307,8 @@ public class GameService implements InitializingBean {
     }
 
     GameLaunchMessage gameLaunchMessage = galacticWarGameEvent.getGameLaunchMessage();
-    gameLaunchMessage.getArgs().add("/team 1");
-    gameLaunchMessage.getArgs().add("/players 2");
+    gameLaunchMessage.getArgs().add("/team " + gameLaunchMessage.getTeam());
+    gameLaunchMessage.getArgs().add("/players " + gameLaunchMessage.getExpectedPlayers());
 
     fafService.getFeaturedMods()
         .thenCompose(featuredMods -> {
@@ -319,7 +319,7 @@ public class GameService implements InitializingBean {
           String mapname = gameLaunchMessage.getMapname();
           return downloadMapIfNecessary(mapname);
         })
-        .thenRun(() -> startGame(gameLaunchMessage, null, RatingMode.NONE))
+        .thenRun(() -> startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), RatingMode.NONE))
         .exceptionally(throwable -> {
           notificationService.addImmediateErrorNotification(throwable, "galacticWar.failedLaunching");
           log.error("Galactic War failed to launch", throwable);
