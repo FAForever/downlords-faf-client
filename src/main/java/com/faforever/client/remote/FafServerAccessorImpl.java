@@ -57,6 +57,7 @@ import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.remote.domain.SessionMessage;
 import com.faforever.client.remote.domain.VictoryCondition;
 import com.faforever.client.remote.gson.ClientMessageTypeTypeAdapter;
+import com.faforever.client.remote.gson.FactionTypeAdapter;
 import com.faforever.client.remote.gson.GameAccessTypeAdapter;
 import com.faforever.client.remote.gson.GameStateTypeAdapter;
 import com.faforever.client.remote.gson.GpgServerMessageTypeTypeAdapter;
@@ -167,6 +168,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
         .registerTypeAdapter(MessageTarget.class, MessageTargetTypeAdapter.INSTANCE)
         .registerTypeAdapter(ServerMessage.class, ServerMessageTypeAdapter.INSTANCE)
         .registerTypeAdapter(RatingRange.class, RatingRangeTypeAdapter.INSTANCE)
+        .registerTypeAdapter(Faction.class, FactionTypeAdapter.INSTANCE)
         .create();
 
     addOnMessageListener(NoticeMessage.class, this::onNotice);
