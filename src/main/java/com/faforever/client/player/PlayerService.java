@@ -91,7 +91,11 @@ public class PlayerService {
 
   @Subscribe
   public void onGameRemoved(GameRemovedEvent event) {
-    updateGameForPlayersInGame(event.getGame());
+    Game game = event.getGame();
+    ObservableMap<String, List<String>> teams = game.getTeams();
+    synchronized (teams) {
+      teams.forEach((team, players) -> updateGamePlayers(players, null));
+    }
   }
 
   private void updateGameForPlayersInGame(Game game) {
@@ -139,12 +143,14 @@ public class PlayerService {
         .map(Optional::get)
         .forEach(player -> {
           resetIdleTime(player);
-          if (game == null) {
+          if (game == null || game.getStatus() == GameStatus.CLOSED) {
             player.setGame(null);
-          } else if ((player.getGame() == null || !player.getGame().equals(game)) && player.getSocialStatus() == FRIEND && game.getStatus() == GameStatus.OPEN) {
-            eventBus.post(new FriendJoinedGameEvent(player, game));
+          } else {
+            player.setGame(game);
+            if ((player.getGame() == null || !player.getGame().equals(game)) && player.getSocialStatus() == FRIEND && game.getStatus() == GameStatus.OPEN) {
+              eventBus.post(new FriendJoinedGameEvent(player, game));
+            }
           }
-          player.setGame(game);
         });
   }
 

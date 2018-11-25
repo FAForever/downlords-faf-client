@@ -1,5 +1,8 @@
 package com.faforever.client.player;
 
+import com.faforever.client.game.Game;
+import com.faforever.client.game.GameAddedEvent;
+import com.faforever.client.game.GameRemovedEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.PlayersMessage;
 import com.faforever.client.remote.domain.SocialMessage;
@@ -8,12 +11,15 @@ import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.ObservableMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.util.ReflectionUtils;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -22,6 +28,7 @@ import static com.faforever.client.player.SocialStatus.FOE;
 import static com.faforever.client.player.SocialStatus.FRIEND;
 import static com.natpryce.hamcrest.reflection.HasAnnotationMatcher.hasAnnotation;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
@@ -207,5 +214,26 @@ public class PlayerServiceTest {
   @Test
   public void testEventBusRegistered() throws Exception {
     verify(eventBus).register(instance);
+  }
+
+  @Test
+  public void onGameRemoved() {
+    Game game = new Game();
+    ObservableMap<String, List<String>> teams = game.getTeams();
+    teams.put("1", Collections.singletonList("JUnit1"));
+    teams.put("2", Collections.singletonList("JUnit2"));
+
+    Player player1 = instance.createAndGetPlayerForUsername("JUnit1");
+    Player player2 = instance.createAndGetPlayerForUsername("JUnit2");
+
+    instance.onGameAdded(new GameAddedEvent(game));
+
+    assertThat(player1.getGame(), is(game));
+    assertThat(player2.getGame(), is(game));
+
+    instance.onGameRemoved(new GameRemovedEvent(game));
+
+    assertThat(player1.getGame(), is(nullValue()));
+    assertThat(player2.getGame(), is(nullValue()));
   }
 }
