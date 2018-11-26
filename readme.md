@@ -24,4 +24,8 @@ Please take a look at the [contribution guidelines](https://github.com/FAForever
 
 # See how to use Intellij Community Edition
 
-We have a youtube video on it [here](https://youtu.be/8EwK16kk0BE)
+We have a youtube video on it [here](https://youtu.be/8EwK16kk0BE). In case you are a student or have other ways to aquire it choose Intelij Ulimate over the Community Edition.
+
+#Interested in contributing?
+
+Have a look at our [wiki](https://github.com/FAForever/downlords-faf-client/wiki) .
