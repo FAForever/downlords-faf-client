@@ -56,7 +56,8 @@ import static java.util.Arrays.asList;
 @Slf4j
 public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableBean {
 
-  private static final int CONNECTION_ATTEMPTS = 5;
+  private static final int CONNECTION_ATTEMPTS = 50;
+  private static final int CONNECTION_ATTEMPT_DELAY = 100;//MS
 
   private final ApplicationContext applicationContext;
   private final PlayerService playerService;
@@ -208,7 +209,14 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
             setLobbyInitMode();
             break;
           } catch (ConnectException e) {
-            logger.debug("Could not connect to ICE adapter (attempt {}/{})", attempt, CONNECTION_ATTEMPTS);
+            logger.debug("Could not connect to ICE adapter (attempt {}/{})", attempt + 1, CONNECTION_ATTEMPTS);
+          }
+
+          //Wait as the socket fails too fast on unix/linux not giving the adapter enough time to start
+          try {
+            Thread.sleep(CONNECTION_ATTEMPT_DELAY);
+          } catch (InterruptedException e) {
+            logger.error("Error while waiting for ice adapter", e);
           }
         }
 
