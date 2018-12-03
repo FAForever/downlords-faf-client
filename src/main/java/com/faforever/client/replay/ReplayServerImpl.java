@@ -170,6 +170,10 @@ public class ReplayServerImpl implements ReplayServer {
       log.warn("Error while recording replay", e);
       throw e;
     }
+    if (fafReplayOutputStream != null) {
+      fafReplayOutputStream.flush();
+      fafReplayOutputStream.close();
+    }
 
     log.debug("FAF has disconnected, writing replay data to file");
     finishReplayInfo();
