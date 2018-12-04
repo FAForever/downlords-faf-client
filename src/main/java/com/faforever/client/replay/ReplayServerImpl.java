@@ -101,8 +101,9 @@ public class ReplayServerImpl implements ReplayServer {
         this.serverSocket = localSocket;
         future.complete(serverSocket.getLocalPort());
 
-        try (Socket remoteReplayServerSocket = new Socket(remoteReplayServerHost, remoteReplayServerPort)) {
-          recordAndRelay(gameId, localSocket, new BufferedOutputStream(remoteReplayServerSocket.getOutputStream()));
+        try (Socket remoteReplayServerSocket = new Socket(remoteReplayServerHost, remoteReplayServerPort);
+             BufferedOutputStream fafReplayOutputStream = new BufferedOutputStream(remoteReplayServerSocket.getOutputStream())) {
+          recordAndRelay(gameId, localSocket, fafReplayOutputStream);
         } catch (ConnectException e) {
           log.warn("Could not connect to remote replay server", e);
           notificationService.addNotification(new PersistentNotification(i18n.get("replayServer.unreachable"), Severity.WARN));
