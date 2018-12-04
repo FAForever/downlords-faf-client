@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,7 +39,13 @@ import static com.github.nocatch.NoCatch.noCatch;
 @Slf4j
 public class ReplayServerImpl implements ReplayServer {
 
-  private static final int REPLAY_BUFFER_SIZE = 0x200;
+  /**
+   * Size for buffer used to send data to the live replay server. The buffer needs to be large enough to not flush too
+   * many times (after all, it's a TCP stream so we don't want to send single bytes) but small enough to not delay data
+   * for too long. I don't have any data right now but it can be expected that the replay stream produces about 70 bytes
+   * per second (See #973).
+   */
+  private static final int REPLAY_BUFFER_SIZE = 128;
 
   /**
    * This is a prefix used in the FA live replay protocol that needs to be stripped away when storing to a file.
@@ -102,7 +109,7 @@ public class ReplayServerImpl implements ReplayServer {
         future.complete(serverSocket.getLocalPort());
 
         try (Socket remoteReplayServerSocket = new Socket(remoteReplayServerHost, remoteReplayServerPort);
-             BufferedOutputStream fafReplayOutputStream = new BufferedOutputStream(remoteReplayServerSocket.getOutputStream())) {
+             DataOutputStream fafReplayOutputStream = new DataOutputStream(remoteReplayServerSocket.getOutputStream())) {
           recordAndRelay(gameId, localSocket, fafReplayOutputStream);
         } catch (ConnectException e) {
           log.warn("Could not connect to remote replay server", e);
