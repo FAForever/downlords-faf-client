@@ -10,13 +10,15 @@
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="gamesRoot" xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.game.CustomGamesController">
+
+<StackPane fx:id="gamesRoot" alignment="TOP_CENTER" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.CustomGamesController">
    <children>
       <GridPane>
          <columnConstraints>
@@ -24,39 +26,39 @@
             <ColumnConstraints hgrow="SOMETIMES" minWidth="300.0" prefWidth="300.0" />
          </columnConstraints>
          <rowConstraints>
-             <RowConstraints vgrow="SOMETIMES" />
+             <RowConstraints vgrow="NEVER" />
             <RowConstraints minHeight="10.0" vgrow="ALWAYS" />
          </rowConstraints>
          <children>
              <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0">
               <children>
-                <HBox alignment="BASELINE_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0">
-                  <children>
-                      <JFXButton fx:id="createGameButton" defaultButton="true" minWidth="-Infinity" mnemonicParsing="false" onAction="#onCreateGameButtonClicked" styleClass="create-game-button" text="%games.create" />
-                      <JFXCheckBox fx:id="showPasswordProtectedGamesCheckBox" mnemonicParsing="false" text="%games.showPasswordProtectedGames" />
-                      <JFXCheckBox fx:id="showModdedGamesCheckBox" mnemonicParsing="false" text="%games.showModdedGames" />
-                      <JFXComboBox fx:id="chooseSortingTypeChoiceBox" />
-                      <Pane HBox.hgrow="ALWAYS" />
-                    <HBox alignment="BASELINE_LEFT">
-                      <children>
-                          <ToggleButton fx:id="tableButton" mnemonicParsing="false" onAction="#onTableButtonClicked" text="%view.table">
-                          <toggleGroup>
-                              <ToggleGroup fx:id="viewToggleGroup" />
-                          </toggleGroup>
-                                 <graphic>
-                                     <Label styleClass="icon" text="" />
-                                 </graphic>
+                  <HBox>
+                     <children>
+                        <FlowPane hgap="10.0" maxWidth="1.7976931348623157E308" vgap="10.0" HBox.hgrow="ALWAYS">
+                           <children>
+                            <JFXButton fx:id="createGameButton" defaultButton="true" minWidth="-Infinity" mnemonicParsing="false" onAction="#onCreateGameButtonClicked" styleClass="create-game-button" text="%games.create" />
+                            <JFXCheckBox fx:id="showPasswordProtectedGamesCheckBox" mnemonicParsing="false" text="%games.showPasswordProtectedGames" />
+                            <JFXCheckBox fx:id="showModdedGamesCheckBox" mnemonicParsing="false" text="%games.showModdedGames" />
+                            <JFXComboBox fx:id="chooseSortingTypeChoiceBox" />
+                            <Pane />
+                          <HBox alignment="BASELINE_LEFT" />
+                           </children>
+                        </FlowPane>
+                    <ToggleButton fx:id="tableButton" minWidth="-Infinity" mnemonicParsing="false" onAction="#onTableButtonClicked" text="%view.table">
+                    <toggleGroup>
+                        <ToggleGroup fx:id="viewToggleGroup" />
+                    </toggleGroup>
+                           <graphic>
+                               <Label styleClass="icon" text="" />
+                           </graphic>
+                  </ToggleButton>
+                    <ToggleButton fx:id="tilesButton" minWidth="-Infinity" mnemonicParsing="false" onAction="#onTilesButtonClicked" selected="true" text="%view.tiles" toggleGroup="$viewToggleGroup">
+                           <graphic>
+                              <Label styleClass="icon" text="" />
+                           </graphic>
                         </ToggleButton>
-                          <ToggleButton fx:id="tilesButton" mnemonicParsing="false" onAction="#onTilesButtonClicked" selected="true" text="%view.tiles" toggleGroup="$viewToggleGroup">
-                                 <graphic>
-                                    <Label styleClass="icon" text="" />
-                                 </graphic>
-                              </ToggleButton>
-                      </children>
-                    </HBox>
-                  </children>
-                </HBox>
-                <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS" />
+                     </children>
+                  </HBox>
               </children>
               <padding>
                   <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
