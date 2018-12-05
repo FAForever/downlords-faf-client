@@ -31,7 +31,7 @@ public class TransientNotificationControllerTest extends AbstractPlainJavaFxTest
   @Before
   public void setUp() throws Exception {
     PreferencesService preferencesService = new PreferencesService(new ClientProperties());
-    preferencesService.postConstruct();
+    preferencesService.afterPropertiesSet();
     instance = new TransientNotificationController(preferencesService);
 
     loadFxml("theme/transient_notification.fxml", clazz -> instance);

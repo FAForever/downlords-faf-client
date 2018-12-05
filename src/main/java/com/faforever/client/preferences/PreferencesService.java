@@ -19,8 +19,8 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.InitializingBean;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -42,7 +42,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Lazy
 @Service
-public class PreferencesService {
+public class PreferencesService implements InitializingBean {
 
   public static final String SUPREME_COMMANDER_EXE = "SupremeCommander.exe";
   public static final String FORGED_ALLIANCE_EXE = "ForgedAlliance.exe";
@@ -118,8 +118,8 @@ public class PreferencesService {
     return Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
   }
 
-  @PostConstruct
-  public void postConstruct() throws IOException {
+  @Override
+  public void afterPropertiesSet() throws IOException {
     if (Files.exists(preferencesFilePath)) {
       deleteFileIfEmpty();
       readExistingFile(preferencesFilePath);

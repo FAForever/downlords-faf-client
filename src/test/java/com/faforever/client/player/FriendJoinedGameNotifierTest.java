@@ -57,7 +57,7 @@ public class FriendJoinedGameNotifierTest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getNotification()).thenReturn(notification);
 
-    instance.postConstruct();
+    instance.afterPropertiesSet();
     verify(eventBus).register(instance);
   }
 

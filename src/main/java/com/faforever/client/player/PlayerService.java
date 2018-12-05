@@ -29,8 +29,9 @@ import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.InitializingBean;
 
-import javax.annotation.PostConstruct;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,7 +49,7 @@ import static com.faforever.client.player.SocialStatus.OTHER;
 import static com.faforever.client.player.SocialStatus.SELF;
 
 @Service
-public class PlayerService {
+public class PlayerService implements InitializingBean {
 
   private final ObservableMap<String, Player> playersByName;
   private final ObservableMap<Integer, Player> playersById;
@@ -72,8 +73,8 @@ public class PlayerService {
     currentPlayer = new SimpleObjectProperty<>();
   }
 
-  @PostConstruct
-  void postConstruct() {
+  @Override
+  public void afterPropertiesSet() {
     eventBus.register(this);
     fafService.addOnMessageListener(PlayersMessage.class, this::onPlayersInfo);
     fafService.addOnMessageListener(SocialMessage.class, this::onFoeList);

@@ -17,8 +17,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.TextAlignment;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.InitializingBean;
 
-import javax.annotation.PostConstruct;
+
 import javax.inject.Inject;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -32,7 +33,7 @@ import static java.awt.RenderingHints.KEY_ANTIALIASING;
 import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
 
 @Component
-public class TrayIconManager {
+public class TrayIconManager implements InitializingBean {
 
   private final I18n i18n;
   private final EventBus eventBus;
@@ -44,8 +45,8 @@ public class TrayIconManager {
     this.eventBus = eventBus;
   }
 
-  @PostConstruct
-  public void postConstruct() {
+  @Override
+  public void afterPropertiesSet() {
     eventBus.register(this);
   }
 

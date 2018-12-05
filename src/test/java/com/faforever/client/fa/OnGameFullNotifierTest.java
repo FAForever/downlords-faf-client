@@ -48,7 +48,7 @@ public class OnGameFullNotifierTest {
 
     instance = new OnGameFullNotifier(platformService, executor, notificationService, i18n,
         mapService, eventBus, new ClientProperties(), gameService);
-    instance.postConstruct();
+    instance.afterPropertiesSet();
 
     doAnswer(invocation -> {
       ((Runnable) invocation.getArgument(0)).run();

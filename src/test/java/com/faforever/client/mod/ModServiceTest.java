@@ -117,7 +117,7 @@ public class ModServiceTest {
 
     blackopsSupportPath = copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);
 
-    instance.postConstruct();
+    instance.afterPropertiesSet();
   }
 
   private Path copyMod(String directoryName, ClassPathResource classPathResource) throws IOException {

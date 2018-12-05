@@ -14,8 +14,8 @@ import javafx.scene.image.Image;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.InitializingBean;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.net.URL;
 import java.nio.file.Paths;
@@ -28,7 +28,7 @@ import static com.github.nocatch.NoCatch.noCatch;
 
 @Lazy
 @Service
-public class AchievementService {
+public class AchievementService implements InitializingBean {
 
   private static final int ACHIEVEMENT_IMAGE_SIZE = 128;
   private final ObservableList<PlayerAchievement> readOnlyPlayerAchievements;
@@ -102,8 +102,8 @@ public class AchievementService {
     return achievementsLoadedFuture;
   }
 
-  @PostConstruct
-  void postConstruct() {
+  @Override
+  public void afterPropertiesSet() {
     fafService.addOnMessageListener(UpdatedAchievementsMessage.class, updatedAchievementsMessage -> reloadAchievements());
   }
 

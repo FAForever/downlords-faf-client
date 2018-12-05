@@ -6,8 +6,8 @@ import com.faforever.client.remote.io.QDataInputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 
-import javax.annotation.PreDestroy;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -17,7 +17,7 @@ import java.net.Socket;
 /**
  * Super class for all server accessors.
  */
-public abstract class AbstractServerAccessor {
+public abstract class AbstractServerAccessor implements DisposableBean {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -52,8 +52,8 @@ public abstract class AbstractServerAccessor {
 
   protected abstract void onServerMessage(String message) throws IOException;
 
-  @PreDestroy
-  void close() throws IOException {
+  @Override
+  public void destroy() throws IOException {
     stopped = true;
     IOUtils.closeQuietly(dataInput);
   }

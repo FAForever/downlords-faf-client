@@ -29,7 +29,7 @@ public class MissingGamePathNotifierTest {
   public void setUp() {
     eventBus = new EventBus();
     instance = new MissingGamePathNotifier(eventBus, i18n, notificationService);
-    instance.postConstruct();
+    instance.afterPropertiesSet();
   }
 
   @Test

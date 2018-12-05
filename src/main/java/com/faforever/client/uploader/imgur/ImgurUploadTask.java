@@ -14,8 +14,8 @@ import javafx.scene.image.Image;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.InitializingBean;
 
-import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
 import java.awt.image.BufferedImage;
@@ -34,7 +34,7 @@ import static com.faforever.commons.io.Bytes.formatSize;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class ImgurUploadTask extends CompletableTask<String> {
+public class ImgurUploadTask extends CompletableTask<String> implements InitializingBean {
 
   private final Gson gson;
 
@@ -55,8 +55,8 @@ public class ImgurUploadTask extends CompletableTask<String> {
     this.clientProperties = clientProperties;
   }
 
-  @PostConstruct
-  void postConstruct() {
+  @Override
+  public void afterPropertiesSet() {
     updateTitle(i18n.get("chat.imageUploadTask.title"));
     Upload uploadProperties = clientProperties.getImgur().getUpload();
     maxUploadSize = uploadProperties.getMaxSize();

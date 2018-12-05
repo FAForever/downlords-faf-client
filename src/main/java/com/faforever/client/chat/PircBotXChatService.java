@@ -63,9 +63,9 @@ import org.pircbotx.hooks.types.GenericEvent;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.DisposableBean;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.time.Instant;
@@ -95,7 +95,7 @@ import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 @Service
 @Slf4j
 @Profile("!" + FafClientApplication.PROFILE_OFFLINE)
-public class PircBotXChatService implements ChatService {
+public class PircBotXChatService implements ChatService, InitializingBean, DisposableBean {
 
   private static final List<UserLevel> MODERATOR_USER_LEVELS = Arrays.asList(UserLevel.OP, UserLevel.HALFOP, UserLevel.SUPEROP, UserLevel.OWNER);
   private static final int SOCKET_TIMEOUT = 10000;
@@ -167,8 +167,8 @@ public class PircBotXChatService implements ChatService {
     identifiedFuture = new CompletableFuture<>();
   }
 
-  @PostConstruct
-  void postConstruct() {
+  @Override
+  public void afterPropertiesSet() {
     eventBus.register(this);
     fafService.addOnMessageListener(SocialMessage.class, this::onSocialMessage);
     connectionState.addListener((observable, oldValue, newValue) -> {
@@ -598,9 +598,11 @@ public class PircBotXChatService implements ChatService {
   }
 
   @Override
-  @PreDestroy
+  public void destroy() {
+    close();
+  }
+
   public void close() {
-    // TODO clean up disconnect() and close()
     identifiedFuture.cancel(false);
     if (connectionTask != null) {
       connectionTask.cancel();

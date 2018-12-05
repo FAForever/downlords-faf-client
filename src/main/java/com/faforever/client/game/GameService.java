@@ -54,8 +54,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.InitializingBean;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -88,7 +88,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 @Lazy
 @Service
 @Slf4j
-public class GameService {
+public class GameService implements InitializingBean {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -542,8 +542,8 @@ public class GameService {
     }
   }
 
-  @PostConstruct
-  void postConstruct() {
+  @Override
+  public void afterPropertiesSet() {
     eventBus.register(this);
     fafService.addOnMessageListener(GameInfoMessage.class, message -> Platform.runLater(() -> onGameInfo(message)));
     fafService.addOnMessageListener(LoginMessage.class, message -> onLoggedIn());

@@ -19,15 +19,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.InitializingBean;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.CompletableFuture;
 
 @Lazy
 @Service
-public class UserService {
+public class UserService implements InitializingBean {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final StringProperty username;
@@ -133,8 +133,8 @@ public class UserService {
     return taskService.submitTask(changePasswordTask);
   }
 
-  @PostConstruct
-  void postConstruct() {
+  @Override
+  public void afterPropertiesSet() {
     fafService.addOnMessageListener(LoginMessage.class, loginInfo -> userId = loginInfo.getId());
     fafService.addOnMessageListener(NoticeMessage.class, this::onLoginError);
     eventBus.register(this);
