@@ -61,7 +61,7 @@ public class PlayerServiceTest {
 
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
 
-    instance.postConstruct();
+    instance.afterPropertiesSet();
   }
 
   @Test

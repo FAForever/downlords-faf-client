@@ -87,8 +87,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.beans.factory.DisposableBean;
 
-import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -110,7 +110,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Lazy
 @Component
 @Profile("!" + FafClientApplication.PROFILE_OFFLINE)
-public class FafServerAccessorImpl extends AbstractServerAccessor implements FafServerAccessor {
+public class FafServerAccessorImpl extends AbstractServerAccessor implements FafServerAccessor,
+    DisposableBean {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final long RECONNECT_DELAY = 3000;
@@ -302,7 +303,10 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  @PreDestroy
+  public void destroy() {
+    disconnect();
+  }
+
   public void disconnect() {
     if (fafConnectionTask != null) {
       fafConnectionTask.cancel(true);

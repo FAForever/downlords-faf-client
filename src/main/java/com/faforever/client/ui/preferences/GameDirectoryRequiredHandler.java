@@ -11,8 +11,8 @@ import javafx.stage.DirectoryChooser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.InitializingBean;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.io.File;
 import java.lang.invoke.MethodHandles;
@@ -22,7 +22,7 @@ import static javafx.application.Platform.runLater;
 
 
 @Component
-public class GameDirectoryRequiredHandler {
+public class GameDirectoryRequiredHandler implements InitializingBean {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -35,8 +35,8 @@ public class GameDirectoryRequiredHandler {
     this.i18n = i18n;
   }
 
-  @PostConstruct
-  public void postConstruct() {
+  @Override
+  public void afterPropertiesSet() {
     eventBus.register(this);
   }
 

@@ -6,8 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.InitializingBean;
 
-import javax.annotation.PostConstruct;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -17,7 +17,7 @@ import java.nio.file.Paths;
  */
 @Component
 @Slf4j
-public class FileOpeningHandler implements ApplicationRunner {
+public class FileOpeningHandler implements ApplicationRunner, InitializingBean {
 
   private final ReplayService replayService;
 
@@ -25,8 +25,8 @@ public class FileOpeningHandler implements ApplicationRunner {
     this.replayService = replayService;
   }
 
-  @PostConstruct
-  public void postConstruct() {
+  @Override
+  public void afterPropertiesSet() {
     log.debug("Registering file opening handler: {}", this.getClass().getName());
     StartupNotification.registerStartupListener(this::onStartup);
   }

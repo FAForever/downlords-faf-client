@@ -40,9 +40,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.support.MessageSourceResourceBundle;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.DisposableBean;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -79,7 +79,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
 @Lazy
 @Service
-public class UiService {
+public class UiService implements InitializingBean, DisposableBean {
 
   public static final String UNKNOWN_MAP_IMAGE = "theme/images/unknown_map.png";
   //TODO: Create Images for News Categories
@@ -166,8 +166,8 @@ public class UiService {
     });
   }
 
-  @PostConstruct
-  void postConstruct() throws IOException {
+  @Override
+  public void afterPropertiesSet() throws IOException {
     resources = new MessageSourceResourceBundle(messageSource, i18n.getUserSpecificLocale());
     Path themesDirectory = preferencesService.getThemesDirectory();
     startWatchService(themesDirectory);
@@ -222,8 +222,8 @@ public class UiService {
     return Theme.fromProperties(properties);
   }
 
-  @PreDestroy
-  void preDestroy() throws IOException {
+  @Override
+  public void destroy() throws IOException {
     IOUtils.closeQuietly(watchService);
     deleteStylesheetsCacheDirectory();
   }

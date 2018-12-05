@@ -158,7 +158,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
       return null;
     }).when(executor).execute(any());
 
-    instance.postConstruct();
+    instance.afterPropertiesSet();
 
     verify(fafService).addOnMessageListener(eq(GameInfoMessage.class), gameInfoMessageListenerCaptor.capture());
   }

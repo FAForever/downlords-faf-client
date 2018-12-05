@@ -63,7 +63,7 @@ public class AchievementServiceTest {
     player.setId(PLAYER_ID);
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
 
-    instance.postConstruct();
+    instance.afterPropertiesSet();
   }
 
   @Test

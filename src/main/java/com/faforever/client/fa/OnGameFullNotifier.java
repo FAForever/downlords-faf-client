@@ -14,8 +14,9 @@ import com.faforever.client.util.ProgrammingError;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.InitializingBean;
 
-import javax.annotation.PostConstruct;
+
 import javax.inject.Inject;
 import java.util.concurrent.Executor;
 
@@ -28,7 +29,7 @@ import static java.lang.Thread.sleep;
  */
 
 @Component
-public class OnGameFullNotifier {
+public class OnGameFullNotifier implements InitializingBean {
 
   private final PlatformService platformService;
   private final Executor executor;
@@ -53,8 +54,8 @@ public class OnGameFullNotifier {
     this.gameService = gameService;
   }
 
-  @PostConstruct
-  void postConstruct() {
+  @Override
+  public void afterPropertiesSet() {
     eventBus.register(this);
   }
 

@@ -7,8 +7,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.InitializingBean;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 @Service
-public class I18n {
+public class I18n implements InitializingBean {
   private static final Pattern MESSAGES_FILE_PATTERN = Pattern.compile("(.*[/\\\\]messages)(?:_([a-z]{2}))(?:_([a-z]{2}))?\\.properties", Pattern.CASE_INSENSITIVE);
   private final ReloadableResourceBundleMessageSource messageSource;
   private final PreferencesService preferencesService;
@@ -36,8 +36,8 @@ public class I18n {
     availableLanguages = FXCollections.observableSet(new HashSet<>());
   }
 
-  @PostConstruct
-  public void postConstruct() throws IOException {
+  @Override
+  public void afterPropertiesSet() throws IOException {
     Locale locale = preferencesService.getPreferences().getLocalization().getLanguage();
     if (locale != null) {
       userSpecificLocale = new Locale(locale.getLanguage(), locale.getCountry());

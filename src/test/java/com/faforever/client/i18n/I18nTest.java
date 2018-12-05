@@ -44,7 +44,7 @@ public class I18nTest {
 
     instance = new I18n(messageSource, preferencesService);
 
-    instance.postConstruct();
+    instance.afterPropertiesSet();
   }
 
   @Test

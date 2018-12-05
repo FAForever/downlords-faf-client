@@ -21,8 +21,8 @@ import javafx.scene.paint.Color;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.InitializingBean;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 @Service
 @Profile(FafClientApplication.PROFILE_OFFLINE)
 // NOSONAR
-public class MockChatService implements ChatService {
+public class MockChatService implements ChatService, InitializingBean {
 
   private static final int CHAT_MESSAGE_INTERVAL = 5000;
   private static final long CONNECTION_DELAY = 1000;
@@ -70,8 +70,8 @@ public class MockChatService implements ChatService {
     this.eventBus = eventBus;
   }
 
-  @PostConstruct
-  void postConstruct() {
+  @Override
+  public void afterPropertiesSet() {
     eventBus.register(this);
   }
 

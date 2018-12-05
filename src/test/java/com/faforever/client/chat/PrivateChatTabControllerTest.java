@@ -86,7 +86,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws IOException {
     PreferencesService preferencesService = new PreferencesService(new ClientProperties());
-    preferencesService.postConstruct();
+    preferencesService.afterPropertiesSet();
     preferencesService.getPreferences().getMainWindow().setLastView(NavigationItem.CHAT.name());
 
     instance = new PrivateChatTabController(userService, preferencesService, playerService, timeService,

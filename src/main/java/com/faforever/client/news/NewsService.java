@@ -11,8 +11,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.InitializingBean;
 
-import javax.annotation.PostConstruct;
 import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
@@ -27,7 +27,7 @@ import static com.github.nocatch.NoCatch.noCatch;
 
 @Lazy
 @Service
-public class NewsService {
+public class NewsService implements InitializingBean {
 
   /** The delay (in seconds) between polling for new news. */
   private static final long POLL_DELAY = Duration.ofMinutes(10).toMillis();
@@ -47,8 +47,8 @@ public class NewsService {
     this.taskScheduler = taskScheduler;
   }
 
-  @PostConstruct
-  void postConstruct() {
+  @Override
+  public void afterPropertiesSet() {
     eventBus.register(this);
     taskScheduler.scheduleWithFixedDelay(this::pollForNews, Date.from(Instant.now().plusSeconds(5)), POLL_DELAY);
   }

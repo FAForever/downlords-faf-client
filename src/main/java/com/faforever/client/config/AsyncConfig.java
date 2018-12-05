@@ -11,8 +11,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
+import org.springframework.beans.factory.DisposableBean;
 
-import javax.annotation.PreDestroy;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,7 +20,7 @@ import java.util.concurrent.Executors;
 @EnableAsync
 @EnableScheduling
 @Configuration
-public class AsyncConfig implements AsyncConfigurer, SchedulingConfigurer {
+public class AsyncConfig implements AsyncConfigurer, SchedulingConfigurer, DisposableBean {
 
   @Override
   public Executor getAsyncExecutor() {
@@ -47,8 +47,8 @@ public class AsyncConfig implements AsyncConfigurer, SchedulingConfigurer {
     return new ThreadPoolTaskScheduler();
   }
 
-  @PreDestroy
-  public void preDestroy() {
+  @Override
+  public void destroy() {
     taskExecutor().shutdownNow();
   }
 }

@@ -37,7 +37,7 @@ public class AudioServiceTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(uiService.getThemeFileUrl(any())).thenReturn(getThemeFileUrl(UiService.MENTION_SOUND));
 
-    instance.postConstruct();
+    instance.afterPropertiesSet();
 
     super.start(stage);
   }

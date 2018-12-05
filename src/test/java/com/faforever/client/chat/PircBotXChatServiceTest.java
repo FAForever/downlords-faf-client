@@ -217,14 +217,14 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     chatUser1 = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME, false);
     chatUser2 = instance.getOrCreateChatUser(user2.getNick(), DEFAULT_CHANNEL_NAME, false);
 
-    instance.postConstruct();
+    instance.afterPropertiesSet();
 
     verify(fafService).addOnMessageListener(eq(SocialMessage.class), socialMessageListenerCaptor.capture());
   }
 
   @After
   public void tearDown() {
-    instance.close();
+    instance.destroy();
     botShutdownLatch.countDown();
   }
 
@@ -763,7 +763,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testClose() {
-    instance.close();
+    instance.destroy();
   }
 
   @Test

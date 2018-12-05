@@ -32,9 +32,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.SocketUtils;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.DisposableBean;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -55,7 +55,7 @@ import static java.util.Arrays.asList;
 @Component
 @Lazy
 @Slf4j
-public class IceAdapterImpl implements IceAdapter {
+public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableBean {
 
   private static final int CONNECTION_ATTEMPTS = 5;
 
@@ -81,8 +81,8 @@ public class IceAdapterImpl implements IceAdapter {
     iceAdapterProxy = newIceAdapterProxy();
   }
 
-  @PostConstruct
-  void postConstruct() {
+  @Override
+  public void afterPropertiesSet() {
     eventBus.register(this);
     fafService.addOnMessageListener(JoinGameMessage.class, message -> iceAdapterProxy.joinGame(message.getUsername(), message.getPeerUid()));
     fafService.addOnMessageListener(HostGameMessage.class, message -> iceAdapterProxy.hostGame(message.getMap()));
@@ -262,9 +262,13 @@ public class IceAdapterImpl implements IceAdapter {
   }
 
   @Override
-  @PreDestroy
+  public void destroy() {
+    stop();
+  }
+
   public void stop() {
     Optional.ofNullable(iceAdapterProxy).ifPresent(IceAdapterApi::quit);
     peer = null;
   }
+
 }

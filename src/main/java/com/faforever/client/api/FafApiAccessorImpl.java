@@ -57,8 +57,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.beans.factory.InitializingBean;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.io.Serializable;
 import java.nio.file.Path;
@@ -75,7 +75,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @Profile("!offline")
-public class FafApiAccessorImpl implements FafApiAccessor {
+public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   private static final String MAP_ENDPOINT = "/data/map";
   private static final String TOURNAMENT_LIST_ENDPOINT = "/challonge/v1/tournaments.json";
@@ -116,8 +116,8 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     return new QBuilder<>();
   }
 
-  @PostConstruct
-  void postConstruct() {
+  @Override
+  public void afterPropertiesSet() {
     eventBus.register(this);
   }
 
