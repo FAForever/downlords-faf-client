@@ -54,8 +54,7 @@ public class ForgedAllianceService {
         mean = currentPlayer.getGlobalRatingMean();
     }
 
-    List<String> launchCommand = LaunchCommandBuilder.create()
-        .executableDecorator(preferencesService.getPreferences().getForgedAlliance().getExecutableDecorator())
+    List<String> launchCommand = defaultLaunchCommand()
         .executable(executable)
         .uid(uid)
         .faction(faction)
@@ -78,7 +77,7 @@ public class ForgedAllianceService {
   public Process startReplay(Path path, @Nullable Integer replayId) throws IOException {
     Path executable = getExecutable();
 
-    List<String> launchCommand = LaunchCommandBuilder.create()
+    List<String> launchCommand = defaultLaunchCommand()
         .executable(executable)
         .replayFile(path)
         .replayId(replayId)
@@ -92,7 +91,7 @@ public class ForgedAllianceService {
   public Process startReplay(URI replayUri, Integer replayId, Player currentPlayer) throws IOException {
     Path executable = getExecutable();
 
-    List<String> launchCommand = LaunchCommandBuilder.create()
+    List<String> launchCommand = defaultLaunchCommand()
         .executable(executable)
         .replayUri(replayUri)
         .replayId(replayId)
@@ -105,6 +104,11 @@ public class ForgedAllianceService {
 
   private Path getExecutable() {
     return preferencesService.getFafBinDirectory().resolve(FORGED_ALLIANCE_EXE);
+  }
+
+  private LaunchCommandBuilder defaultLaunchCommand() {
+    return LaunchCommandBuilder.create()
+        .executableDecorator(preferencesService.getPreferences().getForgedAlliance().getExecutableDecorator());
   }
 
   @NotNull

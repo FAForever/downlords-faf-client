@@ -35,10 +35,6 @@ public class LaunchCommandBuilder {
   private boolean rehost;
   private Integer localReplayPort;
 
-  private LaunchCommandBuilder() {
-    executableDecorator = "\"%s\"";
-  }
-
   public static LaunchCommandBuilder create() {
     return new LaunchCommandBuilder();
   }
