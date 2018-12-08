@@ -16,6 +16,7 @@ public class LaunchCommandBuilderTest {
   private static LaunchCommandBuilder defaultBuilder() {
     return LaunchCommandBuilder.create()
         .executable(Paths.get("test.exe"))
+        .executableDecorator("\"%s\"")
         .logFile(Paths.get("preferences.log"))
         .username("junit");
   }
@@ -28,6 +29,11 @@ public class LaunchCommandBuilderTest {
   @Test(expected = IllegalStateException.class)
   public void testExecutableNullThrowsException() throws Exception {
     defaultBuilder().executable(null).build();
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testExecutableDecoratorNullThrowsException() throws Exception {
+    defaultBuilder().executableDecorator(null).build();
   }
 
   @Test
