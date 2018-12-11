@@ -22,7 +22,6 @@ public class SearchableProperties {
       .put("playerStats.faction", "game.player.faction")
       .put("playerStats.team", "game.player.team")
       .put("playerStats.startSpot", "game.player.startSpot")
-      .put("playerStats.score", "game.player.score")
       .put("playerStats.player.id", "game.player.id")
       .put("playerStats.player.login", "game.player.username")
       .put("playerStats.player.globalRating.rating", "game.player.rating")
