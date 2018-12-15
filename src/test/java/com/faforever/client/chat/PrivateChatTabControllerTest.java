@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
@@ -84,7 +85,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws IOException {
-    PreferencesService preferencesService = new PreferencesService();
+    PreferencesService preferencesService = new PreferencesService(new ClientProperties());
     preferencesService.postConstruct();
     preferencesService.getPreferences().getMainWindow().setLastView(NavigationItem.CHAT.name());
 

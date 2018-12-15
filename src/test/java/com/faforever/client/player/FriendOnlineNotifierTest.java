@@ -1,6 +1,7 @@
 package com.faforever.client.player;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
@@ -30,7 +31,7 @@ public class FriendOnlineNotifierTest {
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
-    preferencesService = new PreferencesService();
+    preferencesService = new PreferencesService(new ClientProperties());
     preferencesService.postConstruct();
 
     instance = new FriendOnlineNotifier(notificationService, i18n, eventBus, audioService, playerService, preferencesService);

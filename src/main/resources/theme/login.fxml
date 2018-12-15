@@ -78,7 +78,7 @@
                                         promptText="%login.replayServerHost" GridPane.rowIndex="1"/>
                           <JFXTextField fx:id="replayServerPortField" layoutX="310.0" layoutY="7.0" prefColumnCount="6"
                                         promptText="%port" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                          <JFXTextField fx:id="apiBaseUrl" prefColumnCount="6" promptText="%login.apiBaseUrl"
+                          <JFXTextField fx:id="apiBaseUrlField" prefColumnCount="6" promptText="%login.apiBaseUrl"
                                         GridPane.columnSpan="2147483647" GridPane.rowIndex="2"/>
                       </children>
                       <VBox.margin>

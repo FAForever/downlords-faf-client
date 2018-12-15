@@ -1,10 +1,12 @@
 package com.faforever.client.preferences;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.game.Faction;
 import com.faforever.client.preferences.gson.ColorTypeAdapter;
 import com.faforever.client.preferences.gson.PathTypeAdapter;
 import com.faforever.client.preferences.gson.PropertyTypeAdapter;
 import com.faforever.client.remote.gson.FactionTypeAdapter;
+import com.faforever.client.update.ClientConfiguration;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.jna.platform.win32.Shell32Util;
@@ -19,12 +21,14 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.invoke.MethodHandles;
 import java.lang.ref.WeakReference;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -34,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
 
 @Lazy
 @Service
@@ -86,12 +91,13 @@ public class PreferencesService {
    */
   private final Timer timer;
   private final Collection<WeakReference<PreferenceUpdateListener>> updateListeners;
+  private final ClientProperties clientProperties;
 
   private Preferences preferences;
   private TimerTask storeInBackgroundTask;
 
-  @Inject
-  public PreferencesService() {
+  public PreferencesService(ClientProperties clientProperties) {
+    this.clientProperties = clientProperties;
     updateListeners = new ArrayList<>();
     this.preferencesFilePath = getPreferencesDirectory().resolve(PREFS_FILE_NAME);
     timer = new Timer("PrefTimer", true);
@@ -279,5 +285,25 @@ public class PreferencesService {
 
   public Path getLanguagesDirectory() {
     return getFafDataDirectory().resolve("languages");
+  }
+
+  public CompletableFuture<ClientConfiguration> getRemotePreferences() {
+    CompletableFuture<ClientConfiguration> future = new CompletableFuture<>();
+
+    try {
+      URL url = new URL(clientProperties.getClientConfigUrl());
+      HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+      urlConnection.setConnectTimeout((int) clientProperties.getClientConfigConnectTimeout().toMillis());
+
+      ClientConfiguration clientConfiguration;
+      try (Reader reader = new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8)) {
+        clientConfiguration = gson.fromJson(reader, ClientConfiguration.class);
+      }
+      future.complete(clientConfiguration);
+    } catch (IOException e) {
+      future.completeExceptionally(e);
+    }
+
+    return future;
   }
 }

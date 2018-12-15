@@ -32,14 +32,18 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     ClientProperties clientProperties = new ClientProperties();
 
+    when(preferencesService.getPreferences()).thenReturn(new Preferences());
+    when(preferencesService.getRemotePreferences()).thenReturn(CompletableFuture.failedFuture(new Exception(
+        "Fall back to default configuration"
+    )));
+
     instance = new LoginController(userService, preferencesService, platformService, clientProperties);
-    loadFxml("theme/login.fxml", param -> instance);
 
     Website website = clientProperties.getWebsite();
     website.setCreateAccountUrl("create");
     website.setForgotPasswordUrl("forgot");
 
-    when(preferencesService.getPreferences()).thenReturn(new Preferences());
+    loadFxml("theme/login.fxml", param -> instance);
   }
 
   @Test

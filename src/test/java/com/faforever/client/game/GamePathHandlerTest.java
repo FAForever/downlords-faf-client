@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -28,7 +29,7 @@ public class GamePathHandlerTest {
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
-    PreferencesService preferenceService = new PreferencesService();
+    PreferencesService preferenceService = new PreferencesService(new ClientProperties());
     instance = new GamePathHandler(notificationService, i18n, eventBus, preferenceService);
   }
 

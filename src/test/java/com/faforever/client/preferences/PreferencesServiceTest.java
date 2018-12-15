@@ -1,5 +1,6 @@
 package com.faforever.client.preferences;
 
+import com.faforever.client.config.ClientProperties;
 import com.google.common.eventbus.EventBus;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
@@ -21,10 +22,12 @@ public class PreferencesServiceTest {
   private PreferencesService instance;
   @Mock
   private EventBus eventBus;
+  @Mock
+  private ClientProperties clientProperties;
 
   @Before
   public void setUp() throws Exception {
-    instance = new PreferencesService();
+    instance = new PreferencesService(clientProperties);
   }
 
   @Test

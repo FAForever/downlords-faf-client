@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
@@ -46,8 +45,13 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
   @VisibleForTesting
   ComparableVersion currentVersion;
 
-  @Inject
-  public ClientUpdateServiceImpl(TaskService taskService, NotificationService notificationService, I18n i18n, PlatformService platformService, ApplicationContext applicationContext) {
+  public ClientUpdateServiceImpl(
+      TaskService taskService,
+      NotificationService notificationService,
+      I18n i18n,
+      PlatformService platformService,
+      ApplicationContext applicationContext
+  ) {
     this.taskService = taskService;
     this.notificationService = notificationService;
     this.i18n = i18n;

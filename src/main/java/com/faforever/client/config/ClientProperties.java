@@ -16,13 +16,14 @@ public class ClientProperties {
   private Server server = new Server();
   private Vault vault = new Vault();
   private Replay replay = new Replay();
-  private GitHub gitHub = new GitHub();
   private Imgur imgur = new Imgur();
   private TrueSkill trueSkill = new TrueSkill();
   private Api api = new Api();
   private UnitDatabase unitDatabase = new UnitDatabase();
   private Website website = new Website();
   private String translationProjectUrl;
+  private String clientConfigUrl;
+  private Duration clientConfigConnectTimeout = Duration.ofSeconds(30);
 
   @Data
   public static class News {
@@ -82,12 +83,6 @@ public class ClientProperties {
     private String replayFileGlob = "*.fafreplay";
     // TODO this should acutally be reported by the server
     private int watchDelaySeconds = 300;
-  }
-
-  @Data
-  public static class GitHub {
-    private String releasesUrl = "https://api.github.com/repos/FAForever/downlords-faf-client/releases";
-    private int timeout = (int) Duration.ofSeconds(5).toMillis();
   }
 
   @Data

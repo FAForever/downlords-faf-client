@@ -25,6 +25,8 @@ faf-client:
     rackOversUrl: http://direct.faforever.com/faf/unitsDB/?settings64=eyJwcmV2aWV3Q29ybmVyIjoiTm9uZSJ9
 
   translation-project-url: https://poeditor.com/join/project/2oWfdaZQZj
+  client-config-url: http://content.faforever.com/dfc-config.json
+  client-config-connect-timeout: 10s
 
 spring:
   profiles:
