@@ -4,9 +4,11 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Replay;
 import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.update.ClientConfiguration.Endpoints;
 import com.faforever.client.user.UserService;
 import com.google.common.base.Strings;
 import javafx.application.Platform;
@@ -19,6 +21,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -33,6 +36,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Slf4j
 public class LoginController implements Controller<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -40,6 +44,7 @@ public class LoginController implements Controller<Node> {
   private final PreferencesService preferencesService;
   private final PlatformService platformService;
   private final ClientProperties clientProperties;
+
   public Pane loginFormPane;
   public Pane loginProgressPane;
   public CheckBox autoLoginCheckBox;
@@ -53,10 +58,14 @@ public class LoginController implements Controller<Node> {
   public TextField serverPortField;
   public TextField replayServerHostField;
   public TextField replayServerPortField;
-  public TextField apiBaseUrl;
+  public TextField apiBaseUrlField;
 
-  @Inject
-  public LoginController(UserService userService, PreferencesService preferencesService, PlatformService platformService, ClientProperties clientProperties) {
+  public LoginController(
+      UserService userService,
+      PreferencesService preferencesService,
+      PlatformService platformService,
+      ClientProperties clientProperties
+  ) {
     this.userService = userService;
     this.preferencesService = preferencesService;
     this.platformService = platformService;
@@ -75,11 +84,43 @@ public class LoginController implements Controller<Node> {
     serverConfigPane.managedProperty().bind(serverConfigPane.visibleProperty());
     serverConfigPane.setVisible(false);
 
-    serverHostField.setText(clientProperties.getServer().getHost());
-    serverPortField.setText(String.valueOf(clientProperties.getServer().getPort()));
-    replayServerHostField.setText(clientProperties.getReplay().getRemoteHost());
-    replayServerPortField.setText(String.valueOf(clientProperties.getReplay().getRemotePort()));
-    apiBaseUrl.setText(clientProperties.getApi().getBaseUrl());
+    populateEndpointFields(
+        clientProperties.getServer().getHost(),
+        clientProperties.getServer().getPort(),
+        clientProperties.getReplay().getRemoteHost(),
+        clientProperties.getReplay().getRemotePort(),
+        clientProperties.getApi().getBaseUrl()
+    );
+
+    preferencesService.getRemotePreferences().thenAccept(clientConfiguration -> {
+      Endpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
+      populateEndpointFields(
+          defaultEndpoint.getLobby().getHost(),
+          clientConfiguration.getEndpoints().get(0).getLobby().getPort(),
+          clientConfiguration.getEndpoints().get(0).getLiveReplay().getHost(),
+          clientConfiguration.getEndpoints().get(0).getLiveReplay().getPort(),
+          clientConfiguration.getEndpoints().get(0).getApi().getUrl()
+      );
+    }).exceptionally(throwable -> {
+      log.warn("Could not read remote preferences");
+      return null;
+    });
+  }
+
+  private void populateEndpointFields(
+      String serverHost,
+      int serverPort,
+      String replayServerHost,
+      int replayServerPort,
+      String apiBaseUrl
+  ) {
+    JavaFxUtil.runLater(() -> {
+      serverHostField.setText(serverHost);
+      serverPortField.setText(String.valueOf(serverPort));
+      replayServerHostField.setText(replayServerHost);
+      replayServerPortField.setText(String.valueOf(replayServerPort));
+      apiBaseUrlField.setText(apiBaseUrl);
+    });
   }
 
   public void display() {
@@ -151,7 +192,7 @@ public class LoginController implements Controller<Node> {
     replay.setRemoteHost(replayServerHostField.getText());
     replay.setRemotePort(Integer.parseInt(replayServerPortField.getText()));
 
-    clientProperties.getApi().setBaseUrl(apiBaseUrl.getText());
+    clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
 
     login(username, password, autoLogin);
   }

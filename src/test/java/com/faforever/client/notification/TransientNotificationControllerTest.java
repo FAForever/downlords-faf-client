@@ -1,5 +1,6 @@
 package com.faforever.client.notification;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.notification.Action.ActionCallback;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -29,7 +30,7 @@ public class TransientNotificationControllerTest extends AbstractPlainJavaFxTest
 
   @Before
   public void setUp() throws Exception {
-    PreferencesService preferencesService = new PreferencesService();
+    PreferencesService preferencesService = new PreferencesService(new ClientProperties());
     preferencesService.postConstruct();
     instance = new TransientNotificationController(preferencesService);
 

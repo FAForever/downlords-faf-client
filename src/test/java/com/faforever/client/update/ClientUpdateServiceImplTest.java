@@ -26,7 +26,6 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ClientUpdateServiceImplTest {
@@ -59,7 +58,7 @@ public class ClientUpdateServiceImplTest {
   public void testCheckForUpdateInBackgroundUpdateAvailable() throws Exception {
     instance.currentVersion = new ComparableVersion("v0.4.8.0-alpha");
 
-    CheckForUpdateTask taskMock = mock(CheckForUpdateTask.class, withSettings().useConstructor());
+    CheckForUpdateTask taskMock = mock(CheckForUpdateTask.class);
 
     when(applicationContext.getBean(CheckForUpdateTask.class)).thenReturn(taskMock);
 

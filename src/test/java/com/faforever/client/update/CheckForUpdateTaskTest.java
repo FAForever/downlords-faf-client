@@ -2,6 +2,7 @@ package com.faforever.client.update;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.io.CharStreams;
 import org.apache.commons.compress.utils.IOUtils;
@@ -22,67 +23,89 @@ import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URL;
 import java.util.concurrent.CountDownLatch;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
 
-  private ServerSocket fakeGithubServerSocket;
+  private ServerSocket fakeConfigServerSocket;
   private CheckForUpdateTask instance;
 
   @Mock
   private I18n i18n;
+  @Mock
+  private PreferencesService preferencesService;
 
   private CountDownLatch terminateLatch;
+  private ClientProperties clientProperties;
 
   @Before
   public void setUp() throws Exception {
-    instance = new CheckForUpdateTask();
-    instance.i18n = i18n;
-    instance.clientProperties = new ClientProperties();
+    clientProperties = new ClientProperties();
+    instance = new CheckForUpdateTask(i18n, preferencesService);
 
     terminateLatch = new CountDownLatch(1);
   }
 
   @After
-  public void tearDown() throws Exception {
-    IOUtils.closeQuietly(fakeGithubServerSocket);
+  public void tearDown() {
+    IOUtils.closeQuietly(fakeConfigServerSocket);
     terminateLatch.countDown();
   }
 
   @Test
-  @Ignore("Still not sure why this fails on travis with SocketException")
+  @Ignore("For unknown reasons, Travis throws a SocketException probably when trying to connect to the fake server")
   public void testIsNewer() throws Exception {
-    instance.setCurrentVersion(new ComparableVersion("0.4.8-alpha"));
+    instance.setCurrentVersion(new ComparableVersion("0.4.6-alpha"));
 
-    startFakeGitHubApiServer();
-    int port = fakeGithubServerSocket.getLocalPort();
+    startFakeConfigServer();
+    int port = fakeConfigServerSocket.getLocalPort();
 
-    instance.clientProperties.getGitHub().setReleasesUrl("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
-    instance.clientProperties.getGitHub().setTimeout(3000);
+    clientProperties.setClientConfigUrl("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
 
-    instance.call();
+    instance.fileSizeReader = url -> 123;
+    UpdateInfo updateInfo = instance.call();
+
+    assertThat(updateInfo.getSize(), is(123));
+    assertThat(updateInfo.getFileName(), is("dfaf_windows_0_4_7-alpha.exe"));
+    assertThat(updateInfo.getName(), is("0.4.7-alpha"));
+    assertThat(updateInfo.getReleaseNotesUrl(), is(new URL("https://www.example.com/")));
+
+    if (org.bridj.Platform.isWindows()) {
+      assertThat(updateInfo.getUrl(), is(new URL("https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_windows_0_4_7-alpha.exe")));
+    } else if (org.bridj.Platform.isLinux()) {
+      assertThat(updateInfo.getUrl(), is(new URL("https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_linux_0_4_7-alpha.tar.gz")));
+    } else if (org.bridj.Platform.isMacOSX()) {
+      assertThat(updateInfo.getUrl(), is(new URL("https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_mac_0_4_7-alpha.dmg")));
+    } else {
+      throw new IllegalStateException("Unsupported platform");
+    }
+
   }
 
-  private void startFakeGitHubApiServer() throws Exception {
-    fakeGithubServerSocket = new ServerSocket(0);
+  private void startFakeConfigServer() throws Exception {
+    fakeConfigServerSocket = new ServerSocket(0);
 
     WaitForAsyncUtils.async(() -> {
-      try (Socket socket = fakeGithubServerSocket.accept();
+      try (Socket socket = fakeConfigServerSocket.accept();
            Reader sampleReader = new InputStreamReader(getClass().getResourceAsStream("/sample-github-releases-response.txt"));
            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(socket.getOutputStream())) {
 
         logger.debug("Accepted connection from {}", socket.getInetAddress());
 
-        String response = CharStreams.toString(sampleReader);
-
-        outputStreamWriter.write(response);
+        CharStreams.copy(sampleReader, outputStreamWriter);
       } catch (Exception e) {
         logger.error("Exception in fake HTTP server", e);
         throw new RuntimeException(e);
       }
+      logger.info("Response sent");
     });
   }
 
@@ -90,15 +113,14 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
    * There is no newer version on the server.
    */
   @Test
-  @Ignore("Still not sure why this fails on travis with SocketException")
+  @Ignore("For unknown reasons, Travis throws a SocketException probably when trying to connect to the fake server")
   public void testGetUpdateIsCurrent() throws Exception {
     instance.setCurrentVersion(new ComparableVersion("0.4.8.1-alpha"));
 
-    startFakeGitHubApiServer();
-    int port = fakeGithubServerSocket.getLocalPort();
-    instance.clientProperties.getGitHub().setReleasesUrl("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
-    instance.clientProperties.getGitHub().setTimeout(3000);
+    startFakeConfigServer();
+    int port = fakeConfigServerSocket.getLocalPort();
+    clientProperties.setClientConfigUrl("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
 
-    instance.call();
+    assertThat(instance.call(), is(nullValue()));
   }
 }

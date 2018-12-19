@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="FAF Client Yenon" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" singleton="true">
+  <configuration default="false" name="FAF java test sever" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" singleton="true">
     <module name="downlords-faf-client_main" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="com.faforever.client.FafClientApplication" />
     <option name="ACTIVE_PROFILES" value="test" />
@@ -15,14 +15,16 @@
       <param>
         <option name="enabled" value="true" />
         <option name="name" value="faf-client.server.port" />
-        <option name="value" value="18001" />
+        <option name="value" value="8001" />
       </param>
       <param>
         <option name="enabled" value="true" />
         <option name="name" value="faf-client.api.base-url" />
-        <option name="value" value="http://api.faf.micheljung.ch:10080" />
+        <option name="value" value="https://api.faf.micheljung.ch" />
       </param>
     </additionalParameters>
-    <method />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
   </configuration>
 </component>
