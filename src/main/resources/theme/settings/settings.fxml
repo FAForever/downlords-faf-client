@@ -584,6 +584,14 @@
                                         <JFXComboBox fx:id="themeComboBox" disable="true"
                                                      maxWidth="1.7976931348623157E308" GridPane.columnSpan="2147483647"
                                                      GridPane.rowIndex="1"/>
+                                        <Label styleClass="h3" text="%settings.appearance.backgoundImage"
+                                               GridPane.rowIndex="2" GridPane.columnSpan="2147483647"/>
+                                        <JFXTextField fx:id="backgroundImageLocation"
+                                                      promptText="%settings.appearance.useDefaultImage"
+                                                      GridPane.rowIndex="3"/>
+                                        <JFXButton mnemonicParsing="false" onAction="#onSelectBackgroundImage"
+                                                   text="%settings.fa.chooseDirectory" GridPane.columnIndex="1"
+                                                   GridPane.rowIndex="3"/>
                                     </children>
                                 </GridPane>
                             </content>

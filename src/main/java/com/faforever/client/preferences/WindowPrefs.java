@@ -4,14 +4,18 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.MapProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleMapProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+
+import java.nio.file.Path;
 
 public class WindowPrefs {
 
@@ -22,6 +26,7 @@ public class WindowPrefs {
   private final MapProperty<String, String> lastChildViews;
   private final DoubleProperty x;
   private final DoubleProperty y;
+  private final ObjectProperty<Path> backgroundImagePath;
 
   public WindowPrefs() {
     this.width = new SimpleIntegerProperty(800);
@@ -31,6 +36,7 @@ public class WindowPrefs {
     maximized = new SimpleBooleanProperty();
     lastView = new SimpleStringProperty();
     lastChildViews = new SimpleMapProperty<>(FXCollections.observableHashMap());
+    backgroundImagePath = new SimpleObjectProperty<>();
   }
 
   public int getWidth() {
@@ -115,5 +121,17 @@ public class WindowPrefs {
 
   public MapProperty<String, String> lastChildViewsProperty() {
     return lastChildViews;
+  }
+
+  public ObjectProperty<Path> backgroundImagePathProperty() {
+    return backgroundImagePath;
+  }
+
+  public Path getBackgroundImagePath() {
+    return backgroundImagePath.getValue();
+  }
+
+  public void setBackgroundImagePath(Path path) {
+    this.backgroundImagePath.setValue(path);
   }
 }
