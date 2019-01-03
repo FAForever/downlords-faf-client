@@ -58,6 +58,12 @@ import javafx.scene.Node;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.image.Image;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Popup;
@@ -329,7 +335,7 @@ public class MainController implements Controller<Node> {
     eventBus.post(UpdateApplicationBadgeEvent.ofNewValue(0));
 
     Stage stage = StageHolder.getStage();
-
+    setBackgroundImage(preferencesService.getPreferences().getMainWindow().getBackgroundImagePath());
     mainScene = uiService.createScene(stage, mainRoot);
     stage.setScene(mainScene);
 
@@ -422,6 +428,26 @@ public class MainController implements Controller<Node> {
         preferencesService.storeInBackground();
       }
     });
+    JavaFxUtil.addListener(mainWindowPrefs.backgroundImagePathProperty(), observable -> {
+      setBackgroundImage(mainWindowPrefs.getBackgroundImagePath());
+    });
+  }
+
+  private void setBackgroundImage(Path filepath) {
+    Image image;
+    if (filepath == null || filepath.toString().isEmpty()) {
+      image = new Image(uiService.getThemeFile("theme/images/login-background.jpg"));
+    } else {
+      image = noCatch(() -> new Image(filepath.toUri().toURL().toExternalForm()));
+    }
+    mainRoot.setBackground(new Background(new BackgroundImage(
+        image,
+        BackgroundRepeat.NO_REPEAT,
+        BackgroundRepeat.NO_REPEAT,
+        BackgroundPosition.CENTER,
+        BackgroundSize.DEFAULT
+    )));
+
   }
 
   private void enterLoggedInState() {

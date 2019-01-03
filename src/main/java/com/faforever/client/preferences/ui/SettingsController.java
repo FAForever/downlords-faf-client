@@ -27,6 +27,7 @@ import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.user.UserService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
+import com.jfoenix.controls.JFXTextField;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -45,6 +46,7 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.util.converter.NumberStringConverter;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +54,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.List;
@@ -120,6 +123,7 @@ public class SettingsController implements Controller<Node> {
   public ComboBox<UnitDataBaseType> unitDatabaseComboBox;
   public Toggle notifyOnAtMentionOnlyToggle;
   public Pane languagesContainer;
+  public JFXTextField backgroundImageLocation;
   private ChangeListener<Theme> selectedThemeChangeListener;
   private ChangeListener<Theme> currentThemeChangeListener;
   private InvalidationListener availableLanguagesListener;
@@ -263,6 +267,8 @@ public class SettingsController implements Controller<Node> {
 
     executableDecoratorField.textProperty().bindBidirectional(preferences.getForgedAlliance().executableDecoratorProperty());
     executionDirectoryField.textProperty().bindBidirectional(preferences.getForgedAlliance().executionDirectoryProperty(), PATH_STRING_CONVERTER);
+
+    backgroundImageLocation.textProperty().bindBidirectional(preferences.getMainWindow().backgroundImagePathProperty(), PATH_STRING_CONVERTER);
 
     passwordChangeErrorLabel.setVisible(false);
 
@@ -442,5 +448,20 @@ public class SettingsController implements Controller<Node> {
   public void onHelpUsButtonClicked() {
     platformService.showDocument(clientProperties.getTranslationProjectUrl());
   }
+
+  public void onSelectBackgroundImage() {
+    Platform.runLater(() -> {
+      FileChooser directoryChooser = new FileChooser();
+      directoryChooser.setTitle(i18n.get("settings.appearance.chooseImage"));
+      File result = directoryChooser.showOpenDialog(getRoot().getScene().getWindow());
+
+      if (result == null) {
+        return;
+      }
+      preferencesService.getPreferences().getMainWindow().setBackgroundImagePath(result.toPath());
+      preferencesService.storeInBackground();
+    });
+  }
+
 }
 

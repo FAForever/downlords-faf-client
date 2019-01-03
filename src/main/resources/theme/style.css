@@ -708,15 +708,6 @@
   -fx-font-size: 14px;
 }
 
-/***************** Main window *****************/
-
-.main-window {
-  -fx-background-image: url('images/login-background.jpg');
-  -fx-background-repeat: no-repeat;
-  -fx-background-position: center;
-  -fx-background-size: cover, auto;
-}
-
 /***************** Main window header *****************/
 
 .main-navigation-top {
