@@ -28,7 +28,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.CancellationException;
 
@@ -92,19 +91,21 @@ public class LoginController implements Controller<Node> {
         clientProperties.getApi().getBaseUrl()
     );
 
-    preferencesService.getRemotePreferences().thenAccept(clientConfiguration -> {
-      Endpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
-      populateEndpointFields(
-          defaultEndpoint.getLobby().getHost(),
-          clientConfiguration.getEndpoints().get(0).getLobby().getPort(),
-          clientConfiguration.getEndpoints().get(0).getLiveReplay().getHost(),
-          clientConfiguration.getEndpoints().get(0).getLiveReplay().getPort(),
-          clientConfiguration.getEndpoints().get(0).getApi().getUrl()
-      );
-    }).exceptionally(throwable -> {
-      log.warn("Could not read remote preferences");
-      return null;
-    });
+    if (clientProperties.isUseRemotePreferences()) {
+      preferencesService.getRemotePreferences().thenAccept(clientConfiguration -> {
+        Endpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
+        populateEndpointFields(
+            defaultEndpoint.getLobby().getHost(),
+            clientConfiguration.getEndpoints().get(0).getLobby().getPort(),
+            clientConfiguration.getEndpoints().get(0).getLiveReplay().getHost(),
+            clientConfiguration.getEndpoints().get(0).getLiveReplay().getPort(),
+            clientConfiguration.getEndpoints().get(0).getApi().getUrl()
+        );
+      }).exceptionally(throwable -> {
+        log.warn("Could not read remote preferences");
+        return null;
+      });
+    }
   }
 
   private void populateEndpointFields(

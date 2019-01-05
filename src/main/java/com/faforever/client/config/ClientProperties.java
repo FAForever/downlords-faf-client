@@ -23,6 +23,7 @@ public class ClientProperties {
   private Website website = new Website();
   private String translationProjectUrl;
   private String clientConfigUrl;
+  private boolean useRemotePreferences;
   private Duration clientConfigConnectTimeout = Duration.ofSeconds(30);
 
   @Data
