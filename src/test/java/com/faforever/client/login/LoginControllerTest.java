@@ -33,9 +33,6 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     ClientProperties clientProperties = new ClientProperties();
 
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
-    when(preferencesService.getRemotePreferences()).thenReturn(CompletableFuture.failedFuture(new Exception(
-        "Fall back to default configuration"
-    )));
 
     instance = new LoginController(userService, preferencesService, platformService, clientProperties);
 
