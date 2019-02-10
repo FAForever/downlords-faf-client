@@ -36,7 +36,7 @@ public class SpecificationControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new SpecificationController(i18n);
+    instance = new SpecificationController(i18n, queryCriterionService);
 
     loadFxml("theme/vault/search/specification.fxml", clazz -> {
       if (clazz == instance.getClass()) {

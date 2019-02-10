@@ -1,6 +1,5 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.api.dto.Game;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
@@ -93,7 +92,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     backButton.managedProperty().bind(backButton.visibleProperty());
     moreButton.managedProperty().bind(moreButton.visibleProperty());
 
-    searchController.setRootType(Game.class);
+    searchController.setRootType(com.faforever.commons.api.dto.Game.class);
     searchController.setSearchListener(this::onSearch);
     searchController.setSearchableProperties(SearchableProperties.GAME_PROPERTIES);
     searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().onlineReplaySortConfigProperty());

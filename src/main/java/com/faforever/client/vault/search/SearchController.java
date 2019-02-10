@@ -4,11 +4,9 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.LogicalNodeController;
-import com.faforever.client.query.SpecificationController;
 import com.faforever.client.theme.UiService;
-import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
-import com.github.rutledgepaulv.qbuilders.conditions.Condition;
-import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
+import com.faforever.commons.api.elide.querybuilder.QueryBuilder;
+import com.faforever.commons.api.elide.querybuilder.QueryCriterion;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.ObjectProperty;
@@ -30,7 +28,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 @Component
@@ -63,6 +60,7 @@ public class SearchController implements Controller<Pane> {
    * Type of the searchable entity.
    */
   private Class<?> rootType;
+  private Map<String, QueryCriterion> queryCriteriaMap;
 
   public SearchController(UiService uiService, I18n i18n, PreferencesService preferencesService) {
     this.uiService = uiService;
@@ -87,7 +85,7 @@ public class SearchController implements Controller<Pane> {
     initialLogicalNodeController.logicalOperatorField.setVisible(false);
     initialLogicalNodeController.removeCriteriaButton.setVisible(false);
 
-    queryInvalidationListener = observable -> queryTextField.setText(buildQuery(initialLogicalNodeController.specificationController, queryNodes));
+    queryInvalidationListener = observable -> queryTextField.setText(buildQuery(initialLogicalNodeController, queryNodes));
     addInvalidationListener(initialLogicalNodeController);
     initSorting();
   }
@@ -120,7 +118,6 @@ public class SearchController implements Controller<Pane> {
 
   public void setSearchableProperties(Map<String, String> searchableProperties) {
     this.searchableProperties = searchableProperties;
-    initialLogicalNodeController.specificationController.setProperties(searchableProperties);
   }
 
   public void setSortConfig(ObjectProperty<SortConfig> sortConfigObjectProperty) {
@@ -177,7 +174,6 @@ public class SearchController implements Controller<Pane> {
     LogicalNodeController controller = uiService.loadFxml("theme/vault/search/logical_node.fxml");
     controller.logicalOperatorField.valueProperty().addListener(queryInvalidationListener);
     controller.specificationController.setRootType(rootType);
-    controller.specificationController.setProperties(searchableProperties);
     controller.setRemoveCriteriaButtonListener(() -> {
       criteriaPane.getChildren().remove(controller.getRoot());
       queryNodes.remove(controller);
@@ -204,22 +200,16 @@ public class SearchController implements Controller<Pane> {
    * Builds the query string if possible, returns empty string if not. A query string can not be built if the user
    * selected no or invalid values.
    */
-  private String buildQuery(SpecificationController initialSpecification, List<LogicalNodeController> queryNodes) {
-    QBuilder qBuilder = new QBuilder();
+  private String buildQuery(LogicalNodeController initialQueryNode, List<LogicalNodeController> queryNodes) {
+    QueryBuilder queryBuilder = QueryBuilder.of(initialQueryNode.buildQueryElement());
 
-    Optional<Condition> condition = initialSpecification.appendTo(qBuilder);
-    if (!condition.isPresent()) {
-      return "";
-    }
     for (LogicalNodeController queryNode : queryNodes) {
-      Optional<Condition> currentCondition = queryNode.appendTo(condition.get());
-      if (!currentCondition.isPresent()) {
-        break;
-      }
-      condition = currentCondition;
+        queryNode.appendTo(queryBuilder);
     }
-    return (String) condition.get().query(new RSQLVisitor());
+
+    return queryBuilder.build();
   }
+
 
   @Override
   public Pane getRoot() {
