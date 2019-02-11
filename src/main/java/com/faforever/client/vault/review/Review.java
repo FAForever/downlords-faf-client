@@ -26,7 +26,6 @@ public class Review {
     review.setId(dto.getId());
     review.setText(dto.getText());
     review.setScore(Optional.ofNullable(dto.getScore()).map(Byte::intValue).orElse(0));
-    review.setPlayer(Player.fromDto(dto.getPlayer()));
 
     if (dto.getPlayer() != null) {
       review.setPlayer(Player.fromDto(dto.getPlayer()));

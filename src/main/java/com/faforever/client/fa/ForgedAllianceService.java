@@ -32,6 +32,19 @@ public class ForgedAllianceService {
 
   private final PreferencesService preferencesService;
 
+  public Process startGameOffline(List<String> args) throws IOException {
+    Path executable = getExecutable();
+    List<String> launchCommand = LaunchCommandBuilder.create()
+        .executableDecorator(preferencesService.getPreferences().getForgedAlliance().getExecutableDecorator())
+        .executable(executable)
+        .additionalArgs(args)
+        .logFile(preferencesService.getFafLogDirectory().resolve("game.log"))
+
+        .build();
+
+    return launch(executable, launchCommand);
+  }
+
   public Process startGame(int uid, @Nullable Faction faction, @Nullable List<String> additionalArgs,
                            RatingMode ratingMode, int gpgPort, int localReplayPort, boolean rehost, Player currentPlayer) throws IOException {
     Path executable = getExecutable();

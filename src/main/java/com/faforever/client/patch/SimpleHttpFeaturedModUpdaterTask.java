@@ -7,6 +7,7 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
+import com.faforever.client.util.UpdaterUtil;
 import com.google.common.hash.Hashing;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
@@ -56,7 +57,8 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
 
     Path initFile = null;
     for (FeaturedModFile featuredModFile : featuredModFiles) {
-      Path targetPath = preferencesService.getFafDataDirectory()
+      Path fafDataDirectory = preferencesService.getFafDataDirectory();
+      Path targetPath = fafDataDirectory
           .resolve(featuredModFile.getGroup())
           .resolve(featuredModFile.getName());
 
@@ -66,8 +68,12 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
       } else {
         Files.createDirectories(targetPath.getParent());
         updateMessage(i18n.get("updater.downloadingFile", targetPath.getFileName()));
-        downloadService.downloadFile(new URL(featuredModFile.getUrl()), targetPath, this::updateProgress);
+
+        String url = featuredModFile.getUrl();
+        downloadService.downloadFile(new URL(url), targetPath, this::updateProgress);
       }
+
+      UpdaterUtil.extractMoviesIfPresent(targetPath, fafDataDirectory);
 
       if ("bin".equals(featuredModFile.getGroup()) && initFileName.equalsIgnoreCase(featuredModFile.getName())) {
         initFile = targetPath;

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXSpinner?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="rootPane" maxHeight="1.7976931348623157E308"
+           maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/8.0.40"
+           fx:controller="com.faforever.client.tutorial.TutorialController">
+    <VBox fx:id="loadingSpinner" maxHeight="100" maxWidth="100" spacing="10">
+        <JFXSpinner/>
+        <Label text="%tutorial.loading"/>
+    </VBox>
+    <VBox fx:id="nothingToShow" maxHeight="100" maxWidth="100" spacing="10">
+        <Label text="%tutorial.noneAvailable"/>
+    </VBox>
+    <HBox fx:id="tutorialPane">
+        <children>
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" minHeight="0.0" minWidth="0.0" HBox.hgrow="NEVER">
+                <content>
+                    <VBox fx:id="tutorialOverviewPane" minHeight="0.0" minWidth="0.0"/>
+                </content>
+            </ScrollPane>
+            <Separator orientation="VERTICAL"/>
+            <AnchorPane HBox.hgrow="ALWAYS">
+                <children>
+                    <fx:include source="tutorial_detail.fxml" fx:id="tutorialDetail" prefHeight="-1.0" prefWidth="-1.0"
+                                AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                                AnchorPane.topAnchor="0.0"/>
+                </children>
+            </AnchorPane>
+        </children>
+    </HBox>
+</StackPane>
+
