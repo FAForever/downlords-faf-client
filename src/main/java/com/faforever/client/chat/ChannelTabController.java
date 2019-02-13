@@ -56,6 +56,7 @@ import org.springframework.util.Assert;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -162,6 +163,7 @@ public class ChannelTabController extends AbstractChatTabController {
     userNamesToListItems = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     chatUserListItems = FXCollections.observableArrayList();
     filteredChatUserList = new FilteredList<>(chatUserListItems);
+    autoCompletionHelper.setChannelUserNames(Collections.unmodifiableSet(userNamesToListItems.keySet()));
 
     chatColorModeChangeListener = (observable, oldValue, newValue) -> {
       if (newValue != DEFAULT) {
