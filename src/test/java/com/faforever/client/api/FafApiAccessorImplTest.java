@@ -269,6 +269,24 @@ public class FafApiAccessorImplTest {
   }
 
   @Test
+  public void getCoopLeaderboardAll() {
+    when(restOperations.getForObject(startsWith("/data/coopResult"), eq(List.class))).thenReturn(emptyList());
+
+    instance.getCoopLeaderboard("1", 0);
+
+    verify(restOperations).getForObject(eq("/data/coopResult?filter=mission==\"1\"&include=game.playerStats.player&sort=duration&page[size]=1000&page[number]=1"), eq(List.class));
+  }
+
+  @Test
+  public void getCoopLeaderboardOnePlayer() {
+    when(restOperations.getForObject(startsWith("/data/coopResult"), eq(List.class))).thenReturn(emptyList());
+
+    instance.getCoopLeaderboard("1", 1);
+
+    verify(restOperations).getForObject(eq("/data/coopResult?filter=mission==\"1\";playerCount==\"1\"&include=game.playerStats.player&sort=duration&page[size]=1000&page[number]=1"), eq(List.class));
+  }
+
+  @Test
   public void testCreateGameReview() {
     GameReview gameReview = new GameReview().setGame(new Game().setId("5"));
 
