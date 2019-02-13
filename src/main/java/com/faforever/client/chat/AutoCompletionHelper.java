@@ -6,6 +6,7 @@ import javafx.event.EventHandler;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import lombok.Setter;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.Locale.US;
@@ -24,6 +26,8 @@ public class AutoCompletionHelper {
   private final PlayerService playerService;
 
   private List<String> possibleAutoCompletions;
+  @Setter
+  private Set<String> channelUserNames;
   private int nextAutoCompleteIndex;
   private String autoCompletePartialName;
 
@@ -99,8 +103,14 @@ public class AutoCompletionHelper {
 
     nextAutoCompleteIndex = 0;
 
+    Set<String> playerNames = playerService.getPlayerNames();
+
+    if (channelUserNames != null) {
+      playerNames.addAll(channelUserNames);
+    }
+
     possibleAutoCompletions.addAll(
-        playerService.getPlayerNames().stream()
+        playerNames.stream()
             .filter(playerName -> playerName.toLowerCase(US).startsWith(autoCompletePartialName.toLowerCase()))
             .sorted()
             .collect(Collectors.toList())

@@ -113,8 +113,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   protected final UiService uiService;
   protected final EventBus eventBus;
   protected final WebViewConfigurer webViewConfigurer;
+  protected final AutoCompletionHelper autoCompletionHelper;
   private final ImageUploadService imageUploadService;
-  private final AutoCompletionHelper autoCompletionHelper;
   private final CountryFlagService countryFlagService;
 
   /**
