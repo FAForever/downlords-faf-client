@@ -466,9 +466,14 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   @Cacheable(CacheNames.COOP_LEADERBOARD)
   public List<CoopResult> getCoopLeaderboard(String missionId, int numberOfPlayers) {
+    Condition<?> filterCondition = qBuilder().string("mission").eq(missionId);
+
+    if (numberOfPlayers > 0) {
+      filterCondition = filterCondition.and().intNum("playerCount").eq(numberOfPlayers);
+    }
+
     return getMany("/data/coopResult", 1000, ImmutableMap.of(
-        "filter", rsql(qBuilder().intNum("playerCount").eq(numberOfPlayers)
-            .and().string("mission").eq(missionId)),
+        "filter", rsql(filterCondition),
         "include", COOP_RESULT_INCLUDES,
         "sort", "duration"
     ));
