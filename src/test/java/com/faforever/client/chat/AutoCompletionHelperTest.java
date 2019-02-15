@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.collections.FXCollections;
 import javafx.scene.control.TextField;
@@ -17,12 +16,14 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Collection;
+import java.util.function.Function;
 
 import static java.util.Collections.emptyList;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,14 +34,14 @@ public class AutoCompletionHelperTest extends AbstractPlainJavaFxTest {
   private static final long TIMEOUT = 5000;
 
   @Mock
-  private PlayerService playerService;
+  private Function<String, Collection<String>> completionProposalGeneratorMock;
 
   private AutoCompletionHelper instance;
   private TextInputControl textInputControl;
 
   @Before
   public void setUp() throws Exception {
-    instance = new AutoCompletionHelper(playerService);
+    instance = new AutoCompletionHelper(completionProposalGeneratorMock);
 
     textInputControl = new TextField();
     instance.bindTo(textInputControl);
@@ -87,12 +88,12 @@ public class AutoCompletionHelperTest extends AbstractPlainJavaFxTest {
     simulate(keyEvent(KeyCode.TAB));
 
     assertThat(textInputControl.getText(), is("j"));
-    verify(playerService, never()).getPlayerNames();
+    verify(completionProposalGeneratorMock, never()).apply(any());
   }
 
   @Test
   public void testAutoCompleteCompletesToFirstMatchCaseInsensitive() throws Exception {
-    when(playerService.getPlayerNames()).thenReturn(FXCollections.observableSet("DummyUser", "Junit"));
+    when(completionProposalGeneratorMock.apply(any())).thenReturn(FXCollections.observableSet("Junit"));
     textInputControl.setText("j");
     textInputControl.positionCaret(1);
     KeyEvent keyEvent = keyEvent(KeyCode.TAB);
@@ -104,7 +105,7 @@ public class AutoCompletionHelperTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testAutoCompleteCompletesToFirstMatchCaseInsensitiveRepeated() throws Exception {
-    when(playerService.getPlayerNames()).thenReturn(FXCollections.observableSet("DummyUser", "Junit"));
+    when(completionProposalGeneratorMock.apply(any())).thenReturn(FXCollections.observableSet("DummyUser", "Junit"));
     textInputControl.setText("j");
     textInputControl.positionCaret(1);
     KeyEvent keyEvent = keyEvent(KeyCode.TAB);
@@ -116,7 +117,7 @@ public class AutoCompletionHelperTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testAutoCompleteCycles() throws Exception {
-    when(playerService.getPlayerNames()).thenReturn(FXCollections.observableSet("JayUnit", "Junit"));
+    when(completionProposalGeneratorMock.apply(any())).thenReturn(FXCollections.observableSet("JayUnit", "Junit"));
     textInputControl.setText("j");
     textInputControl.positionCaret(1);
     KeyEvent keyEvent = keyEvent(KeyCode.TAB);
@@ -132,28 +133,17 @@ public class AutoCompletionHelperTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testAutoCompleteSortedByName() throws Exception {
-    when(playerService.getPlayerNames()).thenReturn(FXCollections.observableSet("JBunit", "JAyUnit"));
-    textInputControl.setText("j");
-    textInputControl.positionCaret(1);
-    KeyEvent keyEvent = keyEvent(KeyCode.TAB);
-
-    simulate(keyEvent);
-
-    assertThat(textInputControl.getText(), is("JAyUnit"));
-  }
-
-  @Test
   public void testAutoCompleteCaretMovedAway() throws Exception {
-    when(playerService.getPlayerNames()).thenReturn(FXCollections.observableSet("JUnit", "Downlord"));
     KeyEvent keyEvent = keyEvent(KeyCode.TAB);
 
-    // Start auto completion on "JB"
+    // Start auto completion on "JU"
+    when(completionProposalGeneratorMock.apply(any())).thenReturn(FXCollections.observableSet("JUnit"));
     textInputControl.setText("JU Do");
     textInputControl.positionCaret(2);
     simulate(keyEvent);
 
     // Then auto complete on "Do"
+    when(completionProposalGeneratorMock.apply(any())).thenReturn(FXCollections.observableSet("Downlord"));
     textInputControl.positionCaret(textInputControl.getText().length());
     simulate(keyEvent);
 

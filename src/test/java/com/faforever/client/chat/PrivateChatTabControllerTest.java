@@ -62,8 +62,6 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private NotificationService notificationService;
   @Mock
-  private AutoCompletionHelper autoCompletionHelper;
-  @Mock
   private UiService uiService;
   @Mock
   private WebViewConfigurer webViewConfigurer;
@@ -90,7 +88,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
     preferencesService.getPreferences().getMainWindow().setLastView(NavigationItem.CHAT.name());
 
     instance = new PrivateChatTabController(userService, preferencesService, playerService, timeService,
-        i18n, imageUploadService, notificationService, reportingService, uiService, autoCompletionHelper, eventBus,
+        i18n, imageUploadService, notificationService, reportingService, uiService, eventBus,
         audioService, chatService, webViewConfigurer, countryFlagService);
 
 
