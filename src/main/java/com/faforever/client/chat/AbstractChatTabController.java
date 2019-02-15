@@ -113,7 +113,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   protected final UiService uiService;
   protected final EventBus eventBus;
   protected final WebViewConfigurer webViewConfigurer;
-  protected final AutoCompletionHelper autoCompletionHelper;
   private final ImageUploadService imageUploadService;
   private final CountryFlagService countryFlagService;
 
@@ -145,7 +144,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
                                    TimeService timeService, I18n i18n,
                                    ImageUploadService imageUploadService,
                                    NotificationService notificationService, ReportingService reportingService, UiService uiService,
-                                   AutoCompletionHelper autoCompletionHelper, EventBus eventBus, CountryFlagService countryFlagService) {
+                                   EventBus eventBus, CountryFlagService countryFlagService) {
 
     this.webViewConfigurer = webViewConfigurer;
     this.uiService = uiService;
@@ -159,7 +158,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     this.imageUploadService = imageUploadService;
     this.notificationService = notificationService;
     this.reportingService = reportingService;
-    this.autoCompletionHelper = autoCompletionHelper;
     this.eventBus = eventBus;
     this.countryFlagService = countryFlagService;
 
@@ -255,8 +253,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     unreadMessagesCount.addListener((observable, oldValue, newValue) -> chatService.incrementUnreadMessagesCount(newValue.intValue() - oldValue.intValue()));
     JavaFxUtil.addListener(StageHolder.getStage().focusedProperty(), new WeakChangeListener<>(resetUnreadMessagesListener));
     JavaFxUtil.addListener(getRoot().selectedProperty(), new WeakChangeListener<>(resetUnreadMessagesListener));
-
-    autoCompletionHelper.bindTo(messageTextField());
 
     getRoot().setOnClosed(this::onClosed);
   }

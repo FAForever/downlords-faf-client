@@ -56,7 +56,6 @@ import org.springframework.util.Assert;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -122,6 +121,8 @@ public class ChannelTabController extends AbstractChatTabController {
   /** The list of chat user (or category) items that backs the chat user list view. */
   private final ObservableList<CategoryOrChatUserListItem> chatUserListItems;
 
+  private final AutoCompletionHelper autoCompletionHelper;
+
   public ToggleButton advancedUserFilter;
   public HBox searchFieldContainer;
   public Button closeSearchFieldButton;
@@ -147,12 +148,12 @@ public class ChannelTabController extends AbstractChatTabController {
                               PlayerService playerService, AudioService audioService, TimeService timeService,
                               I18n i18n, ImageUploadService imageUploadService,
                               NotificationService notificationService, ReportingService reportingService,
-                              UiService uiService, AutoCompletionHelper autoCompletionHelper, EventBus eventBus,
+                              UiService uiService, EventBus eventBus,
                               WebViewConfigurer webViewConfigurer,
                               CountryFlagService countryFlagService) {
 
     super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService,
-        timeService, i18n, imageUploadService, notificationService, reportingService, uiService, autoCompletionHelper,
+        timeService, i18n, imageUploadService, notificationService, reportingService, uiService,
         eventBus, countryFlagService);
 
     hideFoeMessagesListeners = new HashMap<>();
@@ -163,7 +164,13 @@ public class ChannelTabController extends AbstractChatTabController {
     userNamesToListItems = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     chatUserListItems = FXCollections.observableArrayList();
     filteredChatUserList = new FilteredList<>(chatUserListItems);
-    autoCompletionHelper.setChannelUserNames(Collections.unmodifiableSet(userNamesToListItems.keySet()));
+
+    autoCompletionHelper = new AutoCompletionHelper(
+        currentWord -> userNamesToListItems.keySet().stream()
+            .filter(playerName -> playerName.toLowerCase(US).startsWith(currentWord.toLowerCase()))
+            .sorted()
+            .collect(Collectors.toList())
+    );
 
     chatColorModeChangeListener = (observable, oldValue, newValue) -> {
       if (newValue != DEFAULT) {
@@ -253,6 +260,8 @@ public class ChannelTabController extends AbstractChatTabController {
 
     chatUserListView.setItems(filteredChatUserList);
     chatUserListView.setCellFactory(param -> new ChatUserListCell(uiService));
+
+    autoCompletionHelper.bindTo(messageTextField());
   }
 
   @Override
