@@ -177,6 +177,7 @@ public class SearchController implements Controller<Pane> {
       if (queryNodes.isEmpty()) {
         initialLogicalNodeController.logicalOperatorField.setVisible(false);
       }
+      queryInvalidationListener.invalidated(queryTextField.textProperty());
     });
     addInvalidationListener(controller);
 
