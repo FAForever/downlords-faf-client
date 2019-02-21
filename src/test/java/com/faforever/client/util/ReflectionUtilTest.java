@@ -1,15 +1,12 @@
 package com.faforever.client.util;
 
-import org.hamcrest.Matchers;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static org.hamcrest.Matchers.isA;
-import static org.junit.Assert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertThat;
 
 public class ReflectionUtilTest {
 
@@ -45,7 +42,7 @@ public class ReflectionUtilTest {
   public void testGetDeclaredFieldException() throws NoSuchFieldException {
 
     exceptionGrabber.expect(NoSuchFieldException.class);
-    Class<?> privateString = ReflectionUtil.getDeclaredField("NoneExisting", TestClass.class);
+    ReflectionUtil.getDeclaredField("NoneExisting", TestClass.class);
   }
 
 
