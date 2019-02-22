@@ -18,7 +18,7 @@ public class ReflectionUtil {
       try {
         clazz = currentClass.getDeclaredField(fieldName).getType();
       } catch (NoSuchFieldException e) {
-        currentClass = targetClass.getSuperclass();
+        currentClass = currentClass.getSuperclass();
         if (currentClass == null) {
           throw new NoSuchFieldException(fieldName);
         }
