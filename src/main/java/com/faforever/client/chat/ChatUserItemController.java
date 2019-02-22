@@ -485,8 +485,10 @@ public class ChatUserItemController implements Controller<Node> {
       return;
     }
 
+    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player must be set"));
+
     Clan clan = optionalClan.get();
-    if (playerService.isOnline(clan.getLeader().getId())) {
+    if (currentPlayer.getId() == clan.getLeader().getId() && playerService.isOnline(clan.getLeader().getId())) {
       MenuItem messageLeaderItem = new MenuItem(i18n.get("clan.messageLeader"));
       messageLeaderItem.setOnAction(event -> eventBus.post(new InitiatePrivateChatEvent(clan.getLeader().getUsername())));
       clanMenu.getItems().add(messageLeaderItem);
