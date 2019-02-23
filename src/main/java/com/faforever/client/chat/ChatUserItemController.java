@@ -140,10 +140,12 @@ public class ChatUserItemController implements Controller<Node> {
     JavaFxUtil.addListener(chatPrefs.chatFormatProperty(), weakFormatInvalidationListener);
 
     colorPerUserMapChangeListener = change -> {
-      String lowerUsername = chatUser.getUsername().toLowerCase(US);
-      if (lowerUsername.equalsIgnoreCase(change.getKey())) {
-        Color newColor = chatPrefs.getUserToColor().get(lowerUsername);
-        assignColor(newColor);
+      if (chatUser != null) {
+        String lowerUsername = chatUser.getUsername().toLowerCase(US);
+        if (lowerUsername.equalsIgnoreCase(change.getKey())) {
+          Color newColor = chatPrefs.getUserToColor().get(lowerUsername);
+          assignColor(newColor);
+        }
       }
     };
     userActivityListener = (observable) -> JavaFxUtil.runLater(this::onUserActivity);
