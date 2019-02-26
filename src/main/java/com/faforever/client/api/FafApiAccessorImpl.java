@@ -247,7 +247,9 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   public List<Map> getNewestMaps(int count, int page) {
     return getPage(MAP_ENDPOINT, count, page, ImmutableMap.of(
         "include", "statistics,latestVersion,author,versions.reviews,versions.reviews.player",
-        "sort", "-updateTime"));
+        "sort", "-updateTime",
+        "filter", "latestVersion.hidden==\"false\""
+    ));
   }
 
   @Override
@@ -454,6 +456,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   public Optional<MapVersion> findMapVersionById(String id) {
     // FIXME: that is not gonna work this way
+    //FIXME: filter hidden maps
     return Optional.ofNullable(getOne(MAP_ENDPOINT + "/" + id, MapVersion.class));
   }
 
