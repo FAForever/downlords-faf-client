@@ -93,7 +93,11 @@ public class TournamentsController extends AbstractViewController<Node> {
 
     tournamentService.getAllTournaments()
         .thenAccept(tournaments -> Platform.runLater(() -> {
-          tournaments.sort(Comparator.comparing(TournamentBean::getCreatedAt));
+          tournaments.sort(
+              Comparator.<TournamentBean, Integer>comparing(o -> o.getStatus().getSortOrderPriority())
+                  .thenComparing(TournamentBean::getCreatedAt)
+                  .reversed()
+          );
           tournamentListView.getItems().setAll(tournaments);
           tournamentListView.getSelectionModel().selectFirst();
           onLoadingStop();
@@ -127,8 +131,7 @@ public class TournamentsController extends AbstractViewController<Node> {
         .replace("{game-type-label}", i18n.get("tournament.gameType"))
         .replace("{starting-at-label}", i18n.get("tournament.startingAt"))
         .replace("{completed-at-label}", i18n.get("tournament.completedAt"))
-        .replace("{loading-label}", i18n.get("loading"))
-        ;
+        .replace("{loading-label}", i18n.get("loading"));
 
     tournamentDetailWebView.getEngine().loadContent(html);
   }
