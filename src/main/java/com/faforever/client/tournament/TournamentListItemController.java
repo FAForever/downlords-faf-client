@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.text.MessageFormat;
-import java.time.OffsetDateTime;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -46,18 +45,6 @@ public class TournamentListItemController implements Controller<Node> {
     } else {
       startingLabel.setText(MessageFormat.format("{0} {1}", timeService.asDate(tournamentBean.getStartingAt()), timeService.asShortTime(tournamentBean.getStartingAt())));
     }
-
-    String statusKey;
-    if (tournamentBean.getCompletedAt() != null) {
-      statusKey = "tournament.status.finished";
-    } else if (tournamentBean.getStartingAt() != null && tournamentBean.getStartingAt().isBefore(OffsetDateTime.now())) {
-      statusKey = "tournament.status.running";
-    } else if (tournamentBean.isOpenForSignup()) {
-      statusKey = "tournament.status.openForRegistration";
-    } else {
-      statusKey = "tournament.status.closedForRegistration";
-    }
-
-    statusLabel.setText(i18n.get(statusKey));
+    statusLabel.setText(i18n.get(tournamentBean.getStatus().getMessageKey()));
   }
 }
