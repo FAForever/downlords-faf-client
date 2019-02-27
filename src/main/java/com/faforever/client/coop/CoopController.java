@@ -52,6 +52,7 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -159,14 +160,22 @@ public class CoopController extends AbstractViewController<Node> {
     FilteredList<Game> filteredItems = new FilteredList<>(games);
     filteredItems.setPredicate(OPEN_COOP_GAMES_PREDICATE);
 
-    GamesTableController gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
-    gamesTableController.initializeGameTable(filteredItems);
 
-    Node root = gamesTableController.getRoot();
-    populateContainer(root);
 
     coopService.getMissions().thenAccept(coopMaps -> {
-      Platform.runLater(() -> missionComboBox.setItems(observableList(coopMaps)));
+      Platform.runLater(() -> {
+        missionComboBox.setItems(observableList(coopMaps));
+        GamesTableController gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
+        Function<String, String> coopMissionNameProvider = mapFolderName -> coopMaps.stream()
+            .filter(coopMission -> coopMission.getMapFolderName().equalsIgnoreCase(mapFolderName))
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("Map folder name did not match with any coop mission"))
+            .getName();
+        gamesTableController.initializeGameTable(filteredItems, coopMissionNameProvider);
+
+        Node root = gamesTableController.getRoot();
+        populateContainer(root);
+      });
 
       SingleSelectionModel<CoopMission> selectionModel = missionComboBox.getSelectionModel();
       if (selectionModel.isEmpty()) {

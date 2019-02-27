@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -61,6 +62,7 @@ public class GamesTableController implements Controller<Node> {
   public TableColumn<Game, String> modsColumn;
   public TableColumn<Game, String> hostColumn;
   public TableColumn<Game, Boolean> passwordProtectionColumn;
+  public TableColumn<Game, String> coopMissionName;
 
   @Inject
   public GamesTableController(MapService mapService, JoinGameHelper joinGameHelper, I18n i18n, UiService uiService, PreferencesService preferencesService) {
@@ -82,6 +84,10 @@ public class GamesTableController implements Controller<Node> {
   }
 
   public void initializeGameTable(ObservableList<Game> games) {
+    initializeGameTable(games, null);
+  }
+
+  public void initializeGameTable(ObservableList<Game> games, Function<String, String> coopMissionNameProvider) {
     SortedList<Game> sortedList = new SortedList<>(games);
     sortedList.comparatorProperty().bind(gamesTable.comparatorProperty());
     gamesTable.setPlaceholder(new Label(i18n.get("games.noGamesAvailable")));
@@ -115,6 +121,13 @@ public class GamesTableController implements Controller<Node> {
     hostColumn.setCellFactory(param -> new StringCell<>(String::toString));
     modsColumn.setCellValueFactory(this::modCell);
     modsColumn.setCellFactory(param -> new StringCell<>(String::toString));
+    coopMissionName.setVisible(coopMissionNameProvider != null);
+
+    if (coopMissionNameProvider != null) {
+      coopMissionName.setCellFactory(param -> new StringCell<>(name -> name));
+      coopMissionName.setCellValueFactory(param -> new SimpleObjectProperty<>(coopMissionNameProvider.apply(param.getValue().getMapFolderName())));
+    }
+
 
     gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue)
         -> Platform.runLater(() -> selectedGame.set(newValue)));
