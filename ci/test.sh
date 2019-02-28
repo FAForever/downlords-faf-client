@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-./gradlew --stacktrace --debug -PjavafxPlatform=linux check
+./gradlew --stacktrace -PjavafxPlatform=linux check
