@@ -1,8 +1,8 @@
 package com.faforever.client.map.generator;
 
-import lombok.Data;
+import lombok.Value;
 
-@Data
+@Value
 public class MapGeneratedEvent {
-  private final String mapName;
+  private String mapName;
 }

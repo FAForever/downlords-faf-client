@@ -364,7 +364,6 @@ public class CreateGameController implements Controller<Pane> {
   public void onGenerateMapButtonClicked() {
     mapGeneratorService.generateMap().thenAccept(mapName -> {
       Platform.runLater(() -> {
-        //TODO: if map service is too slow, this may be executed before the map has been read, maybe try listening for the MapGeneratedEvent
         initMapSelection();
         mapListView.getItems().stream()
             .filter(mapBean -> mapBean.getFolderName().equalsIgnoreCase(mapName))

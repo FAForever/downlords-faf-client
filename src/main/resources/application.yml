@@ -24,6 +24,9 @@ faf-client:
     spookiesUrl: http://spooky.github.io/unitdb/#/
     rackOversUrl: http://direct.faforever.com/faf/unitsDB/?settings64=eyJwcmV2aWV3Q29ybmVyIjoiTm9uZSJ9
 
+  map-generator:
+    mapGeneratorReleaseUrl: https://github.com/FAForever/Neroxis-Map-Generator/releases/download/%1$s/NeroxisGen_%1$s.jar
+
   translation-project-url: https://poeditor.com/join/project/2oWfdaZQZj
   client-config-url: http://content.faforever.com/dfc-config.json
   client-config-connect-timeout: 10s
