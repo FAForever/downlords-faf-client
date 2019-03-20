@@ -1,5 +1,6 @@
 package com.faforever.client.fx;
 
+import com.google.common.base.Strings;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
@@ -53,7 +54,7 @@ import static javax.imageio.ImageIO.write;
  */
 public final class JavaFxUtil {
 
-  public static final StringConverter<Path> PATH_STRING_CONVERTER = new StringConverter<Path>() {
+  public static final StringConverter<Path> PATH_STRING_CONVERTER = new StringConverter<>() {
     @Override
     public String toString(Path object) {
       if (object == null) {
@@ -64,7 +65,7 @@ public final class JavaFxUtil {
 
     @Override
     public Path fromString(String string) {
-      if (string == null) {
+      if (Strings.isNullOrEmpty(string)) {
         return null;
       }
       return Paths.get(string);
