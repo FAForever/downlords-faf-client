@@ -111,7 +111,7 @@ public class TransientNotificationController implements Controller<Node> {
   public void onClicked(MouseEvent event) {
     if (event.getButton().equals(MouseButton.SECONDARY)) {
       dismiss();
-    } else {
+    } else if (action != null) {
       action.call(event);
     }
   }
