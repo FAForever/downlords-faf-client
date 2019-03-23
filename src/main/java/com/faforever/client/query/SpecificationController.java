@@ -55,6 +55,7 @@ import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.LT
 import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.NE;
 import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.NIN;
 import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.RE;
+import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.EX;
 
 /**
  * Controller for building a specification in the sense of Domain Driven Design, e.g. {@code login == "Someone"} or
@@ -69,6 +70,7 @@ public class SpecificationController implements Controller<Node> {
 
   private static final Map<ComparisonOperator, String> operatorToI18nKey = ImmutableMap.<ComparisonOperator, String>builder()
       .put(RE, "query.contains")
+      .put(EX, "query.notContains")
       .put(EQ, "query.equals")
       .put(NE, "query.notEquals")
       .put(GT, "query.greaterThan")
@@ -83,7 +85,7 @@ public class SpecificationController implements Controller<Node> {
       ImmutableMap.<Class<?>, Collection<ComparisonOperator>>builder()
           .put(Number.class, Arrays.asList(EQ, NE, GT, GTE, LT, LTE, IN, NIN))
           .put(Temporal.class, Arrays.asList(EQ, NE, GT, GTE, LT, LTE))
-          .put(String.class, Arrays.asList(EQ, NE, IN, NIN, RE))
+          .put(String.class, Arrays.asList(EQ, NE, IN, NIN, RE, EX))
           .put(Boolean.class, Arrays.asList(EQ, NE))
           .put(Enum.class, Arrays.asList(EQ, NE, IN, NIN))
           .put(ComparableVersion.class, Arrays.asList(EQ, NE, GT, GTE, LT, LTE, IN, NIN))
@@ -339,6 +341,9 @@ public class SpecificationController implements Controller<Node> {
     }
     if (comparisonOperator == RE) {
       return prop.eq("*" + value + "*");
+    }
+    if (comparisonOperator == EX) {
+      return prop.ne("*" + value + "*");
     }
     throw new ProgrammingError("Operator '" + comparisonOperator + "' should not have been allowed for type: " + propertyClass);
   }
