@@ -26,12 +26,12 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.SocketUtils;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.DisposableBean;
 
 import javax.inject.Inject;
 import java.lang.reflect.Method;
@@ -94,9 +94,6 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   @SneakyThrows
   private List<Map<String, Object>> toIceServers(List<IceServersServerMessage.IceServer> iceServers) {
-//    return iceServers.stream()
-//        .map(this::toIceServer)
-//        .collect(Collectors.toList());private final PlatformService platformService;
     List<Map<String, Object>> result = new LinkedList<>();
     for (IceServersServerMessage.IceServer iceServer : iceServers) {
       Map<String, Object> map = new HashMap<>();
@@ -119,21 +116,6 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
     return (result);
   }
-
-//  @NotNull
-//  private Map<String, String> toIceServer(IceServersServerMessage.IceServer iceServer) {
-//    Map<String, String> map = new HashMap<>();
-//    map.put("url", iceServer.getUrl());
-//
-//    if (iceServer.getCredential() != null) {
-//      map.put("credential", iceServer.getCredential());
-//      map.put("credentialType", iceServer.getCredentialType());
-//    }
-//    if (iceServer.getUsername() != null) {
-//      map.put("username", iceServer.getUsername());
-//    }
-//    return map;
-//  }
 
   @Subscribe
   public void onIceAdapterStateChanged(IceAdapterStateChanged event) {

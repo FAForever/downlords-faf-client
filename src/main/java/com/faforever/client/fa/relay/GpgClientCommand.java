@@ -24,7 +24,7 @@ public enum GpgClientCommand {
   REHOST("Rehost"),
   DESYNC("Desync"),
   GAME_FULL("GameFull"),
-  ENDED("Ended"),
+  GAME_ENDED("GameEnded"),//TODO: it's called GameEnded
   ICE_MESSAGE("IceMsg"),
   // Yes, this is the only lower-cased command in the protocol. Because reasons.
   CONNECTED_TO_HOST("connectedToHost");
