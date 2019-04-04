@@ -1,6 +1,7 @@
 package com.faforever.client.fa.relay.ice;
 
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.google.common.eventbus.EventBus;
 import org.junit.Before;
@@ -23,10 +24,12 @@ public class IceAdapterImplTest {
   private EventBus eventBus;
   @Mock
   private FafService fafService;
+  @Mock
+  private PreferencesService preferencesService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new IceAdapterImpl(applicationContext, playerService, eventBus, fafService);
+    instance = new IceAdapterImpl(applicationContext, playerService, eventBus, fafService, preferencesService);
   }
 
   @Test

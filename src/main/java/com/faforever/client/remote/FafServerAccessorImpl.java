@@ -80,6 +80,7 @@ import javafx.concurrent.Task;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
@@ -87,7 +88,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.beans.factory.DisposableBean;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -128,7 +128,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private Task<Void> fafConnectionTask;
   private String localIp;
   private ServerWriter serverWriter;
-  private CompletableFuture<LoginMessage> loginFuture;
+  private volatile CompletableFuture<LoginMessage> loginFuture;
   private CompletableFuture<SessionMessage> sessionFuture;
   private CompletableFuture<GameLaunchMessage> gameLaunchFuture;
   private ObjectProperty<Long> sessionId;
@@ -390,6 +390,12 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   private void writeToServer(SerializableMessage message) {
+    final CompletableFuture loginFuture = this.loginFuture;
+    if (message instanceof GpgGameMessage && loginFuture != null && !loginFuture.isDone()) {
+      logger.warn("GPGNetMessage discarded due to not being logged in");
+      return;
+    }
+
     serverWriter.write(message);
   }
 
