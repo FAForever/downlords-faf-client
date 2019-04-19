@@ -45,12 +45,15 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.scene.web.WebView;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.time.Duration;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -62,6 +65,7 @@ import static javafx.collections.FXCollections.observableList;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Slf4j
 public class CoopController extends AbstractViewController<Node> {
 
   private static final Predicate<Game> OPEN_COOP_GAMES_PREDICATE = gameInfoBean ->
@@ -160,17 +164,13 @@ public class CoopController extends AbstractViewController<Node> {
     FilteredList<Game> filteredItems = new FilteredList<>(games);
     filteredItems.setPredicate(OPEN_COOP_GAMES_PREDICATE);
 
-
-
     coopService.getMissions().thenAccept(coopMaps -> {
       Platform.runLater(() -> {
         missionComboBox.setItems(observableList(coopMaps));
         GamesTableController gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
-        Function<String, String> coopMissionNameProvider = mapFolderName -> coopMaps.stream()
-            .filter(coopMission -> coopMission.getMapFolderName().equalsIgnoreCase(mapFolderName))
-            .findFirst()
-            .orElseThrow(() -> new IllegalStateException("Map folder name did not match with any coop mission"))
-            .getName();
+
+        Function<String, String> coopMissionNameProvider = (mapFolderName -> coopMissionFromFolderNamer(coopMaps, mapFolderName));
+
         gamesTableController.initializeGameTable(filteredItems, coopMissionNameProvider);
 
         Node root = gamesTableController.getRoot();
@@ -185,6 +185,17 @@ public class CoopController extends AbstractViewController<Node> {
       notificationService.addPersistentErrorNotification(throwable, "coop.couldNotLoad", throwable.getLocalizedMessage());
       return null;
     });
+  }
+
+  private String coopMissionFromFolderNamer(List<CoopMission> coopMaps, String mapFolderName) {
+    Optional<CoopMission> first = coopMaps.stream()
+        .filter(coopMission -> coopMission.getMapFolderName().equalsIgnoreCase(mapFolderName))
+        .findFirst();
+    if (first.isPresent()) {
+      return first.get().getName();
+    }
+    log.warn("No coop mission found for folder name: {}", mapFolderName);
+    return i18n.get("coop.unknownMission");
   }
 
   private String commaDelimitedPlayerList(CoopResult coopResult) {
