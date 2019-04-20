@@ -277,7 +277,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   private void updateLobbyModeFromGameInfo(GameLaunchMessage gameLaunchMessage) {
     if (KnownFeaturedMod.LADDER_1V1.getTechnicalName().equals(gameLaunchMessage.getMod())) {
-      lobbyInitMode = LobbyMode.DEFAULT_LOBBY;
+      lobbyInitMode = LobbyMode.NO_LOBBY;
     } else {
       lobbyInitMode = LobbyMode.DEFAULT_LOBBY;
     }
