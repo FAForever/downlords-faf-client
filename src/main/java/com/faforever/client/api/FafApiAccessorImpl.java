@@ -8,6 +8,7 @@ import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
+import com.faforever.client.api.dto.GameReviewsSummary;
 import com.faforever.client.api.dto.GlobalLeaderboardEntry;
 import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
 import com.faforever.client.api.dto.Ladder1v1Map;
@@ -42,6 +43,7 @@ import com.google.common.eventbus.Subscribe;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Profile;
@@ -57,7 +59,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.beans.factory.InitializingBean;
 
 import javax.inject.Inject;
 import java.io.Serializable;
@@ -312,11 +313,14 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public List<Game> getHighestRatedReplays(int count, int page) {
-    return getPage("/data/game", count, page, ImmutableMap.of(
-        "sort", "-reviewsSummary.lowerBound",
-        "include", REPLAY_INCLUDES,
-        "filter", "endTime=isnull=false"
-    ));
+    return this.<GameReviewsSummary>getPage("/data/gameReviewsSummary", count, page, ImmutableMap.of(
+        "sort", "-lowerBound",
+        // TODO this was done in a rush, check what is actually needed
+        "include", "game,game.featuredMod,game.playerStats,game.playerStats.player,game.reviews,game.reviews.player,game.mapVersion,game.mapVersion.map,game.mapVersion.reviews",
+        "filter", "game.endTime=isnull=false"
+    )).stream()
+        .map(GameReviewsSummary::getGame)
+        .collect(Collectors.toList());
   }
 
   @Override
