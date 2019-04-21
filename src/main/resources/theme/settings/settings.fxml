@@ -589,9 +589,13 @@
                                         <JFXTextField fx:id="backgroundImageLocation"
                                                       promptText="%settings.appearance.useDefaultImage"
                                                       GridPane.rowIndex="3"/>
-                                        <JFXButton mnemonicParsing="false" onAction="#onSelectBackgroundImage"
-                                                   text="%settings.fa.chooseDirectory" GridPane.columnIndex="1"
-                                                   GridPane.rowIndex="3"/>
+                                        <HBox spacing="5" GridPane.columnIndex="1"
+                                              GridPane.rowIndex="3">
+                                            <JFXButton mnemonicParsing="false" onAction="#onUseNoBackgroundImage"
+                                                       text="%settings.general.theme.useNoImage"/>
+                                            <JFXButton mnemonicParsing="false" onAction="#onSelectBackgroundImage"
+                                                       text="%settings.fa.chooseDirectory"/>
+                                        </HBox>
                                     </children>
                                 </GridPane>
                             </content>
