@@ -28,6 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Stream;
 
 import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANCE_EXE;
 import static com.github.nocatch.NoCatch.noCatch;
@@ -120,19 +121,21 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
 
     Path faBinPath = preferencesService.getPreferences().getForgedAlliance().getPath().resolve("bin");
 
-    Files.list(faBinPath)
-        .filter(path -> BINARIES_TO_COPY.contains(path.getFileName().toString()))
-        .forEach(source -> {
-          Path destination = fafBinDirectory.resolve(source.getFileName());
+    try (Stream<Path> faBinPathStream = Files.list(faBinPath)) {
+      faBinPathStream
+          .filter(path -> BINARIES_TO_COPY.contains(path.getFileName().toString()))
+          .forEach(source -> {
+            Path destination = fafBinDirectory.resolve(source.getFileName());
 
-          logger.debug("Copying file '{}' to '{}'", source, destination);
-          noCatch(() -> createDirectories(destination.getParent()));
-          noCatch(() -> copy(source, destination, REPLACE_EXISTING));
+            logger.debug("Copying file '{}' to '{}'", source, destination);
+            noCatch(() -> createDirectories(destination.getParent()));
+            noCatch(() -> copy(source, destination, REPLACE_EXISTING));
 
-          if (org.bridj.Platform.isWindows()) {
-            noCatch(() -> setAttribute(destination, "dos:readonly", false));
-          }
-        });
+            if (org.bridj.Platform.isWindows()) {
+              noCatch(() -> setAttribute(destination, "dos:readonly", false));
+            }
+          });
+    }
   }
 
   @Override
