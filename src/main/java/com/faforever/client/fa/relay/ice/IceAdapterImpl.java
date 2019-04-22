@@ -1,5 +1,6 @@
 package com.faforever.client.fa.relay.ice;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.relay.ConnectToPeerMessage;
 import com.faforever.client.fa.relay.DisconnectFromPeerMessage;
 import com.faforever.client.fa.relay.GpgClientCommand;
@@ -19,6 +20,7 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.IceServerMessage;
 import com.faforever.client.remote.domain.IceServersServerMessage;
+import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.nbarraille.jjsonrpc.JJsonPeer;
@@ -61,6 +63,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private static final int CONNECTION_ATTEMPT_DELAY_MILLIS = 100;
 
   private final ApplicationContext applicationContext;
+  private final ClientProperties clientProperties;
   private final PlayerService playerService;
   private final EventBus eventBus;
   private final FafService fafService;
@@ -73,9 +76,10 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private JJsonPeer peer;
 
   @Inject
-  public IceAdapterImpl(ApplicationContext applicationContext, PlayerService playerService,
+  public IceAdapterImpl(ApplicationContext applicationContext, ClientProperties clientProperties, PlayerService playerService,
                         EventBus eventBus, FafService fafService, PreferencesService preferencesService) {
     this.applicationContext = applicationContext;
+    this.clientProperties = clientProperties;
     this.playerService = playerService;
     this.eventBus = eventBus;
     this.fafService = fafService;
@@ -165,16 +169,20 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
           .orElseThrow(() -> new IllegalStateException("Player has not been set"));
 
       Path workDirectory = Paths.get(nativeDir).toAbsolutePath();
-      String[] cmd = new String[]{
+
+      List<String> cmd = Lists.newArrayList(
           Paths.get(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString(),
           "-jar",
           getBinaryName(workDirectory),
           "--id", String.valueOf(currentPlayer.getId()),
           "--login", currentPlayer.getUsername(),
           "--rpc-port", String.valueOf(adapterPort),
-          "--gpgnet-port", String.valueOf(gpgPort),
-          "--debug-window"
-      };
+          "--gpgnet-port", String.valueOf(gpgPort)
+      );
+
+      if (clientProperties.isShowIceAdapterDebugWindow()) {
+        cmd.add("--debug-window");
+      }
 
       try {
         ProcessBuilder processBuilder = new ProcessBuilder();
@@ -182,7 +190,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         processBuilder.command(cmd);
         processBuilder.environment().put("LOG_DIR", preferencesService.getFafLogDirectory().resolve("iceAdapterLogs").toAbsolutePath().toString());
 
-        log.debug("Starting ICE adapter with command: {}", asList(cmd));
+        log.debug("Starting ICE adapter with command: {}", cmd);
         process = processBuilder.start();
         Logger logger = LoggerFactory.getLogger("faf-ice-adapter");
         gobbleLines(process.getInputStream(), logger::debug);
