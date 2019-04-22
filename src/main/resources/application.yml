@@ -27,7 +27,7 @@ faf-client:
   translation-project-url: https://poeditor.com/join/project/2oWfdaZQZj
   client-config-url: http://content.faforever.com/dfc-config.json
   client-config-connect-timeout: 10s
-  show-ice-adapter-debug-Window: ${SHOW_ICE_ADAPTER_DEBUG_WINDOW: true}
+  show-ice-adapter-debug-Window: ${SHOW_ICE_ADAPTER_DEBUG_WINDOW:false}
 
 spring:
   profiles:

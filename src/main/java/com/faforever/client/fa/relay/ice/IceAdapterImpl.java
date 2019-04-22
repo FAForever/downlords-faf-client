@@ -182,6 +182,11 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
       if (clientProperties.isShowIceAdapterDebugWindow()) {
         cmd.add("--debug-window");
+        cmd.add("--info-window");
+      } else {
+        cmd.add("--info-window");
+        cmd.add("--delay-ui");
+        cmd.add("10000");
       }
 
       try {
