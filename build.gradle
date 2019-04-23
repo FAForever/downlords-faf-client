@@ -221,6 +221,11 @@ task downloadUnixUid(type: Download) {
   src "https://github.com/FAForever/uid/releases/download/v${faf_uid_version}/faf-uid"
   dest file("${buildDir}/resources/native/faf-uid")
   onlyIfNewer true
+  doLast {
+    project.exec {
+      commandLine('chmod',  '+x', "${buildDir}/resources/native/faf-uid")
+    }
+  }
 }
 
 task downloadWindowsUid(type: Download) {
