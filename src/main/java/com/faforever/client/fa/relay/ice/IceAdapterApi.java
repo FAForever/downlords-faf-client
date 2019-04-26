@@ -41,6 +41,8 @@ interface IceAdapterApi {
   /**
    * ICE server array for use in webrtc. Must be called before joinGame/connectToPeer. See <a
    * href="https://developer.mozilla.org/en-US/docs/Web/API/RTCIceServer">https://developer.mozilla.org/en-US/docs/Web/API/RTCIceServer</a>.
+   *
+   * @param iceServers A list of IceServers, each IceServer maps from key (e.g. username, credential, url(s)) -> value where value can can be a string or list of strings
    */
-  String setIceServers(List<Map<String, String>> iceServers);
+  void setIceServers(List<Map<String, Object>> iceServers);
 }
