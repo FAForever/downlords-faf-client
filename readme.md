@@ -29,3 +29,6 @@ We have a youtube video on it [here](https://youtu.be/8EwK16kk0BE). In case you 
 # Interested in contributing?
 
 Have a look at our [wiki](https://github.com/FAForever/downlords-faf-client/wiki) .
+
+# How to install on Linux
+https://github.com/FAForever/downlords-faf-client/wiki/Install-on-Linux
