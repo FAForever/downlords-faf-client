@@ -300,7 +300,7 @@ dependencies {
 
   optional("org.springframework.boot:spring-boot-configuration-processor")
 
-  compile 'com.github.Vatuu:discord-rpc:1.5.0'
+  compile 'com.github.Vatuu:discord-rpc:1.6.2'
 
   codacy("com.github.codacy:codacy-coverage-reporter:-SNAPSHOT")
 }

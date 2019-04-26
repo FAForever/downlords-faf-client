@@ -25,9 +25,6 @@ script:
 - chmod +x ./ci/test.sh && ./ci/test.sh
 - chmod +x ./ci/test-report.sh && ./ci/test-report.sh
 
-after_failure:
-- cat /home/travis/build/FAForever/downlords-faf-client/build/reports/tests/test/index.html
-
 after_success:
 - if [ -n "${TRAVIS_TAG}" ]; then chmod +x ./ci/github-release.sh && ./ci/github-release.sh; fi
 

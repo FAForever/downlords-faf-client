@@ -61,15 +61,19 @@ public class DiscordRichPresenceService {
     }
   }
 
-  public void updatePlayedGameTo(Game game, int currentPlayerId) {
+  public void updatePlayedGameTo(Game game, int currentPlayerId, String currentPlayerName) {
+    log.debug("Updating discord rich presence game info");
     String applicationId = clientProperties.getDiscord().getApplicationId();
     if (applicationId == null) {
       return;
     }
     try {
-      if (game.getStatus() == GameStatus.CLOSED) {
+
+      if (game == null || game.getStatus() == GameStatus.CLOSED || game.getTeams() == null) {
         DiscordRPC.discordClearPresence();
+        return;
       }
+
       DiscordRichPresence.Builder discordRichPresence = new DiscordRichPresence.Builder(getDiscordState(game));
       discordRichPresence.setDetails(MessageFormat.format("{0} | {1}", game.getFeaturedMod(), game.getTitle()));
       discordRichPresence.setParty(String.valueOf(game.getId()), game.getNumPlayers(), game.getMaxPlayers());
@@ -87,12 +91,10 @@ public class DiscordRichPresenceService {
 
       discordRichPresence.setSecrets(joinSecret, spectateSecret);
 
-      DiscordRichPresence update = discordRichPresence.build();
       if (game.getStartTime() != null) {
-        //Sadly, this can not be set via the builder. I created an issue in the library's repo
-        // TODO set via builder when https://github.com/Vatuu/discord-rpc/issues/18 has been fixed
-        update.startTimestamp = game.getStartTime().toEpochMilli();
+        discordRichPresence.setStartTimestamps(game.getStartTime().toEpochMilli());
       }
+      DiscordRichPresence update = discordRichPresence.build();
       DiscordRPC.discordUpdatePresence(update);
     } catch (Throwable throwable) {
       //TODO: report to bugsnap
@@ -115,5 +117,13 @@ public class DiscordRichPresenceService {
   public void onDestroy() {
     DiscordRPC.discordShutdown();
     timer.cancel();
+  }
+
+  public void clearGameInfo() {
+    try {
+      DiscordRPC.discordClearPresence();
+    } catch (Throwable t) {
+      log.error("Error cleaning game info for discord", t);
+    }
   }
 }

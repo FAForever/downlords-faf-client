@@ -28,13 +28,13 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.InitializingBean;
-
+import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -60,6 +60,7 @@ public class PlayerService implements InitializingBean {
   private final FafService fafService;
   private final UserService userService;
   private final EventBus eventBus;
+  private final HashMap<Integer, List<Player>> playersByGame;
 
   public PlayerService(FafService fafService, UserService userService, EventBus eventBus) {
     this.fafService = fafService;
@@ -71,6 +72,7 @@ public class PlayerService implements InitializingBean {
     friendList = new ArrayList<>();
     foeList = new ArrayList<>();
     currentPlayer = new SimpleObjectProperty<>();
+    playersByGame = new HashMap<>();
   }
 
   @Override
@@ -144,6 +146,7 @@ public class PlayerService implements InitializingBean {
         .map(Optional::get)
         .forEach(player -> {
           resetIdleTime(player);
+          updateGameToPlayer(game, player);
           if (game == null || game.getStatus() == GameStatus.CLOSED) {
             player.setGame(null);
           } else {
@@ -153,6 +156,34 @@ public class PlayerService implements InitializingBean {
             }
           }
         });
+
+    if (game != null && game.getStatus() != GameStatus.CLOSED && playersByGame.get(game.getId()) != null) {
+      playersByGame.get(game.getId()).stream()
+          .forEach(player -> {
+            boolean stillInGame = game.getTeams().entrySet().stream()
+                .anyMatch(entry -> entry.getValue().contains(player.getUsername()));
+            if (!stillInGame) {
+              player.setGame(null);
+            }
+          });
+    }
+  }
+
+  private void updateGameToPlayer(Game game, Player player) {
+    if (game == null) {
+      return;
+    }
+
+    if (game.getStatus() == GameStatus.CLOSED) {
+      playersByGame.remove(game.getId());
+      return;
+    }
+
+    if (!playersByGame.containsKey(game.getId())) {
+      playersByGame.put(game.getId(), new ArrayList<>());
+    }
+
+    playersByGame.get(game.getId()).add(player);
   }
 
 

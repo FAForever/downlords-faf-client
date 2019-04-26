@@ -12,9 +12,6 @@ import net.arikia.dev.drpc.DiscordUser;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 @Slf4j
 @Component
 public class ClientDiscordEventHandler extends DiscordEventHandlers {
@@ -59,14 +56,14 @@ public class ClientDiscordEventHandler extends DiscordEventHandlers {
   }
 
   private void onError(int errorCode, String message) {
-    log.error("Discord error with code ''{}'' and message ''{}''", errorCode, message);
+    log.error("Discord error with code '{}' and message '{}'", errorCode, message);
   }
 
   private void onDisconnected(int code, String message) {
-    log.info("Discord disconnected with code ''{}'' and message ''{}''", code, message);
+    log.info("Discord disconnected with code '{}' and message '{}'", code, message);
   }
 
   private void onDiscordReady(DiscordUser discordUser) {
-    log.info("Discord is ready with user ''{}''", discordUser.username);
+    log.info("Discord is ready with user '{}'", discordUser.username);
   }
 }
