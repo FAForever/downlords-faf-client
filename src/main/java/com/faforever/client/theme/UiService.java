@@ -185,8 +185,8 @@ public class UiService implements InitializingBean, DisposableBean {
     if (Files.exists(cacheStylesheetsDirectory)) {
       try {
         deleteRecursively(cacheStylesheetsDirectory);
-      } catch (Exception e) {
-        logger.warn("Error during deletion of style cache directory", e);
+      } catch (IOException e) {
+        logger.warn("Missing permission to delete style sheets cache directory '{}'", cacheStylesheetsDirectory);
       }
     }
   }
