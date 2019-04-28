@@ -32,6 +32,8 @@ import lombok.SneakyThrows;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
@@ -40,8 +42,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.support.MessageSourceResourceBundle;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.DisposableBean;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -180,10 +180,14 @@ public class UiService implements InitializingBean, DisposableBean {
     loadWebViewsStyleSheet(getWebViewStyleSheet());
   }
 
-  private void deleteStylesheetsCacheDirectory() throws IOException {
+  private void deleteStylesheetsCacheDirectory() {
     Path cacheStylesheetsDirectory = preferencesService.getCacheStylesheetsDirectory();
     if (Files.exists(cacheStylesheetsDirectory)) {
-      deleteRecursively(cacheStylesheetsDirectory);
+      try {
+        deleteRecursively(cacheStylesheetsDirectory);
+      } catch (Exception e) {
+        logger.warn("Error during deletion of style cache directory", e);
+      }
     }
   }
 
