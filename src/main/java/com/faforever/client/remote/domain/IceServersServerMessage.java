@@ -19,6 +19,7 @@ public class IceServersServerMessage extends FafServerMessage {
   @Data
   public static class IceServer {
     private String url;
+    private String urls[];
     private String credential;
     private String credentialType;
     private String username;

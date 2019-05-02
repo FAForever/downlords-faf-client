@@ -27,6 +27,7 @@ faf-client:
   translation-project-url: https://poeditor.com/join/project/2oWfdaZQZj
   client-config-url: http://content.faforever.com/dfc-config.json
   client-config-connect-timeout: 10s
+  show-ice-adapter-debug-Window: ${SHOW_ICE_ADAPTER_DEBUG_WINDOW:false}
 
 spring:
   profiles:
@@ -47,7 +48,7 @@ logging:
     org.springframework.web.client: info
     org.springframework.security.oauth2: info
     org.springframework.security.oauth2.client.token.grant: off
-    faf-ice-adapter: off
+    faf-ice-adapter: debug
 
     org.ice4j.stack: warn
     com.nbarraille.jjsonrpc: warn

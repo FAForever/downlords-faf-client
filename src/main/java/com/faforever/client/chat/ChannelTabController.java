@@ -445,6 +445,8 @@ public class ChannelTabController extends AbstractChatTabController {
         .forEach(chatUserListItems::remove);
 
     CategoryOrChatUserListItem listItem = new CategoryOrChatUserListItem(null, chatUser);
+    userNamesToListItems.getOrDefault(chatUser.getUsername(), new ArrayList<>()).add(listItem);
+
     chatUserCategories.stream()
         .filter(chatUserCategory -> !categoriesToUserListItems.get(chatUserCategory).contains(listItem))
         .forEach(chatUserCategory -> addToTreeItemSorted(categoriesToCategoryListItems.get(chatUserCategory), listItem));
@@ -518,6 +520,7 @@ public class ChannelTabController extends AbstractChatTabController {
   private void onUserLeft(String username) {
     Platform.runLater(() -> {
       List<CategoryOrChatUserListItem> items = userNamesToListItems.get(username);
+      userNamesToListItems.remove(username);
       chatUserListItems.removeAll(items);
 
       hideFoeMessagesListeners.remove(username);

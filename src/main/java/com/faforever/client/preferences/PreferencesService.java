@@ -17,9 +17,9 @@ import javafx.scene.paint.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -269,7 +269,7 @@ public class PreferencesService implements InitializingBean {
   }
 
   public boolean isGamePathValid() {
-    return isGamePathValid(preferences.getForgedAlliance().getPath().resolve("bin"));
+    return preferences.getForgedAlliance().getPath() != null && isGamePathValid(preferences.getForgedAlliance().getPath().resolve("bin"));
   }
 
   public boolean isGamePathValid(Path binPath) {

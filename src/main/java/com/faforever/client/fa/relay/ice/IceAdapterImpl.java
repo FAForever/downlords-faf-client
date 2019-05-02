@@ -1,5 +1,6 @@
 package com.faforever.client.fa.relay.ice;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.relay.ConnectToPeerMessage;
 import com.faforever.client.fa.relay.DisconnectFromPeerMessage;
 import com.faforever.client.fa.relay.GpgClientCommand;
@@ -14,26 +15,26 @@ import com.faforever.client.fa.relay.ice.event.IceAdapterStateChanged;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.IceServerMessage;
 import com.faforever.client.remote.domain.IceServersServerMessage;
+import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.nbarraille.jjsonrpc.JJsonPeer;
 import com.nbarraille.jjsonrpc.TcpClient;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.bridj.Platform;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.SocketUtils;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.DisposableBean;
 
 import javax.inject.Inject;
 import java.lang.reflect.Method;
@@ -41,13 +42,14 @@ import java.lang.reflect.Proxy;
 import java.net.ConnectException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 import static com.faforever.client.os.OsUtils.gobbleLines;
 import static java.util.Arrays.asList;
@@ -57,13 +59,16 @@ import static java.util.Arrays.asList;
 @Slf4j
 public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableBean {
 
-  private static final int CONNECTION_ATTEMPTS = 5;
+  private static final int CONNECTION_ATTEMPTS = 50;
+  private static final int CONNECTION_ATTEMPT_DELAY_MILLIS = 100;
 
   private final ApplicationContext applicationContext;
+  private final ClientProperties clientProperties;
   private final PlayerService playerService;
   private final EventBus eventBus;
   private final FafService fafService;
   private final IceAdapterApi iceAdapterProxy;
+  private final PreferencesService preferencesService;
 
   private CompletableFuture<Integer> iceAdapterClientFuture;
   private Process process;
@@ -71,12 +76,14 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private JJsonPeer peer;
 
   @Inject
-  public IceAdapterImpl(ApplicationContext applicationContext, PlayerService playerService,
-                        EventBus eventBus, FafService fafService) {
+  public IceAdapterImpl(ApplicationContext applicationContext, ClientProperties clientProperties, PlayerService playerService,
+                        EventBus eventBus, FafService fafService, PreferencesService preferencesService) {
     this.applicationContext = applicationContext;
+    this.clientProperties = clientProperties;
     this.playerService = playerService;
     this.eventBus = eventBus;
     this.fafService = fafService;
+    this.preferencesService = preferencesService;
 
     iceAdapterProxy = newIceAdapterProxy();
   }
@@ -92,26 +99,35 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     fafService.addOnMessageListener(IceServerMessage.class, message -> iceAdapterProxy.iceMsg(message.getSender(), message.getRecord()));
   }
 
+  /**
+   * Converts an incoming ice server message to a list of ice servers
+   *
+   * @return the resulting list of ice servers, each ice server maps from key (e.g. username, credential, url(s)) ->
+   * value where value can can be a string or list of strings
+   */
   @SneakyThrows
-  private List<Map<String, String>> toIceServers(List<IceServersServerMessage.IceServer> iceServers) {
-    return iceServers.stream()
-        .map(this::toIceServer)
-        .collect(Collectors.toList());
-  }
+  private List<Map<String, Object>> toIceServers(List<IceServersServerMessage.IceServer> iceServers) {
+    List<Map<String, Object>> result = new LinkedList<>();
+    for (IceServersServerMessage.IceServer iceServer : iceServers) {
+      Map<String, Object> map = new HashMap<>();
+      List<String> urls = new LinkedList<>();
+      if (iceServer.getUrl() != null && !iceServer.getUrl().equals("null")) {
+        urls.add(iceServer.getUrl());
+      }
+      if (iceServer.getUrls() != null) {
+        urls.addAll(Arrays.asList(iceServer.getUrls()));
+      }
 
-  @NotNull
-  private Map<String, String> toIceServer(IceServersServerMessage.IceServer iceServer) {
-    Map<String, String> map = new HashMap<>();
-    map.put("url", iceServer.getUrl());
+      map.put("urls", urls);
 
-    if (iceServer.getCredential() != null) {
       map.put("credential", iceServer.getCredential());
-      map.put("credentialType", iceServer.getCredentialType());
-    }
-    if (iceServer.getUsername() != null) {
+      map.put("credentialType", "token");
       map.put("username", iceServer.getUsername());
+
+      result.add(map);
     }
-    return map;
+
+    return (result);
   }
 
   @Subscribe
@@ -152,22 +168,34 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
       Player currentPlayer = playerService.getCurrentPlayer()
           .orElseThrow(() -> new IllegalStateException("Player has not been set"));
 
-
       Path workDirectory = Paths.get(nativeDir).toAbsolutePath();
-      String[] cmd = new String[]{
+
+      List<String> cmd = Lists.newArrayList(
+          Paths.get(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString(),
+          "-jar",
           getBinaryName(workDirectory),
           "--id", String.valueOf(currentPlayer.getId()),
           "--login", currentPlayer.getUsername(),
           "--rpc-port", String.valueOf(adapterPort),
           "--gpgnet-port", String.valueOf(gpgPort)
-      };
+      );
+
+      if (clientProperties.isShowIceAdapterDebugWindow()) {
+        cmd.add("--debug-window");
+        cmd.add("--info-window");
+      } else {
+        cmd.add("--info-window");
+        cmd.add("--delay-ui");
+        cmd.add("10000");
+      }
 
       try {
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(workDirectory.toFile());
         processBuilder.command(cmd);
+        processBuilder.environment().put("LOG_DIR", preferencesService.getFafLogDirectory().resolve("iceAdapterLogs").toAbsolutePath().toString());
 
-        log.debug("Starting ICE adapter with command: {}", asList(cmd));
+        log.debug("Starting ICE adapter with command: {}", cmd);
         process = processBuilder.start();
         Logger logger = LoggerFactory.getLogger("faf-ice-adapter");
         gobbleLines(process.getInputStream(), logger::debug);
@@ -184,7 +212,14 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
             setLobbyInitMode();
             break;
           } catch (ConnectException e) {
-            logger.debug("Could not connect to ICE adapter (attempt {}/{})", attempt, CONNECTION_ATTEMPTS);
+            logger.debug("Could not connect to ICE adapter (attempt {}/{})", attempt + 1, CONNECTION_ATTEMPTS);
+          }
+
+          // Wait as the socket fails too fast on unix/linux not giving the adapter enough time to start
+          try {
+            Thread.sleep(CONNECTION_ATTEMPT_DELAY_MILLIS);
+          } catch (InterruptedException e) {
+            logger.warn("Error while waiting for ice adapter", e);
           }
         }
 
@@ -207,7 +242,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   }
 
   private String getBinaryName(Path workDirectory) {
-    return Platform.isWindows() ? workDirectory.resolve("faf-ice-adapter.exe").toString() : "./faf-ice-adapter";
+    return workDirectory.resolve("faf-ice-adapter.jar").toString();
   }
 
   private void setIceServers() {
@@ -255,7 +290,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   private void updateLobbyModeFromGameInfo(GameLaunchMessage gameLaunchMessage) {
     if (KnownFeaturedMod.LADDER_1V1.getTechnicalName().equals(gameLaunchMessage.getMod())) {
-      lobbyInitMode = LobbyMode.DEFAULT_LOBBY;
+      lobbyInitMode = LobbyMode.NO_LOBBY;
     } else {
       lobbyInitMode = LobbyMode.DEFAULT_LOBBY;
     }
