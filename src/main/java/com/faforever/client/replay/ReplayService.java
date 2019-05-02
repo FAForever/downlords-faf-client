@@ -51,6 +51,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -167,6 +168,7 @@ public class ReplayService {
 
     try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(replaysDirectory, replayFileGlob)) {
       StreamSupport.stream(directoryStream.spliterator(), false)
+          .sorted(Comparator.comparing(path -> noCatch(() -> Files.getLastModifiedTime((Path) path))).reversed())
           .limit(MAX_REPLAYS)
           .forEach(replayFile -> {
             try {
