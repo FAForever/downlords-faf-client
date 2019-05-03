@@ -92,6 +92,9 @@ public class TimeService {
 
   
   public String asShortTime(Temporal temporal) {
+    if (temporal == null) {
+      return "";
+    }
     return DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
         .withLocale(getCurrentTimeLocale())
         .format(ZonedDateTime.ofInstant(Instant.from(temporal), TimeZone.getDefault().toZoneId()));
