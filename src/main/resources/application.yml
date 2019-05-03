@@ -29,6 +29,11 @@ faf-client:
   client-config-connect-timeout: 10s
   show-ice-adapter-debug-Window: ${SHOW_ICE_ADAPTER_DEBUG_WINDOW:false}
 
+  discord:
+    application_id: 464069837237518357
+    small_image_key: faf_logo_small
+    big_image_key: faf_logo_big
+
 spring:
   profiles:
     active: ${CLIENT_PROFILE:prod}

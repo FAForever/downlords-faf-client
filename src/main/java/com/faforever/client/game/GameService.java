@@ -1,6 +1,8 @@
 package com.faforever.client.game;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.discord.DiscordJoinEvent;
+import com.faforever.client.discord.DiscordRichPresenceService;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
@@ -36,6 +38,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -54,6 +57,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -66,6 +70,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
@@ -138,7 +143,7 @@ public class GameService implements InitializingBean {
                      PreferencesService preferencesService, GameUpdater gameUpdater,
                      NotificationService notificationService, I18n i18n, Executor executor,
                      PlayerService playerService, ReportingService reportingService, EventBus eventBus,
-                     IceAdapter iceAdapter, ModService modService, PlatformService platformService) {
+                     IceAdapter iceAdapter, ModService modService, PlatformService platformService, DiscordRichPresenceService discordRichPresenceService) {
     this.fafService = fafService;
     this.forgedAllianceService = forgedAllianceService;
     this.mapService = mapService;
@@ -160,23 +165,51 @@ public class GameService implements InitializingBean {
     gameRunning = new SimpleBooleanProperty();
 
     currentGame = new SimpleObjectProperty<>();
+
+    InvalidationListener numberOfPlayersChangedListener = new InvalidationListener() {
+      @Override
+      public void invalidated(Observable observable) {
+        if (currentGame.get() == null) {
+          observable.removeListener(this);
+          return;
+        }
+        final Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player must be set"));
+        discordRichPresenceService.updatePlayedGameTo(currentGame.get(), currentPlayer.getId(), currentPlayer.getUsername());
+      }
+    };
+
+    ChangeListener<GameStatus> currentGameStatusListener = new ChangeListener<>() {
+      @Override
+      public void changed(ObservableValue<? extends GameStatus> observable1, GameStatus oldStatus, GameStatus newStatus) {
+        if (currentGame.get() == null) {
+          observable1.removeListener(this);
+          return;
+        }
+        final Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player must be set"));
+        discordRichPresenceService.updatePlayedGameTo(currentGame.get(), currentPlayer.getId(), currentPlayer.getUsername());
+        if (oldStatus == GameStatus.PLAYING && newStatus == GameStatus.CLOSED) {
+          GameService.this.onCurrentGameEnded();
+        }
+        if (newStatus == GameStatus.CLOSED) {
+          currentGame.get().statusProperty().removeListener(this);
+          currentGame.get().numPlayersProperty().removeListener(numberOfPlayersChangedListener);
+        }
+      }
+    };
+
     currentGame.addListener((observable, oldValue, newValue) -> {
       if (newValue == null) {
+        discordRichPresenceService.clearGameInfo();
         return;
       }
 
-      ChangeListener<GameStatus> currentGameEndedListener = new ChangeListener<GameStatus>() {
-        @Override
-        public void changed(ObservableValue<? extends GameStatus> observable1, GameStatus oldStatus, GameStatus newStatus) {
-          if (oldStatus == GameStatus.PLAYING && newStatus == GameStatus.CLOSED) {
-            GameService.this.onCurrentGameEnded();
-          }
-          if (newStatus == GameStatus.CLOSED) {
-            newValue.statusProperty().removeListener(this);
-          }
-        }
-      };
-      JavaFxUtil.addListener(newValue.statusProperty(), currentGameEndedListener);
+      JavaFxUtil.removeListener(newValue.numPlayersProperty(), numberOfPlayersChangedListener);
+      numberOfPlayersChangedListener.invalidated(newValue.numPlayersProperty());
+      JavaFxUtil.addListener(newValue.numPlayersProperty(), numberOfPlayersChangedListener);
+
+      JavaFxUtil.removeListener(newValue.statusProperty(), currentGameStatusListener);
+      currentGameStatusListener.changed(newValue.statusProperty(), newValue.getStatus(), newValue.getStatus());
+      JavaFxUtil.addListener(newValue.statusProperty(), currentGameStatusListener);
     });
 
     games = FXCollections.observableList(new ArrayList<>(),
@@ -582,6 +615,9 @@ public class GameService implements InitializingBean {
       JavaFxUtil.addListener(currentPlayerOptional.get().gameProperty(), (observable, oldValue, newValue) -> {
         if (newValue == null && oldValue.getStatus() == GameStatus.CLOSED) {
           removeGame(gameInfoMessage);
+          synchronized (currentGame) {
+            currentGame.set(null);
+          }
         }
       });
     }
@@ -595,8 +631,13 @@ public class GameService implements InitializingBean {
         synchronized (currentGame) {
           currentGame.set(game);
         }
+      } else if (Objects.equals(currentGame.get(), game) && !currentPlayerInGame) {
+        synchronized (currentGame) {
+          currentGame.set(null);
+        }
       }
     }
+
 
     JavaFxUtil.addListener(game.statusProperty(), (observable, oldValue, newValue) -> {
       if (oldValue == GameStatus.OPEN
@@ -627,5 +668,20 @@ public class GameService implements InitializingBean {
     synchronized (uidToGameInfoBean) {
       uidToGameInfoBean.remove(gameInfoMessage.getUid());
     }
+  }
+
+  @EventListener
+  public void onDiscordGameJoinEvent(DiscordJoinEvent discordJoinEvent) {
+    Integer gameId = discordJoinEvent.getGameId();
+    Game game = getByUid(gameId);
+    boolean disallowJoinsViaDiscord = preferencesService.getPreferences().isDisallowJoinsViaDiscord();
+    if (disallowJoinsViaDiscord) {
+      log.debug("Join was requested via Discord but was rejected due to it being disabled in settings");
+      return;
+    }
+    if (game == null) {
+      throw new IllegalStateException(String.format("Could not find game to join, with id: %d", discordJoinEvent.getGameId()));
+    }
+    joinGame(game, "");
   }
 }

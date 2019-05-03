@@ -21,6 +21,7 @@ public class ClientProperties {
   private Api api = new Api();
   private UnitDatabase unitDatabase = new UnitDatabase();
   private Website website = new Website();
+  private Discord discord = new Discord();
   private String translationProjectUrl;
   private String clientConfigUrl;
   private boolean useRemotePreferences;
@@ -132,5 +133,12 @@ public class ClientProperties {
   public static class UnitDatabase {
     private String spookiesUrl;
     private String rackOversUrl;
+  }
+
+  @Data
+  public static class Discord {
+    private String applicationId;
+    private String smallImageKey;
+    private String bigImageKey;
   }
 }

@@ -126,6 +126,7 @@ public class SettingsController implements Controller<Node> {
   public Toggle notifyOnAtMentionOnlyToggle;
   public Pane languagesContainer;
   public JFXTextField backgroundImageLocation;
+  public CheckBox disallowJoinsCheckBox;
   private ChangeListener<Theme> selectedThemeChangeListener;
   private ChangeListener<Theme> currentThemeChangeListener;
   private InvalidationListener availableLanguagesListener;
@@ -206,6 +207,8 @@ public class SettingsController implements Controller<Node> {
     enableNotificationsToggle.selectedProperty().bindBidirectional(preferences.getNotification().transientNotificationsEnabledProperty());
 
     hideFoeToggle.selectedProperty().bindBidirectional(preferences.getChat().hideFoeMessagesProperty());
+
+    disallowJoinsCheckBox.selectedProperty().bindBidirectional(preferences.disallowJoinsViaDiscordProperty());
 
     JavaFxUtil.addListener(preferences.getChat().chatColorModeProperty(), (observable, oldValue, newValue) -> setSelectedColorMode(newValue));
     setSelectedColorMode(preferences.getChat().getChatColorMode());
