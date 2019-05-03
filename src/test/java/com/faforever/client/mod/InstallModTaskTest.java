@@ -4,23 +4,22 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.test.AbstractPlainJavaFxTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
-public class InstallModTaskTest {
+public class InstallModTaskTest extends AbstractPlainJavaFxTest {
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -56,9 +55,15 @@ public class InstallModTaskTest {
 
   @Test
   public void testCall() throws Exception {
+    Path modTargetDirectory = modsDirectory.getRoot().toPath().resolve("SuicideConfirmation");
+    Path fileThatShouldBeDeletedByInstall = modTargetDirectory.resolve("fileThatShouldBeDeletedByInstall.file");
+    Files.createDirectory(modTargetDirectory);
+    Files.createFile(fileThatShouldBeDeletedByInstall);
+
     instance.setUrl(getClass().getResource("/mods/Suicide Confirmation.v0003.zip"));
     instance.call();
 
-    assertThat(Files.exists(modsDirectory.getRoot().toPath().resolve("SuicideConfirmation").resolve("mod_info.lua")), is(true));
+    assertThat(Files.exists(modTargetDirectory.resolve("mod_info.lua")), is(true));
+    assertThat(Files.exists(fileThatShouldBeDeletedByInstall), is(false));
   }
 }
