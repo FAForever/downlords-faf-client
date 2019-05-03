@@ -147,7 +147,7 @@ public class CoopController extends AbstractViewController<Node> {
     timeColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue().getDuration()));
     timeColumn.setCellFactory(param -> new StringCell<>(timeService::shortDuration));
 
-    replayColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getId()));
+    replayColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getGame().getId()));
     replayColumn.setCellFactory(param -> new NodeTableCell<>((replayId) -> {
       ReplayButtonController button = uiService.loadFxml("theme/play/coop/replay_button.fxml");
       button.setReplayId(replayId);
