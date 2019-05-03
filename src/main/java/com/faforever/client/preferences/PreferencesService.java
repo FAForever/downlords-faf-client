@@ -7,12 +7,17 @@ import com.faforever.client.preferences.gson.PathTypeAdapter;
 import com.faforever.client.preferences.gson.PropertyTypeAdapter;
 import com.faforever.client.remote.gson.FactionTypeAdapter;
 import com.faforever.client.update.ClientConfiguration;
+import com.github.nocatch.NoCatch.NoCatchRunnable;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
+import javafx.application.Platform;
 import javafx.beans.property.Property;
 import javafx.collections.ObservableMap;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.paint.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,11 +39,15 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+
+import static com.github.nocatch.NoCatch.noCatch;
 
 @Lazy
 @Service
@@ -178,8 +187,29 @@ public class PreferencesService implements InitializingBean {
     try (Reader reader = Files.newBufferedReader(path, CHARSET)) {
       logger.debug("Reading preferences file {}", preferencesFilePath.toAbsolutePath());
       preferences = gson.fromJson(reader, Preferences.class);
-    } catch (IOException e) {
+    } catch (Exception e) {
       logger.warn("Preferences file " + path.toAbsolutePath() + " could not be read", e);
+      CountDownLatch waitForUser = new CountDownLatch(1);
+      Platform.runLater(() -> {
+        Alert errorReading = new Alert(AlertType.ERROR, "Error reading setting. Reset settings? ", ButtonType.YES, ButtonType.CANCEL);
+        errorReading.showAndWait();
+
+        if (errorReading.getResult() == ButtonType.YES) {
+          try {
+            Files.delete(path);
+            preferences = new Preferences();
+            waitForUser.countDown();
+          } catch (Exception ex) {
+            logger.error("Error deleting settings file", ex);
+            Alert errorDeleting = new Alert(AlertType.ERROR, MessageFormat.format("Error deleting setting. Please delete them yourself. You find them under {} .", preferencesFilePath.toAbsolutePath()), ButtonType.OK);
+            errorDeleting.showAndWait();
+            preferences = new Preferences();
+            waitForUser.countDown();
+          }
+        }
+      });
+      noCatch((NoCatchRunnable) waitForUser::await);
+
     }
 
     migratePreferences(preferences);
