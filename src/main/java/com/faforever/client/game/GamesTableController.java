@@ -16,7 +16,9 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Pos;
@@ -63,6 +65,8 @@ public class GamesTableController implements Controller<Node> {
   public TableColumn<Game, String> hostColumn;
   public TableColumn<Game, Boolean> passwordProtectionColumn;
   public TableColumn<Game, String> coopMissionName;
+  private final ChangeListener<Boolean> showModdedGamesChangedListener;
+  private final ChangeListener<Boolean> showPasswordProtectedGamesChangedListener;
 
   @Inject
   public GamesTableController(MapService mapService, JoinGameHelper joinGameHelper, I18n i18n, UiService uiService, PreferencesService preferencesService) {
@@ -73,6 +77,9 @@ public class GamesTableController implements Controller<Node> {
     this.preferencesService = preferencesService;
 
     this.selectedGame = new SimpleObjectProperty<>();
+
+    showModdedGamesChangedListener = (observable, oldValue, newValue) -> modsColumn.setVisible(newValue);
+    showPasswordProtectedGamesChangedListener = (observable, oldValue, newValue) -> passwordProtectionColumn.setVisible(newValue);
   }
 
   public ObjectProperty<Game> selectedGameProperty() {
@@ -131,14 +138,10 @@ public class GamesTableController implements Controller<Node> {
 
     gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue)
         -> Platform.runLater(() -> selectedGame.set(newValue)));
-  }
 
-  public void setModsColumnVisibility(boolean isVisible) {
-    modsColumn.setVisible(isVisible);
-  }
-
-  public void setPasswordProtectionColumnVisibility(boolean isVisible) {
-    passwordProtectionColumn.setVisible(isVisible);
+    //bindings do not work as that interferes with some bidirectional bindings in the TableView itself
+    JavaFxUtil.addListener(preferencesService.getPreferences().showModdedGamesProperty(), new WeakChangeListener<>(showModdedGamesChangedListener));
+    JavaFxUtil.addListener(preferencesService.getPreferences().showPasswordProtectedGamesProperty(), new WeakChangeListener<>(showPasswordProtectedGamesChangedListener));
   }
 
   private void applyLastSorting(TableView<Game> gamesTable) {
