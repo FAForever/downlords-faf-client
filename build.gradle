@@ -284,6 +284,7 @@ dependencies {
   compile("org.openjfx:javafx-fxml:${javafxVersion}:${javafxPlatform}")
   compile("org.openjfx:javafx-web:${javafxVersion}:${javafxPlatform}")
   compile("org.openjfx:javafx-media:${javafxVersion}:${javafxPlatform}")
+  compile ("com.github.axel1200:discord-rpc:${discordRpcVersion}")
 
   compile project(":webview-patch")
   compile("org.javassist:javassist:${project.ext['javassist.version']}")
@@ -300,7 +301,6 @@ dependencies {
 
   optional("org.springframework.boot:spring-boot-configuration-processor")
 
-  compile 'com.github.Vatuu:discord-rpc:1.6.2'
 
   codacy("com.github.codacy:codacy-coverage-reporter:-SNAPSHOT")
 }
