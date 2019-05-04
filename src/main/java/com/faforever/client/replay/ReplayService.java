@@ -359,7 +359,7 @@ public class ReplayService {
   }
 
   private void runOnlineReplay(int replayId) {
-    runOnlineReplay(replayId);
+    runOnlineReplay(replayId, null);
   }
 
   private void runOnlineReplay(int replayId, String mapName) {
