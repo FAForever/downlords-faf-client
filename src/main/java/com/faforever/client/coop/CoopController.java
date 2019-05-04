@@ -206,8 +206,9 @@ public class CoopController extends AbstractViewController<Node> {
   }
 
   private void onReplayButtonClicked(ReplayButtonController button) {
+    String mapName = getSelectedMission().getMapFolderName();
     String replayId = button.getReplayId();
-    replayService.runReplay(Integer.valueOf(replayId));
+    replayService.runCoopReplay(Integer.valueOf(replayId), mapName);
   }
 
   private ListCell<Integer> numberOfPlayersCell() {

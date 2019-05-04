@@ -31,6 +31,7 @@ import com.google.common.net.UrlEscapers;
 import com.google.common.primitives.Bytes;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -278,6 +279,9 @@ public class ReplayService {
     runOnlineReplay(replayId);
   }
 
+  public void runCoopReplay(Integer replayId, String mapName) {
+    runOnlineReplay(replayId, mapName);
+  }
 
   public CompletableFuture<List<Replay>> getNewestReplays(int topElementCount, int page) {
     return fafService.getNewestReplays(topElementCount, page);
@@ -339,19 +343,30 @@ public class ReplayService {
   @SneakyThrows
 
   public void runReplayFile(Path path) {
+    runReplayFile(path,null);
+  }
+
+  @SneakyThrows
+  private void runReplayFile(Path path, String mapName) {
     log.debug("Starting replay file: {}", path.toAbsolutePath());
 
     String fileName = path.getFileName().toString();
     if (fileName.endsWith(FAF_REPLAY_FILE_ENDING)) {
-      runFafReplayFile(path);
+      runFafReplayFile(path, mapName);
     } else if (fileName.endsWith(SUP_COM_REPLAY_FILE_ENDING)) {
       runSupComReplayFile(path);
     }
   }
 
   private void runOnlineReplay(int replayId) {
+    runOnlineReplay(replayId);
+  }
+
+  private void runOnlineReplay(int replayId, String mapName) {
     downloadReplay(replayId)
-        .thenAccept(this::runReplayFile)
+        .thenAccept(replay -> {
+          this.runReplayFile(replay, mapName);
+        })
         .exceptionally(throwable -> {
           notificationService.addNotification(new ImmediateErrorNotification(
               i18n.get("errorTitle"), i18n.get("replayCouldNotBeStarted", replayId), throwable, i18n, reportingService
@@ -360,7 +375,7 @@ public class ReplayService {
         });
   }
 
-  private void runFafReplayFile(Path path) throws IOException {
+  private void runFafReplayFile(Path path, String overrideMapName) throws IOException {
     byte[] rawReplayBytes = replayFileReader.readRawReplayData(path);
 
     Path tempSupComReplayFile = preferencesService.getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
@@ -373,6 +388,8 @@ public class ReplayService {
     Integer replayId = replayInfo.getUid();
     Map<String, Integer> modVersions = replayInfo.getFeaturedModVersions();
     String mapName = replayInfo.getMapname();
+    if(!StringUtils.isEmpty((overrideMapName)))
+      mapName = overrideMapName;
 
     Set<String> simMods = replayInfo.getSimMods() != null ? replayInfo.getSimMods().keySet() : emptySet();
 
