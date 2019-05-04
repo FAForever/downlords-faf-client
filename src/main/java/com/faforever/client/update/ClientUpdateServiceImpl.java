@@ -95,7 +95,12 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
   }
 
   private void install(Path binaryPath) {
-    // TODO probably need to make this executable on unix See #1026
+    // need to make this executable on unix See #1026
+	try {
+      platformService.setUnixExecutableBit(binaryPath);
+	} catch (IOException e) {
+      logger.warn("Unix execute bit could not be set", e);
+	}
     String command = binaryPath.toAbsolutePath().toString();
     try {
       logger.info("Starting installer at {}", command);
