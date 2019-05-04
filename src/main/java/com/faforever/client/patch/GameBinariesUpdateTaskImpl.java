@@ -18,6 +18,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -93,6 +95,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
 
   private void downloadFafExeIfNecessary(Path exePath) throws IOException {
     if (Files.exists(exePath)) {
+      makeSureExeIsExecutable(exePath);
       return;
     }
     ResourceLocks.acquireDownloadLock();
@@ -107,9 +110,14 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
             .listener(this::updateProgress)
             .copy();
       }
+      makeSureExeIsExecutable(exePath);
     } finally {
       ResourceLocks.freeDownloadLock();
     }
+  }
+
+  private void makeSureExeIsExecutable(Path exePath) {
+    exePath.toFile().setExecutable(true);
   }
 
   @VisibleForTesting
