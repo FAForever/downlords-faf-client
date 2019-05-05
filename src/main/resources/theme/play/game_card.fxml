@@ -30,7 +30,7 @@
         <AnchorPane GridPane.rowSpan="2147483647" GridPane.valignment="TOP">
             <children>
                 <ImageView fx:id="mapImageView" fitHeight="160.0" fitWidth="160.0" preserveRatio="true"/>
-                <Label fx:id="lockIconLabel" layoutX="10.0" layoutY="10.0" styleClass="lock-icon,icon" text=""
+                <Label fx:id="lockIconLabel" layoutX="10.0" layoutY="10.0" styleClass="lock-icon,icon" text="🔒"
                        AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0"/>
                 <VBox alignment="BOTTOM_LEFT" styleClass="card-dimmer" AnchorPane.bottomAnchor="0.0"
                       AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
