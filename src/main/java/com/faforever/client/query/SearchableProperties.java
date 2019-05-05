@@ -12,34 +12,31 @@ import java.util.Map;
  */
 public class SearchableProperties {
   public static final Map<String, String> GAME_PROPERTIES = ImmutableMap.<String, String>builder()
+      .put("playerStats.player.login", "game.player.username")
+      .put("playerStats.player.globalRating.rating", "game.player.globalRating")
+      .put("playerStats.player.ladder1v1Rating.rating", "game.player.ladderRating")
+      .put("featuredMod.technicalName", "featuredMod.technicalName")
+      .put("mapVersion.map.displayName", "game.map.displayName")
+      .put("playerStats.faction", "game.player.faction")
+      .put("playerStats.startSpot", "game.player.startSpot")
+      .put("mapVersion.maxPlayers", "map.maxPlayers")
+      .put("mapVersion.ranked", "game.map.isRanked")
       .put("id", "game.id")
+      .put("playerStats.player.id", "game.player.id")
       .put("name", "game.title")
       .put("startTime", "game.startTime")
       .put("endTime", "game.endTime")
       .put("validity", "game.validity")
       .put("victoryCondition", "game.victoryCondition")
-
-      .put("playerStats.faction", "game.player.faction")
       .put("playerStats.team", "game.player.team")
-      .put("playerStats.startSpot", "game.player.startSpot")
-      .put("playerStats.player.id", "game.player.id")
-      .put("playerStats.player.login", "game.player.username")
-      .put("playerStats.player.globalRating.rating", "game.player.rating")
-
-      .put("host.id", "game.host.id")
       .put("host.login", "game.host.username")
-
+      .put("host.id", "game.host.id")
       .put("featuredMod.displayName", "featuredMod.displayName")
-      .put("featuredMod.technicalName", "featuredMod.technicalName")
-
       .put("mapVersion.description", "map.description")
-      .put("mapVersion.maxPlayers", "map.maxPlayers")
       .put("mapVersion.width", "game.map.width")
       .put("mapVersion.height", "game.map.height")
       .put("mapVersion.version", "game.map.version")
       .put("mapVersion.folderName", "game.map.folderName")
-      .put("mapVersion.ranked", "game.map.isRanked")
-      .put("mapVersion.map.displayName", "game.map.displayName")
 
       .build();
 
