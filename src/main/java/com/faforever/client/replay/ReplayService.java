@@ -32,6 +32,7 @@ import com.google.common.net.UrlEscapers;
 import com.google.common.primitives.Bytes;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jgit.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -87,6 +88,8 @@ public class ReplayService {
    */
   private static final int VERSION_OFFSET = 0x18;
   private static final int MAP_NAME_OFFSET = 0x2D;
+  private static final byte[] MAP_FOLDER_START_PATTERN = new byte[]
+      {0x53, 0x63, 0x65, 0x6E, 0x61, 0x72, 0x69, 0x6F, 0x46, 0x69, 0x6C, 0x65, 0x00, 0x01};
   private static final String FAF_REPLAY_FILE_ENDING = ".fafreplay";
   private static final String SUP_COM_REPLAY_FILE_ENDING = ".scfareplay";
   private static final String FAF_LIFE_PROTOCOL = "faflive";
@@ -142,6 +145,24 @@ public class ReplayService {
   static String parseMapName(byte[] rawReplayBytes) {
     int mapDelimiterIndex = Bytes.indexOf(rawReplayBytes, new byte[]{0x00, 0x0D, 0x0A, 0x1A});
     String mapPath = new String(rawReplayBytes, MAP_NAME_OFFSET, mapDelimiterIndex - MAP_NAME_OFFSET, US_ASCII);
+    return mapPath.split("/")[2];
+  }
+
+  @VisibleForTesting
+  static String parseMapFolderName(byte[] rawReplayBytes) {
+    // "ScenarioFile" in hex
+    int mapStartIndex = Bytes.indexOf(rawReplayBytes, MAP_FOLDER_START_PATTERN) + MAP_FOLDER_START_PATTERN.length;
+    int mapEndIndex = 0;
+
+    for (mapEndIndex = mapStartIndex; mapEndIndex < rawReplayBytes.length - 1; mapEndIndex++) {
+      //0x00 0x01 is the field delimiter
+      if (rawReplayBytes[mapEndIndex] == 0x00 && rawReplayBytes[mapEndIndex+1] == 0x01) {
+        break;
+      }
+    }
+
+    String mapPath = new String(rawReplayBytes, mapStartIndex, mapEndIndex + 1 - mapStartIndex, US_ASCII);
+    //mapPath looks like /maps/my_awesome_map.v008/my_awesome_map.lua
     return mapPath.split("/")[2];
   }
 
@@ -375,6 +396,13 @@ public class ReplayService {
     Integer replayId = replayInfo.getUid();
     Map<String, Integer> modVersions = replayInfo.getFeaturedModVersions();
     String mapName = replayInfo.getMapname();
+
+    // For some reason in the coop replay the map name is null in the metadata
+    // So we just take it directly from the replay data.
+    if (StringUtils.isEmptyOrNull(mapName)) {
+      mapName = parseMapFolderName(rawReplayBytes);
+    }
+
 
     Set<String> simMods = replayInfo.getSimMods() != null ? replayInfo.getSimMods().keySet() : emptySet();
 
