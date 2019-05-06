@@ -4,12 +4,14 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.main.MainController;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.taskbar.WindowsTaskbarProgressUpdater;
 import com.faforever.client.util.WindowsUtil;
 import com.github.nocatch.NoCatch.NoCatchRunnable;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
@@ -107,8 +109,8 @@ public class FafClientApplication extends Application {
   }
 
   @Bean
-  public PlatformService platformService() {
-    return new PlatformService(getHostServices());
+  public PlatformService platformService(EventBus eventBus, NotificationService notificationService) {
+    return new PlatformService(getHostServices(), eventBus, notificationService);
   }
 
   private void showMainWindow() {

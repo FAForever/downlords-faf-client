@@ -1,5 +1,8 @@
 package com.faforever.client.fx;
 
+import com.faforever.client.main.event.JoinChannelEvent;
+import com.faforever.client.notification.NotificationService;
+import com.google.common.eventbus.EventBus;
 import com.sun.jna.Platform;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef.HWND;
@@ -14,13 +17,18 @@ import static com.github.nocatch.NoCatch.noCatch;
 import static org.bridj.Platform.show;
 
 public class PlatformService {
+  public static final String IRC_JOIN_PROTOCOL = "ircjoin";
 
   private final HostServices hostServices;
+  private final EventBus eventBus;
+  private final NotificationService notificationService;
 
   private final boolean isWindows;
 
-  public PlatformService(HostServices hostServices) {
+  public PlatformService(HostServices hostServices, EventBus eventBus, NotificationService notificationService) {
     this.hostServices = hostServices;
+    this.eventBus = eventBus;
+    this.notificationService = notificationService;
     isWindows = Platform.isWindows();
   }
 
@@ -29,6 +37,10 @@ public class PlatformService {
    */
   
   public void showDocument(String url) {
+    if (url.startsWith(IRC_JOIN_PROTOCOL)) {
+      eventBus.post(new JoinChannelEvent(url.substring(IRC_JOIN_PROTOCOL.length() + 3)));
+      return;
+    }
     hostServices.showDocument(url);
   }
 

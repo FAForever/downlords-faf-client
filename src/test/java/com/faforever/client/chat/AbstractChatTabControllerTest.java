@@ -49,6 +49,7 @@ import static com.faforever.client.player.SocialStatus.FRIEND;
 import static com.faforever.client.player.SocialStatus.SELF;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
@@ -321,5 +322,12 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void getMessageCssClassChatOnlyNullPlayerInfoBean() {
     String playerName = "somePlayer";
     assertEquals(instance.getMessageCssClass(playerName), CSS_CLASS_CHAT_ONLY);
+  }
+
+  @Test
+  public void testChannelNamesTransformedToHyperlinks() {
+    String output = instance.replaceChannelNamesWithHyperlinks("Go to #moderation and report a user");
+    assertThat(output, containsString("#moderation"));
+    assertThat(output, containsString("<a"));
   }
 }
