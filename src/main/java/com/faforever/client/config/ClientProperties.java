@@ -20,6 +20,7 @@ public class ClientProperties {
   private TrueSkill trueSkill = new TrueSkill();
   private Api api = new Api();
   private UnitDatabase unitDatabase = new UnitDatabase();
+  private MapGenerator mapGenerator = new MapGenerator();
   private Website website = new Website();
   private Discord discord = new Discord();
   private String translationProjectUrl;
@@ -133,6 +134,11 @@ public class ClientProperties {
   public static class UnitDatabase {
     private String spookiesUrl;
     private String rackOversUrl;
+  }
+
+  @Data
+  public static class MapGenerator {
+    private String mapGeneratorReleaseUrl;
   }
 
   @Data

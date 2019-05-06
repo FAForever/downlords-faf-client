@@ -85,7 +85,7 @@ public class DiscordRichPresenceService {
         joinSecret = new Gson().toJson(new DiscordJoinSecret(game.getId()));
       }
 
-      if (game.getStatus() == GameStatus.PLAYING && game.getStartTime().isAfter(Instant.now().plus(5,ChronoUnit.MINUTES))) {
+      if (game.getStatus() == GameStatus.PLAYING && game.getStartTime() != null && game.getStartTime().isAfter(Instant.now().plus(5, ChronoUnit.MINUTES))) {
         spectateSecret = new Gson().toJson(new DiscordSpectateSecret(game.getId(),currentPlayerId));
       }
 
