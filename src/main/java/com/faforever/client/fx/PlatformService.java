@@ -137,8 +137,8 @@ public class PlatformService {
     return windowTitle.equals(getForegroundWindowTitle());
   }
 
-  public void setUnixExecutableBit(Path exePath) throws IOException {
-	// client needs executable bit for running and the writeable bit set to alter the version
+  public void setUnixExecutableAndWritableBits(Path exePath) throws IOException {
+    // client needs executable bit for running and the writeable bit set to alter the version
     if (SystemUtils.IS_OS_UNIX) {
       Files.setPosixFilePermissions(exePath, Sets.immutableEnumSet(PosixFilePermission.OWNER_READ,
     				  PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE));

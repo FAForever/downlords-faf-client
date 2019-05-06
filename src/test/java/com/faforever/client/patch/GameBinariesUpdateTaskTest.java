@@ -10,6 +10,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
@@ -18,6 +19,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANCE_EXE;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -77,6 +79,13 @@ public class GameBinariesUpdateTaskTest {
     for (String fileName : GameBinariesUpdateTaskImpl.BINARIES_TO_COPY) {
       assertTrue(java.nio.file.Files.exists(fafBinPath.resolve(fileName)));
     }
+  }
+
+  @Test
+  public void testUnixExecutableBitIsSet() throws Exception {
+    Path faExePath = fafBinDirectory.newFile("ForgedAlliance.exe").toPath();
+    instance.downloadFafExeIfNecessary(faExePath);
+    Mockito.verify(platformService).setUnixExecutableAndWritableBits(faExePath);
   }
 
   private void createFileWithSize(Path file, int size) throws IOException {

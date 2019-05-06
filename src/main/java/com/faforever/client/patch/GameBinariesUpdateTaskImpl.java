@@ -96,9 +96,10 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
     return null;
   }
 
-  private void downloadFafExeIfNecessary(Path exePath) throws IOException {
+  @VisibleForTesting
+  void downloadFafExeIfNecessary(Path exePath) throws IOException {
     if (Files.exists(exePath)) {
-      platformService.setUnixExecutableBit(exePath);
+      platformService.setUnixExecutableAndWritableBits(exePath);
       return;
     }
     ResourceLocks.acquireDownloadLock();
@@ -113,7 +114,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
             .listener(this::updateProgress)
             .copy();
       }
-      platformService.setUnixExecutableBit(exePath);
+      platformService.setUnixExecutableAndWritableBits(exePath);
     } finally {
       ResourceLocks.freeDownloadLock();
     }
