@@ -322,4 +322,10 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     String playerName = "somePlayer";
     assertEquals(instance.getMessageCssClass(playerName), CSS_CLASS_CHAT_ONLY);
   }
+
+  @Test
+  public void testChannelNamesTransformedToHyperlinks() {
+    String output = instance.replaceChannelNamesWithHyperlinks("Go to #moderation and report a user");
+    assertThat(output, is("Go to <a href=\"javascript:void(0);\" onClick=\"java.openChannel('#moderation')\">#moderation</a> and report a user"));
+  }
 }

@@ -6,6 +6,7 @@ import com.faforever.client.clan.ClanService;
 import com.faforever.client.clan.ClanTooltipController;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.JoinChannelEvent;
 import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -97,6 +98,14 @@ public class BrowserCallback {
             notificationService.addNotification(new ImmediateNotification(i18n.get("replay.notFoundTitle"), i18n.get("replay.replayNotFoundText", replayId), Severity.WARN));
           }
         }));
+  }
+
+  /**
+   * Called from JavaScript when user clicked a channel link.
+   */
+  @SuppressWarnings("unused")
+  public void openChannel(String channelName) {
+    eventBus.post(new JoinChannelEvent(channelName));
   }
 
   /**

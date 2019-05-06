@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.main.event.JoinChannelEvent;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.theme.UiService;
@@ -121,6 +122,7 @@ public class ChatController extends AbstractViewController<Node> {
     if (chatService.isDefaultChannel(playerOrChannelName)) {
       tabPane.getTabs().add(0, tab);
       tabPane.getSelectionModel().select(tab);
+      nameToChatTabController.get(tab.getId()).onDisplay();
     } else {
       tabPane.getTabs().add(tab);
     }
@@ -210,7 +212,9 @@ public class ChatController extends AbstractViewController<Node> {
       return;
     }
     AbstractChatTabController controller = addAndGetPrivateMessageTab(username);
-    tabPane.getSelectionModel().select(controller.getRoot());
+    Tab tab = controller.getRoot();
+    tabPane.getSelectionModel().select(tab);
+    nameToChatTabController.get(tab.getId()).onDisplay();
   }
 
   public void onJoinChannelButtonClicked() {
@@ -240,7 +244,9 @@ public class ChatController extends AbstractViewController<Node> {
         AbstractChatTabController tabController = getOrCreateChannelTab(channelName);
         onConnected();
         if (channelName.equals(chatService.getDefaultChannelName())) {
-          tabPane.getSelectionModel().select(tabController.getRoot());
+          Tab tab = tabController.getRoot();
+          tabPane.getSelectionModel().select(tab);
+          nameToChatTabController.get(tab.getId()).onDisplay();
         }
       }
     });
@@ -252,6 +258,10 @@ public class ChatController extends AbstractViewController<Node> {
 
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
+    if (navigateEvent instanceof JoinChannelEvent) {
+      chatService.joinChannel(((JoinChannelEvent) navigateEvent).getChannel());
+      return;
+    }
     if (!tabPane.getTabs().isEmpty()) {
       Tab tab = tabPane.getSelectionModel().getSelectedItem();
       nameToChatTabController.get(tab.getId()).onDisplay();
