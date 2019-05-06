@@ -37,15 +37,13 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
   private UiService uiService;
   @Mock
   private PreferencesService preferencesService;
-  @Mock
-  private GameService gameService;
 
   private GamesTilesContainerController instance;
   private Preferences preferences;
 
   @Before
   public void setUp() throws Exception {
-    instance = new GamesTilesContainerController(uiService, preferencesService, gameService);
+    instance = new GamesTilesContainerController(uiService, preferencesService);
 
     when(uiService.loadFxml("theme/play/game_card.fxml")).thenReturn(gameTileController);
     preferences = new Preferences();

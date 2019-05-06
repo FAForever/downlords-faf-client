@@ -5,7 +5,6 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.google.common.annotations.VisibleForTesting;
-import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -38,7 +37,6 @@ public class GamesTilesContainerController implements Controller<Node> {
   private final UiService uiService;
   private final ListChangeListener<Game> gameListChangeListener;
   private final PreferencesService preferencesService;
-  private final GameService gameService;
   public FlowPane tiledFlowPane;
   public ScrollPane tiledScrollPane;
   private final ChangeListener<? super TilesSortingOrder> sortingListener;
@@ -48,10 +46,9 @@ public class GamesTilesContainerController implements Controller<Node> {
   Map<Integer, Node> uidToGameCard;
 
   @Inject
-  public GamesTilesContainerController(UiService uiService, PreferencesService preferencesService, GameService gameService) {
+  public GamesTilesContainerController(UiService uiService, PreferencesService preferencesService) {
     this.uiService = uiService;
     this.preferencesService = preferencesService;
-    this.gameService = gameService;
     selectedGame = new SimpleObjectProperty<>();
 
     sortingListener = (observable, oldValue, newValue) -> {
@@ -65,7 +62,7 @@ public class GamesTilesContainerController implements Controller<Node> {
     };
 
     gameListChangeListener = change -> {
-      Platform.runLater(() -> {
+      JavaFxUtil.assertApplicationThread();
         while (change.next()) {
           change.getRemoved().forEach(gameInfoBean -> {
             boolean remove = tiledFlowPane.getChildren().remove(uidToGameCard.remove(gameInfoBean.getId()));
@@ -76,7 +73,6 @@ public class GamesTilesContainerController implements Controller<Node> {
           change.getAddedSubList().forEach(GamesTilesContainerController.this::addGameCard);
           sortNodes();
         }
-      });
     };
   }
 
