@@ -16,10 +16,10 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.InitializingBean;
 
 import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
@@ -58,7 +58,7 @@ public class UserService implements InitializingBean {
 
     preferencesService.getPreferences().getLogin()
         .setUsername(username)
-        .setPassword(password)
+        .setPassword(autoLogin ? password : null)
         .setAutoLogin(autoLogin);
     preferencesService.storeInBackground();
 
