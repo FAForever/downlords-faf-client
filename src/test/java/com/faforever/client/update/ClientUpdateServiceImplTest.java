@@ -8,14 +8,18 @@ import com.faforever.client.task.TaskService;
 import com.faforever.commons.io.Bytes;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
 
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.notification.Severity.INFO;
@@ -32,6 +36,8 @@ public class ClientUpdateServiceImplTest {
 
   private ClientUpdateServiceImpl instance;
 
+  @Rule
+  public TemporaryFolder fafBinDirectory = new TemporaryFolder();
   @Mock
   private NotificationService notificationService;
   @Mock
@@ -76,5 +82,12 @@ public class ClientUpdateServiceImplTest {
 
     verify(i18n).get("clientUpdateAvailable.notification", "v0.4.8.1-alpha", Bytes.formatSize(56079360L, i18n.getUserSpecificLocale()));
     assertThat(persistentNotification.getSeverity(), is(INFO));
+  }
+
+  @Test
+  public void testUnixExecutableBitIsSet() throws Exception {
+    Path faExePath = fafBinDirectory.newFile("ForgedAlliance.exe").toPath();
+    instance.install(faExePath);
+    Mockito.verify(platformService).setUnixExecutableAndWritableBits(faExePath);
   }
 }

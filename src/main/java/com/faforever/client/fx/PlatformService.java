@@ -1,14 +1,20 @@
 package com.faforever.client.fx;
 
+import com.google.common.collect.Sets;
 import com.sun.jna.Platform;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef.HWND;
 import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.platform.win32.WinUser.WINDOWPLACEMENT;
 import javafx.application.HostServices;
+
+import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
 
 import static com.github.nocatch.NoCatch.noCatch;
 import static org.bridj.Platform.show;
@@ -130,4 +136,13 @@ public class PlatformService {
   public boolean isWindowFocused(String windowTitle) {
     return windowTitle.equals(getForegroundWindowTitle());
   }
+
+  public void setUnixExecutableAndWritableBits(Path exePath) throws IOException {
+    // client needs executable bit for running and the writeable bit set to alter the version
+    if (SystemUtils.IS_OS_UNIX) {
+      Files.setPosixFilePermissions(exePath, Sets.immutableEnumSet(PosixFilePermission.OWNER_READ,
+    				  PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE));
+    }
+  }
 }
+
