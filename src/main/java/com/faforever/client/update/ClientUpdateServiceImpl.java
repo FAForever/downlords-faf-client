@@ -96,11 +96,11 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
 
   @VisibleForTesting
   void install(Path binaryPath) {
-  	try {
+    try {
       platformService.setUnixExecutableAndWritableBits(binaryPath);
-  	} catch (IOException e) {
+    } catch (IOException e) {
       logger.warn("Unix execute bit could not be set", e);
-  	}
+    }
     String command = binaryPath.toAbsolutePath().toString();
     try {
       logger.info("Starting installer at {}", command);
