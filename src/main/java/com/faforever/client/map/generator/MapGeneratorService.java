@@ -40,7 +40,7 @@ public class MapGeneratorService {
   @VisibleForTesting
   public static final String GENERATOR_EXECUTABLE_SUB_DIRECTORY = "map_generator";
   @Getter
-  private static final int GENERATION_TIMEOUT_SECONDS = 20;
+  private static final int GENERATION_TIMEOUT_SECONDS = 60;
   private static final Pattern VERSION_PATTERN = Pattern.compile("\\d\\d?\\d?\\.\\d\\d?\\d?\\.\\d\\d?\\d?");
   private static final Pattern GENERATED_MAP_PATTERN = Pattern.compile("NeroxisMapGenerator_(" + VERSION_PATTERN + ")_(-?\\d+)");
   @Getter
