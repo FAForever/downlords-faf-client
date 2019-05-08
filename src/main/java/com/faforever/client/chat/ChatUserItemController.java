@@ -9,6 +9,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
@@ -30,14 +31,15 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
 import javafx.stage.PopupWindow;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,16 +48,16 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
-import static com.faforever.client.game.PlayerStatus.IDLE;
 import static com.faforever.client.player.SocialStatus.SELF;
 import static com.faforever.client.util.RatingUtil.getGlobalRating;
 import static com.faforever.client.util.RatingUtil.getLeaderboardRating;
-import static java.time.Instant.now;
 import static java.util.Locale.US;
 
 @Component
@@ -64,9 +66,9 @@ import static java.util.Locale.US;
 // TODO null safety for "player"
 public class ChatUserItemController implements Controller<Node> {
 
-  private static final PseudoClass PRESENCE_STATUS_ONLINE = PseudoClass.getPseudoClass("online");
-  private static final PseudoClass PRESENCE_STATUS_IDLE = PseudoClass.getPseudoClass("idle");
   private static final PseudoClass COMPACT = PseudoClass.getPseudoClass("compact");
+
+  private static volatile Map<PlayerStatus, Image> playerStatusIcons;
 
   private final AvatarService avatarService;
   private final CountryFlagService countryFlagService;
@@ -78,6 +80,8 @@ public class ChatUserItemController implements Controller<Node> {
   private final ClanService clanService;
   private final PlatformService platformService;
   private final TimeService timeService;
+  private final MapService mapService;
+
   private final InvalidationListener colorChangeListener;
   private final InvalidationListener formatChangeListener;
   private final MapChangeListener<String, Color> colorPerUserMapChangeListener;
@@ -98,13 +102,13 @@ public class ChatUserItemController implements Controller<Node> {
   private final WeakChangeListener<String> weakClanChangeListener;
   private final WeakChangeListener<String> weakCountryChangeListener;
 
+  public ImageView playerStatusIndicator;
+
   public Pane chatUserItemRoot;
   public ImageView countryImageView;
   public ImageView avatarImageView;
   public Label usernameLabel;
   public MenuButton clanMenu;
-  public Label statusLabel;
-  public Text presenceStatusIndicator;
   private ChatChannelUser chatUser;
   private boolean randomColorsAllowed;
   @VisibleForTesting
@@ -119,7 +123,7 @@ public class ChatUserItemController implements Controller<Node> {
                                 CountryFlagService countryFlagService,
                                 I18n i18n, UiService uiService, EventBus eventBus,
                                 ClanService clanService, PlayerService playerService,
-                                PlatformService platformService, TimeService timeService) {
+                                PlatformService platformService, TimeService timeService, MapService mapService) {
     this.platformService = platformService;
     this.preferencesService = preferencesService;
     this.avatarService = avatarService;
@@ -130,6 +134,7 @@ public class ChatUserItemController implements Controller<Node> {
     this.uiService = uiService;
     this.eventBus = eventBus;
     this.timeService = timeService;
+    this.mapService = mapService;
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     colorChangeListener = observable -> updateColor();
@@ -216,16 +221,9 @@ public class ChatUserItemController implements Controller<Node> {
   }
 
   public void initialize() {
-    // TODO until server side support is available, the presence status is initially set to "unknown" until the user
-    // does something
-    presenceStatusIndicator.setText("\uF10C");
-    setIdle(false);
-
     chatUserItemRoot.setUserData(this);
     countryImageView.managedProperty().bind(countryImageView.visibleProperty());
     countryImageView.setVisible(false);
-    statusLabel.managedProperty().bind(statusLabel.visibleProperty());
-    statusLabel.visibleProperty().bind(statusLabel.textProperty().isNotEmpty());
     clanMenu.managedProperty().bind(clanMenu.visibleProperty());
     clanMenu.setVisible(false);
 
@@ -318,31 +316,11 @@ public class ChatUserItemController implements Controller<Node> {
     updateClanMenu();
   }
 
-  private void updateGameStatus() {
-    if (chatUser == null) {
-      return;
-    }
-    Optional<Player> playerOptional = chatUser.getPlayer();
-    if (!playerOptional.isPresent()) {
-      statusLabel.setText("");
-      return;
-    }
-
-    Player player = playerOptional.get();
-    switch (player.getStatus()) {
-      case IDLE:
-        statusLabel.setText("");
-        break;
-      case HOSTING:
-        statusLabel.setText(i18n.get("user.status.hosting", player.getGame().getTitle()));
-        break;
-      case LOBBYING:
-        statusLabel.setText(i18n.get("user.status.waiting", player.getGame().getTitle()));
-        break;
-      case PLAYING:
-        statusLabel.setText(i18n.get("user.status.playing", player.getGame().getTitle()));
-        break;
-    }
+  private static void loadPlayerStatusIcons(UiService uiService) throws IOException {
+    playerStatusIcons = new HashMap<>();
+    playerStatusIcons.put(PlayerStatus.HOSTING, uiService.getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING));
+    playerStatusIcons.put(PlayerStatus.LOBBYING, uiService.getThemeImage(UiService.CHAT_LIST_STATUS_LOBBYING));
+    playerStatusIcons.put(PlayerStatus.PLAYING, uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING));
   }
 
   public Pane getRoot() {
@@ -443,41 +421,8 @@ public class ChatUserItemController implements Controller<Node> {
     chatUserItemRoot.setManaged(visible);
   }
 
-  /**
-   * Updates the displayed idle indicator (online/idle). This is called from outside in order to only have one timer per
-   * channel, instead of one timer per chat user.
-   */
-  void updatePresenceStatusIndicator() {
-    JavaFxUtil.assertApplicationThread();
-
-    if (chatUser == null) {
-      setIdle(false);
-      return;
-    }
-
-    chatUser.getPlayer().ifPresent(player -> {
-      if (player.getStatus() != IDLE) {
-        setIdle(false);
-      }
-
-      int idleThreshold = preferencesService.getPreferences().getChat().getIdleThreshold();
-      setIdle(player.getIdleSince().isBefore(now().minus(Duration.ofMinutes(idleThreshold))));
-    });
-  }
-
-  private void setIdle(boolean idle) {
-    presenceStatusIndicator.pseudoClassStateChanged(PRESENCE_STATUS_ONLINE, !idle);
-    presenceStatusIndicator.pseudoClassStateChanged(PRESENCE_STATUS_IDLE, idle);
-    if (idle) {
-      // TODO only until server-side support
-      presenceStatusIndicator.setText("\uF111");
-    }
-  }
-
   private void onUserActivity() {
     // TODO only until server-side support
-    presenceStatusIndicator.setText("\uF111");
-    updatePresenceStatusIndicator();
     updateGameStatus();
     if (chatUser.getPlayer().isPresent() && userTooltip != null) {
       updateNameLabelText(chatUser.getPlayer().get());
@@ -539,6 +484,35 @@ public class ChatUserItemController implements Controller<Node> {
 
       Tooltip.install(avatarImageView, avatarTooltip);
     });
+  }
+
+  private void updateGameStatus() {
+    if (chatUser == null) {
+      return;
+    }
+    Optional<Player> playerOptional = chatUser.getPlayer();
+    if (!playerOptional.isPresent()) {
+      playerStatusIndicator.setVisible(false);
+      return;
+    }
+
+    Player player = playerOptional.get();
+
+    if (player.getStatus() == PlayerStatus.IDLE) {
+      playerStatusIndicator.setVisible(false);
+    } else {
+      playerStatusIndicator.setVisible(true);
+      playerStatusIndicator.setImage(getPlayerStatusIcon(player.getStatus()));
+    }
+  }
+
+  @SneakyThrows(IOException.class)
+  private Image getPlayerStatusIcon(PlayerStatus status) {
+    if (playerStatusIcons == null) {
+      loadPlayerStatusIcons(uiService);
+    }
+
+    return playerStatusIcons.get(status);
   }
 
   public void onMouseEnteredUserNameLabel() {

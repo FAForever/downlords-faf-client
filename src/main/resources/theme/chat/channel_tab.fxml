@@ -15,7 +15,8 @@
      fx:controller="com.faforever.client.chat.ChannelTabController">
   <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" onKeyReleased="#onKeyReleased">
     <children>
-      <SplitPane dividerPositions="0.8" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+        <SplitPane dividerPositions="0.8" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS"
+                   fx:id="splitPane">
         <items>
           <AnchorPane>
             <children>

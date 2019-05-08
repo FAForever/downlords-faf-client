@@ -35,6 +35,7 @@ import javafx.event.Event;
 import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
@@ -73,6 +74,8 @@ import static java.util.Locale.US;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ChannelTabController extends AbstractChatTabController {
+
+  private static final int USER_LIST_WIDTH_PX = 270;
 
   private static final String USER_CSS_CLASS_FORMAT = "user-%s";
 
@@ -123,6 +126,7 @@ public class ChannelTabController extends AbstractChatTabController {
 
   private final AutoCompletionHelper autoCompletionHelper;
 
+  public SplitPane splitPane;
   public ToggleButton advancedUserFilter;
   public HBox searchFieldContainer;
   public Button closeSearchFieldButton;
