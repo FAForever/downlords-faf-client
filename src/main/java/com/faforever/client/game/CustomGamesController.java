@@ -26,6 +26,8 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.util.StringConverter;
@@ -41,6 +43,8 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
+
+import static javafx.beans.binding.Bindings.createBooleanBinding;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -65,10 +69,13 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   @SuppressWarnings("WeakerAccess")
   public GameDetailController gameDetailController;
+  public ColumnConstraints sidePaneColumn;
   private GamesTableController gamesTableController;
 
+  public GridPane gamesGridPane;
   public ToggleButton tableButton;
   public ToggleButton tilesButton;
+  public Button toggleSidePaneButton;
   public ToggleGroup viewToggleGroup;
   public Button createGameButton;
   public Pane gameViewContainer;
@@ -147,7 +154,19 @@ public class CustomGamesController extends AbstractViewController<Node> {
       preferencesService.storeInBackground();
     });
 
+    JavaFxUtil.bind(gameDetailPane.visibleProperty(),
+        createBooleanBinding(
+            () -> gameDetailController.getGame() != null && preferencesService.getPreferences().isShowGameDetailsSidePane(),
+            gameDetailController.gameProperty(),
+            preferencesService.getPreferences().showGameDetailsSidePaneProperty()
+        )
+    );
+
+    JavaFxUtil.bind(gameDetailPane.managedProperty(), preferencesService.getPreferences().showGameDetailsSidePaneProperty());
+
+    setSidePane(preferencesService.getPreferences().isShowGameDetailsSidePane());
     setSelectedGame(null);
+
     eventBus.register(this);
   }
 
@@ -208,6 +227,10 @@ public class CustomGamesController extends AbstractViewController<Node> {
       Node root = gamesTableController.getRoot();
       populateContainer(root);
     });
+
+    if (!preferencesService.getPreferences().isShowGameDetailsSidePane()) {
+      toggleSidePane();
+    }
   }
 
   private void populateContainer(Node root) {
@@ -234,12 +257,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
   @VisibleForTesting
   void setSelectedGame(Game game) {
     gameDetailController.setGame(game);
-    if (game == null) {
-      gameDetailPane.setVisible(false);
-      return;
-    }
-
-    gameDetailPane.setVisible(true);
   }
 
   @VisibleForTesting
@@ -251,5 +268,23 @@ public class CustomGamesController extends AbstractViewController<Node> {
   protected void onHide() {
     // Hide all games to free up memory
     filteredItems.setPredicate(game -> false);
+  }
+
+  public void toggleSidePane() {
+    boolean currentlyShowingSidePane = preferencesService.getPreferences().isShowGameDetailsSidePane();
+    preferencesService.getPreferences().setShowGameDetailsSidePane(!currentlyShowingSidePane);
+    preferencesService.storeInBackground();
+
+    setSidePane(!currentlyShowingSidePane);
+  }
+
+  private void setSidePane(boolean displayed) {
+    if (displayed) {
+      toggleSidePaneButton.setText(i18n.get("view.hideSidePane"));
+      sidePaneColumn.setMinWidth(sidePaneColumn.getPrefWidth());
+    } else {
+      toggleSidePaneButton.setText(i18n.get("view.showSidePane"));
+      sidePaneColumn.setMinWidth(0);
+    }
   }
 }

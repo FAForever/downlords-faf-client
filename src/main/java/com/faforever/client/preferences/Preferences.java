@@ -58,6 +58,7 @@ public class Preferences {
   private final MapProperty<URI, ArrayList<HttpCookie>> storedCookies;
   private final BooleanProperty lastGameOnlyFriends;
   private final BooleanProperty disallowJoinsViaDiscord;
+  private final BooleanProperty showGameDetailsSidePane;
 
   public Preferences() {
     gameTileSortingOrder = new SimpleObjectProperty<>(TilesSortingOrder.PLAYER_DES);
@@ -88,6 +89,7 @@ public class Preferences {
     showModdedGames = new SimpleBooleanProperty(true);
     lastGameOnlyFriends = new SimpleBooleanProperty();
     disallowJoinsViaDiscord = new SimpleBooleanProperty();
+    showGameDetailsSidePane = new SimpleBooleanProperty(false);
   }
 
   public VaultPrefs getVaultPrefs() {
@@ -301,6 +303,18 @@ public class Preferences {
 
   public BooleanProperty disallowJoinsViaDiscordProperty() {
     return disallowJoinsViaDiscord;
+  }
+
+  public boolean isShowGameDetailsSidePane() {
+    return showGameDetailsSidePane.get();
+  }
+
+  public void setShowGameDetailsSidePane(boolean showGameDetailsSidePane) {
+    this.showGameDetailsSidePane.set(showGameDetailsSidePane);
+  }
+
+  public BooleanProperty showGameDetailsSidePaneProperty() {
+    return showGameDetailsSidePane;
   }
 
   public enum UnitDataBaseType {

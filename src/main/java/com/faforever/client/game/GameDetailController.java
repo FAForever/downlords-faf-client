@@ -13,8 +13,8 @@ import com.faforever.client.vault.replay.WatchButtonController;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
@@ -56,7 +56,7 @@ public class GameDetailController implements Controller<Pane> {
   public Label gameTitleLabel;
   public Node joinButton;
   public WatchButtonController watchButtonController;
-  private ObjectProperty<Game> game;
+  private ReadOnlyObjectWrapper<Game> game;
   @SuppressWarnings("FieldCanBeLocal")
   private InvalidationListener teamsInvalidationListener;
   @SuppressWarnings("FieldCanBeLocal")
@@ -77,7 +77,7 @@ public class GameDetailController implements Controller<Pane> {
     this.uiService = uiService;
     this.joinGameHelper = joinGameHelper;
 
-    game = new SimpleObjectProperty<>();
+    game = new ReadOnlyObjectWrapper<>();
 
     gameStatusInvalidationListener = observable -> onGameStatusChanged();
     teamsInvalidationListener = observable -> createTeams();
@@ -167,6 +167,14 @@ public class GameDetailController implements Controller<Pane> {
 
     JavaFxUtil.addListener(game.statusProperty(), weakGameStatusListener);
     gameStatusInvalidationListener.invalidated(game.statusProperty());
+  }
+
+  public Game getGame() {
+    return game.get();
+  }
+
+  public ReadOnlyObjectProperty<Game> gameProperty() {
+    return game.getReadOnlyProperty();
   }
 
   private void createTeams() {
