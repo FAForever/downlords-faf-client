@@ -24,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Controller for building a specification in the sense of Domain Driven Design, e.g. {@code login == "Someone"} or
@@ -170,7 +171,9 @@ public class SpecificationController implements Controller<Node> {
   public void setRootType(Class<?> rootType) {
     this.rootType = rootType;
 
-    queryCriteria = queryCriteriaService.getCriteria(rootType);
+    queryCriteria = queryCriteriaService.getCriteria(rootType).stream()
+        .filter(dtoQueryCriterion -> !dtoQueryCriterion.isAdvancedFilter())
+        .collect(Collectors.toList());
 
     propertyField.setItems(FXCollections.observableList(queryCriteria));
     propertyField.getSelectionModel().select(0);
