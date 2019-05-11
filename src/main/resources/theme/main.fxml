@@ -33,6 +33,8 @@
                                 <MenuItem onAction="#onRevealLogFolder" text="%menu.revealLogFolder"/>
                                 <MenuItem onAction="#onRevealMapFolder" text="%menu.revealMapFolder"/>
                                 <MenuItem onAction="#onRevealModFolder" text="%menu.revealModFolder"/>
+                                <MenuItem onAction="#onRevealReplayFolder" text="%menu.revealReplayFolder"/>
+                                <MenuItem onAction="#onRevealGamePrefsFolder" text="%menu.revealGamePrefsFile"/>
                                 <SeparatorMenuItem mnemonicParsing="false"/>
                                 <MenuItem onAction="#onExitItemSelected" text="%menu.exit"/>
                             </items>
