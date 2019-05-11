@@ -4,11 +4,13 @@ import com.faforever.client.io.FileUtils;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.google.common.annotations.VisibleForTesting;
+import javafx.scene.image.Image;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -32,7 +34,7 @@ public class MapGeneratorService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @Getter
-  private static final String GENERATED_MAP_NAME = "NeroxisMapGenerator_%s_%d";
+  private static final String GENERATED_MAP_NAME = "neroxis_map_generator_%s_%d"; // The server expects lower case names
   private static final String GENERATOR_DEFAULT_VERSION = "0.1.1";
 
   @Getter
@@ -40,9 +42,9 @@ public class MapGeneratorService {
   @VisibleForTesting
   public static final String GENERATOR_EXECUTABLE_SUB_DIRECTORY = "map_generator";
   @Getter
-  private static final int GENERATION_TIMEOUT_SECONDS = 20;
+  private static final int GENERATION_TIMEOUT_SECONDS = 60;
   private static final Pattern VERSION_PATTERN = Pattern.compile("\\d\\d?\\d?\\.\\d\\d?\\d?\\.\\d\\d?\\d?");
-  private static final Pattern GENERATED_MAP_PATTERN = Pattern.compile("NeroxisMapGenerator_(" + VERSION_PATTERN + ")_(-?\\d+)");
+  private static final Pattern GENERATED_MAP_PATTERN = Pattern.compile("neroxis_map_generator_(" + VERSION_PATTERN + ")_(-?\\d+)");
   @Getter
   private final Path generatorExecutablePath;
   private final ApplicationContext applicationContext;
@@ -52,6 +54,9 @@ public class MapGeneratorService {
   @Getter
   private Path customMapsDirectory;
   private Random seedGenerator;
+
+  @Getter
+  private Image generatedMapPreviewImage;
 
   @Inject
   public MapGeneratorService(ApplicationContext applicationContext, PreferencesService preferencesService, TaskService taskService) {
@@ -71,6 +76,12 @@ public class MapGeneratorService {
     seedGenerator = new Random();
 
     customMapsDirectory = this.preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
+
+    try {
+      generatedMapPreviewImage = new Image(new ClassPathResource("/images/generatedMapIcon.png").getURL().toString(), true);
+    } catch (IOException e) {
+      logger.error("Could not load generated map preview image.", e);
+    }
   }
 
   @PostConstruct
