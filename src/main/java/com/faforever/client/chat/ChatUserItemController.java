@@ -39,6 +39,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.PopupWindow;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -46,6 +47,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.lang.ref.WeakReference;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -233,10 +235,21 @@ public class ChatUserItemController implements Controller<Node> {
     weakFormatInvalidationListener.invalidated(chatPrefs.chatFormatProperty());
   }
 
+  private WeakReference<ChatUserContextMenuController> contextMenuController = null;
   public void onContextMenuRequested(ContextMenuEvent event) {
-    ChatUserContextMenuController contextMenuController = uiService.loadFxml("theme/chat/chat_user_context_menu.fxml");
-    contextMenuController.setChatUser(chatUser);
-    contextMenuController.getContextMenu().show(chatUserItemRoot, event.getScreenX(), event.getScreenY());
+    if (contextMenuController != null) {
+      val controller = contextMenuController.get();
+      if (controller != null) {
+        controller.getContextMenu().show(chatUserItemRoot, event.getScreenX(), event.getScreenY());
+        return;
+      }
+    }
+
+    ChatUserContextMenuController controller = uiService.loadFxml("theme/chat/chat_user_context_menu.fxml");
+    controller.setChatUser(chatUser);
+    controller.getContextMenu().show(chatUserItemRoot, event.getScreenX(), event.getScreenY());
+
+    contextMenuController = new WeakReference<>(controller);
   }
 
   public void onItemClicked(MouseEvent mouseEvent) {
