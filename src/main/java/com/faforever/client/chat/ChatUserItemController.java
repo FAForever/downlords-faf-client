@@ -39,7 +39,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.PopupWindow;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -238,7 +237,7 @@ public class ChatUserItemController implements Controller<Node> {
   private WeakReference<ChatUserContextMenuController> contextMenuController = null;
   public void onContextMenuRequested(ContextMenuEvent event) {
     if (contextMenuController != null) {
-      val controller = contextMenuController.get();
+      ChatUserContextMenuController controller = contextMenuController.get();
       if (controller != null) {
         controller.getContextMenu().show(chatUserItemRoot, event.getScreenX(), event.getScreenY());
         return;
