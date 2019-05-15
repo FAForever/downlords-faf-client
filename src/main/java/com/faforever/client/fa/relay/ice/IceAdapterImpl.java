@@ -13,6 +13,7 @@ import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.event.GpgGameMessageEvent;
 import com.faforever.client.fa.relay.ice.event.IceAdapterStateChanged;
 import com.faforever.client.game.KnownFeaturedMod;
+import com.faforever.client.os.OsUtils;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -51,7 +52,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import static com.faforever.client.os.OsUtils.gobbleLines;
 import static java.util.Arrays.asList;
 
 @Component
@@ -198,8 +198,10 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         log.debug("Starting ICE adapter with command: {}", cmd);
         process = processBuilder.start();
         Logger logger = LoggerFactory.getLogger("faf-ice-adapter");
-        gobbleLines(process.getInputStream(), logger::debug);
-        gobbleLines(process.getErrorStream(), logger::error);
+        OsUtils.gobbleLines(process.getInputStream(), s -> {
+        });
+        OsUtils.gobbleLines(process.getErrorStream(), s -> {
+        });
 
         IceAdapterCallbacks iceAdapterCallbacks = applicationContext.getBean(IceAdapterCallbacks.class);
 

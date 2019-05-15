@@ -548,6 +548,16 @@ public class MainController implements Controller<Node> {
     this.platformService.reveal(logPath);
   }
 
+  public void onRevealReplayFolder() {
+    Path replayPath = preferencesService.getReplaysDirectory();
+    this.platformService.reveal(replayPath);
+  }
+
+  public void onRevealGamePrefsFolder() {
+    Path gamePrefsPath = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
+    this.platformService.reveal(gamePrefsPath);
+  }
+
   public void onChat(ActionEvent actionEvent) {
     chatButton.pseudoClassStateChanged(HIGHLIGHTED, false);
     onNavigateButtonClicked(actionEvent);

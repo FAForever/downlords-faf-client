@@ -4,6 +4,7 @@ import com.faforever.client.game.FaInitGenerator;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
@@ -50,16 +51,18 @@ public class GameUpdaterImpl implements GameUpdater {
   private final FafService fafService;
   private final FaInitGenerator faInitGenerator;
   private final PreferencesService preferencesService;
+  private final NotificationService notificationService;
 
   @Inject
   public GameUpdaterImpl(ModService modService, ApplicationContext applicationContext, TaskService taskService,
-                         FafService fafService, FaInitGenerator faInitGenerator, PreferencesService preferencesService) {
+                         FafService fafService, FaInitGenerator faInitGenerator, PreferencesService preferencesService, NotificationService notificationService) {
     this.preferencesService = preferencesService;
     this.modService = modService;
     this.applicationContext = applicationContext;
     this.taskService = taskService;
     this.fafService = fafService;
     this.faInitGenerator = faInitGenerator;
+    this.notificationService = notificationService;
     featuredModUpdaters = new ArrayList<>();
   }
 
@@ -90,6 +93,10 @@ public class GameUpdaterImpl implements GameUpdater {
 
     return future
         .thenCompose(s -> updateGameBinaries(patchResults.get(patchResults.size() - 1).getVersion()))
+        .exceptionally(throwable -> {
+          notificationService.addImmediateErrorNotification(throwable, "error.game.notTerminatedCorrectly");
+          return null;
+        })
         .thenRun(() -> {
           if (patchResults.stream().noneMatch(patchResult -> patchResult.getLegacyInitFile() != null)) {
             generateInitFile(patchResults);

@@ -126,7 +126,14 @@ public class SearchController implements Controller<Pane> {
   public void setSortConfig(ObjectProperty<SortConfig> sortConfigObjectProperty) {
     sortPropertyComboBox.getItems().addAll(searchableProperties.values());
     sortOrderChoiceBox.getSelectionModel().select(sortConfigObjectProperty.get().getSortOrder());
-    sortPropertyComboBox.getSelectionModel().select(searchableProperties.get(sortConfigObjectProperty.get().getSortProperty()));
+
+    String savedSortProperty = searchableProperties.get(sortConfigObjectProperty.get().getSortProperty());
+    
+    if (savedSortProperty == null)
+        savedSortProperty = searchableProperties.values().iterator().next();
+
+    sortPropertyComboBox.getSelectionModel().select(savedSortProperty);
+
     sortPropertyComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
       sortConfigObjectProperty.set(new SortConfig(getCurrentEntityKey(), sortOrderChoiceBox.getValue()));
       preferencesService.storeInBackground();
