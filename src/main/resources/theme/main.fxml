@@ -20,6 +20,10 @@
         <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
               VBox.vgrow="ALWAYS">
             <children>
+                <HBox alignment="CENTER_LEFT" maxHeight="-Infinity"
+                      maxWidth="1.7976931348623157E308" minHeight="18" minWidth="-Infinity">
+	                <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS"/>
+	            </HBox>
                 <HBox fx:id="mainHeaderPane" alignment="CENTER_LEFT" maxHeight="-Infinity"
                       maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity"
                       styleClass="main-navigation-top">
