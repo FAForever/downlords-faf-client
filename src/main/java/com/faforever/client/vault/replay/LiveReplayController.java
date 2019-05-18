@@ -21,10 +21,12 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.scene.Node;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
+import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +35,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -68,18 +69,18 @@ public class LiveReplayController extends AbstractViewController<Node> {
   }
 
   public void initialize() {
-    Comparator gameSorter = Comparator.comparing(
-        (Game game) -> game.getStartTime(),
-        Comparator.nullsFirst(Comparator.naturalOrder()))
-        .reversed();
-    initializeGameTable(gameService.getGames()
-                    .filtered(game -> game.getStatus() == GameStatus.PLAYING)
-                    .sorted(gameSorter));
+    initializeGameTable(gameService.getGames());
   }
 
   private void initializeGameTable(ObservableList<Game> games) {
-    SortedList<Game> sortedList = new SortedList<>(games);
+    FilteredList<Game> filteredGameList = new FilteredList<>(games);
+    filteredGameList.setPredicate(game -> game.getStatus() == GameStatus.PLAYING);
+    SortedList<Game> sortedList = new SortedList<>(filteredGameList);
     sortedList.comparatorProperty().bind(liveReplayControllerRoot.comparatorProperty());
+
+    startTimeColumn.setSortType(SortType.DESCENDING);
+    liveReplayControllerRoot.getSortOrder().add(startTimeColumn);
+    liveReplayControllerRoot.sort();
 
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(uiService));
     mapPreviewColumn.setCellValueFactory(param -> Bindings.createObjectBinding(
@@ -103,7 +104,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
     liveReplayControllerRoot.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue)
         -> Platform.runLater(() -> selectedGame.set(newValue)));
 
-    liveReplayControllerRoot.setItems(games);
+    liveReplayControllerRoot.setItems(sortedList);
   }
 
   private Node watchReplayButton(Game game) {
