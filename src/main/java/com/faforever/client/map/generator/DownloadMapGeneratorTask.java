@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -63,8 +62,8 @@ public class DownloadMapGeneratorTask extends CompletableTask<Void> {
 
     URLConnection urlConnection = url.openConnection();
 
-    File targetFile = mapGeneratorService.getGeneratorExecutablePath().resolve(String.format(MapGeneratorService.getGENERATOR_EXECUTABLE_FILENAME(), version)).toFile();
-    Path tempFile = Files.createTempFile(targetFile.toPath().getParent(), "generator", null);
+    Path targetFile = mapGeneratorService.getGeneratorExecutablePath().resolve(String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, version));
+    Path tempFile = Files.createTempFile(targetFile.getParent(), "generator", null);
 
     ResourceLocks.acquireDownloadLock();
     try (InputStream inputStream = url.openStream(); OutputStream outputStream = Files.newOutputStream(tempFile)) {
@@ -74,7 +73,7 @@ public class DownloadMapGeneratorTask extends CompletableTask<Void> {
           .listener(this::updateProgress)
           .copy();
 
-      Files.move(tempFile, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+      Files.move(tempFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
     } finally {
       ResourceLocks.freeDownloadLock();
       try {
@@ -84,7 +83,7 @@ public class DownloadMapGeneratorTask extends CompletableTask<Void> {
       }
     }
 
-    platformService.setUnixExecutableAndWritableBits(targetFile.toPath());
+    platformService.setUnixExecutableAndWritableBits(targetFile);
 
     return null;
   }

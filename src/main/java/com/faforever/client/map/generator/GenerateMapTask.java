@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
@@ -39,7 +38,7 @@ public class GenerateMapTask extends CompletableTask<Void> {
   @Setter
   private long seed;
   @Setter
-  private File generatorExecutableFile;
+  private Path generatorExecutableFile;
   @Setter
   private String mapFilename;
 
@@ -65,12 +64,12 @@ public class GenerateMapTask extends CompletableTask<Void> {
     ProcessBuilder processBuilder = new ProcessBuilder();
     processBuilder.inheritIO();
     processBuilder.directory(workingDirectory.toFile());
-    processBuilder.command("java", "-jar", generatorExecutableFile.getAbsolutePath(), ".", String.valueOf(seed), version, mapFilename);
+    processBuilder.command("java", "-jar", generatorExecutableFile.toAbsolutePath().toString(), ".", String.valueOf(seed), version, mapFilename);
 
     logger.info("Starting map generator in directory: {} with command: {}", processBuilder.directory(), processBuilder.command().stream().reduce((l, r) -> l + " " + r).get());
     try {
       Process process = processBuilder.start();
-      process.waitFor(MapGeneratorService.getGENERATION_TIMEOUT_SECONDS(), TimeUnit.SECONDS);
+      process.waitFor(MapGeneratorService.GENERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       if (process.isAlive()) {
         logger.warn("Map generation timed out, killing process...");
         process.destroyForcibly();
