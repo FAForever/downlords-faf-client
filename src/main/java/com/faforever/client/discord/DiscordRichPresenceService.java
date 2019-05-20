@@ -93,6 +93,8 @@ public class DiscordRichPresenceService {
 
       if (game.getStartTime() != null) {
         discordRichPresence.setStartTimestamps(game.getStartTime().toEpochMilli());
+      } else if (game.getStatus() == GameStatus.PLAYING) {
+        discordRichPresence.setStartTimestamps(Instant.now().toEpochMilli());
       }
       DiscordRichPresence update = discordRichPresence.build();
       DiscordRPC.discordUpdatePresence(update);

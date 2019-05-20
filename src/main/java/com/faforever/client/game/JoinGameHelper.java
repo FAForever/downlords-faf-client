@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.discord.DiscordJoinEvent;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateErrorNotification;
@@ -15,9 +16,10 @@ import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.eventbus.EventBus;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Scope;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.lang.invoke.MethodHandles;
@@ -28,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
 import static java.util.Arrays.asList;
 
 @Component
-@Scope
+@Slf4j
 public class JoinGameHelper {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -108,5 +110,16 @@ public class JoinGameHelper {
 
   public void join(int gameId) {
     join(gameService.getByUid(gameId));
+  }
+
+  @EventListener
+  public void onDiscordGameJoinEvent(DiscordJoinEvent discordJoinEvent) {
+    Integer gameId = discordJoinEvent.getGameId();
+    boolean disallowJoinsViaDiscord = preferencesService.getPreferences().isDisallowJoinsViaDiscord();
+    if (disallowJoinsViaDiscord) {
+      log.debug("Join was requested via Discord but was rejected due to it being disabled in settings");
+      return;
+    }
+    join(gameId);
   }
 }
