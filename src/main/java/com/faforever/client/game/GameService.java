@@ -1,7 +1,6 @@
 package com.faforever.client.game;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.discord.DiscordJoinEvent;
 import com.faforever.client.discord.DiscordRichPresenceService;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
@@ -57,7 +56,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -668,20 +666,5 @@ public class GameService implements InitializingBean {
     synchronized (uidToGameInfoBean) {
       uidToGameInfoBean.remove(gameInfoMessage.getUid());
     }
-  }
-
-  @EventListener
-  public void onDiscordGameJoinEvent(DiscordJoinEvent discordJoinEvent) {
-    Integer gameId = discordJoinEvent.getGameId();
-    Game game = getByUid(gameId);
-    boolean disallowJoinsViaDiscord = preferencesService.getPreferences().isDisallowJoinsViaDiscord();
-    if (disallowJoinsViaDiscord) {
-      log.debug("Join was requested via Discord but was rejected due to it being disabled in settings");
-      return;
-    }
-    if (game == null) {
-      throw new IllegalStateException(String.format("Could not find game to join, with id: %d", discordJoinEvent.getGameId()));
-    }
-    joinGame(game, "");
   }
 }
