@@ -14,11 +14,8 @@ import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.remote.domain.RatingRange;
@@ -56,7 +53,9 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import static java.util.Collections.singletonList;
+import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -73,8 +72,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
   private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
   @Mock
-  private ForgedAlliancePrefs forgedAlliancePrefs;
-  @Mock
   private PersistentNotificationsController persistentNotificationsController;
   @Mock
   private PreferencesService preferencesService;
@@ -85,11 +82,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private SettingsController settingsController;
   @Mock
-  private Preferences preferences;
-  @Mock
   private I18n i18n;
-  @Mock
-  private WindowPrefs mainWindowPrefs;
   @Mock
   private NotificationService notificationService;
   @Mock
@@ -98,8 +91,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private GameService gameService;
   @Mock
   private TransientNotificationsController transientNotificationsController;
-  @Mock
-  private NotificationsPrefs notificationPrefs;
   @Mock
   private LoginController loginController;
   @Mock
@@ -112,6 +103,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private ChatController chatController;
   private MainController instance;
   private BooleanProperty gameRunningProperty;
+  private final Preferences preferences = new Preferences();
 
   @Override
   protected boolean showStage() {
@@ -142,9 +134,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
       Parent root = invocation.getArgument(1);
       return new BorderlessScene(stage, root, 0, 0);
     });
-    when(preferences.getMainWindow()).thenReturn(mainWindowPrefs);
-    when(preferences.getNotification()).thenReturn(notificationPrefs);
-    when(preferences.getMainWindow().backgroundImagePathProperty()).thenReturn(backgroundImagePathProperty);
     when(gameService.gameRunningProperty()).thenReturn(gameRunningProperty);
     when(uiService.getThemeFile("theme/images/login-background.jpg")).thenReturn(getClass().getResource("/theme/images/login-background.jpg").toString());
     when(uiService.loadFxml("theme/persistent_notifications.fxml")).thenReturn(persistentNotificationsController);
@@ -243,7 +232,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private void prepareTestMatchmakerMessageTest(float deviation) {
     @SuppressWarnings("unchecked")
     ArgumentCaptor<Consumer<MatchmakerMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
-    when(notificationPrefs.getLadder1v1ToastEnabled()).thenReturn(true);
+    preferences.getNotification().setLadder1v1ToastEnabled(true);
     when(playerService.getCurrentPlayer()).thenReturn(
         Optional.ofNullable(PlayerBuilder.create("JUnit").leaderboardRatingMean(1500).leaderboardRatingDeviation(deviation).get())
     );
@@ -290,10 +279,30 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void testExtraBarIfMinimized() {
+    Platform.runLater(() -> {
+      instance.initialize();
+      preferences.getMainWindow().setMaximized(false);
+    });
+    WaitForAsyncUtils.waitForFxEvents();
+    assertThat(instance.mainHeaderPane.getPseudoClassStates(), hasItem(MainController.MAIN_MINIMIZED));
+  }
+
+  @Test
+  public void testNoExtraBarIfMaximized() {
+    Platform.runLater(() -> {
+      instance.initialize();
+      preferences.getMainWindow().setMaximized(true);
+    });
+    WaitForAsyncUtils.waitForFxEvents();
+    assertThat(instance.mainHeaderPane.getPseudoClassStates(), not(hasItem(MainController.MAIN_MINIMIZED)));
+  }
+
+  @Test
   public void testOnMatchMakerMessageDisplaysNotificationWithQueuesButDisabled() {
     @SuppressWarnings("unchecked")
     ArgumentCaptor<Consumer<MatchmakerMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
-    when(notificationPrefs.getLadder1v1ToastEnabled()).thenReturn(false);
+    preferences.getNotification().setLadder1v1ToastEnabled(true);
 
     verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
 
@@ -308,8 +317,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testWindowOutsideScreensGetsCentered() throws Exception {
     Rectangle2D visualBounds = Screen.getPrimary().getBounds();
-    when(mainWindowPrefs.getY()).thenReturn(visualBounds.getMaxY() + 1);
-    when(mainWindowPrefs.getX()).thenReturn(visualBounds.getMaxX() + 1);
+    preferences.getMainWindow().setY(visualBounds.getMaxY() + 1);
+    preferences.getMainWindow().setX(visualBounds.getMaxX() + 1);
 
     WaitForAsyncUtils.asyncFx(() -> instance.display());
     WaitForAsyncUtils.waitForFxEvents();
@@ -337,8 +346,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnRevealMapFolder() throws Exception {
     Path expectedPath = Paths.get("C:\\test\\path_map");
-    when(forgedAlliancePrefs.getCustomMapsDirectory()).thenReturn(expectedPath);
-    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
+    preferences.getForgedAlliance().setCustomMapsDirectory(expectedPath);
     instance.onRevealMapFolder();
     verify(platformService).reveal(expectedPath);
   }
@@ -346,8 +354,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnRevealModFolder() throws Exception {
     Path expectedPath = Paths.get("C:\\test\\path_mod");
-    when(forgedAlliancePrefs.getModsDirectory()).thenReturn(expectedPath);
-    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
+    preferences.getForgedAlliance().setModsDirectory(expectedPath);
     instance.onRevealModFolder();
     verify(platformService).reveal(expectedPath);
   }

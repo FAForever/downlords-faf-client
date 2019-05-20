@@ -717,6 +717,11 @@
   -fx-border-width: 0 0 2 0;
 }
 
+.main-navigation-top:minimized {
+  /* Same as height of close button */
+  -fx-padding: 20 100 0 15;
+}
+
 .main-navigation-button {;
   -fx-color: transparent;
   -fx-font-size: 1.2em;

@@ -100,6 +100,8 @@ public class MainController implements Controller<Node> {
   private static final PseudoClass NOTIFICATION_WARN_PSEUDO_CLASS = PseudoClass.getPseudoClass("warn");
   private static final PseudoClass NOTIFICATION_ERROR_PSEUDO_CLASS = PseudoClass.getPseudoClass("error");
   private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
+  @VisibleForTesting
+  protected static final PseudoClass MAIN_MINIMIZED = PseudoClass.getPseudoClass("minimized");
   private final Cache<NavigationItem, AbstractViewController<?>> viewCache;
   private final PreferencesService preferencesService;
   private final I18n i18n;
@@ -186,6 +188,16 @@ public class MainController implements Controller<Node> {
     gameService.addOnRankedMatchNotificationListener(this::onMatchmakerMessage);
     // Always load chat immediately so messages or joined channels don't need to be cached until we display them.
     getView(NavigationItem.CHAT);
+
+    listenOnMinimizedToSetExtraDragBar();
+  }
+
+  private void listenOnMinimizedToSetExtraDragBar() {
+    WindowPrefs windowPrefs = preferencesService.getPreferences()
+        .getMainWindow();
+    InvalidationListener invalidationListener = observable -> mainHeaderPane.pseudoClassStateChanged(MAIN_MINIMIZED, !windowPrefs.getMaximized());
+    JavaFxUtil.addListener(windowPrefs.maximizedProperty(), invalidationListener);
+    invalidationListener.invalidated(windowPrefs.maximizedProperty());
   }
 
   @Subscribe
@@ -387,7 +399,7 @@ public class MainController implements Controller<Node> {
   private void registerWindowListeners() {
     Stage stage = StageHolder.getStage();
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
-    JavaFxUtil.addListener(stage.maximizedProperty(), (observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(mainScene.maximizedProperty(), (observable, oldValue, newValue) -> {
       if (!newValue) {
         stage.setWidth(mainWindowPrefs.getWidth());
         stage.setHeight(mainWindowPrefs.getHeight());
