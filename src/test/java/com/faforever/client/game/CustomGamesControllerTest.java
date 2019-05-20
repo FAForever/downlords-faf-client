@@ -23,6 +23,9 @@ import org.testfx.util.WaitForAsyncUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,6 +53,8 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
   private GamesTilesContainerController gamesTilesContainerController;
 
   private ObservableList<Game> games;
+  private SimpleObjectProperty<Game> gameShownInGameDetailView = new SimpleObjectProperty<>();
+  private Preferences preferences;
 
   @Before
   public void setUp() throws Exception {
@@ -57,8 +62,9 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
 
     games = FXCollections.observableArrayList();
 
-    Preferences preferences = new Preferences();
+    preferences = new Preferences();
     preferences.setGamesViewMode("tableButton");
+    preferences.setShowGameDetailsSidePane(true);
 
     when(gameService.getGames()).thenReturn(games);
     when(gameService.gameRunningProperty()).thenReturn(new SimpleBooleanProperty());
@@ -69,6 +75,14 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
     when(gamesTableController.getRoot()).thenReturn(new Pane());
     when(gamesTableController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
     when(gamesTilesContainerController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
+    gameShownInGameDetailView = new SimpleObjectProperty<>(null);
+    when(gameDetailController.gameProperty()).thenReturn(gameShownInGameDetailView);
+    doAnswer(invocation -> gameShownInGameDetailView.get()).when(gameDetailController).getGame();
+    doAnswer(invocation -> {
+      gameShownInGameDetailView.set((Game) invocation.getArguments()[0]);
+      return null;
+    }).when(gameDetailController).setGame(any());
+
 
     loadFxml("theme/play/custom_games.fxml", clazz -> {
       if (clazz == GameDetailController.class) {
@@ -86,6 +100,14 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
     assertFalse(instance.gameDetailPane.isVisible());
     instance.setSelectedGame(GameBuilder.create().defaultValues().get());
     assertTrue(instance.gameDetailPane.isVisible());
+  }
+
+  @Test
+  public void testSetSelectedGameDoesNotShowDetailPaneIfDisabled() {
+    assertFalse(instance.gameDetailPane.isVisible());
+    preferences.setShowGameDetailsSidePane(false);
+    instance.setSelectedGame(GameBuilder.create().defaultValues().get());
+    assertFalse(instance.gameDetailPane.isVisible());
   }
 
   @Test
@@ -136,5 +158,18 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
     instance.tilesButton.fire();
     WaitForAsyncUtils.waitForFxEvents();
     verify(gamesTilesContainerController).createTiledFlowPane(games, instance.chooseSortingTypeChoiceBox);
+  }
+
+  @Test
+  public void testHideSidePane() {
+    instance.toggleSidePaneButton.fire();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertFalse(preferencesService.getPreferences().isShowGameDetailsSidePane());
+    verify(preferencesService, atLeast(2)).storeInBackground();
+
+    assertEquals(instance.toggleSidePaneButton.getText(), i18n.get("view.showSidePane"));
+    assertFalse(instance.gameDetailPane.isManaged());
+    assertFalse(instance.gameDetailPane.isVisible());
   }
 }

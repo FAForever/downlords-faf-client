@@ -6,14 +6,15 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="gameCardRoot" onMouseClicked="#onClick"
           onMouseEntered="#onMouseEntered" onMouseExited="#onMouseExited" styleClass="game-card,card,hoverable"
           xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.game.GameTileController">
     <columnConstraints>
-        <ColumnConstraints hgrow="NEVER" prefWidth="160.0"/>
-        <ColumnConstraints hgrow="ALWAYS" maxWidth="224.0" minWidth="224.0" prefWidth="224.0"/>
+        <ColumnConstraints hgrow="NEVER" prefWidth="140.0"/>
+        <ColumnConstraints hgrow="ALWAYS" maxWidth="220.0" minWidth="220.0" prefWidth="220.0"/>
     </columnConstraints>
     <rowConstraints>
         <RowConstraints fillHeight="false" minHeight="10.0" vgrow="SOMETIMES"/>
@@ -29,51 +30,66 @@
     <children>
         <AnchorPane GridPane.rowSpan="2147483647" GridPane.valignment="TOP">
             <children>
-                <ImageView fx:id="mapImageView" fitHeight="160.0" fitWidth="160.0" preserveRatio="true"/>
+                <ImageView fx:id="mapImageView" fitHeight="140.0" fitWidth="140.0" preserveRatio="true"/>
                 <Label fx:id="lockIconLabel" layoutX="10.0" layoutY="10.0" styleClass="lock-icon,icon" text="🔒"
                        AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0"/>
                 <VBox alignment="BOTTOM_LEFT" styleClass="card-dimmer" AnchorPane.bottomAnchor="0.0"
                       AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
                     <children>
-                        <Label fx:id="gameTitleLabel" maxWidth="1.7976931348623157E308" minWidth="0.0"
-                               styleClass="card-title" text="&lt;Very long game title to see if wrapping works&gt;"
-                               wrapText="true"/>
                         <Label fx:id="gameMapLabel" maxWidth="1.7976931348623157E308" minWidth="0.0"
                                styleClass="card-subtitle" text="&lt;Game Map&gt;"/>
                     </children>
                 </VBox>
             </children>
         </AnchorPane>
-        <Label fx:id="gameTypeLabel" minWidth="0.0" text="&lt;Game Type&gt;" GridPane.columnIndex="1">
+        <Label fx:id="gameTitleLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" GridPane.columnIndex="1"
+               GridPane.rowIndex="0"
+               styleClass="card-title" text="&lt;Very long game title to see if wrapping works&gt;"
+               wrapText="true">
             <GridPane.margin>
-                <Insets bottom="5.0" left="10.0" right="10.0" top="10.0"/>
+                <Insets bottom="0.0" left="10.0" right="10.0" top="10.0"/>
             </GridPane.margin>
         </Label>
-        <Label fx:id="numberOfPlayersLabel" minWidth="0.0" text="&lt;Number of Players&gt;" GridPane.columnIndex="1"
-               GridPane.rowIndex="1">
-            <graphic>
-                <Label styleClass="icon" text=""/>
-            </graphic>
+        <Label fx:id="gameTypeLabel" minWidth="0.0" text="&lt;Game Type&gt;" GridPane.columnIndex="1"
+               GridPane.rowIndex="1" styleClass="card-featured-mod">
             <GridPane.margin>
-                <Insets bottom="5.0" left="10.0" right="10.0" top="5.0"/>
+                <Insets bottom="10.0" left="10.0" right="10.0" top="0.0"/>
             </GridPane.margin>
         </Label>
-        <Label fx:id="modsLabel" maxHeight="1.7976931348623157E308" minWidth="0.0" text="&lt;Mods&gt;" wrapText="true"
-               GridPane.columnIndex="1" GridPane.rowIndex="6">
-            <graphic>
-                <Label styleClass="icon" text=""/>
-            </graphic>
+        <HBox GridPane.columnIndex="1" GridPane.rowIndex="2" spacing="70">
             <GridPane.margin>
-                <Insets bottom="5.0" left="10.0" right="10.0" top="5.0"/>
+                <Insets bottom="0" left="10.0" right="10.0" top="0"/>
             </GridPane.margin>
-        </Label>
+            <children>
+                <Label fx:id="numberOfPlayersLabel" minWidth="0.0" text="&lt;Number of Players&gt;"
+                       styleClass="card-info">
+                    <graphic>
+                        <Label styleClass="icon" text=""/>
+                    </graphic>
+                </Label>
+                <Label fx:id="avgRatingLabel" minWidth="0.0" text="&lt;Avg&gt;" styleClass="card-info">
+                    <graphic>
+                        <Label styleClass="icon" text=""/>
+                    </graphic>
+                </Label>
+            </children>
+        </HBox>
         <Label fx:id="hostLabel" maxHeight="1.7976931348623157E308" minWidth="0.0" text="&lt;Host&gt;"
-               GridPane.columnIndex="1" GridPane.rowIndex="3">
+               GridPane.columnIndex="1" GridPane.rowIndex="3" styleClass="card-info">
             <graphic>
                 <Label styleClass="icon" text=""/>
             </graphic>
             <GridPane.margin>
-                <Insets bottom="5.0" left="10.0" right="10.0" top="5.0"/>
+                <Insets bottom="0" left="10.0" right="10.0" top="0"/>
+            </GridPane.margin>
+        </Label>
+        <Label fx:id="modsLabel" maxHeight="1.7976931348623157E308" minWidth="0.0" text="&lt;Mods&gt;" wrapText="true"
+               GridPane.columnIndex="1" GridPane.rowIndex="6" styleClass="card-mod-list">
+            <graphic>
+                <Label styleClass="icon" text=""/>
+            </graphic>
+            <GridPane.margin>
+                <Insets bottom="0.0" left="10.0" right="10.0" top="5.0"/>
             </GridPane.margin>
         </Label>
     </children>

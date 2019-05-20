@@ -7,7 +7,9 @@ import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Joiner;
 import javafx.application.Platform;
 import javafx.beans.binding.StringBinding;
@@ -25,9 +27,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import javax.inject.Inject;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -43,12 +48,14 @@ public class GameTileController implements Controller<Node> {
   private final JoinGameHelper joinGameHelper;
   private final ModService modService;
   private final UiService uiService;
+  private final PlayerService playerService;
   public Label lockIconLabel;
   public Label gameTypeLabel;
   public Node gameCardRoot;
   public Label gameMapLabel;
   public Label gameTitleLabel;
   public Label numberOfPlayersLabel;
+  public Label avgRatingLabel;
   public Label hostLabel;
   public Label modsLabel;
   public ImageView mapImageView;
@@ -57,12 +64,13 @@ public class GameTileController implements Controller<Node> {
   private Tooltip tooltip;
 
   @Inject
-  public GameTileController(MapService mapService, I18n i18n, JoinGameHelper joinGameHelper, ModService modService, UiService uiService) {
+  public GameTileController(MapService mapService, I18n i18n, JoinGameHelper joinGameHelper, ModService modService, UiService uiService, PlayerService playerService) {
     this.mapService = mapService;
     this.i18n = i18n;
     this.joinGameHelper = joinGameHelper;
     this.modService = modService;
     this.uiService = uiService;
+    this.playerService = playerService;
   }
 
   public void setOnSelectedListener(Consumer<Game> onSelectedListener) {
@@ -97,14 +105,29 @@ public class GameTileController implements Controller<Node> {
         game.mapFolderNameProperty());
 
     JavaFxUtil.bind(gameMapLabel.textProperty(), mapNameBinding);
+
     numberOfPlayersLabel.textProperty().bind(createStringBinding(
         () -> i18n.get("game.players.format", game.getNumPlayers(), game.getMaxPlayers()),
         game.numPlayersProperty(),
         game.maxPlayersProperty()
     ));
-    mapImageView.imageProperty().bind(createObjectBinding(
-        () -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL),
-        game.mapFolderNameProperty()
+
+    avgRatingLabel.textProperty().bind(createStringBinding(
+        () -> {
+          OptionalDouble avgRating = game.getTeams().values().stream()
+              .flatMap(Collection::stream)
+              .map(playerService::getPlayerForUsername)
+              .filter(Optional::isPresent)
+              .map(Optional::get)
+              .mapToInt(player -> RatingUtil.getRating(player.getGlobalRatingMean(), player.getGlobalRatingDeviation()))
+              .average();
+          if (avgRating.isPresent()) {
+            return i18n.get("game.avgRating.format", Math.round(avgRating.getAsDouble() / 100.0) * 100.0);
+          } else {
+            return "-";
+          }
+        },
+        game.teamsProperty()
     ));
 
     ObservableMap<String, String> simMods = game.getSimMods();

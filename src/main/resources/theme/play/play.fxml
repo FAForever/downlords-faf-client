@@ -9,8 +9,8 @@
       xmlns="http://javafx.com/javafx/8.0.60" fx:controller="com.faforever.client.play.PlayController">
     <children>
         <TabPane fx:id="playRootTabPane" rotateGraphic="true" side="LEFT" tabClosingPolicy="UNAVAILABLE"
-                 tabMaxHeight="200.0"
-                 tabMinHeight="200.0" VBox.vgrow="ALWAYS">
+                 tabMaxHeight="170.0"
+                 tabMinHeight="170.0" VBox.vgrow="ALWAYS">
             <tabs>
                 <Tab fx:id="customGamesTab">
                     <content>
@@ -19,7 +19,7 @@
                     <graphic>
                         <Group>
                             <children>
-                                <VBox prefWidth="200.0" rotate="90.0">
+                                <VBox prefWidth="170.0" rotate="90.0">
                                     <children>
                                         <Label text="%play.custom" styleClass="tab-label"/>
                                     </children>
@@ -35,7 +35,7 @@
                <graphic>
                   <Group>
                      <children>
-                        <VBox prefWidth="200.0" rotate="90.0">
+                         <VBox prefWidth="170.0" rotate="90.0">
                            <children>
                                <Label text="%play.ranked1v1" styleClass="tab-label"/>
                            </children>
@@ -51,7 +51,7 @@
                     <graphic>
                         <Group>
                             <children>
-                                <VBox prefWidth="200.0" rotate="90.0">
+                                <VBox prefWidth="170.0" rotate="90.0">
                                     <children>
                                         <Label text="%play.coop" styleClass="tab-label"/>
                                     </children>

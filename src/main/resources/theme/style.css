@@ -93,6 +93,7 @@
   -card-color-hover: #61616199;
   /* -grey-900 plus transparency */
   -dimmer-color: #21212199;
+  -card-map-subtitle-color: #c7c7c7
 }
 
 /***************** Remove ugly borders and default background introduced by modena *****************/
@@ -1068,12 +1069,25 @@
 
 .card-title {
   -fx-font-size: 16px;
+  -fx-font-weight: bold;
+}
+
+.card-featured-mod {
+  -fx-font-size: 11px;
   -fx-text-fill: -fx-light-text-color;
+}
+
+.card-info {
+  -fx-font-size: 14px;
+}
+
+.card-mod-list {
+  -fx-font-size: 14px;
 }
 
 .card-subtitle {
   -fx-font-size: 12px;
-  -fx-text-fill: -fx-mid-text-color;
+  -fx-text-fill: -card-map-subtitle-color;
 }
 
 .control-label {
