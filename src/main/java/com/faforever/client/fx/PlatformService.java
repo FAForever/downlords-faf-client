@@ -7,7 +7,6 @@ import com.sun.jna.platform.win32.WinDef.HWND;
 import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.platform.win32.WinUser.WINDOWPLACEMENT;
 import javafx.application.HostServices;
-
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,7 +19,6 @@ import static com.github.nocatch.NoCatch.noCatch;
 import static org.bridj.Platform.show;
 
 public class PlatformService {
-
   private final HostServices hostServices;
 
   private final boolean isWindows;
