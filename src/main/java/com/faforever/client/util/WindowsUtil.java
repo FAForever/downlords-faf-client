@@ -21,6 +21,8 @@ public class WindowsUtil {
 
       boolean printedErrorlevel = false;
       while (true) {
+        if (!scanner.hasNextLine())     /* Unexpected output, bail out */
+          return false;
         String nextLine = scanner.nextLine();
         if (printedErrorlevel) {
           int errorlevel = Integer.parseInt(nextLine);
