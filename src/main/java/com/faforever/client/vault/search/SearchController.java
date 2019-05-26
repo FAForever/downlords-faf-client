@@ -4,6 +4,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.LogicalNodeController;
+import com.faforever.client.query.SearchablePropertyMappings.Property;
 import com.faforever.client.query.SpecificationController;
 import com.faforever.client.theme.UiService;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -49,7 +51,7 @@ public class SearchController implements Controller<Pane> {
   public CheckBox displayQueryCheckBox;
   public Button searchButton;
   public Pane searchRoot;
-  public ComboBox<String> sortPropertyComboBox;
+  public ComboBox<Property> sortPropertyComboBox;
   public ComboBox<SortOrder> sortOrderChoiceBox;
   public HBox sortBox;
 
@@ -59,7 +61,7 @@ public class SearchController implements Controller<Pane> {
    * Called with the query string when the user hits "search".
    */
   private Consumer<SearchConfig> searchListener;
-  private Map<String, String> searchableProperties;
+  private Map<String, Property> searchableProperties;
   /**
    * Type of the searchable entity.
    */
@@ -92,14 +94,14 @@ public class SearchController implements Controller<Pane> {
   }
 
   private void initSorting() {
-    sortPropertyComboBox.setConverter(new StringConverter<String>() {
+    sortPropertyComboBox.setConverter(new StringConverter<Property>() {
       @Override
-      public String toString(String name) {
-        return i18n.get(name);
+      public String toString(Property property) {
+        return i18n.get(property.getI18nKey());
       }
 
       @Override
-      public String fromString(String string) {
+      public Property fromString(String string) {
         throw new UnsupportedOperationException("Not supported");
       }
     });
@@ -117,19 +119,23 @@ public class SearchController implements Controller<Pane> {
     sortOrderChoiceBox.getItems().addAll(SortOrder.values());
   }
 
-  public void setSearchableProperties(Map<String, String> searchableProperties) {
+  public void setSearchableProperties(Map<String, Property> searchableProperties) {
     this.searchableProperties = searchableProperties;
     initialLogicalNodeController.specificationController.setProperties(searchableProperties);
   }
 
   public void setSortConfig(ObjectProperty<SortConfig> sortConfigObjectProperty) {
-    sortPropertyComboBox.getItems().addAll(searchableProperties.values());
+    List<Property> sortableProperties = searchableProperties.values().stream()
+        .filter(Property::isSortable)
+        .collect(Collectors.toList());
+    sortPropertyComboBox.getItems().addAll(sortableProperties);
     sortOrderChoiceBox.getSelectionModel().select(sortConfigObjectProperty.get().getSortOrder());
 
-    String savedSortProperty = searchableProperties.get(sortConfigObjectProperty.get().getSortProperty());
-    
-    if (savedSortProperty == null)
-        savedSortProperty = searchableProperties.values().iterator().next();
+    Property savedSortProperty = searchableProperties.get(sortConfigObjectProperty.get().getSortProperty());
+
+    if (savedSortProperty == null || !savedSortProperty.isSortable()) {
+      savedSortProperty = sortableProperties.iterator().next();
+    }
 
     sortPropertyComboBox.getSelectionModel().select(savedSortProperty);
 

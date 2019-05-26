@@ -9,7 +9,7 @@ import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.query.SearchableProperties;
+import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
@@ -97,7 +97,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
 
     searchController.setRootType(Game.class);
     searchController.setSearchListener(this::onSearch);
-    searchController.setSearchableProperties(SearchableProperties.GAME_PROPERTIES);
+    searchController.setSearchableProperties(SearchablePropertyMappings.GAME_PROPERTY_MAPPING);
     searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().onlineReplaySortConfigProperty());
 
     BooleanBinding inSearchableState = Bindings.createBooleanBinding(() -> state.get() != State.SEARCHING, state);

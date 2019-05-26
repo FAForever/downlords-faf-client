@@ -5,30 +5,23 @@ import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 
 /**
- * Contains mappings of searchable properties (as the API expects it) to their respective i18n key. The reason
- * the i18n keys are not build dynamically is that it makes it impossible for the IDE to detect which key is used where,
- * breaks its refactor capability, and the actual UI text might depend on the context it is used in. Also, this way
- * i18n keys and API keys are nicely decoupled and can therefore be changed independently.
+ * Contains mappings of searchable properties (as the API expects it) to their respective i18n key. The reason the i18n
+ * keys are not build dynamically is that it makes it impossible for the IDE to detect which key is used where, breaks
+ * its refactor capability, and the actual UI text might depend on the context it is used in. Also, this way i18n keys
+ * and API keys are nicely decoupled and can therefore be changed independently.
  */
-public class SearchableProperties {
+public class SortableProperties {
   public static final Map<String, String> GAME_PROPERTIES = ImmutableMap.<String, String>builder()
-      .put("playerStats.player.login", "game.player.username")
-      .put("playerStats.player.globalRating.rating", "game.player.globalRating")
-      .put("playerStats.player.ladder1v1Rating.rating", "game.player.ladderRating")
       .put("featuredMod.technicalName", "featuredMod.technicalName")
       .put("mapVersion.map.displayName", "game.map.displayName")
-      .put("playerStats.faction", "game.player.faction")
-      .put("playerStats.startSpot", "game.player.startSpot")
       .put("mapVersion.maxPlayers", "map.maxPlayers")
       .put("mapVersion.ranked", "game.map.isRanked")
       .put("id", "game.id")
-      .put("playerStats.player.id", "game.player.id")
       .put("name", "game.title")
       .put("startTime", "game.startTime")
       .put("endTime", "game.endTime")
       .put("validity", "game.validity")
       .put("victoryCondition", "game.victoryCondition")
-      .put("playerStats.team", "game.player.team")
       .put("host.login", "game.host.username")
       .put("host.id", "game.host.id")
       .put("featuredMod.displayName", "featuredMod.displayName")

@@ -47,6 +47,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.EQ;
+import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.EX;
 import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.GT;
 import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.GTE;
 import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.IN;
@@ -55,7 +56,6 @@ import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.LT
 import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.NE;
 import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.NIN;
 import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.RE;
-import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.EX;
 
 /**
  * Controller for building a specification in the sense of Domain Driven Design, e.g. {@code login == "Someone"} or
@@ -99,7 +99,7 @@ public class SpecificationController implements Controller<Node> {
   public HBox specificationRoot;
   public DatePicker datePicker;
   private Class<?> rootType;
-  private Map<String, String> properties;
+  private Map<String, SearchablePropertyMappings.Property> properties;
 
   public SpecificationController(I18n i18n) {
     this.i18n = i18n;
@@ -134,7 +134,7 @@ public class SpecificationController implements Controller<Node> {
     propertyField.setConverter(new StringConverter<String>() {
       @Override
       public String toString(String object) {
-        return i18n.get(properties.get(object));
+        return i18n.get(properties.get(object).getI18nKey());
       }
 
       @Override
@@ -204,7 +204,7 @@ public class SpecificationController implements Controller<Node> {
    *
    * @see #setRootType(Class)
    */
-  public void setProperties(Map<String, String> properties) {
+  public void setProperties(Map<String, SearchablePropertyMappings.Property> properties) {
     this.properties = properties;
     propertyField.setItems(FXCollections.observableList(new ArrayList<>(properties.keySet())));
     propertyField.getSelectionModel().select(0);

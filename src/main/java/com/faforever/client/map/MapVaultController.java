@@ -11,7 +11,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.query.SearchableProperties;
+import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
@@ -133,7 +133,7 @@ public class MapVaultController extends AbstractViewController<Node> {
 
     searchController.setRootType(com.faforever.client.api.dto.Map.class);
     searchController.setSearchListener(this::searchByQuery);
-    searchController.setSearchableProperties(SearchableProperties.MAP_PROPERTIES);
+    searchController.setSearchableProperties(SearchablePropertyMappings.MAP_PROPERTY_MAPPING);
     searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().mapSortConfigProperty());
 
     BooleanBinding inSearchableState = Bindings.createBooleanBinding(() -> state.get() != State.LOADING, state);

@@ -4,7 +4,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.LogicalNodeController;
-import com.faforever.client.query.SearchableProperties;
+import com.faforever.client.query.SearchablePropertyMappings;
+import com.faforever.client.query.SearchablePropertyMappings.Property;
 import com.faforever.client.query.SpecificationController;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
@@ -73,7 +74,7 @@ public class SearchControllerTest extends AbstractPlainJavaFxTest {
       return instance;
     });
 
-    instance.setSearchableProperties(SearchableProperties.GAME_PROPERTIES);
+    instance.setSearchableProperties(SearchablePropertyMappings.GAME_PROPERTY_MAPPING);
     instance.setSortConfig(preferencesService.getPreferences().getVaultPrefs().onlineReplaySortConfigProperty());
   }
 
@@ -107,7 +108,7 @@ public class SearchControllerTest extends AbstractPlainJavaFxTest {
     instance.setSearchListener(searchListener);
     instance.queryTextField.setText("query");
     instance.sortOrderChoiceBox.getSelectionModel().select(SortOrder.ASC);
-    instance.sortPropertyComboBox.getSelectionModel().select("game.title");
+    instance.sortPropertyComboBox.getSelectionModel().select(new Property("game.title", true));
 
     instance.onSearchButtonClicked();
 
