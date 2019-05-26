@@ -9,7 +9,7 @@ import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.query.SearchableProperties;
+import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
@@ -31,14 +31,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.DisposableBean;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -261,7 +261,7 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   public CompletableFuture<List<ModVersion>> getNewestMods(int count, int page) {
-    return findByQuery(new SearchConfig(new SortConfig(SearchableProperties.NEWEST_MOD_KEY, SortOrder.DESC), ""), page, count);
+    return findByQuery(new SearchConfig(new SortConfig(SearchablePropertyMappings.NEWEST_MOD_KEY, SortOrder.DESC), ""), page, count);
   }
 
   @NotNull
@@ -344,11 +344,11 @@ public class ModService implements InitializingBean, DisposableBean {
 
   @Async
   public CompletableFuture<List<ModVersion>> getHighestRatedUiMods(int count, int page) {
-    return fafService.findModsByQuery(new SearchConfig(new SortConfig(SearchableProperties.HIGHEST_RATED_MOD_KEY, SortOrder.DESC), "latestVersion.type==UI"), page, count);
+    return fafService.findModsByQuery(new SearchConfig(new SortConfig(SearchablePropertyMappings.HIGHEST_RATED_MOD_KEY, SortOrder.DESC), "latestVersion.type==UI"), page, count);
   }
 
   public CompletableFuture<List<ModVersion>> getHighestRatedMods(int count, int page) {
-    return fafService.findModsByQuery(new SearchConfig(new SortConfig(SearchableProperties.HIGHEST_RATED_MOD_KEY, SortOrder.DESC), ""), page, count);
+    return fafService.findModsByQuery(new SearchConfig(new SortConfig(SearchablePropertyMappings.HIGHEST_RATED_MOD_KEY, SortOrder.DESC), ""), page, count);
   }
 
   public List<ModVersion> getActivatedSimAndUIMods() throws IOException {

@@ -8,7 +8,7 @@ import com.faforever.client.mod.event.ModUploadedEvent;
 import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.query.SearchableProperties;
+import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
@@ -118,7 +118,7 @@ public class ModVaultController extends AbstractViewController<Node> {
 
     searchController.setRootType(com.faforever.client.api.dto.Mod.class);
     searchController.setSearchListener(this::searchByQuery);
-    searchController.setSearchableProperties(SearchableProperties.MOD_PROPERTIES);
+    searchController.setSearchableProperties(SearchablePropertyMappings.MOD_PROPERTY_MAPPING);
     searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().modVaultConfigProperty());
   }
 

@@ -2,6 +2,7 @@ package com.faforever.client.query;
 
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.query.SearchablePropertyMappings.Property;
 import com.faforever.client.remote.domain.VictoryCondition;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.util.ProgrammingError;
@@ -57,8 +58,8 @@ public class SpecificationControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testSomething() throws Exception {
     instance.setProperties(ImmutableMap.of(
-        "name", "i18n.name",
-        "startTime", "i18n.startTime"
+        "name", new Property("i18n.name", true),
+        "startTime", new Property("i18n.startTime", false)
     ));
 
     assertThat(instance.propertyField.getItems(), hasItems("name", "startTime"));
