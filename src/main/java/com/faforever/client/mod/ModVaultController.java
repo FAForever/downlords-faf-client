@@ -19,6 +19,10 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.jfoenix.controls.JFXDialog;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -79,7 +83,7 @@ public class ModVaultController extends AbstractViewController<Node> {
 
   private boolean initialized;
   private ModDetailController modDetailController;
-  private ModVaultController.State state;
+  private final ObjectProperty<ModVaultController.State> state;
   private int currentPage;
   private Supplier<CompletableFuture<List<ModVersion>>> currentSupplier;
 
@@ -92,6 +96,7 @@ public class ModVaultController extends AbstractViewController<Node> {
     this.uiService = uiService;
     this.notificationService = notificationService;
     this.reportingService = reportingService;
+    state = new SimpleObjectProperty<>(State.LOADING);
   }
 
   @Override
@@ -120,6 +125,9 @@ public class ModVaultController extends AbstractViewController<Node> {
     searchController.setSearchListener(this::searchByQuery);
     searchController.setSearchableProperties(SearchableProperties.MOD_PROPERTIES);
     searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().modVaultConfigProperty());
+
+    BooleanBinding inSearchableState = Bindings.createBooleanBinding(() -> state.get() != State.LOADING, state);
+    searchController.setSearchButtonDisabledCondition(inSearchableState);
   }
 
   private void searchByQuery(SearchConfig searchConfig) {
@@ -157,7 +165,7 @@ public class ModVaultController extends AbstractViewController<Node> {
   }
 
   private void enterLoadingState() {
-    state = ModVaultController.State.LOADING;
+    state.set(ModVaultController.State.LOADING);
     showroomGroup.setVisible(false);
     searchResultGroup.setVisible(false);
     loadingLabel.setVisible(true);
@@ -166,7 +174,7 @@ public class ModVaultController extends AbstractViewController<Node> {
   }
 
   private void enterSearchResultState() {
-    state = ModVaultController.State.SEARCH_RESULT;
+    state.set(ModVaultController.State.SEARCH_RESULT);
     showroomGroup.setVisible(false);
     searchResultGroup.setVisible(true);
     loadingLabel.setVisible(false);
@@ -175,7 +183,7 @@ public class ModVaultController extends AbstractViewController<Node> {
   }
 
   private void enterShowroomState() {
-    state = ModVaultController.State.SHOWROOM;
+    state.set(ModVaultController.State.SHOWROOM);
     showroomGroup.setVisible(true);
     searchResultGroup.setVisible(false);
     loadingLabel.setVisible(false);
@@ -219,7 +227,7 @@ public class ModVaultController extends AbstractViewController<Node> {
 
   public void onRefreshButtonClicked() {
     modService.evictCache();
-    switch (state) {
+    switch (state.get()) {
       case SHOWROOM:
         displayShowroomMods();
         break;

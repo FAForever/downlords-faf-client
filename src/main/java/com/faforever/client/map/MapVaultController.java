@@ -21,6 +21,8 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.jfoenix.controls.JFXDialog;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
@@ -133,6 +135,9 @@ public class MapVaultController extends AbstractViewController<Node> {
     searchController.setSearchListener(this::searchByQuery);
     searchController.setSearchableProperties(SearchableProperties.MAP_PROPERTIES);
     searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().mapSortConfigProperty());
+
+    BooleanBinding inSearchableState = Bindings.createBooleanBinding(() -> state.get() != State.LOADING, state);
+    searchController.setSearchButtonDisabledCondition(inSearchableState);
   }
 
   private void searchByQuery(SearchConfig searchConfig) {
