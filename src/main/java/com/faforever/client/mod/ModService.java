@@ -20,6 +20,7 @@ import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.mod.ModLoadException;
 import com.faforever.commons.mod.ModReader;
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -119,21 +120,21 @@ public class ModService implements InitializingBean, DisposableBean {
 
   @Override
   public void afterPropertiesSet() {
-    modsDirectory = preferencesService.getPreferences().getForgedAlliance().getModsDirectory();
-    JavaFxUtil.addListener(preferencesService.getPreferences().getForgedAlliance().modsDirectoryProperty(), (observable, oldValue, newValue) -> {
-      if (newValue != null) {
+    InvalidationListener modDirectoryChangedListener = observable -> {
+      modsDirectory = preferencesService.getPreferences().getForgedAlliance().getModsDirectory();
+      if (modsDirectory != null) {
+        installedModVersions.clear();
         onModDirectoryReady();
       }
-    });
-
-    if (modsDirectory != null) {
-      onModDirectoryReady();
-    }
+    };
+    modDirectoryChangedListener.invalidated(preferencesService.getPreferences().getForgedAlliance().modsDirectoryProperty());
+    JavaFxUtil.addListener(preferencesService.getPreferences().getForgedAlliance().modsDirectoryProperty(), modDirectoryChangedListener);
   }
 
   private void onModDirectoryReady() {
     try {
       createDirectories(modsDirectory);
+      Optional.ofNullable(directoryWatcherThread).ifPresent(Thread::interrupt);
       directoryWatcherThread = startDirectoryWatcher(modsDirectory);
     } catch (IOException e) {
       logger.warn("Could not start mod directory watcher", e);

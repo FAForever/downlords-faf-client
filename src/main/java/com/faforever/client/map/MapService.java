@@ -9,6 +9,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean.Type;
 import com.faforever.client.map.generator.MapGeneratedEvent;
 import com.faforever.client.map.generator.MapGeneratorService;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
@@ -88,12 +89,13 @@ public class MapService implements InitializingBean, DisposableBean {
 
   private final String mapDownloadUrlFormat;
   private final String mapPreviewUrlFormat;
+  private final ForgedAlliancePrefs forgedAlliancePreferences;
 
   private Map<Path, MapBean> pathToMap;
-  private Path customMapsDirectory;
   private ObservableList<MapBean> installedSkirmishMaps;
   private Map<String, MapBean> mapsByFolderName;
   private Thread directoryWatcherThread;
+  private Path customMapsDirectory;
 
   @Inject
   public MapService(PreferencesService preferencesService, TaskService taskService,
@@ -101,6 +103,7 @@ public class MapService implements InitializingBean, DisposableBean {
                     FafService fafService, AssetService assetService,
                     I18n i18n, UiService uiService, ClientProperties clientProperties, MapGeneratorService mapGeneratorService, EventBus eventBus) {
     this.preferencesService = preferencesService;
+    this.forgedAlliancePreferences = preferencesService.getPreferences().getForgedAlliance();
     this.taskService = taskService;
     this.applicationContext = applicationContext;
     this.fafService = fafService;
@@ -141,19 +144,21 @@ public class MapService implements InitializingBean, DisposableBean {
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
-    customMapsDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
-    JavaFxUtil.addListener(preferencesService.getPreferences().getForgedAlliance().pathProperty(), observable -> tryLoadMaps());
-    JavaFxUtil.addListener(preferencesService.getPreferences().getForgedAlliance().customMapsDirectoryProperty(), observable -> tryLoadMaps());
+    JavaFxUtil.addListener(forgedAlliancePreferences.pathProperty(), observable -> tryLoadMaps());
+    JavaFxUtil.addListener(forgedAlliancePreferences.customMapsDirectoryProperty(), observable -> tryLoadMaps());
     tryLoadMaps();
   }
 
   private void tryLoadMaps() {
-    if (preferencesService.getPreferences().getForgedAlliance().getPath() == null
-        || preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory() == null) {
+    customMapsDirectory = forgedAlliancePreferences.getCustomMapsDirectory();
+    if (forgedAlliancePreferences.getPath() == null
+        || customMapsDirectory == null) {
       return;
     }
+    installedSkirmishMaps.clear();
     try {
       Files.createDirectories(customMapsDirectory);
+      Optional.ofNullable(directoryWatcherThread).ifPresent(Thread::interrupt);
       directoryWatcherThread = startDirectoryWatcher(customMapsDirectory);
     } catch (IOException e) {
       logger.warn("Could not start map directory watcher", e);
@@ -165,7 +170,7 @@ public class MapService implements InitializingBean, DisposableBean {
   private Thread startDirectoryWatcher(Path mapsDirectory) {
     Thread thread = new Thread(() -> noCatch(() -> {
       WatchService watcher = mapsDirectory.getFileSystem().newWatchService();
-      MapService.this.customMapsDirectory.register(watcher, ENTRY_DELETE);
+      customMapsDirectory.register(watcher, ENTRY_DELETE);
 
       try {
         while (!Thread.interrupted()) {
@@ -188,7 +193,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
       protected Void call() {
         updateTitle(i18n.get("mapVault.loadingMaps"));
-        Path officialMapsPath = preferencesService.getPreferences().getForgedAlliance().getPath().resolve("maps");
+        Path officialMapsPath = forgedAlliancePreferences.getPath().resolve("maps");
 
         try (Stream<Path> customMapsDirectoryStream = list(customMapsDirectory)) {
           List<Path> mapPaths = new ArrayList<>();
@@ -379,7 +384,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
 
   public Path getPathForMap(String technicalName) {
-    Path path = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory().resolve(technicalName);
+    Path path = customMapsDirectory.resolve(technicalName);
     if (Files.notExists(path)) {
       return null;
     }

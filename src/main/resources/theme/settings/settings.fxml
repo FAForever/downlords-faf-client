@@ -17,7 +17,7 @@
 <?import javafx.scene.layout.*?>
 <?import java.lang.String?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="settingsRoot" maxHeight="1.7976931348623157E308" prefHeight="640.0"
-      prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.141" styleClass="decorated-window"
+      prefWidth="800.0" styleClass="decorated-window" xmlns="http://javafx.com/javafx/11.0.1"
       fx:controller="com.faforever.client.preferences.ui.SettingsController">
     <children>
         <HBox styleClass="header">
@@ -32,13 +32,14 @@
                         <GridPane styleClass="view-content">
                             <columnConstraints>
                                 <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0"/>
+                                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES"/>
                             </columnConstraints>
                             <rowConstraints>
                                 <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES"/>
                                 <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES"/>
                                 <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES"/>
-                                <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
+                                <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES"/>
+                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS"/>
                             </rowConstraints>
                             <children>
                                 <JFXToggleButton fx:id="rememberLastTabToggle" contentDisplay="GRAPHIC_ONLY"
@@ -46,15 +47,19 @@
                                 <Label styleClass="h3" text="%settings.general.rememberLastTab"/>
                                 <Label styleClass="h3" text="%settings.general.unitDatabase"
                                        GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
-                                <JFXComboBox fx:id="unitDatabaseComboBox" GridPane.columnIndex="1"
-                                             GridPane.rowIndex="1"/>
-                                <Label text="%discord.disallowJoins" GridPane.rowIndex="2"/>
+                                <JFXComboBox fx:id="unitDatabaseComboBox" minHeight="-Infinity" minWidth="-Infinity"
+                                             GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                                <Label styleClass="h3" text="%discord.disallowJoins" GridPane.rowIndex="2"/>
                                 <JFXCheckBox fx:id="disallowJoinsCheckBox" alignment="CENTER" mnemonicParsing="false"
                                              GridPane.columnIndex="1" GridPane.rowIndex="2">
                                     <GridPane.margin>
                                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
                                     </GridPane.margin>
                                 </JFXCheckBox>
+                                <Label styleClass="h3" text="%settings.use.secondaryVaultLocation" wrapText="true"
+                                       GridPane.rowIndex="3"/>
+                                <JFXToggleButton fx:id="secondaryVaultLocationToggleButton" GridPane.columnIndex="1"
+                                                 GridPane.rowIndex="3"/>
                             </children>
                         </GridPane>
                     </content>
@@ -285,10 +290,9 @@
                                                      mnemonicParsing="false" GridPane.columnIndex="2"
                                                      GridPane.halignment="CENTER" GridPane.rowIndex="9"
                                                      GridPane.valignment="CENTER"/>
-                                        <JFXCheckBox fx:id="afterGameReviewCheckBox"
-                                                     mnemonicParsing="false" GridPane.columnIndex="2"
-                                                     GridPane.halignment="CENTER" GridPane.rowIndex="12"
-                                                     GridPane.valignment="CENTER"/>
+                                        <JFXCheckBox fx:id="afterGameReviewCheckBox" mnemonicParsing="false"
+                                                     GridPane.columnIndex="2" GridPane.halignment="CENTER"
+                                                     GridPane.rowIndex="12" GridPane.valignment="CENTER"/>
                                         <Label text="%settings.notifications.afterGameReview" GridPane.rowIndex="12"/>
                                         <Label text="%settings.notifications.ranked1v1" GridPane.rowIndex="11"/>
                                         <Label text="%settings.notifications.pmReceived" GridPane.rowIndex="10"/>
@@ -586,6 +590,8 @@
                                     <rowConstraints>
                                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
                                         <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                        <RowConstraints/>
+                                        <RowConstraints/>
                                     </rowConstraints>
                                     <children>
                                         <Label styleClass="h3" text="%settings.general.theme"
@@ -594,12 +600,11 @@
                                                      maxWidth="1.7976931348623157E308" GridPane.columnSpan="2147483647"
                                                      GridPane.rowIndex="1"/>
                                         <Label styleClass="h3" text="%settings.appearance.backgoundImage"
-                                               GridPane.rowIndex="2" GridPane.columnSpan="2147483647"/>
+                                               GridPane.columnSpan="2147483647" GridPane.rowIndex="2"/>
                                         <JFXTextField fx:id="backgroundImageLocation"
                                                       promptText="%settings.appearance.useDefaultImage"
                                                       GridPane.rowIndex="3"/>
-                                        <HBox spacing="5" GridPane.columnIndex="1"
-                                              GridPane.rowIndex="3">
+                                        <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="3">
                                             <JFXButton mnemonicParsing="false" onAction="#onUseNoBackgroundImage"
                                                        text="%settings.general.theme.useNoImage"/>
                                             <JFXButton mnemonicParsing="false" onAction="#onSelectBackgroundImage"

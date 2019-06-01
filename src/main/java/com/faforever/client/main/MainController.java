@@ -36,6 +36,7 @@ import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
+import com.faforever.client.vault.VaultFileSystemLocationChecker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -115,6 +116,7 @@ public class MainController implements Controller<Node> {
   private final int ratingBeta;
   private final GamePathHandler gamePathHandler;
   private final PlatformService platformService;
+  private final VaultFileSystemLocationChecker vaultFileSystemLocationChecker;
   public Pane mainHeaderPane;
   public Labeled notificationsBadge;
   public Pane contentPane;
@@ -139,7 +141,7 @@ public class MainController implements Controller<Node> {
   public MainController(PreferencesService preferencesService, I18n i18n, NotificationService notificationService,
                         PlayerService playerService, GameService gameService, ClientUpdateService clientUpdateService,
                         UiService uiService, EventBus eventBus, ClientProperties clientProperties, GamePathHandler gamePathHandler,
-                        PlatformService platformService) {
+                        PlatformService platformService, VaultFileSystemLocationChecker vaultFileSystemLocationChecker) {
     this.preferencesService = preferencesService;
     this.i18n = i18n;
     this.notificationService = notificationService;
@@ -153,6 +155,7 @@ public class MainController implements Controller<Node> {
     this.ratingBeta = clientProperties.getTrueSkill().getBeta();
     this.gamePathHandler = gamePathHandler;
     this.platformService = platformService;
+    this.vaultFileSystemLocationChecker = vaultFileSystemLocationChecker;
     this.viewCache = CacheBuilder.newBuilder().build();
   }
 
@@ -190,6 +193,7 @@ public class MainController implements Controller<Node> {
     getView(NavigationItem.CHAT);
 
     listenOnMinimizedToSetExtraDragBar();
+    vaultFileSystemLocationChecker.checkVaultFileSystemLocation();
   }
 
   private void listenOnMinimizedToSetExtraDragBar() {
