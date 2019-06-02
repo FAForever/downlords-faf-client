@@ -20,6 +20,7 @@ import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static com.github.nocatch.NoCatch.noCatch;
 
@@ -28,7 +29,10 @@ import static com.github.nocatch.NoCatch.noCatch;
 @Slf4j
 public class MapGeneratorService {
 
-  public static final String GENERATED_MAP_NAME = "neroxis_map_generator_%s_%d"; // The server expects lower case names
+  /**
+   * Naming template for generated maps. It is all lower case because server expects lower case names for maps.
+   */
+  public static final String GENERATED_MAP_NAME = "neroxis_map_generator_%s_%d";
   private static final String GENERATOR_DEFAULT_VERSION = "0.1.1";
 
   public static final String GENERATOR_EXECUTABLE_FILENAME = "MapGenerator_%s.jar";
@@ -83,10 +87,9 @@ public class MapGeneratorService {
 
   private void deleteGeneratedMaps() {
     log.info("Deleting leftover generated maps...");
-
     if (customMapsDirectory != null && customMapsDirectory.toFile().exists()) {
-      try {
-        Files.list(customMapsDirectory)
+      try (Stream<Path> listOfMapFiles = Files.list(customMapsDirectory)) {
+        listOfMapFiles
             .filter(Files::isDirectory)
             .filter(p -> GENERATED_MAP_PATTERN.matcher(p.getFileName().toString()).matches())
             .forEach(p -> noCatch(() -> FileUtils.deleteRecursively(p)));
