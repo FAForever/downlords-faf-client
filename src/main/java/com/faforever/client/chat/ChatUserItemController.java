@@ -9,7 +9,6 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
@@ -80,7 +79,6 @@ public class ChatUserItemController implements Controller<Node> {
   private final ClanService clanService;
   private final PlatformService platformService;
   private final TimeService timeService;
-  private final MapService mapService;
 
   private final InvalidationListener colorChangeListener;
   private final InvalidationListener formatChangeListener;
@@ -123,7 +121,7 @@ public class ChatUserItemController implements Controller<Node> {
                                 CountryFlagService countryFlagService,
                                 I18n i18n, UiService uiService, EventBus eventBus,
                                 ClanService clanService, PlayerService playerService,
-                                PlatformService platformService, TimeService timeService, MapService mapService) {
+                                PlatformService platformService, TimeService timeService) {
     this.platformService = platformService;
     this.preferencesService = preferencesService;
     this.avatarService = avatarService;
@@ -134,7 +132,6 @@ public class ChatUserItemController implements Controller<Node> {
     this.uiService = uiService;
     this.eventBus = eventBus;
     this.timeService = timeService;
-    this.mapService = mapService;
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     colorChangeListener = observable -> updateColor();

@@ -651,7 +651,7 @@
 }
 
 .chat-user-list-category {
-  -fx-padding: 20px 0px 10px 0px !important;
+  -fx-padding: 20px 0px 10px 0px;
   -fx-font-weight: bold;
 }
 

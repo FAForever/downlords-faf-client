@@ -74,9 +74,6 @@ import static java.util.Locale.US;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ChannelTabController extends AbstractChatTabController {
-
-  private static final int USER_LIST_WIDTH_PX = 270;
-
   private static final String USER_CSS_CLASS_FORMAT = "user-%s";
 
   private static final Comparator<CategoryOrChatUserListItem> CHAT_USER_ITEM_COMPARATOR = (o1, o2) -> {
