@@ -67,7 +67,7 @@ public class DownloadMapGeneratorTaskTest extends AbstractPlainJavaFxTest {
 
     instance.call();
 
-    assertThat(Arrays.asList(Objects.requireNonNull(downloadDirectory.getRoot().listFiles())), contains(downloadDirectory.getRoot().toPath().resolve(String.format(MapGeneratorService.getGENERATOR_EXECUTABLE_FILENAME(), "")).toFile()));
+    assertThat(Arrays.asList(Objects.requireNonNull(downloadDirectory.getRoot().listFiles())), contains(downloadDirectory.getRoot().toPath().resolve(String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, "")).toFile()));
     verify(platformService).setUnixExecutableAndWritableBits(any());
   }
 }

@@ -40,9 +40,9 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
   private final String versionNoGeneratorPresent = "0.0.0";
   private final String unsupportedVersion = "2.0";
   private final long seed = -123456789;
-  private final String testMapNameNoGenerator = String.format(MapGeneratorService.getGENERATED_MAP_NAME(), versionNoGeneratorPresent, seed);
-  private final String testMapNameGenerator = String.format(MapGeneratorService.getGENERATED_MAP_NAME(), versionGeneratorPresent, seed);
-  private final String testMapNameUnsupportedVersion = String.format(MapGeneratorService.getGENERATED_MAP_NAME(), unsupportedVersion, seed);
+  private final String testMapNameNoGenerator = String.format(MapGeneratorService.GENERATED_MAP_NAME, versionNoGeneratorPresent, seed);
+  private final String testMapNameGenerator = String.format(MapGeneratorService.GENERATED_MAP_NAME, versionGeneratorPresent, seed);
+  private final String testMapNameUnsupportedVersion = String.format(MapGeneratorService.GENERATED_MAP_NAME, unsupportedVersion, seed);
   @Rule
   public TemporaryFolder customMapsDirectory = new TemporaryFolder();
   @Rule
@@ -66,7 +66,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
     customMapsDirectory.newFolder(testMapNameGenerator);//will be deleted on startup
 
     fafDataDirectory.newFolder(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY);
-    String generatorExecutableName = String.format(MapGeneratorService.getGENERATOR_EXECUTABLE_FILENAME(), versionGeneratorPresent);
+    String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
     Files.createFile(fafDataDirectory.getRoot().toPath().resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
 
     when(preferencesService.getFafDataDirectory()).thenReturn(fafDataDirectory.getRoot().toPath());
@@ -119,16 +119,16 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
     verify(generateMapTask).setSeed(seed);
     verify(generateMapTask).setMapFilename(testMapNameGenerator);
 
-    String generatorExecutableName = String.format(MapGeneratorService.getGENERATOR_EXECUTABLE_FILENAME(), versionGeneratorPresent);
-    verify(generateMapTask).setGeneratorExecutableFile(fafDataDirectory.getRoot().toPath().resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName).toFile());
+    String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
+    verify(generateMapTask).setGeneratorExecutableFile(fafDataDirectory.getRoot().toPath().resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
 
     verifyNoMoreInteractions(taskService);
   }
 
   @Test
   public void testWrongMapNameThrowsException() {
-    expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage(startsWith("No match found"));
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage(startsWith("Map name is not a generated map"));
     CompletableFuture<String> future = instance.generateMap(testMapNameUnsupportedVersion);
     future.join();
   }
