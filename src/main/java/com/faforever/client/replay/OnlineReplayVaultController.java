@@ -15,6 +15,8 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
@@ -97,6 +99,9 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     searchController.setSearchListener(this::onSearch);
     searchController.setSearchableProperties(SearchableProperties.GAME_PROPERTIES);
     searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().onlineReplaySortConfigProperty());
+
+    BooleanBinding inSearchableState = Bindings.createBooleanBinding(() -> state.get() != State.SEARCHING, state);
+    searchController.setSearchButtonDisabledCondition(inSearchableState);
   }
 
   private void displaySearchResult(List<Replay> replays, boolean append) {

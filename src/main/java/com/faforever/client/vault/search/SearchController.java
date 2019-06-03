@@ -11,6 +11,7 @@ import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -74,8 +75,6 @@ public class SearchController implements Controller<Pane> {
   public void initialize() {
     queryTextField.managedProperty().bind(queryTextField.visibleProperty());
     queryTextField.visibleProperty().bind(displayQueryCheckBox.selectedProperty());
-
-    searchButton.disableProperty().bind(queryTextField.textProperty().isEmpty());
 
     initialLogicalNodeController.logicalOperatorField.managedProperty()
         .bind(initialLogicalNodeController.logicalOperatorField.visibleProperty());
@@ -233,6 +232,10 @@ public class SearchController implements Controller<Pane> {
   public void setRootType(Class<?> rootType) {
     this.rootType = rootType;
     initialLogicalNodeController.specificationController.setRootType(rootType);
+  }
+
+  public void setSearchButtonDisabledCondition(BooleanBinding inSearchableState) {
+    searchButton.disableProperty().bind(queryTextField.textProperty().isEmpty().or(inSearchableState.not()));
   }
 
   @Getter
