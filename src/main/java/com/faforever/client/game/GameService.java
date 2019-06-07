@@ -386,11 +386,9 @@ public class GameService implements InitializingBean {
 
     searching1v1.set(true);
 
-    int port = preferencesService.getPreferences().getForgedAlliance().getPort();
-
     return modService.getFeaturedMod(LADDER_1V1.getTechnicalName())
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
-        .thenCompose(aVoid -> fafService.startSearchLadder1v1(faction, port))
+        .thenCompose(aVoid -> fafService.startSearchLadder1v1(faction))
         .thenAccept((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapname())
             .thenRun(() -> {
               // TODO this should be sent by the server!

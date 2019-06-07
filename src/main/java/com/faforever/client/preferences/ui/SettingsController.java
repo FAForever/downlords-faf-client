@@ -87,7 +87,7 @@ public class SettingsController implements Controller<Node> {
   public Toggle randomColorsToggle;
   public Toggle defaultColorsToggle;
   public Toggle hideFoeToggle;
-  public TextField gamePortTextField;
+  public Toggle forceRelayToggle;
   public TextField gameLocationTextField;
   public Toggle autoDownloadMapsToggle;
   public TextField maxMessagesTextField;
@@ -266,7 +266,7 @@ public class SettingsController implements Controller<Node> {
 
     notifyOnAtMentionOnlyToggle.selectedProperty().bindBidirectional(preferences.getNotification().notifyOnAtMentionOnlyEnabledProperty());
     enableSoundsToggle.selectedProperty().bindBidirectional(preferences.getNotification().soundsEnabledProperty());
-    gamePortTextField.textProperty().bindBidirectional(preferences.getForgedAlliance().portProperty(), new NumberStringConverter(integerNumberFormat));
+    forceRelayToggle.selectedProperty().bindBidirectional(preferences.getForgedAlliance().forceRelayProperty());
     gameLocationTextField.textProperty().bindBidirectional(preferences.getForgedAlliance().pathProperty(), PATH_STRING_CONVERTER);
     autoDownloadMapsToggle.selectedProperty().bindBidirectional(preferences.getForgedAlliance().autoDownloadMapsProperty());
 

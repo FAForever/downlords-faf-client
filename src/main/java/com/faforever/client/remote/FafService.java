@@ -95,7 +95,7 @@ public class FafService {
     return fafServerAccessor.requestJoinGame(gameId, password);
   }
 
-  public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction, int port) {
+  public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction) {
     return fafServerAccessor.startSearchLadder1v1(faction);
   }
 

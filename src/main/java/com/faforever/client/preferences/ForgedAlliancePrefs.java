@@ -3,10 +3,8 @@ package com.faforever.client.preferences;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -45,7 +43,7 @@ public class ForgedAlliancePrefs {
   private final ObjectProperty<Path> preferencesFile;
   private final ObjectProperty<Path> officialMapsDirectory;
   private final ObjectProperty<Path> modsDirectory;
-  private final IntegerProperty port;
+  private final BooleanProperty forceRelay;
   private final BooleanProperty autoDownloadMaps;
 
   /**
@@ -60,7 +58,7 @@ public class ForgedAlliancePrefs {
   private final ObjectProperty<Path> executionDirectory;
 
   public ForgedAlliancePrefs() {
-    port = new SimpleIntegerProperty(6112);
+    forceRelay = new SimpleBooleanProperty(false);
     path = new SimpleObjectProperty<>();
     installationPath = new SimpleObjectProperty<>();
     customMapsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("Maps"));
@@ -113,16 +111,16 @@ public class ForgedAlliancePrefs {
     return path;
   }
 
-  public int getPort() {
-    return port.get();
+  public boolean isForceRelay() {
+    return forceRelay.get();
   }
 
-  public void setPort(int port) {
-    this.port.set(port);
+  public void setForceRelay(boolean forceRelay) {
+    this.forceRelay.set(forceRelay);
   }
 
-  public IntegerProperty portProperty() {
-    return port;
+  public BooleanProperty forceRelayProperty() {
+    return forceRelay;
   }
 
   public boolean getAutoDownloadMaps() {
