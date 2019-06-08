@@ -87,7 +87,6 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
   private static final long TIMEOUT = 5000;
   private static final TimeUnit TIME_UNIT = TimeUnit.MILLISECONDS;
-  private static final int GAME_PORT = 1234;
   private static final Integer GPG_PORT = 1234;
   private static final int LOCAL_REPLAY_PORT = 15111;
 
@@ -145,7 +144,6 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     instance.replayService = replayService;
 
     Preferences preferences = new Preferences();
-    preferences.getForgedAlliance().setPort(GAME_PORT);
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
@@ -403,7 +401,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
 
-    when(fafService.startSearchLadder1v1(CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
+    when(fafService.startSearchLadder1v1(CYBRAN)).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));
     when(mapService.isInstalled("scmp_037")).thenReturn(false);
     when(mapService.download("scmp_037")).thenReturn(CompletableFuture.completedFuture(null));
@@ -411,7 +409,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     CompletableFuture<Void> future = instance.startSearchLadder1v1(CYBRAN).toCompletableFuture();
 
-    verify(fafService).startSearchLadder1v1(CYBRAN, GAME_PORT);
+    verify(fafService).startSearchLadder1v1(CYBRAN);
     verify(mapService).download("scmp_037");
     verify(replayService).startReplayServer(123);
     verify(forgedAllianceService, timeout(100))

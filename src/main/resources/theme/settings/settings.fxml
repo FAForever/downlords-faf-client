@@ -354,8 +354,10 @@
                                         <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
                                     </rowConstraints>
                                     <children>
-                                        <Label styleClass="h3" text="%settings.fa.gamePort"/>
-                                        <JFXTextField fx:id="gamePortTextField" maxWidth="100.0"
+                                        <Label styleClass="h3" text="%settings.fa.forceRelay"/>
+                                        <JFXToggleButton fx:id="forceRelayToggle" maxWidth="100.0"
+                                                         contentDisplay="GRAPHIC_ONLY"
+                                                         mnemonicParsing="false"
                                                       GridPane.columnIndex="1"/>
                                         <Label styleClass="h3" text="%settings.fa.gameLocation" wrapText="true"
                                                GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>

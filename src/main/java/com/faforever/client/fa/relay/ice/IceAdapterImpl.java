@@ -180,6 +180,11 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
           "--gpgnet-port", String.valueOf(gpgPort)
       );
 
+      if (preferencesService.getPreferences().getForgedAlliance().isForceRelay()) {
+        cmd.add("--force-relay");
+        log.warn("Forcing ice adapter relay connection");
+      }
+
       if (clientProperties.isShowIceAdapterDebugWindow()) {
         cmd.add("--debug-window");
         cmd.add("--info-window");
