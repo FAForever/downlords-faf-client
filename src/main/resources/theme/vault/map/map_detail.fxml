@@ -16,7 +16,7 @@
 <?import java.lang.String?>
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mapDetailRoot" maxHeight="1.7976931348623157E308"
             maxWidth="1.7976931348623157E308" onMouseClicked="#onDimmerClicked" styleClass="dimmer"
-            xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.map.MapDetailController">
+            xmlns="http://javafx.com/javafx/11.0.1" fx:controller="com.faforever.client.map.MapDetailController">
   <children>
       <AnchorPane onMouseClicked="#onContentPaneClicked" styleClass="modal-popup" AnchorPane.bottomAnchor="50.0"
                   AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="50.0">
@@ -49,9 +49,13 @@
                                   <ImageView fx:id="thumbnailImageView" fitHeight="256.0" fitWidth="256.0"
                                              pickOnBounds="true" preserveRatio="true" GridPane.halignment="CENTER"
                                              GridPane.rowSpan="2147483647" GridPane.valignment="TOP"/>
-                                  <Label fx:id="nameLabel" maxWidth="1.7976931348623157E308" styleClass="h1"
-                                         text="&lt;Title&gt;" GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
-                                         GridPane.valignment="TOP"/>
+                                  <VBox GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
+                                        GridPane.hgrow="ALWAYS">
+                                      <children>
+                                          <Label fx:id="nameLabel" styleClass="h1" text="&lt;Title&gt;"/>
+                                          <Label fx:id="mapIdLabel" text="#&lt;id&gt;"/>
+                                      </children>
+                                  </VBox>
                                   <Label fx:id="dimensionsLabel" text="Label" GridPane.columnIndex="1"
                                          GridPane.rowIndex="2">
                                       <graphic>

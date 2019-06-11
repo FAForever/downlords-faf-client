@@ -79,6 +79,7 @@ public class MapDetailController implements Controller<Node> {
   public Button hideButton;
   public Button unrankButton;
   public HBox hideBox;
+  public Label mapIdLabel;
 
   private MapBean map;
   private ListChangeListener<MapBean> installStatusChangeListener;
@@ -178,6 +179,7 @@ public class MapDetailController implements Controller<Node> {
     nameLabel.setText(map.getDisplayName());
     authorLabel.setText(Optional.ofNullable(map.getAuthor()).orElse(i18n.get("map.unknownAuthor")));
     maxPlayersLabel.setText(i18n.number(map.getPlayers()));
+    mapIdLabel.setText(i18n.get("map.id", map.getId()));
 
     MapSize mapSize = map.getSize();
     dimensionsLabel.setText(i18n.get("mapPreview.size", mapSize.getWidthInKm(), mapSize.getHeightInKm()));

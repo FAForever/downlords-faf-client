@@ -3,6 +3,11 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/downlords-faf-client.iml" filepath="$PROJECT_DIR$/.idea/modules/downlords-faf-client.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/downlords-faf-client.main.iml" filepath="$PROJECT_DIR$/.idea/modules/downlords-faf-client.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/downlords-faf-client.test.iml" filepath="$PROJECT_DIR$/.idea/modules/downlords-faf-client.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/webview-patch/downlords-faf-client.webview-patch.iml" filepath="$PROJECT_DIR$/.idea/modules/webview-patch/downlords-faf-client.webview-patch.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/webview-patch/downlords-faf-client.webview-patch.main.iml" filepath="$PROJECT_DIR$/.idea/modules/webview-patch/downlords-faf-client.webview-patch.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/webview-patch/downlords-faf-client.webview-patch.test.iml" filepath="$PROJECT_DIR$/.idea/modules/webview-patch/downlords-faf-client.webview-patch.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/downlords-faf-client_main.iml" filepath="$PROJECT_DIR$/.idea/modules/downlords-faf-client_main.iml" group="downlords-faf-client" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/downlords-faf-client_test.iml" filepath="$PROJECT_DIR$/.idea/modules/downlords-faf-client_test.iml" group="downlords-faf-client" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/webview-patch/webview-patch.iml" filepath="$PROJECT_DIR$/.idea/modules/webview-patch/webview-patch.iml" group="webview-patch" />
