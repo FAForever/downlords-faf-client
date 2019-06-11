@@ -648,6 +648,12 @@
 
 .chat-user-list-view .list-cell {
   -fx-background-color: transparent;
+  -fx-padding: 1px 8px 1px 8px;
+}
+
+.chat-user-list-category {
+  -fx-padding: 20px 0px 10px 0px;
+  -fx-font-weight: bold;
 }
 
 /***************** Chat User Control *****************/
@@ -938,18 +944,10 @@
   -fx-border-color: -divider-color;
 }
 
-/***************** Presence status indicator *****************/
+/***************** Game status indicator *****************/
 
-.presence-status-indicator {
+.game-status-indicator {
   -fx-font-size: 0.8em;
-}
-
-.presence-status-indicator:online {
-  -fx-fill: -good;
-}
-
-.presence-status-indicator:idle {
-  -fx-fill: -warn;
 }
 
 /***************** Game Card *****************/
