@@ -83,7 +83,7 @@ public class PreferencesService implements InitializingBean {
 
     System.setProperty("logging.file", PreferencesService.FAF_DATA_DIRECTORY
         .resolve("logs")
-        .resolve("downlords-faf-client.log")
+        .resolve("official-faf-client.log")
         .toString());
 
     SLF4JBridgeHandler.removeHandlersForRootLogger();

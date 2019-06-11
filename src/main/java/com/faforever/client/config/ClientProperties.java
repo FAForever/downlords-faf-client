@@ -9,7 +9,7 @@ import java.time.Duration;
 @ConfigurationProperties(prefix = "faf-client", ignoreUnknownFields = false)
 public class ClientProperties {
 
-  private String mainWindowTitle = "Downlord's FAF Client";
+  private String mainWindowTitle = "Official FAF Client";
   private News news = new News();
   private ForgedAlliance forgedAlliance = new ForgedAlliance();
   private Irc irc = new Irc();

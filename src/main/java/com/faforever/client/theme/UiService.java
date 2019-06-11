@@ -109,7 +109,7 @@ public class UiService implements InitializingBean, DisposableBean {
 
   public static Theme DEFAULT_THEME = new Theme() {
     {
-      setAuthor("Downlord");
+      setAuthor("Forged Alliance Forever");
       setCompatibilityVersion(1);
       setDisplayName("Default");
       setThemeVersion("1.0");
