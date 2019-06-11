@@ -364,8 +364,8 @@ public class ChannelTabController extends AbstractChatTabController {
     if (cssClass.isEmpty()) {
       return;
     }
-    Platform.runLater(() -> getJsObject().call("removeUserMessageClass", String.format(USER_CSS_CLASS_FORMAT, chatUser.getUsername()), cssClass));
-
+    //Workaround for issue #1080 https://github.com/FAForever/downlords-faf-client/issues/1080
+    Platform.runLater(() -> engine.executeScript("removeUserMessageClass(\'" + String.format(USER_CSS_CLASS_FORMAT, chatUser.getUsername()) + "\',\'" + cssClass + "\');"));
   }
 
   private void addUserMessageClass(ChatChannelUser player, String cssClass) {
