@@ -254,6 +254,19 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
+  public List<Map> getMapsById(List<Integer> mapIdList, int count, int page) {
+    String filterCriteria = mapIdList.stream()
+        .map(Object::toString)
+        .collect(Collectors.joining(",", "latestVersion.map.id=in=(", ")"));
+
+    return getPage(MAP_ENDPOINT, count, page, ImmutableMap.of(
+        "include", "statistics,latestVersion,author,versions.reviews,versions.reviews.player",
+        "sort", "-updateTime",
+        "filter", filterCriteria
+    ));
+  }
+
+  @Override
   public List<Game> getLastGamesOnMap(int playerId, String mapVersionId, int count) {
     return getMany("/data/game", count, ImmutableMap.of(
         "filter", rsql(qBuilder()

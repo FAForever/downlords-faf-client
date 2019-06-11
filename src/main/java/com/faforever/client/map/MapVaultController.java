@@ -81,6 +81,7 @@ public class MapVaultController extends AbstractViewController<Node> {
   public Pane newestPane;
   public Pane mostPlayedPane;
   public Pane mostLikedPane;
+  public Pane recommendedPane;
   public StackPane mapVaultRoot;
   public ScrollPane scrollPane;
   public Button backButton;
@@ -158,6 +159,7 @@ public class MapVaultController extends AbstractViewController<Node> {
   private void displayShowroomMaps() {
     enterLoadingState();
     mapService.getMostPlayedMaps(TOP_ELEMENT_COUNT, 1).thenAccept(maps -> replaceSearchResult(maps, mostPlayedPane))
+        .thenCompose(aVoid -> mapService.getRecommendedMaps(TOP_ELEMENT_COUNT, 1)).thenAccept(maps -> replaceSearchResult(maps, recommendedPane))
         .thenCompose(aVoid -> mapService.getHighestRatedMaps(TOP_ELEMENT_COUNT, 1)).thenAccept(maps -> replaceSearchResult(maps, mostLikedPane))
         .thenCompose(aVoid -> mapService.getNewestMaps(TOP_ELEMENT_COUNT, 1)).thenAccept(maps -> replaceSearchResult(maps, newestPane))
         .thenCompose(aVoid -> mapService.getLadderMaps(TOP_ELEMENT_COUNT, 1).thenAccept(maps -> replaceSearchResult(maps, ladderPane)))
@@ -277,6 +279,11 @@ public class MapVaultController extends AbstractViewController<Node> {
   @Subscribe
   public void onMapUploaded(MapUploadedEvent event) {
     onRefreshButtonClicked();
+  }
+
+  public void showMoreRecommendedMaps() {
+    enterLoadingState();
+    displayMapsFromSupplier(() -> mapService.getRecommendedMaps(LOAD_MORE_COUNT, ++currentPage));
   }
 
   public void showMoreHighestRatedMaps() {

@@ -9,6 +9,7 @@ import java.util.List;
 // TODO since this class contains both, update info and configuration, the package 'update' doesn't really fit.
 public class ClientConfiguration {
   ReleaseInfo latestRelease;
+  List<Integer> recommendedMaps;
   List<Endpoints> endpoints;
 
   @Data

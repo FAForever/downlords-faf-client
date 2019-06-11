@@ -13,6 +13,8 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.update.ClientConfiguration;
+import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -32,6 +34,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.equalTo;
@@ -46,6 +50,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -186,5 +191,39 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
       instance.loadPreview("preview", previewSize);
       verify(assetService).loadAndCacheImage(any(URL.class), eq(cacheSubDir), any());
     }
+  }
+
+  @Test
+  public void testGetRecommendedMaps() throws Exception {
+    ClientConfiguration clientConfiguration = mock(ClientConfiguration.class);
+    List<Integer> recommendedMapIds = Lists.newArrayList(1, 2, 3);
+    when(clientConfiguration.getRecommendedMaps()).thenReturn(recommendedMapIds);
+    when(preferencesService.getRemotePreferences()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
+    when(fafService.getMapsById(recommendedMapIds, 10, 0)).thenReturn(CompletableFuture.completedFuture(null));
+
+    instance.getRecommendedMaps(10, 0);
+
+    verify(fafService).getMapsById(recommendedMapIds, 10, 0);
+  }
+
+  @Test
+  public void testGetHighestRatedMaps() {
+    when(fafService.getHighestRatedMaps(10, 0)).thenReturn(CompletableFuture.completedFuture(null));
+    instance.getHighestRatedMaps(10, 0);
+    verify(fafService).getHighestRatedMaps(10, 0);
+  }
+
+  @Test
+  public void testGetNewestMaps() {
+    when(fafService.getNewestMaps(10, 0)).thenReturn(CompletableFuture.completedFuture(null));
+    instance.getNewestMaps(10, 0);
+    verify(fafService).getNewestMaps(10, 0);
+  }
+
+  @Test
+  public void testGetMostPlayedMaps() {
+    when(fafService.getMostPlayedMaps(10, 0)).thenReturn(CompletableFuture.completedFuture(null));
+    instance.getMostPlayedMaps(10, 0);
+    verify(fafService).getMostPlayedMaps(10, 0);
   }
 }

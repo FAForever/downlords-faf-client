@@ -324,11 +324,18 @@ public class MapService implements InitializingBean, DisposableBean {
     return downloadAndInstallMap(map.getFolderName(), map.getDownloadUrl(), progressProperty, titleProperty);
   }
 
+  public CompletableFuture<List<MapBean>> getRecommendedMaps(int count, int page) {
+    return preferencesService.getRemotePreferences().thenCompose(
+        clientConfiguration -> {
+          List<Integer> recommendedMapIds =clientConfiguration.getRecommendedMaps();
+          return fafService.getMapsById(recommendedMapIds, count, page);
+        }
+    );
+  }
 
   public CompletableFuture<List<MapBean>> getHighestRatedMaps(int count, int page) {
     return fafService.getHighestRatedMaps(count, page);
   }
-
 
   public CompletableFuture<List<MapBean>> getNewestMaps(int count, int page) {
     return fafService.getNewestMaps(count, page);

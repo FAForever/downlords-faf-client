@@ -165,6 +165,13 @@ public class FafService {
   }
 
   @Async
+  public CompletableFuture<List<MapBean>> getMapsById(List<Integer> mapIdList, int count, int page) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getMapsById(mapIdList, count, page).stream()
+        .map(MapBean::fromMapDto)
+        .collect(toList()));
+  }
+
+  @Async
   public CompletableFuture<List<MapBean>> getHighestRatedMaps(int count, int page) {
     return CompletableFuture.completedFuture(fafApiAccessor.getHighestRatedMaps(count, page).stream()
         .map(MapBean::fromMapDto)
