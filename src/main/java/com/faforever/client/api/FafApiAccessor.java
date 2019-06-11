@@ -61,6 +61,8 @@ public interface FafApiAccessor {
 
   List<GamePlayerStats> getGamePlayerStats(int playerId, KnownFeaturedMod knownFeaturedMod);
 
+  List<Map> getMapsById(List<Integer> mapIdList, int count, int page);
+
   List<Map> getMostPlayedMaps(int count, int page);
 
   List<Map> getHighestRatedMaps(int count, int page);

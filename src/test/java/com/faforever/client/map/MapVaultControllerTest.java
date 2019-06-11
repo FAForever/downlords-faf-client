@@ -120,6 +120,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
       );
     }
 
+    when(mapService.getRecommendedMaps(anyInt(), eq(1))).thenReturn(CompletableFuture.completedFuture(maps));
     when(mapService.getHighestRatedMaps(anyInt(), eq(1))).thenReturn(CompletableFuture.completedFuture(maps));
     when(mapService.getNewestMaps(anyInt(), eq(1))).thenReturn(CompletableFuture.completedFuture(maps));
     when(mapService.getMostPlayedMaps(anyInt(), eq(1))).thenReturn(CompletableFuture.completedFuture(maps));

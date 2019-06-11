@@ -126,6 +126,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
+  public List<Map> getMapsById(List<Integer> mapIdList, int count, int page) {
+    return Collections.emptyList();
+  }
+
+  @Override
   public List<Map> getMostPlayedMaps(int count, int page) {
     return Collections.emptyList();
   }
