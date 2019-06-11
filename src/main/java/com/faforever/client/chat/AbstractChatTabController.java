@@ -140,7 +140,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private String receiver;
   private Pattern mentionPattern;
   private ChatMessage lastMessage;
-  private WebEngine engine;
+  WebEngine engine;
 
   @Inject
   // TODO cut dependencies
