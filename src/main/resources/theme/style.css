@@ -873,13 +873,6 @@
 
 /***************** Login *****************/
 
-.login-root {
-  -fx-background-image: url('images/login-background.jpg');
-  -fx-background-repeat: no-repeat;
-  -fx-background-position: center;
-  -fx-background-size: cover, auto;
-}
-
 .login-logo {
   -fx-font-size: 12em;
 }
