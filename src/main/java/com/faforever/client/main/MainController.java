@@ -457,6 +457,9 @@ public class MainController implements Controller<Node> {
           BackgroundSize.DEFAULT
       )));
     }
+    else{
+      mainRoot.setBackground(EMPTY);
+    }
   }
 
   private void enterLoggedInState() {
