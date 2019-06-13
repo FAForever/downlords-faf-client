@@ -366,7 +366,14 @@ public class ChannelTabController extends AbstractChatTabController {
       return;
     }
     //Workaround for issue #1080 https://github.com/FAForever/downlords-faf-client/issues/1080
-    Platform.runLater(() -> engine.executeScript("removeUserMessageClass(\'" + String.format(USER_CSS_CLASS_FORMAT, chatUser.getUsername()) + "\',\'" + cssClass + "\');"));
+    Platform.runLater(() -> {
+      try {
+        engine.executeScript("removeUserMessageClass(\'" + String.format(USER_CSS_CLASS_FORMAT, chatUser.getUsername()) + "\',\'" + cssClass + "\');");
+      } catch (Exception ignored) {
+        //before with "getJsObject().call..." if the engine was not yet loaded the Exception was ignored and hence I know to the same
+        //TODO: only accept calls after the engine loaded the page completely
+      }
+    });
   }
 
   private void addUserMessageClass(ChatChannelUser player, String cssClass) {
