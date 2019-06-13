@@ -469,7 +469,7 @@ public class SettingsController implements Controller<Node> {
   }
 
   public void onUseNoBackgroundImage(ActionEvent actionEvent) {
-    preferencesService.getPreferences().getMainWindow().setBackgroundImagePath(Paths.get("/useNoImage"));
+    preferencesService.getPreferences().getMainWindow().setBackgroundImagePath(null);
     preferencesService.storeInBackground();
   }
 }
