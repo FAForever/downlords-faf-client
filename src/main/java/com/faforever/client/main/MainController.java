@@ -447,19 +447,16 @@ public class MainController implements Controller<Node> {
 
   private void setBackgroundImage(Path filepath) {
     Image image;
-    if (filepath == null || filepath.toString().isEmpty()) {
-      image = new Image(uiService.getThemeFile("theme/images/login-background.jpg"));
-    } else {
+    if (filepath != null && !filepath.toString().isEmpty()) {
       image = noCatch(() -> new Image(filepath.toUri().toURL().toExternalForm()));
+      mainRoot.setBackground(new Background(new BackgroundImage(
+          image,
+          BackgroundRepeat.NO_REPEAT,
+          BackgroundRepeat.NO_REPEAT,
+          BackgroundPosition.CENTER,
+          BackgroundSize.DEFAULT
+      )));
     }
-    mainRoot.setBackground(new Background(new BackgroundImage(
-        image,
-        BackgroundRepeat.NO_REPEAT,
-        BackgroundRepeat.NO_REPEAT,
-        BackgroundPosition.CENTER,
-        BackgroundSize.DEFAULT
-    )));
-
   }
 
   private void enterLoggedInState() {
