@@ -9,6 +9,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -23,7 +24,7 @@ public class ForgedAlliancePrefs {
     if (org.bridj.Platform.isWindows()) {
       GPG_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
       //If steam is every swapped to a 64x client, needs to be updated to proper directory or handling must be put in place.
-      STEAM_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PROGRAM_FILESX86), "Steam", "SteamApps", "common", "Supreme Commander Forged Alliance");
+      STEAM_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PROGRAM_FILESX86), "Steam", "steamapps", "common", "Supreme Commander Forged Alliance");
       LOCAL_FA_DATA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_LOCAL_APPDATA), "Gas Powered Games", "Supreme Commander Forged Alliance");
     } else {
       String userHome = System.getProperty("user.home");
@@ -59,7 +60,11 @@ public class ForgedAlliancePrefs {
 
   public ForgedAlliancePrefs() {
     forceRelay = new SimpleBooleanProperty(false);
-    path = new SimpleObjectProperty<>();
+    if (Files.isRegularFile(STEAM_FA_PATH.resolve("bin").resolve(PreferencesService.SUPREME_COMMANDER_EXE))) {
+      path = new SimpleObjectProperty<>(STEAM_FA_PATH);
+    } else {
+      path = new SimpleObjectProperty<>();
+    }
     installationPath = new SimpleObjectProperty<>();
     customMapsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("Maps"));
     officialMapsDirectory = new SimpleObjectProperty<>(STEAM_FA_PATH.resolve("Maps"));
