@@ -1,6 +1,7 @@
 package com.faforever.client.login;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.config.ClientProperties.Replay;
 import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.fx.Controller;
@@ -8,20 +9,24 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.update.ClientConfiguration;
 import com.faforever.client.update.ClientConfiguration.Endpoints;
 import com.faforever.client.user.UserService;
 import com.google.common.base.Strings;
 import com.jfoenix.controls.JFXButton;
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.util.StringConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +55,7 @@ public class LoginController implements Controller<Node> {
   public CheckBox autoLoginCheckBox;
   public TextField usernameInput;
   public TextField passwordInput;
+  public ComboBox<ClientConfiguration.Endpoints> environmentComboBox;
   public Button loginButton;
   public Label loginErrorLabel;
   public Pane loginRoot;
@@ -58,6 +64,8 @@ public class LoginController implements Controller<Node> {
   public TextField serverPortField;
   public TextField replayServerHostField;
   public TextField replayServerPortField;
+  public TextField ircServerHostField;
+  public TextField ircServerPortField;
   public TextField apiBaseUrlField;
   public JFXButton serverStatusButton;
 
@@ -88,24 +96,56 @@ public class LoginController implements Controller<Node> {
     serverStatusButton.managedProperty().bind(serverStatusButton.visibleProperty());
     serverStatusButton.setVisible(clientProperties.getStatusPageUrl() != null);
 
+    // fallback values if configuration is not read from remote
     populateEndpointFields(
         clientProperties.getServer().getHost(),
         clientProperties.getServer().getPort(),
         clientProperties.getReplay().getRemoteHost(),
         clientProperties.getReplay().getRemotePort(),
+        clientProperties.getIrc().getHost(),
+        clientProperties.getIrc().getPort(),
         clientProperties.getApi().getBaseUrl()
     );
+
+    environmentComboBox.setConverter(new StringConverter<>() {
+      @Override
+      public String toString(Endpoints endpoints) {
+        return endpoints == null ? null : endpoints.getName();
+      }
+
+      @Override
+      public Endpoints fromString(String string) {
+        throw new UnsupportedOperationException("Not supported");
+      }
+    });
+
+    ReadOnlyObjectProperty<Endpoints> selectedEndpointProperty = environmentComboBox.getSelectionModel().selectedItemProperty();
+
+    selectedEndpointProperty.addListener(observable -> {
+      Endpoints endpoints = environmentComboBox.getSelectionModel().getSelectedItem();
+
+      if (endpoints == null) {
+        return;
+      }
+
+      serverHostField.setText(endpoints.getLobby().getHost());
+      serverPortField.setText(String.valueOf(endpoints.getLobby().getPort()));
+
+      replayServerHostField.setText(endpoints.getLiveReplay().getHost());
+      replayServerPortField.setText(String.valueOf(endpoints.getLiveReplay().getPort()));
+
+      ircServerHostField.setText(endpoints.getIrc().getHost());
+      ircServerPortField.setText(String.valueOf(endpoints.getIrc().getPort()));
+
+      apiBaseUrlField.setText(endpoints.getApi().getUrl());
+    });
+
 
     if (clientProperties.isUseRemotePreferences()) {
       preferencesService.getRemotePreferences().thenAccept(clientConfiguration -> {
         Endpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
-        populateEndpointFields(
-            defaultEndpoint.getLobby().getHost(),
-            clientConfiguration.getEndpoints().get(0).getLobby().getPort(),
-            clientConfiguration.getEndpoints().get(0).getLiveReplay().getHost(),
-            clientConfiguration.getEndpoints().get(0).getLiveReplay().getPort(),
-            clientConfiguration.getEndpoints().get(0).getApi().getUrl()
-        );
+        environmentComboBox.getItems().addAll(clientConfiguration.getEndpoints());
+        environmentComboBox.getSelectionModel().select(defaultEndpoint);
       }).exceptionally(throwable -> {
         log.warn("Could not read remote preferences");
         return null;
@@ -118,6 +158,8 @@ public class LoginController implements Controller<Node> {
       int serverPort,
       String replayServerHost,
       int replayServerPort,
+      String ircServerHost,
+      int ircServerPort,
       String apiBaseUrl
   ) {
     JavaFxUtil.runLater(() -> {
@@ -125,6 +167,8 @@ public class LoginController implements Controller<Node> {
       serverPortField.setText(String.valueOf(serverPort));
       replayServerHostField.setText(replayServerHost);
       replayServerPortField.setText(String.valueOf(replayServerPort));
+      ircServerHostField.setText(ircServerHost);
+      ircServerPortField.setText(String.valueOf(ircServerPort));
       apiBaseUrlField.setText(apiBaseUrl);
     });
   }
@@ -197,6 +241,10 @@ public class LoginController implements Controller<Node> {
     Replay replay = clientProperties.getReplay();
     replay.setRemoteHost(replayServerHostField.getText());
     replay.setRemotePort(Integer.parseInt(replayServerPortField.getText()));
+
+    Irc irc = clientProperties.getIrc();
+    irc.setHost(ircServerHostField.getText());
+    irc.setPort(Integer.parseInt(ircServerPortField.getText()));
 
     clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
 

@@ -60,11 +60,11 @@ import org.pircbotx.hooks.events.QuitEvent;
 import org.pircbotx.hooks.events.TopicEvent;
 import org.pircbotx.hooks.events.UserListEvent;
 import org.pircbotx.hooks.types.GenericEvent;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.DisposableBean;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -118,10 +118,8 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
   private final PircBotXFactory pircBotXFactory;
   private final ThreadPoolExecutor threadPoolExecutor;
   private final EventBus eventBus;
-  private final String ircHost;
-  private final int ircPort;
-  private final String defaultChannelName;
-  private final int reconnectDelay;
+  private final ClientProperties clientProperties;
+  private String defaultChannelName;
 
   private Configuration configuration;
   private PircBotX pircBotX;
@@ -152,12 +150,7 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
     this.pircBotXFactory = pircBotXFactory;
     this.threadPoolExecutor = threadPoolExecutor;
     this.eventBus = eventBus;
-
-    Irc irc = clientProperties.getIrc();
-    this.ircHost = irc.getHost();
-    this.ircPort = irc.getPort();
-    this.defaultChannelName = irc.getDefaultChannel();
-    this.reconnectDelay = irc.getReconnectDelay();
+    this.clientProperties = clientProperties;
 
     connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
     eventListeners = new ConcurrentHashMap<>();
@@ -368,18 +361,21 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
   private void init() {
     String username = userService.getUsername();
 
+    Irc irc = clientProperties.getIrc();
+    this.defaultChannelName = irc.getDefaultChannel();
+
     configuration = new Configuration.Builder()
         .setName(username)
         .setLogin(String.valueOf(userService.getUserId()))
         .setRealName(username)
-        .addServer(ircHost, ircPort)
+        .addServer(irc.getHost(), irc.getPort())
         .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
         .setAutoSplitMessage(true)
         .setEncoding(UTF_8)
         .addListener(this::onEvent)
         .setSocketTimeout(SOCKET_TIMEOUT)
         .setMessageDelay(new StaticDelay(0))
-        .setAutoReconnectDelay(new StaticDelay(reconnectDelay))
+        .setAutoReconnectDelay(new StaticDelay(irc.getReconnectDelay()))
         .setNickservPassword(getPassword())
         .setAutoReconnect(true)
         .buildConfiguration();
