@@ -2,6 +2,7 @@
 
 <?import com.jfoenix.controls.JFXButton?>
 <?import com.jfoenix.controls.JFXCheckBox?>
+<?import com.jfoenix.controls.JFXComboBox?>
 <?import com.jfoenix.controls.JFXPasswordField?>
 <?import com.jfoenix.controls.JFXSpinner?>
 <?import com.jfoenix.controls.JFXTextField?>
@@ -15,8 +16,8 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 <?import java.lang.String?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="loginRoot" maxHeight="1.7976931348623157E308"
-      maxWidth="1.7976931348623157E308" styleClass="login-root" xmlns="http://javafx.com/javafx/8.0.141"
+<VBox fx:id="loginRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="login-root"
+      xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.faforever.client.login.LoginController">
   <children>
       <VBox alignment="CENTER" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
@@ -63,12 +64,24 @@
                           </Label>
                           <JFXTextField fx:id="usernameInput" minWidth="100.0" promptText="%login.name"/>
                           <JFXPasswordField fx:id="passwordInput" minWidth="100.0" promptText="%login.password"/>
+                          <HBox>
+                              <children>
+                                  <Label maxHeight="1.7976931348623157E308" text="%login.environment">
+                                      <HBox.margin>
+                                          <Insets right="10.0"/>
+                                      </HBox.margin>
+                                  </Label>
+                                  <JFXComboBox fx:id="environmentComboBox" maxWidth="1.7976931348623157E308"
+                                               HBox.hgrow="ALWAYS"/>
+                              </children>
+                          </HBox>
                           <GridPane fx:id="serverConfigPane" vgap="5.0">
                               <columnConstraints>
                                   <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0"/>
                                   <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
                               </columnConstraints>
                               <rowConstraints>
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
                                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
                                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
                                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
@@ -82,8 +95,13 @@
                                   <JFXTextField fx:id="replayServerPortField" layoutX="310.0" layoutY="7.0"
                                                 prefColumnCount="6" promptText="%port" GridPane.columnIndex="1"
                                                 GridPane.rowIndex="1"/>
-                                  <JFXTextField fx:id="apiBaseUrlField" prefColumnCount="6" promptText="%login.apiBaseUrl"
-                                                GridPane.columnSpan="2147483647" GridPane.rowIndex="2"/>
+                                  <JFXTextField fx:id="apiBaseUrlField" prefColumnCount="6"
+                                                promptText="%login.apiBaseUrl" GridPane.columnSpan="2147483647"
+                                                GridPane.rowIndex="3"/>
+                                  <JFXTextField fx:id="ircServerHostField" promptText="%login.ircServerHost"
+                                                GridPane.rowIndex="2"/>
+                                  <JFXTextField fx:id="ircServerPortField" promptText="%port" GridPane.columnIndex="1"
+                                                GridPane.rowIndex="2"/>
                               </children>
                               <VBox.margin>
                                   <Insets top="20.0"/>
