@@ -123,6 +123,7 @@ public class GameService implements InitializingBean {
   private final ModService modService;
   private final PlatformService platformService;
   private final String faWindowTitle;
+  private final DiscordRichPresenceService discordRichPresenceService;
 
   //TODO: circular reference
   @Inject
@@ -156,6 +157,7 @@ public class GameService implements InitializingBean {
     this.iceAdapter = iceAdapter;
     this.modService = modService;
     this.platformService = platformService;
+    this.discordRichPresenceService = discordRichPresenceService;
 
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
     uidToGameInfoBean = FXCollections.observableMap(new ConcurrentHashMap<>());
@@ -164,50 +166,19 @@ public class GameService implements InitializingBean {
 
     currentGame = new SimpleObjectProperty<>();
 
-    InvalidationListener numberOfPlayersChangedListener = new InvalidationListener() {
-      @Override
-      public void invalidated(Observable observable) {
-        if (currentGame.get() == null) {
-          observable.removeListener(this);
-          return;
-        }
-        final Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player must be set"));
-        discordRichPresenceService.updatePlayedGameTo(currentGame.get(), currentPlayer.getId(), currentPlayer.getUsername());
-      }
-    };
-
-    ChangeListener<GameStatus> currentGameStatusListener = new ChangeListener<>() {
-      @Override
-      public void changed(ObservableValue<? extends GameStatus> observable1, GameStatus oldStatus, GameStatus newStatus) {
-        if (currentGame.get() == null) {
-          observable1.removeListener(this);
-          return;
-        }
-        final Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player must be set"));
-        discordRichPresenceService.updatePlayedGameTo(currentGame.get(), currentPlayer.getId(), currentPlayer.getUsername());
-        if (oldStatus == GameStatus.PLAYING && newStatus == GameStatus.CLOSED) {
-          GameService.this.onCurrentGameEnded();
-        }
-        if (newStatus == GameStatus.CLOSED) {
-          currentGame.get().statusProperty().removeListener(this);
-          currentGame.get().numPlayersProperty().removeListener(numberOfPlayersChangedListener);
-        }
-      }
-    };
-
     currentGame.addListener((observable, oldValue, newValue) -> {
       if (newValue == null) {
         discordRichPresenceService.clearGameInfo();
         return;
       }
 
-      JavaFxUtil.removeListener(newValue.numPlayersProperty(), numberOfPlayersChangedListener);
-      numberOfPlayersChangedListener.invalidated(newValue.numPlayersProperty());
-      JavaFxUtil.addListener(newValue.numPlayersProperty(), numberOfPlayersChangedListener);
+      InvalidationListener listener = generateNumberOfPlayersChangeListener(newValue);
+      JavaFxUtil.addListener(newValue.numPlayersProperty(), listener);
+      listener.invalidated(newValue.numPlayersProperty());
 
-      JavaFxUtil.removeListener(newValue.statusProperty(), currentGameStatusListener);
-      currentGameStatusListener.changed(newValue.statusProperty(), newValue.getStatus(), newValue.getStatus());
-      JavaFxUtil.addListener(newValue.statusProperty(), currentGameStatusListener);
+      ChangeListener<GameStatus> statusChangeListener = generateGameStatusListener(newValue);
+      JavaFxUtil.addListener(newValue.statusProperty(), statusChangeListener);
+      statusChangeListener.changed(newValue.statusProperty(), newValue.getStatus(), newValue.getStatus());
     });
 
     games = FXCollections.observableList(new ArrayList<>(),
@@ -231,6 +202,55 @@ public class GameService implements InitializingBean {
       }
     });
     JavaFxUtil.attachListToMap(games, uidToGameInfoBean);
+  }
+
+  @NotNull
+  private InvalidationListener generateNumberOfPlayersChangeListener(Game game) {
+    return new InvalidationListener() {
+      @Override
+      public void invalidated(Observable observable) {
+        if (currentGame.get() == null || !Objects.equals(game, currentGame.get())) {
+          observable.removeListener(this);
+          return;
+        }
+        final Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player must be set"));
+        discordRichPresenceService.updatePlayedGameTo(currentGame.get(), currentPlayer.getId(), currentPlayer.getUsername());
+      }
+    };
+  }
+
+  @NotNull
+  private ChangeListener<GameStatus> generateGameStatusListener(Game game) {
+    return new ChangeListener<>() {
+      @Override
+      public void changed(ObservableValue<? extends GameStatus> observable, GameStatus oldStatus, GameStatus newStatus) {
+        if (observable.getValue() == GameStatus.CLOSED) {
+          observable.removeListener(this);
+        }
+
+        Player currentPlayer = getCurrentPlayer();
+        boolean playerStillInGame = game.getTeams().entrySet().stream()
+            .flatMap(stringListEntry -> stringListEntry.getValue().stream())
+            .anyMatch(playerName -> playerName.equals(currentPlayer.getUsername()));
+
+        /*
+          Check if player left the game while it was open, in this case we don't care any longer
+         */
+        if (newStatus == GameStatus.PLAYING && oldStatus == GameStatus.OPEN && !playerStillInGame) {
+          observable.removeListener(this);
+          return;
+        }
+
+        if (oldStatus == GameStatus.PLAYING && newStatus == GameStatus.CLOSED) {
+          GameService.this.onRecentlyPlayedGameEnded(game);
+          return;
+        }
+
+        if (Objects.equals(currentGame.get(), game)) {
+          discordRichPresenceService.updatePlayedGameTo(currentGame.get(), currentPlayer.getId(), currentPlayer.getUsername());
+        }
+      }
+    };
   }
 
   public ReadOnlyBooleanProperty gameRunningProperty() {
@@ -482,25 +502,24 @@ public class GameService implements InitializingBean {
         });
   }
 
-  private void onCurrentGameEnded() {
+  private void onRecentlyPlayedGameEnded(Game game) {
     NotificationsPrefs notification = preferencesService.getPreferences().getNotification();
     if (!notification.isAfterGameReviewEnabled() || !notification.isTransientNotificationsEnabled()) {
       return;
     }
 
-    synchronized (currentGame) {
-      int id = currentGame.get().getId();
-      notificationService.addNotification(new PersistentNotification(i18n.get("game.ended", currentGame.get().getTitle()),
-          Severity.INFO,
-          singletonList(new Action(i18n.get("game.rate"), actionEvent -> replayService.findById(id)
-              .thenAccept(replay -> Platform.runLater(() -> {
-                if (replay.isPresent()) {
-                  eventBus.post(new ShowReplayEvent(replay.get()));
-                } else {
-                  notificationService.addNotification(new ImmediateNotification(i18n.get("replay.notFoundTitle"), i18n.get("replay.replayNotFoundText", id), Severity.WARN));
-                }
-              }))))));
-    }
+    int id = game.getId();
+    notificationService.addNotification(new PersistentNotification(i18n.get("game.ended", game.getTitle()),
+        Severity.INFO,
+        singletonList(new Action(i18n.get("game.rate"), actionEvent -> replayService.findById(id)
+            .thenAccept(replay -> Platform.runLater(() -> {
+              if (replay.isPresent()) {
+                eventBus.post(new ShowReplayEvent(replay.get()));
+              } else {
+                notificationService.addNotification(new ImmediateNotification(i18n.get("replay.notFoundTitle"), i18n.get("replay.replayNotFoundText", id), Severity.WARN));
+              }
+            }))))));
+
   }
 
   /**
@@ -602,20 +621,14 @@ public class GameService implements InitializingBean {
 
     Game game = createOrUpdateGame(gameInfoMessage);
     if (GameStatus.CLOSED == game.getStatus()) {
-      if (!currentPlayerOptional.isPresent() || currentPlayerOptional.get().getGame() != game) {
-        removeGame(gameInfoMessage);
+      removeGame(gameInfoMessage);
+      if (!currentPlayerOptional.isPresent() || !Objects.equals(currentGame.get(), game)) {
         return;
       }
+      synchronized (currentGame) {
+        currentGame.set(null);
+      }
 
-      // Don't remove the game until the current player closed it. TODO: Why?
-      JavaFxUtil.addListener(currentPlayerOptional.get().gameProperty(), (observable, oldValue, newValue) -> {
-        if (newValue == null && oldValue.getStatus() == GameStatus.CLOSED) {
-          removeGame(gameInfoMessage);
-          synchronized (currentGame) {
-            currentGame.set(null);
-          }
-        }
-      });
     }
 
     if (currentPlayerOptional.isPresent()) {
