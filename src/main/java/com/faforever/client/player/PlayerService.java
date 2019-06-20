@@ -26,6 +26,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.InitializingBean;
@@ -42,6 +43,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static com.faforever.client.player.SocialStatus.FOE;
 import static com.faforever.client.player.SocialStatus.FRIEND;
@@ -49,6 +51,7 @@ import static com.faforever.client.player.SocialStatus.OTHER;
 import static com.faforever.client.player.SocialStatus.SELF;
 
 @Service
+@Slf4j
 public class PlayerService implements InitializingBean {
 
   private final ObservableMap<String, Player> playersByName;
@@ -97,14 +100,16 @@ public class PlayerService implements InitializingBean {
     Game game = event.getGame();
     ObservableMap<String, List<String>> teams = game.getTeams();
     synchronized (teams) {
-      teams.forEach((team, players) -> updateGamePlayers(players, null));
+      List<String> playersInGame = teams.entrySet().stream().flatMap(stringListEntry -> stringListEntry.getValue().stream()).collect(Collectors.toList());
+      updateGamePlayers(playersInGame, null);
     }
   }
 
   private void updateGameForPlayersInGame(Game game) {
     ObservableMap<String, List<String>> teams = game.getTeams();
     synchronized (teams) {
-      teams.forEach((team, players) -> updateGamePlayers(players, game));
+      List<String> playersInGame = teams.entrySet().stream().flatMap(stringListEntry -> stringListEntry.getValue().stream()).collect(Collectors.toList());
+      updateGamePlayers(playersInGame, game);
     }
   }
 
@@ -139,43 +144,39 @@ public class PlayerService implements InitializingBean {
     Optional.ofNullable(playerForUsername).ifPresent(player -> player.setIdleSince(Instant.now()));
   }
 
-  private void updateGamePlayers(List<String> players, Game game) {
-    players.stream()
+  private void updateGamePlayers(List<String> currentPlayers, Game game) {
+    currentPlayers.stream()
         .map(this::getPlayerForUsername)
         .filter(Optional::isPresent)
         .map(Optional::get)
         .forEach(player -> {
           resetIdleTime(player);
-          updateGameToPlayer(game, player);
-          if (game == null || game.getStatus() == GameStatus.CLOSED) {
-            player.setGame(null);
-          } else {
-            player.setGame(game);
-            if ((player.getGame() == null || !player.getGame().equals(game)) && player.getSocialStatus() == FRIEND && game.getStatus() == GameStatus.OPEN) {
-              eventBus.post(new FriendJoinedGameEvent(player, game));
-            }
-          }
+          updateGameDataForPlayer(game, player);
         });
 
+    //We need to see if anybody dropped out of games
     if (game != null && game.getStatus() != GameStatus.CLOSED && playersByGame.get(game.getId()) != null) {
-      playersByGame.get(game.getId()).stream()
-          .forEach(player -> {
-            boolean stillInGame = game.getTeams().entrySet().stream()
-                .anyMatch(entry -> entry.getValue().contains(player.getUsername()));
-            if (!stillInGame) {
-              player.setGame(null);
-            }
-          });
+      List<Player> playersThatLeftTheGame = new ArrayList<>();
+      List<Player> previousPlayersFromGame = playersByGame.get(game.getId());
+      for (Player player : previousPlayersFromGame) {
+        if (!currentPlayers.contains(player.getUsername())) {
+          player.setGame(null);
+          playersThatLeftTheGame.add(player);
+        }
+      }
+      previousPlayersFromGame.removeAll(playersThatLeftTheGame);
     }
   }
 
-  private void updateGameToPlayer(Game game, Player player) {
+  private void updateGameDataForPlayer(Game game, Player player) {
     if (game == null) {
+      player.setGame(null);
       return;
     }
 
     if (game.getStatus() == GameStatus.CLOSED) {
       playersByGame.remove(game.getId());
+      player.setGame(null);
       return;
     }
 
@@ -183,7 +184,13 @@ public class PlayerService implements InitializingBean {
       playersByGame.put(game.getId(), new ArrayList<>());
     }
 
-    playersByGame.get(game.getId()).add(player);
+    if (!playersByGame.get(game.getId()).contains(player)) {
+      player.setGame(game);
+      playersByGame.get(game.getId()).add(player);
+      if (player.getSocialStatus() == FRIEND && game.getStatus() == GameStatus.OPEN) {
+        eventBus.post(new FriendJoinedGameEvent(player, game));
+      }
+    }
   }
 
 
