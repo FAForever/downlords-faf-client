@@ -3,6 +3,7 @@ package com.faforever.client.login;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Website;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -13,13 +14,18 @@ import org.mockito.Mock;
 
 import java.util.concurrent.CompletableFuture;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class LoginControllerTest extends AbstractPlainJavaFxTest {
+  public static final String LOGIN_WITH_EMAIL_WARNING_KEY = "login.withEmailWarning";
+
   private LoginController instance;
   @Mock
   private PreferencesService preferencesService;
@@ -27,14 +33,17 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
   private UserService userService;
   @Mock
   private PlatformService platformService;
+  @Mock
+  private I18n i18n;
 
   @Before
   public void setUp() throws Exception {
     ClientProperties clientProperties = new ClientProperties();
 
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
+    when(i18n.get(LOGIN_WITH_EMAIL_WARNING_KEY)).thenReturn(LOGIN_WITH_EMAIL_WARNING_KEY);
 
-    instance = new LoginController(userService, preferencesService, platformService, clientProperties);
+    instance = new LoginController(userService, preferencesService, platformService, clientProperties, i18n);
 
     Website website = clientProperties.getWebsite();
     website.setCreateAccountUrl("create");
@@ -75,5 +84,16 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     instance.forgotLoginClicked();
 
     verify(platformService).showDocument("forgot");
+  }
+
+  @Test
+  public void testUsernameEmailWarning() {
+    instance.usernameInput.setText("test@example.com");
+    instance.passwordInput.setText("foo");
+    instance.loginButton.fire();
+    verify(i18n).get(LOGIN_WITH_EMAIL_WARNING_KEY);
+    verifyZeroInteractions(userService);
+    assertThat(instance.loginErrorLabel.isVisible(), is(true));
+    assertThat(instance.loginErrorLabel.getText(), is(LOGIN_WITH_EMAIL_WARNING_KEY));
   }
 }
