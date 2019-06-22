@@ -46,7 +46,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 @Slf4j
 public class LoginController implements Controller<Node> {
 
-  private static final Pattern emailRegex = Pattern.compile(".*[@].*[.].*");
+  private static final Pattern EMAIL_REGEX = Pattern.compile(".*[@].*[.].*");
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final UserService userService;
   private final PreferencesService preferencesService;
@@ -207,7 +207,7 @@ public class LoginController implements Controller<Node> {
 
   private void login(String username, String password, boolean autoLogin) {
     setShowLoginProgress(true);
-    if (emailRegex.matcher(username).matches()) {
+    if (EMAIL_REGEX.matcher(username).matches()) {
       onLoginWithEmail();
       return;
     }

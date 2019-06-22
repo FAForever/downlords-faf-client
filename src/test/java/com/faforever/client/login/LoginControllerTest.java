@@ -18,6 +18,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -95,5 +96,15 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     verifyZeroInteractions(userService);
     assertThat(instance.loginErrorLabel.isVisible(), is(true));
     assertThat(instance.loginErrorLabel.getText(), is(LOGIN_WITH_EMAIL_WARNING_KEY));
+  }
+
+  @Test
+  public void testLoginSucceeds() {
+    instance.usernameInput.setText("test");
+    instance.passwordInput.setText("foo");
+    instance.autoLoginCheckBox.setSelected(true);
+    when(userService.login(eq("test"), eq("foo"), eq(true))).thenReturn(CompletableFuture.completedFuture(null));
+    instance.loginButton.fire();
+    assertThat(instance.loginErrorLabel.isVisible(), is(false));
   }
 }
