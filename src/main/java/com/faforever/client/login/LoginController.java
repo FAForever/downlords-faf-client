@@ -7,6 +7,7 @@ import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.update.ClientConfiguration;
@@ -36,6 +37,7 @@ import org.springframework.stereotype.Component;
 
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.CancellationException;
+import java.util.regex.Pattern;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -44,11 +46,13 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 @Slf4j
 public class LoginController implements Controller<Node> {
 
+  private static final Pattern emailRegex = Pattern.compile(".*[@].*[.].*");
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final UserService userService;
   private final PreferencesService preferencesService;
   private final PlatformService platformService;
   private final ClientProperties clientProperties;
+  private final I18n i18n;
 
   public Pane loginFormPane;
   public Pane loginProgressPane;
@@ -73,12 +77,13 @@ public class LoginController implements Controller<Node> {
       UserService userService,
       PreferencesService preferencesService,
       PlatformService platformService,
-      ClientProperties clientProperties
-  ) {
+      ClientProperties clientProperties,
+      I18n i18n) {
     this.userService = userService;
     this.preferencesService = preferencesService;
     this.platformService = platformService;
     this.clientProperties = clientProperties;
+    this.i18n = i18n;
   }
 
   public void initialize() {
@@ -202,12 +207,21 @@ public class LoginController implements Controller<Node> {
 
   private void login(String username, String password, boolean autoLogin) {
     setShowLoginProgress(true);
-
+    if (emailRegex.matcher(username).matches()) {
+      onLoginWithEmail();
+      return;
+    }
     userService.login(username, password, autoLogin)
         .exceptionally(throwable -> {
           onLoginFailed(throwable);
           return null;
         });
+  }
+
+  private void onLoginWithEmail() {
+    loginErrorLabel.setText(i18n.get("login.withEmailWarning"));
+    loginErrorLabel.setVisible(true);
+    setShowLoginProgress(false);
   }
 
   private void onLoginFailed(Throwable e) {
