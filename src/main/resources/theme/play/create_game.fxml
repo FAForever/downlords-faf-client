@@ -104,7 +104,7 @@
         <HBox alignment="CENTER" spacing="5.0" GridPane.columnIndex="2" GridPane.halignment="CENTER"
               GridPane.rowIndex="7">
             <JFXButton mnemonicParsing="false" onAction="#onRandomMapButtonClicked" text="%game.create.randomMap" />
-            <JFXButton visible="false" mnemonicParsing="false" onAction="#onGenerateMapButtonClicked"
+            <JFXButton mnemonicParsing="false" onAction="#onGenerateMapButtonClicked"
                        text="%game.create.generatedMap"/>
         </HBox>
         <ListView fx:id="modListView" maxHeight="1.7976931348623157E308" prefHeight="100.0" GridPane.columnIndex="1" GridPane.rowIndex="4" GridPane.rowSpan="3" GridPane.vgrow="ALWAYS" />
