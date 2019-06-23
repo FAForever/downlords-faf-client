@@ -609,18 +609,20 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     }
 
     Optional<Player> playerOptional = playerService.getPlayerForUsername(chatMessage.getUsername());
-    String identiconSource = playerOptional.map(player -> String.valueOf(player.getId())).orElseGet(chatMessage::getUsername);
+    String identIconSource = playerOptional.map(player -> String.valueOf(player.getId())).orElseGet(chatMessage::getUsername);
 
-    notificationService.addNotification(new TransientNotification(
-        chatMessage.getUsername(),
-        chatMessage.getMessage(),
-        IdenticonUtil.createIdenticon(identiconSource),
-        event -> {
-          eventBus.post(new NavigateEvent(NavigationItem.CHAT));
-          stage.toFront();
-          getRoot().getTabPane().getSelectionModel().select(getRoot());
-        })
-    );
+    if (preferencesService.getPreferences().getNotification().isPrivateMessageToastEnabled()) {
+      notificationService.addNotification(new TransientNotification(
+          chatMessage.getUsername(),
+          chatMessage.getMessage(),
+          IdenticonUtil.createIdenticon(identIconSource),
+          event -> {
+            eventBus.post(new NavigateEvent(NavigationItem.CHAT));
+            stage.toFront();
+            getRoot().getTabPane().getSelectionModel().select(getRoot());
+          })
+      );
+    }
   }
 
   protected String getMessageCssClass(String login) {

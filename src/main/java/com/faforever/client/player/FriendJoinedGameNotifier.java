@@ -11,8 +11,8 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.IdenticonUtil;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 
@@ -50,8 +50,9 @@ public class FriendJoinedGameNotifier implements InitializingBean {
   public void onFriendJoinedGame(FriendJoinedGameEvent event) {
     Player player = event.getPlayer();
     Game game = event.getGame();
-
-    audioService.playFriendJoinsGameSound();
+    if (preferencesService.getPreferences().getNotification().isFriendJoinsGameSoundEnabled()) {
+      audioService.playFriendJoinsGameSound();
+    }
 
     if (preferencesService.getPreferences().getNotification().isFriendJoinsGameToastEnabled()) {
       notificationService.addNotification(new TransientNotification(

@@ -3,7 +3,9 @@ package com.faforever.client.player;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameAddedEvent;
 import com.faforever.client.game.GameRemovedEvent;
+import com.faforever.client.game.GameUpdatedEvent;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.PlayersMessage;
 import com.faforever.client.remote.domain.SocialMessage;
 import com.faforever.client.user.UserService;
@@ -232,6 +234,56 @@ public class PlayerServiceTest {
     assertThat(player2.getGame(), is(game));
 
     instance.onGameRemoved(new GameRemovedEvent(game));
+
+    assertThat(player1.getGame(), is(nullValue()));
+    assertThat(player2.getGame(), is(nullValue()));
+  }
+
+  @Test
+  public void testPlayerLeftOpenGame() {
+    Game game = new Game();
+    game.setStatus(GameStatus.OPEN);
+    ObservableMap<String, List<String>> teams = game.getTeams();
+    teams.put("1", Collections.singletonList("JUnit1"));
+    teams.put("2", Collections.singletonList("JUnit2"));
+
+    Player player1 = instance.createAndGetPlayerForUsername("JUnit1");
+    Player player2 = instance.createAndGetPlayerForUsername("JUnit2");
+    game.setHost("JUnit2");
+
+    instance.onGameAdded(new GameAddedEvent(game));
+
+    assertThat(player1.getGame(), is(game));
+    assertThat(player2.getGame(), is(game));
+
+    teams.remove("1");
+
+    instance.onGameUpdated(new GameUpdatedEvent(game));
+
+    assertThat(player1.getGame(), is(nullValue()));
+    assertThat(player2.getGame(), is(game));
+  }
+
+  @Test
+  public void testGameRemovedFromPlayerIfGameClosed() {
+    Game game = new Game();
+    game.setStatus(GameStatus.OPEN);
+    ObservableMap<String, List<String>> teams = game.getTeams();
+    teams.put("1", Collections.singletonList("JUnit1"));
+    teams.put("2", Collections.singletonList("JUnit2"));
+
+    Player player1 = instance.createAndGetPlayerForUsername("JUnit1");
+    Player player2 = instance.createAndGetPlayerForUsername("JUnit2");
+    game.setHost("JUnit2");
+
+    instance.onGameAdded(new GameAddedEvent(game));
+
+    assertThat(player1.getGame(), is(game));
+    assertThat(player2.getGame(), is(game));
+
+    game.setStatus(GameStatus.CLOSED);
+
+    instance.onGameUpdated(new GameUpdatedEvent(game));
 
     assertThat(player1.getGame(), is(nullValue()));
     assertThat(player2.getGame(), is(nullValue()));

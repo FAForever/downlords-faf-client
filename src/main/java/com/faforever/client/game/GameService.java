@@ -46,7 +46,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import lombok.extern.slf4j.Slf4j;
@@ -184,23 +183,6 @@ public class GameService implements InitializingBean {
     games = FXCollections.observableList(new ArrayList<>(),
         item -> new Observable[]{item.statusProperty(), item.getTeams()}
     );
-    games.addListener((ListChangeListener<Game>) change -> {
-      /* To prevent deadlocks (i.e. synchronization on the game's "teams" and on the google event subscriber), only
-      allow this to run on the application thread. */
-      JavaFxUtil.assertApplicationThread();
-
-      while (change.next()) {
-        change.getRemoved().forEach(game -> eventBus.post(new GameRemovedEvent(game)));
-
-        if (change.wasUpdated()) {
-          for (int i = change.getFrom(); i < change.getTo(); i++) {
-            eventBus.post(new GameUpdatedEvent(change.getList().get(i)));
-          }
-        }
-
-        change.getAddedSubList().forEach(game -> eventBus.post(new GameAddedEvent(game)));
-      }
-    });
     JavaFxUtil.attachListToMap(games, uidToGameInfoBean);
   }
 
@@ -665,17 +647,21 @@ public class GameService implements InitializingBean {
       if (!uidToGameInfoBean.containsKey(gameId)) {
         game = new Game(gameInfoMessage);
         uidToGameInfoBean.put(gameId, game);
+        eventBus.post(new GameAddedEvent(game));
       } else {
         game = uidToGameInfoBean.get(gameId);
         game.updateFromGameInfo(gameInfoMessage);
+        eventBus.post(new GameUpdatedEvent(game));
       }
     }
     return game;
   }
 
   private void removeGame(GameInfoMessage gameInfoMessage) {
+    Game game;
     synchronized (uidToGameInfoBean) {
-      uidToGameInfoBean.remove(gameInfoMessage.getUid());
+      game = uidToGameInfoBean.remove(gameInfoMessage.getUid());
     }
+    eventBus.post(new GameRemovedEvent(game));
   }
 }

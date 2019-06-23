@@ -262,7 +262,7 @@
                                         <JFXCheckBox fx:id="playPmReceivedSoundCheckBox" mnemonicParsing="false"
                                                      GridPane.columnIndex="3" GridPane.halignment="CENTER"
                                                      GridPane.rowIndex="10" GridPane.valignment="CENTER"/>
-                                        <JFXCheckBox fx:id="playFriendPlaysGameSoundCheckBox" disable="true"
+                                        <JFXCheckBox fx:id="playFriendPlaysGameSoundCheckBox"
                                                      mnemonicParsing="false" GridPane.columnIndex="3"
                                                      GridPane.halignment="CENTER" GridPane.rowIndex="9"
                                                      GridPane.valignment="CENTER"/>
