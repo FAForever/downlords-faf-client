@@ -33,7 +33,7 @@ public class MapGeneratorService {
    * Naming template for generated maps. It is all lower case because server expects lower case names for maps.
    */
   public static final String GENERATED_MAP_NAME = "neroxis_map_generator_%s_%d";
-  private static final String GENERATOR_DEFAULT_VERSION = "0.1.1";
+  private static final String GENERATOR_DEFAULT_VERSION = "0.1.2";
 
   public static final String GENERATOR_EXECUTABLE_FILENAME = "MapGenerator_%s.jar";
   @VisibleForTesting
