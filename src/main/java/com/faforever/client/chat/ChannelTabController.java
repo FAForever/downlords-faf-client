@@ -107,8 +107,9 @@ public class ChannelTabController extends AbstractChatTabController {
   /** Prevents garbage collection of listeners. Key is the username. */
   private final Map<String, Collection<ChangeListener<Color>>> colorPropertyListeners;
 
+  @VisibleForTesting
   /** Maps a chat user category to a list of all user items that belong to it. */
-  private final Map<ChatUserCategory, List<CategoryOrChatUserListItem>> categoriesToUserListItems;
+  protected final Map<ChatUserCategory, List<CategoryOrChatUserListItem>> categoriesToUserListItems;
 
   /** Maps a chat user category to the list items that represent the respective category within the chat user list. */
   private final Map<ChatUserCategory, CategoryOrChatUserListItem> categoriesToCategoryListItems;
@@ -528,12 +529,18 @@ public class ChannelTabController extends AbstractChatTabController {
   private void onUserLeft(String username) {
     Platform.runLater(() -> {
       List<CategoryOrChatUserListItem> items = userNamesToListItems.get(username);
-      userNamesToListItems.remove(username);
+      List<CategoryOrChatUserListItem> listItemsToBeRemoved = userNamesToListItems.remove(username);
       chatUserListItems.removeAll(items);
 
       hideFoeMessagesListeners.remove(username);
       socialStatusMessagesListeners.remove(username);
       colorPropertyListeners.remove(username);
+
+      Arrays.stream(ChatUserCategory.values())
+          .filter(categoriesToUserListItems::containsKey)
+          .map(categoriesToUserListItems::get)
+          .forEach(categoryOrChatUserListItems -> listItemsToBeRemoved.forEach(categoryOrChatUserListItems::remove));
+
     });
   }
 

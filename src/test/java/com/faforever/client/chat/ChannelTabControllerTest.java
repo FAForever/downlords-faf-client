@@ -40,6 +40,7 @@ import static com.faforever.client.player.SocialStatus.FOE;
 import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -323,5 +324,48 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
     String result = instance.getInlineStyle(playerName);
     assertEquals("", result);
+  }
+
+  @Test
+  public void testUserIsRemovedFromCategoriesToUserListItems() {
+    instance.setChannel(defaultChannel);
+
+    ArgumentCaptor<MapChangeListener<String, ChatChannelUser>> captor = ArgumentCaptor.forClass(MapChangeListener.class);
+    verify(chatService).addUsersListener(anyString(), captor.capture());
+
+    ChatChannelUser chatUser = new ChatChannelUser("junit", null, false);
+    ObservableMap<String, ChatChannelUser> userMap = FXCollections.observableHashMap();
+    userMap.put("junit", chatUser);
+
+    Change<String, ChatChannelUser> change = mock(Change.class);
+    when(change.wasAdded()).thenReturn(true);
+    when(change.getValueAdded()).thenReturn(chatUser);
+    when(change.getMap()).thenReturn(userMap);
+
+    when(i18n.get("chat.userCount", 1)).thenReturn("1 Players");
+
+    captor.getValue().onChanged(change);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertThat(instance.userSearchTextField.getPromptText(), is("1 Players"));
+
+    userMap.remove("junit");
+
+    Change<String, ChatChannelUser> changeUserLeft = mock(Change.class);
+    when(changeUserLeft.wasAdded()).thenReturn(false);
+    when(changeUserLeft.wasRemoved()).thenReturn(true);
+    when(changeUserLeft.getValueRemoved()).thenReturn(chatUser);
+    when(changeUserLeft.getMap()).thenReturn(userMap);
+
+    captor.getValue().onChanged(changeUserLeft);
+
+    WaitForAsyncUtils.waitForFxEvents();
+
+    boolean userStillListedInCategoryMap = instance.categoriesToUserListItems.entrySet().stream()
+        .anyMatch(chatUserCategoryListEntry -> chatUserCategoryListEntry.getValue().stream()
+            .anyMatch(categoryOrChatUserListItem -> categoryOrChatUserListItem.getUser().equals(chatUser))
+        );
+
+    assertFalse(userStillListedInCategoryMap);
   }
 }
