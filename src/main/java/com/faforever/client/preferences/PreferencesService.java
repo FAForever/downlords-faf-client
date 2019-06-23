@@ -3,6 +3,7 @@ package com.faforever.client.preferences;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.game.Faction;
 import com.faforever.client.preferences.gson.ColorTypeAdapter;
+import com.faforever.client.preferences.gson.ExcludeFieldsWithExcludeAnnotationStrategy;
 import com.faforever.client.preferences.gson.PathTypeAdapter;
 import com.faforever.client.preferences.gson.PropertyTypeAdapter;
 import com.faforever.client.remote.gson.FactionTypeAdapter;
@@ -112,6 +113,8 @@ public class PreferencesService implements InitializingBean {
     timer = new Timer("PrefTimer", true);
     gson = new GsonBuilder()
         .setPrettyPrinting()
+        .addDeserializationExclusionStrategy(new ExcludeFieldsWithExcludeAnnotationStrategy())
+        .addSerializationExclusionStrategy(new ExcludeFieldsWithExcludeAnnotationStrategy())
         .registerTypeHierarchyAdapter(Property.class, PropertyTypeAdapter.INSTANCE)
         .registerTypeHierarchyAdapter(Path.class, PathTypeAdapter.INSTANCE)
         .registerTypeAdapter(Color.class, new ColorTypeAdapter())
@@ -149,7 +152,7 @@ public class PreferencesService implements InitializingBean {
    * migrations.
    */
   private void migratePreferences(Preferences preferences) {
-    preferences.getForgedAlliance().setInstallationPath(preferences.getForgedAlliance().getInstallationPath());
+    preferences.getForgedAlliance().setInstallationPath(preferences.getForgedAlliance().getPath());
     storeInBackground();
   }
 
@@ -173,6 +176,20 @@ public class PreferencesService implements InitializingBean {
 
   public Path getFafDataDirectory() {
     return FAF_DATA_DIRECTORY;
+  }
+
+  /**
+   * This is the fall back location for the vault, it is set when for some reasons the game can not find the files in
+   * the "My Documents" folder.
+   *
+   * @see com.faforever.client.vault.VaultFileSystemLocationChecker
+   */
+  public Path getSecondaryVaultLocation() {
+    return Paths.get(FAF_DATA_DIRECTORY.toAbsolutePath().toString(), "user", "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
+  }
+
+  public Path getPrimaryVaultLocation() {
+    return ForgedAlliancePrefs.GPG_FA_PATH;
   }
 
   public Path getPatchReposDirectory() {
@@ -213,6 +230,10 @@ public class PreferencesService implements InitializingBean {
     }
 
     migratePreferences(preferences);
+
+    if (preferences != null) {
+      preferences.getForgedAlliance().bindVaultPath();
+    }
   }
 
   public Preferences getPreferences() {

@@ -17,10 +17,11 @@ import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.Objects;
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.contains;
@@ -44,7 +45,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
   private final String testMapNameGenerator = String.format(MapGeneratorService.GENERATED_MAP_NAME, versionGeneratorPresent, seed);
   private final String testMapNameUnsupportedVersion = String.format(MapGeneratorService.GENERATED_MAP_NAME, unsupportedVersion, seed);
   @Rule
-  public TemporaryFolder customMapsDirectory = new TemporaryFolder();
+  public TemporaryFolder vaultBaseDirectory = new TemporaryFolder();
   @Rule
   public TemporaryFolder fafDataDirectory = new TemporaryFolder();
   @Rule
@@ -63,7 +64,8 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws IOException {
-    customMapsDirectory.newFolder(testMapNameGenerator);//will be deleted on startup
+    Path customMapsDir = vaultBaseDirectory.getRoot().toPath().resolve("maps");
+    Files.createDirectories(customMapsDir.resolve(testMapNameGenerator));//will be deleted on startup
 
     fafDataDirectory.newFolder(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY);
     String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
@@ -72,14 +74,15 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getFafDataDirectory()).thenReturn(fafDataDirectory.getRoot().toPath());
 
     Preferences preferences = new Preferences();
-    preferences.getForgedAlliance().setCustomMapsDirectory(customMapsDirectory.getRoot().toPath());
+    preferences.getForgedAlliance().setVaultBaseDirectory(vaultBaseDirectory.getRoot().toPath());
     when(preferencesService.getPreferences()).thenReturn(preferences);
-
 
     instance = new MapGeneratorService(applicationContext, preferencesService, taskService);
 
     instance.postConstruct();
-    assertThat(Arrays.asList(Objects.requireNonNull(customMapsDirectory.getRoot().list())), not(contains(testMapNameGenerator)));
+    Stream<Path> list = Files.list(customMapsDir);
+    assertThat(list.collect(Collectors.toList()), not(contains(testMapNameGenerator)));
+    list.close();
 
     when(downloadMapGeneratorTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
     when(generateMapTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));

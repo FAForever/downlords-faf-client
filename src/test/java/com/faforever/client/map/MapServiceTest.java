@@ -98,9 +98,6 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     ClientProperties clientProperties = new ClientProperties();
     clientProperties.getVault().setMapPreviewUrlFormat("http://127.0.0.1:65534/preview/%s/%s");
 
-    instance = new MapService(preferencesService, taskService, applicationContext,
-        fafService, assetService, i18n, uiService, clientProperties, mapGeneratorService, eventBus);
-
     mapsDirectory = gameDirectory.newFolder("maps").toPath();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
@@ -109,6 +106,10 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     when(forgedAlliancePrefs.customMapsDirectoryProperty()).thenReturn(customMapsDirectoryProperty);
     when(forgedAlliancePrefs.getPath()).thenReturn(gameDirectory.getRoot().toPath());
     when(forgedAlliancePrefs.pathProperty()).thenReturn(new SimpleObjectProperty<>());
+
+    instance = new MapService(preferencesService, taskService, applicationContext,
+        fafService, assetService, i18n, uiService, clientProperties, mapGeneratorService, eventBus);
+
 
     doAnswer(invocation -> {
       @SuppressWarnings("unchecked")

@@ -24,6 +24,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.event.LoginSuccessEvent;
+import com.faforever.client.vault.VaultFileSystemLocationChecker;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -101,6 +102,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private GamePathHandler gamePathHandler;
   @Mock
   private ChatController chatController;
+  @Mock
+  private VaultFileSystemLocationChecker vaultFileSystemLocationChecker;
   private MainController instance;
   private BooleanProperty gameRunningProperty;
   private final Preferences preferences = new Preferences();
@@ -120,7 +123,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
         .setInitialStandardDeviation(500);
 
     instance = new MainController(preferencesService, i18n, notificationService, playerService, gameService, clientUpdateService,
-        uiService, eventBus, clientProperties, gamePathHandler, platformService);
+        uiService, eventBus, clientProperties, gamePathHandler, platformService, vaultFileSystemLocationChecker);
 
     gameRunningProperty = new SimpleBooleanProperty();
     ObjectProperty<Path> backgroundImagePathProperty = new SimpleObjectProperty<>();
@@ -345,18 +348,14 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnRevealMapFolder() throws Exception {
-    Path expectedPath = Paths.get("C:\\test\\path_map");
-    preferences.getForgedAlliance().setCustomMapsDirectory(expectedPath);
     instance.onRevealMapFolder();
-    verify(platformService).reveal(expectedPath);
+    verify(platformService).reveal(preferences.getForgedAlliance().getCustomMapsDirectory());
   }
 
   @Test
   public void testOnRevealModFolder() throws Exception {
-    Path expectedPath = Paths.get("C:\\test\\path_mod");
-    preferences.getForgedAlliance().setModsDirectory(expectedPath);
     instance.onRevealModFolder();
-    verify(platformService).reveal(expectedPath);
+    verify(platformService).reveal(preferences.getForgedAlliance().getModsDirectory());
   }
 
   @Test
@@ -365,5 +364,11 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getFafLogDirectory()).thenReturn(expectedPath);
     instance.onRevealLogFolder();
     verify(platformService).reveal(expectedPath);
+  }
+
+  @Test
+  public void testVaultCheckerCalled() {
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(vaultFileSystemLocationChecker).checkVaultFileSystemLocation();
   }
 }

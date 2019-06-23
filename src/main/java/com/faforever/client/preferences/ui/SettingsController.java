@@ -28,6 +28,7 @@ import com.faforever.client.user.UserService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.jfoenix.controls.JFXTextField;
+import com.jfoenix.controls.JFXToggleButton;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -56,6 +57,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.NumberFormat;
 import java.util.Collections;
@@ -127,6 +129,7 @@ public class SettingsController implements Controller<Node> {
   public Pane languagesContainer;
   public JFXTextField backgroundImageLocation;
   public CheckBox disallowJoinsCheckBox;
+  public JFXToggleButton secondaryVaultLocationToggleButton;
   private ChangeListener<Theme> selectedThemeChangeListener;
   private ChangeListener<Theme> currentThemeChangeListener;
   private InvalidationListener availableLanguagesListener;
@@ -276,6 +279,12 @@ public class SettingsController implements Controller<Node> {
     backgroundImageLocation.textProperty().bindBidirectional(preferences.getMainWindow().backgroundImagePathProperty(), PATH_STRING_CONVERTER);
 
     passwordChangeErrorLabel.setVisible(false);
+
+    secondaryVaultLocationToggleButton.setSelected(preferences.getForgedAlliance().getVaultBaseDirectory().equals(preferencesService.getSecondaryVaultLocation()));
+    secondaryVaultLocationToggleButton.selectedProperty().addListener(observable -> {
+      Path vaultBaseDirectory = secondaryVaultLocationToggleButton.isSelected() ? preferencesService.getSecondaryVaultLocation() : preferencesService.getPrimaryVaultLocation();
+      preferences.getForgedAlliance().setVaultBaseDirectory(vaultBaseDirectory);
+    });
 
     initUnitDatabaseSelection(preferences);
   }

@@ -1,7 +1,9 @@
 package com.faforever.client.preferences;
 
+import com.faforever.client.preferences.gson.ExcludeFromGson;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -40,12 +42,20 @@ public class ForgedAlliancePrefs {
   @Deprecated
   private final ObjectProperty<Path> path;
   private final ObjectProperty<Path> installationPath;
-  private final ObjectProperty<Path> customMapsDirectory;
   private final ObjectProperty<Path> preferencesFile;
   private final ObjectProperty<Path> officialMapsDirectory;
+  private final ObjectProperty<Path> vaultBaseDirectory;
+  @ExcludeFromGson
+  private final ObjectProperty<Path> customMapsDirectory;
+  @ExcludeFromGson
   private final ObjectProperty<Path> modsDirectory;
   private final BooleanProperty forceRelay;
   private final BooleanProperty autoDownloadMaps;
+  /**
+   * Saves if the client checked for special cases in which it needs to set the fallback vault location. See {@link
+   * com.faforever.client.vault.VaultFileSystemLocationChecker}
+   */
+  private final BooleanProperty vaultCheckDone;
 
   /**
    * String format to use when building the launch command. Takes exact one parameter; the executable path. <p>
@@ -66,13 +76,26 @@ public class ForgedAlliancePrefs {
       path = new SimpleObjectProperty<>();
     }
     installationPath = new SimpleObjectProperty<>();
-    customMapsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("Maps"));
-    officialMapsDirectory = new SimpleObjectProperty<>(STEAM_FA_PATH.resolve("Maps"));
-    modsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("Mods"));
+    officialMapsDirectory = new SimpleObjectProperty<>(STEAM_FA_PATH.resolve("maps"));
+    vaultBaseDirectory = new SimpleObjectProperty<>(GPG_FA_PATH);
+    customMapsDirectory = new SimpleObjectProperty<>();
+    modsDirectory = new SimpleObjectProperty<>();
     preferencesFile = new SimpleObjectProperty<>(LOCAL_FA_DATA_PATH.resolve("Game.prefs"));
     autoDownloadMaps = new SimpleBooleanProperty(true);
     executableDecorator = new SimpleStringProperty("\"%s\"");
     executionDirectory = new SimpleObjectProperty<>();
+    vaultCheckDone = new SimpleBooleanProperty(false);
+    bindVaultPath();
+  }
+
+  /**
+   * Needs to be called after gson deserialization again. Because otherwise the both are bound to the default vaultBaseDirectory and not the one loaded by Gson.
+   */
+  void bindVaultPath() {
+    customMapsDirectory.unbind();
+    modsDirectory.unbind();
+    customMapsDirectory.bind(Bindings.createObjectBinding(() -> getVaultBaseDirectory().resolve("maps"), vaultBaseDirectory));
+    modsDirectory.bind(Bindings.createObjectBinding(() -> getVaultBaseDirectory().resolve("mods"), vaultBaseDirectory));
   }
 
   public Path getPreferencesFile() {
@@ -202,5 +225,29 @@ public class ForgedAlliancePrefs {
 
   public ObjectProperty<Path> installationPathProperty() {
     return installationPath;
+  }
+
+  public Path getVaultBaseDirectory() {
+    return vaultBaseDirectory.get();
+  }
+
+  public void setVaultBaseDirectory(Path vaultBaseDirectory) {
+    this.vaultBaseDirectory.set(vaultBaseDirectory);
+  }
+
+  public ObjectProperty<Path> vaultBaseDirectoryProperty() {
+    return vaultBaseDirectory;
+  }
+
+  public boolean isVaultCheckDone() {
+    return vaultCheckDone.get();
+  }
+
+  public void setVaultCheckDone(boolean vaultCheckDone) {
+    this.vaultCheckDone.set(vaultCheckDone);
+  }
+
+  public BooleanProperty vaultCheckDoneProperty() {
+    return vaultCheckDone;
   }
 }
