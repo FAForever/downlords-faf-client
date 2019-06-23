@@ -58,7 +58,7 @@ public class DownloadMapGeneratorTask extends CompletableTask<Void> {
 
     updateTitle(i18n.get("game.mapGeneration.downloadGenerator.title", version));
 
-    URL url = new URL(String.format(clientProperties.getMapGenerator().getMapGeneratorReleaseUrl(), version));
+    URL url = new URL(String.format(clientProperties.getMapGenerator().getDownloadUrlFormat(), version));
 
     URLConnection urlConnection = url.openConnection();
 

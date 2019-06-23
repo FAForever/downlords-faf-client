@@ -138,7 +138,9 @@ public class ClientProperties {
 
   @Data
   public static class MapGenerator {
-    private String mapGeneratorReleaseUrl;
+    private String downloadUrlFormat;
+    private String repoAndOwnerName;
+    private String queryLatestVersionUrl;
   }
 
   @Data

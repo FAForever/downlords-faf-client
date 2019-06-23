@@ -25,7 +25,10 @@ faf-client:
     rackOversUrl: http://direct.faforever.com/faf/unitsDB/?settings64=eyJwcmV2aWV3Q29ybmVyIjoiTm9uZSJ9
 
   map-generator:
-    mapGeneratorReleaseUrl: https://github.com/FAForever/Neroxis-Map-Generator/releases/download/%1$s/NeroxisGen_%1$s.jar
+    repoAndOwnerName: FAForever/Neroxis-Map-Generator
+    queryLatestVersionUrl: https://api.github.com/repos/${faf-client.map-generator.repoAndOwnerName}/releases/latest
+    downloadUrlFormat: https://github.com/${faf-client.map-generator.repoAndOwnerName}/releases/download/%1$s/NeroxisGen_%1$s.jar
+
 
   translation-project-url: https://poeditor.com/join/project/2oWfdaZQZj
   client-config-url: http://content.faforever.com/dfc-config.json
