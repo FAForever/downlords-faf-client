@@ -66,7 +66,8 @@
                           <JFXPasswordField fx:id="passwordInput" minWidth="100.0" promptText="%login.password"/>
                           <HBox>
                               <children>
-                                  <Label maxHeight="1.7976931348623157E308" text="%login.environment">
+                                  <Label maxHeight="1.7976931348623157E308" minWidth="-Infinity"
+                                         text="%login.environment">
                                       <HBox.margin>
                                           <Insets right="10.0"/>
                                       </HBox.margin>
