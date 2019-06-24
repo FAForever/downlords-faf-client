@@ -1064,6 +1064,16 @@
   -fx-effect: dropshadow(gaussian, black, 5, 0.5, 0, 0);
 }
 
+/***************** Team matchmaking ****************/
+.party-player-list-view {
+  -fx-padding: 20 0 0 0;
+}
+
+.party-player-list-view .list-cell {
+  -fx-background-color: transparent;
+  -fx-padding: 10 10 10 10;
+}
+
 /***************** Rating change*****************/
 
 .rating-change-label {

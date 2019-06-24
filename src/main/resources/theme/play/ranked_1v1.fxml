@@ -25,7 +25,8 @@
   <content>
     <VBox alignment="CENTER" minHeight="0.0" minWidth="0.0" spacing="10.0">
       <children>
-          <FlowPane alignment="CENTER" columnHalignment="CENTER" hgap="10.0" minHeight="0.0" minWidth="0.0" vgap="10.0">
+          <FlowPane alignment="CENTER" columnHalignment="CENTER" hgap="10.0" minHeight="0.0" minWidth="0.0"
+                    vgap="10.0">
           <children>
               <GridPane prefWidth="400.0" styleClass="card" vgap="10.0">
               <columnConstraints>

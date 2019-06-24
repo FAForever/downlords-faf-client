@@ -9,6 +9,9 @@
     <children>
         <TabPane fx:id="playRootTabPane" tabClosingPolicy="UNAVAILABLE">
             <tabs>
+                <Tab fx:id="teamMatchmakingTab" text="%play.teamMatchmaking">
+                    <fx:include source="team_matchmaking.fxml" fx:id="teamMatchmaking"/>
+                </Tab>
                 <Tab fx:id="customGamesTab" text="%play.custom">
                     <fx:include source="custom_games.fxml" fx:id="customGames"/>
                 </Tab>

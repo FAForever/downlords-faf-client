@@ -7,7 +7,9 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.Open1v1Event;
 import com.faforever.client.main.event.OpenCoopEvent;
 import com.faforever.client.main.event.OpenCustomGamesEvent;
+import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
 import com.faforever.client.rankedmatch.Ladder1v1Controller;
+import com.faforever.client.teammatchmaking.TeamMatchmakingController;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
@@ -23,10 +25,12 @@ import java.util.Objects;
 public class PlayController extends AbstractViewController<Node> {
   public Node playRoot;
   private final EventBus eventBus;
+  public Tab teamMatchmakingTab;
   public Tab customGamesTab;
   public Tab coopTab;
   public Tab ladderTab;
   public TabPane playRootTabPane;
+  public TeamMatchmakingController teamMatchmakingController;
   public CustomGamesController customGamesController;
   public Ladder1v1Controller ladderController;
   public CoopController coopController;
@@ -47,7 +51,9 @@ public class PlayController extends AbstractViewController<Node> {
         return;
       }
 
-      if (newValue == customGamesTab) {
+      if (newValue == teamMatchmakingTab) {
+        eventBus.post(new OpenTeamMatchmakingEvent());
+      } else if (newValue == customGamesTab) {
         eventBus.post(new OpenCustomGamesEvent());
       } else if (newValue == ladderTab) {
         eventBus.post(new Open1v1Event());
@@ -62,6 +68,11 @@ public class PlayController extends AbstractViewController<Node> {
     isHandlingEvent = true;
 
     try {
+      if (navigateEvent instanceof OpenTeamMatchmakingEvent) {
+        playRootTabPane.getSelectionModel().select(teamMatchmakingTab);
+        teamMatchmakingController.display(navigateEvent);
+        lastTab = customGamesController;
+      }
       if (navigateEvent instanceof OpenCustomGamesEvent) {
         playRootTabPane.getSelectionModel().select(customGamesTab);
         customGamesController.display(navigateEvent);
@@ -86,6 +97,7 @@ public class PlayController extends AbstractViewController<Node> {
 
   @Override
   public void onHide() {
+    teamMatchmakingController.onHide();
     customGamesController.onHide();
     ladderController.onHide();
     coopController.onHide();
