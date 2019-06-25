@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.JFXButton?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
@@ -16,10 +17,6 @@
                    AnchorPane.leftAnchor="0"/>
         <GridPane AnchorPane.rightAnchor="0" hgap="20" vgap="10">
 
-            <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true"
-                       preserveRatio="true"
-                       GridPane.halignment="LEFT" GridPane.rowSpan="2147483647" GridPane.valignment="CENTER"
-                       GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
 
             <HBox GridPane.columnIndex="1" GridPane.valignment="CENTER" spacing="8">
@@ -35,7 +32,29 @@
                            text="&lt;Username&gt;"/>
                 </HBox>
             </HBox>
+
+            <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true"
+                       preserveRatio="true"
+                       GridPane.halignment="LEFT" GridPane.rowSpan="2147483647" GridPane.valignment="CENTER"
+                       GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+            <Label fx:id="ratingLabel" text="%teammatchmaking.rating" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                <GridPane.margin>
+                    <Insets left="30"/>
+                </GridPane.margin>
+            </Label>
+            <Label fx:id="gameCountLabel" text="%teammatchmaking.gameCount" GridPane.columnIndex="2"
+                   GridPane.rowIndex="1">
+                <GridPane.margin>
+                    <Insets left="30"/>
+                </GridPane.margin>
+            </Label>
+
+
+            <JFXButton fx:id="kickPlayerButton" text="%teammatchmaking.kickPlayer" onAction="#onKickPlayerButtonClicked"
+                       GridPane.columnIndex="5" GridPane.rowIndex="1"/>
         </GridPane>
+
     </children>
 
     <padding>

@@ -20,10 +20,12 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.player.Player;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerInfoClientMessage;
 import com.faforever.client.rankedmatch.SearchLadder1v1ClientMessage;
 import com.faforever.client.rankedmatch.StopSearchLadder1v1ClientMessage;
+import com.faforever.client.remote.domain.AcceptPartyInviteMessage;
 import com.faforever.client.remote.domain.AddFoeMessage;
 import com.faforever.client.remote.domain.AddFriendMessage;
 import com.faforever.client.remote.domain.AuthenticationFailedMessage;
@@ -42,7 +44,10 @@ import com.faforever.client.remote.domain.HostGameMessage;
 import com.faforever.client.remote.domain.IceServersServerMessage;
 import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
 import com.faforever.client.remote.domain.InitSessionMessage;
+import com.faforever.client.remote.domain.InviteToPartyMessage;
 import com.faforever.client.remote.domain.JoinGameMessage;
+import com.faforever.client.remote.domain.KickPlayerFromPartyMessage;
+import com.faforever.client.remote.domain.LeavePartyMessage;
 import com.faforever.client.remote.domain.ListIceServersMessage;
 import com.faforever.client.remote.domain.ListPersonalAvatarsMessage;
 import com.faforever.client.remote.domain.LoginClientMessage;
@@ -53,6 +58,7 @@ import com.faforever.client.remote.domain.NoticeMessage;
 import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.remote.domain.PingMessage;
 import com.faforever.client.remote.domain.RatingRange;
+import com.faforever.client.remote.domain.ReadyPartyMessage;
 import com.faforever.client.remote.domain.RemoveFoeMessage;
 import com.faforever.client.remote.domain.RemoveFriendMessage;
 import com.faforever.client.remote.domain.RestoreGameSessionMessage;
@@ -61,6 +67,7 @@ import com.faforever.client.remote.domain.SerializableMessage;
 import com.faforever.client.remote.domain.ServerCommand;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.remote.domain.SessionMessage;
+import com.faforever.client.remote.domain.UnreadyPartyMessage;
 import com.faforever.client.remote.domain.VictoryCondition;
 import com.faforever.client.remote.gson.ClientMessageTypeTypeAdapter;
 import com.faforever.client.remote.gson.FactionTypeAdapter;
@@ -563,5 +570,36 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     addOnMessageListener(AuthenticationFailedMessage.class, this::dispatchAuthenticationFailed);
     addOnMessageListener(AvatarMessage.class, this::onAvatarMessage);
     addOnMessageListener(IceServersServerMessage.class, this::onIceServersMessage);
+  }
+
+
+  @Override
+  public void inviteToParty(Player recipient) {
+    writeToServer(new InviteToPartyMessage(recipient.getId()));
+  }
+
+  @Override
+  public void acceptPartyInvite(Player sender) {
+    writeToServer(new AcceptPartyInviteMessage(sender.getId()));
+  }
+
+  @Override
+  public void kickPlayerFromParty(Player kickedPlayer) {
+    writeToServer(new KickPlayerFromPartyMessage(kickedPlayer.getId()));
+  }
+
+  @Override
+  public void readyParty() {
+    writeToServer(new ReadyPartyMessage());
+  }
+
+  @Override
+  public void unreadyParty() {
+    writeToServer(new UnreadyPartyMessage());
+  }
+
+  @Override
+  public void leaveParty() {
+    writeToServer(new LeavePartyMessage());
   }
 }

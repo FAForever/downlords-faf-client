@@ -4,6 +4,7 @@ import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.net.ConnectionState;
+import com.faforever.client.player.Player;
 import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
@@ -73,4 +74,16 @@ public interface FafServerAccessor {
   void restoreGameSession(int id);
 
   void ping();
+
+  void inviteToParty(Player recipient);
+
+  void acceptPartyInvite(Player sender);
+
+  void kickPlayerFromParty(Player kickedPlayer);
+
+  void readyParty();
+
+  void unreadyParty();
+
+  void leaveParty();
 }

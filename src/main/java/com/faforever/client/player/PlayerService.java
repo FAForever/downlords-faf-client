@@ -22,9 +22,8 @@ import com.faforever.client.util.Assert;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +58,7 @@ public class PlayerService implements InitializingBean {
   private final ObservableMap<Integer, Player> playersById;
   private final List<Integer> foeList;
   private final List<Integer> friendList;
-  private final ObjectProperty<Player> currentPlayer;
+  private final ReadOnlyObjectWrapper<Player> currentPlayer;
 
   private final FafService fafService;
   private final UserService userService;
@@ -75,7 +74,7 @@ public class PlayerService implements InitializingBean {
     playersById = FXCollections.observableHashMap();
     friendList = new ArrayList<>();
     foeList = new ArrayList<>();
-    currentPlayer = new SimpleObjectProperty<>();
+    currentPlayer = new ReadOnlyObjectWrapper<>();
     playersByGame = new HashMap<>();
   }
 
@@ -271,7 +270,7 @@ public class PlayerService implements InitializingBean {
   }
 
   public ReadOnlyObjectProperty<Player> currentPlayerProperty() {
-    return currentPlayer;
+    return currentPlayer.getReadOnlyProperty();
   }
 
   public CompletableFuture<List<Player>> getPlayersByIds(Collection<Integer> playerIds) {

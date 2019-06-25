@@ -18,7 +18,11 @@ public enum FafServerMessageType implements ServerMessageType {
   UPDATED_ACHIEVEMENTS("updated_achievements", UpdatedAchievementsMessage.class),
   NOTICE("notice", NoticeMessage.class),
   ICE_SERVERS("ice_servers", IceServersServerMessage.class),
-  AVATAR("avatar", AvatarMessage.class);
+  AVATAR("avatar", AvatarMessage.class),
+  PARTY_UPDATE("update_party", PartyInfoMessage.class),
+  PARTY_INVITE("party_invite", PartyInfoMessage.class),
+  PARTY_KICKED("kicked_from_party", PartyInfoMessage.class),;
+
 
   private static final Map<String, FafServerMessageType> fromString;
 

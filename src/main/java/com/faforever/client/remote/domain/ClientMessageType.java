@@ -19,6 +19,12 @@ public enum ClientMessageType {
   PING("ping"),
   PONG("pong"),
   ADMIN("admin"),
+  INVITE_TO_PARTY("invite_to_party"),
+  ACCEPT_PARTY_INVITE("accept_party_invite"),
+  KICK_PLAYER_FROM_PARTY("kick_player_from_party"),
+  READY_PARTY("ready_party"),
+  UNREADY_PARTY("unready_party"),
+  LEAVE_PARTY("leave_party"),
   MATCHMAKER_INFO("matchmaker_info");
 
   private static Map<String, ClientMessageType> fromString;

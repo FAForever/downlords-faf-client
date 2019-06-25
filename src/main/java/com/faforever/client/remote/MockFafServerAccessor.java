@@ -318,6 +318,36 @@ public class MockFafServerAccessor implements FafServerAccessor {
 
   }
 
+  @Override
+  public void inviteToParty(com.faforever.client.player.Player recipient) {
+
+  }
+
+  @Override
+  public void acceptPartyInvite(com.faforever.client.player.Player sender) {
+
+  }
+
+  @Override
+  public void kickPlayerFromParty(com.faforever.client.player.Player kickedPlayer) {
+
+  }
+
+  @Override
+  public void readyParty() {
+
+  }
+
+  @Override
+  public void unreadyParty() {
+
+  }
+
+  @Override
+  public void leaveParty() {
+
+  }
+
 
   private GameInfoMessage createGameInfo(int uid, String title, GameAccess access, String featuredMod, String mapName, int numPlayers, int maxPlayers, String host) {
     GameInfoMessage gameInfoMessage = new GameInfoMessage();
