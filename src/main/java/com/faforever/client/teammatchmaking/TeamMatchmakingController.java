@@ -2,7 +2,6 @@ package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.AbstractViewController;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -11,15 +10,16 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.theme.UiService;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
+import com.jfoenix.controls.JFXDialog;
 import com.jfoenix.controls.JFXListView;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -42,7 +42,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private final ClientProperties clientProperties;
   private final UiService uiService;
   @FXML
-  public GridPane teamMatchmakingRoot;
+  public StackPane teamMatchmakingRoot;
   @FXML
   public JFXListView playerListView;
   private EventBus eventBus;
@@ -74,8 +74,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     super.initialize();
 
     //TODO
-    setSearching(false);
-    JavaFxUtil.addListener(gameService.searching1v1Property(), (observable, oldValue, newValue) -> setSearching(newValue));
+//    setSearching(false);
+//    JavaFxUtil.addListener(gameService.searching1v1Property(), (observable, oldValue, newValue) -> setSearching(newValue));
 
     playerItems.add(new PartyPlayerItem(playerService.getCurrentPlayer().get()));
     playerItems.add(new PartyPlayerItem(playerService.getPlayerForUsername(playerService.getPlayerNames().stream().findAny().get()).get()));
@@ -84,12 +84,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
     playerListView.setCellFactory(listView -> new PartyPlayerItemListCell(uiService));
     playerListView.setItems(playerItems);
-//    playerListView.setSelectionModel(new );
-  }
-
-  @VisibleForTesting
-  void setSearching(boolean searching) {
-
   }
 
   @Override
@@ -99,6 +93,12 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
   public void showMatchmakingMaps(ActionEvent actionEvent) {
     eventBus.post(new ShowLadderMapsEvent());//TODO show team matchmaking maps and not ladder maps
+  }
+
+  public void onInvitePlayerButtonClicked(ActionEvent actionEvent) {
+    InvitePlayerController invitePlayerController = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_invite_player.fxml");
+    Pane root = invitePlayerController.getRoot();
+    JFXDialog dialog = uiService.showInDialog(teamMatchmakingRoot, root, i18n.get("teammatchmaking.invitePlayer"));
   }
 
   public void onEnterQueueButtonClicked(ActionEvent actionEvent) {
@@ -111,5 +111,11 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   }
 
   public void onLeavePartyButtonClicked(ActionEvent actionEvent) {
+    //TODO
   }
+
+  public void onLeaveQueueButtonClicked(ActionEvent actionEvent) {
+    //TODO
+  }
+
 }

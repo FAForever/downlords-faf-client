@@ -1074,6 +1074,12 @@
   -fx-padding: 10 10 10 10;
 }
 
+.party-player-invite-list-view .list-cell {
+  -fx-background-color: transparent;
+  -fx-padding: 10px 10px 10px 10px;
+  -fx-text-fill: -fx-light-text-color
+}
+
 /***************** Rating change*****************/
 
 .rating-change-label {
