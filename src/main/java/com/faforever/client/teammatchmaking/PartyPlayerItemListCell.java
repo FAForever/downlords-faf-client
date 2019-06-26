@@ -1,9 +1,10 @@
 package com.faforever.client.teammatchmaking;
 
+import com.faforever.client.player.Player;
 import com.faforever.client.theme.UiService;
 import javafx.scene.control.ListCell;
 
-public class PartyPlayerItemListCell extends ListCell<PartyPlayerItem> {
+public class PartyPlayerItemListCell extends ListCell<Player> {
 
   private final PartyPlayerItemController controller;
 
@@ -12,15 +13,15 @@ public class PartyPlayerItemListCell extends ListCell<PartyPlayerItem> {
   }
 
   @Override
-  protected void updateItem(PartyPlayerItem item, boolean empty) {
-    super.updateItem(item, empty);
-    if (item == null || empty) {
+  protected void updateItem(Player player, boolean empty) {
+    super.updateItem(player, empty);
+    if (player == null || empty) {
       setText(null);
       setGraphic(null);
       return;
     }
 
-    controller.setPlayerItem(item);
+    controller.setPlayer(player);
     setGraphic(controller.getRoot());
   }
 

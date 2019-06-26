@@ -6,15 +6,15 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.main.event.ShowLadderMapsEvent;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
+import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDialog;
 import com.jfoenix.controls.JFXListView;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -27,6 +27,8 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
+
+import static javafx.beans.binding.Bindings.createBooleanBinding;
 
 @Component
 @Lazy
@@ -41,12 +43,19 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private final I18n i18n;
   private final ClientProperties clientProperties;
   private final UiService uiService;
+  private final TeamMatchmakingService teamMatchmakingService;
+  @FXML
+  public JFXButton invitePlayerButton;
+
+
   @FXML
   public StackPane teamMatchmakingRoot;
   @FXML
   public JFXListView playerListView;
+  @FXML
+  public JFXButton leavePartyButton;
   private EventBus eventBus;
-  private ObservableList<PartyPlayerItem> playerItems;
+//  private ObservableList<PartyPlayerItem> playerItems;
 
   @Inject
   public TeamMatchmakingController(GameService gameService,
@@ -54,7 +63,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
                                    PlayerService playerService,
                                    LeaderboardService leaderboardService,
                                    I18n i18n, ClientProperties clientProperties,
-                                   UiService uiService, EventBus eventBus) {
+                                   UiService uiService, TeamMatchmakingService teamMatchmakingService, EventBus eventBus) {
     this.gameService = gameService;
     this.preferencesService = preferencesService;
     this.playerService = playerService;
@@ -62,9 +71,10 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     this.i18n = i18n;
     this.clientProperties = clientProperties;
     this.uiService = uiService;
+    this.teamMatchmakingService = teamMatchmakingService;
     this.eventBus = eventBus;
 
-    playerItems = FXCollections.observableArrayList();
+//    playerItems = FXCollections.observableArrayList();
 
 
   }
@@ -77,13 +87,21 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 //    setSearching(false);
 //    JavaFxUtil.addListener(gameService.searching1v1Property(), (observable, oldValue, newValue) -> setSearching(newValue));
 
-    playerItems.add(new PartyPlayerItem(playerService.getCurrentPlayer().get()));
-    playerItems.add(new PartyPlayerItem(playerService.getPlayerForUsername(playerService.getPlayerNames().stream().findAny().get()).get()));
-    playerItems.add(new PartyPlayerItem(playerService.getPlayerForUsername(playerService.getPlayerNames().stream().findAny().get()).get()));
-    playerItems.add(new PartyPlayerItem(playerService.getPlayerForUsername(playerService.getPlayerNames().stream().findAny().get()).get()));
+//    playerItems.add(new PartyPlayerItem(playerService.getCurrentPlayer().get()));
+//    playerItems.add(new PartyPlayerItem(playerService.getPlayerForUsername(playerService.getPlayerNames().stream().findAny().get()).get()));
+//    playerItems.add(new PartyPlayerItem(playerService.getPlayerForUsername(playerService.getPlayerNames().stream().findAny().get()).get()));
+//    playerItems.add(new PartyPlayerItem(playerService.getPlayerForUsername(playerService.getPlayerNames().stream().findAny().get()).get()));
 
     playerListView.setCellFactory(listView -> new PartyPlayerItemListCell(uiService));
-    playerListView.setItems(playerItems);
+    playerListView.setItems(teamMatchmakingService.getParty().getMembers());
+
+//    invitePlayerButton.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(playerService.getCurrentPlayer()));
+    invitePlayerButton.visibleProperty().bind(createBooleanBinding(
+        () -> teamMatchmakingService.getParty().getOwner().getId() == playerService.getCurrentPlayer().map(Player::getId).orElse(-1),
+        teamMatchmakingService.getParty().ownerProperty(),
+        playerService.currentPlayerProperty()
+    ));
+    leavePartyButton.visibleProperty().bind(createBooleanBinding(() -> teamMatchmakingService.getParty().getMembers().size() >= 2, teamMatchmakingService.getParty().getMembers()));
   }
 
   @Override

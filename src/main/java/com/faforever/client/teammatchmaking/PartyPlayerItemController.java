@@ -69,8 +69,7 @@ public class PartyPlayerItemController implements Controller<Node> {
     return playerItemRoot;
   }
 
-  void setPlayerItem(PartyPlayerItem item) {
-    Player player = item.getPlayer();
+  void setPlayer(Player player) {
     userImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
 
     countryImageView.visibleProperty().bind(player.countryProperty().isNotEmpty());
@@ -80,7 +79,7 @@ public class PartyPlayerItemController implements Controller<Node> {
     avatarImageView.imageProperty().bind(createObjectBinding(() -> Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));
 
     clanLabel.visibleProperty().bind(player.clanProperty().isNotEmpty().and(player.clanProperty().isNotNull()));
-    clanLabel.textProperty().bind(createStringBinding(() -> Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan(), player.clanProperty())));
+    clanLabel.textProperty().bind(createStringBinding(() -> Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan()), player.clanProperty()));
 
     usernameLabel.textProperty().bind(player.usernameProperty());
 
@@ -92,6 +91,8 @@ public class PartyPlayerItemController implements Controller<Node> {
       kickPlayerButton.setVisible(false);
     }
     //TODO: hide kickPlayerButton if not host of the party
+
+    //TODO READY status for other players, ready button, sendReady
   }
 
   public void onKickPlayerButtonClicked(ActionEvent actionEvent) {

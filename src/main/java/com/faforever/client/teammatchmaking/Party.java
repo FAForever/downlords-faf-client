@@ -1,11 +1,17 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.player.Player;
+import com.faforever.client.player.PlayerService;
+import com.faforever.client.remote.domain.PartyInfoMessage;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
+
+@Slf4j
 public class Party {
 
   private ObjectProperty<Player> owner;
@@ -16,6 +22,25 @@ public class Party {
     owner = new SimpleObjectProperty<>();
     members = FXCollections.observableArrayList();
     readyMembers = FXCollections.observableArrayList();
+  }
+
+  public void fromInfoMessage(PartyInfoMessage message, PlayerService playerService) {
+    playerService.getPlayersByIds(Collections.singletonList(message.getOwner()))
+        .thenAccept(p -> {
+          if (!p.isEmpty()) {
+            owner.set(p.get(0));
+          }
+        });
+
+    playerService.getPlayersByIds(message.getMembers()).thenAccept(players -> {
+      message.getMembers().stream().filter(m -> players.stream().noneMatch(p -> p.getId() == m))
+          .forEach(m -> log.warn("Could not find party member {}", m));
+      members.setAll(players);
+    });
+
+    playerService.getPlayersByIds(message.getMembers()).thenAccept(players -> {
+      members.setAll(players);
+    });
   }
 
   public Player getOwner() {

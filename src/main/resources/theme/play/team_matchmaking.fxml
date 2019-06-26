@@ -26,9 +26,11 @@
                             <Label styleClass="h2" text="Party"/>
                             <HBox spacing="10.0">
                                 <children>
-                                    <JFXButton defaultButton="true" text="%teammatchmaking.invitePlayer"
+                                    <JFXButton fx:id="invitePlayerButton" defaultButton="true"
+                                               text="%teammatchmaking.invitePlayer"
                                                onAction="#onInvitePlayerButtonClicked"/>
-                                    <JFXButton cancelButton="true" disable="true" layoutX="10.0" layoutY="10.0"
+                                    <JFXButton fx:id="leavePartyButton" cancelButton="true" disable="true"
+                                               layoutX="10.0" layoutY="10.0"
                                                text="%teammatchmaking.leaveParty"
                                                onAction="#onLeavePartyButtonClicked"/>
                                 </children>

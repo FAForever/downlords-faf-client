@@ -50,15 +50,21 @@ public class TeamMatchmakingService implements InitializingBean {
 
     playerService.currentPlayerProperty().addListener((obs, old, player) -> {
       if (party.getOwner() == null && party.getMembers().isEmpty() && player != null) {
-        party.setOwner(player);
-        party.getMembers().add(player);
+        initParty(player);
       }
     });
+
+    playerService.getCurrentPlayer().ifPresent(this::initParty);
   }
 
   @Override
   public void afterPropertiesSet() throws Exception {
 
+  }
+
+
+  public void onPartyInfo(PartyInfoMessage message) {
+    party.fromInfoMessage(message, playerService);
   }
 
   public void onPartyInvite(PartyInviteMessage message) {
@@ -90,11 +96,7 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   public void onPartyKicked(PartyKickedMessage message) {
-    //TODO:
-  }
-
-  public void onPartyInfo(PartyInfoMessage message) {
-    //TODO:
+    initParty(playerService.getCurrentPlayer().get());
   }
 
   public void invitePlayer(String player) {
@@ -102,6 +104,12 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   public void kickPlayerFromParty(Player player) {
-    //todo
+    fafServerAccessor.kickPlayerFromParty(player);
+  }
+
+  private void initParty(Player owner) {
+    party.setOwner(owner);
+    party.getMembers().setAll(owner);
+    party.getReadyMembers().clear();
   }
 }
