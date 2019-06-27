@@ -4,6 +4,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenMapVaultEvent;
 import com.faforever.client.main.event.ShowLadderMapsEvent;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -16,6 +17,7 @@ import com.faforever.client.vault.search.SearchController;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.Observable;
 import javafx.scene.layout.Pane;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -23,12 +25,13 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -37,6 +40,8 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import static com.faforever.client.map.MapVaultController.*;
 
 public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
 
@@ -65,9 +70,34 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
 
   private MapVaultController instance;
 
+
+  private List<MapBean> createMockMaps(int numberOfMaps) {
+    List<MapBean> maps = new ArrayList<>(numberOfMaps);
+    for (int i = 0; i < numberOfMaps; i++) {
+      maps.add(
+          MapBeanBuilder.create()
+              .defaultValues()
+              .displayName("Map " + i)
+              .uid(String.valueOf(i))
+              .get()
+      );
+    }
+    return maps;
+  }
+  
+  private CompletableFuture<List<MapBean>> asFuture(List<MapBean> maps) {
+    return CompletableFuture.completedFuture(maps);
+  }
+  
+  private CompletableFuture<List<MapBean>> mocksAsFuture(int numberOfMaps) {
+    return CompletableFuture.completedFuture(createMockMaps(numberOfMaps));
+  }
+  
   @Before
   public void setUp() throws Exception {
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(new Player("junit")));
+    
     instance = new MapVaultController(mapService, i18n, eventBus, preferencesService, uiService, notificationService,reportingService, playerService);
 
     doAnswer(invocation -> {
@@ -94,6 +124,12 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
       }
       return instance;
     });
+    when(mapService.getHighestRatedMaps(anyInt(), anyInt())).thenReturn(mocksAsFuture(0));
+    when(mapService.getNewestMaps(anyInt(), anyInt())).thenReturn(mocksAsFuture(0));
+    when(mapService.getMostPlayedMaps(anyInt(), anyInt())).thenReturn(mocksAsFuture(0));
+    when(mapService.getRecommendedMaps(anyInt(), anyInt())).thenReturn(mocksAsFuture(0));
+    when(mapService.getLadderMaps(anyInt(), anyInt())).thenReturn(mocksAsFuture(0));
+    when(mapService.getOwnedMaps(anyInt(), anyInt(), anyInt())).thenReturn(mocksAsFuture(0));
   }
 
   @Test
@@ -109,35 +145,27 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnDisplay() throws Exception {
-    List<MapBean> maps = new ArrayList<>();
-    for (int i = 0; i < 5; i++) {
-      maps.add(
-          MapBeanBuilder.create()
-              .defaultValues()
-              .displayName("Map " + i)
-              .uid(String.valueOf(i))
-              .get()
-      );
-    }
+    final int showroomCount = 5;
+    List<MapBean> maps = createMockMaps(5);
 
-    when(mapService.getRecommendedMaps(anyInt(), eq(1))).thenReturn(CompletableFuture.completedFuture(maps));
-    when(mapService.getHighestRatedMaps(anyInt(), eq(1))).thenReturn(CompletableFuture.completedFuture(maps));
-    when(mapService.getNewestMaps(anyInt(), eq(1))).thenReturn(CompletableFuture.completedFuture(maps));
-    when(mapService.getMostPlayedMaps(anyInt(), eq(1))).thenReturn(CompletableFuture.completedFuture(maps));
+    when(mapService.getRecommendedMaps(eq(TOP_ELEMENT_COUNT), eq(1))).thenReturn(asFuture(maps));
+    when(mapService.getHighestRatedMaps(eq(TOP_ELEMENT_COUNT), eq(1))).thenReturn(asFuture(maps));
+    when(mapService.getNewestMaps(eq(TOP_ELEMENT_COUNT), eq(1))).thenReturn(asFuture(maps));
+    when(mapService.getMostPlayedMaps(eq(TOP_ELEMENT_COUNT), eq(1))).thenReturn(asFuture(maps));
 
     CountDownLatch latch = new CountDownLatch(3);
-    waitUntilInitialized(instance.mostLikedPane, latch);
-    waitUntilInitialized(instance.newestPane, latch);
-    waitUntilInitialized(instance.mostPlayedPane, latch);
+    waitUntilInitialized(instance.recommendedPane, latch, showroomCount);
+    waitUntilInitialized(instance.mostLikedPane, latch, showroomCount);
+    waitUntilInitialized(instance.newestPane, latch, showroomCount);
+    waitUntilInitialized(instance.mostPlayedPane, latch, showroomCount);
 
     instance.display(new OpenMapVaultEvent());
-
     assertTrue(latch.await(5000, TimeUnit.MILLISECONDS));
   }
 
-  private void waitUntilInitialized(Pane pane, CountDownLatch latch) {
+  private void waitUntilInitialized(Pane pane, CountDownLatch latch, int expectedNumberOfMaps) {
     pane.getChildren().addListener((Observable observable) -> {
-      if (pane.getChildren().size() == 2) {
+      if (pane.getChildren().size() == expectedNumberOfMaps) {
         latch.countDown();
       }
     });
@@ -145,21 +173,63 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testNotifyPropertyShowLadderInitialized() {
-    List<MapBean> maps = new ArrayList<>();
-    for (int i = 0; i < 5; i++) {
-      maps.add(
-          MapBeanBuilder.create()
-              .defaultValues()
-              .displayName("Map " + i)
-              .uid(String.valueOf(i))
-              .get()
-      );
-    }
-    when(mapService.getLadderMaps(anyInt(), eq(1))).thenReturn(CompletableFuture.completedFuture(maps));
+    when(mapService.getLadderMaps(eq(LOAD_PER_PAGE), eq(1))).thenReturn(mocksAsFuture(5));
     instance.display(new ShowLadderMapsEvent());
 
     WaitForAsyncUtils.waitForFxEvents();
-    verify(mapService).getLadderMaps(100, 1);
+    verify(mapService).getLadderMaps(LOAD_PER_PAGE, 1);
   }
 
+  @Test
+  public void testPagination() {
+    final int lastPageCount = 20;
+    List<MapBean> mapsPage1 = createMockMaps(LOAD_PER_PAGE);
+    List<MapBean> mapsPage2 = mapsPage1.subList(0, lastPageCount);
+    List<MapBean> mapsShowroom = mapsPage1.subList(0, TOP_ELEMENT_COUNT);
+
+    // using recommended maps as example
+    when(mapService.getRecommendedMaps(eq(TOP_ELEMENT_COUNT), eq(1))).thenReturn(asFuture(mapsShowroom));
+    when(mapService.getRecommendedMaps(eq(LOAD_PER_PAGE), eq(1))).thenReturn(asFuture(mapsPage1));
+    when(mapService.getRecommendedMaps(eq(LOAD_PER_PAGE), eq(2))).thenReturn(asFuture(mapsPage2));
+
+    // showroom
+    instance.display(new OpenMapVaultEvent());
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(mapService).getRecommendedMaps(TOP_ELEMENT_COUNT, 1);
+    assertThat(instance.showroomGroup.isVisible(), is(true));
+    assertThat(instance.recommendedPane.isVisible(), is(true));
+    assertThat(instance.recommendedPane.getChildren().size(), is(TOP_ELEMENT_COUNT));
+    
+    // first page
+    instance.showMoreRecommendedMaps();
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(mapService).getRecommendedMaps(LOAD_PER_PAGE, 1);
+    assertThat(instance.showroomGroup.isVisible(), is(false));
+    assertThat(instance.moreButton.isVisible(), is(true));
+    assertThat(instance.searchResultPane.isVisible(), is(true));
+    assertThat(instance.searchResultPane.getChildren().size(), is(LOAD_PER_PAGE));
+    
+    // second / last page
+    instance.moreButton.fire();
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(mapService).getRecommendedMaps(LOAD_PER_PAGE, 2);
+    assertThat(instance.moreButton.isVisible(), is(false));
+    assertThat(instance.searchResultPane.isVisible(), is(true));
+    assertThat(instance.searchResultPane.getChildren().size(), is(lastPageCount));
+  }
+  
+  @Test
+  public void testPageRefresh() {
+    // first we have certain number of maps
+    when(mapService.getMostPlayedMaps(anyInt(), eq(1))).thenReturn(mocksAsFuture(2));
+    instance.display(new OpenMapVaultEvent());
+    WaitForAsyncUtils.waitForFxEvents();
+    assertThat(instance.mostPlayedPane.getChildren().size(), is(2));
+    
+    // more maps were added, refresh should update
+    when(mapService.getMostPlayedMaps(anyInt(), eq(1))).thenReturn(mocksAsFuture(4));
+    instance.onRefreshButtonClicked();
+    WaitForAsyncUtils.waitForFxEvents();
+    assertThat(instance.mostPlayedPane.getChildren().size(), is(4));
+  }
 }
