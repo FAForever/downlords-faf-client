@@ -30,6 +30,7 @@ public class PartyPlayerItemController implements Controller<Node> {
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
   private final PlayerService playerService;
+  private final TeamMatchmakingService teamMatchmakingService;
   private final I18n i18n;
 
   @FXML
@@ -52,10 +53,13 @@ public class PartyPlayerItemController implements Controller<Node> {
   @FXML
   public JFXButton kickPlayerButton;
 
-  public PartyPlayerItemController(CountryFlagService countryFlagService, AvatarService avatarService, PlayerService playerService, I18n i18n) {
+  private Player player;
+
+  public PartyPlayerItemController(CountryFlagService countryFlagService, AvatarService avatarService, PlayerService playerService, TeamMatchmakingService teamMatchmakingService, I18n i18n) {
     this.countryFlagService = countryFlagService;
     this.avatarService = avatarService;
     this.playerService = playerService;
+    this.teamMatchmakingService = teamMatchmakingService;
     this.i18n = i18n;
   }
 
@@ -70,6 +74,8 @@ public class PartyPlayerItemController implements Controller<Node> {
   }
 
   void setPlayer(Player player) {
+    this.player = player;
+
     userImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
 
     countryImageView.visibleProperty().bind(player.countryProperty().isNotEmpty());
@@ -86,16 +92,12 @@ public class PartyPlayerItemController implements Controller<Node> {
     ratingLabel.textProperty().bind(createStringBinding(() -> i18n.get("teammatchmaking.rating", RatingUtil.getRoundedGlobalRating(player)), player.globalRatingMeanProperty(), player.globalRatingDeviationProperty()));
     gameCountLabel.textProperty().bind(createStringBinding(() -> i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()), player.numberOfGamesProperty()));
 
-
-    if (player == playerService.getCurrentPlayer().orElse(null)) {
-      kickPlayerButton.setVisible(false);
-    }
-    //TODO: hide kickPlayerButton if not host of the party
+    kickPlayerButton.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(playerService.currentPlayerProperty()).and(playerService.currentPlayerProperty().isNotEqualTo(player)));
 
     //TODO READY status for other players, ready button, sendReady
   }
 
   public void onKickPlayerButtonClicked(ActionEvent actionEvent) {
-    //TODO:
+    teamMatchmakingService.kickPlayerFromParty(player);
   }
 }

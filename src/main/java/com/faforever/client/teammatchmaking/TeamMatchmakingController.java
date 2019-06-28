@@ -95,13 +95,14 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     playerListView.setCellFactory(listView -> new PartyPlayerItemListCell(uiService));
     playerListView.setItems(teamMatchmakingService.getParty().getMembers());
 
+    invitePlayerButton.managedProperty().bind(invitePlayerButton.visibleProperty());
 //    invitePlayerButton.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(playerService.getCurrentPlayer()));
     invitePlayerButton.visibleProperty().bind(createBooleanBinding(
         () -> teamMatchmakingService.getParty().getOwner().getId() == playerService.getCurrentPlayer().map(Player::getId).orElse(-1),
         teamMatchmakingService.getParty().ownerProperty(),
         playerService.currentPlayerProperty()
     ));
-    leavePartyButton.visibleProperty().bind(createBooleanBinding(() -> teamMatchmakingService.getParty().getMembers().size() >= 2, teamMatchmakingService.getParty().getMembers()));
+    leavePartyButton.disableProperty().bind(createBooleanBinding(() -> teamMatchmakingService.getParty().getMembers().size() <= 1, teamMatchmakingService.getParty().getMembers()));
   }
 
   @Override
@@ -129,7 +130,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   }
 
   public void onLeavePartyButtonClicked(ActionEvent actionEvent) {
-    //TODO
+    teamMatchmakingService.leaveParty();
   }
 
   public void onLeaveQueueButtonClicked(ActionEvent actionEvent) {

@@ -14,6 +14,7 @@ import com.faforever.client.remote.domain.PartyInfoMessage;
 import com.faforever.client.remote.domain.PartyInviteMessage;
 import com.faforever.client.remote.domain.PartyKickedMessage;
 import com.faforever.client.util.IdenticonUtil;
+import javafx.application.Platform;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -21,6 +22,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Optional;
 
 @Lazy
 @Service
@@ -50,7 +52,7 @@ public class TeamMatchmakingService implements InitializingBean {
 
     playerService.currentPlayerProperty().addListener((obs, old, player) -> {
       if (party.getOwner() == null && party.getMembers().isEmpty() && player != null) {
-        initParty(player);
+        Platform.runLater(() -> initParty(player));
       }
     });
 
@@ -64,6 +66,13 @@ public class TeamMatchmakingService implements InitializingBean {
 
 
   public void onPartyInfo(PartyInfoMessage message) {
+    Optional<Player> currentPlayer = playerService.getCurrentPlayer();
+    if (currentPlayer.isPresent()) {
+      if (!message.getMembers().contains(currentPlayer.get().getId())) {
+        Platform.runLater(() -> initParty(currentPlayer.get()));
+        return;
+      }
+    }
     party.fromInfoMessage(message, playerService);
   }
 
@@ -105,6 +114,10 @@ public class TeamMatchmakingService implements InitializingBean {
 
   public void kickPlayerFromParty(Player player) {
     fafServerAccessor.kickPlayerFromParty(player);
+  }
+
+  public void leaveParty() {
+    fafServerAccessor.leaveParty();
   }
 
   private void initParty(Player owner) {
