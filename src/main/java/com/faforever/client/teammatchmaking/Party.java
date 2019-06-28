@@ -3,6 +3,7 @@ package com.faforever.client.teammatchmaking;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.domain.PartyInfoMessage;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -28,18 +29,18 @@ public class Party {
     playerService.getPlayersByIds(Collections.singletonList(message.getOwner()))
         .thenAccept(p -> {
           if (!p.isEmpty()) {
-            owner.set(p.get(0));
+            Platform.runLater(() -> owner.set(p.get(0)));
           }
         });
 
     playerService.getPlayersByIds(message.getMembers()).thenAccept(players -> {
       message.getMembers().stream().filter(m -> players.stream().noneMatch(p -> p.getId() == m))
           .forEach(m -> log.warn("Could not find party member {}", m));
-      members.setAll(players);
+      Platform.runLater(() -> members.setAll(players));
     });
 
-    playerService.getPlayersByIds(message.getMembers()).thenAccept(players -> {
-      members.setAll(players);
+    playerService.getPlayersByIds(message.getMembers_ready()).thenAccept(players -> {
+      Platform.runLater(() -> readyMembers.setAll(players));
     });
   }
 
