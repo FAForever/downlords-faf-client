@@ -77,9 +77,9 @@ public class InvitePlayerController implements Controller<Pane> {
   }
 
   private void invite() {
-    playerTextField.setText("");
-
     playersListView.getSelectionModel().getSelectedItems().forEach(teamMatchmakingService::invitePlayer);
+
+    playerTextField.setText("");
   }
 
   public void onKeyPressed(KeyEvent keyEvent) {
