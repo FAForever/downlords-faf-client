@@ -20,8 +20,8 @@ public enum FafServerMessageType implements ServerMessageType {
   ICE_SERVERS("ice_servers", IceServersServerMessage.class),
   AVATAR("avatar", AvatarMessage.class),
   PARTY_UPDATE("update_party", PartyInfoMessage.class),
-  PARTY_INVITE("party_invite", PartyInfoMessage.class),
-  PARTY_KICKED("kicked_from_party", PartyInfoMessage.class),;
+  PARTY_INVITE("party_invite", PartyInviteMessage.class),
+  PARTY_KICKED("kicked_from_party", PartyKickedMessage.class),;
 
 
   private static final Map<String, FafServerMessageType> fromString;
