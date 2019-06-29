@@ -122,6 +122,12 @@ jacocoTestReport {
   }
 }
 
+test {
+  testLogging {
+    showStandardStreams = true
+  }
+}
+
 configurations {
   codacy
 }
