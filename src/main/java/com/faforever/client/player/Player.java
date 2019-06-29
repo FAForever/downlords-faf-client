@@ -257,7 +257,10 @@ public class Player {
       status.unbind();
       status.set(PlayerStatus.IDLE);
     } else {
-      this.status.bind(Bindings.createObjectBinding(() -> {
+      status.bind(Bindings.createObjectBinding(() -> {
+        if (getGame() == null) {
+          return PlayerStatus.IDLE;
+        }
         if (getGame().getStatus() == GameStatus.OPEN) {
           if (getGame().getHost().equalsIgnoreCase(username.get())) {
             return PlayerStatus.HOSTING;
