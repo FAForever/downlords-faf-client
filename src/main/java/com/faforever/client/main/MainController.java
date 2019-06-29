@@ -81,6 +81,7 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
@@ -91,6 +92,7 @@ import java.util.function.Function;
 
 import static com.github.nocatch.NoCatch.noCatch;
 import static javafx.application.Platform.runLater;
+import static javafx.scene.layout.Background.EMPTY;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -451,19 +453,18 @@ public class MainController implements Controller<Node> {
 
   private void setBackgroundImage(Path filepath) {
     Image image;
-    if (filepath == null || filepath.toString().isEmpty()) {
-      image = new Image(uiService.getThemeFile("theme/images/login-background.jpg"));
-    } else {
+    if (filepath != null && Files.exists(filepath)) {
       image = noCatch(() -> new Image(filepath.toUri().toURL().toExternalForm()));
+      mainRoot.setBackground(new Background(new BackgroundImage(
+          image,
+          BackgroundRepeat.NO_REPEAT,
+          BackgroundRepeat.NO_REPEAT,
+          BackgroundPosition.CENTER,
+          BackgroundSize.DEFAULT
+      )));
+    } else {
+      mainRoot.setBackground(EMPTY);
     }
-    mainRoot.setBackground(new Background(new BackgroundImage(
-        image,
-        BackgroundRepeat.NO_REPEAT,
-        BackgroundRepeat.NO_REPEAT,
-        BackgroundPosition.CENTER,
-        BackgroundSize.DEFAULT
-    )));
-
   }
 
   private void enterLoggedInState() {
