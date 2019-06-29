@@ -16,7 +16,7 @@ public class LaunchCommandBuilderTest {
   private static LaunchCommandBuilder defaultBuilder() {
     return LaunchCommandBuilder.create()
         .executable(Paths.get("test.exe"))
-        .executableDecorator("\"%s\"")
+        .executableDecorator("%s")
         .logFile(Paths.get("preferences.log"))
         .username("junit");
   }
@@ -98,10 +98,26 @@ public class LaunchCommandBuilderTest {
   }
 
   @Test
-  public void testCommandFormat() throws Exception {
+  public void testCommandFormatWithSpaces() throws Exception {
+    String pathWithSpaces = "mypath/with space/test.exe";
     assertThat(
         defaultBuilder()
+            .executable(Paths.get(pathWithSpaces))
             .executableDecorator("/path/to/my/wineprefix primusrun wine %s")
+            .build(),
+        contains(
+            "/path/to/my/wineprefix", "primusrun", "wine", Paths.get(pathWithSpaces).toAbsolutePath().toString(),
+            "/init", "init.lua",
+            "/nobugreport",
+            "/log", Paths.get("preferences.log").toAbsolutePath().toString()
+        ));
+  }
+
+  @Test
+  public void testCommandFormatWithRedundantQuotionMarks() throws Exception {
+    assertThat(
+        defaultBuilder()
+            .executableDecorator("/path/to/my/wineprefix primusrun wine \"\"%s\"\"")
             .build(),
         contains(
             "/path/to/my/wineprefix", "primusrun", "wine", Paths.get("test.exe").toAbsolutePath().toString(),
