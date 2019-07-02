@@ -14,11 +14,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.regex.Pattern;
 
 import static com.github.nocatch.NoCatch.noCatch;
 import static org.bridj.Platform.show;
 
 public class PlatformService {
+  /**
+   * Taken from https://stackoverflow.com/questions/163360/regular-expression-to-match-urls-in-java
+   */
+  public static final Pattern URL_REGEX_PATTERN = Pattern.compile("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
   private final HostServices hostServices;
 
   private final boolean isWindows;

@@ -1,7 +1,6 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
-import com.faforever.client.chat.event.ChannelTopicChangedEvent;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -24,6 +23,8 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.gson.Gson;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
@@ -70,10 +71,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Predicate;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.ChatColorMode.DEFAULT;
+import static com.faforever.client.fx.PlatformService.URL_REGEX_PATTERN;
 import static com.faforever.client.player.SocialStatus.FOE;
 import static java.util.Locale.US;
 
@@ -81,10 +82,6 @@ import static java.util.Locale.US;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ChannelTabController extends AbstractChatTabController {
   private static final String USER_CSS_CLASS_FORMAT = "user-%s";
-  /**
-   * Taken from https://stackoverflow.com/questions/163360/regular-expression-to-match-urls-in-java
-   */
-  private static final Pattern URL_REGEX_PATTERN = Pattern.compile("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
 
   private static final Comparator<CategoryOrChatUserListItem> CHAT_USER_ITEM_COMPARATOR = (o1, o2) -> {
     ChatChannelUser left = o1.getUser();
@@ -134,6 +131,7 @@ public class ChannelTabController extends AbstractChatTabController {
 
   private final AutoCompletionHelper autoCompletionHelper;
   private final PlatformService platformService;
+  private final InvalidationListener channelTopicListener = observable -> Platform.runLater(this::updateChannelTopic);
 
   public SplitPane splitPane;
   public ToggleButton advancedUserFilter;
@@ -251,16 +249,16 @@ public class ChannelTabController extends AbstractChatTabController {
     addSearchFieldListener();
     topicPane.managedProperty().bind(topicPane.visibleProperty());
     updateChannelTopic();
-    JavaFxUtil.addListener(channel.topicProperty(), observable -> Platform.runLater(this::updateChannelTopic));
+    JavaFxUtil.addListener(channel.topicProperty(), new WeakInvalidationListener(channelTopicListener));
   }
 
   private void updateChannelTopic() {
-    boolean hasTopic = channel.getTopic() != null;
+    boolean hasTopic = !Strings.isNullOrEmpty(channel.getTopic());
     topicPane.setVisible(hasTopic);
     if (!hasTopic) {
       return;
     }
-    String topic = channel.getTopic() == null ? "" : channel.getTopic();
+    String topic = channel.getTopic();
     Arrays.stream(topic.split("\\s"))
         .forEach(word -> {
           if (URL_REGEX_PATTERN.matcher(word).matches()) {
@@ -271,13 +269,6 @@ public class ChannelTabController extends AbstractChatTabController {
             topicText.getChildren().add(new Label(word + " "));
           }
         });
-  }
-
-  @Subscribe
-  public void onChannelTopicChangedEvent(ChannelTopicChangedEvent channelTopicChangedEvent) {
-    if (channelTopicChangedEvent.getChannel().equals(channel)) {
-      updateChannelTopic();
-    }
   }
 
   private void removeModerator(CategoryOrChatUserListItem item) {
