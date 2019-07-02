@@ -2,9 +2,9 @@ package com.faforever.client.preferences;
 
 import com.faforever.client.config.ClientProperties;
 import com.google.common.eventbus.EventBus;
+import com.sun.jna.Platform;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
-import org.bridj.Platform;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

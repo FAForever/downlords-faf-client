@@ -78,11 +78,11 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
     assertThat(updateInfo.getName(), is("0.4.7-alpha"));
     assertThat(updateInfo.getReleaseNotesUrl(), is(new URL("https://www.example.com/")));
 
-    if (org.bridj.Platform.isWindows()) {
+    if (com.sun.jna.Platform.isWindows()) {
       assertThat(updateInfo.getUrl(), is(new URL("https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_windows_0_4_7-alpha.exe")));
-    } else if (org.bridj.Platform.isLinux()) {
+    } else if (com.sun.jna.Platform.isLinux()) {
       assertThat(updateInfo.getUrl(), is(new URL("https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_linux_0_4_7-alpha.tar.gz")));
-    } else if (org.bridj.Platform.isMacOSX()) {
+    } else if (com.sun.jna.Platform.isMac()) {
       assertThat(updateInfo.getUrl(), is(new URL("https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_mac_0_4_7-alpha.dmg")));
     } else {
       throw new IllegalStateException("Unsupported platform");

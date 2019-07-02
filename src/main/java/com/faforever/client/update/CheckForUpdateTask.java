@@ -66,11 +66,11 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
     }
 
     URL downloadUrl;
-    if (org.bridj.Platform.isWindows()) {
+    if (com.sun.jna.Platform.isWindows()) {
       downloadUrl = latestRelease.getWindowsUrl();
-    } else if (org.bridj.Platform.isLinux()) {
+    } else if (com.sun.jna.Platform.isLinux()) {
       downloadUrl = latestRelease.getLinuxUrl();
-    } else if (org.bridj.Platform.isMacOSX()) {
+    } else if (com.sun.jna.Platform.isMac()) {
       downloadUrl = latestRelease.getMacUrl();
     } else {
       return null;

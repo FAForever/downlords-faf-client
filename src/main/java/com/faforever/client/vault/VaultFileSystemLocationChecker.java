@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 import java.util.Collections;
 import java.util.regex.Pattern;
 
-import static org.bridj.Platform.isUnix;
-import static org.bridj.Platform.isWindows;
+import static com.sun.jna.Platform.isLinux;
+import static com.sun.jna.Platform.isWindows;
 
 /**
  * Checks if the user is on linux, has a none ascii username or has One Drive installed. In this cases we need to use a fallback location for the
@@ -52,7 +52,7 @@ public class VaultFileSystemLocationChecker {
       }
     }
 
-    if (isUnix()) {
+    if (isLinux()) {
       setSecondaryVaultLocationAndNotifyUser("mapDir.changed.unix");
     }
 

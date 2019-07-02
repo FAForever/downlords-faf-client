@@ -17,6 +17,7 @@ import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
+import com.sun.jna.Platform;
 import javafx.concurrent.Worker;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -29,7 +30,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
-import org.bridj.Platform;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -239,7 +239,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testPasteImageCtrlV() {
     KeyCode modifier;
-    if (Platform.isMacOSX()) {
+    if (Platform.isMac()) {
       modifier = KeyCode.META;
     } else {
       modifier = KeyCode.CONTROL;

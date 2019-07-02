@@ -23,7 +23,7 @@ public class ForgedAlliancePrefs {
   public static final String INIT_FILE_NAME = "init.lua";
 
   static {
-    if (org.bridj.Platform.isWindows()) {
+    if (com.sun.jna.Platform.isWindows()) {
       GPG_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
       //If steam is every swapped to a 64x client, needs to be updated to proper directory or handling must be put in place.
       STEAM_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PROGRAM_FILESX86), "Steam", "steamapps", "common", "Supreme Commander Forged Alliance");

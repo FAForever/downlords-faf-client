@@ -373,7 +373,7 @@ public final class JavaFxUtil {
    * Bug report: https://bugs.openjdk.java.net/browse/JDK-8089296
    */
   public static void fixJDK8089296() {
-    if (!org.bridj.Platform.isWindows()) {
+    if (!com.sun.jna.Platform.isWindows()) {
       return;
     }
     Pointer lpVoid = getNativeWindow();

@@ -59,11 +59,11 @@ public class FafClientApplication extends Application {
   private static String[] getAdditionalProfiles() {
     List<String> additionalProfiles = new ArrayList<>();
 
-    if (org.bridj.Platform.isWindows()) {
+    if (com.sun.jna.Platform.isWindows()) {
       additionalProfiles.add(PROFILE_WINDOWS);
-    } else if (org.bridj.Platform.isLinux()) {
+    } else if (com.sun.jna.Platform.isLinux()) {
       additionalProfiles.add(PROFILE_LINUX);
-    } else if (org.bridj.Platform.isMacOSX()) {
+    } else if (com.sun.jna.Platform.isMac()) {
       additionalProfiles.add(PROFILE_MAC);
     }
     return additionalProfiles.toArray(new String[0]);
@@ -71,7 +71,7 @@ public class FafClientApplication extends Application {
 
   @Override
   public void init() {
-    if (org.bridj.Platform.isWindows() && WindowsUtil.isAdmin()) {
+    if (com.sun.jna.Platform.isWindows() && WindowsUtil.isAdmin()) {
       CountDownLatch waitForUserInput = new CountDownLatch(1);
       Platform.runLater(() -> {
         Alert alert = new Alert(AlertType.WARNING, "Please don't run the client as admin. Because if you do you might need to delete C:\\ProgramData\\FAForever to be able to run it as a normal user again. Do you want to ignore the warning and continue?", ButtonType.YES, ButtonType.NO);

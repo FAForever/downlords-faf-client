@@ -171,7 +171,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
       Path workDirectory = Paths.get(nativeDir).toAbsolutePath();
 
       List<String> cmd = Lists.newArrayList(
-          Paths.get(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString(),
+          Paths.get(System.getProperty("java.home")).resolve("bin").resolve(com.sun.jna.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString(),
           "-jar",
           getBinaryName(workDirectory),
           "--id", String.valueOf(currentPlayer.getId()),

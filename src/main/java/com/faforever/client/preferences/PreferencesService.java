@@ -75,7 +75,7 @@ public class PreferencesService implements InitializingBean {
   private static final Path CACHE_DIRECTORY;
 
   static {
-    if (org.bridj.Platform.isWindows()) {
+    if (com.sun.jna.Platform.isWindows()) {
       FAF_DATA_DIRECTORY = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever");
     } else {
       FAF_DATA_DIRECTORY = Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
@@ -124,7 +124,7 @@ public class PreferencesService implements InitializingBean {
   }
 
   public Path getPreferencesDirectory() {
-    if (org.bridj.Platform.isWindows()) {
+    if (com.sun.jna.Platform.isWindows()) {
       return Paths.get(System.getenv("APPDATA")).resolve(APP_DATA_SUB_FOLDER);
     }
     return Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
