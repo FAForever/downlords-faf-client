@@ -31,6 +31,7 @@ import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.util.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -189,7 +190,21 @@ public class GamesTableController implements Controller<Node> {
 
   @NotNull
   private TableRow<Game> gamesRowFactory() {
-    TableRow<Game> row = new TableRow<>();
+    GameTooltipController gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
+    TableRow<Game> row = new TableRow<>() {
+      @Override
+      protected void updateItem(Game game, boolean empty) {
+        super.updateItem(game, empty);
+        if (game == null) {
+          setTooltip(null);
+        } else {
+          Tooltip tooltip = new Tooltip();
+          gameTooltipController.setGame(game);
+          tooltip.setGraphic(gameTooltipController.getRoot());
+          setTooltip(tooltip);
+        }
+      };
+    };
     row.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
         Game game = row.getItem();
