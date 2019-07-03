@@ -16,6 +16,7 @@ import javafx.collections.WeakListChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,8 @@ public class GamesTilesContainerController implements Controller<Node> {
   private Comparator<Node> appliedComparator;
   @VisibleForTesting
   Map<Integer, Node> uidToGameCard;
+  private GameTooltipController gameTooltipController;
+  private Tooltip tooltip;
 
   @Inject
   public GamesTilesContainerController(UiService uiService, PreferencesService preferencesService) {
@@ -82,6 +85,9 @@ public class GamesTilesContainerController implements Controller<Node> {
   }
 
   public void initialize() {
+    gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
+    tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
+    
     JavaFxUtil.fixScrollSpeed(tiledScrollPane);
   }
 
@@ -126,6 +132,11 @@ public class GamesTilesContainerController implements Controller<Node> {
     root.setUserData(game);
     tiledFlowPane.getChildren().add(root);
     uidToGameCard.put(game.getId(), root);
+    
+    root.setOnMouseEntered(event -> {
+      gameTooltipController.setGame(game);
+    });
+    Tooltip.install(root, tooltip);
   }
 
   public Node getRoot() {

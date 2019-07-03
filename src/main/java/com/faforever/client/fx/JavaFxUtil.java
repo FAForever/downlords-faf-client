@@ -1,6 +1,7 @@
 package com.faforever.client.fx;
 
 import com.google.common.base.Strings;
+import com.sun.javafx.stage.PopupWindowHelper;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
@@ -117,6 +118,19 @@ public final class JavaFxUtil {
 
       objTimer.getKeyFrames().setAll(new KeyFrame(new Duration(100000)));
     });
+  }
+  
+  /**
+   * Better version of {@link Tooltip#setGraphic(Node)} that does not add unnecessary space.
+   * Javadoc of {@link Tooltip#setGraphic(Node)} explains that this method is meant for adding icons.
+   * 
+   * @param content - The content of the tooltip.
+   * @return New Tooltip with added content.
+   */
+  public static Tooltip createCustomTooltip(Node content) {
+    Tooltip tooltip = new Tooltip();
+    PopupWindowHelper.getContent(tooltip).setAll(content);
+    return tooltip;
   }
 
   /**

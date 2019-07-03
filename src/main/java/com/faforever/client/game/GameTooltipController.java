@@ -3,7 +3,6 @@ package com.faforever.client.game;
 
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
@@ -11,11 +10,10 @@ import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ObservableMap;
-import javafx.collections.WeakMapChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -32,7 +30,7 @@ public class GameTooltipController implements Controller<Node> {
   private final PlayerService playerService;
 
   public TitledPane modsPane;
-  public Pane teamsPane;
+  public TilePane teamsPane;
   public Label modsLabel;
   public VBox gameTooltipRoot;
   private ObservableMap<String, List<String>> lastTeams;
@@ -43,6 +41,7 @@ public class GameTooltipController implements Controller<Node> {
   private InvalidationListener simModsChangedListener;
   private WeakInvalidationListener weakTeamChangeListener;
   private WeakInvalidationListener weakModChangeListener;
+  private int maxPrefColumns;
 
   @Inject
   public GameTooltipController(UiService uiService, PlayerService playerService) {
@@ -52,6 +51,7 @@ public class GameTooltipController implements Controller<Node> {
 
   public void initialize() {
     modsPane.managedProperty().bind(modsPane.visibleProperty());
+    maxPrefColumns = teamsPane.getPrefColumns();
   }
 
   public void setGame(Game game) {
@@ -63,7 +63,7 @@ public class GameTooltipController implements Controller<Node> {
     }
 
     if (lastSimMods != null && weakModChangeListener != null) {
-      game.getSimMods().removeListener(weakModChangeListener);
+      lastSimMods.removeListener(weakModChangeListener);
     }
 
     lastSimMods = game.getSimMods();
@@ -81,6 +81,7 @@ public class GameTooltipController implements Controller<Node> {
       synchronized (teamsList) {
         teamsPane.getChildren().clear();
         TeamCardController.createAndAdd(teamsList, playerService, uiService, teamsPane);
+        teamsPane.setPrefColumns(teamsList.size() < maxPrefColumns ? teamsList.size() : maxPrefColumns);
       }
     });
   }

@@ -10,8 +10,8 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="gameCardRoot" onMouseClicked="#onClick"
-          onMouseEntered="#onMouseEntered" onMouseExited="#onMouseExited" styleClass="game-card,card,hoverable"
-          xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.game.GameTileController">
+          styleClass="game-card,card,hoverable" xmlns="http://javafx.com/javafx/8.0.141"
+          fx:controller="com.faforever.client.game.GameTileController">
     <columnConstraints>
         <ColumnConstraints hgrow="NEVER" prefWidth="140.0"/>
         <ColumnConstraints hgrow="ALWAYS" maxWidth="220.0" minWidth="220.0" prefWidth="220.0"/>
