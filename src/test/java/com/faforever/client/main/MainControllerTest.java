@@ -28,9 +28,7 @@ import com.faforever.client.vault.VaultFileSystemLocationChecker;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -126,7 +124,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
         uiService, eventBus, clientProperties, gamePathHandler, platformService, vaultFileSystemLocationChecker);
 
     gameRunningProperty = new SimpleBooleanProperty();
-    ObjectProperty<Path> backgroundImagePathProperty = new SimpleObjectProperty<>();
 
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
@@ -138,7 +135,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
       return new BorderlessScene(stage, root, 0, 0);
     });
     when(gameService.gameRunningProperty()).thenReturn(gameRunningProperty);
-    when(uiService.getThemeFile("theme/images/login-background.jpg")).thenReturn(getClass().getResource("/theme/images/login-background.jpg").toString());
     when(uiService.loadFxml("theme/persistent_notifications.fxml")).thenReturn(persistentNotificationsController);
     when(uiService.loadFxml("theme/transient_notifications.fxml")).thenReturn(transientNotificationsController);
     when(uiService.loadFxml("theme/settings/settings.fxml")).thenReturn(settingsController);
