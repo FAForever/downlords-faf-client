@@ -1,6 +1,6 @@
 #### master
 [![Build Status](https://travis-ci.org/FAForever/downlords-faf-client.svg?branch=master)](https://travis-ci.org/FAForever/downlords-faf-client)
-[![Coverage Status](https://coveralls.io/repos/FAForever/downlords-faf-client/badge.svg)](https://coveralls.io/r/FAForever/downlords-faf-client)
+[![Coverage Status](https://coveralls.io/repos/github/FAForever/downlords-faf-client/badge.svg?branch=develop)](https://coveralls.io/github/FAForever/downlords-faf-client?branch=develop)
 
 Please see the [project page](http://FAForever.github.io/downlords-faf-client/)
 
