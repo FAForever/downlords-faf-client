@@ -1,7 +1,8 @@
 language: java
 
-jdk:
-- openjdk10
+#Can not be used any longer as travis moved to adoptjdk which as issues with our project
+#jdk:
+#-openjdk10
 
 sudo: false
 
@@ -12,21 +13,29 @@ env:
   - secure: "UVIbeoJpx9n0KSWHbpdWZuR4zeZfXw3JQBq2Zb1h0/j4uREfXWiGFuNVQBPjsdtYi2+LkecjJ/MgKWo+SS0SjsvTa/ZPkOXt4408H1qYgwVnvWoeL/g1QQ6T8ADNysl/4ZtJLnSp0WXYEBkfHYZJD++vgDwkpVhnCLVzSFVAHls="
 
 before_install:
+#JDK defines the directory to store the jdk in
+- export JDK="openjdk10"
+#Installs the normal openjdk as this is not supported by travis itself
+- chmod +x ./ci/installjdk.sh && sudo ./ci/installjdk.sh
+- export JAVA_HOME="~/$JDK"
+- export PATH="$JAVA_HOME/bin:$PATH"
 - export DISPLAY=:99.0
 - sh -e /etc/init.d/xvfb start
-- rm "${JAVA_HOME}/lib/security/cacerts"
-- ln -s /etc/ssl/certs/java/cacerts "${JAVA_HOME}/lib/security/cacerts"
 - export JAVA_TOOL_OPTIONS="-Dprism.verbose=true -Dprism.order=sw -Djava.library.path=$HOME/openjfx/javafx-sdk-11/lib"
 - export APP_VERSION=$([ -n "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG#*v}" || echo "${TRAVIS_BRANCH##*/}")
 - export GITHUB_RELEASE_VERSION=$([ -n "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG}" || echo "${TRAVIS_BRANCH##*/}")
 
 script:
+- echo "$JAVA_HOME"
 - chmod +x ./ci/build.sh && ./ci/build.sh
 - chmod +x ./ci/test.sh && ./ci/test.sh
 - chmod +x ./ci/test-report.sh && ./ci/test-report.sh
 
 after_success:
 - if [ -n "${TRAVIS_TAG}" ]; then chmod +x ./ci/github-release.sh && ./ci/github-release.sh; fi
+
+after_failure:
+- cat /home/travis/build/FAForever/downlords-faf-client/hs_err_pid*.log
 
 deploy:
   provider: releases
@@ -38,6 +47,7 @@ deploy:
   - build/install4j/*.gz
   - build/install4j/*.deb
   - build/install4j/*.rpm
+  - ~/openjdk10
   skip_cleanup: true
   name: ${GITHUB_RELEASE_VERSION}
   draft: true

@@ -32,6 +32,7 @@ import org.testfx.util.WaitForAsyncUtils;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
 import static junit.framework.TestCase.assertTrue;
@@ -82,7 +83,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   private String playerName;
 
   @Before
-  public void setUp() throws IOException {
+  public void setUp() throws IOException, ExecutionException, InterruptedException {
     PreferencesService preferencesService = new PreferencesService(new ClientProperties());
     preferencesService.afterPropertiesSet();
     preferencesService.getPreferences().getMainWindow().setLastView(NavigationItem.CHAT.name());
@@ -119,8 +120,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.asyncFx(() -> {
       getRoot().getChildren().setAll(tabPane);
       tabPane.getTabs().add(instance.getRoot());
-    });
-    WaitForAsyncUtils.waitForFxEvents();
+    }).get();
 
     verify(webViewConfigurer).configureWebView(eq(instance.messagesWebView));
   }
