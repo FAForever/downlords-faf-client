@@ -154,7 +154,6 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
     doAnswer(invocation -> {
       MapChangeListener.Change<? extends String, ? extends Channel> change = mock(MapChangeListener.Change.class);
       when(change.wasAdded()).thenReturn(true);
-      doReturn(new Channel(invocation.getArgument(0))).when(change.getValueAdded());
       channelsListener.getValue().onChanged(change);
       return null;
     }).when(chatService).joinChannel(anyString());
