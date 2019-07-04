@@ -110,7 +110,7 @@ public class GamesTableController implements Controller<Node> {
 
     applyLastSorting(gamesTable);
     gamesTable.setOnSort(this::onColumnSorted);
-    
+
     JavaFxUtil.addListener(sortedList, (Observable observable) -> selectFirstGame());
     selectFirstGame();
 
