@@ -18,8 +18,6 @@ import javafx.util.Pair;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.testfx.util.WaitForAsyncUtils;
 
 import static org.hamcrest.Matchers.equalTo;
