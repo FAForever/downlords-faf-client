@@ -7,6 +7,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
@@ -64,6 +65,7 @@ import java.net.InetAddress;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -168,7 +170,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
         .setReconnectDelay(100);
 
     instance = new PircBotXChatService(preferencesService, userService, taskService, fafService, i18n, pircBotXFactory,
-        threadPoolExecutor, eventBus, clientProperties);
+        threadPoolExecutor, eventBus, clientProperties, playerService);
 
     botShutdownLatch = new CountDownLatch(1);
 
@@ -205,6 +207,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     when(pircBotXFactory.createPircBotX(any())).thenReturn(pircBotX);
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(new Player("abc")));
 
     when(user1.getNick()).thenReturn("user1");
     when(user1.getChannels()).thenReturn(ImmutableSortedSet.of(defaultChannel));

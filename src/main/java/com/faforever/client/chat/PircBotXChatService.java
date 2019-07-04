@@ -9,6 +9,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerOnlineEvent;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.player.UserOfflineEvent;
 import com.faforever.client.preferences.ChatPrefs;
@@ -100,6 +101,8 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
 
   private static final List<UserLevel> MODERATOR_USER_LEVELS = Arrays.asList(UserLevel.OP, UserLevel.HALFOP, UserLevel.SUPEROP, UserLevel.OWNER);
   private static final int SOCKET_TIMEOUT = 10000;
+  private static final String NEWBIE_CHANNEL_NAME = "#newbie";
+  
   @VisibleForTesting
   final ObjectProperty<ConnectionState> connectionState;
   private final Map<Class<? extends GenericEvent>, ArrayList<ChatEventListener>> eventListeners;
@@ -120,6 +123,7 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
   private final ThreadPoolExecutor threadPoolExecutor;
   private final EventBus eventBus;
   private final ClientProperties clientProperties;
+  private final PlayerService playerService;
   private String defaultChannelName;
 
   private Configuration configuration;
@@ -141,8 +145,7 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
   public PircBotXChatService(PreferencesService preferencesService, UserService userService, TaskService taskService,
                              FafService fafService, I18n i18n, PircBotXFactory pircBotXFactory,
                              @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") ThreadPoolExecutor threadPoolExecutor,
-                             EventBus eventBus,
-                             ClientProperties clientProperties) {
+                             EventBus eventBus, ClientProperties clientProperties, PlayerService playerService) {
     this.preferencesService = preferencesService;
     this.userService = userService;
     this.taskService = taskService;
@@ -152,6 +155,7 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
     this.threadPoolExecutor = threadPoolExecutor;
     this.eventBus = eventBus;
     this.clientProperties = clientProperties;
+    this.playerService = playerService;
 
     connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
     eventListeners = new ConcurrentHashMap<>();
@@ -294,6 +298,11 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
           channels.keySet().forEach(this::joinChannel);
         }
         joinSavedAutoChannels();
+        playerService.getCurrentPlayer().ifPresent(player -> {
+          if (player.getNumberOfGames() < 50) {
+            joinChannel(NEWBIE_CHANNEL_NAME);
+          }
+        });
       }
     });
     identifiedFuture.complete(null);
