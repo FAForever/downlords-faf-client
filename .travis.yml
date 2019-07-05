@@ -85,3 +85,4 @@ cache:
   - $HOME/.gradle/caches/
   - $HOME/.gradle/wrapper/
   - /home/travis/build/FAForever/downlords-faf-client/build/cache/
+  - ~/$JDK
