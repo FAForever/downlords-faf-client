@@ -5,19 +5,24 @@
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.layout.TilePane?>
 <?import javafx.scene.layout.VBox?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="gameTooltipRoot" styleClass="game-tooltip"
-      xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.game.GameTooltipController">
+
+<VBox fx:id="gameTooltipRoot" spacing="2.0" styleClass="game-tooltip" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GameTooltipController">
   <children>
     <TitledPane fx:id="modsPane" collapsible="false" text="%game.mods">
          <content>
-           <Label fx:id="modsLabel" alignment="TOP_LEFT" maxHeight="1.7976931348623157E308"
-                  maxWidth="1.7976931348623157E308" text="&lt;Mods&gt;">
+           <Label fx:id="modsLabel" alignment="TOP_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="&lt;Mods&gt;">
              <padding>
-               <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+               <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
              </padding>
            </Label>
          </content>
+         <padding>
+           <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+         </padding>
       </TitledPane>
-    <TilePane fx:id="teamsPane" prefColumns="2" prefRows="0" tileAlignment="TOP_LEFT"/>
+    <TilePane fx:id="teamsPane" prefColumns="2" tileAlignment="TOP_LEFT" />
   </children>
+   <padding>
+      <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+   </padding>
 </VBox>

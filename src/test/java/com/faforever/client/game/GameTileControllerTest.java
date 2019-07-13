@@ -29,8 +29,6 @@ public class GameTileControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private JoinGameHelper joinGameHelper;
   @Mock
-  private UiService uiService;
-  @Mock
   private I18n i18n;
   @Mock
   private MapService mapService;
@@ -44,7 +42,7 @@ public class GameTileControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new GameTileController(mapService, i18n, joinGameHelper, modService, uiService, playerService);
+    instance = new GameTileController(mapService, i18n, joinGameHelper, modService, playerService);
 
     game = GameBuilder.create().defaultValues().get();
 

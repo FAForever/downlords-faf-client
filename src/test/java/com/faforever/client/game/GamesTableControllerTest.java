@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.preferences.Preferences;
@@ -11,6 +12,8 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.Pane;
 import javafx.util.Pair;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,6 +25,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 
 public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
 
@@ -36,11 +40,20 @@ public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
   private MapService mapService;
   @Mock
   private PreferencesService preferencesService;
+  @Mock
+  private GameTooltipController gameTooltipController;
+  @Mock
+  private Controller<ImageView> imageViewController;
 
   @Before
   public void setUp() throws Exception {
     instance = new GamesTableController(mapService, joinGameHelper, i18n, uiService, preferencesService);
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
+    when(uiService.loadFxml("theme/play/game_tooltip.fxml")).thenReturn(gameTooltipController);
+    when(uiService.loadFxml("theme/vault/map/map_preview_table_cell.fxml")).thenReturn(imageViewController);
+    when(gameTooltipController.getRoot()).thenReturn(new Pane());
+    when(imageViewController.getRoot()).thenReturn(new ImageView());
+    when(i18n.get(any())).then(invocation -> invocation.getArguments()[0]);
 
     loadFxml("theme/play/games_table.fxml", param -> instance);
 
@@ -50,20 +63,26 @@ public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void test() throws Exception {
-    instance.initializeGameTable(FXCollections.observableArrayList(
-        GameBuilder.create().defaultValues().get(),
-        GameBuilder.create().defaultValues().state(GameStatus.CLOSED).get()
-    ));
+    Platform.runLater(() -> {
+      instance.initializeGameTable(FXCollections.observableArrayList(
+          GameBuilder.create().defaultValues().get(),
+          GameBuilder.create().defaultValues().state(GameStatus.CLOSED).get()
+      ));
+    });
+    WaitForAsyncUtils.waitForFxEvents();
   }
 
   @Test
   public void testKeepsSorting() {
     preferencesService.getPreferences().getGameListSorting().setAll(new Pair<>("hostColumn", SortType.DESCENDING));
 
-    instance.initializeGameTable(FXCollections.observableArrayList(
-        GameBuilder.create().defaultValues().get(),
-        GameBuilder.create().defaultValues().state(GameStatus.CLOSED).get()
-    ));
+    Platform.runLater(() -> {
+      instance.initializeGameTable(FXCollections.observableArrayList(
+          GameBuilder.create().defaultValues().get(),
+          GameBuilder.create().defaultValues().state(GameStatus.CLOSED).get()
+      ));
+    });
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.gamesTable.getSortOrder(), hasSize(1));
     assertThat(instance.gamesTable.getSortOrder().get(0).getId(), is("hostColumn"));
@@ -74,14 +93,16 @@ public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
   public void testSortingUpdatesPreferences() {
     assertThat(preferencesService.getPreferences().getGameListSorting(), hasSize(0));
 
-    instance.initializeGameTable(FXCollections.observableArrayList(
-        GameBuilder.create().defaultValues().get(),
-        GameBuilder.create().defaultValues().state(GameStatus.CLOSED).get()
-    ));
-
-    TableColumn<Game, ?> column = instance.gamesTable.getColumns().get(0);
-    column.setSortType(SortType.ASCENDING);
-    instance.gamesTable.getSortOrder().add(column);
+    Platform.runLater(() -> {
+      instance.initializeGameTable(FXCollections.observableArrayList(
+          GameBuilder.create().defaultValues().get(),
+          GameBuilder.create().defaultValues().state(GameStatus.CLOSED).get()
+      ));
+      TableColumn<Game, ?> column = instance.gamesTable.getColumns().get(0);
+      column.setSortType(SortType.ASCENDING);
+      instance.gamesTable.getSortOrder().add(column);
+    });
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(preferencesService.getPreferences().getGameListSorting(), hasSize(1));
     assertThat(

@@ -10,6 +10,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
+
 import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
@@ -31,6 +32,7 @@ import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.util.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -67,6 +69,8 @@ public class GamesTableController implements Controller<Node> {
   public TableColumn<Game, String> coopMissionName;
   private final ChangeListener<Boolean> showModdedGamesChangedListener;
   private final ChangeListener<Boolean> showPasswordProtectedGamesChangedListener;
+  private GameTooltipController gameTooltipController;
+  private Tooltip tooltip;
 
   @Inject
   public GamesTableController(MapService mapService, JoinGameHelper joinGameHelper, I18n i18n, UiService uiService, PreferencesService preferencesService) {
@@ -95,6 +99,9 @@ public class GamesTableController implements Controller<Node> {
   }
 
   public void initializeGameTable(ObservableList<Game> games, Function<String, String> coopMissionNameProvider) {
+    gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
+    tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
+    
     SortedList<Game> sortedList = new SortedList<>(games);
     sortedList.comparatorProperty().bind(gamesTable.comparatorProperty());
     gamesTable.setPlaceholder(new Label(i18n.get("games.noGamesAvailable")));
@@ -135,9 +142,10 @@ public class GamesTableController implements Controller<Node> {
       coopMissionName.setCellValueFactory(param -> new SimpleObjectProperty<>(coopMissionNameProvider.apply(param.getValue().getMapFolderName())));
     }
 
-
     gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue)
-        -> Platform.runLater(() -> selectedGame.set(newValue)));
+        -> Platform.runLater(() -> {
+          selectedGame.set(newValue);
+        }));
 
     //bindings do not work as that interferes with some bidirectional bindings in the TableView itself
     JavaFxUtil.addListener(preferencesService.getPreferences().showModdedGamesProperty(), new WeakChangeListener<>(showModdedGamesChangedListener));
@@ -189,12 +197,26 @@ public class GamesTableController implements Controller<Node> {
 
   @NotNull
   private TableRow<Game> gamesRowFactory() {
-    TableRow<Game> row = new TableRow<>();
+    TableRow<Game> row = new TableRow<>() {
+      @Override
+      protected void updateItem(Game game, boolean empty) {
+        super.updateItem(game, empty);
+        if (game == null) {
+          setTooltip(null);
+        } else {
+          setTooltip(tooltip);
+        }
+      };
+    };
     row.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
         Game game = row.getItem();
         joinGameHelper.join(game);
       }
+    });
+    row.setOnMouseEntered(event -> {
+      Game game = row.getItem();
+      gameTooltipController.setGame(game);
     });
     return row;
   }

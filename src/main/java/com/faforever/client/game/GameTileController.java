@@ -8,7 +8,6 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Joiner;
 import javafx.application.Platform;
@@ -16,10 +15,10 @@ import javafx.beans.binding.StringBinding;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -47,7 +46,6 @@ public class GameTileController implements Controller<Node> {
   private final I18n i18n;
   private final JoinGameHelper joinGameHelper;
   private final ModService modService;
-  private final UiService uiService;
   private final PlayerService playerService;
   public Label lockIconLabel;
   public Label gameTypeLabel;
@@ -61,15 +59,13 @@ public class GameTileController implements Controller<Node> {
   public ImageView mapImageView;
   private Consumer<Game> onSelectedListener;
   private Game game;
-  private Tooltip tooltip;
 
   @Inject
-  public GameTileController(MapService mapService, I18n i18n, JoinGameHelper joinGameHelper, ModService modService, UiService uiService, PlayerService playerService) {
+  public GameTileController(MapService mapService, I18n i18n, JoinGameHelper joinGameHelper, ModService modService, PlayerService playerService) {
     this.mapService = mapService;
     this.i18n = i18n;
     this.joinGameHelper = joinGameHelper;
     this.modService = modService;
-    this.uiService = uiService;
     this.playerService = playerService;
   }
 
@@ -165,19 +161,5 @@ public class GameTileController implements Controller<Node> {
       mouseEvent.consume();
       joinGameHelper.join(game);
     }
-  }
-
-  public void onMouseEntered() {
-    GameTooltipController gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
-    gameTooltipController.setGame(game);
-
-    tooltip = new Tooltip();
-    tooltip.setGraphic(gameTooltipController.getRoot());
-    Tooltip.install(gameCardRoot, tooltip);
-  }
-
-  public void onMouseExited() {
-    Tooltip.uninstall(gameCardRoot, tooltip);
-    tooltip = null;
   }
 }

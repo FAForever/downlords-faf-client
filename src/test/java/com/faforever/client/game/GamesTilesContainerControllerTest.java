@@ -20,6 +20,7 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
@@ -37,6 +38,8 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
   private UiService uiService;
   @Mock
   private PreferencesService preferencesService;
+  @Mock
+  private GameTooltipController gameTooltipController;
 
   private GamesTilesContainerController instance;
   private Preferences preferences;
@@ -46,6 +49,8 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
     instance = new GamesTilesContainerController(uiService, preferencesService);
 
     when(uiService.loadFxml("theme/play/game_card.fxml")).thenReturn(gameTileController);
+    when(uiService.loadFxml("theme/play/game_tooltip.fxml")).thenReturn(gameTooltipController);
+    when(gameTooltipController.getRoot()).thenReturn(new Pane());
     preferences = new Preferences();
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(gameTileController.getRoot()).thenReturn(new Pane()).thenReturn(new FlowPane()).thenReturn(new StackPane());
@@ -64,7 +69,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
       createdTiledFlowPaneCountDown.countDown();
     });
 
-    createdTiledFlowPaneCountDown.await();
+    createdTiledFlowPaneCountDown.await(5, TimeUnit.SECONDS);
 
     assertThat(instance.tiledFlowPane.getChildren(), empty());
   }
