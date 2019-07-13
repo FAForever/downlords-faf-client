@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDialog;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -32,6 +33,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
@@ -87,11 +89,14 @@ public class MapVaultController extends AbstractViewController<Node> {
   public ScrollPane scrollPane;
   public Button backButton;
   public SearchController searchController;
-  public Button moreButton;
   public FlowPane ladderPane;
   public FlowPane ownedPane;
   public Label ownedMoreLabel;
   public Button ownedMoreButton;
+  public JFXButton previousButton;
+  public JFXButton nextButton;
+  public Label currentPageLabel;
+  public HBox paginationHBox;
   private MapDetailController mapDetailController;
   private int currentPage;
   private Supplier<CompletableFuture<List<MapBean>>> currentSupplier;
@@ -120,7 +125,7 @@ public class MapVaultController extends AbstractViewController<Node> {
     showroomGroup.managedProperty().bind(showroomGroup.visibleProperty());
     searchResultGroup.managedProperty().bind(searchResultGroup.visibleProperty());
     backButton.managedProperty().bind(backButton.visibleProperty());
-    moreButton.managedProperty().bind(moreButton.visibleProperty());
+    paginationHBox.managedProperty().bind(paginationHBox.visibleProperty());
 
     mapDetailController = uiService.loadFxml("theme/vault/map/map_detail.fxml");
     Node mapDetailRoot = mapDetailController.getRoot();
@@ -145,7 +150,7 @@ public class MapVaultController extends AbstractViewController<Node> {
   private void searchByQuery(SearchConfig searchConfig) {
     SearchConfig newSearchConfig = new SearchConfig(searchConfig.getSortConfig(), searchConfig.getSearchQuery() + ";latestVersion.hidden==\"false\"");
     enterLoadingState();
-    displayMapsFromSupplier(() -> mapService.findByQuery(newSearchConfig, ++currentPage, LOAD_PER_PAGE));
+    displayMapsFromSupplier(() -> mapService.findByQuery(newSearchConfig, currentPage, LOAD_PER_PAGE));
   }
 
   @Override
@@ -197,7 +202,7 @@ public class MapVaultController extends AbstractViewController<Node> {
       searchResultGroup.setVisible(false);
       loadingLabel.setVisible(true);
       backButton.setVisible(true);
-      moreButton.setVisible(false);
+      paginationHBox.setVisible(false);
     });
   }
 
@@ -208,7 +213,10 @@ public class MapVaultController extends AbstractViewController<Node> {
       searchResultGroup.setVisible(true);
       loadingLabel.setVisible(false);
       backButton.setVisible(true);
-      moreButton.setVisible(searchResultPane.getChildren().size() >= LOAD_PER_PAGE);
+      paginationHBox.setVisible(true);
+      nextButton.setDisable(searchResultPane.getChildren().size() < LOAD_PER_PAGE);
+      previousButton.setDisable(currentPage <= 1);
+      currentPageLabel.setText(i18n.get("vault.currentPage", currentPage));
     });
   }
 
@@ -219,7 +227,7 @@ public class MapVaultController extends AbstractViewController<Node> {
       searchResultGroup.setVisible(false);
       loadingLabel.setVisible(false);
       backButton.setVisible(false);
-      moreButton.setVisible(false);
+      paginationHBox.setVisible(false);
     });
   }
 
@@ -264,7 +272,6 @@ public class MapVaultController extends AbstractViewController<Node> {
         displayShowroomMaps();
         break;
       case SEARCH_RESULT:
-        currentPage--;
         currentSupplier.get()
             .thenAccept(this::displayMaps)
             .exceptionally(throwable -> {
@@ -292,34 +299,40 @@ public class MapVaultController extends AbstractViewController<Node> {
 
   public void showMoreRecommendedMaps() {
     enterLoadingState();
-    displayMapsFromSupplier(() -> mapService.getRecommendedMaps(LOAD_PER_PAGE, ++currentPage));
+    currentPage++;
+    displayMapsFromSupplier(() -> mapService.getRecommendedMaps(LOAD_PER_PAGE, currentPage));
   }
 
   public void showMoreHighestRatedMaps() {
     enterLoadingState();
-    displayMapsFromSupplier(() -> mapService.getHighestRatedMaps(LOAD_PER_PAGE, ++currentPage));
+    currentPage++;
+    displayMapsFromSupplier(() -> mapService.getHighestRatedMaps(LOAD_PER_PAGE, currentPage));
   }
 
   public void showMoreMostRecentMaps() {
     enterLoadingState();
-    displayMapsFromSupplier(() -> mapService.getNewestMaps(LOAD_PER_PAGE, ++currentPage));
+    currentPage++;
+    displayMapsFromSupplier(() -> mapService.getNewestMaps(LOAD_PER_PAGE, currentPage));
   }
 
   public void showMoreMostPlayedMaps() {
     enterLoadingState();
-    displayMapsFromSupplier(() -> mapService.getMostPlayedMaps(LOAD_PER_PAGE, ++currentPage));
+    currentPage++;
+    displayMapsFromSupplier(() -> mapService.getMostPlayedMaps(LOAD_PER_PAGE, currentPage));
   }
 
   public void showMoreLadderdMaps() {
     enterLoadingState();
-    displayMapsFromSupplier(() -> mapService.getLadderMaps(LOAD_PER_PAGE, ++currentPage));
+    currentPage++;
+    displayMapsFromSupplier(() -> mapService.getLadderMaps(LOAD_PER_PAGE, currentPage));
   }
 
   public void showMoreOwnedMaps() {
     enterLoadingState();
     Player currentPlayer = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("Current player was null"));
-    displayMapsFromSupplier(() -> mapService.getOwnedMaps(currentPlayer.getId(), LOAD_PER_PAGE, ++currentPage));
+    currentPage++;
+    displayMapsFromSupplier(() -> mapService.getOwnedMaps(currentPlayer.getId(), LOAD_PER_PAGE, currentPage));
   }
 
   private void replaceSearchResult(List<MapBean> maps, Pane pane) {
@@ -344,7 +357,7 @@ public class MapVaultController extends AbstractViewController<Node> {
   }
 
   private void displayMapsFromSupplier(Supplier<CompletableFuture<List<MapBean>>> mapsSupplier) {
-    currentPage = 0;
+    currentPage = 1;
     this.currentSupplier = mapsSupplier;
     mapsSupplier.get()
         .thenAccept(this::displayMaps)
@@ -367,8 +380,11 @@ public class MapVaultController extends AbstractViewController<Node> {
   }
 
   public void onLoadMoreButtonClicked() {
-    moreButton.setVisible(false);
-    loadingLabel.setVisible(true);
+
+  }
+
+  private void loadCurrentSupplier() {
+    enterLoadingState();
 
     currentSupplier.get()
         .thenAccept(maps -> {
@@ -383,6 +399,18 @@ public class MapVaultController extends AbstractViewController<Node> {
           enterShowroomState();
           return null;
         });
+  }
+
+  public void onLoadPreviousButtonClicked() {
+    currentPage--;
+
+    loadCurrentSupplier();
+  }
+
+  public void onLoadNextButtonClicked() {
+    currentPage++;
+
+    loadCurrentSupplier();
   }
 
   private enum State {

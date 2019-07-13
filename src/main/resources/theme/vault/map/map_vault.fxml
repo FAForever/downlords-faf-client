@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mapVaultRoot" xmlns="http://javafx.com/javafx/8.0.141"
+<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mapVaultRoot" xmlns="http://javafx.com/javafx/11.0.1"
            fx:controller="com.faforever.client.map.MapVaultController">
     <children>
         <ScrollPane fx:id="scrollPane" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
@@ -36,7 +36,7 @@
                                     </graphic>
                                 </JFXButton>
                                 <JFXButton mnemonicParsing="false" onAction="#onUploadMapButtonClicked"
-                                        text="%mapVault.upload">
+                                           text="%mapVault.upload">
                                     <graphic>
                                         <Label styleClass="icon" text=""/>
                                     </graphic>
@@ -84,16 +84,16 @@
                                 <FlowPane fx:id="mostPlayedPane" hgap="10.0" maxWidth="1.7976931348623157E308" prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="7" />
                                 <Label styleClass="h2" text="%mapVault.ladder" GridPane.rowIndex="8"/>
                                 <JFXButton mnemonicParsing="false" onAction="#showMoreLadderdMaps"
-                                           styleClass="button-raised"
-                                           text="%more" GridPane.columnIndex="1" GridPane.rowIndex="8"/>
+                                           styleClass="button-raised" text="%more" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="8"/>
                                 <FlowPane fx:id="ladderPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                           prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
                                           GridPane.rowIndex="9"/>
                                 <Label fx:id="ownedMoreLabel" styleClass="h2" text="%mapVault.owned"
                                        GridPane.rowIndex="10"/>
                                 <JFXButton fx:id="ownedMoreButton" mnemonicParsing="false" onAction="#showMoreOwnedMaps"
-                                           styleClass="button-raised" text="%more" GridPane.rowIndex="10"
-                                           GridPane.columnIndex="1"/>
+                                           styleClass="button-raised" text="%more" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="10"/>
                                 <FlowPane fx:id="ownedPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                           prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
                                           GridPane.rowIndex="11"/>
@@ -103,9 +103,16 @@
                             <children>
                                 <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%searchResult"/>
                                 <FlowPane fx:id="searchResultPane" hgap="10.0" vgap="10.0" />
-                                <JFXButton fx:id="moreButton" mnemonicParsing="false"
-                                           onAction="#onLoadMoreButtonClicked"
-                                           text="%vault.more"/>
+                                <HBox fx:id="paginationHBox" alignment="TOP_CENTER" spacing="10.0" VBox.vgrow="ALWAYS">
+                                    <JFXButton fx:id="previousButton" layoutX="719.0" layoutY="10.0"
+                                               mnemonicParsing="false" onAction="#onLoadPreviousButtonClicked"
+                                               text="%vault.previous"/>
+                                    <Label fx:id="currentPageLabel" maxHeight="1.7976931348623157E308"
+                                           text="&lt;current page&gt;"/>
+                                    <JFXButton fx:id="nextButton" mnemonicParsing="false"
+                                               onAction="#onLoadNextButtonClicked" text="%vault.next"/>
+                                </HBox>
+
                             </children>
                         </VBox>
                         <Label fx:id="loadingLabel" alignment="CENTER" contentDisplay="TOP"
