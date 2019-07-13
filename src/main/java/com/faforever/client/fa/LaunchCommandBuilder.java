@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 
 public class LaunchCommandBuilder {
 
-  private static final Pattern QUOTED_STRING_PATTERN = Pattern.compile("([^\"]\\S*|\".+?\")\\s*");
+  private static final Pattern QUOTED_STRING_PATTERN = Pattern.compile("([^\"]\\S*|\"+.+?\"+)\\s*");
 
   private Float mean;
   private Float deviation;
@@ -144,7 +144,7 @@ public class LaunchCommandBuilder {
 
 
     List<String> command = new ArrayList<>();
-    command.addAll(split(String.format(executableDecorator, executable.toAbsolutePath().toString())));
+    command.addAll(split(String.format(executableDecorator, "\"" + executable.toAbsolutePath().toString() + "\"")));
     command.addAll(Arrays.asList(
         "/init", ForgedAlliancePrefs.INIT_FILE_NAME,
         "/nobugreport"
