@@ -58,8 +58,8 @@ public class ChatPrefs {
     chatFormat = new SimpleObjectProperty<>(ChatFormat.COMPACT);
     autoJoinChannels = new SimpleListProperty<>(FXCollections.observableArrayList());
     String localeLanguage = Locale.getDefault().getLanguage();
-    Optional<OfficialLanguageChannel> languageChannel = OfficialLanguageChannel.getChannelName(localeLanguage);
-    languageChannel.ifPresent(channel -> autoJoinChannels.get().add(channel.getChannelName()));
+    OfficialLanguageChannel.getChannelName(localeLanguage)
+        .ifPresent(channelName -> autoJoinChannels.get().add(channelName));
   }
 
   public ChatColorMode getChatColorMode() {

@@ -2,34 +2,32 @@ package com.faforever.client.chat;
 
 import java.util.Optional;
 
+import com.google.common.annotations.VisibleForTesting;
+
 public enum OfficialLanguageChannel {
-  FRENCH("fr", "#french"),
-  GERMAN("de", "#german"),
-  RUSSIAN("ru", "#russian");
+  FRENCH("#french", "fr"),
+  GERMAN("#german", "de"),
+  RUSSIAN("#russian", "ru", "by");
 
-  private final String localeLanguage;
-  private final String channelName;
+  @VisibleForTesting
+  public final String channelName;
+  @VisibleForTesting
+  public final String[] localeLanguages;
+  
 
-
-  OfficialLanguageChannel(String localeLanguage, String channelName) {
-    this.localeLanguage = localeLanguage;
+  OfficialLanguageChannel(String channelName, String... localeLanguages) {
+    this.localeLanguages = localeLanguages;
     this.channelName = channelName;
   }
 
-  public static Optional<OfficialLanguageChannel> getChannelName(String localeLanguage) {
+  public static Optional<String> getChannelName(String localeLanguage) {
     for (OfficialLanguageChannel channel : values()) {
-      if (channel.getLocaleLanguage().equals(localeLanguage)) {
-        return Optional.of(channel);
+      for (String localLanguage : channel.localeLanguages) {
+        if (localLanguage.equals(localeLanguage)) {
+          return Optional.of(channel.channelName);
+        }
       }
     }
     return Optional.empty();
-  }
-
-  public String getChannelName() {
-    return channelName;
-  }
-
-  public String getLocaleLanguage() {
-    return localeLanguage;
   }
 }

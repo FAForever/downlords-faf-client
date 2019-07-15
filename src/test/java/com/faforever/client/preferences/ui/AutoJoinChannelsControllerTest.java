@@ -48,16 +48,18 @@ public class AutoJoinChannelsControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testLanguageChannels() throws Exception {
     for (OfficialLanguageChannel channel : OfficialLanguageChannel.values()) {
-      Locale.setDefault(new Locale(channel.getLocaleLanguage()));
-      preferences = new Preferences();
-      when(preferenceService.getPreferences()).thenReturn(preferences);
+      for (String localeString : channel.localeLanguages) {
+        Locale.setDefault(new Locale(localeString));
+        preferences = new Preferences();
+        when(preferenceService.getPreferences()).thenReturn(preferences);
 
-      List<String> expected = Collections.singletonList(channel.getChannelName());
-      assertThat(preferences.getChat().getAutoJoinChannels(), is(expected));
+        List<String> expected = Collections.singletonList(channel.channelName);
+        assertThat(preferences.getChat().getAutoJoinChannels(), is(expected));
 
-      instance = new AutoJoinChannelsController(preferenceService);
-      loadFxml("theme/settings/auto_join_channels.fxml", param -> instance);
-      assertThat(instance.channelListView.getItems(), is(expected));
+        instance = new AutoJoinChannelsController(preferenceService);
+        loadFxml("theme/settings/auto_join_channels.fxml", param -> instance);
+        assertThat(instance.channelListView.getItems(), is(expected));
+      }
     }
   }
 
