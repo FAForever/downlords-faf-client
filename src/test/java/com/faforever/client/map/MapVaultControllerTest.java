@@ -15,6 +15,8 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
 import com.google.common.eventbus.EventBus;
+import com.jfoenix.controls.JFXButton;
+
 import javafx.beans.Observable;
 import javafx.scene.layout.Pane;
 
@@ -38,6 +40,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -184,40 +187,68 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   public void testPagination() {
     final int lastPageCount = 20;
     List<MapBean> mapsPage1 = createMockMaps(LOAD_PER_PAGE);
-    List<MapBean> mapsPage2 = mapsPage1.subList(0, lastPageCount);
+    List<MapBean> mapsPage2 = mapsPage1.subList(0, LOAD_PER_PAGE);
+    List<MapBean> mapsPage3 = mapsPage1.subList(0, lastPageCount);
     List<MapBean> mapsShowroom = mapsPage1.subList(0, TOP_ELEMENT_COUNT);
 
     // using recommended maps as example
     when(mapService.getRecommendedMaps(eq(TOP_ELEMENT_COUNT), eq(1))).thenReturn(asFuture(mapsShowroom));
     when(mapService.getRecommendedMaps(eq(LOAD_PER_PAGE), eq(1))).thenReturn(asFuture(mapsPage1));
     when(mapService.getRecommendedMaps(eq(LOAD_PER_PAGE), eq(2))).thenReturn(asFuture(mapsPage2));
+    when(mapService.getRecommendedMaps(eq(LOAD_PER_PAGE), eq(3))).thenReturn(asFuture(mapsPage3));
 
     // showroom
     instance.display(new OpenMapVaultEvent());
     WaitForAsyncUtils.waitForFxEvents();
     verify(mapService).getRecommendedMaps(TOP_ELEMENT_COUNT, 1);
     assertThat(instance.showroomGroup.isVisible(), is(true));
+    assertThat(instance.searchResultGroup.isVisible(), is(false));
     assertThat(instance.recommendedPane.isVisible(), is(true));
     assertThat(instance.recommendedPane.getChildren().size(), is(TOP_ELEMENT_COUNT));
-    
-    // first page
+
+    // first page / search results
     instance.showMoreRecommendedMaps();
     WaitForAsyncUtils.waitForFxEvents();
     verify(mapService).getRecommendedMaps(LOAD_PER_PAGE, 1);
     assertThat(instance.showroomGroup.isVisible(), is(false));
-    assertThat(instance.moreButton.isVisible(), is(true));
+    assertThat(instance.searchResultGroup.isVisible(), is(true));
     assertThat(instance.searchResultPane.isVisible(), is(true));
+    assertThat(instance.paginationHBox.isVisible(), is(true));
+    assertButtonAvailability(instance.nextButton, true);
+    assertButtonAvailability(instance.previousButton, false);
     assertThat(instance.searchResultPane.getChildren().size(), is(LOAD_PER_PAGE));
-    
-    // second / last page
-    instance.moreButton.fire();
+
+    // second page
+    instance.nextButton.fire();
     WaitForAsyncUtils.waitForFxEvents();
     verify(mapService).getRecommendedMaps(LOAD_PER_PAGE, 2);
-    assertThat(instance.moreButton.isVisible(), is(false));
-    assertThat(instance.searchResultPane.isVisible(), is(true));
+    assertButtonAvailability(instance.nextButton, true);
+    assertButtonAvailability(instance.previousButton, true);
+    assertThat(instance.searchResultPane.getChildren().size(), is(LOAD_PER_PAGE));
+
+    // third / last page
+    instance.nextButton.fire();
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(mapService).getRecommendedMaps(LOAD_PER_PAGE, 3);
+    assertButtonAvailability(instance.nextButton, false);
+    assertButtonAvailability(instance.previousButton, true);
     assertThat(instance.searchResultPane.getChildren().size(), is(lastPageCount));
+
+    // back button -> second page
+    instance.previousButton.fire();
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(mapService, times(2)).getRecommendedMaps(LOAD_PER_PAGE, 2);
   }
   
+  private void assertButtonAvailability(JFXButton button, boolean expectedIsAvailable) {
+    if (expectedIsAvailable) {
+      assertThat(button.isDisabled(), is(false));
+      assertThat(button.isVisible(), is(true));
+    } else {
+      assertTrue(!button.isVisible() || button.isDisabled());
+    }
+  }
+
   @Test
   public void testPageRefresh() {
     // first we have certain number of maps

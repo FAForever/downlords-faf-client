@@ -379,10 +379,6 @@ public class MapVaultController extends AbstractViewController<Node> {
     enterSearchResultState();
   }
 
-  public void onLoadMoreButtonClicked() {
-
-  }
-
   private void loadCurrentSupplier() {
     enterLoadingState();
 
@@ -403,13 +399,11 @@ public class MapVaultController extends AbstractViewController<Node> {
 
   public void onLoadPreviousButtonClicked() {
     currentPage--;
-
     loadCurrentSupplier();
   }
 
   public void onLoadNextButtonClicked() {
     currentPage++;
-
     loadCurrentSupplier();
   }
 
