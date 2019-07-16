@@ -21,7 +21,6 @@ import javafx.collections.ObservableMap;
 import javafx.scene.paint.Color;
 
 import java.util.Locale;
-import java.util.Optional;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 
