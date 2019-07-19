@@ -1,6 +1,7 @@
 package com.faforever.client.preferences.ui;
 
-import com.faforever.client.chat.OfficialLanguageChannel;
+import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.LanguageChannel;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -11,6 +12,8 @@ import org.mockito.Mock;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
@@ -47,20 +50,19 @@ public class AutoJoinChannelsControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testLanguageChannels() throws Exception {
-    for (OfficialLanguageChannel channel : OfficialLanguageChannel.values()) {
-      for (String localeString : channel.localeLanguages) {
-        Locale.setDefault(new Locale(localeString));
-        preferences = new Preferences();
-        when(preferenceService.getPreferences()).thenReturn(preferences);
+    Map<String, LanguageChannel> languagesToChannels = ChatPrefs.LOCALE_LANGUAGES_TO_CHANNELS;
+    Entry<String, LanguageChannel> firstEntry = languagesToChannels.entrySet().iterator().next();
+    Locale.setDefault(new Locale(firstEntry.getKey()));
+    
+    preferences = new Preferences();
+    when(preferenceService.getPreferences()).thenReturn(preferences);
 
-        List<String> expected = Collections.singletonList(channel.channelName);
-        assertThat(preferences.getChat().getAutoJoinChannels(), is(expected));
+    List<String> expected = Collections.singletonList(firstEntry.getValue().getChannelName());
+    assertThat(preferences.getChat().getAutoJoinChannels(), is(expected));
 
-        instance = new AutoJoinChannelsController(preferenceService);
-        loadFxml("theme/settings/auto_join_channels.fxml", param -> instance);
-        assertThat(instance.channelListView.getItems(), is(expected));
-      }
-    }
+    instance = new AutoJoinChannelsController(preferenceService);
+    loadFxml("theme/settings/auto_join_channels.fxml", param -> instance);
+    assertThat(instance.channelListView.getItems(), is(expected));
   }
 
   @Test

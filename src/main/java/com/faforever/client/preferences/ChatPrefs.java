@@ -2,7 +2,9 @@ package com.faforever.client.preferences;
 
 import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.chat.ChatFormat;
-import com.faforever.client.chat.OfficialLanguageChannel;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
@@ -21,10 +23,20 @@ import javafx.collections.ObservableMap;
 import javafx.scene.paint.Color;
 
 import java.util.Locale;
+import java.util.Optional;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
+import static com.faforever.client.preferences.LanguageChannel.*;
 
 public class ChatPrefs {
+
+  @VisibleForTesting
+  public static final ImmutableMap<String, LanguageChannel> LOCALE_LANGUAGES_TO_CHANNELS = ImmutableMap.<String, LanguageChannel>builder()
+      .put("fr", FRENCH)
+      .put("de", GERMAN)
+      .put("ru", RUSSIAN)
+      .put("be", RUSSIAN)
+      .build();
 
   private final DoubleProperty zoom;
   private final BooleanProperty learnedAutoComplete;
@@ -37,7 +49,6 @@ public class ChatPrefs {
   private final ObjectProperty<TimeInfo> timeFormat;
   private final ObjectProperty<ChatFormat> chatFormat;
   private final ListProperty<String> autoJoinChannels;
-
   /**
    * Time in minutes a player has to be inactive to be considered idle.
    */
@@ -56,9 +67,10 @@ public class ChatPrefs {
     idleThreshold = new SimpleIntegerProperty(10);
     chatFormat = new SimpleObjectProperty<>(ChatFormat.COMPACT);
     autoJoinChannels = new SimpleListProperty<>(FXCollections.observableArrayList());
+
     String localeLanguage = Locale.getDefault().getLanguage();
-    OfficialLanguageChannel.getChannelName(localeLanguage)
-        .ifPresent(channelName -> autoJoinChannels.get().add(channelName));
+    Optional.ofNullable(LOCALE_LANGUAGES_TO_CHANNELS.get(localeLanguage))
+        .ifPresent(channel -> autoJoinChannels.get().add(channel.getChannelName()));;
   }
 
   public ChatColorMode getChatColorMode() {
