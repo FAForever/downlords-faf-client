@@ -70,7 +70,7 @@ public class ChatPrefs {
 
     String localeLanguage = Locale.getDefault().getLanguage();
     Optional.ofNullable(LOCALE_LANGUAGES_TO_CHANNELS.get(localeLanguage))
-        .ifPresent(channel -> autoJoinChannels.get().add(channel.getChannelName()));;
+        .ifPresent(channel -> autoJoinChannels.get().add(channel.getChannelName()));
   }
 
   public ChatColorMode getChatColorMode() {
