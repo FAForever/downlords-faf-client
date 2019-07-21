@@ -31,11 +31,11 @@ import static com.faforever.client.preferences.LanguageChannel.*;
 public class ChatPrefs {
 
   @VisibleForTesting
-  public static final ImmutableMap<String, LanguageChannel> LOCALE_LANGUAGES_TO_CHANNELS = ImmutableMap.<String, LanguageChannel>builder()
-      .put("fr", FRENCH)
-      .put("de", GERMAN)
-      .put("ru", RUSSIAN)
-      .put("be", RUSSIAN)
+  public static final ImmutableMap<Locale, LanguageChannel> LOCALE_LANGUAGES_TO_CHANNELS = ImmutableMap.<Locale, LanguageChannel>builder()
+      .put(Locale.FRENCH, FRENCH)
+      .put(Locale.GERMAN, GERMAN)
+      .put(new Locale("ru"), RUSSIAN)
+      .put(new Locale("be"), RUSSIAN)
       .build();
 
   private final DoubleProperty zoom;
@@ -68,7 +68,7 @@ public class ChatPrefs {
     chatFormat = new SimpleObjectProperty<>(ChatFormat.COMPACT);
     autoJoinChannels = new SimpleListProperty<>(FXCollections.observableArrayList());
 
-    String localeLanguage = Locale.getDefault().getLanguage();
+    Locale localeLanguage = new Locale(Locale.getDefault().getLanguage());
     Optional.ofNullable(LOCALE_LANGUAGES_TO_CHANNELS.get(localeLanguage))
         .ifPresent(channel -> autoJoinChannels.get().add(channel.getChannelName()));
   }
