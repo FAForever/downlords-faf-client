@@ -50,9 +50,9 @@ public class AutoJoinChannelsControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testLanguageChannels() throws Exception {
-    Map<String, LanguageChannel> languagesToChannels = ChatPrefs.LOCALE_LANGUAGES_TO_CHANNELS;
-    Entry<String, LanguageChannel> firstEntry = languagesToChannels.entrySet().iterator().next();
-    Locale.setDefault(new Locale(firstEntry.getKey()));
+    Map<Locale, LanguageChannel> languagesToChannels = ChatPrefs.LOCALE_LANGUAGES_TO_CHANNELS;
+    Entry<Locale, LanguageChannel> firstEntry = languagesToChannels.entrySet().iterator().next();
+    Locale.setDefault(firstEntry.getKey());
     
     preferences = new Preferences();
     when(preferenceService.getPreferences()).thenReturn(preferences);
