@@ -13,17 +13,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public class Channel {
 
-  private final ObservableMap<String, ChatChannelUser> users;
+  // TODO make sure any code that touches the keys knows that they are lowercase
+  private final ObservableMap<String, ChatChannelUser> usersByLowerName;
   private final StringProperty topic;
   private String name;
   private ObservableSet<String> moderators;
 
   public Channel(String name) {
     this.name = name;
-    users = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
+    usersByLowerName = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
     moderators = FXCollections.observableSet();
     topic = new SimpleStringProperty();
   }
@@ -41,7 +43,7 @@ public class Channel {
   }
 
   public ChatChannelUser removeUser(String username) {
-    return users.remove(username);
+    return usersByLowerName.remove(username.toLowerCase());
   }
 
   public void addUsers(List<ChatChannelUser> users) {
@@ -52,23 +54,26 @@ public class Channel {
     if (moderators.contains(user.getUsername())) {
       user.setModerator(true);
     }
-    users.put(user.getUsername(), user);
+    usersByLowerName.put(user.getUsername().toLowerCase(), user);
   }
 
   public void clearUsers() {
-    users.clear();
+    usersByLowerName.clear();
   }
 
+  /**
+   * Listen for lower case username to {@link ChatChannelUser} map
+   */
   public void addUsersListeners(MapChangeListener<String, ChatChannelUser> listener) {
-    JavaFxUtil.addListener(users, listener);
+    JavaFxUtil.addListener(usersByLowerName, listener);
   }
 
   public void removeUserListener(MapChangeListener<String, ChatChannelUser> listener) {
-    users.removeListener(listener);
+    usersByLowerName.removeListener(listener);
   }
   
   public void setModerator(String username, boolean isModerator) {
-    Optional.ofNullable(users.get(username)).ifPresent(user -> user.setModerator(isModerator));
+    Optional.ofNullable(usersByLowerName.get(username.toLowerCase())).ifPresent(user -> user.setModerator(isModerator));
     if (isModerator) {
       moderators.add(username);
     } else {
@@ -84,11 +89,22 @@ public class Channel {
    * Returns an unmodifiable copy of the current users.
    */
   public List<ChatChannelUser> getUsers() {
-    return Collections.unmodifiableList(new ArrayList<>(users.values()));
+    return Collections.unmodifiableList(new ArrayList<>(usersByLowerName.values()));
+  }
+  
+  /**
+   * Thread-safe way of changing user map without copying users.
+   */
+  public void forAllUsers(Consumer<ChatChannelUser> function) {
+    synchronized (usersByLowerName) {
+      for (ChatChannelUser user : usersByLowerName.values()) {
+        function.accept(user);
+      }
+    }
   }
 
   public ChatChannelUser getUser(String username) {
-    return users.get(username);
+    return usersByLowerName.get(username.toLowerCase());
   }
 
   public String getName() {

@@ -49,6 +49,14 @@ project.ext.javafxPlatform = "${javafxPlatform}"
 bootJar.enabled = false
 jar.enabled = true
 
+bootRun {
+  jvmArgs = ["-Dprism.dirtyopts=false",
+      "-Xms128m", "-Xmx512m",
+      "-XX:MinHeapFreeRatio=15", "-XX:MaxHeapFreeRatio=33",
+      "-XX:+HeapDumpOnOutOfMemoryError", "-XX:+UseStringDeduplication",
+      "-javaagent:webview-patch/build/libs/webview-patch.jar"]
+}
+
 if (javafxPlatform == "unspecified") {
   switch (OperatingSystem.current()) {
     case OperatingSystem.LINUX:

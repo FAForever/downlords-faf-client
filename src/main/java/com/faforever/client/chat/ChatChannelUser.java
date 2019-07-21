@@ -82,7 +82,7 @@ public class ChatChannelUser {
 
   @Override
   public int hashCode() {
-    return username.get().hashCode();
+    return username.get().toLowerCase().hashCode();
   }
 
   public BooleanProperty moderatorProperty() {

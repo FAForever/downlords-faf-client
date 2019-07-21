@@ -5,6 +5,7 @@ import static javafx.collections.FXCollections.observableHashMap;
 import static javafx.collections.FXCollections.observableMap;
 
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -33,15 +34,20 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.SocialMessage;
 import com.faforever.client.user.UserService;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
+import javafx.beans.property.MapProperty;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.paint.Color;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Deals with all the chat room state. Provides methods to change chat room state and listen for changes.
+ */
 @Lazy
 @Service
 @Slf4j
@@ -56,7 +62,6 @@ public class ChatRoomService implements InitializingBean {
   private final ChatServiceImpl chatService;
   private final ChannelTargetStateService channelTargetState;
   
-  private ObservableMap<String, ChatChannelUser> chatChannelUsersByChannelAndName;
   private ObservableMap<String, Channel> channels;
   
   public ChatRoomService(EventBus eventBus, UserService userService, FafService fafService, PreferencesService preferencesService,
@@ -71,11 +76,13 @@ public class ChatRoomService implements InitializingBean {
     this.chatService = chatService;
   
     channels = observableHashMap();
-    chatChannelUsersByChannelAndName = observableMap(new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
   }
   
-  private String mapKey(String username, String channelName) {
-    return username + channelName;
+  private List<ChatChannelUser> getAllUserInstances(String username) {
+    return channels.values().stream()
+        .map(channel -> channel.getUser(username))
+        .filter(user -> user != null)
+        .collect(Collectors.toList());
   }
   
   @Override
@@ -85,13 +92,14 @@ public class ChatRoomService implements InitializingBean {
       switch (newValue) {
         case DISCONNECTED:
           synchronized (channels) {
-            // TODO why is this next line even needed? PM channels don't get cleared either.
             channels.clear();
           }
         case CONNECTING:
           synchronized (channels) {
             channels.values().forEach(Channel::clearUsers);
           }
+          break;
+        case CONNECTED:
           break;
       }
     });
@@ -108,29 +116,25 @@ public class ChatRoomService implements InitializingBean {
         this::onChatMessageReceived);
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    JavaFxUtil.addListener(chatPrefs.userToColorProperty(),
-        (MapChangeListener<? super String, ? super Color>) change -> preferencesService.store()
-    );
     JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), (observable, oldValue, newValue) -> {
-      synchronized (chatChannelUsersByChannelAndName) {
-        switch (newValue) {
-          case CUSTOM:
-            chatChannelUsersByChannelAndName.values().stream()
-                .filter(chatUser -> chatPrefs.getUserToColor().containsKey(userToColorKey(chatUser.getUsername())))
-                .forEach(chatUser -> chatUser.setColor(chatPrefs.getUserToColor().get(userToColorKey(chatUser.getUsername()))));
-            break;
-
-          case RANDOM:
-            for (ChatChannelUser chatUser : chatChannelUsersByChannelAndName.values()) {
-              chatUser.setColor(ColorGeneratorUtil.generateRandomColor(chatUser.getUsername().hashCode()));
+      switch (newValue) {
+        case CUSTOM:
+          chatPrefs.getUserToColor().entrySet().forEach(entry -> {
+            for (ChatChannelUser user : getAllUserInstances(entry.getKey())) {
+              user.setColor(entry.getValue());
             }
-            break;
-
-          default:
-            for (ChatChannelUser chatUser : chatChannelUsersByChannelAndName.values()) {
-              chatUser.setColor(null);
-            }
-        }
+          });
+  
+        case RANDOM:
+          channels.values().forEach(channel -> channel.forAllUsers(user -> {
+            user.setColor(ColorGeneratorUtil.generateRandomColor(user.getUsername().hashCode()));
+          }));
+          break;
+  
+        case DEFAULT:
+          channels.values().forEach(channel -> channel.forAllUsers(user -> {
+            user.setColor(null);
+          }));
       }
     });
     fafService.addOnMessageListener(SocialMessage.class, socialMessage -> {
@@ -144,8 +148,7 @@ public class ChatRoomService implements InitializingBean {
     ObservableList<String> savedAutoChannels = preferencesService.getPreferences().getChat().getAutoJoinChannels();
     if (savedAutoChannels != null) {
       for (String channel : savedAutoChannels) {
-        log.info(channel);
-        joinChannel(channel);
+        channelTargetState.addTemporaryChannel(channel);
       }
     }
   }
@@ -155,11 +158,21 @@ public class ChatRoomService implements InitializingBean {
     
     channelTargetState.addPermanentChannel(irc.getDefaultChannelName());
     
-    log.debug("Joining all channels: {}", channelTargetState);
+    log.debug("Joining all room channels: {}", channelTargetState);
     
     for (String channelName : channelTargetState.getAllChannels()) {
       irc.joinChannel(channelName);
     }
+  }
+  
+  public void joinChannel(String channelName) {
+    channelTargetState.addTemporaryChannel(channelName);
+    irc.joinChannel(channelName);
+  }
+
+  public void leaveChannel(String channelName) {
+    channelTargetState.removeTemporaryChannel(channelName);
+    irc.leaveChannel(channelName);
   }
 
   private void onChannelTopicChanged(String channelName, String topic) {
@@ -168,11 +181,11 @@ public class ChatRoomService implements InitializingBean {
 
   private void onChannelUsersReceived(String channelName, Set<ChatUser> users) {
     Channel channel = getOrCreateChannel(channelName);
-    users.forEach(user -> channel.addUser(getOrCreateChatUser(user.getUsername(), channelName, user.isModerator())));
+    users.forEach(user -> channel.addUser(getOrCreateChatRoomUser(user.getUsername(), channelName, user.isModerator())));
   }
 
   private void onUserJoinedChannel(String channelName, ChatUser user) {
-    getOrCreateChannel(channelName).addUser(getOrCreateChatUser(user.getUsername(), channelName, user.isModerator()));
+    getOrCreateChannel(channelName).addUser(getOrCreateChatRoomUser(user.getUsername(), channelName, user.isModerator()));
   }
 
   private void onUserLeftChannel(String channelName, String username) {
@@ -181,12 +194,7 @@ public class ChatRoomService implements InitializingBean {
     }
     log.debug("User '{}' left channel: {}", username, channelName);
     if (userService.getUsername().equalsIgnoreCase(username)) {
-      synchronized (channels) {
-        channels.remove(channelName);
-      }
-    }
-    synchronized (chatChannelUsersByChannelAndName) {
-      chatChannelUsersByChannelAndName.remove(mapKey(username, channelName));
+      channels.remove(channelName);
     }
     // The server doesn't yet tell us when a user goes offline, so we have to rely on the user leaving IRC.
     if (irc.getDefaultChannelName().equals(channelName)) {
@@ -195,9 +203,7 @@ public class ChatRoomService implements InitializingBean {
   }
 
   private void onUserQuitChat(String username) {
-    synchronized (channels) {
-      channels.values().forEach(channel -> onUserLeftChannel(channel.getName(), username));
-    }
+    channels.values().forEach(channel -> onUserLeftChannel(channel.getName(), username));
   }
 
   private void onUserRoleChanged(String channelName, ChatUser user) {
@@ -217,46 +223,32 @@ public class ChatRoomService implements InitializingBean {
   @Subscribe
   public void onPlayerOnline(PlayerOnlineEvent event) {
     Player player = event.getPlayer();
-
-    synchronized (channels) {
-      List<ChatChannelUser> channelUsers = channels.values().stream()
-          .map(channel -> chatChannelUsersByChannelAndName.get(mapKey(player.getUsername(), channel.getName())))
-          .filter(Objects::nonNull)
-          .peek(chatChannelUser -> chatChannelUser.setPlayer(player))
-          .collect(Collectors.toList());
-
-      player.getChatChannelUsers().addAll(channelUsers);
-    }
+    player.getChatChannelUsers().addAll(getAllUserInstances(player.getUsername()));
   }
 
   public Channel getOrCreateChannel(String channelName) {
-    synchronized (channels) {
-      if (!channels.containsKey(channelName)) {
+    if (!channels.containsKey(channelName)) {
+      synchronized (channels) {
         channels.put(channelName, new Channel(channelName));
       }
-      return channels.get(channelName);
     }
+    return channels.get(channelName);
   }
 
-  public ChatChannelUser getOrCreateChatUser(String username, String channel, boolean isModerator) {
-    synchronized (chatChannelUsersByChannelAndName) {
-      String key = mapKey(username, channel);
-      if (!chatChannelUsersByChannelAndName.containsKey(key)) {
-        ChatChannelUser chatChannelUser = chatService.createChatChannelUser(username, isModerator);
-        chatChannelUsersByChannelAndName.put(key, chatChannelUser);
+  @VisibleForTesting
+  public ChatChannelUser getOrCreateChatRoomUser(String username, String channel, boolean isModerator) {
+    Channel chatChannel = channels.get(channel);
+    if (chatChannel != null) {
+      ChatChannelUser chatChannelUser = channels.get(channel).getUser(username);
+      if (chatChannelUser != null) {
+        return chatChannelUser;
       }
-      return chatChannelUsersByChannelAndName.get(key);
     }
+    return chatService.createChatChannelUser(username, isModerator);
   }
 
   public void addUsersListener(String channelName, MapChangeListener<String, ChatChannelUser> listener) {
     getOrCreateChannel(channelName).addUsersListeners(listener);
-  }
-
-  public void addChatUsersByNameListener(MapChangeListener<String, ChatChannelUser> listener) {
-    synchronized (chatChannelUsersByChannelAndName) {
-      JavaFxUtil.addListener(chatChannelUsersByChannelAndName, listener);
-    }
   }
 
   public void addChannelsListener(MapChangeListener<String, Channel> listener) {
@@ -267,17 +259,8 @@ public class ChatRoomService implements InitializingBean {
     getOrCreateChannel(channelName).removeUserListener(listener);
   }
 
-  public void joinChannel(String channelName) {
-    channelTargetState.addTemporaryChannel(channelName);
-    irc.joinChannel(channelName);
-  }
-
-  public void leaveChannel(String channelName) {
-    irc.leaveChannel(channelName);
-  }
-
   public ChatChannelUser getChatUser(String username, String channelName) {
-    return Optional.ofNullable(chatChannelUsersByChannelAndName.get(mapKey(username, channelName)))
+    return Optional.ofNullable(channels.get(channelName).getUser(username))
         .orElseThrow(() -> new IllegalArgumentException("Chat user '" + username + "' is unknown for channel '" + channelName + "'"));
   }
 }

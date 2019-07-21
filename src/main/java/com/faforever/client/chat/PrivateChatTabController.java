@@ -85,16 +85,17 @@ public class PrivateChatTabController extends AbstractChatTabController {
     privateUserInfoController.setChatUser(chatUser);
   }
 
+  @SuppressWarnings("deprecation")
   public void initialize() {
     super.initialize();
     JavaFxUtil.fixScrollSpeed(gameDetailScrollPane);
     userOffline = false;
     chatService.addChatUsersByNameListener(change -> {
       if (change.wasRemoved()) {
-        onPlayerDisconnected(change.getKey());
+        onPlayerDisconnected(change.getValueRemoved().getUsername());
       }
       if (change.wasAdded()) {
-        onPlayerConnected(change.getKey());
+        onPlayerConnected(change.getValueAdded().getUsername());
       }
     });
   }

@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.chat.jan.ChannelTargetStateService;
+import com.faforever.client.chat.jan.ChatRoomService;
 import com.faforever.client.chat.jan.ChatServiceImpl;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.JavaFxUtil;
@@ -111,11 +112,10 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
   private static final String OTHER_CHANNEL_NAME = "#otherChannel";
   private static final int IRC_SERVER_PORT = 123;
   
-  private ChatServiceImpl instance;
+  private ChatServiceImpl instancePms;
+  private ChatRoomService instanceRooms;
   // This class should get its own tests eventually
   private PircBotXChatService connector;
-  //This class should get its own tests eventually, too
-  private ChannelTargetStateService channelTargetState;
 
   private ChatChannelUser chatUser1;
   private ChatChannelUser chatUser2;
@@ -177,9 +177,10 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
         .setDefaultChannel(DEFAULT_CHANNEL_NAME)
         .setReconnectDelay(100);
 
-    channelTargetState = new ChannelTargetStateService();
     connector = new PircBotXChatService(userService, taskService, fafService, i18n, pircBotXFactory, threadPoolExecutor, clientProperties);
-    instance = new ChatServiceImpl(eventBus, userService, fafService, preferencesService, connector, channelTargetState, playerService);
+    instancePms = new ChatServiceImpl(eventBus, userService, preferencesService, connector, playerService);
+    ChannelTargetStateService channelTargetState = new ChannelTargetStateService();
+    instanceRooms = new ChatRoomService(eventBus, userService, fafService, preferencesService, connector, channelTargetState, playerService, instancePms);
     
     botShutdownLatch = new CountDownLatch(1);
 
@@ -226,30 +227,31 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
     when(user2.getChannels()).thenReturn(ImmutableSortedSet.of(defaultChannel));
     when(user2.getUserLevels(defaultChannel)).thenReturn(ImmutableSortedSet.of(UserLevel.VOICE));
 
-    chatUser1 = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME, false);
-    chatUser2 = instance.getOrCreateChatUser(user2.getNick(), DEFAULT_CHANNEL_NAME, false);
+    chatUser1 = instanceRooms.getOrCreateChatRoomUser(user1.getNick(), DEFAULT_CHANNEL_NAME, false);
+    chatUser2 = instanceRooms.getOrCreateChatRoomUser(user2.getNick(), DEFAULT_CHANNEL_NAME, false);
 
-    instance.afterPropertiesSet();
+    instancePms.afterPropertiesSet();
+    instanceRooms.afterPropertiesSet();
 
     verify(fafService).addOnMessageListener(eq(SocialMessage.class), socialMessageListenerCaptor.capture());
   }
 
   @After
   public void tearDown() {
-    instance.destroy();
+    connector.destroy();
     botShutdownLatch.countDown();
   }
 
   @Test
   public void testOnChatUserList() throws Exception {
-    Channel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
+    Channel channel = instanceRooms.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
     assertThat(channel.getUsers(), empty());
 
     when(user2.compareTo(user1)).thenReturn(1);
 
     connect();
     CountDownLatch usersJoinedLatch = new CountDownLatch(2);
-    instance.addUsersListener(channel.getName(), change -> {
+    instanceRooms.addUsersListener(channel.getName(), change -> {
       if (change.wasAdded()) {
         usersJoinedLatch.countDown();
       }
@@ -264,7 +266,7 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   private void connect() throws Exception {
-    instance.connect();
+    connector.connect();
     verify(pircBotXFactory).createPircBotX(configurationCaptor.capture());
 
     CountDownLatch latch = listenForConnected();
@@ -301,7 +303,7 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnUserJoinedChannel() throws Exception {
-    Channel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
+    Channel channel = instanceRooms.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
     assertThat(channel.getUsers(), empty());
 
     connect();
@@ -322,7 +324,7 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
 
   private CompletableFuture<ChatChannelUser> listenForUserJoined(org.pircbotx.Channel channel) {
     CompletableFuture<ChatChannelUser> future = new CompletableFuture<>();
-    instance.addUsersListener(channel.getName(), change -> {
+    instanceRooms.addUsersListener(channel.getName(), change -> {
       if (change.wasAdded()) {
         future.complete(change.getValueAdded());
       }
@@ -337,7 +339,7 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnChatUserLeftChannel() throws Exception {
-    Channel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
+    Channel channel = instanceRooms.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
     assertThat(channel.getUsers(), empty());
 
     connect();
@@ -358,7 +360,7 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
 
   private CompletableFuture<ChatChannelUser> listenForUserParted(org.pircbotx.Channel channel) {
     CompletableFuture<ChatChannelUser> future = new CompletableFuture<>();
-    instance.addUsersListener(channel.getName(), change -> {
+    instanceRooms.addUsersListener(channel.getName(), change -> {
       if (change.wasRemoved()) {
         future.complete(change.getValueRemoved());
       }
@@ -373,7 +375,7 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnChatUserQuit() throws Exception {
-    Channel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
+    Channel channel = instanceRooms.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
     assertThat(channel.getUsers(), empty());
 
     connect();
@@ -394,7 +396,7 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
 
   private CompletableFuture<ChatChannelUser> listenForUserQuit() {
     CompletableFuture<ChatChannelUser> future = new CompletableFuture<>();
-    instance.addUsersListener(DEFAULT_CHANNEL_NAME, change -> {
+    instanceRooms.addUsersListener(DEFAULT_CHANNEL_NAME, change -> {
       if (change.wasRemoved()) {
         future.complete(change.getValueRemoved());
       }
@@ -533,7 +535,7 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testAddOnModeratorSetListener() throws Exception {
-    Channel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
+    Channel channel = instanceRooms.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
     assertThat(channel.getUsers(), empty());
 
     connect();
@@ -614,7 +616,7 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
 
     String message = "test message";
 
-    CompletableFuture<String> future = instance.sendMessageInBackground(DEFAULT_CHANNEL_NAME, message).toCompletableFuture();
+    CompletableFuture<String> future = instancePms.sendMessageInBackground(DEFAULT_CHANNEL_NAME, message).toCompletableFuture();
 
     assertThat(future.get(TIMEOUT, TIMEOUT_UNIT), is(message));
     verify(outputIrc).message(DEFAULT_CHANNEL_NAME, message);
@@ -622,7 +624,7 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testGetChatUsersForChannelEmpty() {
-    Channel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
+    Channel channel = instanceRooms.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
     assertThat(channel.getUsers(), empty());
   }
 
@@ -632,11 +634,11 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
     joinChannel(defaultChannel, user1);
     joinChannel(otherChannel, user2);
 
-    List<ChatChannelUser> usersInDefaultChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUsers();
+    List<ChatChannelUser> usersInDefaultChannel = instanceRooms.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUsers();
     assertThat(usersInDefaultChannel, hasSize(1));
     assertThat(usersInDefaultChannel.iterator().next(), sameInstance(chatUser1));
 
-    List<ChatChannelUser> usersInOtherChannel = instance.getOrCreateChannel(OTHER_CHANNEL_NAME).getUsers();
+    List<ChatChannelUser> usersInOtherChannel = instanceRooms.getOrCreateChannel(OTHER_CHANNEL_NAME).getUsers();
     assertThat(usersInOtherChannel, hasSize(1));
     // It's expected to create one chat channel user per channel, so the instances should be different
     assertThat(usersInOtherChannel.iterator().next(), not(sameInstance(chatUser2)));
@@ -649,7 +651,7 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
     joinChannel(defaultChannel, user1);
     joinChannel(defaultChannel, user2);
 
-    Channel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
+    Channel channel = instanceRooms.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
 
     List<ChatChannelUser> users = channel.getUsers();
     assertThat(users, hasSize(2));
@@ -662,7 +664,7 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
     @SuppressWarnings("unchecked")
     MapChangeListener<String, ChatChannelUser> listener = mock(MapChangeListener.class);
 
-    instance.addUsersListener(DEFAULT_CHANNEL_NAME, listener);
+    instanceRooms.addUsersListener(DEFAULT_CHANNEL_NAME, listener);
 
     joinChannel(defaultChannel, user1);
     joinChannel(defaultChannel, user2);
@@ -677,8 +679,8 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
     when(userChannelDao.getChannel(DEFAULT_CHANNEL_NAME)).thenReturn(defaultChannel);
     when(defaultChannel.send()).thenReturn(outputChannel);
 
-    instance.connect();
-    instance.leaveChannel(DEFAULT_CHANNEL_NAME);
+    connector.connect();
+    instanceRooms.leaveChannel(DEFAULT_CHANNEL_NAME);
 
     verify(outputChannel).part();
   }
@@ -689,7 +691,7 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
 
     String action = "test action";
 
-    CompletableFuture<String> future = instance.sendActionInBackground(DEFAULT_CHANNEL_NAME, action).toCompletableFuture();
+    CompletableFuture<String> future = instancePms.sendActionInBackground(DEFAULT_CHANNEL_NAME, action).toCompletableFuture();
 
     assertThat(future.get(TIMEOUT, TIMEOUT_UNIT), is(action));
     verify(outputIrc).action(DEFAULT_CHANNEL_NAME, action);
@@ -732,15 +734,15 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
     connector.connectionState.set(ConnectionState.CONNECTED);
 
     String channelToJoin = "#anotherChannel";
-    instance.joinChannel(channelToJoin);
+    instanceRooms.joinChannel(channelToJoin);
 
     verify(outputIrc).joinChannel(channelToJoin);
   }
 
   @Test
   public void testIsDefaultChannel() {
-    instance.connect();
-    assertTrue(instance.isDefaultChannel(DEFAULT_CHANNEL_NAME));
+    connector.connect();
+    assertTrue(connector.isDefaultChannel(DEFAULT_CHANNEL_NAME));
   }
 
   @Test
@@ -767,22 +769,22 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
     connect();
     joinChannel(defaultChannel, user1);
 
-    assertThat(instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUsers(), hasSize(1));
+    assertThat(instanceRooms.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUsers(), hasSize(1));
 
     connector.connectionState.set(ConnectionState.DISCONNECTED);
 
-    assertThat(instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUsers(), empty());
+    assertThat(instanceRooms.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUsers(), empty());
   }
 
   @Test
   public void testClose() {
-    instance.destroy();
+    connector.destroy();
   }
 
   @Test
   public void testCreateOrGetChatUserStringPopulatedMap() {
-    ChatChannelUser addedUser = instance.getOrCreateChatUser(chatUser1.getUsername(), DEFAULT_CHANNEL_NAME, false);
-    ChatChannelUser returnedUser = instance.getOrCreateChatUser(chatUser1.getUsername(), DEFAULT_CHANNEL_NAME, false);
+    ChatChannelUser addedUser = instanceRooms.getOrCreateChatRoomUser(chatUser1.getUsername(), DEFAULT_CHANNEL_NAME, false);
+    ChatChannelUser returnedUser = instanceRooms.getOrCreateChatRoomUser(chatUser1.getUsername(), DEFAULT_CHANNEL_NAME, false);
 
     assertThat(returnedUser, is(addedUser));
     assertEquals(returnedUser, addedUser);
@@ -790,8 +792,8 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCreateOrGetChatUserUserObjectPopulatedMap() {
-    ChatChannelUser addedUser = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME, false);
-    ChatChannelUser returnedUser = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME, false);
+    ChatChannelUser addedUser = instanceRooms.getOrCreateChatRoomUser(user1.getNick(), DEFAULT_CHANNEL_NAME, false);
+    ChatChannelUser returnedUser = instanceRooms.getOrCreateChatRoomUser(user1.getNick(), DEFAULT_CHANNEL_NAME, false);
 
     assertThat(returnedUser, is(addedUser));
     assertEquals(returnedUser, addedUser);
@@ -799,7 +801,7 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void getOrCreateChatUserFoeNoNotification() {
-    instance.getOrCreateChatUser(CHAT_USER_NAME, DEFAULT_CHANNEL_NAME, false);
+    instanceRooms.getOrCreateChatRoomUser(CHAT_USER_NAME, DEFAULT_CHANNEL_NAME, false);
 
     verify(notificationService, never()).addNotification(any(TransientNotification.class));
   }
@@ -817,7 +819,7 @@ public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
 
     firePircBotXEvent(createJoinEvent(defaultChannel, moderator));
 
-    ChatChannelUser chatUserModerator = instance.getOrCreateChatUser(moderator.getNick(), DEFAULT_CHANNEL_NAME, true);
+    ChatChannelUser chatUserModerator = instanceRooms.getOrCreateChatRoomUser(moderator.getNick(), DEFAULT_CHANNEL_NAME, true);
     assertThat(chatUserModerator.isModerator(), is(true));
   }
 

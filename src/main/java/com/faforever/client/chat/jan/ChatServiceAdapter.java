@@ -24,7 +24,7 @@ import javafx.collections.MapChangeListener;
 @Deprecated
 @Lazy
 @Service
-public class ChatServiceAdapter implements OldChatService, InitializingBean, DisposableBean {
+public class ChatServiceAdapter implements OldChatService, DisposableBean {
 
   private final ChatServiceImpl chatService;
   private final ChatRoomService chatRoomService;
@@ -42,11 +42,6 @@ public class ChatServiceAdapter implements OldChatService, InitializingBean, Dis
   @Override
   public void destroy() throws Exception {
     close();
-  }
-
-  @Override
-  public void afterPropertiesSet() throws Exception {
-    chatService.afterPropertiesSet();
   }
 
   @Override
@@ -69,19 +64,25 @@ public class ChatServiceAdapter implements OldChatService, InitializingBean, Dis
     return chatRoomService.getOrCreateChannel(channelName);
   }
 
+  /**
+   * Should only be used for private message channels.
+   */
   @Override
   public ChatChannelUser getOrCreateChatUser(String username, String channel, boolean isModerator) {
-    return chatRoomService.getOrCreateChatUser(username, channel, isModerator);
+    return chatService.getOrCreateChatUser(username);
+  }
+  
+  /**
+   * Should only be used for private message channels.
+   */
+  @Override
+  public void addChatUsersByNameListener(MapChangeListener<String, ChatChannelUser> listener) {
+    chatService.addPmChatUsersByNameListener(listener);
   }
 
   @Override
   public void addUsersListener(String channelName, MapChangeListener<String, ChatChannelUser> listener) {
     chatRoomService.addUsersListener(channelName, listener);
-  }
-
-  @Override
-  public void addChatUsersByNameListener(MapChangeListener<String, ChatChannelUser> listener) {
-    chatRoomService.addChatUsersByNameListener(listener);
   }
 
   @Override
@@ -141,7 +142,6 @@ public class ChatServiceAdapter implements OldChatService, InitializingBean, Dis
   @Override
   public void incrementUnreadMessagesCount(int delta) {
     chatService.incrementUnreadMessagesCount(delta);
-    
   }
 
   @Override

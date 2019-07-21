@@ -47,6 +47,11 @@ import static java.util.Locale.US;
 import static javafx.collections.FXCollections.observableHashMap;
 import static javafx.collections.FXCollections.observableMap;
 
+/**
+ * Has currently two roles:
+ * 1. Deal with all private message channel related stuff (could be moved to separate class).
+ * 2. Provide a place to put general chat functionality that neither belongs to chat rooms nor private messages specifically.
+ */
 @Lazy
 @Service
 @Slf4j
@@ -55,38 +60,29 @@ public class ChatServiceImpl implements InitializingBean {
 
   private final EventBus eventBus;
   private final UserService userService;
-  private final FafService fafService;
   private final PlayerService playerService;
   private final PreferencesService preferencesService;
 
   private final PircBotXChatService irc;
-  // TODO remove
-  private final ChannelTargetStateService channelTargetState;
 
-  // TODO remove channels, directly map usernames to ChatChannelUsers for pms
-  private ObservableMap<String, ChatChannelUser> chatChannelUsersByChannelAndName;
-  // TODO remove
-  private ObservableMap<String, Channel> channels;
+  private ObservableMap<String, ChatChannelUser> pmChannelUsersByLowerName;
 
-  private String mapKey(String username, String channelName) {
-    return username + channelName;
-  }
-
-  public ChatServiceImpl(EventBus eventBus, UserService userService, FafService fafService, PreferencesService preferencesService,
-        PircBotXChatService irc, ChannelTargetStateService channelTargetState, PlayerService playerService) {
+  public ChatServiceImpl(EventBus eventBus, UserService userService, PreferencesService preferencesService,
+        PircBotXChatService irc, PlayerService playerService) {
 
     this.eventBus = eventBus;
     this.userService = userService;
-    this.fafService = fafService;
     this.preferencesService = preferencesService;
     this.irc = irc;
-    this.channelTargetState = channelTargetState;
     this.playerService = playerService;
-
-    channels = observableHashMap();
-    chatChannelUsersByChannelAndName = observableMap(new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
+    
+    pmChannelUsersByLowerName = observableHashMap();
   }
 
+  private ChatChannelUser getUser(String username) {
+    return pmChannelUsersByLowerName.get(username.toLowerCase());
+  }
+  
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
@@ -95,27 +91,30 @@ public class ChatServiceImpl implements InitializingBean {
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     JavaFxUtil.addListener(chatPrefs.userToColorProperty(),
-        (MapChangeListener<? super String, ? super Color>) change -> preferencesService.store()
+        (MapChangeListener<? super String, ? super Color>) change -> preferencesService.storeInBackground()
     );
+    // TODO make sure this color stuff is even used in private messages
+    // iof not remove this listener.
     JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), (observable, oldValue, newValue) -> {
-      synchronized (chatChannelUsersByChannelAndName) {
+      synchronized (pmChannelUsersByLowerName) {
         switch (newValue) {
           case CUSTOM:
-            chatChannelUsersByChannelAndName.values().stream()
-                .filter(chatUser -> chatPrefs.getUserToColor().containsKey(userToColorKey(chatUser.getUsername())))
-                .forEach(chatUser -> chatUser.setColor(chatPrefs.getUserToColor().get(userToColorKey(chatUser.getUsername()))));
+            chatPrefs.getUserToColor().entrySet().forEach(entry -> {
+                getUser(entry.getKey()).setColor(entry.getValue());
+            });
             break;
 
           case RANDOM:
-            for (ChatChannelUser chatUser : chatChannelUsersByChannelAndName.values()) {
+            for (ChatChannelUser chatUser : pmChannelUsersByLowerName.values()) {
               chatUser.setColor(ColorGeneratorUtil.generateRandomColor(chatUser.getUsername().hashCode()));
             }
             break;
 
-          default:
-            for (ChatChannelUser chatUser : chatChannelUsersByChannelAndName.values()) {
+          case DEFAULT:
+            for (ChatChannelUser chatUser : pmChannelUsersByLowerName.values()) {
               chatUser.setColor(null);
             }
+            break;
         }
       }
     });
@@ -125,15 +124,9 @@ public class ChatServiceImpl implements InitializingBean {
     log.info("Received pm message: {}", message.getMessage());
     JavaFxUtil.assertBackgroundThread();
     String username = message.getUsername();
-    // TODO This method just wants to get its grabby hands on the player object.
-    // In the previous design, the chatChannelUsersByChannelAndName variable contained
-    // both chatroom users as well as private channel users. This needs to be split
-    // so we can still access ChatChannelUser for private chats without having to
-    // deal with ChatRoomService.
-    
-    //ChatChannelUser sender = getOrCreateChatUser(username,username, false);
-    ChatChannelUser sender = createChatChannelUser(username, false);// TODO
-    
+
+    ChatChannelUser sender = getOrCreateChatUser(username);
+
     if (sender != null
         && sender.getPlayer().isPresent()
         && sender.getPlayer().get().getSocialStatus() == SocialStatus.FOE
@@ -142,6 +135,17 @@ public class ChatServiceImpl implements InitializingBean {
       return;
     }
     eventBus.post(new ChatMessageEvent(message));
+  }
+
+  public ChatChannelUser getOrCreateChatUser(String username) {
+    ChatChannelUser user = getUser(username);
+    if (user == null) {
+      user = createChatChannelUser(username, false);
+      synchronized (pmChannelUsersByLowerName) {
+        pmChannelUsersByLowerName.put(username.toLowerCase(), user);
+      }
+    }
+    return user;
   }
 
   @NotNull
@@ -158,21 +162,6 @@ public class ChatServiceImpl implements InitializingBean {
   public void onLoggedOutEvent(LoggedOutEvent event) {
     irc.disconnect();
     eventBus.post(UpdateApplicationBadgeEvent.ofNewValue(0));
-  }
-
-  @Subscribe
-  public void onPlayerOnline(PlayerOnlineEvent event) {
-    Player player = event.getPlayer();
-
-    synchronized (channels) {
-      List<ChatChannelUser> channelUsers = channels.values().stream()
-          .map(channel -> chatChannelUsersByChannelAndName.get(mapKey(player.getUsername(), channel.getName())))
-          .filter(Objects::nonNull)
-          .peek(chatChannelUser -> chatChannelUser.setPlayer(player))
-          .collect(Collectors.toList());
-
-      player.getChatChannelUsers().addAll(channelUsers);
-    }
   }
   
   public ChatChannelUser createChatChannelUser(String username, boolean isModerator) {
@@ -200,7 +189,17 @@ public class ChatServiceImpl implements InitializingBean {
     return irc.sendActionInBackground(target, action);
   }
 
+  /**
+   * this can be done in AbstractChatTabController, no need for a chatService method
+   */
+  @Deprecated
   public void incrementUnreadMessagesCount(int delta) {
     eventBus.post(UpdateApplicationBadgeEvent.ofDelta(delta));
+  }
+  
+  public void addPmChatUsersByNameListener(MapChangeListener<String, ChatChannelUser> listener) {
+    synchronized (pmChannelUsersByLowerName) {
+      JavaFxUtil.addListener(pmChannelUsersByLowerName, listener);
+    }
   }
 }

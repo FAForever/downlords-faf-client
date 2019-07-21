@@ -363,8 +363,8 @@ public class PircBotXChatService implements DisposableBean, Cloneable {
   }
   
   public void reconnect() {
-    connect();
     disconnect();
+    connect();
   }
 
   public CompletableFuture<String> sendMessageInBackground(String target, String message) {
@@ -403,7 +403,7 @@ public class PircBotXChatService implements DisposableBean, Cloneable {
   }
 
   @Override
-  public void destroy() throws Exception {
+  public void destroy() {
     close();
   }
   
