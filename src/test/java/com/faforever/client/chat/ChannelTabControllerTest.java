@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -15,6 +16,7 @@ import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
@@ -96,6 +98,8 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   private EventBus eventBus;
   @Mock
   private CountryFlagService countryFlagService;
+  @Mock
+  private PlatformService platformService;
   private Preferences preferences;
   private Channel defaultChannel;
 
@@ -105,8 +109,8 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
         preferencesService, playerService,
         audioService, timeService, i18n, imageUploadService,
         notificationService, reportingService,
-        uiService, eventBus, webViewConfigurer, countryFlagService
-    );
+        uiService, eventBus, webViewConfigurer, countryFlagService,
+        platformService);
 
     defaultChannel = new Channel(CHANNEL_NAME);
     preferences = new Preferences();
@@ -143,6 +147,18 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     instance.setChannel(defaultChannel);
 
     verify(chatService).addUsersListener(eq(CHANNEL_NAME), any());
+  }
+
+  @Test
+  public void testSetChannelTopic() {
+    Channel channel = new Channel("name");
+    channel.setTopic("topic https://example.com/1");
+    Platform.runLater(() -> instance.setChannel(channel));
+
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(chatService).addUsersListener(eq("name"), any());
+    assertThat(instance.topicText.getChildren().size(), is(2));
   }
 
   @Test

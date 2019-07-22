@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -22,6 +23,8 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.gson.Gson;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
@@ -34,6 +37,8 @@ import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
@@ -45,6 +50,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
@@ -68,6 +74,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.ChatColorMode.DEFAULT;
+import static com.faforever.client.fx.PlatformService.URL_REGEX_PATTERN;
 import static com.faforever.client.player.SocialStatus.FOE;
 import static java.util.Locale.US;
 
@@ -123,6 +130,8 @@ public class ChannelTabController extends AbstractChatTabController {
   private final ObservableList<CategoryOrChatUserListItem> chatUserListItems;
 
   private final AutoCompletionHelper autoCompletionHelper;
+  private final PlatformService platformService;
+  private final InvalidationListener channelTopicListener = observable -> Platform.runLater(this::updateChannelTopic);
 
   public SplitPane splitPane;
   public ToggleButton advancedUserFilter;
@@ -135,6 +144,8 @@ public class ChannelTabController extends AbstractChatTabController {
   public TextField userSearchTextField;
   public TextField messageTextField;
   public ListView<CategoryOrChatUserListItem> chatUserListView;
+  public VBox topicPane;
+  public TextFlow topicText;
 
   private Channel channel;
   private Popup filterUserPopup;
@@ -152,11 +163,12 @@ public class ChannelTabController extends AbstractChatTabController {
                               NotificationService notificationService, ReportingService reportingService,
                               UiService uiService, EventBus eventBus,
                               WebViewConfigurer webViewConfigurer,
-                              CountryFlagService countryFlagService) {
+                              CountryFlagService countryFlagService, PlatformService platformService) {
 
     super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService,
         timeService, i18n, imageUploadService, notificationService, reportingService, uiService,
         eventBus, countryFlagService);
+    this.platformService = platformService;
 
     hideFoeMessagesListeners = new HashMap<>();
     socialStatusMessagesListeners = new HashMap<>();
@@ -235,6 +247,28 @@ public class ChannelTabController extends AbstractChatTabController {
     searchFieldContainer.visibleProperty().bind(searchField.visibleProperty());
     closeSearchFieldButton.visibleProperty().bind(searchField.visibleProperty());
     addSearchFieldListener();
+    topicPane.managedProperty().bind(topicPane.visibleProperty());
+    updateChannelTopic();
+    JavaFxUtil.addListener(channel.topicProperty(), new WeakInvalidationListener(channelTopicListener));
+  }
+
+  private void updateChannelTopic() {
+    boolean hasTopic = !Strings.isNullOrEmpty(channel.getTopic());
+    topicPane.setVisible(hasTopic);
+    if (!hasTopic) {
+      return;
+    }
+    String topic = channel.getTopic();
+    Arrays.stream(topic.split("\\s"))
+        .forEach(word -> {
+          if (URL_REGEX_PATTERN.matcher(word).matches()) {
+            Hyperlink link = new Hyperlink(word);
+            link.setOnAction(event -> platformService.showDocument(word));
+            topicText.getChildren().add(link);
+          } else {
+            topicText.getChildren().add(new Label(word + " "));
+          }
+        });
   }
 
   private void removeModerator(CategoryOrChatUserListItem item) {
