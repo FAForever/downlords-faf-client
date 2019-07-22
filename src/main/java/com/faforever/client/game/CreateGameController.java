@@ -362,18 +362,23 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   public void onGenerateMapButtonClicked() {
-    mapGeneratorService.generateMap().thenAccept(mapName -> {
-      Platform.runLater(() -> {
-        initMapSelection();
-        mapListView.getItems().stream()
-            .filter(mapBean -> mapBean.getFolderName().equalsIgnoreCase(mapName))
-            .findAny().ifPresent(mapBean -> {
-          mapListView.getSelectionModel().select(mapBean);
-          mapListView.scrollTo(mapBean);
-          setSelectedMap(mapBean);
+    try {
+      mapGeneratorService.generateMap().thenAccept(mapName -> {
+        Platform.runLater(() -> {
+          initMapSelection();
+          mapListView.getItems().stream()
+              .filter(mapBean -> mapBean.getFolderName().equalsIgnoreCase(mapName))
+              .findAny().ifPresent(mapBean -> {
+            mapListView.getSelectionModel().select(mapBean);
+            mapListView.scrollTo(mapBean);
+            setSelectedMap(mapBean);
+          });
         });
       });
-    });
+    } catch (Exception e) {
+      notificationService.addImmediateErrorNotification(e, "mapGenerator.generationFailed");
+      logger.error("Map generation failed", e);
+    }
   }
 
   public void onCreateButtonClicked() {

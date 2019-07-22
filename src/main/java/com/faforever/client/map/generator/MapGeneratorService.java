@@ -1,16 +1,25 @@
 package com.faforever.client.map.generator;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.io.FileUtils;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import javafx.scene.image.Image;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -33,8 +42,6 @@ public class MapGeneratorService {
    * Naming template for generated maps. It is all lower case because server expects lower case names for maps.
    */
   public static final String GENERATED_MAP_NAME = "neroxis_map_generator_%s_%d";
-  private static final String GENERATOR_DEFAULT_VERSION = "0.1.5";
-
   public static final String GENERATOR_EXECUTABLE_FILENAME = "MapGenerator_%s.jar";
   @VisibleForTesting
   public static final String GENERATOR_EXECUTABLE_SUB_DIRECTORY = "map_generator";
@@ -46,6 +53,7 @@ public class MapGeneratorService {
   private final ApplicationContext applicationContext;
   private final PreferencesService preferencesService;
   private final TaskService taskService;
+  private final ClientProperties clientProperties;
 
   @Getter
   private Path customMapsDirectory;
@@ -54,12 +62,13 @@ public class MapGeneratorService {
   @Getter
   private Image generatedMapPreviewImage;
 
-  public MapGeneratorService(ApplicationContext applicationContext, PreferencesService preferencesService, TaskService taskService) {
+  public MapGeneratorService(ApplicationContext applicationContext, PreferencesService preferencesService, TaskService taskService, ClientProperties clientProperties) {
     this.applicationContext = applicationContext;
     this.preferencesService = preferencesService;
     this.taskService = taskService;
 
     generatorExecutablePath = preferencesService.getFafDataDirectory().resolve(GENERATOR_EXECUTABLE_SUB_DIRECTORY);
+    this.clientProperties = clientProperties;
     if (!Files.exists(generatorExecutablePath)) {
       try {
         Files.createDirectory(generatorExecutablePath);
@@ -101,7 +110,22 @@ public class MapGeneratorService {
 
 
   public CompletableFuture<String> generateMap() {
-    return generateMap(GENERATOR_DEFAULT_VERSION, seedGenerator.nextLong());
+    return generateMap(queryNewestVersion(), seedGenerator.nextLong());
+  }
+
+  @VisibleForTesting
+  protected String queryNewestVersion() {
+    RestTemplate restTemplate = new RestTemplate();
+
+    LinkedMultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+    headers.add("Accept", "application/vnd.github.v3+json");
+    HttpEntity<String> entity = new HttpEntity<>(null, headers);
+
+    ResponseEntity<String> response = restTemplate.exchange(clientProperties.getMapGenerator().getQueryLatestVersionUrl(), HttpMethod.GET, entity, String.class);
+    JsonElement jsonElement = new JsonParser().parse(response.getBody());
+    JsonObject mainObject = jsonElement.getAsJsonObject();
+
+    return mainObject.get("tag_name").getAsString();
   }
 
   public CompletableFuture<String> generateMap(String mapName) {

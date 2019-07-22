@@ -48,7 +48,7 @@ public class DownloadMapGeneratorTaskTest extends AbstractPlainJavaFxTest {
     File generatorFile = sourceDirectory.newFile("NeroxisGenMock.jar");
 
     ClientProperties clientProperties = new ClientProperties();
-    clientProperties.getMapGenerator().setMapGeneratorReleaseUrl(generatorFile.toURI().toURL().toString() + "%1$s");
+    clientProperties.getMapGenerator().setDownloadUrlFormat(generatorFile.toURI().toURL().toString() + "%1$s");
     instance = new DownloadMapGeneratorTask(mapGeneratorService, clientProperties, i18n, platformService);
   }
 
