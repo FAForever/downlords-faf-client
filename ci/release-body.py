@@ -14,7 +14,7 @@ def call_github(path):
 
 
 def build_release_body(version_string):
-    response = call_github("/milestones?state=all")
+    response = call_github("/milestones?state=all&per_page=100&direction=desc")
     milestones = json.loads(response.read().decode('utf-8'))
     milestone_number = None
     for milestone in milestones:

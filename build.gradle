@@ -15,7 +15,7 @@ buildscript {
   }
 
   dependencies {
-    classpath("gradle.plugin.install4j.install4j:gradle_plugin:7.0.7")
+    classpath("gradle.plugin.install4j.install4j:gradle_plugin:8.0")
     classpath("org.springframework.build.gradle:propdeps-plugin:${propdepsVersion}")
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
     classpath("org.kt3k.gradle.plugin:coveralls-gradle-plugin:${coverallsGradlePluginVersion}")
@@ -23,7 +23,7 @@ buildscript {
 }
 
 plugins {
-  id "com.install4j.gradle" version "7.0.7"
+  id "com.install4j.gradle" version "8.0"
   id "co.riiid.gradle" version "0.4.2"
   id "de.undercouch.download" version "3.4.3"
   id "io.franzbecker.gradle-lombok" version "1.14"

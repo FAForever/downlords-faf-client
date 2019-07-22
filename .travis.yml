@@ -47,7 +47,6 @@ deploy:
   - build/install4j/*.gz
   - build/install4j/*.deb
   - build/install4j/*.rpm
-  - ~/openjdk10
   skip_cleanup: true
   name: ${GITHUB_RELEASE_VERSION}
   draft: true
@@ -85,3 +84,6 @@ cache:
   - $HOME/.gradle/caches/
   - $HOME/.gradle/wrapper/
   - /home/travis/build/FAForever/downlords-faf-client/build/cache/
+  - $HOME/.install4j8/
+  - ~/openjdk10
+
