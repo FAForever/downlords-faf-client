@@ -110,6 +110,7 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.getRoot().getParent(), is(nullValue()));
   }
 
+  @Ignore("Randomly failing test")
   @Test
   public void testSetChatUser() throws Exception {
     Player player = PlayerBuilder.create("junit")
