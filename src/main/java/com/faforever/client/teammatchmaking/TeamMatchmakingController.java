@@ -137,4 +137,9 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     //TODO
   }
 
+  public void onReadyButtonClicked(ActionEvent actionEvent) {
+    //TODO
+    //TODO: on server create party when single
+  }
+
 }

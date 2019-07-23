@@ -1080,6 +1080,14 @@
   -fx-text-fill: -fx-light-text-color
 }
 
+.party-ready-button-ready {
+  -fx-background-color: #609E15;
+}
+
+.party-ready-button-not-ready {
+  -fx-background-color: #9e1515;
+}
+
 /***************** Rating change*****************/
 
 .rating-change-label {

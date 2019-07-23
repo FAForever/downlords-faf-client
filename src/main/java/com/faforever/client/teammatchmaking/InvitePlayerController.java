@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.util.Collection;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -50,7 +51,7 @@ public class InvitePlayerController implements Controller<Pane> {
   @Override
   public void initialize() {
     playerTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      playerList.setAll(playerService.getPlayerNames());
+      playerList.setAll(getPlayerNames());
       playersListView.getSelectionModel().selectFirst();
     });
 
@@ -65,6 +66,10 @@ public class InvitePlayerController implements Controller<Pane> {
     playersListView.setItems(filteredPlayerList);
     playerTextField.setText("");
     playerTextField.requestFocus();
+  }
+
+  private Collection<String> getPlayerNames() {
+    return playerService.getPlayerNames(); //TODO: filter for online players
   }
 
   @Override

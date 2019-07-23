@@ -24,8 +24,8 @@
                         </padding>
                         <children>
                             <Label styleClass="h2" text="Party"/>
-                            <HBox spacing="10.0">
-                                <children>
+                            <HBox>
+                                <HBox spacing="10.0" HBox.hgrow="ALWAYS">
                                     <JFXButton fx:id="invitePlayerButton" defaultButton="true"
                                                text="%teammatchmaking.invitePlayer"
                                                onAction="#onInvitePlayerButtonClicked"/>
@@ -33,7 +33,9 @@
                                                layoutX="10.0" layoutY="10.0"
                                                text="%teammatchmaking.leaveParty"
                                                onAction="#onLeavePartyButtonClicked"/>
-                                </children>
+                                </HBox>
+                                <JFXButton fx:id="readyButton" disable="true" text="%teammatchmaking.notReady"
+                                           onAction="#onReadyButtonClicked" styleClass="party-ready-button-not-ready"/>
                             </HBox>
                             <JFXListView fx:id="playerListView" focusTraversable="false"
                                          styleClass="party-player-list-view"
