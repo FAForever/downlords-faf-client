@@ -21,7 +21,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.Collection;
 
 import static javafx.application.Platform.runLater;
@@ -46,7 +45,6 @@ public class StatusBarController implements Controller<Node> {
   public Label taskProgressLabel;
   public Label versionLabel;
 
-  @Inject
   public StatusBarController(FafService fafService, I18n i18n, ChatService chatService, TaskService taskService) {
     this.fafService = fafService;
     this.i18n = i18n;
@@ -54,9 +52,10 @@ public class StatusBarController implements Controller<Node> {
     this.taskService = taskService;
   }
 
+  @Override
   public void initialize() {
     setCurrentWorkerInStatusBar(null);
-    versionLabel.setText(Version.VERSION);
+    versionLabel.setText(Version.getCurrentVersion());
 
     JavaFxUtil.addListener(fafService.connectionStateProperty(), (observable, oldValue, newValue) -> runLater(() -> {
       switch (newValue) {

@@ -6,7 +6,6 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.update.ClientConfiguration.ReleaseInfo;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.SneakyThrows;
-import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -16,19 +15,15 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
-import java.util.regex.Pattern;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final Pattern SEMVER_PATTERN = Pattern.compile("v\\d+(\\.\\d+)*[^.]*");
 
   private final I18n i18n;
   private final PreferencesService preferencesService;
-
-  private ComparableVersion currentVersion;
 
   @VisibleForTesting
   FileSizeReader fileSizeReader = url -> url
@@ -52,16 +47,7 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
     ReleaseInfo latestRelease = clientConfiguration.getLatestRelease();
     String version = latestRelease.getVersion();
 
-    logger.info("Current version is {}, newest version is {}", currentVersion, version);
-
-    if (!SEMVER_PATTERN.matcher(version).matches()) {
-      return null;
-    }
-
-    // Strip the "v" prefix
-    final ComparableVersion latestVersion = new ComparableVersion(version.substring(1));
-
-    if (latestVersion.compareTo(currentVersion) < 1) {
+    if (!Version.shouldUpdate(Version.getCurrentVersion(), version)) {
       return null;
     }
 
@@ -82,7 +68,7 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
     int fileSize = getFileSize(downloadUrl);
 
     return new UpdateInfo(
-        latestVersion.getCanonical(),
+        version,
         downloadUrl.getFile().substring(downloadUrl.getFile().lastIndexOf('/') + 1),
         downloadUrl,
         fileSize,
@@ -93,10 +79,6 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
   @SneakyThrows
   private int getFileSize(URL downloadUrl) {
     return fileSizeReader.read(downloadUrl);
-  }
-
-  public void setCurrentVersion(ComparableVersion currentVersion) {
-    this.currentVersion = currentVersion;
   }
 
   // TODO make this available as a bean and use it in MapService as well

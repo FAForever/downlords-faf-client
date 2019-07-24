@@ -5,21 +5,18 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.io.CharStreams;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
-import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -30,9 +27,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
+@Slf4j
 public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
 
   private ServerSocket fakeConfigServerSocket;
@@ -63,8 +60,6 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
   @Test
   @Ignore("For unknown reasons, Travis throws a SocketException probably when trying to connect to the fake server")
   public void testIsNewer() throws Exception {
-    instance.setCurrentVersion(new ComparableVersion("0.4.6-alpha"));
-
     startFakeConfigServer();
     int port = fakeConfigServerSocket.getLocalPort();
 
@@ -98,14 +93,14 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
            Reader sampleReader = new InputStreamReader(getClass().getResourceAsStream("/sample-github-releases-response.txt"));
            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(socket.getOutputStream())) {
 
-        logger.debug("Accepted connection from {}", socket.getInetAddress());
+        log.debug("Accepted connection from {}", socket.getInetAddress());
 
         CharStreams.copy(sampleReader, outputStreamWriter);
       } catch (Exception e) {
-        logger.error("Exception in fake HTTP server", e);
+        log.error("Exception in fake HTTP server", e);
         throw new RuntimeException(e);
       }
-      logger.info("Response sent");
+      log.info("Response sent");
     });
   }
 
@@ -115,8 +110,6 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
   @Test
   @Ignore("For unknown reasons, Travis throws a SocketException probably when trying to connect to the fake server")
   public void testGetUpdateIsCurrent() throws Exception {
-    instance.setCurrentVersion(new ComparableVersion("0.4.8.1-alpha"));
-
     startFakeConfigServer();
     int port = fakeConfigServerSocket.getLocalPort();
     clientProperties.setClientConfigUrl("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);

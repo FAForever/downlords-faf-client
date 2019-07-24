@@ -204,7 +204,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public <T extends ServerMessage> void removeOnMessageListener(Class<T> type, Consumer<T> listener) {
     messageListeners.get(type).remove(listener);
   }
@@ -245,7 +244,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
             serverWriter = createServerWriter(outputStream);
 
-            writeToServer(new InitSessionMessage(Version.VERSION));
+            writeToServer(new InitSessionMessage(Version.getCurrentVersion()));
 
             logger.info("FAF server connection established");
             Platform.runLater(() -> connectionState.set(ConnectionState.CONNECTED));
