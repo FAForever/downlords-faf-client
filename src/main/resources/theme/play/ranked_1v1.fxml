@@ -42,9 +42,11 @@
                   <JFXButton fx:id="cancelButton" cancelButton="true" mnemonicParsing="false"
                              onAction="#onCancelButtonClicked" text="%ranked1v1.cancel" GridPane.halignment="CENTER"
                              GridPane.rowIndex="4" GridPane.valignment="CENTER"/>
-                  <JFXButton fx:id="playButton" defaultButton="true" mnemonicParsing="false"
-                             onAction="#onPlayButtonClicked" text="%ranked1v1.play" GridPane.halignment="CENTER"
-                             GridPane.rowIndex="4" GridPane.valignment="CENTER"/>
+                  <HBox GridPane.rowIndex="4" GridPane.halignment="CENTER">
+	                  <JFXButton fx:id="playButton" defaultButton="true" mnemonicParsing="false"
+	                             onAction="#onPlayButtonClicked" text="%ranked1v1.play" />
+	                  <Label fx:id="timeUntilQueuePopLabel"></Label>
+                  </HBox>
                 <HBox alignment="CENTER" spacing="5.0" GridPane.rowIndex="2" GridPane.valignment="CENTER">
                   <children>
                       <ToggleButton fx:id="aeonButton" mnemonicParsing="false" onAction="#onFactionButtonClicked" text="">

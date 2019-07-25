@@ -239,7 +239,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
 
     MatchmakerMessage matchmakerMessage = new MatchmakerMessage();
-    matchmakerMessage.setQueues(singletonList(new MatchmakerMessage.MatchmakerQueue("ladder1v1",
+    matchmakerMessage.setQueues(singletonList(new MatchmakerMessage.MatchmakerQueue("ladder1v1", null,
         singletonList(new RatingRange(1500, 1510)), singletonList(new RatingRange(1500, 1510)))));
     matchmakerMessageCaptor.getValue().accept(matchmakerMessage);
   }
@@ -306,7 +306,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
 
     MatchmakerMessage matchmakerMessage = new MatchmakerMessage();
-    matchmakerMessage.setQueues(singletonList(new MatchmakerMessage.MatchmakerQueue("ladder1v1",
+    matchmakerMessage.setQueues(singletonList(new MatchmakerMessage.MatchmakerQueue("ladder1v1", null,
         singletonList(new RatingRange(1500, 1510)), singletonList(new RatingRange(1500, 1510)))));
     matchmakerMessageCaptor.getValue().accept(matchmakerMessage);
 

@@ -12,13 +12,16 @@ public class MatchmakerMessage extends FafServerMessage {
   public static class MatchmakerQueue {
 
     private String queueName;
+    @SerializedName("queue_pop_time")
+    private String queuePopTime;
     @SerializedName("boundary_75s")
     private List<RatingRange> boundary75s;
     @SerializedName("boundary_80s")
     private List<RatingRange> boundary80s;
 
-    public MatchmakerQueue(String queueName, List<RatingRange> boundary75s, List<RatingRange> boundary80s) {
+    public MatchmakerQueue(String queueName, String queuePopTime, List<RatingRange> boundary75s, List<RatingRange> boundary80s) {
       this.queueName = queueName;
+      this.queuePopTime = queuePopTime;
       this.boundary75s = boundary75s;
       this.boundary80s = boundary80s;
     }
@@ -29,6 +32,14 @@ public class MatchmakerMessage extends FafServerMessage {
 
     public void setQueueName(String queueName) {
       this.queueName = queueName;
+    }
+
+    public String getQueuePopTime() {
+      return queuePopTime;
+    }
+
+    public void setQueuePopTime(String queuePopTime) {
+      this.queuePopTime = queuePopTime;
     }
 
     public List<RatingRange> getBoundary75s() {

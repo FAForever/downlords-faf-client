@@ -17,6 +17,9 @@ import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
+
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -35,6 +38,8 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.text.Text;
+import lombok.extern.slf4j.Slf4j;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -43,11 +48,15 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.lang.ref.WeakReference;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -58,11 +67,12 @@ import static com.faforever.client.game.Faction.UEF;
 
 @Component
 @Lazy
+@Slf4j
 public class Ladder1v1Controller extends AbstractViewController<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final PseudoClass NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("highlighted-bar");
-
+  
   private final Random random;
   private final GameService gameService;
   private final PreferencesService preferencesService;
@@ -91,7 +101,9 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
   public Label rankingLabel;
   public Label winLossRationLabel;
   public Label rankingOutOfLabel;
+  public Label timeUntilQueuePopLabel;
 
+  private Instant nextQueuePopTime;
   private Text youLabel;
 
   @VisibleForTesting
@@ -155,6 +167,38 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
 
     JavaFxUtil.addListener(playerService.currentPlayerProperty(), (observable, oldValue, newValue) -> Platform.runLater(() -> setCurrentPlayer(newValue)));
     playerService.getCurrentPlayer().ifPresent(this::setCurrentPlayer);
+    
+    gameService.addOnRankedMatchNotificationListener(message -> {
+      if (message.getQueues() == null) return;
+      for (MatchmakerMessage.MatchmakerQueue matchmakerQueue : message.getQueues()) {
+        if (!Objects.equals("ladder1v1", matchmakerQueue.getQueueName())) {
+          continue;
+        }
+        String nextPopTime = matchmakerQueue.getQueuePopTime();
+        if (nextPopTime != null) {
+          nextQueuePopTime = OffsetDateTime.parse(nextPopTime).toInstant();
+          log.info("Received next pop queue time: {}", nextPopTime);
+        }
+      }
+    });
+    
+    Timeline queuePopTimeUpdater = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), (ActionEvent event) -> {
+      if (nextQueuePopTime != null) {
+        Instant now = Instant.now();
+        Duration timeUntilPopQueue = Duration.between(now, nextQueuePopTime);
+        if (!timeUntilPopQueue.isNegative()) {
+          String formatted = String.format("%2d:%02d", 
+              timeUntilPopQueue.toMinutes(), 
+              timeUntilPopQueue.toSecondsPart());
+          timeUntilQueuePopLabel.setText(formatted);
+          timeUntilQueuePopLabel.setVisible(true);
+          return;
+        }
+      }
+      timeUntilQueuePopLabel.setVisible(false);
+    }));
+    queuePopTimeUpdater.setCycleCount(Timeline.INDEFINITE);
+    queuePopTimeUpdater.play();
   }
 
   @VisibleForTesting

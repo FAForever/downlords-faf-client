@@ -145,7 +145,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
           @Override
           public void run() {
             MatchmakerMessage matchmakerServerMessage = new MatchmakerMessage();
-            matchmakerServerMessage.setQueues(singletonList(new MatchmakerQueue("ladder1v1", singletonList(new RatingRange(100, 200)), singletonList(new RatingRange(100, 200)))));
+            matchmakerServerMessage.setQueues(singletonList(new MatchmakerQueue("ladder1v1", null, singletonList(new RatingRange(100, 200)), singletonList(new RatingRange(100, 200)))));
             messageListeners.getOrDefault(matchmakerServerMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(matchmakerServerMessage));
           }
         }, 7000);
