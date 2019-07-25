@@ -72,7 +72,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final PseudoClass NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("highlighted-bar");
-  
+
   private final Random random;
   private final GameService gameService;
   private final PreferencesService preferencesService;
@@ -169,7 +169,9 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
     playerService.getCurrentPlayer().ifPresent(this::setCurrentPlayer);
     
     gameService.addOnRankedMatchNotificationListener(message -> {
-      if (message.getQueues() == null) return;
+      if (message.getQueues() == null) {
+        return;
+      }
       for (MatchmakerMessage.MatchmakerQueue matchmakerQueue : message.getQueues()) {
         if (!Objects.equals("ladder1v1", matchmakerQueue.getQueueName())) {
           continue;
@@ -177,7 +179,6 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
         String nextPopTime = matchmakerQueue.getQueuePopTime();
         if (nextPopTime != null) {
           nextQueuePopTime = OffsetDateTime.parse(nextPopTime).toInstant();
-          log.info("Received next pop queue time: {}", nextPopTime);
         }
       }
     });
