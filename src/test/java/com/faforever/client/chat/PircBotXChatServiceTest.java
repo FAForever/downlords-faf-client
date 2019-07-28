@@ -97,6 +97,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
+@Ignore("All those tests are written in a way they can fail cause of race conditions, the connect method is badly written. Issue #1362")
 public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   private static final String CHAT_USER_NAME = "junit";

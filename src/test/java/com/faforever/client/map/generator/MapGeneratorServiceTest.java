@@ -1,7 +1,6 @@
 package com.faforever.client.map.generator;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.config.ClientProperties.MapGenerator;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
@@ -22,12 +21,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.regex.Pattern;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
@@ -138,19 +135,5 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
 
     CompletableFuture<String> future = instance.generateMap(unsupportedVersion, seed);
     future.join();
-  }
-
-  /**
-   * Test gets the newest map gen version. It uses the network so do not worry if it fails if u are running offline.
-   * Also it checks if the map gen uses semantic versioning.
-   */
-  @Test
-  public void queryNewestVersion() {
-    MapGenerator mapGenerator = new MapGenerator();
-    when(clientProperties.getMapGenerator()).thenReturn(mapGenerator);
-    mapGenerator.setQueryLatestVersionUrl("https://api.github.com/repos/FAForever/Neroxis-Map-Generator/releases/latest");
-    String version = instance.queryNewestVersion();
-    Pattern semanticVersioningPattern = Pattern.compile("^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-(0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(\\.(0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*)?(\\+[0-9a-zA-Z-]+(\\.[0-9a-zA-Z-]+)*)?$");
-    assertTrue(semanticVersioningPattern.matcher(version).matches());
   }
 }
