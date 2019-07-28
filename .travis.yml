@@ -6,6 +6,9 @@ language: java
 
 sudo: false
 
+services:
+  - xvfb
+
 install: true
 
 env:
@@ -19,8 +22,6 @@ before_install:
 - chmod +x ./ci/installjdk.sh && sudo ./ci/installjdk.sh
 - export JAVA_HOME="~/$JDK"
 - export PATH="$JAVA_HOME/bin:$PATH"
-- export DISPLAY=:99.0
-- sh -e /etc/init.d/xvfb start
 - export JAVA_TOOL_OPTIONS="-Dprism.verbose=true -Dprism.order=sw -Djava.library.path=$HOME/openjfx/javafx-sdk-11/lib"
 - export APP_VERSION=$([ -n "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG#*v}" || echo "${TRAVIS_BRANCH##*/}")
 - export GITHUB_RELEASE_VERSION=$([ -n "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG}" || echo "${TRAVIS_BRANCH##*/}")
