@@ -33,8 +33,9 @@ public class ClientConfiguration {
   }
 
   @Data
-  public class ReleaseInfo {
+  public static class ReleaseInfo {
     String version;
+    String minimumVersion;
     URL windowsUrl;
     URL linuxUrl;
     URL macUrl;

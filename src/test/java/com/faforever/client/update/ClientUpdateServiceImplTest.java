@@ -4,10 +4,10 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.update.ClientUpdateServiceImpl.InstallerExecutionException;
 import com.faforever.commons.io.Bytes;
-import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,10 +26,9 @@ import static com.faforever.client.notification.Severity.INFO;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ClientUpdateServiceImplTest {
@@ -48,12 +47,27 @@ public class ClientUpdateServiceImplTest {
   private ApplicationContext applicationContext;
   @Mock
   private PlatformService platformService;
+  @Mock
+  private PreferencesService preferencesService;
+  @Mock
+  private CheckForUpdateTask checkForUpdateTask;
+
+  private UpdateInfo updateInfo;
+  private ClientConfiguration clientConfiguration;
 
   @Before
   public void setUp() throws Exception {
-    instance = new ClientUpdateServiceImpl(taskService, notificationService, i18n, platformService, applicationContext);
+    updateInfo = new UpdateInfo("v0.4.8.1-alpha", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"));
+    ClientConfiguration clientConfiguration = new ClientConfiguration();
+    clientConfiguration.setLatestRelease(new ClientConfiguration.ReleaseInfo());
+    clientConfiguration.getLatestRelease().setVersion("v0.4.9.1-alpha");
 
-    doAnswer(invocation -> invocation.getArgument(0)).when(taskService).submitTask(any());
+    doReturn(checkForUpdateTask).when(applicationContext).getBean(CheckForUpdateTask.class);
+    doReturn(checkForUpdateTask).when(taskService).submitTask(any(CheckForUpdateTask.class));
+    doReturn(CompletableFuture.completedFuture(updateInfo)).when(checkForUpdateTask).getFuture();
+    doReturn(clientConfiguration).when(preferencesService).getRemotePreferences();
+
+    instance = new ClientUpdateServiceImpl(taskService, notificationService, i18n, platformService, applicationContext, preferencesService);
   }
 
   /**
@@ -61,18 +75,13 @@ public class ClientUpdateServiceImplTest {
    */
   @Test
   public void testCheckForUpdateInBackgroundUpdateAvailable() throws Exception {
-    instance.currentVersion = new ComparableVersion("v0.4.8.0-alpha");
+    instance.currentVersion = "v0.4.8.0-alpha";
 
     CheckForUpdateTask taskMock = mock(CheckForUpdateTask.class);
 
-    when(applicationContext.getBean(CheckForUpdateTask.class)).thenReturn(taskMock);
+    instance.checkForRegularUpdateInBackground();
 
-    UpdateInfo updateInfo = new UpdateInfo("v0.4.8.1-alpha", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"));
-    when(taskMock.getFuture()).thenReturn(CompletableFuture.completedFuture(updateInfo));
-
-    instance.checkForUpdateInBackground();
-
-    verify(taskService).submitTask(taskMock);
+    verify(taskService).submitTask(checkForUpdateTask);
 
     ArgumentCaptor<PersistentNotification> captor = ArgumentCaptor.forClass(PersistentNotification.class);
 

@@ -6,21 +6,18 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.update.ClientConfiguration.ReleaseInfo;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.SneakyThrows;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.net.URL;
 
 @Component
+@Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final I18n i18n;
   private final PreferencesService preferencesService;
@@ -39,17 +36,13 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
   @Override
   protected UpdateInfo call() throws Exception {
     updateTitle(i18n.get("clientUpdateCheckTask.title"));
-    logger.info("Checking for client update");
+    log.info("Checking for client update");
 
-    // .get() because this task runs asynchronously already
-    ClientConfiguration clientConfiguration = preferencesService.getRemotePreferences().get();
+    // no async call because this task runs asynchronously already
+    ClientConfiguration clientConfiguration = preferencesService.getRemotePreferences();
 
     ReleaseInfo latestRelease = clientConfiguration.getLatestRelease();
     String version = latestRelease.getVersion();
-
-    if (!Version.shouldUpdate(Version.getCurrentVersion(), version)) {
-      return null;
-    }
 
     URL downloadUrl;
     if (org.bridj.Platform.isWindows()) {

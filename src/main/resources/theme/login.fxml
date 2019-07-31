@@ -49,19 +49,25 @@
                           </JFXButton>
                       </children>
                   </VBox>
+                  <Label fx:id="loginErrorLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                         minHeight="0.0" minWidth="0.0" styleClass="hint"
+                         text="This error message is supposed to be long enough to test text wrapping" wrapText="true">
+                      <graphic>
+                          <Label styleClass="icon" text=""/>
+                      </graphic>
+                      <VBox.margin>
+                          <Insets bottom="5.0"/>
+                      </VBox.margin>
+                  </Label>
+                  <JFXButton fx:id="downloadUpdateButton" maxWidth="1.7976931348623157E308" minWidth="-Infinity"
+                             onAction="#onDownloadUpdateButtonClicked" prefHeight="50.0"
+                             style="-fx-background-color: -dimmed-accent;" text="%login.button.downloadUpdate">
+                      <VBox.margin>
+                          <Insets bottom="10.0"/>
+                      </VBox.margin>
+                  </JFXButton>
                   <VBox fx:id="loginFormPane" alignment="TOP_CENTER" maxHeight="1.7976931348623157E308" spacing="5.0">
                       <children>
-                          <Label fx:id="loginErrorLabel" maxHeight="1.7976931348623157E308"
-                                 maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" styleClass="hint"
-                                 text="This error message is supposed to be long enough to test text wrapping"
-                                 wrapText="true">
-                              <graphic>
-                                  <Label styleClass="icon" text=""/>
-                              </graphic>
-                              <VBox.margin>
-                                  <Insets bottom="5.0"/>
-                              </VBox.margin>
-                          </Label>
                           <JFXTextField fx:id="usernameInput" minWidth="100.0" promptText="%login.name"/>
                           <JFXPasswordField fx:id="passwordInput" minWidth="100.0" promptText="%login.password"/>
                           <HBox>

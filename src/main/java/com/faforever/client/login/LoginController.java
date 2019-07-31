@@ -12,10 +12,15 @@ import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.update.ClientConfiguration;
 import com.faforever.client.update.ClientConfiguration.Endpoints;
+import com.faforever.client.update.ClientUpdateService;
+import com.faforever.client.update.DownloadUpdateTask;
+import com.faforever.client.update.UpdateInfo;
+import com.faforever.client.update.Version;
 import com.faforever.client.user.UserService;
 import com.google.common.base.Strings;
 import com.jfoenix.controls.JFXButton;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -37,6 +42,7 @@ import org.springframework.stereotype.Component;
 
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -53,6 +59,7 @@ public class LoginController implements Controller<Node> {
   private final PlatformService platformService;
   private final ClientProperties clientProperties;
   private final I18n i18n;
+  private final ClientUpdateService clientUpdateService;
 
   public Pane loginFormPane;
   public Pane loginProgressPane;
@@ -61,6 +68,7 @@ public class LoginController implements Controller<Node> {
   public TextField passwordInput;
   public ComboBox<ClientConfiguration.Endpoints> environmentComboBox;
   public Button loginButton;
+  public Button downloadUpdateButton;
   public Label loginErrorLabel;
   public Pane loginRoot;
   public GridPane serverConfigPane;
@@ -73,20 +81,28 @@ public class LoginController implements Controller<Node> {
   public TextField apiBaseUrlField;
   public JFXButton serverStatusButton;
 
+  private CompletableFuture<UpdateInfo> updateInfoFuture;
+
   public LoginController(
       UserService userService,
       PreferencesService preferencesService,
       PlatformService platformService,
       ClientProperties clientProperties,
-      I18n i18n) {
+      I18n i18n, ClientUpdateService clientUpdateService) {
     this.userService = userService;
     this.preferencesService = preferencesService;
     this.platformService = platformService;
     this.clientProperties = clientProperties;
     this.i18n = i18n;
+    this.clientUpdateService = clientUpdateService;
   }
 
   public void initialize() {
+    updateInfoFuture = clientUpdateService.checkForMandatoryUpdate();
+
+    downloadUpdateButton.managedProperty().bind(downloadUpdateButton.visibleProperty());
+    downloadUpdateButton.setVisible(false);
+
     loginErrorLabel.managedProperty().bind(loginErrorLabel.visibleProperty());
     loginErrorLabel.setVisible(false);
 
@@ -147,11 +163,27 @@ public class LoginController implements Controller<Node> {
 
 
     if (clientProperties.isUseRemotePreferences()) {
-      preferencesService.getRemotePreferences().thenAccept(clientConfiguration -> {
-        Endpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
-        environmentComboBox.getItems().addAll(clientConfiguration.getEndpoints());
-        environmentComboBox.getSelectionModel().select(defaultEndpoint);
-      }).exceptionally(throwable -> {
+      preferencesService.getRemotePreferencesAsync()
+          .thenApply(clientConfiguration ->
+          {
+            String minimumVersion = clientConfiguration.getLatestRelease().getMinimumVersion();
+            if (minimumVersion != null && Version.shouldUpdate(Version.getCurrentVersion(), minimumVersion)) {
+              Platform.runLater(() -> {
+                loginErrorLabel.setText(i18n.get("login.clientTooOldError", Version.getCurrentVersion(), minimumVersion));
+                loginErrorLabel.setVisible(true);
+                downloadUpdateButton.setVisible(true);
+                loginFormPane.setDisable(true);
+                log.warn("Update required");
+              });
+            }
+            return clientConfiguration;
+
+          })
+          .thenAccept(clientConfiguration -> {
+            Endpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
+            environmentComboBox.getItems().addAll(clientConfiguration.getEndpoints());
+            environmentComboBox.getSelectionModel().select(defaultEndpoint);
+          }).exceptionally(throwable -> {
         log.warn("Could not read remote preferences");
         return null;
       });
@@ -268,6 +300,24 @@ public class LoginController implements Controller<Node> {
   public void onCancelLoginButtonClicked() {
     userService.cancelLogin();
     setShowLoginProgress(false);
+  }
+
+  public void onDownloadUpdateButtonClicked() {
+    Platform.runLater(() -> downloadUpdateButton.setOnAction(event -> {
+    }));
+    log.info("Downloading update");
+    updateInfoFuture
+        .thenAccept(updateInfo -> {
+          DownloadUpdateTask downloadUpdateTask = clientUpdateService.downloadAndInstallInBackground(updateInfo);
+
+          if (downloadUpdateTask != null) {
+            downloadUpdateButton.textProperty().bind(
+                Bindings.createStringBinding(() -> downloadUpdateTask.getProgress() == -1 ?
+                        i18n.get("login.button.downloadPreparing") :
+                        i18n.get("login.button.downloadProgress", downloadUpdateTask.getProgress()),
+                    downloadUpdateTask.progressProperty()));
+          }
+        });
   }
 
   public Pane getRoot() {

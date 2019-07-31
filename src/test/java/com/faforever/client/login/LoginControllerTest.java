@@ -7,6 +7,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +37,8 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
   private PlatformService platformService;
   @Mock
   private I18n i18n;
+  @Mock
+  private ClientUpdateService clientUpdateService;
 
   @Before
   public void setUp() throws Exception {
@@ -44,7 +47,7 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
     when(i18n.get(LOGIN_WITH_EMAIL_WARNING_KEY)).thenReturn(LOGIN_WITH_EMAIL_WARNING_KEY);
 
-    instance = new LoginController(userService, preferencesService, platformService, clientProperties, i18n);
+    instance = new LoginController(userService, preferencesService, platformService, clientProperties, i18n, clientUpdateService);
 
     Website website = clientProperties.getWebsite();
     website.setCreateAccountUrl("create");

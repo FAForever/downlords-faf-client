@@ -341,12 +341,13 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   public CompletableFuture<List<MapBean>> getRecommendedMaps(int count, int page) {
-    return preferencesService.getRemotePreferences().thenCompose(
-        clientConfiguration -> {
-          List<Integer> recommendedMapIds =clientConfiguration.getRecommendedMaps();
-          return fafService.getMapsById(recommendedMapIds, count, page);
-        }
-    );
+    return preferencesService.getRemotePreferencesAsync()
+        .thenCompose(
+            clientConfiguration -> {
+              List<Integer> recommendedMapIds = clientConfiguration.getRecommendedMaps();
+              return fafService.getMapsById(recommendedMapIds, count, page);
+            }
+        );
   }
 
   public CompletableFuture<List<MapBean>> getHighestRatedMaps(int count, int page) {

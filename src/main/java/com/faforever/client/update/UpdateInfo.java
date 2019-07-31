@@ -5,7 +5,7 @@ import lombok.Value;
 import java.net.URL;
 
 @Value
-class UpdateInfo {
+public class UpdateInfo {
 
   private String name;
   private String fileName;

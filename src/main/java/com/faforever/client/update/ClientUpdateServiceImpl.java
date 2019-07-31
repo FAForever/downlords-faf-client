@@ -6,11 +6,11 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.update.ClientConfiguration.ReleaseInfo;
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
@@ -18,8 +18,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.notification.Severity.INFO;
 import static com.faforever.client.notification.Severity.WARN;
@@ -31,10 +31,10 @@ import static org.apache.commons.lang3.StringUtils.defaultString;
 
 @Lazy
 @Service
+@Slf4j
 @Profile("!" + FafClientApplication.PROFILE_OFFLINE)
 public class ClientUpdateServiceImpl implements ClientUpdateService {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String DEVELOPMENT_VERSION_STRING = "dev";
 
   private final TaskService taskService;
@@ -42,10 +42,13 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
   private final I18n i18n;
   private final PlatformService platformService;
   private final ApplicationContext applicationContext;
+  private final PreferencesService preferencesService;
+
+  private final CompletableFuture<UpdateInfo> updateInfoFuture;
 
   @VisibleForTesting
-  ComparableVersion currentVersion;
-  
+  String currentVersion;
+
   public static class InstallerExecutionException extends UncheckedIOException {
     public InstallerExecutionException(String message, IOException cause) {
       super(message, cause);
@@ -57,46 +60,68 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
       NotificationService notificationService,
       I18n i18n,
       PlatformService platformService,
-      ApplicationContext applicationContext
-  ) {
+      ApplicationContext applicationContext,
+      PreferencesService preferencesService) {
     this.taskService = taskService;
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.platformService = platformService;
     this.applicationContext = applicationContext;
+    this.preferencesService = preferencesService;
 
-    currentVersion = new ComparableVersion(
-        defaultString(Version.getCurrentVersion(), DEVELOPMENT_VERSION_STRING)
-    );
-    logger.info("Current version: {}", currentVersion);
+    currentVersion = defaultString(Version.getCurrentVersion(), DEVELOPMENT_VERSION_STRING);
+    log.info("Current version: {}", currentVersion);
+
+    CheckForUpdateTask task = applicationContext.getBean(CheckForUpdateTask.class);
+    this.updateInfoFuture = taskService.submitTask(task).getFuture();
   }
 
   /**
-   * Returns information about an available update. Returns {@code null} if no update is available.
+   * Returns information about an available mandatory update. Returns {@code null} if no update is available.
    */
-  public void checkForUpdateInBackground() {
-    CheckForUpdateTask task = applicationContext.getBean(CheckForUpdateTask.class);
+  @Override
+  public CompletableFuture<UpdateInfo> checkForMandatoryUpdate() {
+    return updateInfoFuture;
+  }
 
-    taskService.submitTask(task).getFuture().thenAccept(updateInfo -> {
+  /**
+   * Creates an update notification with actions to download and install latest release
+   */
+  public void checkForRegularUpdateInBackground() {
+    updateInfoFuture.thenAccept(updateInfo -> {
       if (updateInfo == null) {
         return;
       }
-      notificationService.addNotification(new PersistentNotification(
-          i18n.get("clientUpdateAvailable.notification", updateInfo.getName(), formatSize(updateInfo.getSize(), i18n.getUserSpecificLocale())),
-          INFO, asList(
-          new Action(i18n.get("clientUpdateAvailable.downloadAndInstall"), event -> downloadAndInstallInBackground(updateInfo)),
-          new Action(i18n.get("clientUpdateAvailable.releaseNotes"), Action.Type.OK_STAY,
-              event -> platformService.showDocument(updateInfo.getReleaseNotesUrl().toExternalForm())
-          )))
-      );
+
+      try {
+        // no async call because this task runs asynchronously already
+        ReleaseInfo latestRelease = preferencesService.getRemotePreferences().getLatestRelease();
+
+        if (!Version.shouldUpdate(getCurrentVersion(), latestRelease.getVersion())) {
+          return;
+        }
+
+        notificationService.addNotification(new PersistentNotification(
+            i18n.get("clientUpdateAvailable.notification", updateInfo.getName(), formatSize(updateInfo.getSize(), i18n.getUserSpecificLocale())),
+            INFO, asList(
+            new Action(i18n.get("clientUpdateAvailable.downloadAndInstall"), event -> downloadAndInstallInBackground(updateInfo)),
+            new Action(i18n.get("clientUpdateAvailable.releaseNotes"), Action.Type.OK_STAY,
+                event -> platformService.showDocument(updateInfo.getReleaseNotesUrl().toExternalForm())
+            )))
+        );
+
+      } catch (IOException e) {
+        log.warn("Client update check failed", e);
+      }
+
     }).exceptionally(throwable -> {
-      logger.warn("Client update check failed", throwable);
+      log.warn("Client update check failed", throwable);
       return null;
     });
   }
 
   @Override
-  public ComparableVersion getCurrentVersion() {
+  public String getCurrentVersion() {
     return currentVersion;
   }
 
@@ -109,14 +134,14 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
     }
     String command = binaryPath.toAbsolutePath().toString();
     try {
-      logger.info("Starting installer at {}", command);
+      log.info("Starting installer at {}", command);
       new ProcessBuilder(command).inheritIO().start();
     } catch (IOException e) {
       throw new InstallerExecutionException("Installation could not be started", e);
     }
   }
 
-  private void downloadAndInstallInBackground(UpdateInfo updateInfo) {
+  public DownloadUpdateTask downloadAndInstallInBackground(UpdateInfo updateInfo) {
     DownloadUpdateTask task = applicationContext.getBean(DownloadUpdateTask.class);
     task.setUpdateInfo(updateInfo);
 
@@ -124,9 +149,9 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
         .thenAccept(this::install)
         .exceptionally(throwable -> {
           if (throwable instanceof InstallerExecutionException) {
-            logger.warn(throwable.getMessage(), throwable.getCause());
+            log.warn(throwable.getMessage(), throwable.getCause());
           }
-          logger.warn("Error while downloading client update", throwable);
+          log.warn("Error while downloading client update", throwable);
           notificationService.addNotification(
               new PersistentNotification(i18n.get("clientUpdateDownloadFailed.notification"), WARN, singletonList(
                   new Action(i18n.get("clientUpdateDownloadFailed.retry"), event -> downloadAndInstallInBackground(updateInfo))
@@ -134,5 +159,7 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
           );
           return null;
         });
+
+    return task;
   }
 }

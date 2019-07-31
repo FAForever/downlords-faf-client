@@ -18,7 +18,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -137,7 +136,7 @@ public class ReplayServerImpl implements ReplayServer {
     replayInfo.setLaunchedAt(pythonTime());
     replayInfo.setVersionInfo(new HashMap<>());
     replayInfo.getVersionInfo().put("lobby",
-        String.format("dfaf-%s", clientUpdateService.getCurrentVersion().getCanonical())
+        String.format("dfaf-%s", clientUpdateService.getCurrentVersion())
     );
   }
 
