@@ -20,7 +20,7 @@ public class MockClientUpdateService implements ClientUpdateService {
 
   @Override
   public void checkForRegularUpdateInBackground() {
-
+    // in offline mode we do not perform any checks
   }
 
   @Override

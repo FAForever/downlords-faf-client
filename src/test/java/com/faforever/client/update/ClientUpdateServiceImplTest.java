@@ -52,12 +52,9 @@ public class ClientUpdateServiceImplTest {
   @Mock
   private CheckForUpdateTask checkForUpdateTask;
 
-  private UpdateInfo updateInfo;
-  private ClientConfiguration clientConfiguration;
-
   @Before
   public void setUp() throws Exception {
-    updateInfo = new UpdateInfo("v0.4.8.1-alpha", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"));
+    UpdateInfo updateInfo = new UpdateInfo("v0.4.8.1-alpha", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"));
     ClientConfiguration clientConfiguration = new ClientConfiguration();
     clientConfiguration.setLatestRelease(new ClientConfiguration.ReleaseInfo());
     clientConfiguration.getLatestRelease().setVersion("v0.4.9.1-alpha");

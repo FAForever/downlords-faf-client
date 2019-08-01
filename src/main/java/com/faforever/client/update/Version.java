@@ -33,14 +33,13 @@ public final class Version {
   /**
    * Compares a remote version with the current version of the application.
    *
-   * @param toVersion A version number following the semver pattern with a 'v'-prefix (e.g. v1.4.2)
    * @return true if the remote version is higher than the current version
    */
-  public static boolean shouldUpdate(@NonNull String fromVersion, @NonNull String toVersion) {
-    log.debug("Comparing current version '{}' to remote version '{}'", currentVersion, toVersion);
+  public static boolean shouldUpdate(@NonNull String fromVersionRaw, @NonNull String toVersionRaw) {
+    log.debug("Comparing current version '{}' to remote version '{}'", currentVersion, toVersionRaw);
 
-    fromVersion = removePrefix(fromVersion);
-    toVersion = removePrefix(toVersion);
+    String fromVersion = removePrefix(fromVersionRaw);
+    String toVersion = removePrefix(toVersionRaw);
 
     if (fromVersion.equals(SNAPSHOT_VERSION)) {
       log.info("Snapshot versions are not to be updated");
