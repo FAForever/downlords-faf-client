@@ -188,8 +188,8 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
         Instant now = Instant.now();
         Duration timeUntilPopQueue = Duration.between(now, nextQueuePopTime);
         if (!timeUntilPopQueue.isNegative()) {
-          String formatted = String.format("%2d:%02d", 
-              timeUntilPopQueue.toMinutes(), 
+          String formatted = i18n.get("ranked1v1.queuePopTimer",
+              timeUntilPopQueue.toMinutes(),
               timeUntilPopQueue.toSecondsPart());
           timeUntilQueuePopLabel.setText(formatted);
           timeUntilQueuePopLabel.setVisible(true);
