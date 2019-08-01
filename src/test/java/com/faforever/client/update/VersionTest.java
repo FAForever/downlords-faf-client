@@ -52,7 +52,7 @@ public class VersionTest {
     assertFalse(Version.shouldUpdate("1.1.9", "v1.1.5"));
   }
 
-  public void setCurrentVersion(String version) throws NoSuchFieldException, IllegalAccessException {
+  public static void setCurrentVersion(String version) throws NoSuchFieldException, IllegalAccessException {
     Field field = Version.class.getDeclaredField("currentVersion");
     field.setAccessible(true);
     field.set(null, version);

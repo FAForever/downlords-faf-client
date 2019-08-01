@@ -168,13 +168,7 @@ public class LoginController implements Controller<Node> {
           {
             String minimumVersion = clientConfiguration.getLatestRelease().getMinimumVersion();
             if (minimumVersion != null && Version.shouldUpdate(Version.getCurrentVersion(), minimumVersion)) {
-              Platform.runLater(() -> {
-                loginErrorLabel.setText(i18n.get("login.clientTooOldError", Version.getCurrentVersion(), minimumVersion));
-                loginErrorLabel.setVisible(true);
-                downloadUpdateButton.setVisible(true);
-                loginFormPane.setDisable(true);
-                log.warn("Update required");
-              });
+              showClientOutdatedPane(minimumVersion);
             }
             return clientConfiguration;
 
@@ -188,6 +182,16 @@ public class LoginController implements Controller<Node> {
         return null;
       });
     }
+  }
+
+  private void showClientOutdatedPane(String minimumVersion) {
+    Platform.runLater(() -> {
+      loginErrorLabel.setText(i18n.get("login.clientTooOldError", Version.getCurrentVersion(), minimumVersion));
+      loginErrorLabel.setVisible(true);
+      downloadUpdateButton.setVisible(true);
+      loginFormPane.setDisable(true);
+      log.warn("Update required");
+    });
   }
 
   private void populateEndpointFields(
