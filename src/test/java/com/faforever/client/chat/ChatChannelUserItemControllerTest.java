@@ -93,6 +93,7 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
     when(clanService.getClanByTag(anyString())).thenReturn(CompletableFuture.completedFuture(Optional.of(testClan)));
     when(countryFlagService.loadCountryFlag("US")).thenReturn(Optional.of(mock(Image.class)));
     when(playerService.isOnline(eq(2))).thenReturn(true);
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(new Player("junit")));
     clanTooltipControllerMock = mock(ClanTooltipController.class);
     when(uiService.loadFxml("theme/chat/clan_tooltip.fxml")).thenReturn(clanTooltipControllerMock);
     when(clanTooltipControllerMock.getRoot()).thenReturn(new Pane());

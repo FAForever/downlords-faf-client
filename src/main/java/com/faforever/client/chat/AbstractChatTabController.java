@@ -62,6 +62,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -420,6 +421,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       messageTextField.setDisable(false);
       messageTextField.requestFocus();
     }).exceptionally(throwable -> {
+      throwable = throwable instanceof CompletionException ? throwable.getCause() : throwable;
       logger.warn("Message could not be sent: {}", text, throwable);
       notificationService.addNotification(new ImmediateErrorNotification(
           i18n.get("errorTitle"), i18n.get("chat.sendFailed"), throwable, i18n, reportingService)
@@ -441,6 +443,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
           messageTextField.requestFocus();
         })
         .exceptionally(throwable -> {
+          throwable = throwable instanceof CompletionException ? throwable.getCause() : throwable;
           // TODO onDisplay error to user somehow
           logger.warn("Message could not be sent: {}", text, throwable);
           messageTextField.setDisable(false);
