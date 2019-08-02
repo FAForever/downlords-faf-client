@@ -19,6 +19,9 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.google.common.eventbus.EventBus;
+
+import javafx.collections.ObservableList;
+import javafx.scene.Node;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
 import org.junit.Before;
@@ -34,7 +37,6 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
-import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
@@ -98,7 +100,9 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
 
     when(playerService.getPlayerForUsername(playerName)).thenReturn(Optional.of(player));
     when(userService.getUsername()).thenReturn(playerName);
-    when(uiService.getThemeFileUrl(CHAT_CONTAINER)).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));
+    when(timeService.asShortTime(any())).thenReturn("");
+    when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
+    when(uiService.getThemeFileUrl(any())).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));
 
     TabPane tabPane = new TabPane();
     tabPane.setSkin(new TabPaneSkin(tabPane));
@@ -126,7 +130,9 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnChatMessageUnfocusedTriggersNotification() {
+  public void testOnChatMessageUnfocusedTriggersNotification2() throws InterruptedException, ExecutionException, IOException {
+    // TODO this test throws exceptions if another test runs before it or after it, but not if run alone
+    // In that case AbstractChatTabController.hasFocus throws NPE because tabPane.getScene().getWindow() is null
     WaitForAsyncUtils.waitForAsyncFx(5000, () -> getRoot().getScene().getWindow().hide());
     instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
     verify(notificationService).addNotification(any(TransientNotification.class));

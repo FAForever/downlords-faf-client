@@ -117,7 +117,12 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOpenPrivateMessageTabForUser() throws Exception {
-    when(privateChatTabController.getRoot()).thenReturn(new Tab());
+    Tab tab = new Tab();
+    doAnswer(invocation -> {
+      tab.setId(invocation.getArgument(0));
+      return null;
+    }).when(privateChatTabController).setReceiver(anyString());
+    when(privateChatTabController.getRoot()).thenReturn(tab);
     WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () ->
         instance.onInitiatePrivateChatEvent(new InitiatePrivateChatEvent("user")));
   }
@@ -135,14 +140,12 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
     connectionState.set(ConnectionState.DISCONNECTED);
   }
 
-  @SuppressWarnings("unchecked")
   private void channelJoined(String channel) {
     MapChangeListener.Change<? extends String, ? extends Channel> testChannelChange = mock(MapChangeListener.Change.class);
     channelsListener.getValue().onChanged(testChannelChange);
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testOnJoinChannelButtonClicked() throws Exception {
     assertThat(instance.tabPane.getTabs(), is(empty()));
 
