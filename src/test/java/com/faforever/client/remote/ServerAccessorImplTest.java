@@ -32,6 +32,7 @@ import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.io.QDataInputStream;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.FakeTestException;
 import com.google.common.hash.Hashing;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -312,7 +313,7 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void onUIDNotFound() throws Exception {
-    instance.onUIDNotExecuted(new Exception("UID not found"));
+    instance.onUIDNotExecuted(new FakeTestException("UID not found"));
     verify(notificationService).addNotification(any(ImmediateNotification.class));
   }
 }

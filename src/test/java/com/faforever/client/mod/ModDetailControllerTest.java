@@ -7,6 +7,7 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.FakeTestException;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewController;
 import com.faforever.client.vault.review.ReviewService;
@@ -136,7 +137,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnInstallButtonClickedInstallindModThrowsException() {
     CompletableFuture<Void> future = new CompletableFuture<>();
-    future.completeExceptionally(new Exception("test exception"));
+    future.completeExceptionally(new FakeTestException());
     when(modService.downloadAndInstallMod(any(ModVersion.class), any(), any())).thenReturn(future);
 
     instance.setModVersion(ModInfoBeanBuilder.create().defaultValues().get());
@@ -164,7 +165,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
     instance.setModVersion(modVersion);
 
     CompletableFuture<Void> future = new CompletableFuture<>();
-    future.completeExceptionally(new Exception("test exception"));
+    future.completeExceptionally(new FakeTestException());
     when(modService.uninstallMod(modVersion)).thenReturn(future);
 
     instance.onUninstallButtonClicked();
