@@ -12,6 +12,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.FakeTestException;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
@@ -167,7 +168,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.setReceiver(receiver);
 
     CompletableFuture<String> future = new CompletableFuture<>();
-    future.completeExceptionally(new Exception("junit fake exception"));
+    future.completeExceptionally(new FakeTestException());
     when(chatService.sendMessageInBackground(eq(receiver), any())).thenReturn(future);
 
     instance.onSendMessage();
@@ -200,7 +201,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.setReceiver(receiver);
 
     CompletableFuture<String> future = new CompletableFuture<>();
-    future.completeExceptionally(new Exception("junit fake exception"));
+    future.completeExceptionally(new FakeTestException());
     when(chatService.sendActionInBackground(eq(receiver), any())).thenReturn(future);
 
     instance.onSendMessage();
