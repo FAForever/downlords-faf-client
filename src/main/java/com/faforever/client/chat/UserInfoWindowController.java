@@ -10,7 +10,6 @@ import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.events.EventService;
 import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.OffsetDateTimeCell;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
@@ -278,7 +277,6 @@ public class UserInfoWindowController implements Controller<Node> {
         });
   }
 
-  @SuppressWarnings("unchecked")
   private void plotFactionsChart(Map<String, PlayerEvent> playerEvents) {
     int aeonPlays = playerEvents.containsKey(EVENT_AEON_PLAYS) ? playerEvents.get(EVENT_AEON_PLAYS).getCurrentCount() : 0;
     int cybranPlays = playerEvents.containsKey(EVENT_CYBRAN_PLAYS) ? playerEvents.get(EVENT_CYBRAN_PLAYS).getCurrentCount() : 0;
@@ -307,7 +305,6 @@ public class UserInfoWindowController implements Controller<Node> {
     Platform.runLater(() -> factionsChart.getData().addAll(winsSeries, lossSeries));
   }
 
-  @SuppressWarnings("unchecked")
   private void plotUnitsByCategoriesChart(Map<String, PlayerEvent> playerEvents) {
     int airBuilt = playerEvents.containsKey(EVENT_BUILT_AIR_UNITS) ? playerEvents.get(EVENT_BUILT_AIR_UNITS).getCurrentCount() : 0;
     int landBuilt = playerEvents.containsKey(EVENT_BUILT_LAND_UNITS) ? playerEvents.get(EVENT_BUILT_LAND_UNITS).getCurrentCount() : 0;
@@ -320,7 +317,6 @@ public class UserInfoWindowController implements Controller<Node> {
     )));
   }
 
-  @SuppressWarnings("unchecked")
   private void plotTechBuiltChart(Map<String, PlayerEvent> playerEvents) {
     int tech1Built = playerEvents.containsKey(EVENT_BUILT_TECH_1_UNITS) ? playerEvents.get(EVENT_BUILT_TECH_1_UNITS).getCurrentCount() : 0;
     int tech2Built = playerEvents.containsKey(EVENT_BUILT_TECH_2_UNITS) ? playerEvents.get(EVENT_BUILT_TECH_2_UNITS).getCurrentCount() : 0;
@@ -333,18 +329,16 @@ public class UserInfoWindowController implements Controller<Node> {
     )));
   }
 
-  @SuppressWarnings("unchecked")
   private void plotGamesPlayedChart() {
-    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player must be set"));
-    leaderboardService.getEntryForPlayer(currentPlayer.getId()).thenAccept(leaderboardEntryBean -> Platform.runLater(() -> {
+    leaderboardService.getEntryForPlayer(player.getId()).thenAccept(leaderboardEntryBean -> Platform.runLater(() -> {
       int ladderGamesCount = leaderboardEntryBean.getGamesPlayed();
-      int custonGamesCount = currentPlayer.getNumberOfGames();
+      int custonGamesCount = player.getNumberOfGames();
       Platform.runLater(() -> gamesPlayedChart.setData(FXCollections.observableArrayList(
           new PieChart.Data(i18n.get("stats.custom"), custonGamesCount),
           new PieChart.Data(i18n.get("stats.ranked1v1"), ladderGamesCount)
       )));
     })).exceptionally(throwable -> {
-      log.warn("Leaderboard entry could not be read for current player: " + currentPlayer.getUsername(), throwable);
+      log.warn("Leaderboard entry could not be read for player: " + player.getUsername(), throwable);
       return null;
     });
   }
