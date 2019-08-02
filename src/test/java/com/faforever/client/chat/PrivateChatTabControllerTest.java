@@ -130,7 +130,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnChatMessageUnfocusedTriggersNotification2() throws InterruptedException, ExecutionException, IOException {
+  public void testOnChatMessageUnfocusedTriggersNotification() {
     // TODO this test throws exceptions if another test runs before it or after it, but not if run alone
     // In that case AbstractChatTabController.hasFocus throws NPE because tabPane.getScene().getWindow() is null
     WaitForAsyncUtils.waitForAsyncFx(5000, () -> getRoot().getScene().getWindow().hide());
