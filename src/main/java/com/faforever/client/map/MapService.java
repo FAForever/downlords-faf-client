@@ -19,6 +19,8 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ProgrammingError;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.DoubleProperty;
@@ -53,12 +55,12 @@ import java.nio.file.Paths;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
@@ -198,8 +200,8 @@ public class MapService implements InitializingBean, DisposableBean {
         try (Stream<Path> customMapsDirectoryStream = list(customMapsDirectory)) {
           List<Path> mapPaths = new ArrayList<>();
           customMapsDirectoryStream.collect(toCollection(() -> mapPaths));
-          Arrays.stream(OfficialMap.values())
-              .map(map -> officialMapsPath.resolve(map.name()))
+          officialMaps.stream()
+              .map(mapName -> officialMapsPath.resolve(mapName))
               .collect(toCollection(() -> mapPaths));
 
           long totalMaps = mapPaths.size();
@@ -306,7 +308,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
 
   public boolean isOfficialMap(String mapName) {
-    return OfficialMap.fromMapName(mapName) != null;
+    return officialMaps.contains(mapName);
   }
 
 
@@ -494,26 +496,14 @@ public class MapService implements InitializingBean, DisposableBean {
     Optional.ofNullable(directoryWatcherThread).ifPresent(Thread::interrupt);
   }
 
-  public enum OfficialMap {
-    SCMP_001, SCMP_002, SCMP_003, SCMP_004, SCMP_005, SCMP_006, SCMP_007, SCMP_008, SCMP_009, SCMP_010, SCMP_011,
-    SCMP_012, SCMP_013, SCMP_014, SCMP_015, SCMP_016, SCMP_017, SCMP_018, SCMP_019, SCMP_020, SCMP_021, SCMP_022,
-    SCMP_023, SCMP_024, SCMP_025, SCMP_026, SCMP_027, SCMP_028, SCMP_029, SCMP_030, SCMP_031, SCMP_032, SCMP_033,
-    SCMP_034, SCMP_035, SCMP_036, SCMP_037, SCMP_038, SCMP_039, SCMP_040, X1MP_001, X1MP_002, X1MP_003, X1MP_004,
-    X1MP_005, X1MP_006, X1MP_007, X1MP_008, X1MP_009, X1MP_010, X1MP_011, X1MP_012, X1MP_014, X1MP_017;
-
-    private static final Map<String, OfficialMap> fromString;
-
-    static {
-      fromString = new HashMap<>();
-      for (OfficialMap officialMap : values()) {
-        fromString.put(officialMap.name(), officialMap);
-      }
-    }
-
-    public static OfficialMap fromMapName(String mapName) {
-      return fromString.get(mapName.toUpperCase());
-    }
-  }
+  @VisibleForTesting
+  Set<String> officialMaps = ImmutableSet.of(
+      "SCMP_001", "SCMP_002", "SCMP_003", "SCMP_004", "SCMP_005", "SCMP_006", "SCMP_007", "SCMP_008", "SCMP_009", "SCMP_010", "SCMP_011",
+      "SCMP_012", "SCMP_013", "SCMP_014", "SCMP_015", "SCMP_016", "SCMP_017", "SCMP_018", "SCMP_019", "SCMP_020", "SCMP_021", "SCMP_022",
+      "SCMP_023", "SCMP_024", "SCMP_025", "SCMP_026", "SCMP_027", "SCMP_028", "SCMP_029", "SCMP_030", "SCMP_031", "SCMP_032", "SCMP_033",
+      "SCMP_034", "SCMP_035", "SCMP_036", "SCMP_037", "SCMP_038", "SCMP_039", "SCMP_040", "X1MP_001", "X1MP_002", "X1MP_003", "X1MP_004",
+      "X1MP_005", "X1MP_006", "X1MP_007", "X1MP_008", "X1MP_009", "X1MP_010", "X1MP_011", "X1MP_012", "X1MP_014", "X1MP_017"
+      );
 
   public enum PreviewSize {
     // These must match the preview URLs

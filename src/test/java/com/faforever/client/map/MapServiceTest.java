@@ -14,6 +14,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.update.ClientConfiguration;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ObjectProperty;
@@ -110,7 +111,6 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     instance = new MapService(preferencesService, taskService, applicationContext,
         fafService, assetService, i18n, uiService, clientProperties, mapGeneratorService, eventBus);
 
-
     doAnswer(invocation -> {
       @SuppressWarnings("unchecked")
       CompletableTask<Void> task = invocation.getArgument(0);
@@ -119,6 +119,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
       return task;
     }).when(taskService).submitTask(any());
 
+    instance.officialMaps = ImmutableSet.of();
     instance.afterPropertiesSet();
   }
 
@@ -129,6 +130,8 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testGetLocalMapsOfficialMap() throws Exception {
+    instance.officialMaps = ImmutableSet.of("SCMP_001");
+    
     Path scmp001 = Files.createDirectory(mapsDirectory.resolve("SCMP_001"));
     Files.copy(getClass().getResourceAsStream("/maps/SCMP_001/SCMP_001_scenario.lua"), scmp001.resolve("SCMP_001_scenario.lua"));
 
@@ -177,6 +180,8 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testInstalledOfficialMapIgnoreCase() throws Exception {
+    instance.officialMaps = ImmutableSet.of("SCMP_001");
+    
     Path scmp001 = Files.createDirectory(mapsDirectory.resolve("SCMP_001"));
     Files.copy(getClass().getResourceAsStream("/maps/SCMP_001/SCMP_001_scenario.lua"), scmp001.resolve("SCMP_001_scenario.lua"));
 
