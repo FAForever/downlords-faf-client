@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -130,6 +131,6 @@ public class InstallModTask extends CompletableTask<Void> {
   }
 
   public void setUrl(URL url) {
-    this.url = url;
+    this.url = URLEncoder.encode(url).replaceAll("\\+", "%20");
   }
 }
