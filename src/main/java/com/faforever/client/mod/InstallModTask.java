@@ -131,6 +131,6 @@ public class InstallModTask extends CompletableTask<Void> {
   }
 
   public void setUrl(URL url) {
-    this.url = URLEncoder.encode(url).replaceAll("\\+", "%20");
+    this.url = new URL(url.toString().replaceAll(" ", "%20"));
   }
 }
