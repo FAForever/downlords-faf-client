@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
+import java.util.concurrent.CompletionException;
 
 public final class ConcurrentUtil {
 
@@ -35,5 +36,9 @@ public final class ConcurrentUtil {
     service.start();
 
     return service;
+  }
+
+  public static Throwable unwrapIfCompletionException(Throwable throwable) {
+    return throwable instanceof CompletionException ? throwable.getCause() : throwable;
   }
 }
