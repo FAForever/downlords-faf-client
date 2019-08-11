@@ -11,7 +11,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
-import org.springframework.beans.factory.DisposableBean;
+
+import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -20,7 +21,7 @@ import java.util.concurrent.Executors;
 @EnableAsync
 @EnableScheduling
 @Configuration
-public class AsyncConfig implements AsyncConfigurer, SchedulingConfigurer, DisposableBean {
+public class AsyncConfig implements AsyncConfigurer, SchedulingConfigurer {
 
   @Override
   public Executor getAsyncExecutor() {
@@ -46,9 +47,18 @@ public class AsyncConfig implements AsyncConfigurer, SchedulingConfigurer, Dispo
   public TaskScheduler taskScheduler() {
     return new ThreadPoolTaskScheduler();
   }
-
-  @Override
-  public void destroy() {
-    taskExecutor().shutdownNow();
+  
+  @Bean
+  public DestructionAwareBeanPostProcessor threadPoolShutdownProcessor() {
+    return (Object bean, String beanName) -> {
+      if (beanName.equals("taskExecutor")) {
+        ExecutorService executor = (ExecutorService) bean;
+        executor.shutdownNow();
+      }
+      if (beanName.equals("taskScheduler")) {
+        ExecutorService executor = ((ThreadPoolTaskScheduler) bean).getScheduledThreadPoolExecutor();
+        executor.shutdownNow();
+      }
+    };
   }
 }

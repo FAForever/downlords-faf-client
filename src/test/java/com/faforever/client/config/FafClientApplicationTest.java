@@ -19,7 +19,7 @@ import java.lang.invoke.MethodHandles;
 import static org.mockito.Mockito.mock;
 
 @RunWith(MockitoJUnitRunner.class)
-public class FeaturedModUpdaterConfigTest extends AbstractPlainJavaFxTest {
+public class FafClientApplicationTest extends AbstractPlainJavaFxTest {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Test
