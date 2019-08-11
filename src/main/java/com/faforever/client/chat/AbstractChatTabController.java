@@ -18,6 +18,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
@@ -421,7 +422,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       messageTextField.setDisable(false);
       messageTextField.requestFocus();
     }).exceptionally(throwable -> {
-      throwable = throwable instanceof CompletionException ? throwable.getCause() : throwable;
+      throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
       logger.warn("Message could not be sent: {}", text, throwable);
       notificationService.addNotification(new ImmediateErrorNotification(
           i18n.get("errorTitle"), i18n.get("chat.sendFailed"), throwable, i18n, reportingService)
@@ -443,7 +444,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
           messageTextField.requestFocus();
         })
         .exceptionally(throwable -> {
-          throwable = throwable instanceof CompletionException ? throwable.getCause() : throwable;
+          throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           // TODO onDisplay error to user somehow
           logger.warn("Message could not be sent: {}", text, throwable);
           messageTextField.setDisable(false);
