@@ -51,7 +51,7 @@ public class FafClientApplication extends Application {
 
   private ConfigurableApplicationContext applicationContext;
 
-  public static void main(String[] args) {
+  public static void applicationMain(String[] args) {
     PreferencesService.configureLogging();
     launch(args);
   }

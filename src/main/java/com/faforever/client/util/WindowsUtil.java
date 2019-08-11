@@ -5,10 +5,6 @@ import java.io.PrintStream;
 import java.util.Scanner;
 
 public class WindowsUtil {
-  public static void main(String[] args) {
-    System.out.println(isAdmin());
-  }
-
   public static boolean isAdmin() {
     try {
       ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe");
