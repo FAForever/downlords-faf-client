@@ -5,6 +5,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.update.ClientUpdateServiceImpl.InstallerExecutionException;
 import com.faforever.commons.io.Bytes;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.Before;
@@ -14,7 +15,6 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
 
@@ -60,7 +60,6 @@ public class ClientUpdateServiceImplTest {
    * Never version is available on server.
    */
   @Test
-  @SuppressWarnings("unchecked")
   public void testCheckForUpdateInBackgroundUpdateAvailable() throws Exception {
     instance.currentVersion = new ComparableVersion("v0.4.8.0-alpha");
 
@@ -87,7 +86,9 @@ public class ClientUpdateServiceImplTest {
   @Test
   public void testUnixExecutableBitIsSet() throws Exception {
     Path faExePath = fafBinDirectory.newFile("ForgedAlliance.exe").toPath();
-    instance.install(faExePath);
-    Mockito.verify(platformService).setUnixExecutableAndWritableBits(faExePath);
+    try {
+      instance.install(faExePath);
+    } catch(InstallerExecutionException e) {}
+    verify(platformService).setUnixExecutableAndWritableBits(faExePath);
   }
 }

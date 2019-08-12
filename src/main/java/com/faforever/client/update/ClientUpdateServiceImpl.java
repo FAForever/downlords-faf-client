@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 
@@ -32,6 +33,12 @@ import static org.apache.commons.lang3.StringUtils.defaultString;
 @Service
 @Profile("!" + FafClientApplication.PROFILE_OFFLINE)
 public class ClientUpdateServiceImpl implements ClientUpdateService {
+
+  public static class InstallerExecutionException extends UncheckedIOException {
+    public InstallerExecutionException(String message, IOException cause) {
+      super(message, cause);
+    }
+  }
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String DEVELOPMENT_VERSION_STRING = "dev";
@@ -99,14 +106,14 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
     try {
       platformService.setUnixExecutableAndWritableBits(binaryPath);
     } catch (IOException e) {
-      logger.warn("Unix execute bit could not be set", e);
+      throw new InstallerExecutionException("Unix execute bit could not be set", e);
     }
     String command = binaryPath.toAbsolutePath().toString();
     try {
       logger.info("Starting installer at {}", command);
       new ProcessBuilder(command).inheritIO().start();
     } catch (IOException e) {
-      logger.warn("Installation could not be started", e);
+      throw new InstallerExecutionException("Installation could not be started", e);
     }
   }
 
@@ -117,6 +124,9 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
     taskService.submitTask(task).getFuture()
         .thenAccept(this::install)
         .exceptionally(throwable -> {
+          if (throwable instanceof InstallerExecutionException) {
+            logger.warn(throwable.getMessage(), throwable.getCause());
+          }
           logger.warn("Error while downloading client update", throwable);
           notificationService.addNotification(
               new PersistentNotification(i18n.get("clientUpdateDownloadFailed.notification"), WARN, singletonList(

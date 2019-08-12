@@ -15,7 +15,10 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.test.FakeTestException;
 import com.faforever.commons.replay.ReplayData;
+
+import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -176,8 +179,8 @@ public class ReplayServiceTest {
     Path file1 = replayDirectory.newFile("replay.fafreplay").toPath();
     Path file2 = replayDirectory.newFile("replay2.fafreplay").toPath();
 
-    doThrow(new RuntimeException("Junit test exception")).when(replayFileReader).parseMetaData(file1);
-    doThrow(new RuntimeException("Junit test exception")).when(replayFileReader).parseMetaData(file2);
+    doThrow(new FakeTestException()).when(replayFileReader).parseMetaData(file1);
+    doThrow(new FakeTestException()).when(replayFileReader).parseMetaData(file2);
 
     Collection<Replay> localReplays = instance.getLocalReplays();
 
@@ -252,14 +255,12 @@ public class ReplayServiceTest {
   public void testRunReplayFileExceptionTriggersNotification() throws Exception {
     Path replayFile = replayDirectory.newFile("replay.scfareplay").toPath();
 
-    doThrow(new RuntimeException("Junit test exception")).when(replayFileReader).readRawReplayData(replayFile);
+    doThrow(new FakeTestException()).when(replayFileReader).readRawReplayData(replayFile);
 
     Replay replay = new Replay();
     replay.setReplayFile(replayFile);
 
-    expectedException.expect(RuntimeException.class);
-    expectedException.expectMessage("Junit test exception");
-
+    expectedException.expect(FakeTestException.class);
     instance.runReplay(replay);
   }
 
@@ -267,13 +268,13 @@ public class ReplayServiceTest {
   public void testRunFafReplayFileExceptionPropagates() throws Exception {
     Path replayFile = replayDirectory.newFile("replay.fafreplay").toPath();
 
-    doThrow(new RuntimeException("Junit test exception")).when(replayFileReader).parseMetaData(replayFile);
+    doThrow(new FakeTestException()).when(replayFileReader).parseMetaData(replayFile);
     when(replayFileReader.readRawReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
 
     Replay replay = new Replay();
     replay.setReplayFile(replayFile);
 
-    expectedException.expectMessage("Junit test exception");
+    expectedException.expect(FakeTestException.class);
     instance.runReplay(replay);
   }
 
@@ -325,7 +326,7 @@ public class ReplayServiceTest {
   @Test
   public void testRunScFaOnlineReplayExceptionTriggersNotification() throws Exception {
     Path replayFile = replayDirectory.newFile("replay.scfareplay").toPath();
-    doThrow(new RuntimeException("Junit test exception")).when(replayFileReader).parseMetaData(replayFile);
+    doThrow(new FakeTestException()).when(replayFileReader).parseMetaData(replayFile);
 
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
