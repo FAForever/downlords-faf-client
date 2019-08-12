@@ -81,11 +81,6 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
       return modDetailController;
     }).when(uiService).loadFxml("theme/vault/mod/mod_detail.fxml");
 
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().get();
-    when(modService.getHighestRatedMods(100, 1)).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(modVersion)));
-
-    when(modService.getNewestMods(100, 1)).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(modVersion)));
-
     loadFxml("theme/vault/mod/mod_vault.fxml", clazz -> {
       if (clazz == LogicalNodeController.class) {
         return logicalNodeController;
@@ -122,10 +117,12 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
 
     when(modService.getNewestMods(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(modVersions));
     when(modService.getHighestRatedMods(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(modVersions));
-
-    CountDownLatch latch = new CountDownLatch(2);
+    when(modService.getHighestRatedUiMods(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(modVersions));
+    
+    CountDownLatch latch = new CountDownLatch(3);
     waitUntilInitialized(instance.newestPane, latch);
     waitUntilInitialized(instance.highestRatedPane, latch);
+    waitUntilInitialized(instance.highestRatedUiPane, latch);
 
     instance.display(new OpenModVaultEvent());
 
@@ -174,11 +171,13 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void showMoreMostLikedMods() {
-    instance.showMoreHighestRatedMods();
+  public void showMoreHighestRatedUiMods() {
+    when(modService.getHighestRatedUiMods(100, 1)).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
+    instance.showMoreHighestRatedUiMods();
 
     WaitForAsyncUtils.waitForFxEvents();
 
+    verify(modService).getHighestRatedUiMods(100, 1);
     assertFalse(instance.showroomGroup.isVisible());
     assertTrue(instance.searchResultGroup.isVisible());
   }
