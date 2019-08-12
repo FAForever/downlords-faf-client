@@ -1,6 +1,6 @@
 package com.faforever.client.test;
 
-public class FakeTestException extends Exception {
+public class FakeTestException extends RuntimeException {
   private static final long serialVersionUID = -2887429654623895910L;
 
   public FakeTestException() {
