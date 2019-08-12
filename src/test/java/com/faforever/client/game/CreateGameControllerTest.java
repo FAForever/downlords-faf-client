@@ -40,6 +40,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -93,6 +94,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     when(modService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(emptyList()));
     when(modService.getInstalledModVersions()).thenReturn(FXCollections.observableList(emptyList()));
     when(mapService.loadPreview(anyString(), any())).thenReturn(new Image("/theme/images/close.png"));
+    when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
+    when(i18n.number(anyInt())).then(invocation -> invocation.getArgument(0).toString());
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
 
     loadFxml("theme/play/create_game.fxml", clazz -> instance);
