@@ -21,8 +21,16 @@ public class VersionTest {
 
   @Test
   public void shouldUpdateIfRemoteIsNewer() {
+    assertFalse(Version.shouldUpdate("1.1.0", "1.1.0"));
+    assertFalse(Version.shouldUpdate("1.1.0", "v1.1.0"));
+    assertTrue(Version.shouldUpdate("1.0.0-alpha", "v1.0.0-beta"));
+    assertTrue(Version.shouldUpdate("1.0.0-alpha", "v1.0.0-RC1"));
+    assertTrue(Version.shouldUpdate("1.0.0-RC1", "v1.0.0-RC2"));
+    assertFalse(Version.shouldUpdate("1.0.0-beta", "v1.0.0-alpha"));
     assertTrue(Version.shouldUpdate("1.0.9", "v1.1.0"));
+    assertFalse(Version.shouldUpdate("1.1.0", "v1.0.9"));
     assertTrue(Version.shouldUpdate("v1.0.9", "1.1.0"));
+    assertFalse(Version.shouldUpdate("1.1.0", "1.0.9"));
     assertTrue(Version.shouldUpdate("1.1.0", "v1.1.1"));
     assertTrue(Version.shouldUpdate("1.9.9", "v2.0.0"));
   }

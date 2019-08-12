@@ -171,7 +171,6 @@ public class LoginController implements Controller<Node> {
               showClientOutdatedPane(minimumVersion);
             }
             return clientConfiguration;
-
           })
           .thenAccept(clientConfiguration -> {
             Endpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
@@ -307,8 +306,8 @@ public class LoginController implements Controller<Node> {
   }
 
   public void onDownloadUpdateButtonClicked() {
-    Platform.runLater(() -> downloadUpdateButton.setOnAction(event -> {
-    }));
+    downloadUpdateButton.setOnAction(event -> {
+    });
     log.info("Downloading update");
     updateInfoFuture
         .thenAccept(updateInfo -> {
