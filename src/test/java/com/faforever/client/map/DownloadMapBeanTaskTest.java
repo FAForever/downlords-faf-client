@@ -4,6 +4,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.test.AbstractPlainJavaFxTest;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -20,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DownloadMapBeanTaskTest {
+public class DownloadMapBeanTaskTest extends AbstractPlainJavaFxTest {
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();

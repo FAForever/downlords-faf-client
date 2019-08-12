@@ -3,6 +3,8 @@ package com.faforever.client.mod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.test.AbstractPlainJavaFxTest;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -21,7 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ModUploadTaskTest {
+public class ModUploadTaskTest extends AbstractPlainJavaFxTest{
 
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();
