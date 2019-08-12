@@ -32,6 +32,9 @@ public abstract class AbstractPlainJavaFxTest extends ApplicationTest {
 
   public AbstractPlainJavaFxTest() {
     root = new Pane();
+    Thread.currentThread().setUncaughtExceptionHandler((thread, e) -> {
+      throw (RuntimeException) e;
+    });
   }
 
   @Override
