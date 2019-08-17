@@ -210,7 +210,7 @@ public class MapService implements InitializingBean, DisposableBean {
           List<Path> mapPaths = new ArrayList<>();
           customMapsDirectoryStream.collect(toCollection(() -> mapPaths));
           officialMaps.stream()
-              .map(mapName -> officialMapsPath.resolve(mapName))
+              .map(officialMapsPath::resolve)
               .collect(toCollection(() -> mapPaths));
 
           long totalMaps = mapPaths.size();

@@ -12,6 +12,8 @@ import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 
 import java.util.concurrent.Executor;
@@ -21,6 +23,7 @@ import java.util.concurrent.Executors;
 @EnableAsync
 @EnableScheduling
 @Configuration
+@Slf4j
 public class AsyncConfig implements AsyncConfigurer, SchedulingConfigurer {
 
   @Override
@@ -52,11 +55,8 @@ public class AsyncConfig implements AsyncConfigurer, SchedulingConfigurer {
   public DestructionAwareBeanPostProcessor threadPoolShutdownProcessor() {
     return (Object bean, String beanName) -> {
       if ("taskExecutor".equals(beanName)) {
+        log.info("Shutting down ExecutorService '" + beanName + "'");
         ExecutorService executor = (ExecutorService) bean;
-        executor.shutdownNow();
-      }
-      if ("taskScheduler".equals(beanName)) {
-        ExecutorService executor = ((ThreadPoolTaskScheduler) bean).getScheduledThreadPoolExecutor();
         executor.shutdownNow();
       }
     };
