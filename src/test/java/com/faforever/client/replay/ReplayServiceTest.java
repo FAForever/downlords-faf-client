@@ -18,7 +18,6 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.commons.replay.ReplayData;
 
-import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

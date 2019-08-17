@@ -88,7 +88,7 @@ public class ClientUpdateServiceImplTest {
     Path faExePath = fafBinDirectory.newFile("ForgedAlliance.exe").toPath();
     try {
       instance.install(faExePath);
-    } catch(InstallerExecutionException e) {}
+    } catch (InstallerExecutionException e) {}
     verify(platformService).setUnixExecutableAndWritableBits(faExePath);
   }
 }

@@ -34,12 +34,6 @@ import static org.apache.commons.lang3.StringUtils.defaultString;
 @Profile("!" + FafClientApplication.PROFILE_OFFLINE)
 public class ClientUpdateServiceImpl implements ClientUpdateService {
 
-  public static class InstallerExecutionException extends UncheckedIOException {
-    public InstallerExecutionException(String message, IOException cause) {
-      super(message, cause);
-    }
-  }
-
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String DEVELOPMENT_VERSION_STRING = "dev";
 
@@ -51,6 +45,12 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
 
   @VisibleForTesting
   ComparableVersion currentVersion;
+  
+  public static class InstallerExecutionException extends UncheckedIOException {
+    public InstallerExecutionException(String message, IOException cause) {
+      super(message, cause);
+    }
+  }
 
   public ClientUpdateServiceImpl(
       TaskService taskService,

@@ -20,8 +20,6 @@ import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.google.common.eventbus.EventBus;
 
-import javafx.collections.ObservableList;
-import javafx.scene.Node;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
 import org.junit.Before;
