@@ -46,6 +46,7 @@ import java.util.Collection;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.CountDownLatch;
 
 import static com.github.nocatch.NoCatch.noCatch;
@@ -102,6 +103,7 @@ public class PreferencesService implements InitializingBean {
   private final Timer timer;
   private final Collection<WeakReference<PreferenceUpdateListener>> updateListeners;
   private final ClientProperties clientProperties;
+  private ClientConfiguration clientConfiguration;
 
   private Preferences preferences;
   private TimerTask storeInBackgroundTask;
@@ -338,23 +340,29 @@ public class PreferencesService implements InitializingBean {
     return getFafDataDirectory().resolve("languages");
   }
 
-  public CompletableFuture<ClientConfiguration> getRemotePreferences() {
-    CompletableFuture<ClientConfiguration> future = new CompletableFuture<>();
-
-    try {
-      URL url = new URL(clientProperties.getClientConfigUrl());
-      HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-      urlConnection.setConnectTimeout((int) clientProperties.getClientConfigConnectTimeout().toMillis());
-
-      ClientConfiguration clientConfiguration;
-      try (Reader reader = new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8)) {
-        clientConfiguration = gson.fromJson(reader, ClientConfiguration.class);
-      }
-      future.complete(clientConfiguration);
-    } catch (IOException e) {
-      future.completeExceptionally(e);
+  public ClientConfiguration getRemotePreferences() throws IOException {
+    if (clientConfiguration != null) {
+      return clientConfiguration;
     }
 
-    return future;
+    URL url = new URL(clientProperties.getClientConfigUrl());
+    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+    urlConnection.setConnectTimeout((int) clientProperties.getClientConfigConnectTimeout().toMillis());
+
+    try (Reader reader = new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8)) {
+      clientConfiguration = gson.fromJson(reader, ClientConfiguration.class);
+      return clientConfiguration;
+    }
+  }
+
+
+  public CompletableFuture<ClientConfiguration> getRemotePreferencesAsync() {
+    return CompletableFuture.supplyAsync(() -> {
+      try {
+        return getRemotePreferences();
+      } catch (IOException e) {
+        throw new CompletionException(e);
+      }
+    });
   }
 }

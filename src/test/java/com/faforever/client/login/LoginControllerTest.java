@@ -7,11 +7,22 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.update.ClientConfiguration;
+import com.faforever.client.update.ClientConfiguration.Endpoints;
+import com.faforever.client.update.ClientConfiguration.ReleaseInfo;
+import com.faforever.client.update.ClientUpdateService;
+import com.faforever.client.update.DownloadUpdateTask;
+import com.faforever.client.update.UpdateInfo;
+import com.faforever.client.update.VersionTest;
 import com.faforever.client.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Answers;
 import org.mockito.Mock;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.testfx.util.WaitForAsyncUtils;
 
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.Matchers.is;
@@ -19,6 +30,8 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -36,15 +49,19 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
   private PlatformService platformService;
   @Mock
   private I18n i18n;
+  @Mock
+  private ClientUpdateService clientUpdateService;
+
+  private ClientProperties clientProperties;
 
   @Before
   public void setUp() throws Exception {
-    ClientProperties clientProperties = new ClientProperties();
+    clientProperties = new ClientProperties();
 
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
     when(i18n.get(LOGIN_WITH_EMAIL_WARNING_KEY)).thenReturn(LOGIN_WITH_EMAIL_WARNING_KEY);
 
-    instance = new LoginController(userService, preferencesService, platformService, clientProperties, i18n);
+    instance = new LoginController(userService, preferencesService, platformService, clientProperties, i18n, clientUpdateService);
 
     Website website = clientProperties.getWebsite();
     website.setCreateAccountUrl("create");
@@ -106,5 +123,83 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     when(userService.login(eq("test"), eq("foo"), eq(true))).thenReturn(CompletableFuture.completedFuture(null));
     instance.loginButton.fire();
     assertThat(instance.loginErrorLabel.isVisible(), is(false));
+  }
+
+  @Test
+  public void testInitializeWithNoMandatoryUpdate() throws Exception {
+    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null);
+    ClientConfiguration clientConfiguration = new ClientConfiguration();
+    ClientConfiguration.ReleaseInfo releaseInfo = new ReleaseInfo();
+    ClientConfiguration.Endpoints endpoints = mock(Endpoints.class, Answers.RETURNS_DEEP_STUBS);
+    clientConfiguration.setLatestRelease(releaseInfo);
+    clientConfiguration.setEndpoints(Collections.singletonList(endpoints));
+
+    releaseInfo.setMinimumVersion("2.1.2");
+    VersionTest.setCurrentVersion("2.2.0");
+
+    when(clientUpdateService.checkForMandatoryUpdate()).thenReturn(CompletableFuture.completedFuture(updateInfo));
+    when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
+
+    clientProperties.setUseRemotePreferences(true);
+
+    assertThat(instance.loginErrorLabel.isVisible(), is(false));
+    assertThat(instance.downloadUpdateButton.isVisible(), is(false));
+    assertThat(instance.loginFormPane.isDisable(), is(false));
+
+    instance.initialize();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertThat(instance.loginErrorLabel.isVisible(), is(false));
+    assertThat(instance.downloadUpdateButton.isVisible(), is(false));
+    assertThat(instance.loginFormPane.isDisable(), is(false));
+
+    verify(clientUpdateService, atLeastOnce()).checkForMandatoryUpdate();
+  }
+
+  @Test
+  public void testInitializeWithMandatoryUpdate() throws Exception {
+    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null);
+    ClientConfiguration clientConfiguration = new ClientConfiguration();
+    ClientConfiguration.ReleaseInfo releaseInfo = new ReleaseInfo();
+    ClientConfiguration.Endpoints endpoints = mock(Endpoints.class, Answers.RETURNS_DEEP_STUBS);
+    clientConfiguration.setLatestRelease(releaseInfo);
+    clientConfiguration.setEndpoints(Collections.singletonList(endpoints));
+
+    releaseInfo.setMinimumVersion("2.1.2");
+    VersionTest.setCurrentVersion("1.2.0");
+
+    when(clientUpdateService.checkForMandatoryUpdate()).thenReturn(CompletableFuture.completedFuture(updateInfo));
+    when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
+
+    clientProperties.setUseRemotePreferences(true);
+
+    assertThat(instance.loginErrorLabel.isVisible(), is(false));
+    assertThat(instance.downloadUpdateButton.isVisible(), is(false));
+    assertThat(instance.loginFormPane.isDisable(), is(false));
+
+    instance.initialize();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertThat(instance.loginErrorLabel.isVisible(), is(true));
+    assertThat(instance.downloadUpdateButton.isVisible(), is(true));
+    assertThat(instance.loginFormPane.isDisable(), is(true));
+
+    verify(clientUpdateService, atLeastOnce()).checkForMandatoryUpdate();
+    verify(i18n).get("login.clientTooOldError", "1.2.0", "2.1.2");
+  }
+
+  @Test
+  public void testOnDownloadUpdateButtonClicked() throws Exception {
+    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null);
+    DownloadUpdateTask downloadUpdateTask = new DownloadUpdateTask(i18n, preferencesService);
+    when(clientUpdateService.downloadAndInstallInBackground(updateInfo)).thenReturn(downloadUpdateTask);
+
+    ReflectionTestUtils.setField(instance, "updateInfoFuture", CompletableFuture.completedFuture(updateInfo));
+
+    instance.onDownloadUpdateButtonClicked();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(i18n).get("login.button.downloadPreparing");
+    verify(clientUpdateService, atLeastOnce()).downloadAndInstallInBackground(updateInfo);
   }
 }

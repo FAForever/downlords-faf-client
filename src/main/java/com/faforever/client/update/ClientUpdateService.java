@@ -1,14 +1,21 @@
 package com.faforever.client.update;
 
 
-import org.apache.maven.artifact.versioning.ComparableVersion;
+import java.util.concurrent.CompletableFuture;
 
 public interface ClientUpdateService {
 
   /**
-   * Returns information about an available update. Returns {@code null} if no update is available.
+   * Returns information about an available mandatory update. Returns {@code null} if no update is available.
    */
-  void checkForUpdateInBackground();
+  CompletableFuture<UpdateInfo> checkForMandatoryUpdate();
 
-  ComparableVersion getCurrentVersion();
+  /**
+   * Checks for regular update and creates an UpdateNotification
+   */
+  void checkForRegularUpdateInBackground();
+
+  String getCurrentVersion();
+
+  DownloadUpdateTask downloadAndInstallInBackground(UpdateInfo updateInfo);
 }

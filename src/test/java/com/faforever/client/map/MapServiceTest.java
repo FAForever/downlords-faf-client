@@ -204,7 +204,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     ClientConfiguration clientConfiguration = mock(ClientConfiguration.class);
     List<Integer> recommendedMapIds = Lists.newArrayList(1, 2, 3);
     when(clientConfiguration.getRecommendedMaps()).thenReturn(recommendedMapIds);
-    when(preferencesService.getRemotePreferences()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
+    when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
     when(fafService.getMapsById(recommendedMapIds, 10, 0)).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.getRecommendedMaps(10, 0);

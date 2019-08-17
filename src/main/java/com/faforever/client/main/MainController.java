@@ -473,7 +473,7 @@ public class MainController implements Controller<Node> {
     getMainScene().setContent(mainRoot);
     getMainScene().setMoveControl(mainRoot);
 
-    clientUpdateService.checkForUpdateInBackground();
+    clientUpdateService.checkForRegularUpdateInBackground();
 
     gamePathHandler.detectAndUpdateGamePath();
     restoreLastView();
