@@ -123,8 +123,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance = new MainController(preferencesService, i18n, notificationService, playerService, gameService, clientUpdateService,
         uiService, eventBus, clientProperties, gamePathHandler, platformService, vaultFileSystemLocationChecker);
 
-    gameRunningProperty = new SimpleBooleanProperty();
-
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(loginController.getRoot()).thenReturn(new Pane());
@@ -134,7 +132,12 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
       Parent root = invocation.getArgument(1);
       return new BorderlessScene(stage, root, 0, 0);
     });
+
+    gameRunningProperty = new SimpleBooleanProperty();
+    BooleanProperty searching1v1Property = new SimpleBooleanProperty();
     when(gameService.gameRunningProperty()).thenReturn(gameRunningProperty);
+    when(gameService.searching1v1Property()).thenReturn(searching1v1Property);
+
     when(uiService.loadFxml("theme/persistent_notifications.fxml")).thenReturn(persistentNotificationsController);
     when(uiService.loadFxml("theme/transient_notifications.fxml")).thenReturn(transientNotificationsController);
     when(uiService.loadFxml("theme/settings/settings.fxml")).thenReturn(settingsController);
