@@ -51,11 +51,11 @@ public class AsyncConfig implements AsyncConfigurer, SchedulingConfigurer {
   @Bean
   public DestructionAwareBeanPostProcessor threadPoolShutdownProcessor() {
     return (Object bean, String beanName) -> {
-      if (beanName.equals("taskExecutor")) {
+      if ("taskExecutor".equals(beanName)) {
         ExecutorService executor = (ExecutorService) bean;
         executor.shutdownNow();
       }
-      if (beanName.equals("taskScheduler")) {
+      if ("taskScheduler".equals(beanName)) {
         ExecutorService executor = ((ThreadPoolTaskScheduler) bean).getScheduledThreadPoolExecutor();
         executor.shutdownNow();
       }
