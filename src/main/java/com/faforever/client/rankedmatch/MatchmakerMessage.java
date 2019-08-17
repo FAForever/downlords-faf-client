@@ -18,7 +18,7 @@ public class MatchmakerMessage extends FafServerMessage {
     private List<RatingRange> boundary75s;
     @SerializedName("boundary_80s")
     private List<RatingRange> boundary80s;
-    
+
     public static enum QueueName {
       @SerializedName("ladder1v1")
       LADDER_1V1
