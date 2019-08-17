@@ -12,6 +12,7 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
+import com.faforever.client.rankedmatch.MatchmakerMessage.MatchmakerQueue.QueueName;
 import com.faforever.client.rankedmatch.SearchLadder1v1ClientMessage;
 import com.faforever.client.rankedmatch.StopSearchLadder1v1ClientMessage;
 import com.faforever.client.remote.domain.ClientMessageType;
@@ -244,7 +245,7 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
     connectAndLogIn();
 
     MatchmakerMessage matchmakerMessage = new MatchmakerMessage();
-    matchmakerMessage.setQueues(singletonList(new MatchmakerMessage.MatchmakerQueue("ladder1v1", null, singletonList(new RatingRange(100, 200)), singletonList(new RatingRange(100, 200)))));
+    matchmakerMessage.setQueues(singletonList(new MatchmakerMessage.MatchmakerQueue(QueueName.LADDER_1V1, null, singletonList(new RatingRange(100, 200)), singletonList(new RatingRange(100, 200)))));
 
     CompletableFuture<MatchmakerMessage> serviceStateDoneFuture = new CompletableFuture<>();
 
