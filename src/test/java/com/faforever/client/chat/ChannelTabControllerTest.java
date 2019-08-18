@@ -153,8 +153,8 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   public void testSetChannelTopic() {
     Channel channel = new Channel("name");
     channel.setTopic("topic https://example.com/1");
+    
     Platform.runLater(() -> instance.setChannel(channel));
-
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(chatService).addUsersListener(eq("name"), any());
@@ -164,13 +164,13 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGetMessageCssClassModerator() {
     String playerName = "junit";
-
     ChatChannelUser chatUser = ChatChannelUserBuilder.create(playerName).defaultValues().moderator(true).get();
 
     when(playerService.getCurrentPlayer()).thenReturn(Optional.empty());
     when(chatService.getChatUser(playerName, defaultChannel.getName())).thenReturn(chatUser);
 
-    instance.setChannel(defaultChannel);
+    Platform.runLater(() -> instance.setChannel(defaultChannel));
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(instance.getMessageCssClass(playerName), ChannelTabController.CSS_CLASS_MODERATOR);
   }
@@ -262,33 +262,18 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void getInlineStyleRandomOther() {
+  public void getInlineStyleRandom() {
     String somePlayer = "somePlayer";
     Color color = ColorGeneratorUtil.generateRandomColor();
-
     ChatChannelUser chatUser = new ChatChannelUser(somePlayer, color, false);
 
-    preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
     when(chatService.getChatUser(somePlayer, CHANNEL_NAME)).thenReturn(chatUser);
-    preferences.getChat().setHideFoeMessages(false);
-    instance.setChannel(defaultChannel);
-
-    String expected = instance.createInlineStyleFromColor(color);
-    String result = instance.getInlineStyle(somePlayer);
-    assertEquals(expected, result);
-  }
-
-  @Test
-  public void getInlineStyleRandomChatOnly() {
-    Color color = ColorGeneratorUtil.generateRandomColor();
-    String somePlayer = "somePlayer";
-
-    ChatChannelUser chatUser = new ChatChannelUser(somePlayer, color, false);
-
-    preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
-    when(chatService.getChatUser(somePlayer, CHANNEL_NAME)).thenReturn(chatUser);
-    preferences.getChat().setHideFoeMessages(false);
-    instance.setChannel(defaultChannel);
+    Platform.runLater(() -> {
+      instance.setChannel(defaultChannel);
+      preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
+      preferences.getChat().setHideFoeMessages(false);
+    });
+    WaitForAsyncUtils.waitForFxEvents();
 
     String expected = instance.createInlineStyleFromColor(color);
     String result = instance.getInlineStyle(somePlayer);
@@ -302,10 +287,13 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     String username = "somePlayer";
     ChatChannelUser chatUser = new ChatChannelUser(username, color, false);
 
-    instance.setChannel(defaultChannel);
-    preferences.getChat().setChatColorMode(ChatColorMode.CUSTOM);
     when(chatService.getChatUser(username, CHANNEL_NAME)).thenReturn(chatUser);
-    preferences.getChat().setHideFoeMessages(false);
+    Platform.runLater(() -> {
+      instance.setChannel(defaultChannel);
+      preferences.getChat().setChatColorMode(ChatColorMode.CUSTOM);
+      preferences.getChat().setHideFoeMessages(false);
+    });
+    WaitForAsyncUtils.waitForFxEvents();
 
     String expected = String.format("%s%s", colorStyle, "");
     String result = instance.getInlineStyle(username);
@@ -316,12 +304,15 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   public void getInlineStyleRandomFoeHide() {
     String playerName = "playerName";
     ChatChannelUser chatUser = new ChatChannelUser(playerName, null, false);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(Optional.of(PlayerBuilder.create(playerName).socialStatus(FOE).get()));
 
-    preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(Optional.of(PlayerBuilder.create(playerName).socialStatus(FOE).get()));
     when(chatService.getChatUser(playerName, CHANNEL_NAME)).thenReturn(chatUser);
-    preferences.getChat().setHideFoeMessages(true);
-    instance.setChannel(defaultChannel);
+    Platform.runLater(() -> {
+      instance.setChannel(defaultChannel);
+      preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
+      preferences.getChat().setHideFoeMessages(true);
+    });
+    WaitForAsyncUtils.waitForFxEvents();
 
     String result = instance.getInlineStyle(playerName);
     assertEquals("display: none;", result);
@@ -333,10 +324,13 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     ChatChannelUser chatUser = new ChatChannelUser(playerName, null, false);
     when(playerService.getPlayerForUsername(playerName)).thenReturn(Optional.of(PlayerBuilder.create(playerName).socialStatus(FOE).get()));
 
-    preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
     when(chatService.getChatUser(playerName, CHANNEL_NAME)).thenReturn(chatUser);
-    preferences.getChat().setHideFoeMessages(false);
-    instance.setChannel(defaultChannel);
+    Platform.runLater(() -> {
+      instance.setChannel(defaultChannel);
+      preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
+      preferences.getChat().setHideFoeMessages(false);
+    });
+    WaitForAsyncUtils.waitForFxEvents();
 
     String result = instance.getInlineStyle(playerName);
     assertEquals("", result);
