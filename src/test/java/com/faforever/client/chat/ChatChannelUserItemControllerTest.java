@@ -266,8 +266,8 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
         .clan("e")
         .avatar(new AvatarBean(new URL("http://example.com/avatar.png"), "dog"))
         .get();
-    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().setPlayer(player).get());
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
+    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().setPlayer(player).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     ObservableList<MenuItem> items = instance.clanMenu.getItems();
