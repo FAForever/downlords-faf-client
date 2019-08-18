@@ -110,7 +110,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private static final String ACTION_CSS_CLASS = "action";
   private static final String MESSAGE_CSS_CLASS = "message";
   protected final UserService userService;
-  protected final ChatService chatService;
+  protected final OldChatService chatService;
   protected final PreferencesService preferencesService;
   protected final PlayerService playerService;
   protected final AudioService audioService;
@@ -146,7 +146,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   @Inject
   // TODO cut dependencies
   public AbstractChatTabController(WebViewConfigurer webViewConfigurer,
-                                   UserService userService, ChatService chatService,
+                                   UserService userService, OldChatService chatService,
                                    PreferencesService preferencesService,
                                    PlayerService playerService, AudioService audioService,
                                    TimeService timeService, I18n i18n,

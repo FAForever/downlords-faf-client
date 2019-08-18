@@ -1,5 +1,9 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.chat.jan.ChatConnector;
+import com.faforever.client.chat.jan.ChatRoomService;
+import com.faforever.client.chat.jan.ChatServiceAdapter;
+import com.faforever.client.chat.jan.ChatServiceImpl;
 import com.faforever.client.net.ConnectionState;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -7,7 +11,13 @@ import javafx.collections.MapChangeListener;
 
 import java.util.concurrent.CompletableFuture;
 
-public interface ChatService {
+/**
+ * 
+ * @deprecated Use services wrapped by {@link ChatServiceAdapter} directly instead of this interface:
+ * {@link ChatRoomService}, {@link ChatServiceImpl}, {@link ChatConnector}
+ */
+@Deprecated
+public interface OldChatService {
 
   void connect();
 

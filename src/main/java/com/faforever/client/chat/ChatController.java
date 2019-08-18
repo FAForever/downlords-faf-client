@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.chat.event.ChatMessageEvent;
+import com.faforever.client.chat.jan.ChatServiceImpl;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.main.event.JoinChannelEvent;
@@ -21,6 +22,8 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -30,11 +33,12 @@ import java.util.Map;
 import java.util.Optional;
 
 @Component
+@Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ChatController extends AbstractViewController<Node> {
 
   private final Map<String, AbstractChatTabController> nameToChatTabController;
-  private final ChatService chatService;
+  private final OldChatService chatService;
   private final UiService uiService;
   private final UserService userService;
   private final EventBus eventBus;
@@ -44,7 +48,7 @@ public class ChatController extends AbstractViewController<Node> {
   public VBox noOpenTabsContainer;
   public TextField channelNameTextField;
 
-  public ChatController(ChatService chatService, UiService uiService, UserService userService, EventBus eventBus) {
+  public ChatController(OldChatService chatService, UiService uiService, UserService userService, EventBus eventBus) {
     this.chatService = chatService;
     this.uiService = uiService;
     this.userService = userService;
@@ -259,6 +263,7 @@ public class ChatController extends AbstractViewController<Node> {
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
     if (navigateEvent instanceof JoinChannelEvent) {
+      log.info("JoinChannelEvent: {}", navigateEvent.toString());
       chatService.joinChannel(((JoinChannelEvent) navigateEvent).getChannel());
       return;
     }

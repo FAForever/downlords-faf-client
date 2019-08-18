@@ -49,7 +49,7 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
   private static final String TEST_USER_NAME = "junit";
 
   @Mock
-  private ChatService chatService;
+  private OldChatService chatService;
   @Mock
   private PreferencesService preferencesService;
   @Mock

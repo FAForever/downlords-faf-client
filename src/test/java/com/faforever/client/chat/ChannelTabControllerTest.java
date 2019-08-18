@@ -65,7 +65,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   private ChannelTabController instance;
 
   @Mock
-  private ChatService chatService;
+  private OldChatService chatService;
   @Mock
   private UserService userService;
   @Mock

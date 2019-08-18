@@ -47,7 +47,7 @@ import static org.mockito.Mockito.when;
 public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Mock
-  private ChatService chatService;
+  private OldChatService chatService;
   @Mock
   private UserService userService;
   @Mock

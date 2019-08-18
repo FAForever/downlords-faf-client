@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Iterables;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Contains all state about which channels the user should currently be or continue to be in and allows
  * to change this state independently from the chat implementation. The order of channels should correlate
@@ -17,6 +19,7 @@ import com.google.common.collect.Iterables;
  * Thread-safe.
  */
 @Service
+@Slf4j
 public class ChannelTargetStateService {
   
   // Channels the user should be in permanently for the entire duration of the clients login.
@@ -37,12 +40,14 @@ public class ChannelTargetStateService {
   
   protected boolean addPermanentChannel(String channelName) {
     Objects.requireNonNull(channelName);
+    log.debug("Adding permanent channel: {}", channelName);
     temporaryChannels.remove(channelName);
     return permanentChannels.add(channelName);
   }
   
   protected boolean addTemporaryChannel(String channelName) {
     Objects.requireNonNull(channelName);
+    log.debug("Adding temporary channel: {}", channelName);
     if (permanentChannels.contains(channelName)) {
       return false;
     }
@@ -51,11 +56,13 @@ public class ChannelTargetStateService {
   
   protected boolean removePermanentChannel(String channelName) {
     Objects.requireNonNull(channelName);
+    log.debug("Removing permanent channel: {}", channelName);
     return permanentChannels.remove(channelName);
   }
   
   protected boolean removeTemporaryChannel(String channelName) {
     Objects.requireNonNull(channelName);
+    log.debug("Removing temporary channel: {}", channelName);
     return temporaryChannels.remove(channelName);
   }
   

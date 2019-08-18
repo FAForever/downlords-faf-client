@@ -40,7 +40,7 @@ import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 @Service
 @Profile(FafClientApplication.PROFILE_OFFLINE)
 // NOSONAR
-public class MockChatService implements ChatService, InitializingBean {
+public class MockChatService implements OldChatService, InitializingBean {
 
   private static final int CHAT_MESSAGE_INTERVAL = 5000;
   private static final long CONNECTION_DELAY = 1000;

@@ -54,7 +54,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private UiService uiService;
   @Mock
-  private ChatService chatService;
+  private OldChatService chatService;
   @Mock
   private EventBus eventBus;
   @Captor

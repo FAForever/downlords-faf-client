@@ -57,7 +57,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
                                   UiService uiService,
                                   EventBus eventBus,
                                   AudioService audioService,
-                                  ChatService chatService,
+                                  OldChatService chatService,
                                   WebViewConfigurer webViewConfigurer,
                                   CountryFlagService countryFlagService) {
     super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService,

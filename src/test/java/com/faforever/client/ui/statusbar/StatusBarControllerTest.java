@@ -1,6 +1,6 @@
 package com.faforever.client.ui.statusbar;
 
-import com.faforever.client.chat.ChatService;
+import com.faforever.client.chat.OldChatService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.remote.FafService;
@@ -30,7 +30,7 @@ public class StatusBarControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private I18n i18n;
   @Mock
-  private ChatService chatService;
+  private OldChatService chatService;
   @Mock
   private TaskService taskService;
 
