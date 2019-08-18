@@ -12,8 +12,8 @@ public interface ChatService {
   void connect();
 
   void disconnect();
-
-  CompletableFuture<String> sendMessageInBackground(String target, String message);
+  
+  void reconnect();
 
   /**
    * Gets the list of chat users for the given channel as soon as it is available. <p> <strong>IMPORTANT:</strong> All
@@ -31,19 +31,19 @@ public interface ChatService {
 
   void removeUsersListener(String channelName, MapChangeListener<String, ChatChannelUser> listener);
 
+  void joinChannel(String channelName);
+  
   void leaveChannel(String channelName);
 
+  CompletableFuture<String> sendMessageInBackground(String target, String message);
+  
   CompletableFuture<String> sendActionInBackground(String target, String action);
-
-  void joinChannel(String channelName);
 
   boolean isDefaultChannel(String channelName);
 
   void close();
 
   ReadOnlyObjectProperty<ConnectionState> connectionStateProperty();
-
-  void reconnect();
 
   void whois(String username);
 

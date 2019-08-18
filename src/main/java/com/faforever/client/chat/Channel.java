@@ -66,10 +66,14 @@ public class Channel {
   public void removeUserListener(MapChangeListener<String, ChatChannelUser> listener) {
     users.removeListener(listener);
   }
-
-  public void addModerator(String username) {
-    Optional.ofNullable(users.get(username)).ifPresent(user -> user.setModerator(true));
-    moderators.add(username);
+  
+  public void setModerator(String username, boolean isModerator) {
+    Optional.ofNullable(users.get(username)).ifPresent(user -> user.setModerator(isModerator));
+    if (isModerator) {
+      moderators.add(username);
+    } else {
+      moderators.remove(username);
+    }
   }
 
   public ReadOnlySetWrapper<String> getModerators() {

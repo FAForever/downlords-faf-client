@@ -54,13 +54,13 @@ security:
       clientAuthenticationScheme: header
 logging:
   level:
-    org.springframework.beans: warn
+    org.springframework.beans: error
     org.springframework.http.client.support: info
     org.springframework.web.client: info
     org.springframework.security.oauth2: info
     org.springframework.security.oauth2.client.token.grant: off
     faf-ice-adapter: info
-
+    javafx.beans: off
     org.ice4j.stack: warn
     com.nbarraille.jjsonrpc: warn
     org.pircbotx: warn
@@ -68,7 +68,7 @@ logging:
     com.faforever.client.FafClientApplication: info
     com.faforever.client.api: info
     com.faforever.client.connectivity: info
-    com.faforever.client.chat: info
+    com.faforever.client.chat: debug
     com.faforever.client.preferences: info
     com.faforever.client.map: info
     com.faforever.client.mod: info
@@ -87,3 +87,4 @@ logging:
     com.faforever.client.os: info
     com.faforever.client.fa.relay.ice: info
     com.faforever.client.fx: info
+    com.faforever.client.player: off

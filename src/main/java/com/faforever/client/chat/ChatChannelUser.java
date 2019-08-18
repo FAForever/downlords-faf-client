@@ -28,7 +28,7 @@ public class ChatChannelUser {
   private final ObjectProperty<Player> player;
   private final ObjectProperty<Instant> lastActive;
 
-  ChatChannelUser(String username, Color color, boolean moderator) {
+  public ChatChannelUser(String username, Color color, boolean moderator) {
     this(username, color, moderator, null);
   }
 

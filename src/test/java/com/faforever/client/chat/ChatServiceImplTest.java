@@ -1,6 +1,8 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.chat.event.ChatMessageEvent;
+import com.faforever.client.chat.jan.ChannelTargetStateService;
+import com.faforever.client.chat.jan.ChatServiceImpl;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
@@ -98,7 +100,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 @Ignore("All those tests are written in a way they can fail cause of race conditions, the connect method is badly written. Issue #1362")
-public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
+public class ChatServiceImplTest extends AbstractPlainJavaFxTest {
 
   private static final String CHAT_USER_NAME = "junit";
   private static final String CHAT_PASSWORD = "123";
@@ -108,7 +110,12 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   private static final String DEFAULT_CHANNEL_NAME = "#defaultChannel";
   private static final String OTHER_CHANNEL_NAME = "#otherChannel";
   private static final int IRC_SERVER_PORT = 123;
-  private PircBotXChatService instance;
+  
+  private ChatServiceImpl instance;
+  // This class should get its own tests eventually
+  private PircBotXChatService connector;
+  //This class should get its own tests eventually, too
+  private ChannelTargetStateService channelTargetState;
 
   private ChatChannelUser chatUser1;
   private ChatChannelUser chatUser2;
@@ -170,9 +177,10 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
         .setDefaultChannel(DEFAULT_CHANNEL_NAME)
         .setReconnectDelay(100);
 
-    instance = new PircBotXChatService(preferencesService, userService, taskService, fafService, i18n, pircBotXFactory,
-        threadPoolExecutor, eventBus, clientProperties, playerService);
-
+    channelTargetState = new ChannelTargetStateService();
+    connector = new PircBotXChatService(userService, taskService, fafService, i18n, pircBotXFactory, threadPoolExecutor, clientProperties);
+    instance = new ChatServiceImpl(eventBus, userService, fafService, preferencesService, connector, channelTargetState, playerService);
+    
     botShutdownLatch = new CountDownLatch(1);
 
     preferences.getChat().setChatColorMode(CUSTOM);
@@ -217,7 +225,6 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     when(user2.getNick()).thenReturn("user2");
     when(user2.getChannels()).thenReturn(ImmutableSortedSet.of(defaultChannel));
     when(user2.getUserLevels(defaultChannel)).thenReturn(ImmutableSortedSet.of(UserLevel.VOICE));
-
 
     chatUser1 = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME, false);
     chatUser2 = instance.getOrCreateChatUser(user2.getNick(), DEFAULT_CHANNEL_NAME, false);
@@ -284,7 +291,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   private CountDownLatch listenForConnected() {
     CountDownLatch latch = new CountDownLatch(1);
-    instance.connectionState.addListener((observable, oldValue, newValue) -> {
+    connector.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == ConnectionState.CONNECTED) {
         latch.countDown();
       }
@@ -479,7 +486,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   public void testAddOnChatConnectedListener() throws Exception {
     CompletableFuture<Boolean> onChatConnectedFuture = new CompletableFuture<>();
 
-    instance.connectionState.addListener((observable, oldValue, newValue) -> {
+    connector.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
       switch (newValue) {
         case CONNECTED:
           onChatConnectedFuture.complete(null);
@@ -498,7 +505,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testAddOnChatDisconnectedListener() throws Exception {
     CompletableFuture<Void> onChatDisconnectedFuture = new CompletableFuture<>();
-    instance.connectionState.addListener((observable, oldValue, newValue) -> {
+    connector.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
       switch (newValue) {
         case DISCONNECTED:
           onChatDisconnectedFuture.complete(null);
@@ -516,7 +523,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   private CompletableFuture<Void> listenForDisconnected() {
     CompletableFuture<Void> future = new CompletableFuture<>();
-    instance.connectionState.addListener((observable, oldValue, newValue) -> {
+    connector.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == ConnectionState.DISCONNECTED) {
         future.complete(null);
       }
@@ -722,7 +729,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     connect();
     botStartedFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
-    instance.connectionState.set(ConnectionState.CONNECTED);
+    connector.connectionState.set(ConnectionState.CONNECTED);
 
     String channelToJoin = "#anotherChannel";
     instance.joinChannel(channelToJoin);
@@ -749,7 +756,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     when(nickServHostMask.getHostmask()).thenReturn("nickserv");
     firePircBotXEvent(new NoticeEvent(pircBotX, nickServHostMask, null, null, "", "User foo isn't registered", ImmutableMap.of()));
 
-    instance.connectionState.set(ConnectionState.CONNECTED);
+    connector.connectionState.set(ConnectionState.CONNECTED);
 
     String md5sha256Password = Hashing.md5().hashString(Hashing.sha256().hashString(password, UTF_8).toString(), UTF_8).toString();
     verify(outputIrc, timeout(100)).message("nickserv", String.format("register %s junit@users.faforever.com", md5sha256Password));
@@ -762,7 +769,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     assertThat(instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUsers(), hasSize(1));
 
-    instance.connectionState.set(ConnectionState.DISCONNECTED);
+    connector.connectionState.set(ConnectionState.DISCONNECTED);
 
     assertThat(instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUsers(), empty());
   }
