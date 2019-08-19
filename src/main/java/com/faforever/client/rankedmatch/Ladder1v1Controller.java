@@ -182,12 +182,13 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
         String nextPopTime = matchmakerQueue.getQueuePopTime();
         if (nextPopTime != null) {
           nextQueuePopTime = OffsetDateTime.parse(nextPopTime).toInstant();
+          queuePopTimeUpdater.play();
         }
       }
     });
     
     timeUntilQueuePopLabel.setVisible(false);
-    queuePopTimeUpdater = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), (ActionEvent event) -> {
+    queuePopTimeUpdater = new Timeline(new KeyFrame(javafx.util.Duration.seconds(0), (ActionEvent event) -> {
       if (nextQueuePopTime != null) {
         Instant now = Instant.now();
         Duration timeUntilPopQueue = Duration.between(now, nextQueuePopTime);
@@ -201,9 +202,8 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
         }
       }
       timeUntilQueuePopLabel.setVisible(false);
-    }));
+    }), new KeyFrame(javafx.util.Duration.seconds(1)));
     queuePopTimeUpdater.setCycleCount(Timeline.INDEFINITE);
-    queuePopTimeUpdater.play();
   }
 
   @Override
