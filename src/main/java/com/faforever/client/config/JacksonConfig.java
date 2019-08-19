@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.google.common.annotations.VisibleForTesting;
+
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +35,8 @@ public class JacksonConfig {
     }
   }
 
-  private static class UrlDeserializer extends JsonDeserializer<URL> {
+  @VisibleForTesting
+  static class UrlDeserializer extends JsonDeserializer<URL> {
 
     @Override
     public URL deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
