@@ -43,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -69,7 +70,7 @@ import static com.faforever.client.game.Faction.UEF;
 @Component
 @Lazy
 @Slf4j
-public class Ladder1v1Controller extends AbstractViewController<Node> {
+public class Ladder1v1Controller extends AbstractViewController<Node> implements DisposableBean {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final PseudoClass NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("highlighted-bar");
@@ -104,6 +105,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
   public Label rankingOutOfLabel;
   public Label timeUntilQueuePopLabel;
 
+  private Timeline queuePopTimeUpdater;
   private Instant nextQueuePopTime;
   private Text youLabel;
 
@@ -184,7 +186,8 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
       }
     });
     
-    Timeline queuePopTimeUpdater = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), (ActionEvent event) -> {
+    timeUntilQueuePopLabel.setVisible(false);
+    queuePopTimeUpdater = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), (ActionEvent event) -> {
       if (nextQueuePopTime != null) {
         Instant now = Instant.now();
         Duration timeUntilPopQueue = Duration.between(now, nextQueuePopTime);
@@ -201,6 +204,11 @@ public class Ladder1v1Controller extends AbstractViewController<Node> {
     }));
     queuePopTimeUpdater.setCycleCount(Timeline.INDEFINITE);
     queuePopTimeUpdater.play();
+  }
+
+  @Override
+  public void destroy() throws Exception {
+    queuePopTimeUpdater.stop();
   }
 
   @VisibleForTesting
