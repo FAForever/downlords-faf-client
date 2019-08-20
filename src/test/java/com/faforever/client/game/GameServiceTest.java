@@ -23,6 +23,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
+import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -107,7 +108,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private Executor executor;
   @Mock
-  private ReplayService replayService;
+  private ReplayServer replayServer;
   @Mock
   private EventBus eventBus;
   @Mock
@@ -140,14 +141,13 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     instance = new GameService(clientProperties, fafService, forgedAllianceService, mapService,
         preferencesService, gameUpdater, notificationService, i18n, executor, playerService,
-        reportingService, eventBus, iceAdapter, modService, platformService, discordRichPresenceService);
-    instance.replayService = replayService;
+        reportingService, eventBus, iceAdapter, modService, platformService, discordRichPresenceService, replayServer);
 
     Preferences preferences = new Preferences();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(replayService.startReplayServer(anyInt())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
+    when(replayServer.start(anyInt(), any())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
     when(iceAdapter.start()).thenReturn(CompletableFuture.completedFuture(GPG_PORT));
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(junitPlayer));
 
@@ -193,7 +193,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
     verify(mapService, never()).download(any());
-    verify(replayService).startReplayServer(game.getId());
+    verify(replayServer).start(eq(game.getId()), any());
   }
 
   @Test
@@ -255,7 +255,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     verify(forgedAllianceService).startGame(
         gameLaunchMessage.getUid(), null, asList("/foo", "bar", "/bar", "foo"), GLOBAL,
         GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
-    verify(replayService).startReplayServer(gameLaunchMessage.getUid());
+    verify(replayServer).start(eq(gameLaunchMessage.getUid()), any());
   }
 
   @Test
@@ -411,7 +411,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     verify(fafService).startSearchLadder1v1(CYBRAN);
     verify(mapService).download("scmp_037");
-    verify(replayService).startReplayServer(123);
+    verify(replayServer).start(eq(123), any());
     verify(forgedAllianceService, timeout(100))
         .startGame(eq(123), eq(CYBRAN), eq(asList("/team", "1", "/players", "2")), eq(RatingMode.LADDER_1V1), anyInt(), eq(LOCAL_REPLAY_PORT), eq(false), eq(junitPlayer));
     assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
@@ -521,7 +521,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     game.setId(123);
     game.setStatus(PLAYING);
 
-    when(replayService.findById(123)).thenReturn(completedFuture(Optional.empty()));
+    when(fafService.findReplayById(123)).thenReturn(completedFuture(Optional.empty()));
 
     instance.currentGame.set(game);
 

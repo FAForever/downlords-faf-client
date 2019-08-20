@@ -31,6 +31,7 @@ import java.net.SocketException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 import static com.github.nocatch.NoCatch.noCatch;
 
@@ -55,7 +56,6 @@ public class ReplayServerImpl implements ReplayServer {
   private final ClientProperties clientProperties;
   private final NotificationService notificationService;
   private final I18n i18n;
-  private final GameService gameService;
   private final UserService userService;
   private final ReplayFileWriter replayFileWriter;
   private final ClientUpdateService clientUpdateService;
@@ -66,12 +66,10 @@ public class ReplayServerImpl implements ReplayServer {
 
   @Inject
   public ReplayServerImpl(ClientProperties clientProperties, NotificationService notificationService, I18n i18n,
-                          GameService gameService, UserService userService, ReplayFileWriter replayFileWriter,
-                          ClientUpdateService clientUpdateService) {
+                          UserService userService, ReplayFileWriter replayFileWriter, ClientUpdateService clientUpdateService) {
     this.clientProperties = clientProperties;
     this.notificationService = notificationService;
     this.i18n = i18n;
-    this.gameService = gameService;
     this.userService = userService;
     this.replayFileWriter = replayFileWriter;
     this.clientUpdateService = clientUpdateService;
@@ -94,7 +92,7 @@ public class ReplayServerImpl implements ReplayServer {
   }
 
   @Override
-  public CompletableFuture<Integer> start(int gameId) {
+  public CompletableFuture<Integer> start(int gameId, Supplier<Game> gameInfoSupplier) {
     stoppedGracefully = false;
     CompletableFuture<Integer> future = new CompletableFuture<>();
     new Thread(() -> {
@@ -110,11 +108,11 @@ public class ReplayServerImpl implements ReplayServer {
 
         try (Socket remoteReplayServerSocket = new Socket(remoteReplayServerHost, remoteReplayServerPort);
              DataOutputStream fafReplayOutputStream = new DataOutputStream(remoteReplayServerSocket.getOutputStream())) {
-          recordAndRelay(gameId, localSocket, fafReplayOutputStream);
+          recordAndRelay(gameId, localSocket, fafReplayOutputStream, gameInfoSupplier);
         } catch (ConnectException e) {
           log.warn("Could not connect to remote replay server", e);
           notificationService.addNotification(new PersistentNotification(i18n.get("replayServer.unreachable"), Severity.WARN));
-          recordAndRelay(gameId, localSocket, null);
+          recordAndRelay(gameId, localSocket, null, gameInfoSupplier);
         }
       } catch (IOException e) {
         if (stoppedGracefully) {
@@ -124,7 +122,7 @@ public class ReplayServerImpl implements ReplayServer {
         log.warn("Error in replay server", e);
         notificationService.addNotification(new PersistentNotification(
             i18n.get("replayServer.listeningFailed"),
-            Severity.WARN, Collections.singletonList(new Action(i18n.get("replayServer.retry"), event -> start(gameId)))
+            Severity.WARN, Collections.singletonList(new Action(i18n.get("replayServer.retry"), event -> start(gameId, gameInfoSupplier)))
         ));
       }
     }).start();
@@ -144,7 +142,7 @@ public class ReplayServerImpl implements ReplayServer {
   /**
    * @param fafReplayOutputStream if {@code null}, the replay won't be relayed
    */
-  private void recordAndRelay(int uid, ServerSocket serverSocket, @Nullable OutputStream fafReplayOutputStream) throws IOException {
+  private void recordAndRelay(int uid, ServerSocket serverSocket, @Nullable OutputStream fafReplayOutputStream, Supplier<Game> gameInfoSupplier) throws IOException {
     Socket socket = serverSocket.accept();
     log.debug("Accepted connection from {}", socket.getRemoteSocketAddress());
 
@@ -180,12 +178,12 @@ public class ReplayServerImpl implements ReplayServer {
     }
 
     log.debug("FAF has disconnected, writing replay data to file");
-    finishReplayInfo();
+    finishReplayInfo(gameInfoSupplier);
     replayFileWriter.writeReplayDataToFile(replayData, replayInfo);
   }
 
-  private void finishReplayInfo() {
-    Game game = gameService.getByUid(replayInfo.getUid());
+  private void finishReplayInfo(Supplier<Game> gameInfoSupplier) {
+    Game game = gameInfoSupplier.get();
 
     replayInfo.updateFromGameInfoBean(game);
     replayInfo.setGameEnd(pythonTime());

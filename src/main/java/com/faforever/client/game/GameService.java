@@ -31,6 +31,7 @@ import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.google.common.annotations.VisibleForTesting;
@@ -123,10 +124,8 @@ public class GameService implements InitializingBean {
   private final PlatformService platformService;
   private final String faWindowTitle;
   private final DiscordRichPresenceService discordRichPresenceService;
-
-  //TODO: circular reference
-  @Inject
-  ReplayService replayService;
+  private final ReplayServer replayServer;
+  
   @VisibleForTesting
   RatingMode ratingMode;
 
@@ -141,7 +140,8 @@ public class GameService implements InitializingBean {
                      PreferencesService preferencesService, GameUpdater gameUpdater,
                      NotificationService notificationService, I18n i18n, Executor executor,
                      PlayerService playerService, ReportingService reportingService, EventBus eventBus,
-                     IceAdapter iceAdapter, ModService modService, PlatformService platformService, DiscordRichPresenceService discordRichPresenceService) {
+                     IceAdapter iceAdapter, ModService modService, PlatformService platformService,
+                     DiscordRichPresenceService discordRichPresenceService, ReplayServer replayServer) {
     this.fafService = fafService;
     this.forgedAllianceService = forgedAllianceService;
     this.mapService = mapService;
@@ -157,6 +157,7 @@ public class GameService implements InitializingBean {
     this.modService = modService;
     this.platformService = platformService;
     this.discordRichPresenceService = discordRichPresenceService;
+    this.replayServer = replayServer;
 
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
     uidToGameInfoBean = FXCollections.observableMap(new ConcurrentHashMap<>());
@@ -460,7 +461,7 @@ public class GameService implements InitializingBean {
     }
 
     stopSearchLadder1v1();
-    replayService.startReplayServer(gameLaunchMessage.getUid())
+    replayServer.start(gameLaunchMessage.getUid(), () -> getByUid(gameLaunchMessage.getUid()))
         .thenCompose(port -> {
           localReplayPort = port;
           return iceAdapter.start();
@@ -493,7 +494,7 @@ public class GameService implements InitializingBean {
     int id = game.getId();
     notificationService.addNotification(new PersistentNotification(i18n.get("game.ended", game.getTitle()),
         Severity.INFO,
-        singletonList(new Action(i18n.get("game.rate"), actionEvent -> replayService.findById(id)
+        singletonList(new Action(i18n.get("game.rate"), actionEvent -> fafService.findReplayById(id)
             .thenAccept(replay -> Platform.runLater(() -> {
               if (replay.isPresent()) {
                 eventBus.post(new ShowReplayEvent(replay.get()));
@@ -530,7 +531,7 @@ public class GameService implements InitializingBean {
         synchronized (gameRunning) {
           gameRunning.set(false);
           fafService.notifyGameEnded();
-          replayService.stopReplayServer();
+          replayServer.stop();
           iceAdapter.stop();
 
           if (rehostRequested) {

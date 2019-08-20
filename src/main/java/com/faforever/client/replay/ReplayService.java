@@ -60,6 +60,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -287,8 +288,8 @@ public class ReplayService {
   }
 
 
-  public CompletableFuture<Integer> startReplayServer(int gameUid) {
-    return replayServer.start(gameUid);
+  public CompletableFuture<Integer> startReplayServer(int gameUid, Supplier<Game> gameInfoSupplier) {
+    return replayServer.start(gameUid, gameInfoSupplier);
   }
 
 
