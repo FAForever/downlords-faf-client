@@ -58,15 +58,6 @@ public class BrowserCallbackTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOpenReplayUrlForUnknownReplay() {
-    when(i18n.get(anyString())).thenReturn("value for key");
-    when(replayService.findById(12)).thenReturn(CompletableFuture.completedFuture(Optional.empty()));
-    instance.openUrl("replayId=12");
-    WaitForAsyncUtils.waitForFxEvents();
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
-  }
-
-  @Test
   public void testOpenReplayUrl() {
     Replay replay = new Replay();
     when(replayService.findById(12)).thenReturn(CompletableFuture.completedFuture(Optional.of(replay)));
