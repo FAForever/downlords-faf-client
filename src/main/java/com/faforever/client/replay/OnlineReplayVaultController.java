@@ -7,7 +7,9 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.notification.ImmediateErrorNotification;
+import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
@@ -159,7 +161,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
           @Override
           public void changed(ObservableValue<? extends State> observable, State oldValue, State newValue) {
             if (newValue != State.UNINITIALIZED) {
-              Platform.runLater(() -> onShowReplayDetail(((ShowReplayEvent) navigateEvent).getReplay()));
+              onShowReplayEvent((ShowReplayEvent) navigateEvent);
               state.removeListener(this);
             }
           }
@@ -169,8 +171,19 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
       return;
     }
     if (navigateEvent instanceof ShowReplayEvent) {
-      onShowReplayDetail(((ShowReplayEvent) navigateEvent).getReplay());
+      onShowReplayEvent((ShowReplayEvent) navigateEvent);
     }
+  }
+
+  private void onShowReplayEvent(ShowReplayEvent event) {
+    int replayId = event.getReplayId();
+    replayService.findById(replayId).thenAccept(replay -> {
+      if (replay.isPresent()) {
+        Platform.runLater(() -> onShowReplayDetail(replay.get()));
+      } else {
+        notificationService.addNotification(new ImmediateNotification(i18n.get("replay.notFoundTitle"), i18n.get("replay.replayNotFoundText", replayId), Severity.WARN));
+      }
+    });
   }
 
   @Override

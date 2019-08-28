@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -71,6 +72,7 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   private ArgumentCaptor<Consumer<SearchConfig>> searchListenerCaptor;
   private SortConfig sortOrder;
   private SearchConfig standardSearchConfig;
+  private Replay testReplay = new Replay();
 
   @Before
   public void setUp() throws Exception {
@@ -85,6 +87,7 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
 
     when(replayService.getNewestReplays(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
     when(replayService.getHighestRatedReplays(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
+    when(replayService.findById(anyInt())).thenReturn(CompletableFuture.completedFuture(Optional.of(testReplay)));
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
     sortOrder = preferencesService.getPreferences().getVaultPrefs().getOnlineReplaySortConfig();
     standardSearchConfig = new SearchConfig(sortOrder, "query");
@@ -141,19 +144,17 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testShowReplayEventWhenUninitialized() {
-    Replay replay = new Replay();
-    instance.display(new ShowReplayEvent(replay));
+    instance.display(new ShowReplayEvent(123));
     WaitForAsyncUtils.waitForFxEvents();
-    verify(replayDetailController).setReplay(replay);
+    verify(replayDetailController).setReplay(testReplay);
   }
 
   @Test
   public void testShowReplayEventWhenInitialized() {
-    Replay replay = new Replay();
     instance.display(new OpenOnlineReplayVaultEvent());
+    instance.display(new ShowReplayEvent(123));
     WaitForAsyncUtils.waitForFxEvents();
-    instance.display(new ShowReplayEvent(replay));
-    verify(replayDetailController).setReplay(replay);
+    verify(replayDetailController).setReplay(testReplay);
   }
 
   @Test
@@ -189,4 +190,11 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.moreButton.isVisible(), is(true));
   }
 
+  @Test
+  public void showReplayButReplayNotPresent() {
+    when(replayService.findById(anyInt())).thenReturn(CompletableFuture.completedFuture(Optional.empty()));
+    instance.display(new ShowReplayEvent(123));
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(notificationService).addNotification(any(ImmediateNotification.class));
+  }
 }

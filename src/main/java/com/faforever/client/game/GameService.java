@@ -16,7 +16,6 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateErrorNotification;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
@@ -31,7 +30,7 @@ import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.LoginMessage;
-import com.faforever.client.replay.ReplayService;
+import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.reporting.ReportingService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
@@ -123,10 +122,8 @@ public class GameService implements InitializingBean {
   private final PlatformService platformService;
   private final String faWindowTitle;
   private final DiscordRichPresenceService discordRichPresenceService;
+  private final ReplayServer replayServer;
 
-  //TODO: circular reference
-  @Inject
-  ReplayService replayService;
   @VisibleForTesting
   RatingMode ratingMode;
 
@@ -141,7 +138,8 @@ public class GameService implements InitializingBean {
                      PreferencesService preferencesService, GameUpdater gameUpdater,
                      NotificationService notificationService, I18n i18n, Executor executor,
                      PlayerService playerService, ReportingService reportingService, EventBus eventBus,
-                     IceAdapter iceAdapter, ModService modService, PlatformService platformService, DiscordRichPresenceService discordRichPresenceService) {
+                     IceAdapter iceAdapter, ModService modService, PlatformService platformService,
+                     DiscordRichPresenceService discordRichPresenceService, ReplayServer replayServer) {
     this.fafService = fafService;
     this.forgedAllianceService = forgedAllianceService;
     this.mapService = mapService;
@@ -157,6 +155,7 @@ public class GameService implements InitializingBean {
     this.modService = modService;
     this.platformService = platformService;
     this.discordRichPresenceService = discordRichPresenceService;
+    this.replayServer = replayServer;
 
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
     uidToGameInfoBean = FXCollections.observableMap(new ConcurrentHashMap<>());
@@ -460,7 +459,8 @@ public class GameService implements InitializingBean {
     }
 
     stopSearchLadder1v1();
-    replayService.startReplayServer(gameLaunchMessage.getUid())
+    int uid = gameLaunchMessage.getUid();
+    replayServer.start(uid, () -> getByUid(uid))
         .thenCompose(port -> {
           localReplayPort = port;
           return iceAdapter.start();
@@ -490,18 +490,9 @@ public class GameService implements InitializingBean {
       return;
     }
 
-    int id = game.getId();
     notificationService.addNotification(new PersistentNotification(i18n.get("game.ended", game.getTitle()),
         Severity.INFO,
-        singletonList(new Action(i18n.get("game.rate"), actionEvent -> replayService.findById(id)
-            .thenAccept(replay -> Platform.runLater(() -> {
-              if (replay.isPresent()) {
-                eventBus.post(new ShowReplayEvent(replay.get()));
-              } else {
-                notificationService.addNotification(new ImmediateNotification(i18n.get("replay.notFoundTitle"), i18n.get("replay.replayNotFoundText", id), Severity.WARN));
-              }
-            }))))));
-
+        singletonList(new Action(i18n.get("game.rate"), actionEvent ->  eventBus.post(new ShowReplayEvent(game.getId()))))));
   }
 
   /**
@@ -530,7 +521,7 @@ public class GameService implements InitializingBean {
         synchronized (gameRunning) {
           gameRunning.set(false);
           fafService.notifyGameEnded();
-          replayService.stopReplayServer();
+          replayServer.stop();
           iceAdapter.stop();
 
           if (rehostRequested) {
