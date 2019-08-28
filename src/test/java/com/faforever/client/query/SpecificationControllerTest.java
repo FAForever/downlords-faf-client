@@ -17,6 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -36,7 +37,7 @@ public class SpecificationControllerTest extends AbstractPlainJavaFxTest {
   private QBuilder qBuilder;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() throws IOException {
     instance = new SpecificationController(i18n);
 
     loadFxml("theme/vault/search/specification.fxml", clazz -> {
@@ -50,192 +51,197 @@ public class SpecificationControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testGetRoot() throws Exception {
+  public void testGetRoot() {
     assertThat(instance.getRoot(), is(instance.specificationRoot));
     assertThat(instance.getRoot().getParent(), is(nullValue()));
   }
 
   @Test
-  public void testSomething() throws Exception {
-    instance.setProperties(ImmutableMap.of(
-        "name", new Property("i18n.name", true),
-        "startTime", new Property("i18n.startTime", false)
-    ));
-
+  public void testSomething() {
+    try {
+      instance.setProperties(ImmutableMap.of(
+          "name", new Property("i18n.name", true),
+          "startTime", new Property("i18n.startTime", false)
+      ));
+    } catch (IllegalStateException e) {}
     assertThat(instance.propertyField.getItems(), hasItems("name", "startTime"));
   }
 
   @Test
-  public void dontBuildIfPropertyNameIsNull() throws Exception {
+  public void dontBuildIfPropertyNameIsNull() {
     assertThat(instance.appendTo(qBuilder), is(Optional.empty()));
   }
 
   @Test
-  public void dontBuildIfComparisonOperatorIsNull() throws Exception {
-    instance.propertyField.setValue("Something");
+  public void dontBuildIfComparisonOperatorIsNull() {
+    try {
+      instance.propertyField.setValue("Something");
+    } catch (IllegalStateException e) {}
     assertThat(instance.appendTo(qBuilder), is(Optional.empty()));
   }
 
   @Test
-  public void dontBuildIfValueIsNull() throws Exception {
+  public void dontBuildIfValueIsNull() {
     instance.operationField.setItems(FXCollections.observableArrayList(ComparisonOperator.EQ));
     instance.operationField.getSelectionModel().select(0);
-    instance.propertyField.setValue("Something");
+    try {
+      instance.propertyField.setValue("Something");
+    } catch (IllegalStateException e) {}
     assertThat(instance.appendTo(qBuilder), is(Optional.empty()));
   }
 
   @Test
-  public void testStringEquals() throws Exception {
+  public void testStringEquals() {
     testWithParams(ComparisonOperator.EQ, "name", "Test", "name==\"Test\"");
   }
 
   @Test
-  public void testStringNotEquals() throws Exception {
+  public void testStringNotEquals() {
     testWithParams(ComparisonOperator.NE, "name", "Test", "name!=\"Test\"");
   }
 
   @Test
-  public void testStringIn() throws Exception {
+  public void testStringIn() {
     testWithParams(ComparisonOperator.IN, "name", "Test", "name=in=(\"Test\")");
   }
 
   @Test
-  public void testStringNin() throws Exception {
+  public void testStringNin() {
     testWithParams(ComparisonOperator.NIN, "name", "Test", "name=out=(\"Test\")");
   }
 
   @Test(expected = ProgrammingError.class)
-  public void testStringGreaterThan() throws Exception {
+  public void testStringGreaterThan() {
     testWithParams(ComparisonOperator.GT, "name", "Test", null);
   }
 
   @Test
-  public void testEnumEquals() throws Exception {
+  public void testEnumEquals() {
     testWithParams(ComparisonOperator.EQ, "victoryCondition", VictoryCondition.SANDBOX.name(), "victoryCondition==\"SANDBOX\"");
   }
 
   @Test
-  public void testEnumNotEquals() throws Exception {
+  public void testEnumNotEquals() {
     testWithParams(ComparisonOperator.NE, "victoryCondition", VictoryCondition.SANDBOX.name(), "victoryCondition!=\"SANDBOX\"");
   }
 
   @Test
-  public void testEnumIn() throws Exception {
+  public void testEnumIn() {
     testWithParams(ComparisonOperator.IN, "victoryCondition", VictoryCondition.SANDBOX.name(), "victoryCondition=in=(\"SANDBOX\")");
   }
 
   @Test
-  public void testEnumNin() throws Exception {
+  public void testEnumNin() {
     testWithParams(ComparisonOperator.NIN, "victoryCondition", VictoryCondition.SANDBOX.name(), "victoryCondition=out=(\"SANDBOX\")");
   }
 
   @Test(expected = ProgrammingError.class)
-  public void testEnumGreaterThan() throws Exception {
+  public void testEnumGreaterThan() {
     testWithParams(ComparisonOperator.GT, "name", "Test", null);
   }
 
   @Test
-  public void testNumberEquals() throws Exception {
+  public void testNumberEquals() {
     testWithParams(ComparisonOperator.EQ, "mapVersion.width", 128, "mapVersion.width==\"128\"");
   }
 
   @Test
-  public void testNumberNotEquals() throws Exception {
+  public void testNumberNotEquals() {
     testWithParams(ComparisonOperator.NE, "mapVersion.width", 128, "mapVersion.width!=\"128\"");
   }
 
   @Test
-  public void testNumberGreaterThan() throws Exception {
+  public void testNumberGreaterThan() {
     testWithParams(ComparisonOperator.GT, "mapVersion.width", 128, "mapVersion.width=gt=\"128\"");
   }
 
   @Test
-  public void testNumberGreaterThanEquals() throws Exception {
+  public void testNumberGreaterThanEquals() {
     testWithParams(ComparisonOperator.GTE, "mapVersion.width", 128, "mapVersion.width=ge=\"128\"");
   }
 
   @Test
-  public void testNumberLessThan() throws Exception {
+  public void testNumberLessThan() {
     testWithParams(ComparisonOperator.LT, "mapVersion.width", 128, "mapVersion.width=lt=\"128\"");
   }
 
   @Test
-  public void testNumberLessThanEquals() throws Exception {
+  public void testNumberLessThanEquals() {
     testWithParams(ComparisonOperator.LTE, "mapVersion.width", 128, "mapVersion.width=le=\"128\"");
   }
 
   @Test
-  public void testNumberIn() throws Exception {
+  public void testNumberIn() {
     testWithParams(ComparisonOperator.IN, "mapVersion.width", 128, "mapVersion.width=in=(\"128\")");
   }
 
   @Test
-  public void testNumberNin() throws Exception {
+  public void testNumberNin() {
     testWithParams(ComparisonOperator.NIN, "mapVersion.width", 128, "mapVersion.width=out=(\"128\")");
   }
 
   @Test(expected = ProgrammingError.class)
-  public void testNumberRegularExpression() throws Exception {
+  public void testNumberRegularExpression() {
     testWithParams(ComparisonOperator.RE, "mapVersion.width", 128, null);
   }
 
   @Test
-  public void testBooleanEqualsTrue() throws Exception {
+  public void testBooleanEqualsTrue() {
     testWithParams(ComparisonOperator.EQ, "mapVersion.ranked", true, "mapVersion.ranked==\"true\"");
   }
 
   @Test
-  public void testBooleanNotEqualsTrue() throws Exception {
+  public void testBooleanNotEqualsTrue() {
     testWithParams(ComparisonOperator.NE, "mapVersion.ranked", true, "mapVersion.ranked==\"false\"");
   }
 
   @Test
-  public void testBooleanEqualsFalse() throws Exception {
+  public void testBooleanEqualsFalse() {
     testWithParams(ComparisonOperator.EQ, "mapVersion.ranked", false, "mapVersion.ranked==\"false\"");
   }
 
   @Test
-  public void testBooleanNotEqualsFalse() throws Exception {
+  public void testBooleanNotEqualsFalse() {
     testWithParams(ComparisonOperator.NE, "mapVersion.ranked", false, "mapVersion.ranked==\"true\"");
   }
 
   @Test(expected = ProgrammingError.class)
-  public void testBooleanLassThan() throws Exception {
+  public void testBooleanLassThan() {
     testWithParams(ComparisonOperator.LT, "mapVersion.ranked", false, null);
   }
 
   @Test
-  public void testInstantEquals() throws Exception {
+  public void testInstantEquals() {
     LocalDate now = LocalDate.now();
     testInstantWithParams(ComparisonOperator.EQ, "startTime", LocalDate.now(), "startTime==\"" + format(now) + "\"");
   }
 
   @Test
-  public void testInstantNotEquals() throws Exception {
+  public void testInstantNotEquals() {
     LocalDate now = LocalDate.now();
     testInstantWithParams(ComparisonOperator.NE, "startTime", LocalDate.now(), "startTime!=\"" + format(now) + "\"");
   }
 
   @Test
-  public void testInstantGreaterThan() throws Exception {
+  public void testInstantGreaterThan() {
     LocalDate now = LocalDate.now();
     testInstantWithParams(ComparisonOperator.GT, "startTime", LocalDate.now(), "startTime=gt=\"" + format(now) + "\"");
   }
 
   @Test
-  public void testInstantGreaterThanEquals() throws Exception {
+  public void testInstantGreaterThanEquals() {
     LocalDate now = LocalDate.now();
     testInstantWithParams(ComparisonOperator.GTE, "startTime", LocalDate.now(), "startTime=ge=\"" + format(now) + "\"");
   }
 
   @Test
-  public void testInstantLessThan() throws Exception {
+  public void testInstantLessThan() {
     LocalDate now = LocalDate.now();
     testInstantWithParams(ComparisonOperator.LT, "startTime", LocalDate.now(), "startTime=lt=\"" + format(now) + "\"");
   }
 
   @Test
-  public void testInstantLessThanEquals() throws Exception {
+  public void testInstantLessThanEquals() {
     LocalDate now = LocalDate.now();
     testInstantWithParams(ComparisonOperator.LTE, "startTime", LocalDate.now(), "startTime=le=\"" + format(now) + "\"");
   }
