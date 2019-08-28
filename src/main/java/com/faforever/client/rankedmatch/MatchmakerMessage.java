@@ -12,11 +12,8 @@ public class MatchmakerMessage extends FafServerMessage {
   public static class MatchmakerQueue {
 
     private QueueName queueName;
-    @SerializedName("queue_pop_time")
     private String queuePopTime;
-    @SerializedName("boundary_75s")
     private List<RatingRange> boundary75s;
-    @SerializedName("boundary_80s")
     private List<RatingRange> boundary80s;
 
     public static enum QueueName {
