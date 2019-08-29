@@ -82,7 +82,7 @@ public class ForgedAlliancePrefs {
     modsDirectory = new SimpleObjectProperty<>();
     preferencesFile = new SimpleObjectProperty<>(LOCAL_FA_DATA_PATH.resolve("Game.prefs"));
     autoDownloadMaps = new SimpleBooleanProperty(true);
-    executableDecorator = new SimpleStringProperty("\"%s\"");
+    executableDecorator = new SimpleStringProperty();
     executionDirectory = new SimpleObjectProperty<>();
     vaultCheckDone = new SimpleBooleanProperty(false);
     bindVaultPath();
