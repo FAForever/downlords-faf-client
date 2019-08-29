@@ -8,6 +8,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
@@ -29,11 +30,6 @@ public class LaunchCommandBuilderTest {
   @Test(expected = IllegalStateException.class)
   public void testExecutableNullThrowsException() throws Exception {
     defaultBuilder().executable(null).build();
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void testExecutableDecoratorNullThrowsException() throws Exception {
-    defaultBuilder().executableDecorator(null).build();
   }
 
   @Test
@@ -86,11 +82,6 @@ public class LaunchCommandBuilderTest {
     defaultBuilder().clan(null).build();
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testCommandFormatNullNotAllowed() throws Exception {
-    defaultBuilder().executableDecorator(null).build();
-  }
-
   @Test
   public void testFactionAsString() throws Exception {
     List<String> build = defaultBuilder().faction(Faction.SERAPHIM).build();
@@ -138,5 +129,17 @@ public class LaunchCommandBuilderTest {
             "/log", Paths.get("preferences.log").toAbsolutePath().toString(),
             "/rehost"
         ));
+  }
+
+  @Test
+  public void testUseDefaultExecutableDecoratorOnEmptyString() throws Exception {
+    assertThat(
+        defaultBuilder().executableDecorator("").build(),
+        equalTo(defaultBuilder().build())
+    );
+    assertThat(
+        defaultBuilder().executableDecorator(null).build(),
+        equalTo(defaultBuilder().build())
+    );
   }
 }

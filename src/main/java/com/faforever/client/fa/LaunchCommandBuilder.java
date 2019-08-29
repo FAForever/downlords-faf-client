@@ -2,6 +2,7 @@ package com.faforever.client.fa;
 
 import com.faforever.client.game.Faction;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.google.common.base.Strings;
 import org.springframework.util.StringUtils;
 
 import java.net.Inet4Address;
@@ -16,6 +17,7 @@ import java.util.regex.Pattern;
 public class LaunchCommandBuilder {
 
   private static final Pattern QUOTED_STRING_PATTERN = Pattern.compile("([^\"]\\S*|\"+.+?\"+)\\s*");
+  private static final String DEFAULT_EXECUTABLE_DECORATOR = "\"%s\"";
 
   private Float mean;
   private Float deviation;
@@ -215,7 +217,7 @@ public class LaunchCommandBuilder {
   }
 
   public LaunchCommandBuilder executableDecorator(String executableDecorator) {
-    this.executableDecorator = executableDecorator;
+    this.executableDecorator = Strings.isNullOrEmpty(executableDecorator) ? DEFAULT_EXECUTABLE_DECORATOR : executableDecorator;
     return this;
   }
 }
