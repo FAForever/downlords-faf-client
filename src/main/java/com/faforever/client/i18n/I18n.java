@@ -56,7 +56,8 @@ public class I18n implements InitializingBean {
         Locale.GERMAN,
         Locale.FRENCH,
         new Locale("ru"),
-        Locale.CHINESE
+        Locale.CHINESE,
+        new Locale("he")
     ));
 
     Path languagesDirectory = preferencesService.getLanguagesDirectory();
