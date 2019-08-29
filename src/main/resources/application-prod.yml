@@ -6,10 +6,10 @@ faf-client:
     host: irc.faforever.com
 
   vault:
-    base-url: http://content.faforever.com
+    base-url: https://content.faforever.com
 
   news:
-    feed-url: http://direct.faforever.com/news/feed
+    feed-url: https://direct.faforever.com/news/feed
 
   replay:
     remote-host: lobby.faforever.com
@@ -22,9 +22,9 @@ faf-client:
     client-id: 3bc8282c-7730-11e5-8bcf-feff819cdc9f
     client-secret: 6035bd78-7730-11e5-8bcf-feff819cdc9f
 
-  status-page-url: http://statuspage.faforever.com
+  status-page-url: https://statuspage.faforever.com
 
   forged-alliance:
-    exe-url: http://content.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe
+    exe-url: https://content.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe
 
   use-remote-preferences: true
