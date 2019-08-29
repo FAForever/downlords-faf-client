@@ -181,7 +181,6 @@ public class ReplayServerImpl implements ReplayServer {
   }
 
   private void finishReplayInfo(Supplier<Game> onGameInfoFinished) {
-    // game needs to running or finished
     Game game = onGameInfoFinished.get();
 
     replayInfo.updateFromGameInfoBean(game);
