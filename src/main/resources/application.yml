@@ -21,8 +21,8 @@ faf-client:
       clientId: 141ee8a7030f16d
 
   unit-database:
-    spookiesUrl: http://spooky.github.io/unitdb/#/
-    rackOversUrl: http://direct.faforever.com/faf/unitsDB/?settings64=eyJwcmV2aWV3Q29ybmVyIjoiTm9uZSJ9
+    spookiesUrl: https://spooky.github.io/unitdb/#/
+    rackOversUrl: https://direct.faforever.com/faf/unitsDB/?settings64=eyJwcmV2aWV3Q29ybmVyIjoiTm9uZSJ9
 
   map-generator:
     repoAndOwnerName: FAForever/Neroxis-Map-Generator
@@ -31,7 +31,7 @@ faf-client:
 
 
   translation-project-url: https://poeditor.com/join/project/2oWfdaZQZj
-  client-config-url: http://content.faforever.com/dfc-config.json
+  client-config-url: https://content.faforever.com/dfc-config.json
   client-config-connect-timeout: 10s
   show-ice-adapter-debug-Window: ${SHOW_ICE_ADAPTER_DEBUG_WINDOW:false}
 
