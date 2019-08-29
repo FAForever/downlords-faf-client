@@ -11,24 +11,37 @@ public class MatchmakerMessage extends FafServerMessage {
 
   public static class MatchmakerQueue {
 
-    private String queueName;
-    @SerializedName("boundary_75s")
+    private QueueName queueName;
+    private String queuePopTime;
     private List<RatingRange> boundary75s;
-    @SerializedName("boundary_80s")
     private List<RatingRange> boundary80s;
 
-    public MatchmakerQueue(String queueName, List<RatingRange> boundary75s, List<RatingRange> boundary80s) {
+    public static enum QueueName {
+      @SerializedName("ladder1v1")
+      LADDER_1V1
+    }
+
+    public MatchmakerQueue(QueueName queueName, String queuePopTime, List<RatingRange> boundary75s, List<RatingRange> boundary80s) {
       this.queueName = queueName;
+      this.queuePopTime = queuePopTime;
       this.boundary75s = boundary75s;
       this.boundary80s = boundary80s;
     }
 
-    public String getQueueName() {
+    public QueueName getQueueName() {
       return queueName;
     }
 
-    public void setQueueName(String queueName) {
+    public void setQueueName(QueueName queueName) {
       this.queueName = queueName;
+    }
+
+    public String getQueuePopTime() {
+      return queuePopTime;
+    }
+
+    public void setQueuePopTime(String queuePopTime) {
+      this.queuePopTime = queuePopTime;
     }
 
     public List<RatingRange> getBoundary75s() {

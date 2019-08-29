@@ -29,6 +29,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
+import com.faforever.client.rankedmatch.MatchmakerMessage.MatchmakerQueue.QueueName;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
@@ -301,6 +302,7 @@ public class MainController implements Controller<Node> {
   private void onMatchmakerMessage(MatchmakerMessage message) {
     if (message.getQueues() == null
         || gameService.gameRunningProperty().get()
+        || gameService.searching1v1Property().get()
         || !preferencesService.getPreferences().getNotification().getLadder1v1ToastEnabled()
         || !playerService.getCurrentPlayer().isPresent()) {
       return;
@@ -324,7 +326,7 @@ public class MainController implements Controller<Node> {
     float leaderboardRatingMean = currentPlayer.getLeaderboardRatingMean();
     boolean showNotification = false;
     for (MatchmakerMessage.MatchmakerQueue matchmakerQueue : message.getQueues()) {
-      if (!Objects.equals("ladder1v1", matchmakerQueue.getQueueName())) {
+      if (!Objects.equals(QueueName.LADDER_1V1, matchmakerQueue.getQueueName())) {
         continue;
       }
       List<RatingRange> ratingRanges = ratingRangesSupplier.apply(matchmakerQueue);

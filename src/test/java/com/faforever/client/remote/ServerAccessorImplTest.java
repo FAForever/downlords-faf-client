@@ -12,6 +12,7 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
+import com.faforever.client.rankedmatch.MatchmakerMessage.MatchmakerQueue.QueueName;
 import com.faforever.client.rankedmatch.SearchLadder1v1ClientMessage;
 import com.faforever.client.rankedmatch.StopSearchLadder1v1ClientMessage;
 import com.faforever.client.remote.domain.ClientMessageType;
@@ -207,6 +208,8 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
     assertThat(result.getMessageType(), is(FafServerMessageType.WELCOME));
     assertThat(result.getId(), is(playerUid));
     assertThat(result.getLogin(), is(username));
+
+    instance.disconnect();
   }
 
   /**
@@ -242,7 +245,7 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
     connectAndLogIn();
 
     MatchmakerMessage matchmakerMessage = new MatchmakerMessage();
-    matchmakerMessage.setQueues(singletonList(new MatchmakerMessage.MatchmakerQueue("ladder1v1", singletonList(new RatingRange(100, 200)), singletonList(new RatingRange(100, 200)))));
+    matchmakerMessage.setQueues(singletonList(new MatchmakerMessage.MatchmakerQueue(QueueName.LADDER_1V1, null, singletonList(new RatingRange(100, 200)), singletonList(new RatingRange(100, 200)))));
 
     CompletableFuture<MatchmakerMessage> serviceStateDoneFuture = new CompletableFuture<>();
 
@@ -253,8 +256,9 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
     sendFromServer(matchmakerMessage);
 
     MatchmakerMessage matchmakerServerMessage = serviceStateDoneFuture.get(TIMEOUT, TIMEOUT_UNIT);
-
     assertThat(matchmakerServerMessage.getQueues(), not(empty()));
+
+    instance.disconnect();
   }
 
 
@@ -278,6 +282,8 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
     assertThat(notification.getText(), is("foo bar"));
     assertThat(notification.getTitle(), is("Message from Server"));
     verify(i18n).get("messageFromServer");
+
+    instance.disconnect();
   }
 
   @Test
@@ -297,6 +303,8 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
     sendFromServer(gameLaunchMessage);
 
     assertThat(future.get(TIMEOUT, TIMEOUT_UNIT).getUid(), is(gameLaunchMessage.getUid()));
+
+    instance.disconnect();
   }
 
   @Test
@@ -309,6 +317,8 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
     StopSearchLadder1v1ClientMessage stopSearchRanked1v1Message = gson.fromJson(clientMessage, StopSearchLadder1v1ClientMessage.class);
     assertThat(stopSearchRanked1v1Message, instanceOf(StopSearchLadder1v1ClientMessage.class));
     assertThat(stopSearchRanked1v1Message.getCommand(), is(ClientMessageType.GAME_MATCH_MAKING));
+
+    instance.disconnect();
   }
 
   @Test

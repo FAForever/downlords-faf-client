@@ -18,6 +18,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
+import com.faforever.client.rankedmatch.MatchmakerMessage.MatchmakerQueue.QueueName;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
@@ -123,8 +124,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance = new MainController(preferencesService, i18n, notificationService, playerService, gameService, clientUpdateService,
         uiService, eventBus, clientProperties, gamePathHandler, platformService, vaultFileSystemLocationChecker);
 
-    gameRunningProperty = new SimpleBooleanProperty();
-
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(loginController.getRoot()).thenReturn(new Pane());
@@ -134,7 +133,12 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
       Parent root = invocation.getArgument(1);
       return new BorderlessScene(stage, root, 0, 0);
     });
+
+    gameRunningProperty = new SimpleBooleanProperty();
+    BooleanProperty searching1v1Property = new SimpleBooleanProperty();
     when(gameService.gameRunningProperty()).thenReturn(gameRunningProperty);
+    when(gameService.searching1v1Property()).thenReturn(searching1v1Property);
+
     when(uiService.loadFxml("theme/persistent_notifications.fxml")).thenReturn(persistentNotificationsController);
     when(uiService.loadFxml("theme/transient_notifications.fxml")).thenReturn(transientNotificationsController);
     when(uiService.loadFxml("theme/settings/settings.fxml")).thenReturn(settingsController);
@@ -239,7 +243,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
 
     MatchmakerMessage matchmakerMessage = new MatchmakerMessage();
-    matchmakerMessage.setQueues(singletonList(new MatchmakerMessage.MatchmakerQueue("ladder1v1",
+    matchmakerMessage.setQueues(singletonList(new MatchmakerMessage.MatchmakerQueue(QueueName.LADDER_1V1, null,
         singletonList(new RatingRange(1500, 1510)), singletonList(new RatingRange(1500, 1510)))));
     matchmakerMessageCaptor.getValue().accept(matchmakerMessage);
   }
@@ -306,7 +310,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
 
     MatchmakerMessage matchmakerMessage = new MatchmakerMessage();
-    matchmakerMessage.setQueues(singletonList(new MatchmakerMessage.MatchmakerQueue("ladder1v1",
+    matchmakerMessage.setQueues(singletonList(new MatchmakerMessage.MatchmakerQueue(QueueName.LADDER_1V1, null,
         singletonList(new RatingRange(1500, 1510)), singletonList(new RatingRange(1500, 1510)))));
     matchmakerMessageCaptor.getValue().accept(matchmakerMessage);
 

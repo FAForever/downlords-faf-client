@@ -13,6 +13,7 @@ import com.faforever.client.preferences.Ladder1v1Prefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
+import com.faforever.client.rankedmatch.MatchmakerMessage.MatchmakerQueue.QueueName;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
@@ -21,20 +22,32 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ToggleButton;
+
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -97,6 +110,11 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
     when(playerService.currentPlayerProperty()).thenReturn(currentPlayerProperty);
 
     loadFxml("theme/play/ranked_1v1.fxml", clazz -> instance);
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    instance.destroy();
   }
 
   @Test
@@ -182,5 +200,21 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
 
     verify(preferencesService).storeInBackground();
     assertThat(factionList, containsInAnyOrder(Faction.AEON, Faction.CYBRAN));
+  }
+
+  @Test
+  public void testQueuePopTime() throws TimeoutException {
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<Consumer<MatchmakerMessage>> listenerCaptor = ArgumentCaptor.forClass(Consumer.class);
+    verify(gameService).addOnRankedMatchNotificationListener(listenerCaptor.capture());
+    
+    MatchmakerMessage message = new MatchmakerMessage();
+    String timeString = DateTimeFormatter.ISO_INSTANT.format(Instant.now().plusSeconds(65));
+    message.setQueues(List.of(new MatchmakerMessage.MatchmakerQueue(QueueName.LADDER_1V1, timeString, null, null)));
+    
+    listenerCaptor.getValue().accept(message);
+    WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> instance.timeUntilQueuePopLabel.isVisible());
+    verify(i18n).get(any(), eq(1L), anyInt());
+    WaitForAsyncUtils.waitForFxEvents();
   }
 }
