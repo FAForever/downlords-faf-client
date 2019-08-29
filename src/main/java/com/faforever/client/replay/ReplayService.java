@@ -107,7 +107,6 @@ public class ReplayService {
   private final ReportingService reportingService;
   private final ApplicationContext applicationContext;
   private final PlatformService platformService;
-  private final ReplayServer replayServer;
   private final FafService fafService;
   private final ModService modService;
   private final MapService mapService;
@@ -117,7 +116,7 @@ public class ReplayService {
                        ReplayFileReader replayFileReader, NotificationService notificationService,
                        GameService gameService, TaskService taskService, I18n i18n,
                        ReportingService reportingService, ApplicationContext applicationContext,
-                       PlatformService platformService, ReplayServer replayServer, FafService fafService,
+                       PlatformService platformService, FafService fafService,
                        ModService modService, MapService mapService) {
     this.clientProperties = clientProperties;
     this.preferencesService = preferencesService;
@@ -129,7 +128,6 @@ public class ReplayService {
     this.reportingService = reportingService;
     this.applicationContext = applicationContext;
     this.platformService = platformService;
-    this.replayServer = replayServer;
     this.fafService = fafService;
     this.modService = modService;
     this.mapService = mapService;
@@ -287,16 +285,6 @@ public class ReplayService {
   }
 
 
-  public CompletableFuture<Integer> startReplayServer(int gameUid) {
-    return replayServer.start(gameUid);
-  }
-
-
-  public void stopReplayServer() {
-    replayServer.stop();
-  }
-
-
   public void runReplay(Integer replayId) {
     runOnlineReplay(replayId);
   }
@@ -319,7 +307,6 @@ public class ReplayService {
 
   public CompletableFuture<Optional<Replay>> findById(int id) {
     return fafService.findReplayById(id);
-
   }
 
 
@@ -360,7 +347,6 @@ public class ReplayService {
   }
 
   @SneakyThrows
-
   public void runReplayFile(Path path) {
     log.debug("Starting replay file: {}", path.toAbsolutePath());
 

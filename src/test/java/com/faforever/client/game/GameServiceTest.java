@@ -11,7 +11,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.patch.GameUpdater;
@@ -23,7 +22,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
-import com.faforever.client.replay.ReplayService;
+import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.eventbus.EventBus;
@@ -31,7 +30,6 @@ import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
-import javafx.event.Event;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -106,7 +104,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private Executor executor;
   @Mock
-  private ReplayService replayService;
+  private ReplayServer replayService;
   @Mock
   private EventBus eventBus;
   @Mock
@@ -139,14 +137,14 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     instance = new GameService(clientProperties, fafService, forgedAllianceService, mapService,
         preferencesService, gameUpdater, notificationService, i18n, executor, playerService,
-        reportingService, eventBus, iceAdapter, modService, platformService, discordRichPresenceService);
-    instance.replayService = replayService;
+        reportingService, eventBus, iceAdapter, modService, platformService, discordRichPresenceService,
+        replayService);
 
     Preferences preferences = new Preferences();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(replayService.startReplayServer(anyInt())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
+    when(replayService.start(anyInt(), any())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
     when(iceAdapter.start()).thenReturn(completedFuture(GPG_PORT));
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(junitPlayer));
 
@@ -202,7 +200,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
     verify(mapService, never()).download(any());
-    verify(replayService).startReplayServer(game.getId());
+    verify(replayService).start(eq(game.getId()), any());
     
     verify(forgedAllianceService).startGame(
         gameLaunchMessage.getUid(), null, asList(), GLOBAL,
@@ -262,7 +260,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     verify(forgedAllianceService).startGame(
         gameLaunchMessage.getUid(), null, asList("/foo", "bar", "/bar", "foo"), GLOBAL,
         GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
-    verify(replayService).startReplayServer(gameLaunchMessage.getUid());
+    verify(replayService).start(eq(gameLaunchMessage.getUid()), any());
   }
 
   @Test
@@ -418,7 +416,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     verify(fafService).startSearchLadder1v1(CYBRAN);
     verify(mapService).download(map);
-    verify(replayService).startReplayServer(uid);
+    verify(replayService).start(eq(uid), any());
     verify(forgedAllianceService).startGame(
         uid, CYBRAN, asList(additionalArgs), RatingMode.LADDER_1V1, GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
   }
@@ -520,32 +518,5 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     WaitForAsyncUtils.waitForFxEvents();
     verify(notificationService).addNotification(any(PersistentNotification.class));
-  }
-
-  @Test
-  public void testCurrentGameEndedAndReplayNotPresent() {
-    Game game = new Game();
-    game.setId(123);
-    game.setStatus(PLAYING);
-
-    when(replayService.findById(123)).thenReturn(completedFuture(Optional.empty()));
-
-    instance.currentGame.set(game);
-
-    verify(notificationService, never()).addNotification(any(PersistentNotification.class));
-
-    game.setStatus(CLOSED);
-
-    WaitForAsyncUtils.waitForFxEvents();
-
-    ArgumentCaptor<PersistentNotification> persistentNotificationArgumentCaptor = ArgumentCaptor.forClass(PersistentNotification.class);
-    verify(notificationService).addNotification(persistentNotificationArgumentCaptor.capture());
-
-    PersistentNotification value = persistentNotificationArgumentCaptor.getValue();
-    value.getActions().get(0).call(new Event(Event.ANY));
-
-    WaitForAsyncUtils.waitForFxEvents();
-
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
   }
 }

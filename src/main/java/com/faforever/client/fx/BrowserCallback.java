@@ -8,9 +8,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.JoinChannelEvent;
 import com.faforever.client.main.event.ShowReplayEvent;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.Severity;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.replay.ReplayService;
@@ -89,15 +87,7 @@ public class BrowserCallback {
     }
 
     String replayId = replayUrlMatcher.group(1);
-
-    replayService.findById(Integer.parseInt(replayId))
-        .thenAccept(replay -> Platform.runLater(() -> {
-          if (replay.isPresent()) {
-            eventBus.post(new ShowReplayEvent(replay.get()));
-          } else {
-            notificationService.addNotification(new ImmediateNotification(i18n.get("replay.notFoundTitle"), i18n.get("replay.replayNotFoundText", replayId), Severity.WARN));
-          }
-        }));
+    eventBus.post(new ShowReplayEvent(Integer.parseInt(replayId)));
   }
 
   /**

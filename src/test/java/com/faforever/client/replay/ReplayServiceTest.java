@@ -119,8 +119,6 @@ public class ReplayServiceTest {
   @Mock
   private PlatformService platformService;
   @Mock
-  private ReplayServer replayServer;
-  @Mock
   private ModService modService;
   @Mock
   private MapService mapService;
@@ -130,7 +128,7 @@ public class ReplayServiceTest {
     MockitoAnnotations.initMocks(this);
 
     instance = new ReplayService(new ClientProperties(), preferencesService, replayFileReader, notificationService, gameService,
-        taskService, i18n, reportingService, applicationContext, platformService, replayServer, fafService, modService, mapService);
+        taskService, i18n, reportingService, applicationContext, platformService, fafService, modService, mapService);
 
     when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath());
     when(preferencesService.getCorruptedReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath().resolve("corrupt"));
