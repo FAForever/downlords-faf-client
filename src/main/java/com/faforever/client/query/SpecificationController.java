@@ -70,7 +70,6 @@ public class SpecificationController implements Controller<Node> {
 
   private static final Map<ComparisonOperator, String> operatorToI18nKey = ImmutableMap.<ComparisonOperator, String>builder()
       .put(RE, "query.contains")
-      .put(EX, "query.notContains")
       .put(EQ, "query.equals")
       .put(NE, "query.notEquals")
       .put(GT, "query.greaterThan")
