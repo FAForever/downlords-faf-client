@@ -9,7 +9,7 @@ faf-client:
     base-url: https://content.faforever.com
 
   news:
-    feed-url: https://direct.faforever.com/news/feed
+    feed-url: http://direct.faforever.com/news/feed
 
   replay:
     remote-host: lobby.faforever.com
