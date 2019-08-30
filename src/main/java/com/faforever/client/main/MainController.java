@@ -120,7 +120,6 @@ public class MainController implements Controller<Node> {
   private final GamePathHandler gamePathHandler;
   private final PlatformService platformService;
   private final VaultFileSystemLocationChecker vaultFileSystemLocationChecker;
-  private final ClientProperties clientProperties;
   public Pane mainHeaderPane;
   public Labeled notificationsBadge;
   public Pane contentPane;
@@ -146,7 +145,7 @@ public class MainController implements Controller<Node> {
   public MainController(PreferencesService preferencesService, I18n i18n, NotificationService notificationService,
                         PlayerService playerService, GameService gameService, ClientUpdateService clientUpdateService,
                         UiService uiService, EventBus eventBus, ClientProperties clientProperties, GamePathHandler gamePathHandler,
-                        PlatformService platformService, VaultFileSystemLocationChecker vaultFileSystemLocationChecker, ClientProperties clientProperties1) {
+                        PlatformService platformService, VaultFileSystemLocationChecker vaultFileSystemLocationChecker) {
     this.preferencesService = preferencesService;
     this.i18n = i18n;
     this.notificationService = notificationService;
@@ -161,7 +160,6 @@ public class MainController implements Controller<Node> {
     this.gamePathHandler = gamePathHandler;
     this.platformService = platformService;
     this.vaultFileSystemLocationChecker = vaultFileSystemLocationChecker;
-    this.clientProperties = clientProperties1;
     this.viewCache = CacheBuilder.newBuilder().build();
   }
 

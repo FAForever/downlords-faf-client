@@ -6,6 +6,10 @@
       <profile default="true" name="Default" enabled="true" />
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="downlords-faf-client.main" target="1.10" />
+      <module name="downlords-faf-client.test" target="1.10" />
+      <module name="downlords-faf-client.webview-patch.main" target="1.10" />
+      <module name="downlords-faf-client.webview-patch.test" target="1.10" />
       <module name="downlords-faf-client_main" target="1.10" />
       <module name="downlords-faf-client_test" target="1.10" />
       <module name="webview-patch_main" target="1.10" />
