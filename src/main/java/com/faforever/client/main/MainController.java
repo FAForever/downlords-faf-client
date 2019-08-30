@@ -120,6 +120,7 @@ public class MainController implements Controller<Node> {
   private final GamePathHandler gamePathHandler;
   private final PlatformService platformService;
   private final VaultFileSystemLocationChecker vaultFileSystemLocationChecker;
+  private final ClientProperties clientProperties;
   public Pane mainHeaderPane;
   public Labeled notificationsBadge;
   public Pane contentPane;
@@ -130,9 +131,10 @@ public class MainController implements Controller<Node> {
   public ToggleButton leaderboardsButton;
   public ToggleButton tournamentsButton;
   public ToggleButton unitsButton;
-  public Pane mainRoot;
+  public Pane mainRootContent;
   public StackPane contentWrapperPane;
   public ToggleGroup mainNavigation;
+  public StackPane mainRoot;
   @VisibleForTesting
   protected Popup transientNotificationsPopup;
   @VisibleForTesting
@@ -144,7 +146,7 @@ public class MainController implements Controller<Node> {
   public MainController(PreferencesService preferencesService, I18n i18n, NotificationService notificationService,
                         PlayerService playerService, GameService gameService, ClientUpdateService clientUpdateService,
                         UiService uiService, EventBus eventBus, ClientProperties clientProperties, GamePathHandler gamePathHandler,
-                        PlatformService platformService, VaultFileSystemLocationChecker vaultFileSystemLocationChecker) {
+                        PlatformService platformService, VaultFileSystemLocationChecker vaultFileSystemLocationChecker, ClientProperties clientProperties1) {
     this.preferencesService = preferencesService;
     this.i18n = i18n;
     this.notificationService = notificationService;
@@ -159,6 +161,7 @@ public class MainController implements Controller<Node> {
     this.gamePathHandler = gamePathHandler;
     this.platformService = platformService;
     this.vaultFileSystemLocationChecker = vaultFileSystemLocationChecker;
+    this.clientProperties = clientProperties1;
     this.viewCache = CacheBuilder.newBuilder().build();
   }
 
@@ -457,7 +460,7 @@ public class MainController implements Controller<Node> {
     Image image;
     if (filepath != null && Files.exists(filepath)) {
       image = noCatch(() -> new Image(filepath.toUri().toURL().toExternalForm()));
-      mainRoot.setBackground(new Background(new BackgroundImage(
+      mainRootContent.setBackground(new Background(new BackgroundImage(
           image,
           BackgroundRepeat.NO_REPEAT,
           BackgroundRepeat.NO_REPEAT,
@@ -465,7 +468,7 @@ public class MainController implements Controller<Node> {
           BackgroundSize.DEFAULT
       )));
     } else {
-      mainRoot.setBackground(EMPTY);
+      mainRootContent.setBackground(EMPTY);
     }
   }
 
@@ -594,6 +597,14 @@ public class MainController implements Controller<Node> {
     dialog.show();
   }
 
+  public void onLinksAndHelp() {
+    LinksAndHelpController linksAndHelpController = uiService.loadFxml("theme/links_and_help.fxml");
+    Node root = linksAndHelpController.getRoot();
+    uiService.showInDialog(mainRoot, root, i18n.get("help.title"));
+
+    root.requestFocus();
+  }
+
   public class ToastDisplayer implements InvalidationListener {
     private final TransientNotificationsController transientNotificationsController;
 
@@ -633,7 +644,7 @@ public class MainController implements Controller<Node> {
           transientNotificationsPopup.setAnchorLocation(AnchorLocation.CONTENT_BOTTOM_RIGHT);
           break;
       }
-      transientNotificationsPopup.show(mainRoot.getScene().getWindow(), anchorX, anchorY);
+      transientNotificationsPopup.show(mainRootContent.getScene().getWindow(), anchorX, anchorY);
     }
   }
 }

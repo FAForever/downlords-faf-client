@@ -6,6 +6,16 @@ faf-client:
     dynamic-factor: 10
     draw-probability: 0.1
 
+  links:
+    linksTecHelpDiscord: https://discord.gg/BMDMUKS
+    linksTecHelpForum: https://forums.faforever.com/viewforum.php?f=3&sid=d568e8a0f72f6a8df422f5b1317c5946
+    linksRules: https://faforever.com/rules
+    linksModerationReport: https://www.faforever.com/account/report
+    linksDiscord: https://discordapp.com/invite/hgvj6Af
+    linksFacebook: https://www.facebook.com/ForgedAllianceForever/
+    linksDevNews: https://faforeverdevblog.tumblr.com
+    linksYoutube: https://www.youtube.com/channel/UCkAWiUu4QE172kv-ZuyR42w
+
   vault:
    mapDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/maps/%s.zip
    mapPreviewUrlFormat: ${faf-client.vault.base-url}/faf/vault/map_previews/%s/%s.png

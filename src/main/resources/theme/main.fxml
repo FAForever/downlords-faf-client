@@ -14,81 +14,89 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="mainRoot" minHeight="500.0" minWidth="600.0" styleClass="main-window"
-      xmlns="http://javafx.com/javafx/8.0.111" fx:controller="com.faforever.client.main.MainController">
-    <children>
-        <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
-              VBox.vgrow="ALWAYS">
-            <children>
-                <HBox fx:id="mainHeaderPane" alignment="CENTER_LEFT" maxHeight="-Infinity"
-                      maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity"
-                      styleClass="main-navigation-top">
-                    <children>
-                        <MenuButton focusTraversable="false" mnemonicParsing="false" text="">
-                            <items>
-                                <MenuItem onAction="#onSettingsSelected" text="%menu.settings"/>
-                                <SeparatorMenuItem mnemonicParsing="false"/>
-                                <MenuItem disable="true" text="%menu.feedback"/>
-                                <SeparatorMenuItem mnemonicParsing="false"/>
-                                <MenuItem onAction="#onRevealLogFolder" text="%menu.revealLogFolder"/>
-                                <MenuItem onAction="#onRevealMapFolder" text="%menu.revealMapFolder"/>
-                                <MenuItem onAction="#onRevealModFolder" text="%menu.revealModFolder"/>
-                                <MenuItem onAction="#onRevealReplayFolder" text="%menu.revealReplayFolder"/>
-                                <MenuItem onAction="#onRevealGamePrefsFolder" text="%menu.revealGamePrefsFile"/>
-                                <SeparatorMenuItem mnemonicParsing="false"/>
-                                <MenuItem onAction="#onExitItemSelected" text="%menu.exit"/>
-                            </items>
-                            <styleClass>
-                                <String fx:value="icon-button"/>
-                                <String fx:value="main-menu-button"/>
-                            </styleClass>
-                        </MenuButton>
-                        <ToggleButton fx:id="newsButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked"
-                                      styleClass="main-navigation-button" text="%main.community.news">
-                            <toggleGroup>
-                                <ToggleGroup fx:id="mainNavigation"/>
-                            </toggleGroup>
-                        </ToggleButton>
-                        <ToggleButton fx:id="chatButton" mnemonicParsing="false" onAction="#onChat"
-                                      styleClass="main-navigation-button" text="%main.chat"
-                                      toggleGroup="$mainNavigation"/>
-                        <ToggleButton fx:id="playButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked"
-                                      styleClass="main-navigation-button" text="%main.play"
-                                      toggleGroup="$mainNavigation"/>
-                        <ToggleButton fx:id="vaultButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked"
-                                      styleClass="main-navigation-button" text="%main.vault"
-                                      toggleGroup="$mainNavigation"/>
-                        <ToggleButton fx:id="leaderboardsButton" mnemonicParsing="false"
-                                      onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
-                                      text="%main.leaderboards" toggleGroup="$mainNavigation"/>
-                        <ToggleButton fx:id="tournamentsButton" mnemonicParsing="false"
-                                      onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
-                                      text="%main.tournaments" toggleGroup="$mainNavigation"/>
-                        <ToggleButton fx:id="unitsButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked"
-                                      styleClass="main-navigation-button" text="%main.units"
-                                      toggleGroup="$mainNavigation"/>
-                        <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS"/>
-                        <StackPane>
-                            <children>
-                                <JFXButton contentDisplay="CENTER" onAction="#onNotificationsButtonClicked"
-                                           styleClass="icon-button" text=""/>
-                                <Label fx:id="notificationsBadge" alignment="CENTER" mouseTransparent="true"
-                                       styleClass="notification-badge" text="3" StackPane.alignment="TOP_RIGHT">
-                                    <StackPane.margin>
-                                        <Insets right="5.0" top="5.0"/>
-                                    </StackPane.margin>
-                                </Label>
-                            </children>
-                        </StackPane>
-                        <fx:include source="user_button.fxml"/>
-                    </children>
-                </HBox>
-                <StackPane fx:id="contentWrapperPane" VBox.vgrow="ALWAYS">
-                    <AnchorPane fx:id="contentPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-                                VBox.vgrow="ALWAYS"/>
-                </StackPane>
-            </children>
-        </VBox>
-        <fx:include source="statusbar/status_bar.fxml"/>
-    </children>
-</VBox>
+<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mainRoot" minHeight="500.0" minWidth="600.0"
+           fx:controller="com.faforever.client.main.MainController">
+    <VBox styleClass="main-window" fx:id="mainRootContent"
+          xmlns="http://javafx.com/javafx/8.0.111">
+        <children>
+            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
+                  VBox.vgrow="ALWAYS">
+                <children>
+                    <HBox fx:id="mainHeaderPane" alignment="CENTER_LEFT" maxHeight="-Infinity"
+                          maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity"
+                          styleClass="main-navigation-top">
+                        <children>
+                            <MenuButton focusTraversable="false" mnemonicParsing="false" text="">
+                                <items>
+                                    <MenuItem onAction="#onSettingsSelected" text="%menu.settings"/>
+                                    <SeparatorMenuItem mnemonicParsing="false"/>
+                                    <MenuItem disable="true" text="%menu.feedback"/>
+                                    <MenuItem onAction="#onLinksAndHelp" text="%menu.discordHelp"/>
+                                    <SeparatorMenuItem mnemonicParsing="false"/>
+                                    <MenuItem onAction="#onRevealLogFolder" text="%menu.revealLogFolder"/>
+                                    <MenuItem onAction="#onRevealMapFolder" text="%menu.revealMapFolder"/>
+                                    <MenuItem onAction="#onRevealModFolder" text="%menu.revealModFolder"/>
+                                    <MenuItem onAction="#onRevealReplayFolder" text="%menu.revealReplayFolder"/>
+                                    <MenuItem onAction="#onRevealGamePrefsFolder" text="%menu.revealGamePrefsFile"/>
+                                    <SeparatorMenuItem mnemonicParsing="false"/>
+                                    <MenuItem onAction="#onExitItemSelected" text="%menu.exit"/>
+                                </items>
+                                <styleClass>
+                                    <String fx:value="icon-button"/>
+                                    <String fx:value="main-menu-button"/>
+                                </styleClass>
+                            </MenuButton>
+                            <ToggleButton fx:id="newsButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked"
+                                          styleClass="main-navigation-button" text="%main.community.news">
+                                <toggleGroup>
+                                    <ToggleGroup fx:id="mainNavigation"/>
+                                </toggleGroup>
+                            </ToggleButton>
+                            <ToggleButton fx:id="chatButton" mnemonicParsing="false" onAction="#onChat"
+                                          styleClass="main-navigation-button" text="%main.chat"
+                                          toggleGroup="$mainNavigation"/>
+                            <ToggleButton fx:id="playButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked"
+                                          styleClass="main-navigation-button" text="%main.play"
+                                          toggleGroup="$mainNavigation"/>
+                            <ToggleButton fx:id="vaultButton" mnemonicParsing="false"
+                                          onAction="#onNavigateButtonClicked"
+                                          styleClass="main-navigation-button" text="%main.vault"
+                                          toggleGroup="$mainNavigation"/>
+                            <ToggleButton fx:id="leaderboardsButton" mnemonicParsing="false"
+                                          onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                                          text="%main.leaderboards" toggleGroup="$mainNavigation"/>
+                            <ToggleButton fx:id="tournamentsButton" mnemonicParsing="false"
+                                          onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                                          text="%main.tournaments" toggleGroup="$mainNavigation"/>
+                            <ToggleButton fx:id="unitsButton" mnemonicParsing="false"
+                                          onAction="#onNavigateButtonClicked"
+                                          styleClass="main-navigation-button" text="%main.units"
+                                          toggleGroup="$mainNavigation"/>
+                            <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                                  HBox.hgrow="ALWAYS"/>
+                            <StackPane>
+                                <children>
+                                    <JFXButton contentDisplay="CENTER" onAction="#onNotificationsButtonClicked"
+                                               styleClass="icon-button" text=""/>
+                                    <Label fx:id="notificationsBadge" alignment="CENTER" mouseTransparent="true"
+                                           styleClass="notification-badge" text="3" StackPane.alignment="TOP_RIGHT">
+                                        <StackPane.margin>
+                                            <Insets right="5.0" top="5.0"/>
+                                        </StackPane.margin>
+                                    </Label>
+                                </children>
+                            </StackPane>
+                            <fx:include source="user_button.fxml"/>
+                        </children>
+                    </HBox>
+                    <StackPane fx:id="contentWrapperPane" VBox.vgrow="ALWAYS">
+                        <AnchorPane fx:id="contentPane" maxHeight="1.7976931348623157E308"
+                                    maxWidth="1.7976931348623157E308"
+                                    VBox.vgrow="ALWAYS"/>
+                    </StackPane>
+                </children>
+            </VBox>
+            <fx:include source="statusbar/status_bar.fxml"/>
+        </children>
+    </VBox>
+</StackPane>

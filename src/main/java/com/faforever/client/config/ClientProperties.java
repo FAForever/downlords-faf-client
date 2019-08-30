@@ -4,6 +4,8 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 @Data
 @ConfigurationProperties(prefix = "faf-client", ignoreUnknownFields = false)
@@ -29,6 +31,7 @@ public class ClientProperties {
   private Duration clientConfigConnectTimeout = Duration.ofSeconds(30);
   private boolean showIceAdapterDebugWindow;
   private String statusPageUrl;
+  private Map<String, String> links = new HashMap<>();
 
   @Data
   public static class News {
