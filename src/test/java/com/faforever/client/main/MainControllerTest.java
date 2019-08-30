@@ -100,6 +100,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private GamePathHandler gamePathHandler;
   @Mock
+  private ClientProperties clientProperties;
+  @Mock
   private ChatController chatController;
   @Mock
   private VaultFileSystemLocationChecker vaultFileSystemLocationChecker;
@@ -122,7 +124,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
         .setInitialStandardDeviation(500);
 
     instance = new MainController(preferencesService, i18n, notificationService, playerService, gameService, clientUpdateService,
-        uiService, eventBus, clientProperties, gamePathHandler, platformService, vaultFileSystemLocationChecker);
+        uiService, eventBus, clientProperties, gamePathHandler, platformService, vaultFileSystemLocationChecker, clientProperties);
 
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
@@ -177,7 +179,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
    * are attached to a window.
    */
   private void attachToRoot() {
-    WaitForAsyncUtils.asyncFx(() -> getRoot().getChildren().add(instance.mainRoot));
+    WaitForAsyncUtils.asyncFx(() -> getRoot().getChildren().add(instance.mainRootContent));
     WaitForAsyncUtils.waitForFxEvents();
   }
 

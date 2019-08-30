@@ -5,8 +5,8 @@
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.layout.TilePane?>
 <?import javafx.scene.layout.VBox?>
-
-<VBox fx:id="gameTooltipRoot" spacing="2.0" styleClass="game-tooltip" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GameTooltipController">
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="gameTooltipRoot" spacing="2.0" styleClass="game-tooltip"
+      xmlns="http://javafx.com/javafx/10.0.2" fx:controller="com.faforever.client.game.GameTooltipController">
   <children>
     <TitledPane fx:id="modsPane" collapsible="false" text="%game.mods">
          <content>

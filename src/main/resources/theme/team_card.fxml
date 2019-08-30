@@ -3,8 +3,8 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.VBox?>
-
-<VBox VBox.vgrow="ALWAYS" fx:id="teamPaneRoot" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.TeamCardController">
+<VBox xmlns:fx="http://javafx.com/fxml/1" VBox.vgrow="ALWAYS" fx:id="teamPaneRoot"
+      xmlns="http://javafx.com/javafx/10.0.2" fx:controller="com.faforever.client.game.TeamCardController">
   <VBox VBox.vgrow="ALWAYS" prefWidth="200.0" spacing="20.0" styleClass="card">
     <children>
         <Label fx:id="teamNameLabel" styleClass="h3" text="Label" />
