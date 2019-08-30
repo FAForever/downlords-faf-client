@@ -100,8 +100,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private GamePathHandler gamePathHandler;
   @Mock
-  private ClientProperties clientProperties;
-  @Mock
   private ChatController chatController;
   @Mock
   private VaultFileSystemLocationChecker vaultFileSystemLocationChecker;
@@ -124,7 +122,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
         .setInitialStandardDeviation(500);
 
     instance = new MainController(preferencesService, i18n, notificationService, playerService, gameService, clientUpdateService,
-        uiService, eventBus, clientProperties, gamePathHandler, platformService, vaultFileSystemLocationChecker, clientProperties);
+        uiService, eventBus, clientProperties, gamePathHandler, platformService, vaultFileSystemLocationChecker);
 
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
