@@ -48,7 +48,6 @@ public class GamesTilesContainerController implements Controller<Node> {
   private GameTooltipController gameTooltipController;
   private Tooltip tooltip;
 
-  @Inject
   public GamesTilesContainerController(UiService uiService, PreferencesService preferencesService) {
     this.uiService = uiService;
     this.preferencesService = preferencesService;
@@ -68,7 +67,11 @@ public class GamesTilesContainerController implements Controller<Node> {
       JavaFxUtil.assertApplicationThread();
         while (change.next()) {
           change.getRemoved().forEach(gameInfoBean -> {
-            boolean remove = tiledFlowPane.getChildren().remove(uidToGameCard.remove(gameInfoBean.getId()));
+            Node card = uidToGameCard.remove(gameInfoBean.getId());
+            if (card != null) {
+              Tooltip.uninstall(card, tooltip);
+            }
+            boolean remove = tiledFlowPane.getChildren().remove(card);
             if (!remove) {
               log.error("Tried to remove game tile that did not exist.");
             }
