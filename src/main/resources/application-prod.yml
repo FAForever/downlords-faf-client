@@ -22,7 +22,7 @@ faf-client:
     client-id: 3bc8282c-7730-11e5-8bcf-feff819cdc9f
     client-secret: 6035bd78-7730-11e5-8bcf-feff819cdc9f
 
-  status-page-url: https://statuspage.faforever.com
+  status-page-url: http://statuspage.faforever.com
 
   forged-alliance:
     exe-url: https://content.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe
