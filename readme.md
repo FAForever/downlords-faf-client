@@ -10,7 +10,7 @@ Please take a look at the [contribution guidelines](https://github.com/FAForever
 
 Post a bountie on GitHub Issues on Issue Hunt. You can promise money to developers that solve issues and they get awarded those if they fix the issue. 
 
-![https://issuehunt.io/r/FAForever/downlords-faf-client?tab=idle](https://github.com/BoostIO/issuehunt-materials/raw/master/v1/issuehunt-button-v1.svg?sanitize=true)
+[![Issue hunt](https://github.com/BoostIO/issuehunt-materials/raw/master/v1/issuehunt-button-v1.svg?sanitize=true)](https://issuehunt.io/r/FAForever/downlords-faf-client)
 
 # How to run
 
