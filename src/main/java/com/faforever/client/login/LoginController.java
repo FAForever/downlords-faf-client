@@ -17,6 +17,7 @@ import com.faforever.client.update.DownloadUpdateTask;
 import com.faforever.client.update.UpdateInfo;
 import com.faforever.client.update.Version;
 import com.faforever.client.user.UserService;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.jfoenix.controls.JFXButton;
 import javafx.application.Platform;
@@ -60,6 +61,8 @@ public class LoginController implements Controller<Node> {
   private final ClientProperties clientProperties;
   private final I18n i18n;
   private final ClientUpdateService clientUpdateService;
+  private CompletableFuture<Void> initializeFuture;
+  private Boolean loginAllowed;
 
   public Pane loginFormPane;
   public Pane loginProgressPane;
@@ -81,7 +84,8 @@ public class LoginController implements Controller<Node> {
   public TextField apiBaseUrlField;
   public JFXButton serverStatusButton;
 
-  private CompletableFuture<UpdateInfo> updateInfoFuture;
+  @VisibleForTesting
+  CompletableFuture<UpdateInfo> updateInfoFuture;
 
   public LoginController(
       UserService userService,
@@ -163,23 +167,31 @@ public class LoginController implements Controller<Node> {
 
 
     if (clientProperties.isUseRemotePreferences()) {
-      preferencesService.getRemotePreferencesAsync()
-          .thenApply(clientConfiguration ->
-          {
+      initializeFuture = preferencesService.getRemotePreferencesAsync()
+          .thenApply(clientConfiguration -> {
             String minimumVersion = clientConfiguration.getLatestRelease().getMinimumVersion();
             if (minimumVersion != null && Version.shouldUpdate(Version.getCurrentVersion(), minimumVersion)) {
-              showClientOutdatedPane(minimumVersion);
+              loginAllowed = false;
+              Platform.runLater(() -> showClientOutdatedPane(minimumVersion));
+            } else {
+              loginAllowed = true;
             }
             return clientConfiguration;
           })
           .thenAccept(clientConfiguration -> {
-            Endpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
-            environmentComboBox.getItems().addAll(clientConfiguration.getEndpoints());
-            environmentComboBox.getSelectionModel().select(defaultEndpoint);
+            Platform.runLater(() -> {
+              Endpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
+              environmentComboBox.getItems().addAll(clientConfiguration.getEndpoints());
+              environmentComboBox.getSelectionModel().select(defaultEndpoint);
+            });
           }).exceptionally(throwable -> {
-        log.warn("Could not read remote preferences");
-        return null;
-      });
+            log.warn("Could not read remote preferences");
+            loginAllowed = true;
+            return null;
+          });
+    } else {
+      loginAllowed = true;
+      initializeFuture = CompletableFuture.completedFuture(null);
     }
   }
 
@@ -225,13 +237,20 @@ public class LoginController implements Controller<Node> {
     usernameInput.setText(Strings.nullToEmpty(username));
     autoLoginCheckBox.setSelected(isAutoLogin);
 
-    if (loginPrefs.getAutoLogin() && !isNullOrEmpty(username) && !isNullOrEmpty(password)) {
-      login(username, password, true);
-    } else if (isNullOrEmpty(username)) {
-      usernameInput.requestFocus();
-    } else {
-      passwordInput.requestFocus();
-    }
+    initializeFuture.thenRun(() -> {
+      if (loginAllowed == null) {
+        log.error("loginAllowed not set for unknown reason. Possible race condition detected. Enabling login now to preserve user experience.");
+        loginAllowed = true;
+      }
+
+      if (loginAllowed && loginPrefs.getAutoLogin() && !isNullOrEmpty(username) && !isNullOrEmpty(password)) {
+        login(username, password, true);
+      } else if (isNullOrEmpty(username)) {
+        usernameInput.requestFocus();
+      } else {
+        passwordInput.requestFocus();
+      }
+    });
   }
 
   private void setShowLoginProgress(boolean show) {
