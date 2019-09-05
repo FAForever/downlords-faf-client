@@ -6,6 +6,11 @@ Please see the [project page](http://FAForever.github.io/downlords-faf-client/)
 
 Please take a look at the [contribution guidelines](https://github.com/FAForever/java-guidelines/wiki/Contribution-Guidelines) before creating a pull request
 
+# Support development
+
+Post a bountie on GitHub Issues on Issue Hunt. You can promise money to developers that solve issues and they get awarded those if they fix the issue. 
+
+![https://issuehunt.io/r/FAForever/downlords-faf-client?tab=idle](https://github.com/BoostIO/issuehunt-materials/raw/master/v1/issuehunt-button-v1.svg?sanitize=true)
 
 # How to run
 
