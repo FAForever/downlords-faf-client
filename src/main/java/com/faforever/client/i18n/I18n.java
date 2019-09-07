@@ -5,9 +5,9 @@ import com.google.common.base.Strings;
 import javafx.beans.property.ReadOnlySetWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -52,11 +52,15 @@ public class I18n implements InitializingBean {
     // These are the default languages shipped with the client
     availableLanguages.addAll(Set.of(
         Locale.US,
-        new Locale("cs"),
         Locale.GERMAN,
         Locale.FRENCH,
         new Locale("ru"),
-        Locale.CHINESE
+        Locale.CHINESE,
+        new Locale("cs"),
+        new Locale("iw"),
+        new Locale("tr"),
+        new Locale("nl"),
+        new Locale("pl")
     ));
 
     Path languagesDirectory = preferencesService.getLanguagesDirectory();
