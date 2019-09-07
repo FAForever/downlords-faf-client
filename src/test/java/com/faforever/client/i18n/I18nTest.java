@@ -104,6 +104,6 @@ public class I18nTest {
 
   @Test
   public void getAvailableLanguages() {
-    assertThat(instance.getAvailableLanguages(), hasSize(6));
+    assertThat(instance.getAvailableLanguages(), hasSize(10));
   }
 }
