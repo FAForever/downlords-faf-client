@@ -11,6 +11,9 @@
   /* make controls (buttons, thumb, etc.) slightly lighter */
   -fx-color: derive(-fx-base, 10%);
 
+  /* make controls (buttons, thumb, etc.) even more lighter when selected*/
+  -fx-color-select: derive(-fx-base, 30%);
+
   /* text fields and table rows background */
   -fx-control-inner-background: rgb(20, 20, 20);
   /* version of -fx-control-inner-background for alternative rows */
@@ -208,6 +211,10 @@
   -fx-background-color: -fx-color;
   -fx-border-width: 0 0 2 0;
   -fx-border-color: transparent;
+}
+
+.toggle-button.game-list-type:selected {
+  -fx-background-color: -fx-color-select;
 }
 
 .toggle-button, .button {
