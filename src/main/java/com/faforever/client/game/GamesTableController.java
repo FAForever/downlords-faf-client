@@ -10,7 +10,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
-
 import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
@@ -206,7 +205,7 @@ public class GamesTableController implements Controller<Node> {
         } else {
           setTooltip(tooltip);
         }
-      };
+      }
     };
     row.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
@@ -215,6 +214,9 @@ public class GamesTableController implements Controller<Node> {
       }
     });
     row.setOnMouseEntered(event -> {
+      if (row.getItem() == null) {
+        return;
+      }
       Game game = row.getItem();
       gameTooltipController.setGame(game);
     });
