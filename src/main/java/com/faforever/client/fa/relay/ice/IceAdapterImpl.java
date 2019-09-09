@@ -38,11 +38,18 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.SocketUtils;
 
 import javax.inject.Inject;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.ConnectException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -51,6 +58,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 
@@ -61,6 +70,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   private static final int CONNECTION_ATTEMPTS = 50;
   private static final int CONNECTION_ATTEMPT_DELAY_MILLIS = 100;
+  public static final String ADVANCED_ICE_ADAPTER_LOG_FORMAT = "Advanced Ice Adapter Log_%s.log";
 
   private final ApplicationContext applicationContext;
   private final ClientProperties clientProperties;
@@ -74,6 +84,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private Process process;
   private LobbyMode lobbyInitMode;
   private JJsonPeer peer;
+  private PrintWriter advancedIceLogPrinter;
 
   @Inject
   public IceAdapterImpl(ApplicationContext applicationContext, ClientProperties clientProperties, PlayerService playerService,
@@ -198,14 +209,28 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(workDirectory.toFile());
         processBuilder.command(cmd);
-        processBuilder.environment().put("LOG_DIR", preferencesService.getFafLogDirectory().resolve("iceAdapterLogs").toAbsolutePath().toString());
+        processBuilder.environment().put("LOG_DIR", preferencesService.getIceAdapterLogDirectory().toAbsolutePath().toString());
 
+        String advancedIceLogFileName = String.format(ADVANCED_ICE_ADAPTER_LOG_FORMAT, OffsetDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
+        Path advancedIceLogFile = preferencesService.getIceAdapterLogDirectory().resolve(advancedIceLogFileName);
+        Files.createFile(advancedIceLogFile);
+        if (advancedIceLogPrinter != null) {
+          advancedIceLogPrinter.flush();
+          advancedIceLogPrinter.close();
+        }
+        advancedIceLogPrinter = new PrintWriter(Files.newBufferedWriter(advancedIceLogFile));
+
+        advancedIceLogPrinter.println(String.format("Starting ICE adapter with command: %s", cmd));
         log.debug("Starting ICE adapter with command: {}", cmd);
         process = processBuilder.start();
         Logger logger = LoggerFactory.getLogger("faf-ice-adapter");
         OsUtils.gobbleLines(process.getInputStream(), s -> {
+          String time = OffsetDateTime.now().format(DateTimeFormatter.ISO_TIME);
+          advancedIceLogPrinter.println(String.format("%s-%s: %s", "STDOUT", time, s));
         });
         OsUtils.gobbleLines(process.getErrorStream(), s -> {
+          String time = OffsetDateTime.now().format(DateTimeFormatter.ISO_TIME);
+          advancedIceLogPrinter.println(String.format("%s-%s: %s", "STDERR", time, s));
         });
 
         IceAdapterCallbacks iceAdapterCallbacks = applicationContext.getBean(IceAdapterCallbacks.class);
@@ -306,11 +331,43 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   @Override
   public void destroy() {
     stop();
+    deleteOldAdvancedIceAdapterLogs();
   }
 
   public void stop() {
     Optional.ofNullable(iceAdapterProxy).ifPresent(IceAdapterApi::quit);
     peer = null;
+    if (advancedIceLogPrinter != null) {
+      advancedIceLogPrinter.flush();
+      advancedIceLogPrinter.close();
+      advancedIceLogPrinter = null;
+    }
+  }
+
+  private void deleteOldAdvancedIceAdapterLogs() {
+    try (Stream<Path> files = Files.list(preferencesService.getIceAdapterLogDirectory())) {
+      Pattern logFilePattern = Pattern.compile(ADVANCED_ICE_ADAPTER_LOG_FORMAT.replace("%s", ".*"));
+      files
+          .filter(path -> logFilePattern.matcher(path.getFileName().toString()).matches())
+          .filter(path -> {
+            try {
+              return Files.getLastModifiedTime(path).toInstant()
+                  .isBefore(Instant.now().minus(1, ChronoUnit.WEEKS));
+            } catch (IOException e) {
+              log.warn("Modified date of a log file could not be read it is deleted anyway", e);
+              return true;
+            }
+          }).forEach(path -> {
+        try {
+          log.debug("Deleting ice adapter log file: {}", path);
+          Files.delete(path);
+        } catch (IOException e) {
+          log.warn("Ice log file could not be deleted", e);
+        }
+      });
+    } catch (Exception e) {
+      log.warn("Could not clean up ice logs", e);
+    }
   }
 
 }

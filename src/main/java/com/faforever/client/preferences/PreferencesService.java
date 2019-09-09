@@ -180,6 +180,10 @@ public class PreferencesService implements InitializingBean {
     return FAF_DATA_DIRECTORY;
   }
 
+  public Path getIceAdapterLogDirectory() {
+    return getFafLogDirectory().resolve("iceAdapterLogs");
+  }
+
   /**
    * This is the fall back location for the vault, it is set when for some reasons the game can not find the files in
    * the "My Documents" folder.
