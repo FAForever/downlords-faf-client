@@ -105,11 +105,11 @@ public class Game {
     numPlayers.setValue(gameInfoMessage.getNumPlayers());
     maxPlayers.setValue(gameInfoMessage.getMaxPlayers());
     victoryCondition.set(gameInfoMessage.getGameType());
-    status.set(gameInfoMessage.getState());
-    passwordProtected.set(gameInfoMessage.getPasswordProtected());
     Optional.ofNullable(gameInfoMessage.getLaunchedAt()).ifPresent(aDouble -> startTime.set(
         TimeUtil.fromPythonTime(aDouble.longValue()).toInstant()
     ));
+    status.set(gameInfoMessage.getState());
+    passwordProtected.set(gameInfoMessage.getPasswordProtected());
 
     synchronized (simMods.get()) {
       simMods.clear();
