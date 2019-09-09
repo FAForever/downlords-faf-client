@@ -18,7 +18,6 @@ import com.faforever.client.rankedmatch.MatchmakerMessage.MatchmakerQueue.QueueN
 import com.faforever.client.util.RatingUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
-
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -40,7 +39,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.text.Text;
 import lombok.extern.slf4j.Slf4j;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -261,7 +259,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
   }
 
   private void setCurrentPlayer(Player player) {
-    playerRatingListener = ratingObservable -> updateRating(player);
+    playerRatingListener = ratingObservable -> Platform.runLater(() -> updateRating(player));
 
     JavaFxUtil.addListener(player.leaderboardRatingDeviationProperty(), new WeakInvalidationListener(playerRatingListener));
     JavaFxUtil.addListener(player.leaderboardRatingMeanProperty(), new WeakInvalidationListener(playerRatingListener));
