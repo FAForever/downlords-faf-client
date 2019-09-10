@@ -3,6 +3,7 @@ package com.faforever.client.ui.statusbar;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -33,10 +34,12 @@ public class StatusBarControllerTest extends AbstractPlainJavaFxTest {
   private ChatService chatService;
   @Mock
   private TaskService taskService;
+  @Mock
+  private PreferencesService preferencesService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new StatusBarController(fafService, i18n, chatService, taskService);
+    instance = new StatusBarController(fafService, i18n, chatService, taskService, preferencesService);
 
     connectionStateProperty = new SimpleObjectProperty<>();
     when(taskService.getActiveWorkers()).thenReturn(FXCollections.emptyObservableList());

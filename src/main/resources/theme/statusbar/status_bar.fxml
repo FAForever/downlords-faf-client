@@ -15,10 +15,21 @@
 
     <children>
         <Label fx:id="versionLabel" text="&lt;Version&gt;"/>
-        <HBox fx:id="taskPane" alignment="CENTER_LEFT" spacing="20.0" HBox.hgrow="ALWAYS">
+        <HBox fx:id="memoryPane" alignment="CENTER_LEFT" spacing="20.0" HBox.hgrow="ALWAYS">
             <children>
-                <Pane HBox.hgrow="SOMETIMES"/>
-                <Label fx:id="taskProgressLabel" prefWidth="480.0" text="Label">
+                <Pane HBox.hgrow="ALWAYS"/>
+                <Label fx:id="memoryLabel">
+                    <graphic>
+                        <Label fx:id="warningIcon" styleClass="icon" text=""/>
+                    </graphic>
+                </Label>
+                <JFXProgressBar styleClass="memory-bar" fx:id="memoryProgressbar" minWidth="80.0" prefWidth="160.0"/>
+            </children>
+        </HBox>
+        <HBox fx:id="taskPane" alignment="CENTER_LEFT" spacing="20.0">
+            <children>
+                <Separator orientation="VERTICAL"/>
+                <Label fx:id="taskProgressLabel" prefWidth="48.0" text="Label">
                     <graphic>
                         <JFXSpinner maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"/>
                     </graphic>

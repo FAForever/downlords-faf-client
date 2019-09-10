@@ -68,8 +68,6 @@ public class GamesTableController implements Controller<Node> {
   public TableColumn<Game, String> coopMissionName;
   private final ChangeListener<Boolean> showModdedGamesChangedListener;
   private final ChangeListener<Boolean> showPasswordProtectedGamesChangedListener;
-  private GameTooltipController gameTooltipController;
-  private Tooltip tooltip;
 
   @Inject
   public GamesTableController(MapService mapService, JoinGameHelper joinGameHelper, I18n i18n, UiService uiService, PreferencesService preferencesService) {
@@ -98,9 +96,6 @@ public class GamesTableController implements Controller<Node> {
   }
 
   public void initializeGameTable(ObservableList<Game> games, Function<String, String> coopMissionNameProvider) {
-    gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
-    tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
-    
     SortedList<Game> sortedList = new SortedList<>(games);
     sortedList.comparatorProperty().bind(gamesTable.comparatorProperty());
     gamesTable.setPlaceholder(new Label(i18n.get("games.noGamesAvailable")));
@@ -202,8 +197,12 @@ public class GamesTableController implements Controller<Node> {
         super.updateItem(game, empty);
         if (game == null) {
           setTooltip(null);
+          Tooltip.uninstall(this, null);
         } else {
+          GameTooltipController gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
+          Tooltip tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
           setTooltip(tooltip);
+          gameTooltipController.setGame(game);
         }
       }
     };
@@ -212,13 +211,6 @@ public class GamesTableController implements Controller<Node> {
         Game game = row.getItem();
         joinGameHelper.join(game);
       }
-    });
-    row.setOnMouseEntered(event -> {
-      if (row.getItem() == null) {
-        return;
-      }
-      Game game = row.getItem();
-      gameTooltipController.setGame(game);
     });
     return row;
   }

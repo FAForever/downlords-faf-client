@@ -59,6 +59,7 @@ public class Preferences {
   private final BooleanProperty lastGameOnlyFriends;
   private final BooleanProperty disallowJoinsViaDiscord;
   private final BooleanProperty showGameDetailsSidePane;
+  private final BooleanProperty showMemoryPane;
 
   public Preferences() {
     gameTileSortingOrder = new SimpleObjectProperty<>(TilesSortingOrder.PLAYER_DES);
@@ -90,6 +91,7 @@ public class Preferences {
     lastGameOnlyFriends = new SimpleBooleanProperty();
     disallowJoinsViaDiscord = new SimpleBooleanProperty();
     showGameDetailsSidePane = new SimpleBooleanProperty(false);
+    showMemoryPane = new SimpleBooleanProperty(false);
   }
 
   public VaultPrefs getVaultPrefs() {
@@ -315,6 +317,18 @@ public class Preferences {
 
   public BooleanProperty showGameDetailsSidePaneProperty() {
     return showGameDetailsSidePane;
+  }
+
+  public boolean isShowMemoryPane() {
+    return showMemoryPane.get();
+  }
+
+  public void setShowMemoryPane(boolean showMemoryPane) {
+    this.showMemoryPane.set(showMemoryPane);
+  }
+
+  public BooleanProperty showMemoryPaneProperty() {
+    return showMemoryPane;
   }
 
   public enum UnitDataBaseType {

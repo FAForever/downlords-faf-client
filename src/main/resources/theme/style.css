@@ -523,6 +523,18 @@
   -fx-fill: -bad;
 }
 
+.memory-bar:good > .bar {
+  -fx-background-color: -good;
+}
+
+.memory-bar:warn > .bar {
+  -fx-background-color: -warn;
+}
+
+.memory-bar:bad > .bar {
+  -fx-background-color: -bad;
+}
+
 /***************** Tabs *****************/
 
 .tab-header-area {

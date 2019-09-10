@@ -38,7 +38,6 @@ import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.geometry.Bounds;
-import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -134,6 +133,7 @@ public class SettingsController implements Controller<Node> {
   public CheckBox disallowJoinsCheckBox;
   public JFXToggleButton secondaryVaultLocationToggleButton;
   public Button autoJoinChannelsButton;
+  public JFXToggleButton memoryBarToggleButton;
   private Popup autojoinChannelsPopUp;
   private ChangeListener<Theme> selectedThemeChangeListener;
   private ChangeListener<Theme> currentThemeChangeListener;
@@ -273,6 +273,7 @@ public class SettingsController implements Controller<Node> {
     afterGameReviewCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().afterGameReviewEnabledProperty());
 
     notifyOnAtMentionOnlyToggle.selectedProperty().bindBidirectional(preferences.getNotification().notifyOnAtMentionOnlyEnabledProperty());
+    memoryBarToggleButton.selectedProperty().bindBidirectional(preferences.showMemoryPaneProperty());
     enableSoundsToggle.selectedProperty().bindBidirectional(preferences.getNotification().soundsEnabledProperty());
     forceRelayToggle.selectedProperty().bindBidirectional(preferences.getForgedAlliance().forceRelayProperty());
     gameLocationTextField.textProperty().bindBidirectional(preferences.getForgedAlliance().pathProperty(), PATH_STRING_CONVERTER);

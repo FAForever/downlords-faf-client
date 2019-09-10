@@ -39,6 +39,7 @@
                                 <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES"/>
                                 <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES"/>
                                 <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES"/>
+                                <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES"/>
                                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS"/>
                             </rowConstraints>
                             <children>
@@ -60,6 +61,10 @@
                                        GridPane.rowIndex="3"/>
                                 <JFXToggleButton fx:id="secondaryVaultLocationToggleButton" GridPane.columnIndex="1"
                                                  GridPane.rowIndex="3"/>
+                                <Label styleClass="h3" text="%settings.use.memoryBar" wrapText="true"
+                                       GridPane.rowIndex="4"/>
+                                <JFXToggleButton fx:id="memoryBarToggleButton" GridPane.columnIndex="1"
+                                                 GridPane.rowIndex="4"/>
                             </children>
                         </GridPane>
                     </content>
