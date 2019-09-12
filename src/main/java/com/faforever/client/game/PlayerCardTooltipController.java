@@ -11,8 +11,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -22,7 +20,7 @@ import javax.inject.Inject;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class PlayerCardTooltipController implements Controller<Node>, DisposableBean {
+public class PlayerCardTooltipController implements Controller<Node> {
 
   private final CountryFlagService countryFlagService;
   private final I18n i18n;
@@ -32,16 +30,10 @@ public class PlayerCardTooltipController implements Controller<Node>, Disposable
   public HBox root;
   public Label friendIconText;
 
-  private final Tooltip foeTooltip;
-  private final Tooltip friendTooltip;
-
   @Inject
   public PlayerCardTooltipController(CountryFlagService countryFlagService, I18n i18n) {
     this.countryFlagService = countryFlagService;
     this.i18n = i18n;
-
-    foeTooltip = new Tooltip(i18n.get("userInfo.foe"));
-    friendTooltip = new Tooltip(i18n.get("userInfo.friend"));
   }
 
   public void setPlayer(Player player, int rating) {
@@ -63,14 +55,8 @@ public class PlayerCardTooltipController implements Controller<Node>, Disposable
   @Override
   public void initialize() {
     foeIconText.managedProperty().bind(foeIconText.visibleProperty());
-    Tooltip.install(foeIconText, foeTooltip);
+    foeIconText.setTooltip(new Tooltip(i18n.get("userInfo.foe")));
     friendIconText.managedProperty().bind(friendIconText.visibleProperty());
-    Tooltip.install(friendIconText, friendTooltip);
-  }
-
-  @Override
-  public void destroy() throws Exception {
-    Tooltip.uninstall(foeIconText, foeTooltip);
-    Tooltip.uninstall(friendIconText, friendTooltip);
+    friendIconText.setTooltip(new Tooltip(i18n.get("userInfo.friend")));
   }
 }
