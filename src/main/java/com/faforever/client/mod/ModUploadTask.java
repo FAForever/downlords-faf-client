@@ -15,12 +15,11 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import java.io.BufferedOutputStream;
+import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
-import java.util.zip.ZipOutputStream;
 
 import static com.faforever.commons.io.Bytes.formatSize;
 import static java.nio.file.Files.createTempFile;
@@ -66,9 +65,9 @@ public class ModUploadTask extends CompletableTask<Void> {
         updateProgress(written, total);
       };
 
-      try (ZipOutputStream zipOutputStream = new ZipOutputStream(new BufferedOutputStream(newOutputStream(tmpFile)))) {
+      try (OutputStream outputStream = newOutputStream(tmpFile)) {
         Zipper.of(modPath)
-            .to(zipOutputStream)
+            .to(outputStream)
             .listener(byteListener)
             .zip();
       }

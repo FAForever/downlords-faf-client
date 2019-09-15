@@ -7,6 +7,7 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
 import com.faforever.commons.io.ByteCopier;
 import com.faforever.commons.io.Unzipper;
+import org.apache.commons.compress.archivers.ArchiveException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -84,7 +85,7 @@ public class InstallModTask extends CompletableTask<Void> {
     return null;
   }
 
-  private void extractMod(Path tempFile) throws IOException {
+  private void extractMod(Path tempFile) throws IOException, ArchiveException {
     Path modsDirectory = preferencesService.getPreferences().getForgedAlliance().getModsDirectory();
 
     updateTitle(i18n.get("downloadingModTask.unzipping", modsDirectory));
@@ -92,10 +93,10 @@ public class InstallModTask extends CompletableTask<Void> {
     deleteOldModIfExisting(tempFile, modsDirectory);
 
     logger.info("Unzipping {} to {}", tempFile, modsDirectory);
-    try (ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(tempFile))) {
+    try (InputStream inputStream = Files.newInputStream(tempFile)) {
       ResourceLocks.acquireDiskLock();
 
-      Unzipper.from(zipInputStream)
+      Unzipper.from(inputStream)
           .to(modsDirectory)
           .listener(this::updateProgress)
           .totalBytes(Files.size(tempFile))

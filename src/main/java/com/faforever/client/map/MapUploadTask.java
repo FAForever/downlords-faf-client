@@ -10,18 +10,17 @@ import com.faforever.commons.io.ByteCountListener;
 import com.faforever.commons.io.Zipper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.beans.factory.InitializingBean;
 
 import javax.inject.Inject;
-import java.io.BufferedOutputStream;
+import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
-import java.util.zip.ZipOutputStream;
 
 import static com.faforever.commons.io.Bytes.formatSize;
 import static java.nio.file.Files.createTempFile;
@@ -73,9 +72,9 @@ public class MapUploadTask extends CompletableTask<Void> implements Initializing
         updateProgress(written, total);
       };
 
-      try (ZipOutputStream zipOutputStream = new ZipOutputStream(new BufferedOutputStream(newOutputStream(tmpFile)))) {
+      try (OutputStream outputStream = newOutputStream(tmpFile)) {
         Zipper.of(mapPath)
-            .to(zipOutputStream)
+            .to(outputStream)
             .listener(byteListener)
             .zip();
       }
