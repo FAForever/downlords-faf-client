@@ -180,10 +180,8 @@ public class MapService implements InitializingBean, DisposableBean {
 
   private Thread startDirectoryWatcher(Path mapsDirectory) {
     Thread thread = new Thread(() -> noCatch(() -> {
-      WatchService watcher = mapsDirectory.getFileSystem().newWatchService();
-      customMapsDirectory.register(watcher, ENTRY_DELETE);
-
-      try {
+      try (WatchService watcher = mapsDirectory.getFileSystem().newWatchService()) {
+        customMapsDirectory.register(watcher, ENTRY_DELETE);
         while (!Thread.interrupted()) {
           WatchKey key = watcher.take();
           key.pollEvents().stream()
@@ -195,6 +193,7 @@ public class MapService implements InitializingBean, DisposableBean {
         logger.debug("Watcher terminated ({})", e.getMessage());
       }
     }));
+    thread.setDaemon(true);
     thread.start();
     return thread;
   }
