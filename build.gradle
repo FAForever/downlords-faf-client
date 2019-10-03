@@ -68,7 +68,7 @@ compileJava.dependsOn(processResources)
 processResources {
   filesMatching('**/application.yml') {
     filter {
-      it.replace('#faf-server.version#', project.version.toString())
+      it.replace('#faf-client.version#', project.version.toString())
     }
   }
 }
@@ -219,6 +219,9 @@ task downloadWindowsUid(type: Download) {
 task downloadNativeDependencies(dependsOn: [downloadUnixUid, downloadWindowsUid, downloadIceAdapter]) {
   group "native dependencies"
 }
+
+compileJava.dependsOn 'downloadNativeDependencies'
+compileJava.dependsOn ':webview-patch:build'
 
 task wrapper(type: Wrapper) {
   gradleVersion = '4.5.1'
