@@ -31,6 +31,18 @@ public class FeaturedModUpdaterConfig {
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
 
+  public FeaturedModUpdaterConfig(ModService modService, ApplicationContext applicationContext, TaskService taskService, FafService fafService, FaInitGenerator faInitGenerator, SimpleHttpFeaturedModUpdater httpFeaturedModUpdater, BireusFeaturedModUpdater bireusFeaturedModUpdater, PreferencesService preferencesService, NotificationService notificationService) {
+    this.modService = modService;
+    this.applicationContext = applicationContext;
+    this.taskService = taskService;
+    this.fafService = fafService;
+    this.faInitGenerator = faInitGenerator;
+    this.httpFeaturedModUpdater = httpFeaturedModUpdater;
+    this.bireusFeaturedModUpdater = bireusFeaturedModUpdater;
+    this.preferencesService = preferencesService;
+    this.notificationService = notificationService;
+  }
+
   public ModService getModService() {
     return modService;
   }
