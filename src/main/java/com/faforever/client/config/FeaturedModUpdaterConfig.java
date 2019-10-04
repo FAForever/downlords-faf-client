@@ -43,42 +43,6 @@ public class FeaturedModUpdaterConfig {
     this.notificationService = notificationService;
   }
 
-  public ModService getModService() {
-    return modService;
-  }
-
-  public ApplicationContext getApplicationContext() {
-    return applicationContext;
-  }
-
-  public TaskService getTaskService() {
-    return taskService;
-  }
-
-  public FafService getFafService() {
-    return fafService;
-  }
-
-  public FaInitGenerator getFaInitGenerator() {
-    return faInitGenerator;
-  }
-
-  public SimpleHttpFeaturedModUpdater getHttpFeaturedModUpdater() {
-    return httpFeaturedModUpdater;
-  }
-
-  public BireusFeaturedModUpdater getBireusFeaturedModUpdater() {
-    return bireusFeaturedModUpdater;
-  }
-
-  public PreferencesService getPreferencesService() {
-    return preferencesService;
-  }
-
-  public NotificationService getNotificationService() {
-    return notificationService;
-  }
-
   @Bean
   GameUpdater gameUpdater() {
     return new GameUpdaterImpl(modService, applicationContext, taskService, fafService, faInitGenerator, preferencesService, notificationService)
