@@ -228,13 +228,17 @@ public class TournamentBean {
     return status;
   }
 
-  @AllArgsConstructor
   @Getter
   public enum Status {
     FINISHED("tournament.status.finished", 1),
     RUNNING("tournament.status.running", 2),
     OPEN_FOR_REGISTRATION("tournament.status.openForRegistration", 4),
     CLOSED_FOR_REGISTRATION("tournament.status.closedForRegistration", 3);
+
+    Status(String messageKey, int sortOrderPriority) {
+      this.messageKey = messageKey;
+      this.sortOrderPriority = sortOrderPriority;
+    }
 
     private final String messageKey;
     private final int sortOrderPriority;

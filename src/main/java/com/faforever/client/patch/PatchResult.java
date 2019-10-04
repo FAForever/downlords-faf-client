@@ -12,7 +12,6 @@ import java.nio.file.Path;
 import java.util.List;
 
 @Data
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PatchResult {
   /** Only set if mod_info.lua was available. */
   @Nullable
@@ -29,6 +28,13 @@ public class PatchResult {
   /** Only set if no mod_info.lua was available. */
   @Nullable
   private final Path legacyInitFile;
+
+  private PatchResult(@Nullable ComparableVersion version, @Nullable List<MountInfo> mountInfos, @Nullable List<String> hookDirectories, @Nullable Path legacyInitFile) {
+    this.version = version;
+    this.mountInfos = mountInfos;
+    this.hookDirectories = hookDirectories;
+    this.legacyInitFile = legacyInitFile;
+  }
 
   public static PatchResult fromModInfo(ComparableVersion version, List<MountInfo> mountInfos, List<String> hookDirectories) {
     return new PatchResult(version, mountInfos, hookDirectories, null);

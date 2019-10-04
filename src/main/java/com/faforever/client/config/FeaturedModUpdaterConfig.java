@@ -19,7 +19,6 @@ import org.springframework.context.annotation.Profile;
 
 @Configuration
 @Profile("!" + FafClientApplication.PROFILE_OFFLINE)
-@AllArgsConstructor
 public class FeaturedModUpdaterConfig {
 
   private final ModService modService;
@@ -31,6 +30,42 @@ public class FeaturedModUpdaterConfig {
   private final BireusFeaturedModUpdater bireusFeaturedModUpdater;
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
+
+  public ModService getModService() {
+    return modService;
+  }
+
+  public ApplicationContext getApplicationContext() {
+    return applicationContext;
+  }
+
+  public TaskService getTaskService() {
+    return taskService;
+  }
+
+  public FafService getFafService() {
+    return fafService;
+  }
+
+  public FaInitGenerator getFaInitGenerator() {
+    return faInitGenerator;
+  }
+
+  public SimpleHttpFeaturedModUpdater getHttpFeaturedModUpdater() {
+    return httpFeaturedModUpdater;
+  }
+
+  public BireusFeaturedModUpdater getBireusFeaturedModUpdater() {
+    return bireusFeaturedModUpdater;
+  }
+
+  public PreferencesService getPreferencesService() {
+    return preferencesService;
+  }
+
+  public NotificationService getNotificationService() {
+    return notificationService;
+  }
 
   @Bean
   GameUpdater gameUpdater() {

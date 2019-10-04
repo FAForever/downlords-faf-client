@@ -259,10 +259,14 @@ public class SearchController implements Controller<Pane> {
   }
 
   @Data
-  @AllArgsConstructor
   public static class SortConfig {
     private String sortProperty;
     private SortOrder sortOrder;
+
+    public SortConfig(String sortProperty, SortOrder sortOrder) {
+      this.sortProperty = sortProperty;
+      this.sortOrder = sortOrder;
+    }
 
     public String toQuery() {
       return sortOrder.getQuery() + sortProperty;
@@ -270,10 +274,14 @@ public class SearchController implements Controller<Pane> {
   }
 
   @Data
-  @AllArgsConstructor
   public static class SearchConfig {
     private SortConfig sortConfig;
     private String searchQuery;
+
+    public SearchConfig(SortConfig sortConfig, String searchQuery) {
+      this.sortConfig = sortConfig;
+      this.searchQuery = searchQuery;
+    }
 
     public boolean hasQuery() {
       return searchQuery != null && !searchQuery.isEmpty();

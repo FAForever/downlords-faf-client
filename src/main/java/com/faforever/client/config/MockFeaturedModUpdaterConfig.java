@@ -18,7 +18,6 @@ import org.springframework.context.annotation.Profile;
 
 @Configuration
 @Profile(FafClientApplication.PROFILE_OFFLINE)
-@AllArgsConstructor
 public class MockFeaturedModUpdaterConfig {
 
   private final ModService modService;
@@ -29,6 +28,17 @@ public class MockFeaturedModUpdaterConfig {
   private final FeaturedModUpdater featuredModUpdater;
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
+
+  public MockFeaturedModUpdaterConfig(ModService modService, ApplicationContext applicationContext, TaskService taskService, FafService fafService, FaInitGenerator faInitGenerator, FeaturedModUpdater featuredModUpdater, PreferencesService preferencesService, NotificationService notificationService) {
+    this.modService = modService;
+    this.applicationContext = applicationContext;
+    this.taskService = taskService;
+    this.fafService = fafService;
+    this.faInitGenerator = faInitGenerator;
+    this.featuredModUpdater = featuredModUpdater;
+    this.preferencesService = preferencesService;
+    this.notificationService = notificationService;
+  }
 
   @Bean
   GameUpdater gameUpdater() {

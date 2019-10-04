@@ -16,7 +16,6 @@ import java.util.List;
 @Setter
 @EqualsAndHashCode(of = "id")
 @Type("mod")
-@AllArgsConstructor
 @NoArgsConstructor
 public class Mod {
 
@@ -35,4 +34,15 @@ public class Mod {
 
   @Relationship("latestVersion")
   private ModVersion latestVersion;
+
+  public Mod(String id, String displayName, String author, OffsetDateTime createTime, OffsetDateTime updateTime, Player uploader, List<ModVersion> versions, ModVersion latestVersion) {
+    this.id = id;
+    this.displayName = displayName;
+    this.author = author;
+    this.createTime = createTime;
+    this.updateTime = updateTime;
+    this.uploader = uploader;
+    this.versions = versions;
+    this.latestVersion = latestVersion;
+  }
 }

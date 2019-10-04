@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import java.util.Set;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 public class NewGameInfo {
   private String title;
@@ -17,6 +16,15 @@ public class NewGameInfo {
   private String map;
   private Set<String> simMods;
   private GameVisibility gameVisibility;
+
+  public NewGameInfo(String title, String password, FeaturedMod featuredMod, String map, Set<String> simMods, GameVisibility gameVisibility) {
+    this.title = title;
+    this.password = password;
+    this.featuredMod = featuredMod;
+    this.map = map;
+    this.simMods = simMods;
+    this.gameVisibility = gameVisibility;
+  }
 
   public NewGameInfo(String title, String password, FeaturedMod featuredMod, String map, Set<String> simMods) {
     this(title, password, featuredMod, map, simMods, GameVisibility.PUBLIC);
