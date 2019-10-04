@@ -20,6 +20,8 @@ Post a bountie on GitHub Issues on Issue Hunt. You can promise money to develope
 1. Select `FafClientApplication` as run configuration next to the hammer button in the top right
 1. Press play
 
+See the video [here](https://www.youtube.com/watch?v=_kJoRehdBcM) .Don't forget step 5.
+
 # Open Source licenses used 
 <img src="https://www.ej-technologies.com/images/product_banners/install4j_large.png" width="128">Thanks to [ej-technologies](https://www.ej-technologies.com) for their [open source license](https://www.ej-technologies.com/buy/install4j/openSource) for Install4j. We use Install4j to build installers.
 
