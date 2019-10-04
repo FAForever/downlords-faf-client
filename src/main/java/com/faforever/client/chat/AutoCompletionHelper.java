@@ -24,7 +24,7 @@ public class AutoCompletionHelper {
   private EventHandler<KeyEvent> keyEventHandler;
   private Function<String, Collection<String>> completionProposalGenerator;
 
-  @Inject
+
   public AutoCompletionHelper(Function<String, Collection<String>> completionProposalGenerator) {
     this.completionProposalGenerator = completionProposalGenerator;
     keyEventHandler = keyEvent -> {

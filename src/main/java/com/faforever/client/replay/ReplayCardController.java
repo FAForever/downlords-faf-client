@@ -61,7 +61,7 @@ public class ReplayCardController implements Controller<Node> {
   private InvalidationListener reviewsChangedListener;
   private JFXRippler jfxRippler;
 
-  @Inject
+
   public ReplayCardController(TimeService timeService, MapService mapService, RatingService ratingService, I18n i18n) {
     this.timeService = timeService;
     this.mapService = mapService;

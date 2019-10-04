@@ -55,7 +55,7 @@ public class MockChatService implements ChatService, InitializingBean {
   private final I18n i18n;
   private final EventBus eventBus;
 
-  @Inject
+
   public MockChatService(UserService userService, TaskService taskService, I18n i18n, EventBus eventBus) {
     connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
     unreadMessagesCount = new SimpleIntegerProperty();

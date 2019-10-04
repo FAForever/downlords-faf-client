@@ -25,7 +25,7 @@ public class ChangePasswordTask extends CompletableTask<Void> implements Initial
   private String newPassword;
   private String username;
 
-  @Inject
+
   public ChangePasswordTask(FafApiAccessor fafApiAccessor, I18n i18n) {
     super(Priority.HIGH);
     this.fafApiAccessor = fafApiAccessor;

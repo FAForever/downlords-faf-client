@@ -39,7 +39,7 @@ public class AudioService implements InitializingBean {
   private boolean playSounds;
   private NotificationsPrefs notificationsPrefs;
 
-  @Inject
+
   public AudioService(PreferencesService preferencesService, AudioClipPlayer audioClipPlayer, UiService uiService) {
     this.preferencesService = preferencesService;
     this.audioClipPlayer = audioClipPlayer;

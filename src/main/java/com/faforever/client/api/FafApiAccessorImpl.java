@@ -94,7 +94,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   private CountDownLatch authorizedLatch;
   private RestOperations restOperations;
 
-  @Inject
+
   public FafApiAccessorImpl(EventBus eventBus, RestTemplateBuilder restTemplateBuilder,
                             ClientProperties clientProperties, JsonApiMessageConverter jsonApiMessageConverter,
                             JsonApiErrorHandler jsonApiErrorHandler) {

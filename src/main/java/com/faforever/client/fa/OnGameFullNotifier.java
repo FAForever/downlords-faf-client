@@ -40,7 +40,7 @@ public class OnGameFullNotifier implements InitializingBean {
   private final GameService gameService;
   private final String faWindowTitle;
 
-  @Inject
+
   public OnGameFullNotifier(PlatformService platformService, Executor executor, NotificationService notificationService,
                             I18n i18n, MapService mapService, EventBus eventBus, ClientProperties clientProperties,
                             GameService gameService) {

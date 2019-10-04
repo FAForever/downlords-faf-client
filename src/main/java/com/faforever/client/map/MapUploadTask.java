@@ -40,7 +40,7 @@ public class MapUploadTask extends CompletableTask<Void> implements Initializing
   private Path mapPath;
   private Boolean isRanked;
 
-  @Inject
+
   public MapUploadTask(PreferencesService preferencesService, FafApiAccessor fafApiAccessor, I18n i18n) {
     super(Priority.HIGH);
     this.preferencesService = preferencesService;

@@ -24,7 +24,7 @@ public class UnitsController extends AbstractViewController<Node> {
   private final CookieService cookieService;
   public WebView unitsRoot;
 
-  @Inject
+
   public UnitsController(ClientProperties clientProperties1, PreferencesService preferencesService, CookieService cookieService) {
     this.clientProperties = clientProperties1;
     this.preferencesService = preferencesService;

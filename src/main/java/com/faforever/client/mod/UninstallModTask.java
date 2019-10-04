@@ -23,7 +23,7 @@ public class UninstallModTask extends CompletableTask<Void> {
 
   private ModVersion modVersion;
 
-  @Inject
+
   public UninstallModTask(ModService modService) {
     super(CompletableTask.Priority.LOW);
 

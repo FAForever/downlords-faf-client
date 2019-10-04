@@ -132,7 +132,7 @@ public class GameService implements InitializingBean {
   private boolean rehostRequested;
   private int localReplayPort;
 
-  @Inject
+
   public GameService(ClientProperties clientProperties, FafService fafService,
                      ForgedAllianceService forgedAllianceService, MapService mapService,
                      PreferencesService preferencesService, GameUpdater gameUpdater,

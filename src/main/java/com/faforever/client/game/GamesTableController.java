@@ -71,7 +71,7 @@ public class GamesTableController implements Controller<Node> {
   private GameTooltipController gameTooltipController;
   private Tooltip tooltip;
 
-  @Inject
+
   public GamesTableController(MapService mapService, JoinGameHelper joinGameHelper, I18n i18n, UiService uiService, PreferencesService preferencesService) {
     this.mapService = mapService;
     this.joinGameHelper = joinGameHelper;

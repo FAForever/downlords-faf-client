@@ -19,7 +19,7 @@ import java.util.Collection;
 public class JsonApiMessageConverter extends AbstractHttpMessageConverter<Object> {
   private final ResourceConverter resourceConverter;
 
-  @Inject
+
   public JsonApiMessageConverter(ResourceConverter resourceConverter) {
     super(MediaType.parseMediaType("application/vnd.api+json"));
     this.resourceConverter = resourceConverter;

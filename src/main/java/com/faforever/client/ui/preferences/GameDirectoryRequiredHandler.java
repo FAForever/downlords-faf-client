@@ -29,7 +29,7 @@ public class GameDirectoryRequiredHandler implements InitializingBean {
   private final EventBus eventBus;
   private final I18n i18n;
 
-  @Inject
+
   public GameDirectoryRequiredHandler(EventBus eventBus, I18n i18n, PreferencesService preferencesService) {
     this.eventBus = eventBus;
     this.i18n = i18n;

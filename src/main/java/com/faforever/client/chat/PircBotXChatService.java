@@ -141,7 +141,7 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
    */
   private boolean autoChannelsJoined;
 
-  @Inject
+
   public PircBotXChatService(PreferencesService preferencesService, UserService userService, TaskService taskService,
                              FafService fafService, I18n i18n, PircBotXFactory pircBotXFactory,
                              @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") ThreadPoolExecutor threadPoolExecutor,

@@ -32,7 +32,7 @@ public class PersistentNotificationController implements Controller<Node> {
   public HBox actionButtonsContainer;
   private PersistentNotification notification;
 
-  @Inject
+
   public PersistentNotificationController(NotificationService notificationService) {
     this.notificationService = notificationService;
   }

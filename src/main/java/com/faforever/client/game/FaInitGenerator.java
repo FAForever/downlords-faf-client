@@ -37,7 +37,7 @@ public class FaInitGenerator {
 
   private final PreferencesService preferencesService;
 
-  @Inject
+
   public FaInitGenerator(PreferencesService preferencesService) {
     this.preferencesService = preferencesService;
   }

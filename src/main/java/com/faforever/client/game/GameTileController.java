@@ -60,7 +60,7 @@ public class GameTileController implements Controller<Node> {
   private Consumer<Game> onSelectedListener;
   private Game game;
 
-  @Inject
+
   public GameTileController(MapService mapService, I18n i18n, JoinGameHelper joinGameHelper, ModService modService, PlayerService playerService) {
     this.mapService = mapService;
     this.i18n = i18n;

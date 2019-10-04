@@ -50,7 +50,7 @@ public class EventService {
   private final FafApiAccessor fafApiAccessor;
   private final ThreadPoolExecutor threadPoolExecutor;
 
-  @Inject
+
   public EventService(FafApiAccessor fafApiAccessor, ThreadPoolExecutor threadPoolExecutor) {
     this.fafApiAccessor = fafApiAccessor;
     this.threadPoolExecutor = threadPoolExecutor;

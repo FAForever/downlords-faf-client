@@ -98,7 +98,7 @@ public class ModService implements InitializingBean, DisposableBean {
   private ObservableList<ModVersion> readOnlyInstalledModVersions;
   private Thread directoryWatcherThread;
 
-  @Inject
+
   // TODO divide and conquer
   public ModService(TaskService taskService, FafService fafService, PreferencesService preferencesService,
                     ApplicationContext applicationContext,

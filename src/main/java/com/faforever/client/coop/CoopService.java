@@ -16,7 +16,7 @@ public class CoopService {
 
   private final FafService fafService;
 
-  @Inject
+
   public CoopService(FafService fafService) {
     this.fafService = fafService;
   }

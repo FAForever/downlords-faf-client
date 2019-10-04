@@ -17,7 +17,7 @@ public class StatisticsService {
 
   private final FafService fafService;
 
-  @Inject
+
   public StatisticsService(FafService fafService) {
     this.fafService = fafService;
   }

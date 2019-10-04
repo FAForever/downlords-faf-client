@@ -34,7 +34,7 @@ public class ReplayFileWriterImpl implements ReplayFileWriter {
   private final ClientProperties clientProperties;
   private final PreferencesService preferencesService;
 
-  @Inject
+
   public ReplayFileWriterImpl(I18n i18n, ClientProperties clientProperties, PreferencesService preferencesService) {
     this.i18n = i18n;
     this.clientProperties = clientProperties;

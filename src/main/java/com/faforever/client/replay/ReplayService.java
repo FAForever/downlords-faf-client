@@ -111,7 +111,7 @@ public class ReplayService {
   private final ModService modService;
   private final MapService mapService;
 
-  @Inject
+
   public ReplayService(ClientProperties clientProperties, PreferencesService preferencesService,
                        ReplayFileReader replayFileReader, NotificationService notificationService,
                        GameService gameService, TaskService taskService, I18n i18n,

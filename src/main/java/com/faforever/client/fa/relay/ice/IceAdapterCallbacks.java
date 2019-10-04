@@ -24,7 +24,7 @@ public class IceAdapterCallbacks {
   private final EventBus eventBus;
   private final FafService fafService;
 
-  @Inject
+
   public IceAdapterCallbacks(EventBus eventBus, FafService fafService) {
     this.eventBus = eventBus;
     this.fafService = fafService;

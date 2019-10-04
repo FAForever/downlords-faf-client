@@ -21,7 +21,7 @@ public class RatingChangeLabelController implements Controller<Node> {
   public Label ratingChangLabelRoot;
   private final I18n i18n;
 
-  @Inject
+
   public RatingChangeLabelController(I18n i18n) {
     this.i18n = i18n;
   }

@@ -40,7 +40,7 @@ public class TransientNotificationController implements Controller<Node> {
   private Timeline timeline;
   private int toastDisplayTime;
 
-  @Inject
+
   public TransientNotificationController(PreferencesService preferencesService) {
     this.preferencesService = preferencesService;
   }

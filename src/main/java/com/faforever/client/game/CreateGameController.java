@@ -104,7 +104,7 @@ public class CreateGameController implements Controller<Pane> {
    */
   private boolean initialized;
 
-  @Inject
+
   public CreateGameController(FafService fafService, MapService mapService, ModService modService, GameService gameService, PreferencesService preferencesService, I18n i18n, NotificationService notificationService, ReportingService reportingService, MapGeneratorService mapGeneratorService) {
     this.mapService = mapService;
     this.modService = modService;

@@ -49,7 +49,7 @@ public class MapCardController implements Controller<Node> {
   private InvalidationListener reviewsChangedListener;
   private JFXRippler jfxRippler;
 
-  @Inject
+
   public MapCardController(MapService mapService, I18n i18n) {
     this.mapService = mapService;
     this.i18n = i18n;

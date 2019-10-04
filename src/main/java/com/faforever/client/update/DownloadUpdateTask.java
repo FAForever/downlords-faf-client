@@ -32,7 +32,7 @@ public class DownloadUpdateTask extends CompletableTask<Path> {
 
   private UpdateInfo updateInfo;
 
-  @Inject
+
   public DownloadUpdateTask(I18n i18n, PreferencesService preferencesService) {
     super(Priority.MEDIUM);
 

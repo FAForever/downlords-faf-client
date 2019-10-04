@@ -62,7 +62,7 @@ public class ReplayServerImpl implements ReplayServer {
   private ServerSocket serverSocket;
   private boolean stoppedGracefully;
 
-  @Inject
+
   public ReplayServerImpl(ClientProperties clientProperties, NotificationService notificationService, I18n i18n,
                           UserService userService, ReplayFileWriter replayFileWriter, ClientUpdateService clientUpdateService) {
     this.clientProperties = clientProperties;

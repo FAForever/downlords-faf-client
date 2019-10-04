@@ -21,7 +21,7 @@ public class SimpleHttpFeaturedModUpdater implements FeaturedModUpdater {
   private final TaskService taskService;
   private final ApplicationContext applicationContext;
 
-  @Inject
+
   public SimpleHttpFeaturedModUpdater(TaskService taskService, ApplicationContext applicationContext) {
     this.taskService = taskService;
     this.applicationContext = applicationContext;

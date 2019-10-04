@@ -23,7 +23,7 @@ public class UninstallMapTask extends CompletableTask<Void> {
 
   private MapBean map;
 
-  @Inject
+
   public UninstallMapTask(MapService mapService) {
     super(Priority.LOW);
     this.mapService = mapService;

@@ -39,7 +39,7 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
 
   private final I18n i18n;
 
-  @Inject
+
   public UrlPreviewResolverImpl(UiService uiService, I18n i18n) {
     this.uiService = uiService;
     this.i18n = i18n;

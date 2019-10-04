@@ -39,7 +39,7 @@ public class AchievementService implements InitializingBean {
   private final PlayerService playerService;
   private final AssetService assetService;
 
-  @Inject
+
   // TODO cut dependencies if possible
   public AchievementService(FafService fafService, PlayerService playerService, AssetService assetService) {
     this.fafService = fafService;

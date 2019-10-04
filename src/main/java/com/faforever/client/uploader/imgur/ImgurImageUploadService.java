@@ -18,7 +18,7 @@ public class ImgurImageUploadService implements ImageUploadService {
   private final TaskService taskService;
   private final ApplicationContext applicationContext;
 
-  @Inject
+
   public ImgurImageUploadService(TaskService taskService, ApplicationContext applicationContext) {
     this.taskService = taskService;
     this.applicationContext = applicationContext;

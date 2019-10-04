@@ -23,7 +23,7 @@ public class TransientNotificationsController implements Controller<Node> {
   private final PreferencesService preferencesService;
   public VBox transientNotificationsRoot;
 
-  @Inject
+
   public TransientNotificationsController(UiService uiService, PreferencesService preferencesService) {
     this.uiService = uiService;
     this.preferencesService = preferencesService;

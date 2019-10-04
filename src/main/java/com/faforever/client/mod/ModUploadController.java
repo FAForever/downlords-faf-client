@@ -65,7 +65,7 @@ public class ModUploadController implements Controller<Node> {
   private ModVersion modVersionInfo;
   private Runnable cancelButtonClickedListener;
 
-  @Inject
+
   public ModUploadController(ModService modService, ThreadPoolExecutor threadPoolExecutor, NotificationService notificationService, ReportingService reportingService, I18n i18n, EventBus eventBus) {
     this.modService = modService;
     this.threadPoolExecutor = threadPoolExecutor;

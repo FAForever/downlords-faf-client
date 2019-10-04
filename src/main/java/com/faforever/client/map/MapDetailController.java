@@ -84,7 +84,7 @@ public class MapDetailController implements Controller<Node> {
   private MapBean map;
   private ListChangeListener<MapBean> installStatusChangeListener;
 
-  @Inject
+
   public MapDetailController(MapService mapService, NotificationService notificationService, I18n i18n,
                              ReportingService reportingService, TimeService timeService, PlayerService playerService,
                              ReviewService reviewService, EventBus eventBus) {

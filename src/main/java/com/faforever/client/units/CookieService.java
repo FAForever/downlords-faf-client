@@ -24,7 +24,7 @@ public class CookieService {
   private final PreferencesService preferencesService;
   private final Map<URI, ArrayList<HttpCookie>> storedCookies;
 
-  @Inject
+
   public CookieService(PreferencesService preferencesService) {
     this.preferencesService = preferencesService;
     Preferences preferences = preferencesService.getPreferences();

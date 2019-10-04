@@ -31,7 +31,7 @@ public class DownloadMapTask extends CompletableTask<Void> {
   private URL mapUrl;
   private String folderName;
 
-  @Inject
+
   public DownloadMapTask(PreferencesService preferencesService, I18n i18n) {
     super(Priority.HIGH);
 

@@ -27,7 +27,7 @@ public class TimeService {
   private final I18n i18n;
   private final PreferencesService preferencesService;
 
-  @Inject
+
   public TimeService(I18n i18n, PreferencesService preferencesService) {
     this.i18n = i18n;
     this.preferencesService = preferencesService;

@@ -76,7 +76,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
 
   private ObjectProperty<ConnectionState> connectionState;
 
-  @Inject
+
   public MockFafServerAccessor(TaskService taskService, NotificationService notificationService, I18n i18n, EventBus eventBus) {
     timer = new Timer("LobbyServerAccessorTimer", true);
     messageListeners = new HashMap<>();

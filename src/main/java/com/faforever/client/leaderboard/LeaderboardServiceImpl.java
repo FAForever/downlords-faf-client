@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 public class LeaderboardServiceImpl implements LeaderboardService {
   private final FafService fafService;
 
-  @Inject
+
   public LeaderboardServiceImpl(FafService fafService) {
     this.fafService = fafService;
   }

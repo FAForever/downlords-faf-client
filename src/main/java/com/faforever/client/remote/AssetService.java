@@ -27,7 +27,7 @@ public class AssetService {
 
   private final PreferencesService preferencesService;
 
-  @Inject
+
   public AssetService(PreferencesService preferencesService) {
     this.preferencesService = preferencesService;
   }

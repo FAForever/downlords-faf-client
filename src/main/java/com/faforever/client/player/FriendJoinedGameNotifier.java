@@ -29,7 +29,7 @@ public class FriendJoinedGameNotifier implements InitializingBean {
   private final PreferencesService preferencesService;
   private final AudioService audioService;
 
-  @Inject
+
   public FriendJoinedGameNotifier(NotificationService notificationService, I18n i18n, EventBus eventBus,
                                   JoinGameHelper joinGameHelper, PreferencesService preferencesService,
                                   AudioService audioService) {

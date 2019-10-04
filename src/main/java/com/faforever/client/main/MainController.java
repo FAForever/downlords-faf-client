@@ -141,7 +141,7 @@ public class MainController implements Controller<Node> {
   private NavigationItem currentItem;
   private BorderlessScene mainScene;
 
-  @Inject
+
   public MainController(PreferencesService preferencesService, I18n i18n, NotificationService notificationService,
                         PlayerService playerService, GameService gameService, ClientUpdateService clientUpdateService,
                         UiService uiService, EventBus eventBus, ClientProperties clientProperties, GamePathHandler gamePathHandler,

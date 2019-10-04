@@ -38,7 +38,7 @@ public class ModUploadTask extends CompletableTask<Void> {
 
   private Path modPath;
 
-  @Inject
+
   public ModUploadTask(PreferencesService preferencesService, FafService fafService, I18n i18n) {
     super(Priority.HIGH);
 

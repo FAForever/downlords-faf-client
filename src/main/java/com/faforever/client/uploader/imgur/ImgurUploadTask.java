@@ -46,7 +46,7 @@ public class ImgurUploadTask extends CompletableTask<String> implements Initiali
   private String baseUrl;
   private String clientId;
 
-  @Inject
+
   public ImgurUploadTask(I18n i18n, ClientProperties clientProperties) {
     super(Priority.HIGH);
     gson = new GsonBuilder().create();

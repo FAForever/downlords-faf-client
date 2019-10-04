@@ -101,7 +101,7 @@ public class CoopController extends AbstractViewController<Node> {
   public TableColumn<CoopResult, Duration> timeColumn;
   public TableColumn<CoopResult, String> replayColumn;
 
-  @Inject
+
   public CoopController(ReplayService replayService, GameService gameService, CoopService coopService,
                         NotificationService notificationService, I18n i18n, ReportingService reportingService,
                         MapService mapService, UiService uiService, TimeService timeService,

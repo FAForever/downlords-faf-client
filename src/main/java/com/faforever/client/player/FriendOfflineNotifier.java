@@ -27,7 +27,7 @@ public class FriendOfflineNotifier implements InitializingBean {
   private final PlayerService playerService;
   private final PreferencesService preferencesService;
 
-  @Inject
+
   public FriendOfflineNotifier(NotificationService notificationService, I18n i18n, EventBus eventBus,
                                AudioService audioService, PlayerService playerService, PreferencesService preferencesService) {
     this.notificationService = notificationService;

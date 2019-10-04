@@ -143,7 +143,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private ChatMessage lastMessage;
   WebEngine engine;
 
-  @Inject
+
   // TODO cut dependencies
   public AbstractChatTabController(WebViewConfigurer webViewConfigurer,
                                    UserService userService, ChatService chatService,

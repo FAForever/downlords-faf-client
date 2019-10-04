@@ -31,7 +31,7 @@ public class ForgedAllianceService {
 
   private final PreferencesService preferencesService;
 
-  @Inject
+
   public ForgedAllianceService(PreferencesService preferencesService) {
     this.preferencesService = preferencesService;
   }

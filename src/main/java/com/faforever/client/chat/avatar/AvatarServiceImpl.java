@@ -23,7 +23,7 @@ public class AvatarServiceImpl implements AvatarService {
   private final FafService fafService;
   private final AssetService assetService;
 
-  @Inject
+
   public AvatarServiceImpl(FafService fafService, AssetService assetService) {
     this.fafService = fafService;
     this.assetService = assetService;

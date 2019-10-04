@@ -70,7 +70,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
 
   private Integer version;
 
-  @Inject
+
   public GameBinariesUpdateTaskImpl(I18n i18n, PreferencesService preferencesService, PlatformService platformService, ClientProperties clientProperties) {
     super(Priority.HIGH);
 

@@ -27,7 +27,7 @@ public class MockLeaderboardService implements LeaderboardService {
   private final TaskService taskService;
   private final I18n i18n;
 
-  @Inject
+
   public MockLeaderboardService(TaskService taskService, I18n i18n) {
     this.taskService = taskService;
     this.i18n = i18n;

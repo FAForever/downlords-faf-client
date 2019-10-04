@@ -35,7 +35,7 @@ public class EnterPasswordController implements Controller<Node> {
   private Game game;
   private boolean ignoreRating;
 
-  @Inject
+
   public EnterPasswordController(UiService uiService) {
     this.uiService = uiService;
   }

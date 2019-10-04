@@ -42,7 +42,7 @@ public class GenerateMapTask extends CompletableTask<Void> {
   @Setter
   private String mapFilename;
 
-  @Inject
+
   public GenerateMapTask(MapGeneratorService mapGeneratorService, ClientProperties clientProperties, NotificationService notificationService, I18n i18n, EventBus eventBus) {
     super(Priority.HIGH);
 

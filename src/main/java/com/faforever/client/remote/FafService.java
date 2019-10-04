@@ -67,7 +67,7 @@ public class FafService {
   private final FafApiAccessor fafApiAccessor;
   private final EventBus eventBus;
 
-  @Inject
+
   public FafService(FafServerAccessor fafServerAccessor, FafApiAccessor fafApiAccessor, EventBus eventBus) {
     this.fafServerAccessor = fafServerAccessor;
     this.fafApiAccessor = fafApiAccessor;

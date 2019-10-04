@@ -42,7 +42,7 @@ public class UserService implements InitializingBean {
   private Integer userId;
   private CompletableFuture<Void> loginFuture;
 
-  @Inject
+
   public UserService(FafService fafService, PreferencesService preferencesService, EventBus eventBus, ApplicationContext applicationContext, TaskService taskService) {
     username = new SimpleStringProperty();
     this.fafService = fafService;

@@ -44,7 +44,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   private boolean userOffline;
 
-  @Inject
+
   // TODO cut dependencies
   public PrivateChatTabController(UserService userService,
                                   PreferencesService preferencesService,

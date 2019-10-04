@@ -30,7 +30,7 @@ public class PlayerCardTooltipController implements Controller<Node> {
   public HBox root;
   public Label friendIconText;
 
-  @Inject
+
   public PlayerCardTooltipController(CountryFlagService countryFlagService, I18n i18n) {
     this.countryFlagService = countryFlagService;
     this.i18n = i18n;

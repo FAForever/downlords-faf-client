@@ -43,7 +43,7 @@ public class GameTooltipController implements Controller<Node> {
   private WeakInvalidationListener weakModChangeListener;
   private int maxPrefColumns;
 
-  @Inject
+
   public GameTooltipController(UiService uiService, PlayerService playerService) {
     this.uiService = uiService;
     this.playerService = playerService;

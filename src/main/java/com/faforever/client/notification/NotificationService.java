@@ -33,10 +33,10 @@ public class NotificationService {
   private final ReportingService reportingService;
 
   // TODO fix circular reference
-  @Inject
+
   private I18n i18n;
 
-  @Inject
+
   public NotificationService(ReportingService reportingService) {
     this.reportingService = reportingService;
 

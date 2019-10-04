@@ -78,7 +78,7 @@ public class ReplayVaultController implements Controller<Node> {
   public TableColumn<Replay, String> gameTypeColumn;
   public TableColumn<Replay, MapBean> mapColumn;
 
-  @Inject
+
   // TODO reduce dependencies
   public ReplayVaultController(NotificationService notificationService, ReplayService replayService, MapService mapService, TaskService taskService, I18n i18n, TimeService timeService, ReportingService reportingService, ApplicationContext applicationContext, UiService uiService) {
     this.notificationService = notificationService;

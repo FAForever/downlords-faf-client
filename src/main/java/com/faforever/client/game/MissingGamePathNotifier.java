@@ -24,7 +24,7 @@ public class MissingGamePathNotifier implements InitializingBean {
   private final I18n i18n;
   private final NotificationService notificationService;
 
-  @Inject
+
   public MissingGamePathNotifier(EventBus eventBus, I18n i18n, NotificationService notificationService) {
     this.eventBus = eventBus;
     this.i18n = i18n;

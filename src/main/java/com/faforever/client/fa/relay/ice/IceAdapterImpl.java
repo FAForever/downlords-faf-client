@@ -75,7 +75,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private LobbyMode lobbyInitMode;
   private JJsonPeer peer;
 
-  @Inject
+
   public IceAdapterImpl(ApplicationContext applicationContext, ClientProperties clientProperties, PlayerService playerService,
                         EventBus eventBus, FafService fafService, PreferencesService preferencesService) {
     this.applicationContext = applicationContext;

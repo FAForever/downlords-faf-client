@@ -32,7 +32,7 @@ public class AchievementUnlockedNotifier implements InitializingBean {
 
   private long lastSoundPlayed;
 
-  @Inject
+
   public AchievementUnlockedNotifier(NotificationService notificationService, I18n i18n, AchievementService achievementService, FafService fafService, AudioService audioService) {
     this.notificationService = notificationService;
     this.i18n = i18n;

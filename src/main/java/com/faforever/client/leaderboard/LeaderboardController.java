@@ -49,7 +49,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public Pane contentPane;
   private KnownFeaturedMod ratingType;
 
-  @Inject
+
   public LeaderboardController(LeaderboardService leaderboardService, NotificationService notificationService, I18n i18n, ReportingService reportingService) {
     this.leaderboardService = leaderboardService;
     this.notificationService = notificationService;

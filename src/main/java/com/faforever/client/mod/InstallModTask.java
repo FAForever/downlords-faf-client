@@ -40,7 +40,7 @@ public class InstallModTask extends CompletableTask<Void> {
 
   private URL url;
 
-  @Inject
+
   public InstallModTask(PreferencesService preferencesService, I18n i18n) {
     super(HIGH);
 

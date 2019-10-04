@@ -39,7 +39,7 @@ public class TrayIconManager implements InitializingBean {
   private final EventBus eventBus;
   private int badgeCount;
 
-  @Inject
+
   public TrayIconManager(I18n i18n, EventBus eventBus) {
     this.i18n = i18n;
     this.eventBus = eventBus;

@@ -53,7 +53,7 @@ public class GameUpdaterImpl implements GameUpdater {
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
 
-  @Inject
+
   public GameUpdaterImpl(ModService modService, ApplicationContext applicationContext, TaskService taskService,
                          FafService fafService, FaInitGenerator faInitGenerator, PreferencesService preferencesService, NotificationService notificationService) {
     this.preferencesService = preferencesService;

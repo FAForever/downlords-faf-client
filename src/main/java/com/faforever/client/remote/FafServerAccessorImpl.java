@@ -139,7 +139,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private CompletableFuture<List<Avatar>> avatarsFuture;
   private CompletableFuture<List<IceServer>> iceServersFuture;
 
-  @Inject
+
   public FafServerAccessorImpl(PreferencesService preferencesService,
                                UidService uidService,
                                NotificationService notificationService,

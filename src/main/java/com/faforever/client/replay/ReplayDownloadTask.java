@@ -35,7 +35,7 @@ public class ReplayDownloadTask extends CompletableTask<Path> {
 
   private int replayId;
 
-  @Inject
+
   public ReplayDownloadTask(I18n i18n, ClientProperties clientProperties, PreferencesService preferencesService) {
     super(Priority.HIGH);
 

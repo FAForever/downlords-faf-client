@@ -45,7 +45,7 @@ public class ModCardController implements Controller<Node> {
   private JFXRippler jfxRippler;
 
 
-  @Inject
+
   public ModCardController(ModService modService, TimeService timeService, I18n i18n) {
     this.modService = modService;
     this.timeService = timeService;

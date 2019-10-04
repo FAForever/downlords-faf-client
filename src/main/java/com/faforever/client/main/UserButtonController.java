@@ -30,7 +30,7 @@ public class UserButtonController implements Controller<Node> {
   public MenuButton userButtonRoot;
   public ImageView userImageView;
 
-  @Inject
+
   public UserButtonController(EventBus eventBus, PlayerService playerService, UiService uiService) {
     this.eventBus = eventBus;
     this.playerService = playerService;

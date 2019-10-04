@@ -16,7 +16,7 @@ public class LoadLocalReplaysTask extends CompletableTask<Collection<Replay>> {
   private final ReplayService replayService;
   private final I18n i18n;
 
-  @Inject
+
   public LoadLocalReplaysTask(ReplayService replayService, I18n i18n) {
     super(Priority.HIGH);
     this.replayService = replayService;

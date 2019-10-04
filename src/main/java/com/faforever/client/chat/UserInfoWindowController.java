@@ -137,7 +137,7 @@ public class UserInfoWindowController implements Controller<Node> {
   private Window ownerWindow;
 
 
-  @Inject
+
   public UserInfoWindowController(StatisticsService statisticsService, CountryFlagService countryFlagService,
                                   AchievementService achievementService, EventService eventService, I18n i18n,
                                   UiService uiService, TimeService timeService,

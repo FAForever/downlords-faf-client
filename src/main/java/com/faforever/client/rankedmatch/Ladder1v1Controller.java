@@ -114,7 +114,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
   private InvalidationListener playerRatingListener;
   private PreferenceUpdateListener preferenceUpdateListener;
 
-  @Inject
+
   public Ladder1v1Controller(GameService gameService,
                              PreferencesService preferencesService,
                              PlayerService playerService,

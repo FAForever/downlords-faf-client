@@ -29,7 +29,7 @@ public class TaskService {
 
   private ObservableList<Worker<?>> unmodifiableObservableList;
 
-  @Inject
+
   public TaskService(Executor executor) {
     this.executor = executor;
 

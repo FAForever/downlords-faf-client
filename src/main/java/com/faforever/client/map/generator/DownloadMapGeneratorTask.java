@@ -42,7 +42,7 @@ public class DownloadMapGeneratorTask extends CompletableTask<Void> {
   @VisibleForTesting
   private String version;
 
-  @Inject
+
   public DownloadMapGeneratorTask(MapGeneratorService mapGeneratorService, ClientProperties clientProperties, I18n i18n, PlatformService platformService) {
     super(Priority.HIGH);
 

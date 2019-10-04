@@ -66,7 +66,7 @@ public class ModDetailController implements Controller<Node> {
   private ModVersion modVersion;
   private ListChangeListener<ModVersion> installStatusChangeListener;
 
-  @Inject
+
   public ModDetailController(ModService modService, NotificationService notificationService, I18n i18n,
                              ReportingService reportingService, TimeService timeService, ReviewService reviewService,
                              PlayerService playerService) {

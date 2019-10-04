@@ -37,7 +37,7 @@ public class AchievementItemController implements Controller<Node> {
   public ImageView imageView;
   private AchievementDefinition achievementDefinition;
 
-  @Inject
+
   public AchievementItemController(I18n i18n, AchievementService achievementService) {
     this.i18n = i18n;
     this.achievementService = achievementService;

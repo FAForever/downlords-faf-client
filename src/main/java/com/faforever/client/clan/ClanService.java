@@ -14,7 +14,7 @@ public class ClanService {
 
   private final FafService fafService;
 
-  @Inject
+
   public ClanService(FafService fafService) {
     this.fafService = fafService;
   }

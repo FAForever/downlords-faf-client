@@ -31,7 +31,7 @@ public class PersistentNotificationsController implements Controller<Node> {
   public Label noNotificationsLabel;
   public Pane persistentNotificationsRoot;
 
-  @Inject
+
   public PersistentNotificationsController(NotificationService notificationService, AudioService audioService, UiService uiService) {
     this.notificationService = notificationService;
     this.audioService = audioService;
