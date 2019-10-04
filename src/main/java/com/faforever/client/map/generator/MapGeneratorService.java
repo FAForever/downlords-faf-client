@@ -11,6 +11,7 @@ import com.google.gson.JsonParser;
 import javafx.scene.image.Image;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
@@ -21,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,7 +36,7 @@ import static com.github.nocatch.NoCatch.noCatch;
 @Lazy
 @Service
 @Slf4j
-public class MapGeneratorService {
+public class MapGeneratorService implements InitializingBean {
 
   /**
    * Naming template for generated maps. It is all lower case because server expects lower case names for maps.
@@ -88,8 +88,8 @@ public class MapGeneratorService {
     }
   }
 
-  @PostConstruct
-  public void postConstruct() {
+  @Override
+  public void afterPropertiesSet() throws Exception {
     deleteGeneratedMaps();
   }
 
