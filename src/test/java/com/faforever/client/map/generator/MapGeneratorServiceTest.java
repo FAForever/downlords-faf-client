@@ -75,7 +75,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
 
     instance = new MapGeneratorService(applicationContext, preferencesService, taskService, clientProperties);
 
-    instance.postConstruct();
+    instance.afterPropertiesSet();
 
     when(downloadMapGeneratorTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
     when(generateMapTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));

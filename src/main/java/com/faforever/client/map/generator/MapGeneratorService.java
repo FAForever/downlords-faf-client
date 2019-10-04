@@ -89,7 +89,7 @@ public class MapGeneratorService implements InitializingBean {
   }
 
   @Override
-  public void afterPropertiesSet() throws Exception {
+  public void afterPropertiesSet() {
     deleteGeneratedMaps();
   }
 
