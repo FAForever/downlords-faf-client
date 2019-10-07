@@ -83,7 +83,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new CreateGameController(fafService, mapService, modService, gameService, preferencesService, i18n, notificationService, reportingService, mapGeneratorService);
+    instance = new CreateGameController(mapService, modService, gameService, preferencesService, i18n, notificationService, reportingService, fafService, mapGeneratorService);
 
     mapList = FXCollections.observableArrayList();
 
@@ -242,7 +242,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testInitGameTypeComboBoxEmpty() throws Exception {
-    instance = new CreateGameController(fafService, mapService, modService, gameService, preferencesService, i18n, notificationService, reportingService, mapGeneratorService);
+    instance = new CreateGameController(mapService, modService, gameService, preferencesService, i18n, notificationService,
+        reportingService, fafService, mapGeneratorService);
     loadFxml("theme/play/create_game.fxml", clazz -> instance);
 
     assertThat(instance.featuredModListView.getItems(), empty());

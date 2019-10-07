@@ -1,6 +1,7 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.game.Faction;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.FactionDeserializer;
@@ -73,6 +74,7 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -107,6 +109,8 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
   @Mock
   private ReportingService reportingService;
+  @Mock
+  private ClientProperties clientProperties;
 
   private FafServerAccessorImpl instance;
   private ServerSocket fafLobbyServerSocket;
@@ -123,13 +127,13 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
     startFakeFafLobbyServer();
 
-    ClientProperties clientProperties = new ClientProperties();
-    clientProperties.getServer()
-        .setHost(LOOPBACK_ADDRESS.getHostAddress())
-        .setPort(fafLobbyServerSocket.getLocalPort());
+    final Server server = mock(Server.class);
+    when(server.getHost()).thenReturn(LOOPBACK_ADDRESS.getHostAddress());
+    when(server.getPort()).thenReturn(fafLobbyServerSocket.getLocalPort());
+    when(clientProperties.getServer()).thenReturn(server);
 
-    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, clientProperties, reportingService);
-
+    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, reportingService, clientProperties);
+    instance.afterPropertiesSet();
     LoginPrefs loginPrefs = new LoginPrefs();
     loginPrefs.setUsername("junit");
     loginPrefs.setPassword("password");

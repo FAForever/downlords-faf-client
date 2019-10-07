@@ -14,6 +14,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -21,16 +22,16 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.CompletableFuture;
 
 @Lazy
 @Service
+@RequiredArgsConstructor
 public class UserService implements InitializingBean {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private final StringProperty username;
+  private final StringProperty username = new SimpleStringProperty();
 
   private final FafService fafService;
   private final PreferencesService preferencesService;
@@ -41,16 +42,6 @@ public class UserService implements InitializingBean {
   private String password;
   private Integer userId;
   private CompletableFuture<Void> loginFuture;
-
-  @Inject
-  public UserService(FafService fafService, PreferencesService preferencesService, EventBus eventBus, ApplicationContext applicationContext, TaskService taskService) {
-    username = new SimpleStringProperty();
-    this.fafService = fafService;
-    this.preferencesService = preferencesService;
-    this.eventBus = eventBus;
-    this.applicationContext = applicationContext;
-    this.taskService = taskService;
-  }
 
 
   public CompletableFuture<Void> login(String username, String password, boolean autoLogin) {

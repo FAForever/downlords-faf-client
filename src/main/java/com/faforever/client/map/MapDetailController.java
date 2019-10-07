@@ -35,18 +35,19 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
+@RequiredArgsConstructor
 public class MapDetailController implements Controller<Node> {
 
   private final MapService mapService;
@@ -83,20 +84,6 @@ public class MapDetailController implements Controller<Node> {
 
   private MapBean map;
   private ListChangeListener<MapBean> installStatusChangeListener;
-
-  @Inject
-  public MapDetailController(MapService mapService, NotificationService notificationService, I18n i18n,
-                             ReportingService reportingService, TimeService timeService, PlayerService playerService,
-                             ReviewService reviewService, EventBus eventBus) {
-    this.mapService = mapService;
-    this.notificationService = notificationService;
-    this.i18n = i18n;
-    this.reportingService = reportingService;
-    this.timeService = timeService;
-    this.playerService = playerService;
-    this.reviewService = reviewService;
-    this.eventBus = eventBus;
-  }
 
   public void initialize() {
     JavaFxUtil.fixScrollSpeed(scrollPane);

@@ -6,7 +6,6 @@ import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -21,18 +20,16 @@ public class AutoCompletionHelper {
   private String autoCompletePartialName;
 
   private TextInputControl boundTextField;
-  private EventHandler<KeyEvent> keyEventHandler;
+  private EventHandler<KeyEvent> keyEventHandler = keyEvent -> {
+    if (!keyEvent.isControlDown() && keyEvent.getCode() == KeyCode.TAB) {
+      keyEvent.consume();
+      autoComplete();
+    }
+  };
   private Function<String, Collection<String>> completionProposalGenerator;
 
-  @Inject
   public AutoCompletionHelper(Function<String, Collection<String>> completionProposalGenerator) {
     this.completionProposalGenerator = completionProposalGenerator;
-    keyEventHandler = keyEvent -> {
-      if (!keyEvent.isControlDown() && keyEvent.getCode() == KeyCode.TAB) {
-        keyEvent.consume();
-        autoComplete();
-      }
-    };
   }
 
   private void autoComplete() {

@@ -7,24 +7,19 @@ import com.faforever.client.util.RatingUtil;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
-
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class RatingChangeLabelController implements Controller<Node> {
   private static final PseudoClass POSITIVE = PseudoClass.getPseudoClass("positive");
   private static final PseudoClass NEGATIVE = PseudoClass.getPseudoClass("negative");
   public Label ratingChangLabelRoot;
   private final I18n i18n;
-
-  @Inject
-  public RatingChangeLabelController(I18n i18n) {
-    this.i18n = i18n;
-  }
 
   @Override
   public Node getRoot() {

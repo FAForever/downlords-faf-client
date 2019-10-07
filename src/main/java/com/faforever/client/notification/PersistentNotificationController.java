@@ -7,11 +7,11 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +20,7 @@ import java.util.List;
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class PersistentNotificationController implements Controller<Node> {
 
   private static final String CSS_STYLE_INFO = "info";
@@ -31,11 +32,6 @@ public class PersistentNotificationController implements Controller<Node> {
   public Label iconLabel;
   public HBox actionButtonsContainer;
   private PersistentNotification notification;
-
-  @Inject
-  public PersistentNotificationController(NotificationService notificationService) {
-    this.notificationService = notificationService;
-  }
 
   /**
    * Sets the notification to display. Populates corresponding UI elements.

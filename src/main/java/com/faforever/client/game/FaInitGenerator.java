@@ -4,13 +4,13 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.commons.mod.MountInfo;
 import com.google.common.base.Joiner;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStreamReader;
@@ -31,16 +31,12 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Lazy
 @Component
+@RequiredArgsConstructor
 public class FaInitGenerator {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final ClassPathResource INIT_TEMPLATE = new ClassPathResource("/fa/init_template.lua");
 
   private final PreferencesService preferencesService;
-
-  @Inject
-  public FaInitGenerator(PreferencesService preferencesService) {
-    this.preferencesService = preferencesService;
-  }
 
   /**
    * Generates the Forged Alliance init file.

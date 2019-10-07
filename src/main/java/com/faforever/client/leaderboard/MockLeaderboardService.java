@@ -5,12 +5,12 @@ import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,16 +22,11 @@ import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 @Lazy
 @Service
 @Profile(FafClientApplication.PROFILE_OFFLINE)
+@RequiredArgsConstructor
 public class MockLeaderboardService implements LeaderboardService {
 
   private final TaskService taskService;
   private final I18n i18n;
-
-  @Inject
-  public MockLeaderboardService(TaskService taskService, I18n i18n) {
-    this.taskService = taskService;
-    this.i18n = i18n;
-  }
 
   @Override
   public CompletableFuture<List<RatingStat>> getLadder1v1Stats() {

@@ -20,13 +20,13 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.concurrent.CancellationException;
@@ -38,6 +38,7 @@ import static java.util.Arrays.asList;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class ModUploadController implements Controller<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -64,16 +65,6 @@ public class ModUploadController implements Controller<Node> {
   private CompletableTask<Void> modUploadTask;
   private ModVersion modVersionInfo;
   private Runnable cancelButtonClickedListener;
-
-  @Inject
-  public ModUploadController(ModService modService, ThreadPoolExecutor threadPoolExecutor, NotificationService notificationService, ReportingService reportingService, I18n i18n, EventBus eventBus) {
-    this.modService = modService;
-    this.threadPoolExecutor = threadPoolExecutor;
-    this.notificationService = notificationService;
-    this.reportingService = reportingService;
-    this.i18n = i18n;
-    this.eventBus = eventBus;
-  }
 
   public void initialize() {
     modInfoPane.managedProperty().bind(modInfoPane.visibleProperty());

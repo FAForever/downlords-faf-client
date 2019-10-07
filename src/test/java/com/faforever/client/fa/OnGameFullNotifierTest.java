@@ -47,7 +47,7 @@ public class OnGameFullNotifierTest {
     MockitoAnnotations.initMocks(this);
 
     instance = new OnGameFullNotifier(platformService, executor, notificationService, i18n,
-        mapService, eventBus, new ClientProperties(), gameService);
+        mapService, eventBus, gameService, new ClientProperties());
     instance.afterPropertiesSet();
 
     doAnswer(invocation -> {

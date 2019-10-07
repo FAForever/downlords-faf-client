@@ -42,6 +42,7 @@ import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
+import lombok.RequiredArgsConstructor;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -50,7 +51,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.ref.WeakReference;
@@ -65,6 +65,7 @@ import static javafx.scene.layout.BackgroundRepeat.NO_REPEAT;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class CreateGameController implements Controller<Pane> {
 
   private static final int MAX_RATING_LENGTH = 4;
@@ -103,19 +104,6 @@ public class CreateGameController implements Controller<Pane> {
    * Remembers if the controller's init method was called, to avoid memory leaks by adding several listeners
    */
   private boolean initialized;
-
-  @Inject
-  public CreateGameController(FafService fafService, MapService mapService, ModService modService, GameService gameService, PreferencesService preferencesService, I18n i18n, NotificationService notificationService, ReportingService reportingService, MapGeneratorService mapGeneratorService) {
-    this.mapService = mapService;
-    this.modService = modService;
-    this.gameService = gameService;
-    this.preferencesService = preferencesService;
-    this.i18n = i18n;
-    this.notificationService = notificationService;
-    this.reportingService = reportingService;
-    this.fafService = fafService;
-    this.mapGeneratorService = mapGeneratorService;
-  }
 
   public void initialize() {
     versionLabel.managedProperty().bind(versionLabel.visibleProperty());

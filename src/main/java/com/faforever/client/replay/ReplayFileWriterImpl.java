@@ -7,12 +7,12 @@ import com.faforever.commons.io.Bytes;
 import com.faforever.commons.replay.QtCompress;
 import com.google.common.io.BaseEncoding;
 import com.google.gson.Gson;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -25,23 +25,15 @@ import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
 @Lazy
 @Component
+@RequiredArgsConstructor
 public class ReplayFileWriterImpl implements ReplayFileWriter {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private final Gson gson;
+  private final Gson gson = ReplayFiles.gson();
 
   private final I18n i18n;
   private final ClientProperties clientProperties;
   private final PreferencesService preferencesService;
-
-  @Inject
-  public ReplayFileWriterImpl(I18n i18n, ClientProperties clientProperties, PreferencesService preferencesService) {
-    this.i18n = i18n;
-    this.clientProperties = clientProperties;
-    this.preferencesService = preferencesService;
-
-    gson = ReplayFiles.gson();
-  }
 
   @Override
   public void writeReplayDataToFile(ByteArrayOutputStream replayData, LocalReplayInfo replayInfo) throws IOException {

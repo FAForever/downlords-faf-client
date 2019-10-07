@@ -74,12 +74,13 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
@@ -98,15 +99,16 @@ import static javafx.scene.layout.Background.EMPTY;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
+@RequiredArgsConstructor
 // TODO divide and conquer
-public class MainController implements Controller<Node> {
+public class MainController implements Controller<Node>, InitializingBean {
   private static final PseudoClass NOTIFICATION_INFO_PSEUDO_CLASS = PseudoClass.getPseudoClass("info");
   private static final PseudoClass NOTIFICATION_WARN_PSEUDO_CLASS = PseudoClass.getPseudoClass("warn");
   private static final PseudoClass NOTIFICATION_ERROR_PSEUDO_CLASS = PseudoClass.getPseudoClass("error");
   private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
   @VisibleForTesting
   protected static final PseudoClass MAIN_MINIMIZED = PseudoClass.getPseudoClass("minimized");
-  private final Cache<NavigationItem, AbstractViewController<?>> viewCache;
+  private final Cache<NavigationItem, AbstractViewController<?>> viewCache = CacheBuilder.newBuilder().build();
   private final PreferencesService preferencesService;
   private final I18n i18n;
   private final NotificationService notificationService;
@@ -115,11 +117,12 @@ public class MainController implements Controller<Node> {
   private final ClientUpdateService clientUpdateService;
   private final UiService uiService;
   private final EventBus eventBus;
-  private final String mainWindowTitle;
-  private final int ratingBeta;
   private final GamePathHandler gamePathHandler;
   private final PlatformService platformService;
   private final VaultFileSystemLocationChecker vaultFileSystemLocationChecker;
+  private final ClientProperties clientProperties;
+  private String mainWindowTitle;
+  private int ratingBeta;
   public Pane mainHeaderPane;
   public Labeled notificationsBadge;
   public Pane contentPane;
@@ -140,28 +143,6 @@ public class MainController implements Controller<Node> {
   Popup persistentNotificationsPopup;
   private NavigationItem currentItem;
   private BorderlessScene mainScene;
-
-  @Inject
-  public MainController(PreferencesService preferencesService, I18n i18n, NotificationService notificationService,
-                        PlayerService playerService, GameService gameService, ClientUpdateService clientUpdateService,
-                        UiService uiService, EventBus eventBus, ClientProperties clientProperties, GamePathHandler gamePathHandler,
-                        PlatformService platformService, VaultFileSystemLocationChecker vaultFileSystemLocationChecker) {
-    this.preferencesService = preferencesService;
-    this.i18n = i18n;
-    this.notificationService = notificationService;
-    this.playerService = playerService;
-    this.gameService = gameService;
-    this.clientUpdateService = clientUpdateService;
-    this.uiService = uiService;
-    this.eventBus = eventBus;
-
-    this.mainWindowTitle = clientProperties.getMainWindowTitle();
-    this.ratingBeta = clientProperties.getTrueSkill().getBeta();
-    this.gamePathHandler = gamePathHandler;
-    this.platformService = platformService;
-    this.vaultFileSystemLocationChecker = vaultFileSystemLocationChecker;
-    this.viewCache = CacheBuilder.newBuilder().build();
-  }
 
   public void initialize() {
     newsButton.setUserData(NavigationItem.NEWS);
@@ -601,6 +582,12 @@ public class MainController implements Controller<Node> {
     uiService.showInDialog(mainRoot, root, i18n.get("help.title"));
 
     root.requestFocus();
+  }
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    this.mainWindowTitle = clientProperties.getMainWindowTitle();
+    this.ratingBeta = clientProperties.getTrueSkill().getBeta();
   }
 
   public class ToastDisplayer implements InvalidationListener {

@@ -5,12 +5,12 @@ import com.faforever.client.fa.relay.ice.event.GpgGameMessageEvent;
 import com.faforever.client.fa.relay.ice.event.IceAdapterStateChanged;
 import com.faforever.client.remote.FafService;
 import com.google.common.eventbus.EventBus;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.List;
 
 /**
@@ -19,16 +19,11 @@ import java.util.List;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
+@RequiredArgsConstructor
 public class IceAdapterCallbacks {
 
   private final EventBus eventBus;
   private final FafService fafService;
-
-  @Inject
-  public IceAdapterCallbacks(EventBus eventBus, FafService fafService) {
-    this.eventBus = eventBus;
-    this.fafService = fafService;
-  }
 
   public void onConnectionStateChanged(String newState) {
     log.debug("ICE adapter connection state changed to: {}", newState);

@@ -4,10 +4,10 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.TimeInfo;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -22,16 +22,11 @@ import java.util.TimeZone;
 
 @Lazy
 @Service
+@RequiredArgsConstructor
 public class TimeService {
 
   private final I18n i18n;
   private final PreferencesService preferencesService;
-
-  @Inject
-  public TimeService(I18n i18n, PreferencesService preferencesService) {
-    this.i18n = i18n;
-    this.preferencesService = preferencesService;
-  }
 
   /**
    * A string as "10 minutes ago"

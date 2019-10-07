@@ -4,6 +4,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.main.MainController;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
@@ -87,7 +88,7 @@ public class FafClientApplication extends Application {
     Font.loadFont(FafClientApplication.class.getResourceAsStream("/font/dfc-icons.ttf"), 10);
     JavaFxUtil.fixTooltipDuration();
 
-    applicationContext = new SpringApplicationBuilder(FafClientApplication.class)
+    applicationContext = new SpringApplicationBuilder(FafClientApplication.class, ForgedAlliancePrefs.class)
         .profiles(getAdditionalProfiles())
         .bannerMode(Mode.OFF)
         .run(getParameters().getRaw().toArray(new String[0]));

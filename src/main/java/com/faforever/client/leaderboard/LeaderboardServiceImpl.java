@@ -4,11 +4,11 @@ import com.faforever.client.FafClientApplication;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.util.RatingUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -19,13 +19,9 @@ import java.util.stream.Stream;
 @Lazy
 @Service
 @Profile("!" + FafClientApplication.PROFILE_OFFLINE)
+@RequiredArgsConstructor
 public class LeaderboardServiceImpl implements LeaderboardService {
   private final FafService fafService;
-
-  @Inject
-  public LeaderboardServiceImpl(FafService fafService) {
-    this.fafService = fafService;
-  }
 
   @Override
   public CompletableFuture<List<RatingStat>> getLadder1v1Stats() {

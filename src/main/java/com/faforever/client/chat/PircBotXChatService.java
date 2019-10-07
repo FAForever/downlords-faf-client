@@ -37,6 +37,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.scene.paint.Color;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.pircbotx.Configuration;
@@ -68,7 +69,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -97,22 +97,12 @@ import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 @Service
 @Slf4j
 @Profile("!" + FafClientApplication.PROFILE_OFFLINE)
+@RequiredArgsConstructor
 public class PircBotXChatService implements ChatService, InitializingBean, DisposableBean {
 
   private static final List<UserLevel> MODERATOR_USER_LEVELS = Arrays.asList(UserLevel.OP, UserLevel.HALFOP, UserLevel.SUPEROP, UserLevel.OWNER);
   private static final int SOCKET_TIMEOUT = 10000;
   private static final String NEWBIE_CHANNEL_NAME = "#newbie";
-  
-  @VisibleForTesting
-  final ObjectProperty<ConnectionState> connectionState;
-  private final Map<Class<? extends GenericEvent>, ArrayList<ChatEventListener>> eventListeners;
-  /**
-   * Maps channels by name.
-   */
-  private final ObservableMap<String, Channel> channels;
-  /** Key is the result of {@link #mapKey(String, String)}. */
-  private final ObservableMap<String, ChatChannelUser> chatChannelUsersByChannelAndName;
-  private final SimpleIntegerProperty unreadMessagesCount;
 
   private final PreferencesService preferencesService;
   private final UserService userService;
@@ -125,6 +115,17 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
   private final ClientProperties clientProperties;
   private final PlayerService playerService;
   private String defaultChannelName;
+
+  @VisibleForTesting
+  ObjectProperty<ConnectionState> connectionState;
+  private Map<Class<? extends GenericEvent>, ArrayList<ChatEventListener>> eventListeners;
+  /**
+   * Maps channels by name.
+   */
+  private ObservableMap<String, Channel> channels;
+  /** Key is the result of {@link #mapKey(String, String)}. */
+  private ObservableMap<String, ChatChannelUser> chatChannelUsersByChannelAndName;
+  private SimpleIntegerProperty unreadMessagesCount;
 
   private Configuration configuration;
   private PircBotX pircBotX;
@@ -141,33 +142,15 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
    */
   private boolean autoChannelsJoined;
 
-  @Inject
-  public PircBotXChatService(PreferencesService preferencesService, UserService userService, TaskService taskService,
-                             FafService fafService, I18n i18n, PircBotXFactory pircBotXFactory,
-                             @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") ThreadPoolExecutor threadPoolExecutor,
-                             EventBus eventBus, ClientProperties clientProperties, PlayerService playerService) {
-    this.preferencesService = preferencesService;
-    this.userService = userService;
-    this.taskService = taskService;
-    this.fafService = fafService;
-    this.i18n = i18n;
-    this.pircBotXFactory = pircBotXFactory;
-    this.threadPoolExecutor = threadPoolExecutor;
-    this.eventBus = eventBus;
-    this.clientProperties = clientProperties;
-    this.playerService = playerService;
-
+  @Override
+  public void afterPropertiesSet() {
+    eventBus.register(this);
     connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
     eventListeners = new ConcurrentHashMap<>();
     channels = observableHashMap();
     chatChannelUsersByChannelAndName = observableMap(new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
     unreadMessagesCount = new SimpleIntegerProperty();
     identifiedFuture = new CompletableFuture<>();
-  }
-
-  @Override
-  public void afterPropertiesSet() {
-    eventBus.register(this);
     fafService.addOnMessageListener(SocialMessage.class, this::onSocialMessage);
     connectionState.addListener((observable, oldValue, newValue) -> {
       switch (newValue) {

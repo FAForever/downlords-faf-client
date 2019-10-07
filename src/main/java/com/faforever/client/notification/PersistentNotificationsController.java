@@ -8,11 +8,11 @@ import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -22,23 +22,15 @@ import java.util.Set;
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class PersistentNotificationsController implements Controller<Node> {
 
-  private final Map<PersistentNotification, Node> notificationsToNode;
+  private final Map<PersistentNotification, Node> notificationsToNode = new HashMap<>();
   private final NotificationService notificationService;
   private final AudioService audioService;
   private final UiService uiService;
   public Label noNotificationsLabel;
   public Pane persistentNotificationsRoot;
-
-  @Inject
-  public PersistentNotificationsController(NotificationService notificationService, AudioService audioService, UiService uiService) {
-    this.notificationService = notificationService;
-    this.audioService = audioService;
-    this.uiService = uiService;
-
-    notificationsToNode = new HashMap<>();
-  }
 
   public void initialize() {
     addNotifications(notificationService.getPersistentNotifications());

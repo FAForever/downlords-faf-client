@@ -14,14 +14,14 @@ import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.MenuButton;
 import javafx.scene.image.ImageView;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
-
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class UserButtonController implements Controller<Node> {
 
   private final EventBus eventBus;
@@ -29,13 +29,6 @@ public class UserButtonController implements Controller<Node> {
   private final UiService uiService;
   public MenuButton userButtonRoot;
   public ImageView userImageView;
-
-  @Inject
-  public UserButtonController(EventBus eventBus, PlayerService playerService, UiService uiService) {
-    this.eventBus = eventBus;
-    this.playerService = playerService;
-    this.uiService = uiService;
-  }
 
   public void initialize() {
     eventBus.register(this);

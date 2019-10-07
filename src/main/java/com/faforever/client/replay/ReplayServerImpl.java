@@ -11,12 +11,12 @@ import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import com.google.common.primitives.Bytes;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -36,6 +36,7 @@ import static com.github.nocatch.NoCatch.noCatch;
 @Lazy
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class ReplayServerImpl implements ReplayServer {
 
   /**
@@ -61,17 +62,6 @@ public class ReplayServerImpl implements ReplayServer {
   private LocalReplayInfo replayInfo;
   private ServerSocket serverSocket;
   private boolean stoppedGracefully;
-
-  @Inject
-  public ReplayServerImpl(ClientProperties clientProperties, NotificationService notificationService, I18n i18n,
-                          UserService userService, ReplayFileWriter replayFileWriter, ClientUpdateService clientUpdateService) {
-    this.clientProperties = clientProperties;
-    this.notificationService = notificationService;
-    this.i18n = i18n;
-    this.userService = userService;
-    this.replayFileWriter = replayFileWriter;
-    this.clientUpdateService = clientUpdateService;
-  }
 
   /**
    * Returns the current millis the same way as python does since this is what's stored in the replay files *yay*.

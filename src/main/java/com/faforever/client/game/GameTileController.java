@@ -18,14 +18,13 @@ import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import javax.inject.Inject;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
@@ -40,6 +39,7 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
+@RequiredArgsConstructor
 public class GameTileController implements Controller<Node> {
 
   private final MapService mapService;
@@ -59,15 +59,6 @@ public class GameTileController implements Controller<Node> {
   public ImageView mapImageView;
   private Consumer<Game> onSelectedListener;
   private Game game;
-
-  @Inject
-  public GameTileController(MapService mapService, I18n i18n, JoinGameHelper joinGameHelper, ModService modService, PlayerService playerService) {
-    this.mapService = mapService;
-    this.i18n = i18n;
-    this.joinGameHelper = joinGameHelper;
-    this.modService = modService;
-    this.playerService = playerService;
-  }
 
   public void setOnSelectedListener(Consumer<Game> onSelectedListener) {
     this.onSelectedListener = onSelectedListener;

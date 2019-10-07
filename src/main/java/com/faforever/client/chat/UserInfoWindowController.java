@@ -50,13 +50,13 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import javafx.util.StringConverter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -86,6 +86,7 @@ import static javafx.collections.FXCollections.observableList;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class UserInfoWindowController implements Controller<Node> {
   private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMM");
 
@@ -132,31 +133,9 @@ public class UserInfoWindowController implements Controller<Node> {
   public TableColumn<NameRecord, OffsetDateTime> changeDateColumn;
   public TableColumn<NameRecord, String> nameColumn;
   private Player player;
-  private Map<String, AchievementItemController> achievementItemById;
-  private Map<String, AchievementDefinition> achievementDefinitionById;
+  private Map<String, AchievementItemController> achievementItemById = new HashMap<>();
+  private Map<String, AchievementDefinition> achievementDefinitionById= new HashMap<>();
   private Window ownerWindow;
-
-
-  @Inject
-  public UserInfoWindowController(StatisticsService statisticsService, CountryFlagService countryFlagService,
-                                  AchievementService achievementService, EventService eventService, I18n i18n,
-                                  UiService uiService, TimeService timeService,
-                                  NotificationService notificationService, PlayerService playerService,
-                                  LeaderboardService leaderboardService) {
-    this.statisticsService = statisticsService;
-    this.countryFlagService = countryFlagService;
-    this.achievementService = achievementService;
-    this.eventService = eventService;
-    this.playerService = playerService;
-    this.i18n = i18n;
-    this.uiService = uiService;
-    this.timeService = timeService;
-    this.notificationService = notificationService;
-    this.leaderboardService = leaderboardService;
-
-    achievementItemById = new HashMap<>();
-    achievementDefinitionById = new HashMap<>();
-  }
 
   private static boolean isUnlocked(PlayerAchievement playerAchievement) {
     return UNLOCKED == AchievementState.valueOf(playerAchievement.getState().name());

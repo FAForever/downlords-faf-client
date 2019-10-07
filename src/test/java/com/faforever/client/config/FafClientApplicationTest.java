@@ -3,6 +3,7 @@ package com.faforever.client.config;
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.legacy.UidService;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.base.Stopwatch;
 import javafx.stage.Stage;
@@ -30,6 +31,7 @@ public class FafClientApplicationTest extends AbstractPlainJavaFxTest {
         context.getBeanFactory().registerSingleton("hostService", mock(PlatformService.class));
         context.getBeanFactory().registerSingleton("stage", new Stage());
         context.getBeanFactory().registerSingleton("uidService", mock(UidService.class));
+        context.register(ForgedAlliancePrefs.class);
         context.register(FafClientApplication.class);
         context.refresh();
         logger.debug("Loading application context took {}", stopwatch.stop());

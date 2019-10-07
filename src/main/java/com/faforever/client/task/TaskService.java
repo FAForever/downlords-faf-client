@@ -3,12 +3,12 @@ package com.faforever.client.task;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.Executor;
 
@@ -20,22 +20,15 @@ import java.util.concurrent.Executor;
  */
 @Lazy
 @Service
+@RequiredArgsConstructor
 public class TaskService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final Executor executor;
-  private final ObservableList<Worker<?>> activeTasks;
+  private final ObservableList<Worker<?>> activeTasks = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
 
-  private ObservableList<Worker<?>> unmodifiableObservableList;
-
-  @Inject
-  public TaskService(Executor executor) {
-    this.executor = executor;
-
-    activeTasks = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
-    unmodifiableObservableList = FXCollections.unmodifiableObservableList(activeTasks);
-  }
+  private ObservableList<Worker<?>> unmodifiableObservableList = FXCollections.unmodifiableObservableList(activeTasks);
 
   /**
    * Submits a task for execution in background.

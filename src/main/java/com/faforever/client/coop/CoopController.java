@@ -45,12 +45,12 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.scene.web.WebView;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
@@ -66,6 +66,7 @@ import static javafx.collections.FXCollections.observableList;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
+@RequiredArgsConstructor
 public class CoopController extends AbstractViewController<Node> {
 
   private static final Predicate<Game> OPEN_COOP_GAMES_PREDICATE = gameInfoBean ->
@@ -100,24 +101,6 @@ public class CoopController extends AbstractViewController<Node> {
   public TableColumn<CoopResult, Boolean> secondaryObjectivesColumn;
   public TableColumn<CoopResult, Duration> timeColumn;
   public TableColumn<CoopResult, String> replayColumn;
-
-  @Inject
-  public CoopController(ReplayService replayService, GameService gameService, CoopService coopService,
-                        NotificationService notificationService, I18n i18n, ReportingService reportingService,
-                        MapService mapService, UiService uiService, TimeService timeService,
-                        WebViewConfigurer webViewConfigurer, ModService modService) {
-    this.replayService = replayService;
-    this.gameService = gameService;
-    this.coopService = coopService;
-    this.notificationService = notificationService;
-    this.i18n = i18n;
-    this.reportingService = reportingService;
-    this.mapService = mapService;
-    this.uiService = uiService;
-    this.timeService = timeService;
-    this.webViewConfigurer = webViewConfigurer;
-    this.modService = modService;
-  }
 
   public void initialize() {
     missionComboBox.setCellFactory(param -> missionListCell());

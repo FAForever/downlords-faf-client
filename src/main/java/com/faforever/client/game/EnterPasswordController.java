@@ -13,14 +13,14 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
-
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class EnterPasswordController implements Controller<Node> {
 
   private final UiService uiService;
@@ -34,11 +34,6 @@ public class EnterPasswordController implements Controller<Node> {
   private OnPasswordEnteredListener listener;
   private Game game;
   private boolean ignoreRating;
-
-  @Inject
-  public EnterPasswordController(UiService uiService) {
-    this.uiService = uiService;
-  }
 
   public void initialize() {
     loginErrorLabel.setVisible(false); // ToDo: manage negative logins

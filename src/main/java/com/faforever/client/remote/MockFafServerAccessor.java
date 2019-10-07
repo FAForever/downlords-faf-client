@@ -32,13 +32,13 @@ import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.util.Arrays;
@@ -61,31 +61,21 @@ import static java.util.Collections.singletonList;
 @Lazy
 @Component
 @Profile(FafClientApplication.PROFILE_OFFLINE)
+@RequiredArgsConstructor
 // NOSONAR
 public class MockFafServerAccessor implements FafServerAccessor {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String USER_NAME = "MockUser";
-  private final Timer timer;
-  private final HashMap<Class<? extends ServerMessage>, Collection<Consumer<ServerMessage>>> messageListeners;
+  private final Timer timer = new Timer("LobbyServerAccessorTimer", true);
+  private final HashMap<Class<? extends ServerMessage>, Collection<Consumer<ServerMessage>>> messageListeners = new HashMap<>();
 
   private final TaskService taskService;
   private final NotificationService notificationService;
   private final I18n i18n;
   private final EventBus eventBus;
 
-  private ObjectProperty<ConnectionState> connectionState;
-
-  @Inject
-  public MockFafServerAccessor(TaskService taskService, NotificationService notificationService, I18n i18n, EventBus eventBus) {
-    timer = new Timer("LobbyServerAccessorTimer", true);
-    messageListeners = new HashMap<>();
-    connectionState = new SimpleObjectProperty<>();
-    this.taskService = taskService;
-    this.notificationService = notificationService;
-    this.i18n = i18n;
-    this.eventBus = eventBus;
-  }
+  private ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>();
 
   @Override
   @SuppressWarnings("unchecked")

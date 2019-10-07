@@ -10,26 +10,19 @@ import com.faforever.client.preferences.PreferencesService;
 import com.google.common.base.Strings;
 import javafx.scene.Node;
 import javafx.scene.web.WebView;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
-
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class UnitsController extends AbstractViewController<Node> {
   private final ClientProperties clientProperties;
   private final PreferencesService preferencesService;
   private final CookieService cookieService;
   public WebView unitsRoot;
-
-  @Inject
-  public UnitsController(ClientProperties clientProperties1, PreferencesService preferencesService, CookieService cookieService) {
-    this.clientProperties = clientProperties1;
-    this.preferencesService = preferencesService;
-    this.cookieService = cookieService;
-  }
 
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {

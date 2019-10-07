@@ -102,8 +102,8 @@ public class ModServiceTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ModService(taskService, fafService, preferencesService, applicationContext,
-        notificationService, i18n, platformService, assetService);
+    instance = new ModService(fafService, preferencesService, taskService, applicationContext, notificationService, i18n,
+        platformService, assetService);
 
     gamePrefsPath = faDataDirectory.getRoot().toPath().resolve("game.prefs");
 

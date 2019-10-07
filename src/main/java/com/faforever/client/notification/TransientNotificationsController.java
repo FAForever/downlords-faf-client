@@ -9,25 +9,19 @@ import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
-
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class TransientNotificationsController implements Controller<Node> {
 
   private final UiService uiService;
   private final PreferencesService preferencesService;
   public VBox transientNotificationsRoot;
-
-  @Inject
-  public TransientNotificationsController(UiService uiService, PreferencesService preferencesService) {
-    this.uiService = uiService;
-    this.preferencesService = preferencesService;
-  }
 
   public void initialize() {
     ToastPosition toastPosition = preferencesService.getPreferences().getNotification().getToastPosition();

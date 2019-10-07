@@ -14,15 +14,16 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.Objects;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 // TODO this class should not use API objects
 public class AchievementItemController implements Controller<Node> {
 
@@ -36,12 +37,6 @@ public class AchievementItemController implements Controller<Node> {
   public Label progressLabel;
   public ImageView imageView;
   private AchievementDefinition achievementDefinition;
-
-  @Inject
-  public AchievementItemController(I18n i18n, AchievementService achievementService) {
-    this.i18n = i18n;
-    this.achievementService = achievementService;
-  }
 
   public void initialize() {
     progressBar.managedProperty().bind(progressBar.visibleProperty());

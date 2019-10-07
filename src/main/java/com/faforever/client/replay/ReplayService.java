@@ -30,6 +30,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.net.UrlEscapers;
 import com.google.common.primitives.Bytes;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.util.StringUtils;
@@ -41,7 +42,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -79,6 +79,7 @@ import static java.util.Collections.singletonList;
 @Lazy
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ReplayService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -110,28 +111,6 @@ public class ReplayService {
   private final FafService fafService;
   private final ModService modService;
   private final MapService mapService;
-
-  @Inject
-  public ReplayService(ClientProperties clientProperties, PreferencesService preferencesService,
-                       ReplayFileReader replayFileReader, NotificationService notificationService,
-                       GameService gameService, TaskService taskService, I18n i18n,
-                       ReportingService reportingService, ApplicationContext applicationContext,
-                       PlatformService platformService, FafService fafService,
-                       ModService modService, MapService mapService) {
-    this.clientProperties = clientProperties;
-    this.preferencesService = preferencesService;
-    this.replayFileReader = replayFileReader;
-    this.notificationService = notificationService;
-    this.gameService = gameService;
-    this.taskService = taskService;
-    this.i18n = i18n;
-    this.reportingService = reportingService;
-    this.applicationContext = applicationContext;
-    this.platformService = platformService;
-    this.fafService = fafService;
-    this.modService = modService;
-    this.mapService = mapService;
-  }
 
   @VisibleForTesting
   static Integer parseSupComVersion(byte[] rawReplayBytes) {

@@ -15,15 +15,16 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.List;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
+@RequiredArgsConstructor
 public class GameTooltipController implements Controller<Node> {
 
   private final UiService uiService;
@@ -42,12 +43,6 @@ public class GameTooltipController implements Controller<Node> {
   private WeakInvalidationListener weakTeamChangeListener;
   private WeakInvalidationListener weakModChangeListener;
   private int maxPrefColumns;
-
-  @Inject
-  public GameTooltipController(UiService uiService, PlayerService playerService) {
-    this.uiService = uiService;
-    this.playerService = playerService;
-  }
 
   public void initialize() {
     modsPane.managedProperty().bind(modsPane.visibleProperty());

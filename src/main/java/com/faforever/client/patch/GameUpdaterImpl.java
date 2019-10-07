@@ -11,12 +11,12 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.ProgrammingError;
 import com.faforever.commons.mod.MountInfo;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.context.ApplicationContext;
 
-import javax.inject.Inject;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,13 +38,14 @@ import static com.faforever.client.game.KnownFeaturedMod.FAF_DEVELOP;
 import static com.faforever.client.game.KnownFeaturedMod.LADDER_1V1;
 
 @Slf4j
+@RequiredArgsConstructor
 public class GameUpdaterImpl implements GameUpdater {
 
   private static final List<String> NAMES_OF_FEATURED_BASE_MODS = Stream.of(FAF, FAF_BETA, FAF_DEVELOP, BALANCE_TESTING, LADDER_1V1)
       .map(KnownFeaturedMod::getTechnicalName)
       .collect(Collectors.toList());
 
-  private final List<FeaturedModUpdater> featuredModUpdaters;
+  private final List<FeaturedModUpdater> featuredModUpdaters = new ArrayList<>();
   private final ModService modService;
   private final ApplicationContext applicationContext;
   private final TaskService taskService;
@@ -52,19 +53,6 @@ public class GameUpdaterImpl implements GameUpdater {
   private final FaInitGenerator faInitGenerator;
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
-
-  @Inject
-  public GameUpdaterImpl(ModService modService, ApplicationContext applicationContext, TaskService taskService,
-                         FafService fafService, FaInitGenerator faInitGenerator, PreferencesService preferencesService, NotificationService notificationService) {
-    this.preferencesService = preferencesService;
-    this.modService = modService;
-    this.applicationContext = applicationContext;
-    this.taskService = taskService;
-    this.fafService = fafService;
-    this.faInitGenerator = faInitGenerator;
-    this.notificationService = notificationService;
-    featuredModUpdaters = new ArrayList<>();
-  }
 
   @Override
   public GameUpdater addFeaturedModUpdater(FeaturedModUpdater featuredModUpdater) {

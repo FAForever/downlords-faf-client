@@ -87,6 +87,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     instance = new Ladder1v1Controller(gameService, preferencesService, playerService, leaderboardService, i18n,
         new ClientProperties(), eventBus);
+    instance.afterPropertiesSet();
 
     Player player = new Player(USERNAME);
     player.setId(PLAYER_ID);
@@ -179,6 +180,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
     when(forgedAlliancePrefs.getPath()).thenReturn(null);
 
     instance.onPlayButtonClicked();
+    instance.afterPropertiesSet();
 
     verify(gameService, never()).startSearchLadder1v1(any());
     verify(eventBus).post(new MissingGamePathEvent(true));

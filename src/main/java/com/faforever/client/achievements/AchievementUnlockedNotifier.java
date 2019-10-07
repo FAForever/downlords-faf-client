@@ -9,17 +9,18 @@ import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.UpdatedAchievement;
 import com.faforever.client.remote.UpdatedAchievementsMessage;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.springframework.beans.factory.InitializingBean;
 
-import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 
 @Lazy
 @Component
+@RequiredArgsConstructor
 public class AchievementUnlockedNotifier implements InitializingBean {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -31,15 +32,6 @@ public class AchievementUnlockedNotifier implements InitializingBean {
   private final AudioService audioService;
 
   private long lastSoundPlayed;
-
-  @Inject
-  public AchievementUnlockedNotifier(NotificationService notificationService, I18n i18n, AchievementService achievementService, FafService fafService, AudioService audioService) {
-    this.notificationService = notificationService;
-    this.i18n = i18n;
-    this.achievementService = achievementService;
-    this.fafService = fafService;
-    this.audioService = audioService;
-  }
 
   @Override
   public void afterPropertiesSet() {

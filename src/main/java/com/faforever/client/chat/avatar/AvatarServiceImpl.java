@@ -3,11 +3,11 @@ package com.faforever.client.chat.avatar;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
 import javafx.scene.image.Image;
+import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.List;
@@ -18,16 +18,11 @@ import static com.github.nocatch.NoCatch.noCatch;
 
 @Lazy
 @Service
+@RequiredArgsConstructor
 public class AvatarServiceImpl implements AvatarService {
 
   private final FafService fafService;
   private final AssetService assetService;
-
-  @Inject
-  public AvatarServiceImpl(FafService fafService, AssetService assetService) {
-    this.fafService = fafService;
-    this.assetService = assetService;
-  }
 
   @Override
   @Cacheable(AVATARS)

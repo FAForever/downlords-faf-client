@@ -13,11 +13,10 @@ import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.util.ProgrammingError;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.InitializingBean;
 
-
-import javax.inject.Inject;
 import java.util.concurrent.Executor;
 
 import static com.github.nocatch.NoCatch.noCatch;
@@ -29,6 +28,7 @@ import static java.lang.Thread.sleep;
  */
 
 @Component
+@RequiredArgsConstructor
 public class OnGameFullNotifier implements InitializingBean {
 
   private final PlatformService platformService;
@@ -38,24 +38,12 @@ public class OnGameFullNotifier implements InitializingBean {
   private final MapService mapService;
   private final EventBus eventBus;
   private final GameService gameService;
-  private final String faWindowTitle;
-
-  @Inject
-  public OnGameFullNotifier(PlatformService platformService, Executor executor, NotificationService notificationService,
-                            I18n i18n, MapService mapService, EventBus eventBus, ClientProperties clientProperties,
-                            GameService gameService) {
-    this.platformService = platformService;
-    this.executor = executor;
-    this.notificationService = notificationService;
-    this.i18n = i18n;
-    this.mapService = mapService;
-    this.eventBus = eventBus;
-    this.faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
-    this.gameService = gameService;
-  }
+  private final ClientProperties clientProperties;
+  private String faWindowTitle;
 
   @Override
   public void afterPropertiesSet() {
+    this.faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
     eventBus.register(this);
   }
 

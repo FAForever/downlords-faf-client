@@ -29,6 +29,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
+import lombok.RequiredArgsConstructor;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,7 +46,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
@@ -75,6 +75,7 @@ import static java.util.stream.Collectors.toCollection;
 
 @Lazy
 @Service
+@RequiredArgsConstructor
 public class MapService implements InitializingBean, DisposableBean {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -87,13 +88,13 @@ public class MapService implements InitializingBean, DisposableBean {
   private final I18n i18n;
   private final UiService uiService;
   private final MapGeneratorService mapGeneratorService;
+  private final ClientProperties clientProperties;
   private final EventBus eventBus;
-
-  private final String mapDownloadUrlFormat;
-  private final String mapPreviewUrlFormat;
   private final ForgedAlliancePrefs forgedAlliancePreferences;
 
-  private Map<Path, MapBean> pathToMap;
+  private String mapDownloadUrlFormat;
+  private String mapPreviewUrlFormat;
+  private Map<Path, MapBean> pathToMap = new HashMap<>();
   private ObservableList<MapBean> installedSkirmishMaps;
   private Map<String, MapBean> mapsByFolderName;
   private Thread directoryWatcherThread;
@@ -108,27 +109,20 @@ public class MapService implements InitializingBean, DisposableBean {
       "X1MP_005", "X1MP_006", "X1MP_007", "X1MP_008", "X1MP_009", "X1MP_010", "X1MP_011", "X1MP_012", "X1MP_014", "X1MP_017"
       );
 
-  @Inject
-  public MapService(PreferencesService preferencesService, TaskService taskService,
-                    ApplicationContext applicationContext,
-                    FafService fafService, AssetService assetService,
-                    I18n i18n, UiService uiService, ClientProperties clientProperties, MapGeneratorService mapGeneratorService, EventBus eventBus) {
-    this.preferencesService = preferencesService;
-    this.forgedAlliancePreferences = preferencesService.getPreferences().getForgedAlliance();
-    this.taskService = taskService;
-    this.applicationContext = applicationContext;
-    this.fafService = fafService;
-    this.assetService = assetService;
-    this.i18n = i18n;
-    this.uiService = uiService;
-    this.mapGeneratorService = mapGeneratorService;
-    this.eventBus = eventBus;
+  private static URL getDownloadUrl(String mapName, String baseUrl) {
+    return noCatch(() -> new URL(format(baseUrl, urlFragmentEscaper().escape(mapName).toLowerCase(Locale.US))));
+  }
 
+  private static URL getPreviewUrl(String mapName, String baseUrl, PreviewSize previewSize) {
+    return noCatch(() -> new URL(format(baseUrl, previewSize.folderName, urlFragmentEscaper().escape(mapName).toLowerCase(Locale.US))));
+  }
+
+  @Override
+  public void afterPropertiesSet() {
+    eventBus.register(this);
     Vault vault = clientProperties.getVault();
     this.mapDownloadUrlFormat = vault.getMapDownloadUrlFormat();
     this.mapPreviewUrlFormat = vault.getMapPreviewUrlFormat();
-
-    pathToMap = new HashMap<>();
     installedSkirmishMaps = FXCollections.observableArrayList();
     mapsByFolderName = new HashMap<>();
 
@@ -142,19 +136,6 @@ public class MapService implements InitializingBean, DisposableBean {
         }
       }
     });
-  }
-
-  private static URL getDownloadUrl(String mapName, String baseUrl) {
-    return noCatch(() -> new URL(format(baseUrl, urlFragmentEscaper().escape(mapName).toLowerCase(Locale.US))));
-  }
-
-  private static URL getPreviewUrl(String mapName, String baseUrl, PreviewSize previewSize) {
-    return noCatch(() -> new URL(format(baseUrl, previewSize.folderName, urlFragmentEscaper().escape(mapName).toLowerCase(Locale.US))));
-  }
-
-  @Override
-  public void afterPropertiesSet() {
-    eventBus.register(this);
     JavaFxUtil.addListener(forgedAlliancePreferences.pathProperty(), observable -> tryLoadMaps());
     JavaFxUtil.addListener(forgedAlliancePreferences.customMapsDirectoryProperty(), observable -> tryLoadMaps());
     tryLoadMaps();

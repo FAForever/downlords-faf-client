@@ -25,17 +25,18 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.Optional;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
+@RequiredArgsConstructor
 public class ModDetailController implements Controller<Node> {
 
   private final ModService modService;
@@ -65,19 +66,6 @@ public class ModDetailController implements Controller<Node> {
 
   private ModVersion modVersion;
   private ListChangeListener<ModVersion> installStatusChangeListener;
-
-  @Inject
-  public ModDetailController(ModService modService, NotificationService notificationService, I18n i18n,
-                             ReportingService reportingService, TimeService timeService, ReviewService reviewService,
-                             PlayerService playerService) {
-    this.modService = modService;
-    this.notificationService = notificationService;
-    this.i18n = i18n;
-    this.reportingService = reportingService;
-    this.timeService = timeService;
-    this.reviewService = reviewService;
-    this.playerService = playerService;
-  }
 
   public void initialize() {
     JavaFxUtil.fixScrollSpeed(scrollPane);

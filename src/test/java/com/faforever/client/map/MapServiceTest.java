@@ -5,7 +5,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
@@ -72,8 +71,6 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private Preferences preferences;
-  @Mock
   private ForgedAlliancePrefs forgedAlliancePrefs;
   @Mock
   private ObjectProperty<Path> customMapsDirectoryProperty;
@@ -100,16 +97,14 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     clientProperties.getVault().setMapPreviewUrlFormat("http://127.0.0.1:65534/preview/%s/%s");
 
     mapsDirectory = gameDirectory.newFolder("maps").toPath();
-
-    when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getCustomMapsDirectory()).thenReturn(customMapsDirectory.getRoot().toPath());
     when(forgedAlliancePrefs.customMapsDirectoryProperty()).thenReturn(customMapsDirectoryProperty);
     when(forgedAlliancePrefs.getPath()).thenReturn(gameDirectory.getRoot().toPath());
     when(forgedAlliancePrefs.pathProperty()).thenReturn(new SimpleObjectProperty<>());
 
     instance = new MapService(preferencesService, taskService, applicationContext,
-        fafService, assetService, i18n, uiService, clientProperties, mapGeneratorService, eventBus);
+        fafService, assetService, i18n, uiService, mapGeneratorService, clientProperties, eventBus, forgedAlliancePrefs);
+    instance.afterPropertiesSet();
 
     doAnswer(invocation -> {
       @SuppressWarnings("unchecked")

@@ -16,15 +16,16 @@ import javafx.collections.WeakListChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.function.Consumer;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class ModCardController implements Controller<Node> {
 
   private final ModService modService;
@@ -41,17 +42,8 @@ public class ModCardController implements Controller<Node> {
   private Consumer<ModVersion> onOpenDetailListener;
   private ListChangeListener<ModVersion> installStatusChangeListener;
   public StarsController starsController;
-  private InvalidationListener reviewsChangedListener;
+  private InvalidationListener reviewsChangedListener = observable -> populateReviews();
   private JFXRippler jfxRippler;
-
-
-  @Inject
-  public ModCardController(ModService modService, TimeService timeService, I18n i18n) {
-    this.modService = modService;
-    this.timeService = timeService;
-    this.i18n = i18n;
-    reviewsChangedListener = observable -> populateReviews();
-  }
 
   private void populateReviews() {
     ObservableList<Review> reviews = modVersion.getReviews();

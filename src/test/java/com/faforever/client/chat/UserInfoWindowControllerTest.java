@@ -74,8 +74,7 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     instance = new UserInfoWindowController(statisticsService, countryFlagService, achievementService, eventService,
-        i18n, uiService, timeService,
-        notificationService, playerService, leaderboardService);
+        i18n, uiService, timeService, playerService, notificationService, leaderboardService);
 
     when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
     when(achievementItemController.getRoot()).thenReturn(new HBox());

@@ -32,6 +32,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.ImageView;
 import javafx.util.StringConverter;
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +41,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -56,6 +56,8 @@ import static java.util.Arrays.asList;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
+// TODO reduce dependencies
 public class ReplayVaultController implements Controller<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -77,20 +79,6 @@ public class ReplayVaultController implements Controller<Node> {
   public TableColumn<Replay, Duration> durationColumn;
   public TableColumn<Replay, String> gameTypeColumn;
   public TableColumn<Replay, MapBean> mapColumn;
-
-  @Inject
-  // TODO reduce dependencies
-  public ReplayVaultController(NotificationService notificationService, ReplayService replayService, MapService mapService, TaskService taskService, I18n i18n, TimeService timeService, ReportingService reportingService, ApplicationContext applicationContext, UiService uiService) {
-    this.notificationService = notificationService;
-    this.replayService = replayService;
-    this.mapService = mapService;
-    this.taskService = taskService;
-    this.i18n = i18n;
-    this.timeService = timeService;
-    this.reportingService = reportingService;
-    this.applicationContext = applicationContext;
-    this.uiService = uiService;
-  }
 
   @SuppressWarnings("unchecked")
   public void initialize() {

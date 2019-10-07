@@ -2,9 +2,10 @@ package com.faforever.client.units;
 
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -19,22 +20,22 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
-public class CookieService {
+@RequiredArgsConstructor
+public class CookieService implements InitializingBean {
 
   private final PreferencesService preferencesService;
-  private final Map<URI, ArrayList<HttpCookie>> storedCookies;
-
-  @Inject
-  public CookieService(PreferencesService preferencesService) {
-    this.preferencesService = preferencesService;
-    Preferences preferences = preferencesService.getPreferences();
-    storedCookies = preferences.getStoredCookies();
-  }
+  private Map<URI, ArrayList<HttpCookie>> storedCookies;
 
   
   public void setUpCookieManger() {
     CookieManager manager = new CookieManager(new MyCookieStore(), CookiePolicy.ACCEPT_ALL);
     CookieHandler.setDefault(manager);
+  }
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    Preferences preferences = preferencesService.getPreferences();
+    storedCookies = preferences.getStoredCookies();
   }
 
   public class MyCookieStore implements CookieStore {

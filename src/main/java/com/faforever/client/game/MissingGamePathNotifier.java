@@ -10,26 +10,20 @@ import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class MissingGamePathNotifier implements InitializingBean {
 
   private final EventBus eventBus;
   private final I18n i18n;
   private final NotificationService notificationService;
-
-  @Inject
-  public MissingGamePathNotifier(EventBus eventBus, I18n i18n, NotificationService notificationService) {
-    this.eventBus = eventBus;
-    this.i18n = i18n;
-    this.notificationService = notificationService;
-  }
 
   @Override
   public void afterPropertiesSet() {
