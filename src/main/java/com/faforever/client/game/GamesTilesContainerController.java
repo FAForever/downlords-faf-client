@@ -92,6 +92,11 @@ public class GamesTilesContainerController implements Controller<Node> {
   public void initialize() {
     gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
     tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
+    tooltip.showingProperty().addListener((observable, oldValue, newValue) -> {
+      if (!newValue) {
+        gameTooltipController.setGame(null);
+      }
+    });
     
     JavaFxUtil.fixScrollSpeed(tiledScrollPane);
   }
