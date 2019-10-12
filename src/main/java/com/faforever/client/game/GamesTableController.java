@@ -200,7 +200,7 @@ public class GamesTableController implements Controller<Node> {
       @Override
       protected void updateItem(Game game, boolean empty) {
         super.updateItem(game, empty);
-        if (game == null) {
+        if (empty || game == null) {
           setTooltip(null);
         } else {
           setTooltip(tooltip);
