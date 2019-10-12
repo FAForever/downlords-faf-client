@@ -61,18 +61,21 @@ public class GameTooltipControllerTest extends AbstractPlainJavaFxTest {
     when(game.getTeams()).thenReturn(teams);
     
     instance.setGame(game);
+    instance.displayGame();
     WaitForAsyncUtils.waitForFxEvents();
     assertFalse(instance.modsPane.isVisible());
     assertThat(instance.teamsPane.getPrefColumns(), is(0));
     
     teams.put("team1", List.of("Bob"));
-    WaitForAsyncUtils.waitForFxEvents();
     instance.setGame(game);
+    instance.displayGame();
+    WaitForAsyncUtils.waitForFxEvents();
     assertThat(instance.teamsPane.getPrefColumns(), is(1));
     
     simMods.put("mod1", "mod1");
-    WaitForAsyncUtils.waitForFxEvents();
     instance.setGame(game);
+    instance.displayGame();
+    WaitForAsyncUtils.waitForFxEvents();
     assertTrue(instance.modsPane.isVisible());
   }
   
