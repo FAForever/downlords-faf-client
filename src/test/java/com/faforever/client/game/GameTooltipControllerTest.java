@@ -82,6 +82,7 @@ public class GameTooltipControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testSetGameNull() {
     instance.setGame(null);
+    instance.displayGame();
     WaitForAsyncUtils.waitForFxEvents();
   }
 }
