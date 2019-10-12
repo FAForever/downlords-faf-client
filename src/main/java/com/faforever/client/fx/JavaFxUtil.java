@@ -129,7 +129,7 @@ public final class JavaFxUtil {
    */
   public static Tooltip createCustomTooltip(Node content) {
     Tooltip tooltip = new Tooltip();
-    PopupWindowHelper.getContent(tooltip).setAll(content);// effectively calls tooltip.getContent.setAll()
+    PopupWindowHelper.getContent(tooltip).setAll(content);
     return tooltip;
   }
 
