@@ -12,7 +12,7 @@ Post a bountie on GitHub Issues on Issue Hunt. You can promise money to develope
 
 # How to run
 
-1. Use Oracle jdk 10 (others might not work)
+1. Use Oracle JDK 10 or AdoptOpenJDK 11 (others might not work)
 1. Clone the project with git
 1. Open the project into IntelliJ Ultimate or Community
 1. Make sure you have the IntelliJ [Lombok plugin](https://plugins.jetbrains.com/idea/plugin/6317-lombok-plugin) installed
@@ -28,10 +28,6 @@ See the video [here](https://www.youtube.com/watch?v=_kJoRehdBcM) .Don't forget 
 <img src="https://slack-files2.s3-us-west-2.amazonaws.com/avatars/2017-12-13/286651735269_a5ab3167acef52b0111e_512.png" width="96">Thanks to [bugsnag](https://www.bugsnag.com) for their [open source license](https://www.bugsnag.com/open-source/). We use bugsnag for our error reporting.
 
 <img src="https://faforever.github.io/downlords-faf-client/images/yklogo.png" width="48"> Thanks to [YourKit](https://www.yourkit.com) for their open source license
-
-# See how to use IntelliJ 
-
-A video is being made and will be linked here.
 
 # Interested in contributing?
 
