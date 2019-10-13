@@ -90,7 +90,7 @@ public class MapService implements InitializingBean, DisposableBean {
   private final MapGeneratorService mapGeneratorService;
   private final ClientProperties clientProperties;
   private final EventBus eventBus;
-  private final ForgedAlliancePrefs forgedAlliancePreferences;
+  private ForgedAlliancePrefs forgedAlliancePreferences;
 
   private String mapDownloadUrlFormat;
   private String mapPreviewUrlFormat;
@@ -120,6 +120,7 @@ public class MapService implements InitializingBean, DisposableBean {
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
+    forgedAlliancePreferences = preferencesService.getPreferences().getForgedAlliance();
     Vault vault = clientProperties.getVault();
     this.mapDownloadUrlFormat = vault.getMapDownloadUrlFormat();
     this.mapPreviewUrlFormat = vault.getMapPreviewUrlFormat();
