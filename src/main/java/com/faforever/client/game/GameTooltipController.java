@@ -42,6 +42,7 @@ public class GameTooltipController implements Controller<Node> {
   private WeakInvalidationListener weakTeamChangeListener;
   private WeakInvalidationListener weakModChangeListener;
   private int maxPrefColumns;
+  private Game game;
 
   @Inject
   public GameTooltipController(UiService uiService, PlayerService playerService) {
@@ -55,25 +56,29 @@ public class GameTooltipController implements Controller<Node> {
   }
 
   public void setGame(Game game) {
-    teamChangedListener = change -> createTeams(game.getTeams());
-    simModsChangedListener = change -> createModsList(game.getSimMods());
-
     if (lastTeams != null && weakTeamChangeListener != null) {
       lastTeams.removeListener(weakTeamChangeListener);
     }
-
     if (lastSimMods != null && weakModChangeListener != null) {
       lastSimMods.removeListener(weakModChangeListener);
     }
+    this.game = game;
+  }
 
+  public void displayGame() {
+    if (game == null) {
+      return;
+    }
+    teamChangedListener = change -> createTeams(game.getTeams());
+    simModsChangedListener = change -> createModsList(game.getSimMods());
     lastSimMods = game.getSimMods();
     lastTeams = game.getTeams();
     createTeams(game.getTeams());
     createModsList(game.getSimMods());
     weakTeamChangeListener = new WeakInvalidationListener(teamChangedListener);
-    JavaFxUtil.addListener(game.getTeams(),weakTeamChangeListener);
+    JavaFxUtil.addListener(game.getTeams(), weakTeamChangeListener);
     weakModChangeListener = new WeakInvalidationListener(simModsChangedListener);
-    JavaFxUtil.addListener(game.getSimMods(),weakModChangeListener);
+    JavaFxUtil.addListener(game.getSimMods(), weakModChangeListener);
   }
 
   private void createTeams(ObservableMap<? extends String, ? extends List<String>> teamsList) {
