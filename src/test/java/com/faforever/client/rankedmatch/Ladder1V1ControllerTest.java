@@ -13,7 +13,7 @@ import com.faforever.client.preferences.Ladder1v1Prefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
-import com.faforever.client.rankedmatch.MatchmakerMessage.MatchmakerQueue.QueueName;
+import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue.QueueName;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
@@ -203,12 +203,12 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testQueuePopTime() throws TimeoutException {
     @SuppressWarnings("unchecked")
-    ArgumentCaptor<Consumer<MatchmakerMessage>> listenerCaptor = ArgumentCaptor.forClass(Consumer.class);
+    ArgumentCaptor<Consumer<MatchmakerInfoMessage>> listenerCaptor = ArgumentCaptor.forClass(Consumer.class);
     verify(gameService).addOnRankedMatchNotificationListener(listenerCaptor.capture());
     
-    MatchmakerMessage message = new MatchmakerMessage();
+    MatchmakerInfoMessage message = new MatchmakerInfoMessage();
     String timeString = DateTimeFormatter.ISO_INSTANT.format(Instant.now().plusSeconds(65));
-    message.setQueues(List.of(new MatchmakerMessage.MatchmakerQueue(QueueName.LADDER_1V1, timeString, null, null)));
+    message.setQueues(List.of(new MatchmakerInfoMessage.MatchmakerQueue(QueueName.LADDER_1V1, timeString, null, null)));
     
     listenerCaptor.getValue().accept(message);
     WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> instance.timeUntilQueuePopLabel.isVisible());

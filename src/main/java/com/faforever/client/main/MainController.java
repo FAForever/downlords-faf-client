@@ -28,8 +28,8 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.preferences.ui.SettingsController;
-import com.faforever.client.rankedmatch.MatchmakerMessage;
-import com.faforever.client.rankedmatch.MatchmakerMessage.MatchmakerQueue.QueueName;
+import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
+import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue.QueueName;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
@@ -304,7 +304,7 @@ public class MainController implements Controller<Node> {
     }
   }
 
-  private void onMatchmakerMessage(MatchmakerMessage message) {
+  private void onMatchmakerMessage(MatchmakerInfoMessage message) {
     if (message.getQueues() == null
         || gameService.gameRunningProperty().get()
         || gameService.searching1v1Property().get()
@@ -319,18 +319,18 @@ public class MainController implements Controller<Node> {
     int deviationFor75PercentQuality = (int) (ratingBeta / 1.25f);
     float leaderboardRatingDeviation = currentPlayer.getLeaderboardRatingDeviation();
 
-    Function<MatchmakerMessage.MatchmakerQueue, List<RatingRange>> ratingRangesSupplier;
+    Function<MatchmakerInfoMessage.MatchmakerQueue, List<RatingRange>> ratingRangesSupplier;
     if (leaderboardRatingDeviation <= deviationFor80PercentQuality) {
-      ratingRangesSupplier = MatchmakerMessage.MatchmakerQueue::getBoundary80s;
+      ratingRangesSupplier = MatchmakerInfoMessage.MatchmakerQueue::getBoundary80s;
     } else if (leaderboardRatingDeviation <= deviationFor75PercentQuality) {
-      ratingRangesSupplier = MatchmakerMessage.MatchmakerQueue::getBoundary75s;
+      ratingRangesSupplier = MatchmakerInfoMessage.MatchmakerQueue::getBoundary75s;
     } else {
       return;
     }
 
     float leaderboardRatingMean = currentPlayer.getLeaderboardRatingMean();
     boolean showNotification = false;
-    for (MatchmakerMessage.MatchmakerQueue matchmakerQueue : message.getQueues()) {
+    for (MatchmakerInfoMessage.MatchmakerQueue matchmakerQueue : message.getQueues()) {
       if (!Objects.equals(QueueName.LADDER_1V1, matchmakerQueue.getQueueName())) {
         continue;
       }

@@ -14,7 +14,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferenceUpdateListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
-import com.faforever.client.rankedmatch.MatchmakerMessage.MatchmakerQueue.QueueName;
+import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue.QueueName;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
@@ -163,7 +163,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
       if (message.getQueues() == null) {
         return;
       }
-      for (MatchmakerMessage.MatchmakerQueue matchmakerQueue : message.getQueues()) {
+      for (MatchmakerInfoMessage.MatchmakerQueue matchmakerQueue : message.getQueues()) {
         if (!Objects.equals(QueueName.LADDER_1V1, matchmakerQueue.getQueueName())) {
           continue;
         }

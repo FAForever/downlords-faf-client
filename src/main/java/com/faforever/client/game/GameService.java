@@ -27,7 +27,7 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.rankedmatch.MatchmakerMessage;
+import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.ReconnectTimerService;
 import com.faforever.client.remote.domain.GameInfoMessage;
@@ -480,8 +480,8 @@ public class GameService implements InitializingBean {
     return game;
   }
 
-  public void addOnRankedMatchNotificationListener(Consumer<MatchmakerMessage> listener) {
-    fafService.addOnMessageListener(MatchmakerMessage.class, listener);
+  public void addOnRankedMatchNotificationListener(Consumer<MatchmakerInfoMessage> listener) {
+    fafService.addOnMessageListener(MatchmakerInfoMessage.class, listener);
   }
 
   public CompletableFuture<Void> startSearchLadder1v1(Faction faction) {
