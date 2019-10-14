@@ -70,7 +70,9 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   private static final int CONNECTION_ATTEMPTS = 50;
   private static final int CONNECTION_ATTEMPT_DELAY_MILLIS = 100;
-  public static final String ADVANCED_ICE_ADAPTER_LOG_FORMAT = "Advanced Ice Adapter Log_%s.log";
+//  public static final String ADVANCED_ICE_ADAPTER_LOG_FORMAT = "Advanced Ice Adapter Log_%s.log";
+
+  private static final Logger advancedLogger = org.slf4j.LoggerFactory.getLogger("faf-ice-adapter-advanced");
 
   private final ApplicationContext applicationContext;
   private final ClientProperties clientProperties;
@@ -211,27 +213,13 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         processBuilder.command(cmd);
         processBuilder.environment().put("LOG_DIR", preferencesService.getIceAdapterLogDirectory().toAbsolutePath().toString());
 
-        String advancedIceLogFileName = String.format(ADVANCED_ICE_ADAPTER_LOG_FORMAT, OffsetDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
-        Path advancedIceLogFile = preferencesService.getIceAdapterLogDirectory().resolve(advancedIceLogFileName);
-        Files.createFile(advancedIceLogFile);
-        if (advancedIceLogPrinter != null) {
-          advancedIceLogPrinter.flush();
-          advancedIceLogPrinter.close();
-        }
-        advancedIceLogPrinter = new PrintWriter(Files.newBufferedWriter(advancedIceLogFile));
-
-        advancedIceLogPrinter.println(String.format("Starting ICE adapter with command: %s", cmd));
+        advancedLogger.info(String.format("\n\n\nStarting ICE adapter with command: %s", cmd));
         log.debug("Starting ICE adapter with command: {}", cmd);
         process = processBuilder.start();
+        // Why does this logger even exist in addition to normal logger and advanced logger?
         Logger logger = LoggerFactory.getLogger("faf-ice-adapter");
-        OsUtils.gobbleLines(process.getInputStream(), s -> {
-          String time = OffsetDateTime.now().format(DateTimeFormatter.ISO_TIME);
-          advancedIceLogPrinter.println(String.format("%s-%s: %s", "STDOUT", time, s));
-        });
-        OsUtils.gobbleLines(process.getErrorStream(), s -> {
-          String time = OffsetDateTime.now().format(DateTimeFormatter.ISO_TIME);
-          advancedIceLogPrinter.println(String.format("%s-%s: %s", "STDERR", time, s));
-        });
+        OsUtils.gobbleLines(process.getInputStream(), s -> advancedLogger.debug(s));
+        OsUtils.gobbleLines(process.getErrorStream(), s -> advancedLogger.warn(s));
 
         IceAdapterCallbacks iceAdapterCallbacks = applicationContext.getBean(IceAdapterCallbacks.class);
 
@@ -331,7 +319,6 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   @Override
   public void destroy() {
     stop();
-    deleteOldAdvancedIceAdapterLogs();
   }
 
   public void stop() {
@@ -343,31 +330,4 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
       advancedIceLogPrinter = null;
     }
   }
-
-  private void deleteOldAdvancedIceAdapterLogs() {
-    try (Stream<Path> files = Files.list(preferencesService.getIceAdapterLogDirectory())) {
-      Pattern logFilePattern = Pattern.compile(ADVANCED_ICE_ADAPTER_LOG_FORMAT.replace("%s", ".*"));
-      files
-          .filter(path -> logFilePattern.matcher(path.getFileName().toString()).matches())
-          .filter(path -> {
-            try {
-              return Files.getLastModifiedTime(path).toInstant()
-                  .isBefore(Instant.now().minus(1, ChronoUnit.WEEKS));
-            } catch (IOException e) {
-              log.warn("Modified date of a log file could not be read it is deleted anyway", e);
-              return true;
-            }
-          }).forEach(path -> {
-        try {
-          log.debug("Deleting ice adapter log file: {}", path);
-          Files.delete(path);
-        } catch (IOException e) {
-          log.warn("Ice log file could not be deleted", e);
-        }
-      });
-    } catch (Exception e) {
-      log.warn("Could not clean up ice logs", e);
-    }
-  }
-
 }

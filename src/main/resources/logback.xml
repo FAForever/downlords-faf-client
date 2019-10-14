@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+	<!-- Client logs -->
+	<include resource="org/springframework/boot/logging/logback/defaults.xml" />
+	<property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/spring.log}" />
+	<include resource="org/springframework/boot/logging/logback/console-appender.xml" />
+	<include resource="org/springframework/boot/logging/logback/file-appender.xml" />
+	<root level="info">
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="FILE" />
+	</root>
+
+	<!-- Advanced ICE logs -->
+	<appender name="FILE_ICE_ADVANCED"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<encoder
+			class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<Pattern>
+				%d{dd-MM-yyyy HH:mm:ss.SSS} - %msg%n
+			</Pattern>
+		</encoder>
+		<file>${ICE_ADVANCED_LOG}</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<cleanHistoryOnStart>true</cleanHistoryOnStart>
+			<fileNamePattern>${ICE_ADVANCED_LOG}.%d{yyyy-MM-dd}.gz}</fileNamePattern>
+			<maxHistory>7</maxHistory>
+			<totalSizeCap>30MB</totalSizeCap>
+		</rollingPolicy>
+	</appender>
+	<logger name="faf-ice-adapter-advanced" additivity="false" level="info">
+		<appender-ref ref="FILE_ICE_ADVANCED" />
+	</logger>
+
+</configuration>
