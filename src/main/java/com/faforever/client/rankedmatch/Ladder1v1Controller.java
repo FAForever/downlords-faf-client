@@ -15,6 +15,7 @@ import com.faforever.client.preferences.PreferenceUpdateListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue.QueueName;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
@@ -83,6 +84,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
   private final LeaderboardService leaderboardService;
   private final I18n i18n;
   private final ClientProperties clientProperties;
+  private final FafService fafService;
   private final EventBus eventBus;
 
   public CategoryAxis ratingDistributionXAxis;
@@ -192,6 +194,8 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
       timeUntilQueuePopLabel.setVisible(false);
     }), new KeyFrame(javafx.util.Duration.seconds(1)));
     queuePopTimeUpdater.setCycleCount(Timeline.INDEFINITE);
+
+    fafService.requestMatchmakerInfo();
   }
 
   @Override

@@ -240,6 +240,11 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
+  public void requestMatchmakerInfo() {
+
+  }
+
+  @Override
   public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction) {
     logger.debug("Searching 1v1 match with faction: {}", faction);
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();

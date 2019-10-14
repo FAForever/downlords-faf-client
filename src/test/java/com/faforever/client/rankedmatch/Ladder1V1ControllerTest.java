@@ -14,6 +14,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue.QueueName;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
@@ -76,6 +77,8 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
   private Ladder1v1Prefs ladder1V1Prefs;
   @Mock
   private ForgedAlliancePrefs forgedAlliancePrefs;
+  @Mock
+  private FafService fafService;
 
   @Mock
   private EventBus eventBus;
@@ -86,7 +89,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     instance = new Ladder1v1Controller(gameService, preferencesService, playerService, leaderboardService, i18n,
-        new ClientProperties(), eventBus);
+        new ClientProperties(), fafService, eventBus);
 
     Player player = new Player(USERNAME);
     player.setId(PLAYER_ID);
@@ -202,6 +205,8 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testQueuePopTime() throws TimeoutException {
+    verify(fafService).requestMatchmakerInfo();
+
     @SuppressWarnings("unchecked")
     ArgumentCaptor<Consumer<MatchmakerInfoMessage>> listenerCaptor = ArgumentCaptor.forClass(Consumer.class);
     verify(gameService).addOnRankedMatchNotificationListener(listenerCaptor.capture());
