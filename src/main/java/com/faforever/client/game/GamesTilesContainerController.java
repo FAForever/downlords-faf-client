@@ -24,7 +24,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Locale;
@@ -147,6 +146,9 @@ public class GamesTilesContainerController implements Controller<Node> {
     
     root.setOnMouseEntered(event -> {
       gameTooltipController.setGame(game);
+      if (tooltip.isShowing()) {
+        gameTooltipController.displayGame();
+      }
     });
     Tooltip.install(root, tooltip);
   }

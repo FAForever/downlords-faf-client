@@ -226,6 +226,9 @@ public class GamesTableController implements Controller<Node> {
       }
       Game game = row.getItem();
       gameTooltipController.setGame(game);
+      if (tooltip.isShowing()) {
+        gameTooltipController.displayGame();
+      }
     });
     return row;
   }
