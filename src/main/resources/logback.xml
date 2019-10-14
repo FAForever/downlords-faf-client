@@ -17,7 +17,7 @@
 		<encoder
 			class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<Pattern>
-				%d{dd-MM-yyyy HH:mm:ss.SSS} - %msg%n
+				%d{dd-MM-yyyy HH:mm:ss.SSS} %-5level - %msg%n
 			</Pattern>
 		</encoder>
 		<file>${ICE_ADVANCED_LOG}</file>

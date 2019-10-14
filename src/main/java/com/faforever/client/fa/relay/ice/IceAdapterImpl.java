@@ -213,13 +213,13 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         processBuilder.command(cmd);
         processBuilder.environment().put("LOG_DIR", preferencesService.getIceAdapterLogDirectory().toAbsolutePath().toString());
 
-        advancedLogger.info(String.format("\n\n\nStarting ICE adapter with command: %s", cmd));
+        advancedLogger.info("\n\n\nStarting ICE adapter with command: {}", cmd);
         log.debug("Starting ICE adapter with command: {}", cmd);
         process = processBuilder.start();
         // Why does this logger even exist in addition to normal logger and advanced logger?
         Logger logger = LoggerFactory.getLogger("faf-ice-adapter");
-        OsUtils.gobbleLines(process.getInputStream(), s -> advancedLogger.debug(s));
-        OsUtils.gobbleLines(process.getErrorStream(), s -> advancedLogger.warn(s));
+        OsUtils.gobbleLines(process.getInputStream(), s -> advancedLogger.debug("STDOUT: " + s));
+        OsUtils.gobbleLines(process.getErrorStream(), s -> advancedLogger.debug("STDERR: " + s));
 
         IceAdapterCallbacks iceAdapterCallbacks = applicationContext.getBean(IceAdapterCallbacks.class);
 
@@ -248,8 +248,11 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         int exitCode = process.waitFor();
         if (exitCode == 0) {
           logger.debug("ICE adapter terminated normally");
+          advancedLogger.info("ICE adapter terminated normally");
         } else {
           logger.warn("ICE adapter terminated with exit code: {}", exitCode);
+          advancedLogger.warn("ICE adapter terminated normally");
+          // we could remove this duplication everywhere by having the normal logger of this class log to advanced ice log as well
         }
       } catch (Exception e) {
         iceAdapterClientFuture.completeExceptionally(e);
