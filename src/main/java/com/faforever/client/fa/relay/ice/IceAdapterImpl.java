@@ -27,7 +27,6 @@ import com.google.common.eventbus.Subscribe;
 import com.nbarraille.jjsonrpc.JJsonPeer;
 import com.nbarraille.jjsonrpc.TcpClient;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -38,18 +37,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.SocketUtils;
 
 import javax.inject.Inject;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.ConnectException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -58,21 +51,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 
 @Component
 @Lazy
-@Slf4j
 public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableBean {
 
   private static final int CONNECTION_ATTEMPTS = 50;
   private static final int CONNECTION_ATTEMPT_DELAY_MILLIS = 100;
 //  public static final String ADVANCED_ICE_ADAPTER_LOG_FORMAT = "Advanced Ice Adapter Log_%s.log";
 
-  private static final Logger advancedLogger = org.slf4j.LoggerFactory.getLogger("faf-ice-adapter-advanced");
+  private static final Logger log = LoggerFactory.getLogger("faf-ice-adapter");
+  private static final Logger advancedLogger = LoggerFactory.getLogger("faf-ice-adapter-advanced");
 
   private final ApplicationContext applicationContext;
   private final ClientProperties clientProperties;
@@ -213,13 +204,10 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         processBuilder.command(cmd);
         processBuilder.environment().put("LOG_DIR", preferencesService.getIceAdapterLogDirectory().toAbsolutePath().toString());
 
-        advancedLogger.info("\n\n\nStarting ICE adapter with command: {}", cmd);
-        log.debug("Starting ICE adapter with command: {}", cmd);
+        log.info("Starting ICE adapter with command: {}", cmd);
         process = processBuilder.start();
-        // Why does this logger even exist in addition to normal logger and advanced logger?
-        Logger logger = LoggerFactory.getLogger("faf-ice-adapter");
-        OsUtils.gobbleLines(process.getInputStream(), s -> advancedLogger.debug("STDOUT: " + s));
-        OsUtils.gobbleLines(process.getErrorStream(), s -> advancedLogger.debug("STDERR: " + s));
+        OsUtils.gobbleLines(process.getInputStream(), s -> advancedLogger.debug("  STDOUT <- " + s));
+        OsUtils.gobbleLines(process.getErrorStream(), s -> advancedLogger.debug("  STDERR <- " + s));
 
         IceAdapterCallbacks iceAdapterCallbacks = applicationContext.getBean(IceAdapterCallbacks.class);
 
@@ -232,14 +220,14 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
             setLobbyInitMode();
             break;
           } catch (ConnectException e) {
-            logger.debug("Could not connect to ICE adapter (attempt {}/{})", attempt + 1, CONNECTION_ATTEMPTS);
+            log.debug("Could not connect to ICE adapter (attempt {}/{})", attempt + 1, CONNECTION_ATTEMPTS);
           }
 
           // Wait as the socket fails too fast on unix/linux not giving the adapter enough time to start
           try {
             Thread.sleep(CONNECTION_ATTEMPT_DELAY_MILLIS);
           } catch (InterruptedException e) {
-            logger.warn("Error while waiting for ice adapter", e);
+            log.warn("Error while waiting for ice adapter", e);
           }
         }
 
@@ -247,12 +235,9 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
         int exitCode = process.waitFor();
         if (exitCode == 0) {
-          logger.debug("ICE adapter terminated normally");
-          advancedLogger.info("ICE adapter terminated normally");
+          log.info("ICE adapter terminated normally");
         } else {
-          logger.warn("ICE adapter terminated with exit code: {}", exitCode);
-          advancedLogger.warn("ICE adapter terminated normally");
-          // we could remove this duplication everywhere by having the normal logger of this class log to advanced ice log as well
+          log.warn("ICE adapter terminated with exit code: {}", exitCode);
         }
       } catch (Exception e) {
         iceAdapterClientFuture.completeExceptionally(e);

@@ -28,8 +28,13 @@
 			<totalSizeCap>30MB</totalSizeCap>
 		</rollingPolicy>
 	</appender>
-	<logger name="faf-ice-adapter-advanced" additivity="false" level="info">
+	<!-- This logger only logs to FILE_ICE_ADVANCED -->
+	<logger name="faf-ice-adapter-advanced" additivity="false" level="debug">
 		<appender-ref ref="FILE_ICE_ADVANCED" />
+	</logger>
+	<!-- This logger logs to both FILE_ICE_ADVANCED and normal log -->
+	<logger name="faf-ice-adapter">
+    	<appender-ref ref="FILE_ICE_ADVANCED" />
 	</logger>
 
 </configuration>
