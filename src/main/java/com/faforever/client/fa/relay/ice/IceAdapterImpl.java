@@ -37,7 +37,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.SocketUtils;
 
 import javax.inject.Inject;
-import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.ConnectException;
@@ -60,7 +59,6 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   private static final int CONNECTION_ATTEMPTS = 50;
   private static final int CONNECTION_ATTEMPT_DELAY_MILLIS = 100;
-//  public static final String ADVANCED_ICE_ADAPTER_LOG_FORMAT = "Advanced Ice Adapter Log_%s.log";
 
   private static final Logger log = LoggerFactory.getLogger("faf-ice-adapter");
   private static final Logger advancedLogger = LoggerFactory.getLogger("faf-ice-adapter-advanced");
@@ -77,7 +75,6 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private Process process;
   private LobbyMode lobbyInitMode;
   private JJsonPeer peer;
-  private PrintWriter advancedIceLogPrinter;
 
   @Inject
   public IceAdapterImpl(ApplicationContext applicationContext, ClientProperties clientProperties, PlayerService playerService,
@@ -312,10 +309,5 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   public void stop() {
     Optional.ofNullable(iceAdapterProxy).ifPresent(IceAdapterApi::quit);
     peer = null;
-    if (advancedIceLogPrinter != null) {
-      advancedIceLogPrinter.flush();
-      advancedIceLogPrinter.close();
-      advancedIceLogPrinter = null;
-    }
   }
 }
