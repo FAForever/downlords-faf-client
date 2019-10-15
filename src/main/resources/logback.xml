@@ -17,7 +17,7 @@
 		<encoder
 			class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<Pattern>
-				%d{dd-MM-yyyy HH:mm:ss.SSS} %-5level - %msg%n
+				%msg%n
 			</Pattern>
 		</encoder>
 		<file>${ICE_ADVANCED_LOG}</file>
@@ -28,13 +28,8 @@
 			<totalSizeCap>30MB</totalSizeCap>
 		</rollingPolicy>
 	</appender>
-	<!-- This logger only logs to FILE_ICE_ADVANCED -->
 	<logger name="faf-ice-adapter-advanced" additivity="false" level="debug">
 		<appender-ref ref="FILE_ICE_ADVANCED" />
-	</logger>
-	<!-- This logger logs to both FILE_ICE_ADVANCED and normal log -->
-	<logger name="faf-ice-adapter">
-    	<appender-ref ref="FILE_ICE_ADVANCED" />
 	</logger>
 
 </configuration>

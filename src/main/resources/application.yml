@@ -68,7 +68,6 @@ logging:
     org.springframework.web.client: info
     org.springframework.security.oauth2: info
     org.springframework.security.oauth2.client.token.grant: off
-    faf-ice-adapter: info
 
     org.ice4j.stack: warn
     com.nbarraille.jjsonrpc: warn

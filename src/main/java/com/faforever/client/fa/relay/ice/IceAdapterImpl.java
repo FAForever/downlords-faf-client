@@ -27,6 +27,8 @@ import com.google.common.eventbus.Subscribe;
 import com.nbarraille.jjsonrpc.JJsonPeer;
 import com.nbarraille.jjsonrpc.TcpClient;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -55,12 +57,12 @@ import static java.util.Arrays.asList;
 
 @Component
 @Lazy
+@Slf4j
 public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableBean {
 
   private static final int CONNECTION_ATTEMPTS = 50;
   private static final int CONNECTION_ATTEMPT_DELAY_MILLIS = 100;
 
-  private static final Logger log = LoggerFactory.getLogger("faf-ice-adapter");
   private static final Logger advancedLogger = LoggerFactory.getLogger("faf-ice-adapter-advanced");
 
   private final ApplicationContext applicationContext;
@@ -202,9 +204,10 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         processBuilder.environment().put("LOG_DIR", preferencesService.getIceAdapterLogDirectory().toAbsolutePath().toString());
 
         log.info("Starting ICE adapter with command: {}", cmd);
+        advancedLogger.debug("\n\n");
         process = processBuilder.start();
-        OsUtils.gobbleLines(process.getInputStream(), s -> advancedLogger.debug("  STDOUT <- " + s));
-        OsUtils.gobbleLines(process.getErrorStream(), s -> advancedLogger.debug("  STDERR <- " + s));
+        OsUtils.gobbleLines(process.getInputStream(), s -> advancedLogger.debug(s));
+        OsUtils.gobbleLines(process.getErrorStream(), s -> advancedLogger.debug(s));
 
         IceAdapterCallbacks iceAdapterCallbacks = applicationContext.getBean(IceAdapterCallbacks.class);
 
