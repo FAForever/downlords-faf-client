@@ -28,7 +28,6 @@ import com.nbarraille.jjsonrpc.JJsonPeer;
 import com.nbarraille.jjsonrpc.TcpClient;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -204,10 +203,21 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         processBuilder.environment().put("LOG_DIR", preferencesService.getIceAdapterLogDirectory().toAbsolutePath().toString());
 
         log.info("Starting ICE adapter with command: {}", cmd);
-        advancedLogger.debug("\n\n");
+        boolean advancedIceLogEnabled = preferencesService.getPreferences().isAdvancedIceLogEnabled();
+        if (advancedIceLogEnabled) {
+          advancedLogger.info("\n\n");
+        }
         process = processBuilder.start();
-        OsUtils.gobbleLines(process.getInputStream(), s -> advancedLogger.debug(s));
-        OsUtils.gobbleLines(process.getErrorStream(), s -> advancedLogger.debug(s));
+        OsUtils.gobbleLines(process.getInputStream(), msg -> {
+          if (advancedIceLogEnabled) {
+            advancedLogger.info(msg);
+          }
+        });
+        OsUtils.gobbleLines(process.getErrorStream(), msg -> {
+          if (advancedIceLogEnabled) {
+            advancedLogger.error(msg);
+          }
+        });
 
         IceAdapterCallbacks iceAdapterCallbacks = applicationContext.getBean(IceAdapterCallbacks.class);
 
