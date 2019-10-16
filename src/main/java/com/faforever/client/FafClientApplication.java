@@ -18,10 +18,8 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.Banner.Mode;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -29,16 +27,22 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 
 import static com.github.nocatch.NoCatch.noCatch;
 
 @Configuration
 @ComponentScan
 @EnableConfigurationProperties({ClientProperties.class})
+@Slf4j
 public class FafClientApplication extends Application {
   public static final String PROFILE_PROD = "prod";
   public static final String PROFILE_TEST = "test";
@@ -120,5 +124,34 @@ public class FafClientApplication extends Application {
   public void stop() throws Exception {
     applicationContext.close();
     super.stop();
+
+    Thread timeoutThread = new Thread(() -> {
+      try {
+        Thread.sleep(Duration.ofSeconds(30).toMillis());
+      } catch (InterruptedException e) {
+      }
+
+      Set<Entry<Thread, StackTraceElement[]>> threads = Thread.getAllStackTraces().entrySet();
+
+      if (threads.stream().allMatch(t -> t.getKey().isDaemon())) {
+        return;
+      }
+
+      threads.stream()
+          .filter(e -> !e.getKey().isDaemon())
+          .forEach(e -> {
+            log.error("Non daemon Thread \"{}\" (id: {}) still active in state: {}", e.getKey().getName(), e.getKey().getId(), e.getKey().getState());
+            log.error("Stacktrace of thread {}:\n{}", e.getKey().getName(), Arrays.stream(e.getValue()).map(Object::toString).collect(Collectors.joining("\n")));
+          });
+
+      try {
+        Thread.sleep(Duration.ofSeconds(1).toMillis());
+      } catch (InterruptedException e) {
+      }
+
+      System.exit(-1);
+    });
+    timeoutThread.setDaemon(true);
+    timeoutThread.start();
   }
 }

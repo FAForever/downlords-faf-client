@@ -17,7 +17,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.lang.Thread.sleep;
@@ -31,7 +31,7 @@ import static java.lang.Thread.sleep;
 public class OnGameFullNotifier implements InitializingBean {
 
   private final PlatformService platformService;
-  private final Executor executor;
+  private final ExecutorService executorService;
   private final NotificationService notificationService;
   private final I18n i18n;
   private final MapService mapService;
@@ -41,14 +41,14 @@ public class OnGameFullNotifier implements InitializingBean {
   private String faWindowTitle;
 
   @Inject
-  public OnGameFullNotifier(PlatformService platformService, Executor executor,
+  public OnGameFullNotifier(PlatformService platformService, ExecutorService executorService,
                             NotificationService notificationService, I18n i18n,
                             MapService mapService,
                             EventBus eventBus,
                             GameService gameService,
                             ClientProperties clientProperties) {
     this.platformService = platformService;
-    this.executor = executor;
+    this.executorService = executorService;
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.mapService = mapService;
@@ -65,7 +65,7 @@ public class OnGameFullNotifier implements InitializingBean {
 
   @Subscribe
   public void onGameFull(GameFullEvent event) {
-    executor.execute(() -> {
+    executorService.execute(() -> {
       platformService.startFlashingWindow(faWindowTitle);
       while (gameService.isGameRunning() && !platformService.isWindowFocused(faWindowTitle)) {
         noCatch(() -> sleep(500));

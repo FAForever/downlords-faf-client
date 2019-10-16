@@ -19,9 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.concurrent.Executor;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 
 import static com.github.nocatch.NoCatch.noCatch;
 
@@ -33,15 +31,15 @@ import static com.github.nocatch.NoCatch.noCatch;
 public class WindowsTaskbarProgressUpdater implements InitializingBean {
 
   private final TaskService taskService;
-  private final Executor threadPoolExecutor;
+  private final Executor executorService;
   private final ChangeListener<Number> progressUpdateListener;
 
   private ITaskbarList3 taskBarList;
   private Pointer<Integer> taskBarPointer;
 
-  public WindowsTaskbarProgressUpdater(TaskService taskService) {
+  public WindowsTaskbarProgressUpdater(TaskService taskService, ExecutorService executorService) {
     this.taskService = taskService;
-    this.threadPoolExecutor = new ThreadPoolExecutor(0, 1, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+    this.executorService = executorService;
     progressUpdateListener = (observable1, oldValue, newValue) -> updateTaskbarProgress(newValue.doubleValue());
   }
 
@@ -64,7 +62,7 @@ public class WindowsTaskbarProgressUpdater implements InitializingBean {
   @SuppressWarnings("unchecked")
   public void initTaskBar() {
     try {
-      threadPoolExecutor.execute(() -> noCatch(() -> taskBarList = COMRuntime.newInstance(ITaskbarList3.class)));
+      executorService.execute(() -> noCatch(() -> taskBarList = COMRuntime.newInstance(ITaskbarList3.class)));
       long hwndVal = com.sun.jna.Pointer.nativeValue(JavaFxUtil.getNativeWindow());
       taskBarPointer = Pointer.pointerToAddress(hwndVal, (PointerIO) null);
     } catch (NoClassDefFoundError e) {
@@ -74,9 +72,7 @@ public class WindowsTaskbarProgressUpdater implements InitializingBean {
 
   @SuppressWarnings("unchecked")
   private void updateTaskbarProgress(@Nullable Double progress) {
-
-
-    threadPoolExecutor.execute(() -> {
+    executorService.execute(() -> {
       if (taskBarPointer == null || taskBarList == null) {
         return;
       }

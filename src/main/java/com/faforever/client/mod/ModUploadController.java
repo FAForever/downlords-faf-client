@@ -31,7 +31,7 @@ import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
 
 import static com.faforever.client.notification.Severity.ERROR;
 import static java.util.Arrays.asList;
@@ -43,7 +43,7 @@ public class ModUploadController implements Controller<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final ModService modService;
-  private final ThreadPoolExecutor threadPoolExecutor;
+  private final ExecutorService executorService;
   private final NotificationService notificationService;
   private final ReportingService reportingService;
   private final I18n i18n;
@@ -81,7 +81,7 @@ public class ModUploadController implements Controller<Node> {
   public void setModPath(Path modPath) {
     this.modPath = modPath;
     enterParsingState();
-    CompletableFuture.supplyAsync(() -> modService.extractModInfo(modPath), threadPoolExecutor)
+    CompletableFuture.supplyAsync(() -> modService.extractModInfo(modPath), executorService)
         .thenAccept(this::setModVersionInfo)
         .exceptionally(throwable -> {
           logger.warn("ModVersion could not be read", throwable);

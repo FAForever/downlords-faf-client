@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
 
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
@@ -49,10 +49,10 @@ public class EventService {
   public static final String EVENT_SERAPHIM_WINS = "15b6c19a-6084-4e82-ada9-6c30e282191f";
 
   private final FafApiAccessor fafApiAccessor;
-  private final ThreadPoolExecutor threadPoolExecutor;
+  private final ExecutorService executorService;
 
   public CompletableFuture<Map<String, PlayerEvent>> getPlayerEvents(int playerId) {
     return CompletableFuture.supplyAsync(() -> fafApiAccessor.getPlayerEvents(playerId).stream()
-        .collect(toMap(playerEvent -> playerEvent.getEvent().getId(), identity())), threadPoolExecutor);
+        .collect(toMap(playerEvent -> playerEvent.getEvent().getId(), identity())), executorService);
   }
 }

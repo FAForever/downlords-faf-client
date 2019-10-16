@@ -80,7 +80,7 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
@@ -110,7 +110,7 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
   private final FafService fafService;
   private final I18n i18n;
   private final PircBotXFactory pircBotXFactory;
-  private final ThreadPoolExecutor threadPoolExecutor;
+  private final ExecutorService executorService;
   private final EventBus eventBus;
   private final ClientProperties clientProperties;
   private final PlayerService playerService;
@@ -390,7 +390,7 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
       this.autoChannels = new ArrayList<>(socialMessage.getChannels());
       autoChannels.remove(defaultChannelName);
       autoChannels.add(0, defaultChannelName);
-      threadPoolExecutor.execute(this::joinAutoChannels);
+      executorService.execute(this::joinAutoChannels);
     }
   }
 
@@ -472,7 +472,7 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
         return null;
       }
     };
-    threadPoolExecutor.execute(connectionTask);
+    executorService.execute(connectionTask);
   }
 
   @Override

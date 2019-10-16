@@ -4,6 +4,7 @@ import com.faforever.client.FafClientApplication;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Server;
+import com.faforever.client.fa.CloseGameEvent;
 import com.faforever.client.fa.relay.GpgClientMessageSerializer;
 import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.fa.relay.GpgServerMessageType;
@@ -72,6 +73,7 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.update.Version;
 import com.github.nocatch.NoCatch;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.eventbus.EventBus;
 import com.google.common.hash.Hashing;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -91,6 +93,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
@@ -101,11 +104,13 @@ import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.Socket;
 import java.net.URL;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -141,6 +146,9 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private final NotificationService notificationService;
   private final I18n i18n;
   private final ReportingService reportingService;
+  private final TaskScheduler taskScheduler;
+  private final EventBus eventBus;
+
   @org.jetbrains.annotations.NotNull
   private final ClientProperties clientProperties;
   private Task<Void> fafConnectionTask;
@@ -166,6 +174,18 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   private void onNotice(NoticeMessage noticeMessage) {
+    if (Objects.equals(noticeMessage.getStyle(), "kill")) {
+      logger.warn("Game close requested by server...");
+      notificationService.addNotification(new ImmediateNotification(i18n.get("game.kicked.title"), i18n.get("game.kicked.message", clientProperties.getLinks().get("linksRules")), Severity.ERROR, Collections.singletonList(new DismissAction(i18n))));
+      eventBus.post(new CloseGameEvent());
+    }
+
+    if (Objects.equals(noticeMessage.getStyle(), "kick")) {
+      logger.warn("Kicked from lobby, client closing after delay...");
+      notificationService.addNotification(new ImmediateNotification(i18n.get("server.kicked.title"), i18n.get("server.kicked.message", clientProperties.getLinks().get("linksRules")), Severity.ERROR, Collections.singletonList(new DismissAction(i18n))));
+      taskScheduler.scheduleWithFixedDelay(Platform::exit, Duration.ofSeconds(10));
+    }
+
     if (noticeMessage.getText() == null) {
       return;
     }

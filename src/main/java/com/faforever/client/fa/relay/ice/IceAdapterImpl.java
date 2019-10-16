@@ -1,6 +1,7 @@
 package com.faforever.client.fa.relay.ice;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.fa.CloseGameEvent;
 import com.faforever.client.fa.relay.ConnectToPeerMessage;
 import com.faforever.client.fa.relay.DisconnectFromPeerMessage;
 import com.faforever.client.fa.relay.GpgClientCommand;
@@ -306,5 +307,10 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   public void stop() {
     Optional.ofNullable(iceAdapterProxy).ifPresent(IceAdapterApi::quit);
     peer = null;
+  }
+
+  @Subscribe
+  public void onGameCloseRequested(CloseGameEvent event) {
+    stop();
   }
 }
