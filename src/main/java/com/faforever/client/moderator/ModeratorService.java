@@ -21,7 +21,6 @@ public class ModeratorService {
     this.fafApiAccessor = fafApiAccessor;
   }
 
-
   public CompletableFuture<Boolean> isModerator() {
     if (isModerator == null) {
       isModerator = CompletableFuture.supplyAsync(() -> {

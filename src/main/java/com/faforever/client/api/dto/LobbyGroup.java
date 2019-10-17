@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@Deprecated
 @NoArgsConstructor
 @AllArgsConstructor
 @Type("lobbyGroup")
