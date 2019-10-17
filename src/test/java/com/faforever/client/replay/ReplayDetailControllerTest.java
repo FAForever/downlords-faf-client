@@ -35,6 +35,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.verify;
@@ -105,8 +106,11 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     replay.setFeaturedMod(new FeaturedMod());
     replay.getReviews().setAll(FXCollections.emptyObservableList());
     when(replayService.getSize(replay.getId())).thenReturn(CompletableFuture.completedFuture(1024));
+    when(ratingService.calculateQuality(replay)).thenReturn(0.427);
 
     instance.setReplay(replay);
+
+    assertEquals(instance.qualityLabel.textProperty().get(), (i18n.get("percentage", 0.43)));
   }
 
   @Test

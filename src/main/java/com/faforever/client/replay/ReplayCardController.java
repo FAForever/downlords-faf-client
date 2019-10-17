@@ -93,7 +93,12 @@ public class ReplayCardController implements Controller<Node> {
     timeLabel.setText(timeService.asShortTime(replay.getStartTime()));
     modLabel.setText(replay.getFeaturedMod().getDisplayName());
     playerCountLabel.setText(i18n.number(replay.getTeams().values().stream().mapToInt(List::size).sum()));
-    qualityLabel.setText(i18n.get("percentage", (int) ratingService.calculateQuality(replay) * 100));
+    double gameQuality = ratingService.calculateQuality(replay);
+    if (!Double.isNaN(gameQuality)) {
+      qualityLabel.setText(i18n.get("percentage", Math.round(gameQuality * 100)));
+    } else {
+      qualityLabel.setText(i18n.get("gameQuality.undefined"));
+    }
 
     replay.getTeamPlayerStats().values().stream()
         .flatMapToInt(playerStats -> playerStats.stream()
