@@ -26,6 +26,8 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,10 +36,8 @@ import java.util.concurrent.CountDownLatch;
 
 import static com.github.nocatch.NoCatch.noCatch;
 
-@SpringBootApplication(exclude = {
-    JmxAutoConfiguration.class,
-    SecurityAutoConfiguration.class,
-})
+@Configuration
+@ComponentScan
 @EnableConfigurationProperties({ClientProperties.class})
 public class FafClientApplication extends Application {
   public static final String PROFILE_PROD = "prod";
@@ -51,7 +51,7 @@ public class FafClientApplication extends Application {
 
   private ConfigurableApplicationContext applicationContext;
 
-  public static void main(String[] args) {
+  public static void applicationMain(String[] args) {
     PreferencesService.configureLogging();
     launch(args);
   }

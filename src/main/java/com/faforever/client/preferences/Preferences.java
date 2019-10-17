@@ -59,6 +59,7 @@ public class Preferences {
   private final BooleanProperty lastGameOnlyFriends;
   private final BooleanProperty disallowJoinsViaDiscord;
   private final BooleanProperty showGameDetailsSidePane;
+  private final BooleanProperty advancedIceLogEnabled;
 
   public Preferences() {
     gameTileSortingOrder = new SimpleObjectProperty<>(TilesSortingOrder.PLAYER_DES);
@@ -90,6 +91,7 @@ public class Preferences {
     lastGameOnlyFriends = new SimpleBooleanProperty();
     disallowJoinsViaDiscord = new SimpleBooleanProperty();
     showGameDetailsSidePane = new SimpleBooleanProperty(false);
+    advancedIceLogEnabled = new SimpleBooleanProperty(false);
   }
 
   public VaultPrefs getVaultPrefs() {
@@ -311,6 +313,18 @@ public class Preferences {
 
   public void setShowGameDetailsSidePane(boolean showGameDetailsSidePane) {
     this.showGameDetailsSidePane.set(showGameDetailsSidePane);
+  }
+
+  public boolean isAdvancedIceLogEnabled() {
+    return advancedIceLogEnabled.get();
+  }
+
+  public void setAdvancedIceLogEnabled(boolean advancedIceLogEnabled) {
+    this.advancedIceLogEnabled.set(advancedIceLogEnabled);
+  }
+
+  public BooleanProperty advancedIceLogEnabledProperty() {
+    return advancedIceLogEnabled;
   }
 
   public BooleanProperty showGameDetailsSidePaneProperty() {

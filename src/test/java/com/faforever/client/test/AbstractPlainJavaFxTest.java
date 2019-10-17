@@ -8,6 +8,8 @@ import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.support.MessageSourceResourceBundle;
@@ -17,6 +19,8 @@ import org.testfx.framework.junit.ApplicationTest;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -24,16 +28,18 @@ import java.util.concurrent.CountDownLatch;
 import static com.github.nocatch.NoCatch.noCatch;
 
 @RunWith(MockitoJUnitRunner.class)
+@Slf4j
 public abstract class AbstractPlainJavaFxTest extends ApplicationTest {
 
   private final Pane root;
   private Scene scene;
   private Stage stage;
+  private List<Throwable> exceptionsCaught = new ArrayList<>();
 
   public AbstractPlainJavaFxTest() {
     root = new Pane();
-    Thread.currentThread().setUncaughtExceptionHandler((thread, e) -> {
-      throw (RuntimeException) e;
+    Thread.setDefaultUncaughtExceptionHandler((thread, e) -> {
+      log.error("Unresolved Throwable in none junit thread, please resolve even if test does not fail", e);
     });
   }
 
@@ -74,16 +80,30 @@ public abstract class AbstractPlainJavaFxTest extends ApplicationTest {
     ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
     messageSource.setBasename("i18n.messages");
 
+    @Data
+    class ExceptionWrapper {
+      private Exception loadException;
+    }
+
+    ExceptionWrapper loadExceptionWrapper = new ExceptionWrapper();
+
     FXMLLoader loader = new FXMLLoader();
     loader.setLocation(getThemeFileUrl(fileName));
     loader.setResources(new MessageSourceResourceBundle(messageSource, Locale.US));
     loader.setControllerFactory(controllerFactory);
     CountDownLatch latch = new CountDownLatch(1);
     Platform.runLater(() -> {
-      noCatch((Callable<Object>) loader::load);
+      try {
+        noCatch((Callable<Object>) loader::load);
+      } catch (Exception e) {
+        loadExceptionWrapper.setLoadException(e);
+      }
       latch.countDown();
     });
     noCatch((NoCatchRunnable) latch::await);
+    if (loadExceptionWrapper.getLoadException() != null) {
+      throw new RuntimeException("Loading fxm failed", loadExceptionWrapper.getLoadException());
+    }
   }
 
   protected String getThemeFile(String file) {

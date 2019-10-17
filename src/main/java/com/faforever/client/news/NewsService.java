@@ -7,11 +7,10 @@ import com.rometools.rome.feed.synd.SyndCategory;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.net.URL;
 import java.time.Duration;
@@ -25,7 +24,6 @@ import java.util.stream.Collectors;
 
 import static com.github.nocatch.NoCatch.noCatch;
 
-@Lazy
 @Service
 public class NewsService implements InitializingBean {
 

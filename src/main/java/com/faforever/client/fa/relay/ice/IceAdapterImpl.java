@@ -63,6 +63,8 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private static final int CONNECTION_ATTEMPTS = 50;
   private static final int CONNECTION_ATTEMPT_DELAY_MILLIS = 100;
 
+  private static final Logger advancedLogger = LoggerFactory.getLogger("faf-ice-adapter-advanced");
+
   private final ApplicationContext applicationContext;
   private final ClientProperties clientProperties;
   private final PlayerService playerService;
@@ -187,14 +189,23 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(workDirectory.toFile());
         processBuilder.command(cmd);
-        processBuilder.environment().put("LOG_DIR", preferencesService.getFafLogDirectory().resolve("iceAdapterLogs").toAbsolutePath().toString());
+        processBuilder.environment().put("LOG_DIR", preferencesService.getIceAdapterLogDirectory().toAbsolutePath().toString());
 
-        log.debug("Starting ICE adapter with command: {}", cmd);
+        log.info("Starting ICE adapter with command: {}", cmd);
+        boolean advancedIceLogEnabled = preferencesService.getPreferences().isAdvancedIceLogEnabled();
+        if (advancedIceLogEnabled) {
+          advancedLogger.info("\n\n");
+        }
         process = processBuilder.start();
-        Logger logger = LoggerFactory.getLogger("faf-ice-adapter");
-        OsUtils.gobbleLines(process.getInputStream(), s -> {
+        OsUtils.gobbleLines(process.getInputStream(), msg -> {
+          if (advancedIceLogEnabled) {
+            advancedLogger.info(msg);
+          }
         });
-        OsUtils.gobbleLines(process.getErrorStream(), s -> {
+        OsUtils.gobbleLines(process.getErrorStream(), msg -> {
+          if (advancedIceLogEnabled) {
+            advancedLogger.error(msg);
+          }
         });
 
         IceAdapterCallbacks iceAdapterCallbacks = applicationContext.getBean(IceAdapterCallbacks.class);
@@ -208,14 +219,14 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
             setLobbyInitMode();
             break;
           } catch (ConnectException e) {
-            logger.debug("Could not connect to ICE adapter (attempt {}/{})", attempt + 1, CONNECTION_ATTEMPTS);
+            log.debug("Could not connect to ICE adapter (attempt {}/{})", attempt + 1, CONNECTION_ATTEMPTS);
           }
 
           // Wait as the socket fails too fast on unix/linux not giving the adapter enough time to start
           try {
             Thread.sleep(CONNECTION_ATTEMPT_DELAY_MILLIS);
           } catch (InterruptedException e) {
-            logger.warn("Error while waiting for ice adapter", e);
+            log.warn("Error while waiting for ice adapter", e);
           }
         }
 
@@ -223,9 +234,9 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
         int exitCode = process.waitFor();
         if (exitCode == 0) {
-          logger.debug("ICE adapter terminated normally");
+          log.info("ICE adapter terminated normally");
         } else {
-          logger.warn("ICE adapter terminated with exit code: {}", exitCode);
+          log.warn("ICE adapter terminated with exit code: {}", exitCode);
         }
       } catch (Exception e) {
         iceAdapterClientFuture.completeExceptionally(e);
@@ -301,5 +312,4 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     Optional.ofNullable(iceAdapterProxy).ifPresent(IceAdapterApi::quit);
     peer = null;
   }
-
 }

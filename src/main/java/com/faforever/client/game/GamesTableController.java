@@ -87,7 +87,14 @@ public class GamesTableController implements Controller<Node> {
   public void initializeGameTable(ObservableList<Game> games, Function<String, String> coopMissionNameProvider) {
     gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
     tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
-    
+    tooltip.showingProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue) {
+        gameTooltipController.displayGame();
+      } else {
+        gameTooltipController.setGame(null);
+      }
+    });
+
     SortedList<Game> sortedList = new SortedList<>(games);
     sortedList.comparatorProperty().bind(gamesTable.comparatorProperty());
     gamesTable.setPlaceholder(new Label(i18n.get("games.noGamesAvailable")));
@@ -187,7 +194,7 @@ public class GamesTableController implements Controller<Node> {
       @Override
       protected void updateItem(Game game, boolean empty) {
         super.updateItem(game, empty);
-        if (game == null) {
+        if (empty || game == null) {
           setTooltip(null);
         } else {
           setTooltip(tooltip);
@@ -206,6 +213,9 @@ public class GamesTableController implements Controller<Node> {
       }
       Game game = row.getItem();
       gameTooltipController.setGame(game);
+      if (tooltip.isShowing()) {
+        gameTooltipController.displayGame();
+      }
     });
     return row;
   }

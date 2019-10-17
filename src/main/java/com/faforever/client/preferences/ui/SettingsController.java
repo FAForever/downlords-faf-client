@@ -27,8 +27,6 @@ import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.user.UserService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
-import com.jfoenix.controls.JFXTextField;
-import com.jfoenix.controls.JFXToggleButton;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -38,7 +36,6 @@ import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.geometry.Bounds;
-import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -130,10 +127,11 @@ public class SettingsController implements Controller<Node> {
   public ComboBox<UnitDataBaseType> unitDatabaseComboBox;
   public Toggle notifyOnAtMentionOnlyToggle;
   public Pane languagesContainer;
-  public JFXTextField backgroundImageLocation;
+  public TextField backgroundImageLocation;
   public CheckBox disallowJoinsCheckBox;
-  public JFXToggleButton secondaryVaultLocationToggleButton;
+  public ToggleButton secondaryVaultLocationToggleButton;
   public Button autoJoinChannelsButton;
+  public ToggleButton advancedIceLogToggleButton;
   private Popup autojoinChannelsPopUp;
   private ChangeListener<Theme> selectedThemeChangeListener;
   private ChangeListener<Theme> currentThemeChangeListener;
@@ -291,6 +289,8 @@ public class SettingsController implements Controller<Node> {
       Path vaultBaseDirectory = secondaryVaultLocationToggleButton.isSelected() ? preferencesService.getSecondaryVaultLocation() : preferencesService.getPrimaryVaultLocation();
       preferences.getForgedAlliance().setVaultBaseDirectory(vaultBaseDirectory);
     });
+
+    advancedIceLogToggleButton.selectedProperty().bindBidirectional(preferences.advancedIceLogEnabledProperty());
 
     initUnitDatabaseSelection(preferences);
   }

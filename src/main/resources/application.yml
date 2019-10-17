@@ -17,6 +17,7 @@ faf-client:
     linksYoutube: https://www.youtube.com/channel/UCkAWiUu4QE172kv-ZuyR42w
 
   vault:
+    rules_url: https://forums.faforever.com/viewtopic.php?f=2&t=17873
    mapDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/maps/%s.zip
    mapPreviewUrlFormat: ${faf-client.vault.base-url}/faf/vault/map_previews/%s/%s.png
    replayDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/replay_vault/replay.php?id=%s
@@ -68,7 +69,6 @@ logging:
     org.springframework.web.client: info
     org.springframework.security.oauth2: info
     org.springframework.security.oauth2.client.token.grant: off
-    faf-ice-adapter: info
 
     org.ice4j.stack: warn
     com.nbarraille.jjsonrpc: warn

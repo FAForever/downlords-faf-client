@@ -24,7 +24,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Locale;
@@ -92,7 +91,14 @@ public class GamesTilesContainerController implements Controller<Node> {
   public void initialize() {
     gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
     tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
-    
+    tooltip.showingProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue) {
+        gameTooltipController.displayGame();
+      } else {
+        gameTooltipController.setGame(null);
+      }
+    });
+
     JavaFxUtil.fixScrollSpeed(tiledScrollPane);
   }
 
@@ -140,6 +146,9 @@ public class GamesTilesContainerController implements Controller<Node> {
     
     root.setOnMouseEntered(event -> {
       gameTooltipController.setGame(game);
+      if (tooltip.isShowing()) {
+        gameTooltipController.displayGame();
+      }
     });
     Tooltip.install(root, tooltip);
   }

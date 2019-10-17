@@ -8,6 +8,7 @@ import com.faforever.client.main.event.ShowLadderMapsEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import com.google.common.io.CharStreams;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -56,6 +57,7 @@ public class NewsController extends AbstractViewController<Node> {
         -> loadingIndicator.getParent().getChildrenUnmodifiable().stream()
         .filter(node -> node != loadingIndicator)
         .forEach(node -> node.setVisible(!newValue));
+    eventBus.register(this);
   }
 
   @Override
@@ -85,28 +87,44 @@ public class NewsController extends AbstractViewController<Node> {
       return;
     }
 
+    eventBus.post(new UnreadNewsEvent(false));
+
     showLadderMapsButton.managedProperty().bind(showLadderMapsButton.visibleProperty());
     showLadderMapsButton.setVisible(false);
     newsDetailWebView.setContextMenuEnabled(false);
     webViewConfigurer.configureWebView(newsDetailWebView);
 
     onLoadingStart();
+    loadNews();
+  }
+
+  @Subscribe
+  public void onUnreadNewsEvent(UnreadNewsEvent unreadNewsEvent) {
+    if (unreadNewsEvent.hasUnreadNews()) {
+      onLoadingStart();
+      loadNews();
+    }
+  }
+
+
+  private void loadNews() {
     newsService.fetchNews().thenAccept(newsItems -> {
-      newsListView.getItems().setAll(newsItems);
-      onLoadingStop();
-      if (!newsItems.isEmpty()) {
-        NewsItem mostRecentItem = newsItems.get(0);
-        preferencesService.getPreferences().getNews().setLastReadNewsUrl(mostRecentItem.getLink());
-        preferencesService.storeInBackground();
-      }
-      newsListView.getSelectionModel().selectFirst();
+      Platform.runLater(() -> {
+        newsListView.getItems().setAll(newsItems);
+        onLoadingStop();
+        if (!newsItems.isEmpty()) {
+          NewsItem mostRecentItem = newsItems.get(0);
+          preferencesService.getPreferences().getNews().setLastReadNewsUrl(mostRecentItem.getLink());
+          preferencesService.storeInBackground();
+        }
+        newsListView.getSelectionModel().selectFirst();
+      });
     });
   }
 
   @SneakyThrows
   private void displayNewsItem(NewsItem newsItem) {
     showLadderMapsButton.setVisible(newsItem.getNewsCategory().equals(NewsCategory.LADDER));
-    eventBus.post(new UnreadNewsEvent(false));
 
     try (Reader reader = new InputStreamReader(NEWS_DETAIL_HTML_RESOURCE.getInputStream())) {
       String html = CharStreams.toString(reader).replace("{title}", newsItem.getTitle())
