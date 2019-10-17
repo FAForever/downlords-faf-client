@@ -1,7 +1,9 @@
 package com.faforever.client.map;
 
 import com.faforever.client.api.dto.ApiException;
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.event.MapUploadedEvent;
 import com.faforever.client.notification.Action;
@@ -48,8 +50,10 @@ public class MapUploadController implements Controller<Node> {
   private final ThreadPoolExecutor threadPoolExecutor;
   private final NotificationService notificationService;
   private final ReportingService reportingService;
+  private final PlatformService platformService;
   private final I18n i18n;
   private final EventBus eventBus;
+  private final ClientProperties clientProperties;
   public Label rankedLabel;
   public Label uploadTaskMessageLabel;
   public Label uploadTaskTitleLabel;
@@ -66,18 +70,22 @@ public class MapUploadController implements Controller<Node> {
   public ImageView thumbnailImageView;
   public Region mapUploadRoot;
   public CheckBox rankedCheckbox;
+  public CheckBox rulesCheckBox;
+  public Label rulesLabel;
   private Path mapPath;
   private MapBean mapInfo;
   private CompletableTask<Void> uploadMapTask;
   private Runnable cancelButtonClickedListener;
 
-  public MapUploadController(MapService mapService, ThreadPoolExecutor threadPoolExecutor, NotificationService notificationService, ReportingService reportingService, I18n i18n, EventBus eventBus) {
+  public MapUploadController(MapService mapService, ThreadPoolExecutor threadPoolExecutor, NotificationService notificationService, ReportingService reportingService, PlatformService platformService, I18n i18n, EventBus eventBus, ClientProperties clientProperties) {
     this.mapService = mapService;
     this.threadPoolExecutor = threadPoolExecutor;
     this.notificationService = notificationService;
     this.reportingService = reportingService;
+    this.platformService = platformService;
     this.i18n = i18n;
     this.eventBus = eventBus;
+    this.clientProperties = clientProperties;
   }
 
   public void initialize() {
@@ -172,6 +180,10 @@ public class MapUploadController implements Controller<Node> {
   }
 
   public void onUploadClicked() {
+    if (!rulesCheckBox.isSelected()) {
+      rulesLabel.getStyleClass().add("bad");
+      return;
+    }
     enterUploadingState();
 
     uploadProgressPane.setVisible(true);
@@ -215,5 +227,9 @@ public class MapUploadController implements Controller<Node> {
 
   void setOnCancelButtonClickedListener(Runnable cancelButtonClickedListener) {
     this.cancelButtonClickedListener = cancelButtonClickedListener;
+  }
+
+  public void onShowRulesClicked() {
+    platformService.showDocument(clientProperties.getVault().getRulesUrl());
   }
 }
