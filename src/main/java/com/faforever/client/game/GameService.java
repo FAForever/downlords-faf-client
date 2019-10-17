@@ -57,6 +57,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
@@ -95,16 +96,16 @@ public class GameService implements InitializingBean {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @VisibleForTesting
-  final BooleanProperty gameRunning = new SimpleBooleanProperty();
+  final BooleanProperty gameRunning;
 
   /** TODO: Explain why access needs to be synchronized. */
   @VisibleForTesting
-  final SimpleObjectProperty<Game> currentGame = new SimpleObjectProperty<>();
+  final SimpleObjectProperty<Game> currentGame;
 
   /**
    * An observable copy of {@link #uidToGameInfoBean}. <strong>Do not modify its content directly</strong>.
    */
-  private final ObservableMap<Integer, Game> uidToGameInfoBean = FXCollections.observableMap(new ConcurrentHashMap<>());
+  private final ObservableMap<Integer, Game> uidToGameInfoBean;
 
   private final FafService fafService;
   private final ForgedAllianceService forgedAllianceService;
@@ -122,7 +123,6 @@ public class GameService implements InitializingBean {
   private final PlatformService platformService;
   private final DiscordRichPresenceService discordRichPresenceService;
   private final ReplayServer replayServer;
-  private final ClientProperties clientProperties;
 
   @VisibleForTesting
   RatingMode ratingMode;
@@ -130,9 +130,72 @@ public class GameService implements InitializingBean {
   private ObservableList<Game> games;
   private String faWindowTitle;
   private Process process;
-  private BooleanProperty searching1v1 = new SimpleBooleanProperty();
+  private BooleanProperty searching1v1;
   private boolean rehostRequested;
   private int localReplayPort;
+
+  @Inject
+  public GameService(ClientProperties clientProperties,
+                     FafService fafService,
+                     ForgedAllianceService forgedAllianceService,
+                     MapService mapService,
+                     PreferencesService preferencesService,
+                     GameUpdater gameUpdater,
+                     NotificationService notificationService,
+                     I18n i18n,
+                     Executor executor,
+                     PlayerService playerService,
+                     ReportingService reportingService,
+                     EventBus eventBus,
+                     IceAdapter iceAdapter,
+                     ModService modService,
+                     PlatformService platformService,
+                     DiscordRichPresenceService discordRichPresenceService,
+                     ReplayServer replayServer) {
+    this.fafService = fafService;
+    this.forgedAllianceService = forgedAllianceService;
+    this.mapService = mapService;
+    this.preferencesService = preferencesService;
+    this.gameUpdater = gameUpdater;
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.executor = executor;
+    this.playerService = playerService;
+    this.reportingService = reportingService;
+    this.eventBus = eventBus;
+    this.iceAdapter = iceAdapter;
+    this.modService = modService;
+    this.platformService = platformService;
+    this.discordRichPresenceService = discordRichPresenceService;
+    this.replayServer = replayServer;
+
+    faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
+    uidToGameInfoBean = FXCollections.observableMap(new ConcurrentHashMap<>());
+    searching1v1 = new SimpleBooleanProperty();
+    gameRunning = new SimpleBooleanProperty();
+
+    currentGame = new SimpleObjectProperty<>();
+
+    currentGame.addListener((observable, oldValue, newValue) -> {
+      if (newValue == null) {
+        discordRichPresenceService.clearGameInfo();
+        return;
+      }
+
+      InvalidationListener listener = generateNumberOfPlayersChangeListener(newValue);
+      JavaFxUtil.addListener(newValue.numPlayersProperty(), listener);
+      listener.invalidated(newValue.numPlayersProperty());
+
+      ChangeListener<GameStatus> statusChangeListener = generateGameStatusListener(newValue);
+      JavaFxUtil.addListener(newValue.statusProperty(), statusChangeListener);
+      statusChangeListener.changed(newValue.statusProperty(), newValue.getStatus(), newValue.getStatus());
+    });
+
+    games = FXCollections.observableList(new ArrayList<>(),
+        item -> new Observable[]{item.statusProperty(), item.getTeams()}
+    );
+    JavaFxUtil.attachListToMap(games, uidToGameInfoBean);
+  }
 
   @NotNull
   private InvalidationListener generateNumberOfPlayersChangeListener(Game game) {
@@ -512,30 +575,6 @@ public class GameService implements InitializingBean {
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
-    faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
-
-
-
-
-    currentGame.addListener((observable, oldValue, newValue) -> {
-      if (newValue == null) {
-        discordRichPresenceService.clearGameInfo();
-        return;
-      }
-
-      InvalidationListener listener = generateNumberOfPlayersChangeListener(newValue);
-      JavaFxUtil.addListener(newValue.numPlayersProperty(), listener);
-      listener.invalidated(newValue.numPlayersProperty());
-
-      ChangeListener<GameStatus> statusChangeListener = generateGameStatusListener(newValue);
-      JavaFxUtil.addListener(newValue.statusProperty(), statusChangeListener);
-      statusChangeListener.changed(newValue.statusProperty(), newValue.getStatus(), newValue.getStatus());
-    });
-
-    games = FXCollections.observableList(new ArrayList<>(),
-        item -> new Observable[]{item.statusProperty(), item.getTeams()}
-    );
-    JavaFxUtil.attachListToMap(games, uidToGameInfoBean);
     fafService.addOnMessageListener(GameInfoMessage.class, message -> Platform.runLater(() -> onGameInfo(message)));
     fafService.addOnMessageListener(LoginMessage.class, message -> onLoggedIn());
     JavaFxUtil.addListener(fafService.connectionStateProperty(), (observable, oldValue, newValue) -> {

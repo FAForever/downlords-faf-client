@@ -117,20 +117,20 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
   private String defaultChannelName;
 
   @VisibleForTesting
-  ObjectProperty<ConnectionState> connectionState;
-  private Map<Class<? extends GenericEvent>, ArrayList<ChatEventListener>> eventListeners;
+  ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
+  private Map<Class<? extends GenericEvent>, ArrayList<ChatEventListener>> eventListeners = new ConcurrentHashMap<>();
   /**
    * Maps channels by name.
    */
-  private ObservableMap<String, Channel> channels;
+  private ObservableMap<String, Channel> channels = observableHashMap();
   /** Key is the result of {@link #mapKey(String, String)}. */
-  private ObservableMap<String, ChatChannelUser> chatChannelUsersByChannelAndName;
-  private SimpleIntegerProperty unreadMessagesCount;
+  private ObservableMap<String, ChatChannelUser> chatChannelUsersByChannelAndName = observableMap(new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
+  private SimpleIntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
 
   private Configuration configuration;
   private PircBotX pircBotX;
   /** Called when the IRC server has confirmed our identity. */
-  private CompletableFuture<Void> identifiedFuture;
+  private CompletableFuture<Void> identifiedFuture = new CompletableFuture<>();
   private Task<Void> connectionTask;
   /**
    * A list of channels the server wants us to join.
@@ -145,12 +145,6 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
-    connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
-    eventListeners = new ConcurrentHashMap<>();
-    channels = observableHashMap();
-    chatChannelUsersByChannelAndName = observableMap(new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
-    unreadMessagesCount = new SimpleIntegerProperty();
-    identifiedFuture = new CompletableFuture<>();
     fafService.addOnMessageListener(SocialMessage.class, this::onSocialMessage);
     connectionState.addListener((observable, oldValue, newValue) -> {
       switch (newValue) {

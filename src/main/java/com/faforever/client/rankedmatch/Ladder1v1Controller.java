@@ -43,7 +43,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -70,7 +69,7 @@ import static com.faforever.client.game.Faction.UEF;
 @Lazy
 @Slf4j
 @RequiredArgsConstructor
-public class Ladder1v1Controller extends AbstractViewController<Node> implements InitializingBean, DisposableBean {
+public class Ladder1v1Controller extends AbstractViewController<Node> implements DisposableBean {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final PseudoClass NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("highlighted-bar");
@@ -119,6 +118,10 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
   @Override
   public void initialize() {
     super.initialize();
+
+    youLabel = new Text(i18n.get("ranked1v1.you"));
+    youLabel.setId("1v1-you-text");
+
     cancelButton.managedProperty().bind(cancelButton.visibleProperty());
     playButton.managedProperty().bind(playButton.visibleProperty());
     ratingLabel.managedProperty().bind(ratingLabel.visibleProperty());
@@ -355,11 +358,5 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
 
   public void showLadderMaps(ActionEvent actionEvent) {
     eventBus.post(new ShowLadderMapsEvent());
-  }
-
-  @Override
-  public void afterPropertiesSet() throws Exception {
-    youLabel = new Text(i18n.get("ranked1v1.you"));
-    youLabel.setId("1v1-you-text");
   }
 }

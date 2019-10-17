@@ -51,22 +51,16 @@ public class MockChatService implements ChatService, InitializingBean {
   private final I18n i18n;
   private final EventBus eventBus;
 
-  private Timer timer;
-  private Collection<Consumer<ChatMessage>> onChatMessageListeners;
-  private Map<String, Channel> channelUserListListeners;
-  private ObjectProperty<ConnectionState> connectionState;
-  private IntegerProperty unreadMessagesCount;
+  private Timer timer = new Timer(true);
+  private Collection<Consumer<ChatMessage>> onChatMessageListeners = new ArrayList<>();
+  private Map<String, Channel> channelUserListListeners = new HashMap<>();
+  private ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
+  private IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
 
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
-    connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
-    unreadMessagesCount = new SimpleIntegerProperty();
 
-    onChatMessageListeners = new ArrayList<>();
-    channelUserListListeners = new HashMap<>();
-
-    timer = new Timer(true);
   }
 
   @Subscribe

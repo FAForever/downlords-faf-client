@@ -29,7 +29,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
-import lombok.RequiredArgsConstructor;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,6 +45,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
@@ -75,7 +75,6 @@ import static java.util.stream.Collectors.toCollection;
 
 @Lazy
 @Service
-@RequiredArgsConstructor
 public class MapService implements InitializingBean, DisposableBean {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -99,7 +98,31 @@ public class MapService implements InitializingBean, DisposableBean {
   private Map<String, MapBean> mapsByFolderName;
   private Thread directoryWatcherThread;
   private Path customMapsDirectory;
-  
+
+  @Inject
+  public MapService(PreferencesService preferencesService,
+                    TaskService taskService,
+                    ApplicationContext applicationContext,
+                    FafService fafService,
+                    AssetService assetService,
+                    I18n i18n,
+                    UiService uiService,
+                    MapGeneratorService mapGeneratorService,
+                    ClientProperties clientProperties,
+                    EventBus eventBus) {
+    this.preferencesService = preferencesService;
+    this.taskService = taskService;
+    this.applicationContext = applicationContext;
+    this.fafService = fafService;
+    this.assetService = assetService;
+    this.i18n = i18n;
+    this.uiService = uiService;
+    this.mapGeneratorService = mapGeneratorService;
+    this.clientProperties = clientProperties;
+    this.eventBus = eventBus;
+    forgedAlliancePreferences = preferencesService.getPreferences().getForgedAlliance();
+  }
+
   @VisibleForTesting
   Set<String> officialMaps = ImmutableSet.of(
       "SCMP_001", "SCMP_002", "SCMP_003", "SCMP_004", "SCMP_005", "SCMP_006", "SCMP_007", "SCMP_008", "SCMP_009", "SCMP_010", "SCMP_011",

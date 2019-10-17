@@ -137,10 +137,10 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     junitPlayer = PlayerBuilder.create("JUnit").defaultValues().get();
 
-    instance = new GameService(fafService, forgedAllianceService, mapService,
+    instance = new GameService(new ClientProperties(), fafService, forgedAllianceService, mapService,
         preferencesService, gameUpdater, notificationService, i18n, executor, playerService,
         reportingService, eventBus, iceAdapter, modService, platformService, discordRichPresenceService,
-        replayService, new ClientProperties());
+        replayService);
 
     Preferences preferences = new Preferences();
 

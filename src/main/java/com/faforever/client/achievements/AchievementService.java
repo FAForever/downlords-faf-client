@@ -37,11 +37,9 @@ public class AchievementService implements InitializingBean {
   private final FafService fafService;
   private final PlayerService playerService;
   private final AssetService assetService;
-
-  private ObservableList<PlayerAchievement> readOnlyPlayerAchievements;
   @VisibleForTesting
-  ObservableList<PlayerAchievement> playerAchievements;
-
+  final ObservableList<PlayerAchievement> playerAchievements = FXCollections.observableArrayList();
+  private final ObservableList<PlayerAchievement> readOnlyPlayerAchievements = FXCollections.unmodifiableObservableList(playerAchievements);
   
   public CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(Integer playerId) {
     int currentPlayerId = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has to be set")).getId();
@@ -97,8 +95,6 @@ public class AchievementService implements InitializingBean {
   @Override
   public void afterPropertiesSet() {
     fafService.addOnMessageListener(UpdatedAchievementsMessage.class, updatedAchievementsMessage -> reloadAchievements());
-    playerAchievements = FXCollections.observableArrayList();
-    readOnlyPlayerAchievements = FXCollections.unmodifiableObservableList(playerAchievements);
   }
 
   public enum AchievementState {

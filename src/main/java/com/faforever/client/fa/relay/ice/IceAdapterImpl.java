@@ -72,7 +72,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private final FafService fafService;
   private final PreferencesService preferencesService;
 
-  private IceAdapterApi iceAdapterProxy;
+  private IceAdapterApi iceAdapterProxy = newIceAdapterProxy();
   private CompletableFuture<Integer> iceAdapterClientFuture;
   private Process process;
   private LobbyMode lobbyInitMode;
@@ -87,7 +87,6 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     fafService.addOnMessageListener(GameLaunchMessage.class, this::updateLobbyModeFromGameInfo);
     fafService.addOnMessageListener(DisconnectFromPeerMessage.class, message -> iceAdapterProxy.disconnectFromPeer(message.getUid()));
     fafService.addOnMessageListener(IceServerMessage.class, message -> iceAdapterProxy.iceMsg(message.getSender(), message.getRecord()));
-    iceAdapterProxy = newIceAdapterProxy();
   }
 
   /**
