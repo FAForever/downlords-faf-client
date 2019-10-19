@@ -3,6 +3,7 @@ package com.faforever.client.preferences;
 import com.faforever.client.preferences.gson.ExcludeFromGson;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
+import com.sun.jna.platform.win32.Win32Exception;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -10,11 +11,17 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static javax.swing.JOptionPane.showMessageDialog;
+
+@Slf4j
 public class ForgedAlliancePrefs {
 
   public static final Path GPG_FA_PATH;
@@ -24,16 +31,45 @@ public class ForgedAlliancePrefs {
 
   static {
     if (org.bridj.Platform.isWindows()) {
-      GPG_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
+      GPG_FA_PATH = shGetPath(ShlObj.CSIDL_PERSONAL, "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
       //If steam is every swapped to a 64x client, needs to be updated to proper directory or handling must be put in place.
-      STEAM_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PROGRAM_FILESX86), "Steam", "steamapps", "common", "Supreme Commander Forged Alliance");
-      LOCAL_FA_DATA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_LOCAL_APPDATA), "Gas Powered Games", "Supreme Commander Forged Alliance");
+      STEAM_FA_PATH = shGetPath(ShlObj.CSIDL_PROGRAM_FILESX86, "Steam", "steamapps", "common", "Supreme Commander Forged Alliance");
+      LOCAL_FA_DATA_PATH = shGetPath(ShlObj.CSIDL_LOCAL_APPDATA, "Gas Powered Games", "Supreme Commander Forged Alliance");
     } else {
       String userHome = System.getProperty("user.home");
-      GPG_FA_PATH = Paths.get(userHome, "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
-      STEAM_FA_PATH = Paths.get(".");
-      LOCAL_FA_DATA_PATH = Paths.get(userHome, ".wine", "drive_c", "users", System.getProperty("user.name"), "Application Data", "Gas Powered Games", "Supreme Commander Forged Alliance");
+      GPG_FA_PATH = getPaths(userHome, "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
+      STEAM_FA_PATH = getPaths(".");
+      LOCAL_FA_DATA_PATH = getPaths(userHome, ".wine", "drive_c", "users", System.getProperty("user.name"), "Application Data", "Gas Powered Games", "Supreme Commander Forged Alliance");
     }
+  }
+
+  private static Path getPaths(String userHome, String... folderPath) {
+    Path path = null;
+    try {
+      path = Paths.get(userHome, folderPath);
+    } catch (InvalidPathException e) {
+      log.error("Error: {}", e.getMessage(), e);
+      showMessageDialog(null, "Unable to access file" + folderPath);
+    }
+    return path;
+  }
+
+  /**
+   * A wrapper used to return the requested path or display errors when Shell32Util cannot access a file
+   *
+   * @param shlObj
+   * @param folderPath
+   * @return The requested path
+   */
+  private static Path shGetPath(final int shlObj, final String... folderPath) {
+    String rootPath = Strings.EMPTY;
+    try {
+      rootPath = Shell32Util.getFolderPath(shlObj);
+    } catch (Win32Exception e) {
+      log.error("Error {}", e.getMessage(), e); // https://github.com/FAForever/downlords-faf-client/issues/1404
+      showMessageDialog(null, "Unable to access file " + folderPath);
+    }
+    return Paths.get(rootPath, folderPath);
   }
 
   /**
