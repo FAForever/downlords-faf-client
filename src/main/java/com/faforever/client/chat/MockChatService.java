@@ -60,7 +60,6 @@ public class MockChatService implements ChatService, InitializingBean {
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
-
   }
 
   @Subscribe
