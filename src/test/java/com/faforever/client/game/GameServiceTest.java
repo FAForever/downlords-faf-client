@@ -35,7 +35,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.util.ReflectionUtils;
@@ -88,7 +87,6 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   private static final Integer GPG_PORT = 1234;
   private static final int LOCAL_REPLAY_PORT = 15111;
 
-  @InjectMocks
   private GameService instance;
 
   @Mock
@@ -123,8 +121,6 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   private PlatformService platformService;
   @Mock
   private DiscordRichPresenceService discordRichPresenceService;
-  @Mock
-  private ClientProperties clientProperties;
 
   @Captor
   private ArgumentCaptor<Consumer<GameInfoMessage>> gameInfoMessageListenerCaptor;
@@ -137,7 +133,9 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     junitPlayer = PlayerBuilder.create("JUnit").defaultValues().get();
 
-    instance = new GameService(new ClientProperties(), fafService, forgedAllianceService, mapService,
+    ClientProperties clientProperties = new ClientProperties();
+
+    instance = new GameService(clientProperties, fafService, forgedAllianceService, mapService,
         preferencesService, gameUpdater, notificationService, i18n, executor, playerService,
         reportingService, eventBus, iceAdapter, modService, platformService, discordRichPresenceService,
         replayService);

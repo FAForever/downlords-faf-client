@@ -89,13 +89,13 @@ public class MapService implements InitializingBean, DisposableBean {
   private final MapGeneratorService mapGeneratorService;
   private final ClientProperties clientProperties;
   private final EventBus eventBus;
-  private ForgedAlliancePrefs forgedAlliancePreferences;
+  private final ForgedAlliancePrefs forgedAlliancePreferences;
 
-  private String mapDownloadUrlFormat;
-  private String mapPreviewUrlFormat;
-  private Map<Path, MapBean> pathToMap = new HashMap<>();
-  private ObservableList<MapBean> installedSkirmishMaps;
-  private Map<String, MapBean> mapsByFolderName;
+  private final String mapDownloadUrlFormat;
+  private final String mapPreviewUrlFormat;
+  private final Map<Path, MapBean> pathToMap = new HashMap<>();
+  private final ObservableList<MapBean> installedSkirmishMaps = FXCollections.observableArrayList();
+  private final Map<String, MapBean> mapsByFolderName = new HashMap<>();
   private Thread directoryWatcherThread;
   private Path customMapsDirectory;
 
@@ -121,6 +121,20 @@ public class MapService implements InitializingBean, DisposableBean {
     this.clientProperties = clientProperties;
     this.eventBus = eventBus;
     forgedAlliancePreferences = preferencesService.getPreferences().getForgedAlliance();
+    Vault vault = clientProperties.getVault();
+    this.mapDownloadUrlFormat = vault.getMapDownloadUrlFormat();
+    this.mapPreviewUrlFormat = vault.getMapPreviewUrlFormat();
+
+    installedSkirmishMaps.addListener((ListChangeListener<MapBean>) change -> {
+      while (change.next()) {
+        for (MapBean mapBean : change.getRemoved()) {
+          mapsByFolderName.remove(mapBean.getFolderName().toLowerCase());
+        }
+        for (MapBean mapBean : change.getAddedSubList()) {
+          mapsByFolderName.put(mapBean.getFolderName().toLowerCase(), mapBean);
+        }
+      }
+    });
   }
 
   @VisibleForTesting
@@ -143,23 +157,6 @@ public class MapService implements InitializingBean, DisposableBean {
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
-    forgedAlliancePreferences = preferencesService.getPreferences().getForgedAlliance();
-    Vault vault = clientProperties.getVault();
-    this.mapDownloadUrlFormat = vault.getMapDownloadUrlFormat();
-    this.mapPreviewUrlFormat = vault.getMapPreviewUrlFormat();
-    installedSkirmishMaps = FXCollections.observableArrayList();
-    mapsByFolderName = new HashMap<>();
-
-    installedSkirmishMaps.addListener((ListChangeListener<MapBean>) change -> {
-      while (change.next()) {
-        for (MapBean mapBean : change.getRemoved()) {
-          mapsByFolderName.remove(mapBean.getFolderName().toLowerCase());
-        }
-        for (MapBean mapBean : change.getAddedSubList()) {
-          mapsByFolderName.put(mapBean.getFolderName().toLowerCase(), mapBean);
-        }
-      }
-    });
     JavaFxUtil.addListener(forgedAlliancePreferences.pathProperty(), observable -> tryLoadMaps());
     JavaFxUtil.addListener(forgedAlliancePreferences.customMapsDirectoryProperty(), observable -> tryLoadMaps());
     tryLoadMaps();

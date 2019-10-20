@@ -127,10 +127,11 @@ public class GameService implements InitializingBean {
   @VisibleForTesting
   RatingMode ratingMode;
 
-  private ObservableList<Game> games;
-  private String faWindowTitle;
+  private final ObservableList<Game> games;
+  private final String faWindowTitle;
+  private final BooleanProperty searching1v1;
+
   private Process process;
-  private BooleanProperty searching1v1;
   private boolean rehostRequested;
   private int localReplayPort;
 

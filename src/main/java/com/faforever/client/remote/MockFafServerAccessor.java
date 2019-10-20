@@ -75,7 +75,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   private final I18n i18n;
   private final EventBus eventBus;
 
-  private ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>();
+  private final ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>();
 
   @Override
   @SuppressWarnings("unchecked")
