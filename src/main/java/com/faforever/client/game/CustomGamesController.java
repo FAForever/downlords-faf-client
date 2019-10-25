@@ -245,9 +245,9 @@ public class CustomGamesController extends AbstractViewController<Node> {
   public void onTilesButtonClicked() {
     gamesTilesContainerController = uiService.loadFxml("theme/play/games_tiles_container.fxml");
     JavaFxUtil.addListener(gamesTilesContainerController.selectedGameProperty(), new WeakChangeListener<>(gameChangeListener));
-    chooseSortingTypeChoiceBox.getItems().clear();
 
     Platform.runLater(() -> {
+      chooseSortingTypeChoiceBox.getItems().clear();
       Node root = gamesTilesContainerController.getRoot();
       populateContainer(root);
       gamesTilesContainerController.createTiledFlowPane(filteredItems, chooseSortingTypeChoiceBox);
