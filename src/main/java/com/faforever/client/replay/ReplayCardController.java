@@ -21,11 +21,11 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class ReplayCardController implements Controller<Node> {
 
   private final TimeService timeService;
@@ -58,17 +59,8 @@ public class ReplayCardController implements Controller<Node> {
   private Replay replay;
   private Consumer<Replay> onOpenDetailListener;
   private I18n i18n;
-  private InvalidationListener reviewsChangedListener;
+  private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
   private JFXRippler jfxRippler;
-
-  @Inject
-  public ReplayCardController(TimeService timeService, MapService mapService, RatingService ratingService, I18n i18n) {
-    this.timeService = timeService;
-    this.mapService = mapService;
-    this.ratingService = ratingService;
-    this.i18n = i18n;
-    reviewsChangedListener = observable -> populateReviews();
-  }
 
   @Override
   public void initialize() {

@@ -122,8 +122,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
         .setInitialStandardDeviation(500);
 
     instance = new MainController(preferencesService, i18n, notificationService, playerService, gameService, clientUpdateService,
-        uiService, eventBus, clientProperties, gamePathHandler, platformService, vaultFileSystemLocationChecker);
-
+        uiService, eventBus, gamePathHandler, platformService, vaultFileSystemLocationChecker, clientProperties);
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(loginController.getRoot()).thenReturn(new Pane());

@@ -87,34 +87,30 @@ public class MapService implements InitializingBean, DisposableBean {
   private final I18n i18n;
   private final UiService uiService;
   private final MapGeneratorService mapGeneratorService;
+  private final ClientProperties clientProperties;
   private final EventBus eventBus;
+  private final ForgedAlliancePrefs forgedAlliancePreferences;
 
   private final String mapDownloadUrlFormat;
   private final String mapPreviewUrlFormat;
-  private final ForgedAlliancePrefs forgedAlliancePreferences;
-
-  private Map<Path, MapBean> pathToMap;
-  private ObservableList<MapBean> installedSkirmishMaps;
-  private Map<String, MapBean> mapsByFolderName;
+  private final Map<Path, MapBean> pathToMap = new HashMap<>();
+  private final ObservableList<MapBean> installedSkirmishMaps = FXCollections.observableArrayList();
+  private final Map<String, MapBean> mapsByFolderName = new HashMap<>();
   private Thread directoryWatcherThread;
   private Path customMapsDirectory;
-  
-  @VisibleForTesting
-  Set<String> officialMaps = ImmutableSet.of(
-      "SCMP_001", "SCMP_002", "SCMP_003", "SCMP_004", "SCMP_005", "SCMP_006", "SCMP_007", "SCMP_008", "SCMP_009", "SCMP_010", "SCMP_011",
-      "SCMP_012", "SCMP_013", "SCMP_014", "SCMP_015", "SCMP_016", "SCMP_017", "SCMP_018", "SCMP_019", "SCMP_020", "SCMP_021", "SCMP_022",
-      "SCMP_023", "SCMP_024", "SCMP_025", "SCMP_026", "SCMP_027", "SCMP_028", "SCMP_029", "SCMP_030", "SCMP_031", "SCMP_032", "SCMP_033",
-      "SCMP_034", "SCMP_035", "SCMP_036", "SCMP_037", "SCMP_038", "SCMP_039", "SCMP_040", "X1MP_001", "X1MP_002", "X1MP_003", "X1MP_004",
-      "X1MP_005", "X1MP_006", "X1MP_007", "X1MP_008", "X1MP_009", "X1MP_010", "X1MP_011", "X1MP_012", "X1MP_014", "X1MP_017"
-      );
 
   @Inject
-  public MapService(PreferencesService preferencesService, TaskService taskService,
+  public MapService(PreferencesService preferencesService,
+                    TaskService taskService,
                     ApplicationContext applicationContext,
-                    FafService fafService, AssetService assetService,
-                    I18n i18n, UiService uiService, ClientProperties clientProperties, MapGeneratorService mapGeneratorService, EventBus eventBus) {
+                    FafService fafService,
+                    AssetService assetService,
+                    I18n i18n,
+                    UiService uiService,
+                    MapGeneratorService mapGeneratorService,
+                    ClientProperties clientProperties,
+                    EventBus eventBus) {
     this.preferencesService = preferencesService;
-    this.forgedAlliancePreferences = preferencesService.getPreferences().getForgedAlliance();
     this.taskService = taskService;
     this.applicationContext = applicationContext;
     this.fafService = fafService;
@@ -122,15 +118,12 @@ public class MapService implements InitializingBean, DisposableBean {
     this.i18n = i18n;
     this.uiService = uiService;
     this.mapGeneratorService = mapGeneratorService;
+    this.clientProperties = clientProperties;
     this.eventBus = eventBus;
-
+    forgedAlliancePreferences = preferencesService.getPreferences().getForgedAlliance();
     Vault vault = clientProperties.getVault();
     this.mapDownloadUrlFormat = vault.getMapDownloadUrlFormat();
     this.mapPreviewUrlFormat = vault.getMapPreviewUrlFormat();
-
-    pathToMap = new HashMap<>();
-    installedSkirmishMaps = FXCollections.observableArrayList();
-    mapsByFolderName = new HashMap<>();
 
     installedSkirmishMaps.addListener((ListChangeListener<MapBean>) change -> {
       while (change.next()) {
@@ -143,6 +136,15 @@ public class MapService implements InitializingBean, DisposableBean {
       }
     });
   }
+
+  @VisibleForTesting
+  Set<String> officialMaps = ImmutableSet.of(
+      "SCMP_001", "SCMP_002", "SCMP_003", "SCMP_004", "SCMP_005", "SCMP_006", "SCMP_007", "SCMP_008", "SCMP_009", "SCMP_010", "SCMP_011",
+      "SCMP_012", "SCMP_013", "SCMP_014", "SCMP_015", "SCMP_016", "SCMP_017", "SCMP_018", "SCMP_019", "SCMP_020", "SCMP_021", "SCMP_022",
+      "SCMP_023", "SCMP_024", "SCMP_025", "SCMP_026", "SCMP_027", "SCMP_028", "SCMP_029", "SCMP_030", "SCMP_031", "SCMP_032", "SCMP_033",
+      "SCMP_034", "SCMP_035", "SCMP_036", "SCMP_037", "SCMP_038", "SCMP_039", "SCMP_040", "X1MP_001", "X1MP_002", "X1MP_003", "X1MP_004",
+      "X1MP_005", "X1MP_006", "X1MP_007", "X1MP_008", "X1MP_009", "X1MP_010", "X1MP_011", "X1MP_012", "X1MP_014", "X1MP_017"
+      );
 
   private static URL getDownloadUrl(String mapName, String baseUrl) {
     return noCatch(() -> new URL(format(baseUrl, urlFragmentEscaper().escape(mapName).toLowerCase(Locale.US))));

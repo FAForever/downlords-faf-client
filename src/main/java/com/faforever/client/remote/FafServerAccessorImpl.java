@@ -77,10 +77,12 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Task;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
@@ -89,7 +91,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
@@ -110,13 +111,25 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Lazy
 @Component
 @Profile("!" + FafClientApplication.PROFILE_OFFLINE)
+@RequiredArgsConstructor
 public class FafServerAccessorImpl extends AbstractServerAccessor implements FafServerAccessor,
-    DisposableBean {
+    InitializingBean, DisposableBean {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final long RECONNECT_DELAY = 3000;
-  private final Gson gson;
-  private final HashMap<Class<? extends ServerMessage>, Collection<Consumer<ServerMessage>>> messageListeners;
+  private Gson gson = new GsonBuilder()
+      .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+      .registerTypeAdapter(VictoryCondition.class, VictoryConditionTypeAdapter.INSTANCE)
+      .registerTypeAdapter(GameStatus.class, GameStateTypeAdapter.INSTANCE)
+      .registerTypeAdapter(GameAccess.class, GameAccessTypeAdapter.INSTANCE)
+      .registerTypeAdapter(ClientMessageType.class, ClientMessageTypeTypeAdapter.INSTANCE)
+      .registerTypeAdapter(FafServerMessageType.class, ServerMessageTypeTypeAdapter.INSTANCE)
+      .registerTypeAdapter(GpgServerMessageType.class, GpgServerMessageTypeTypeAdapter.INSTANCE)
+      .registerTypeAdapter(MessageTarget.class, MessageTargetTypeAdapter.INSTANCE)
+      .registerTypeAdapter(ServerMessage.class, ServerMessageTypeAdapter.INSTANCE)
+      .registerTypeAdapter(RatingRange.class, RatingRangeTypeAdapter.INSTANCE)
+      .create();
+  private final HashMap<Class<? extends ServerMessage>, Collection<Consumer<ServerMessage>>> messageListeners = new HashMap<>();
 
   private final PreferencesService preferencesService;
   private final UidService uidService;
@@ -131,52 +144,13 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private volatile CompletableFuture<LoginMessage> loginFuture;
   private CompletableFuture<SessionMessage> sessionFuture;
   private CompletableFuture<GameLaunchMessage> gameLaunchFuture;
-  private ObjectProperty<Long> sessionId;
+  private ObjectProperty<Long> sessionId = new SimpleObjectProperty<>();
   private String username;
   private String password;
-  private ObjectProperty<ConnectionState> connectionState;
+  private ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>();
   private Socket fafServerSocket;
   private CompletableFuture<List<Avatar>> avatarsFuture;
   private CompletableFuture<List<IceServer>> iceServersFuture;
-
-  @Inject
-  public FafServerAccessorImpl(PreferencesService preferencesService,
-                               UidService uidService,
-                               NotificationService notificationService,
-                               I18n i18n,
-                               ClientProperties clientProperties,
-                               ReportingService reportingService) {
-    this.clientProperties = clientProperties;
-    messageListeners = new HashMap<>();
-    connectionState = new SimpleObjectProperty<>();
-    sessionId = new SimpleObjectProperty<>();
-    // TODO note to myself; seriously, create a single gson instance (or builder) and put it all there
-    gson = new GsonBuilder()
-        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-        .registerTypeAdapter(VictoryCondition.class, VictoryConditionTypeAdapter.INSTANCE)
-        .registerTypeAdapter(GameStatus.class, GameStateTypeAdapter.INSTANCE)
-        .registerTypeAdapter(GameAccess.class, GameAccessTypeAdapter.INSTANCE)
-        .registerTypeAdapter(ClientMessageType.class, ClientMessageTypeTypeAdapter.INSTANCE)
-        .registerTypeAdapter(FafServerMessageType.class, ServerMessageTypeTypeAdapter.INSTANCE)
-        .registerTypeAdapter(GpgServerMessageType.class, GpgServerMessageTypeTypeAdapter.INSTANCE)
-        .registerTypeAdapter(MessageTarget.class, MessageTargetTypeAdapter.INSTANCE)
-        .registerTypeAdapter(ServerMessage.class, ServerMessageTypeAdapter.INSTANCE)
-        .registerTypeAdapter(RatingRange.class, RatingRangeTypeAdapter.INSTANCE)
-        .create();
-
-    addOnMessageListener(NoticeMessage.class, this::onNotice);
-    addOnMessageListener(SessionMessage.class, this::onSessionInitiated);
-    addOnMessageListener(LoginMessage.class, this::onFafLoginSucceeded);
-    addOnMessageListener(GameLaunchMessage.class, this::onGameLaunchInfo);
-    addOnMessageListener(AuthenticationFailedMessage.class, this::dispatchAuthenticationFailed);
-    addOnMessageListener(AvatarMessage.class, this::onAvatarMessage);
-    addOnMessageListener(IceServersServerMessage.class, this::onIceServersMessage);
-    this.preferencesService = preferencesService;
-    this.uidService = uidService;
-    this.notificationService = notificationService;
-    this.i18n = i18n;
-    this.reportingService = reportingService;
-  }
 
   private void onAvatarMessage(AvatarMessage avatarMessage) {
     avatarsFuture.complete(avatarMessage.getAvatarList());
@@ -503,5 +477,16 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
       return;
     }
     writeToServer(PingMessage.INSTANCE);
+  }
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    addOnMessageListener(NoticeMessage.class, this::onNotice);
+    addOnMessageListener(SessionMessage.class, this::onSessionInitiated);
+    addOnMessageListener(LoginMessage.class, this::onFafLoginSucceeded);
+    addOnMessageListener(GameLaunchMessage.class, this::onGameLaunchInfo);
+    addOnMessageListener(AuthenticationFailedMessage.class, this::dispatchAuthenticationFailed);
+    addOnMessageListener(AvatarMessage.class, this::onAvatarMessage);
+    addOnMessageListener(IceServersServerMessage.class, this::onIceServersMessage);
   }
 }

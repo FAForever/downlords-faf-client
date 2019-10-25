@@ -12,15 +12,15 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.IdenticonUtil;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
-
-import javax.inject.Inject;
+import org.springframework.stereotype.Component;
 
 /**
  * Displays a notification whenever a friend comes online (if enabled in settings).
  */
 @Component
+@RequiredArgsConstructor
 public class FriendOnlineNotifier implements InitializingBean {
 
   private final NotificationService notificationService;
@@ -29,17 +29,6 @@ public class FriendOnlineNotifier implements InitializingBean {
   private final AudioService audioService;
   private final PlayerService playerService;
   private final PreferencesService preferencesService;
-
-  @Inject
-  public FriendOnlineNotifier(NotificationService notificationService, I18n i18n, EventBus eventBus,
-                              AudioService audioService, PlayerService playerService, PreferencesService preferencesService) {
-    this.notificationService = notificationService;
-    this.i18n = i18n;
-    this.eventBus = eventBus;
-    this.audioService = audioService;
-    this.playerService = playerService;
-    this.preferencesService = preferencesService;
-  }
 
   @Override
   public void afterPropertiesSet() {

@@ -18,16 +18,17 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.Optional;
 import java.util.function.Consumer;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class MapCardController implements Controller<Node> {
 
   private final MapService mapService;
@@ -46,15 +47,8 @@ public class MapCardController implements Controller<Node> {
   private MapBean map;
   private Consumer<MapBean> onOpenDetailListener;
   private ListChangeListener<MapBean> installedMapsChangeListener;
-  private InvalidationListener reviewsChangedListener;
+  private InvalidationListener reviewsChangedListener = observable -> populateReviews();
   private JFXRippler jfxRippler;
-
-  @Inject
-  public MapCardController(MapService mapService, I18n i18n) {
-    this.mapService = mapService;
-    this.i18n = i18n;
-    reviewsChangedListener = observable -> populateReviews();
-  }
 
   public void initialize() {
     jfxRippler = new JFXRippler(mapTileRoot);

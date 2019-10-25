@@ -26,6 +26,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +42,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
@@ -75,6 +75,8 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 
 @Lazy
 @Service
+@RequiredArgsConstructor
+// TODO divide and conquer
 public class ModService implements InitializingBean, DisposableBean {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -90,33 +92,13 @@ public class ModService implements InitializingBean, DisposableBean {
   private final I18n i18n;
   private final PlatformService platformService;
   private final AssetService assetService;
-  private final ModReader modReader;
+  private final ModReader modReader = new ModReader();
 
   private Path modsDirectory;
-  private Map<Path, ModVersion> pathToMod;
-  private ObservableList<ModVersion> installedModVersions;
-  private ObservableList<ModVersion> readOnlyInstalledModVersions;
+  private Map<Path, ModVersion> pathToMod = new HashMap<>();
+  private ObservableList<ModVersion> installedModVersions = FXCollections.observableArrayList();
+  private ObservableList<ModVersion> readOnlyInstalledModVersions = FXCollections.unmodifiableObservableList(installedModVersions);
   private Thread directoryWatcherThread;
-
-  @Inject
-  // TODO divide and conquer
-  public ModService(TaskService taskService, FafService fafService, PreferencesService preferencesService,
-                    ApplicationContext applicationContext,
-                    NotificationService notificationService, I18n i18n,
-                    PlatformService platformService, AssetService assetService) {
-    pathToMod = new HashMap<>();
-    modReader = new ModReader();
-    installedModVersions = FXCollections.observableArrayList();
-    readOnlyInstalledModVersions = FXCollections.unmodifiableObservableList(installedModVersions);
-    this.taskService = taskService;
-    this.fafService = fafService;
-    this.preferencesService = preferencesService;
-    this.applicationContext = applicationContext;
-    this.notificationService = notificationService;
-    this.i18n = i18n;
-    this.platformService = platformService;
-    this.assetService = assetService;
-  }
 
   @Override
   public void afterPropertiesSet() {

@@ -40,6 +40,7 @@ import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +61,6 @@ import org.springframework.web.client.RestOperations;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.inject.Inject;
 import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -76,6 +76,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @Profile("!offline")
+@RequiredArgsConstructor
 public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   private static final String MAP_ENDPOINT = "/data/map";
@@ -87,27 +88,15 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   private static final String OAUTH_TOKEN_PATH = "/oauth/token";
 
   private final EventBus eventBus;
-  private final RestTemplateBuilder restTemplateBuilder;
+  private final RestTemplateBuilder unconfiguredTemplateBuilder;
   private final ClientProperties clientProperties;
-  private final HttpComponentsClientHttpRequestFactory requestFactory;
+  private final JsonApiMessageConverter jsonApiMessageConverter;
+  private final JsonApiErrorHandler jsonApiErrorHandler;
+  private final HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
 
-  private CountDownLatch authorizedLatch;
+  private RestTemplateBuilder templateBuilder;
+  private CountDownLatch authorizedLatch = new CountDownLatch(1);
   private RestOperations restOperations;
-
-  @Inject
-  public FafApiAccessorImpl(EventBus eventBus, RestTemplateBuilder restTemplateBuilder,
-                            ClientProperties clientProperties, JsonApiMessageConverter jsonApiMessageConverter,
-                            JsonApiErrorHandler jsonApiErrorHandler) {
-    this.eventBus = eventBus;
-    this.clientProperties = clientProperties;
-    authorizedLatch = new CountDownLatch(1);
-
-    requestFactory = new HttpComponentsClientHttpRequestFactory();
-    this.restTemplateBuilder = restTemplateBuilder
-        .requestFactory(() -> requestFactory)
-        .additionalMessageConverters(jsonApiMessageConverter)
-        .errorHandler(jsonApiErrorHandler);
-  }
 
   private static String rsql(Condition<?> eq) {
     return eq.query(new RSQLVisitor());
@@ -120,6 +109,10 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
+    templateBuilder = unconfiguredTemplateBuilder
+        .requestFactory(() -> requestFactory)
+        .additionalMessageConverters(jsonApiMessageConverter)
+        .errorHandler(jsonApiErrorHandler);
   }
 
   @Subscribe
@@ -519,7 +512,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     details.setUsername(username);
     details.setPassword(password);
 
-    restOperations = restTemplateBuilder
+    restOperations = templateBuilder
         // Base URL can be changed in login window
         .rootUri(apiProperties.getBaseUrl())
         .configure(new OAuth2RestTemplate(details));

@@ -3,6 +3,7 @@ package com.faforever.client.fa;
 import com.faforever.client.game.Faction;
 import com.faforever.client.player.Player;
 import com.faforever.client.preferences.PreferencesService;
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -10,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
@@ -25,18 +25,13 @@ import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANC
  */
 @Lazy
 @Service
+@RequiredArgsConstructor
 public class ForgedAllianceService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final PreferencesService preferencesService;
 
-  @Inject
-  public ForgedAllianceService(PreferencesService preferencesService) {
-    this.preferencesService = preferencesService;
-  }
-
-  
   public Process startGame(int uid, @Nullable Faction faction, @Nullable List<String> additionalArgs,
                            RatingMode ratingMode, int gpgPort, int localReplayPort, boolean rehost, Player currentPlayer) throws IOException {
     Path executable = getExecutable();

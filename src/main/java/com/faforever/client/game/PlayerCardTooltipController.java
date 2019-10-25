@@ -11,15 +11,15 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
-
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class PlayerCardTooltipController implements Controller<Node> {
 
   private final CountryFlagService countryFlagService;
@@ -29,12 +29,6 @@ public class PlayerCardTooltipController implements Controller<Node> {
   public Label foeIconText;
   public HBox root;
   public Label friendIconText;
-
-  @Inject
-  public PlayerCardTooltipController(CountryFlagService countryFlagService, I18n i18n) {
-    this.countryFlagService = countryFlagService;
-    this.i18n = i18n;
-  }
 
   public void setPlayer(Player player, int rating) {
     if (player == null) {

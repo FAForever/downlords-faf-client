@@ -107,6 +107,8 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
   @Mock
   private ReportingService reportingService;
+  @Mock
+  private ClientProperties clientProperties;
 
   private FafServerAccessorImpl instance;
   private ServerSocket fafLobbyServerSocket;
@@ -128,8 +130,8 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
         .setHost(LOOPBACK_ADDRESS.getHostAddress())
         .setPort(fafLobbyServerSocket.getLocalPort());
 
-    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, clientProperties, reportingService);
-
+    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, reportingService, clientProperties);
+    instance.afterPropertiesSet();
     LoginPrefs loginPrefs = new LoginPrefs();
     loginPrefs.setUsername("junit");
     loginPrefs.setPassword("password");

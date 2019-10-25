@@ -2,10 +2,10 @@ package com.faforever.client.events;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.dto.PlayerEvent;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -16,6 +16,7 @@ import static java.util.stream.Collectors.toMap;
 
 @Lazy
 @Service
+@RequiredArgsConstructor
 public class EventService {
 
   public static final String EVENT_CUSTOM_GAMES_PLAYED = "cfa449a6-655b-48d5-9a27-6044804fe35c";
@@ -49,12 +50,6 @@ public class EventService {
 
   private final FafApiAccessor fafApiAccessor;
   private final ThreadPoolExecutor threadPoolExecutor;
-
-  @Inject
-  public EventService(FafApiAccessor fafApiAccessor, ThreadPoolExecutor threadPoolExecutor) {
-    this.fafApiAccessor = fafApiAccessor;
-    this.threadPoolExecutor = threadPoolExecutor;
-  }
 
   public CompletableFuture<Map<String, PlayerEvent>> getPlayerEvents(int playerId) {
     return CompletableFuture.supplyAsync(() -> fafApiAccessor.getPlayerEvents(playerId).stream()

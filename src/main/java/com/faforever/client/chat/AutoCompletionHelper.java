@@ -5,14 +5,15 @@ import javafx.event.EventHandler;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import lombok.RequiredArgsConstructor;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
+@RequiredArgsConstructor
 public class AutoCompletionHelper {
 
   private List<String> possibleAutoCompletions;
@@ -21,19 +22,13 @@ public class AutoCompletionHelper {
   private String autoCompletePartialName;
 
   private TextInputControl boundTextField;
-  private EventHandler<KeyEvent> keyEventHandler;
-  private Function<String, Collection<String>> completionProposalGenerator;
-
-  @Inject
-  public AutoCompletionHelper(Function<String, Collection<String>> completionProposalGenerator) {
-    this.completionProposalGenerator = completionProposalGenerator;
-    keyEventHandler = keyEvent -> {
-      if (!keyEvent.isControlDown() && keyEvent.getCode() == KeyCode.TAB) {
-        keyEvent.consume();
-        autoComplete();
-      }
-    };
-  }
+  private final EventHandler<KeyEvent> keyEventHandler = keyEvent -> {
+    if (!keyEvent.isControlDown() && keyEvent.getCode() == KeyCode.TAB) {
+      keyEvent.consume();
+      autoComplete();
+    }
+  };
+  private final Function<String, Collection<String>> completionProposalGenerator;
 
   private void autoComplete() {
     if (boundTextField.getText().isEmpty()) {

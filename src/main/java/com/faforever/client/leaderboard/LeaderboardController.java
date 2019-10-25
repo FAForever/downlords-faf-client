@@ -16,13 +16,13 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 
 import static javafx.collections.FXCollections.observableList;
@@ -30,6 +30,7 @@ import static javafx.collections.FXCollections.observableList;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class LeaderboardController extends AbstractViewController<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -48,14 +49,6 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public Pane connectionProgressPane;
   public Pane contentPane;
   private KnownFeaturedMod ratingType;
-
-  @Inject
-  public LeaderboardController(LeaderboardService leaderboardService, NotificationService notificationService, I18n i18n, ReportingService reportingService) {
-    this.leaderboardService = leaderboardService;
-    this.notificationService = notificationService;
-    this.i18n = i18n;
-    this.reportingService = reportingService;
-  }
 
   @Override
   public void initialize() {

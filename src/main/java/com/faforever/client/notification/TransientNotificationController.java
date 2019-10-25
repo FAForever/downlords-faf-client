@@ -17,17 +17,18 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.Objects;
 
 import static javafx.util.Duration.millis;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class TransientNotificationController implements Controller<Node> {
 
   private final PreferencesService preferencesService;
@@ -39,11 +40,6 @@ public class TransientNotificationController implements Controller<Node> {
   private ActionCallback action;
   private Timeline timeline;
   private int toastDisplayTime;
-
-  @Inject
-  public TransientNotificationController(PreferencesService preferencesService) {
-    this.preferencesService = preferencesService;
-  }
 
   public void initialize() {
     Rectangle rectangle = new Rectangle();

@@ -3,13 +3,13 @@ package com.faforever.client.remote;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.preferences.PreferencesService;
 import javafx.scene.image.Image;
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.nio.file.Files;
@@ -21,16 +21,12 @@ import static com.github.nocatch.NoCatch.noCatch;
 
 @Lazy
 @Service
+@RequiredArgsConstructor
 public class AssetService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final PreferencesService preferencesService;
-
-  @Inject
-  public AssetService(PreferencesService preferencesService) {
-    this.preferencesService = preferencesService;
-  }
 
   @Nullable
   public Image loadAndCacheImage(URL url, Path cacheSubFolder, @Nullable Supplier<Image> defaultSupplier) {

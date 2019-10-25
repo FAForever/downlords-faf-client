@@ -34,12 +34,12 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.util.Pair;
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,9 +49,10 @@ import java.util.stream.Collectors;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
+@RequiredArgsConstructor
 public class GamesTableController implements Controller<Node> {
 
-  private final ObjectProperty<Game> selectedGame;
+  private final ObjectProperty<Game> selectedGame = new SimpleObjectProperty<>();
   private final MapService mapService;
   private final JoinGameHelper joinGameHelper;
   private final I18n i18n;
@@ -66,24 +67,10 @@ public class GamesTableController implements Controller<Node> {
   public TableColumn<Game, String> hostColumn;
   public TableColumn<Game, Boolean> passwordProtectionColumn;
   public TableColumn<Game, String> coopMissionName;
-  private final ChangeListener<Boolean> showModdedGamesChangedListener;
-  private final ChangeListener<Boolean> showPasswordProtectedGamesChangedListener;
+  private final ChangeListener<Boolean> showModdedGamesChangedListener = (observable, oldValue, newValue) -> modsColumn.setVisible(newValue);
+  private final ChangeListener<Boolean> showPasswordProtectedGamesChangedListener = (observable, oldValue, newValue) -> passwordProtectionColumn.setVisible(newValue);
   private GameTooltipController gameTooltipController;
   private Tooltip tooltip;
-
-  @Inject
-  public GamesTableController(MapService mapService, JoinGameHelper joinGameHelper, I18n i18n, UiService uiService, PreferencesService preferencesService) {
-    this.mapService = mapService;
-    this.joinGameHelper = joinGameHelper;
-    this.i18n = i18n;
-    this.uiService = uiService;
-    this.preferencesService = preferencesService;
-
-    this.selectedGame = new SimpleObjectProperty<>();
-
-    showModdedGamesChangedListener = (observable, oldValue, newValue) -> modsColumn.setVisible(newValue);
-    showPasswordProtectedGamesChangedListener = (observable, oldValue, newValue) -> passwordProtectionColumn.setVisible(newValue);
-  }
 
   public ObjectProperty<Game> selectedGameProperty() {
     return selectedGame;

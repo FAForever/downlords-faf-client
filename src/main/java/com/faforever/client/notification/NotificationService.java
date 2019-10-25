@@ -5,6 +5,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.reporting.ReportingService;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -24,26 +25,18 @@ import static javafx.collections.FXCollections.synchronizedObservableSet;
 
 @Lazy
 @Service
+@RequiredArgsConstructor
 // TODO instead of being required an called explicitly, this service should listen for application events only
 public class NotificationService {
 
-  private final ObservableSet<PersistentNotification> persistentNotifications;
-  private final List<OnTransientNotificationListener> onTransientNotificationListeners;
-  private final List<OnImmediateNotificationListener> onImmediateNotificationListeners;
+  private final ObservableSet<PersistentNotification> persistentNotifications = synchronizedObservableSet(observableSet(new TreeSet<>()));
+  private final List<OnTransientNotificationListener> onTransientNotificationListeners = new ArrayList<>();
+  private final List<OnImmediateNotificationListener> onImmediateNotificationListeners = new ArrayList<>();
   private final ReportingService reportingService;
 
   // TODO fix circular reference
   @Inject
   private I18n i18n;
-
-  @Inject
-  public NotificationService(ReportingService reportingService) {
-    this.reportingService = reportingService;
-
-    persistentNotifications = synchronizedObservableSet(observableSet(new TreeSet<>()));
-    onTransientNotificationListeners = new ArrayList<>();
-    onImmediateNotificationListeners = new ArrayList<>();
-  }
 
   /**
    * Adds a {@link PersistentNotification} to be displayed.

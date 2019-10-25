@@ -11,12 +11,12 @@ import com.google.common.annotations.VisibleForTesting;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.InitializingBean;
 
-import javax.inject.Inject;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.List;
@@ -28,28 +28,18 @@ import static com.github.nocatch.NoCatch.noCatch;
 
 @Lazy
 @Service
+@RequiredArgsConstructor
+// TODO cut dependencies if possible
 public class AchievementService implements InitializingBean {
 
   private static final int ACHIEVEMENT_IMAGE_SIZE = 128;
-  private final ObservableList<PlayerAchievement> readOnlyPlayerAchievements;
-  @VisibleForTesting
-  final ObservableList<PlayerAchievement> playerAchievements;
 
   private final FafService fafService;
   private final PlayerService playerService;
   private final AssetService assetService;
-
-  @Inject
-  // TODO cut dependencies if possible
-  public AchievementService(FafService fafService, PlayerService playerService, AssetService assetService) {
-    this.fafService = fafService;
-    this.playerService = playerService;
-    this.assetService = assetService;
-
-    playerAchievements = FXCollections.observableArrayList();
-    readOnlyPlayerAchievements = FXCollections.unmodifiableObservableList(playerAchievements);
-  }
-
+  @VisibleForTesting
+  final ObservableList<PlayerAchievement> playerAchievements = FXCollections.observableArrayList();
+  private final ObservableList<PlayerAchievement> readOnlyPlayerAchievements = FXCollections.unmodifiableObservableList(playerAchievements);
   
   public CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(Integer playerId) {
     int currentPlayerId = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has to be set")).getId();

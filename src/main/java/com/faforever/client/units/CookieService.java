@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class CookieService {
 
   private final PreferencesService preferencesService;
-  private final Map<URI, ArrayList<HttpCookie>> storedCookies;
+  private Map<URI, ArrayList<HttpCookie>> storedCookies;
 
   @Inject
   public CookieService(PreferencesService preferencesService) {
@@ -31,7 +31,6 @@ public class CookieService {
     storedCookies = preferences.getStoredCookies();
   }
 
-  
   public void setUpCookieManger() {
     CookieManager manager = new CookieManager(new MyCookieStore(), CookiePolicy.ACCEPT_ALL);
     CookieHandler.setDefault(manager);

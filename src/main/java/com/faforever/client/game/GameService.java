@@ -47,6 +47,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -89,6 +90,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 @Lazy
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class GameService implements InitializingBean {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -103,7 +105,6 @@ public class GameService implements InitializingBean {
   /**
    * An observable copy of {@link #uidToGameInfoBean}. <strong>Do not modify its content directly</strong>.
    */
-  private final ObservableList<Game> games;
   private final ObservableMap<Integer, Game> uidToGameInfoBean;
 
   private final FafService fafService;
@@ -120,26 +121,38 @@ public class GameService implements InitializingBean {
   private final IceAdapter iceAdapter;
   private final ModService modService;
   private final PlatformService platformService;
-  private final String faWindowTitle;
   private final DiscordRichPresenceService discordRichPresenceService;
   private final ReplayServer replayServer;
 
   @VisibleForTesting
   RatingMode ratingMode;
 
+  private final ObservableList<Game> games;
+  private final String faWindowTitle;
+  private final BooleanProperty searching1v1;
+
   private Process process;
-  private BooleanProperty searching1v1;
   private boolean rehostRequested;
   private int localReplayPort;
 
   @Inject
-  public GameService(ClientProperties clientProperties, FafService fafService,
-                     ForgedAllianceService forgedAllianceService, MapService mapService,
-                     PreferencesService preferencesService, GameUpdater gameUpdater,
-                     NotificationService notificationService, I18n i18n, Executor executor,
-                     PlayerService playerService, ReportingService reportingService, EventBus eventBus,
-                     IceAdapter iceAdapter, ModService modService, PlatformService platformService,
-                     DiscordRichPresenceService discordRichPresenceService, ReplayServer replayServer) {
+  public GameService(ClientProperties clientProperties,
+                     FafService fafService,
+                     ForgedAllianceService forgedAllianceService,
+                     MapService mapService,
+                     PreferencesService preferencesService,
+                     GameUpdater gameUpdater,
+                     NotificationService notificationService,
+                     I18n i18n,
+                     Executor executor,
+                     PlayerService playerService,
+                     ReportingService reportingService,
+                     EventBus eventBus,
+                     IceAdapter iceAdapter,
+                     ModService modService,
+                     PlatformService platformService,
+                     DiscordRichPresenceService discordRichPresenceService,
+                     ReplayServer replayServer) {
     this.fafService = fafService;
     this.forgedAllianceService = forgedAllianceService;
     this.mapService = mapService;

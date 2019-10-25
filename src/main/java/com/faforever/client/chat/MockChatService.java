@@ -18,12 +18,12 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.MapChangeListener;
 import javafx.concurrent.Task;
 import javafx.scene.paint.Color;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.InitializingBean;
 
-import javax.inject.Inject;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,36 +39,23 @@ import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 @Lazy
 @Service
 @Profile(FafClientApplication.PROFILE_OFFLINE)
+@RequiredArgsConstructor
 // NOSONAR
 public class MockChatService implements ChatService, InitializingBean {
 
   private static final int CHAT_MESSAGE_INTERVAL = 5000;
   private static final long CONNECTION_DELAY = 1000;
-  private final Timer timer;
-  private final Collection<Consumer<ChatMessage>> onChatMessageListeners;
-  private final Map<String, Channel> channelUserListListeners;
-  private final ObjectProperty<ConnectionState> connectionState;
-  private final IntegerProperty unreadMessagesCount;
 
   private final UserService userService;
   private final TaskService taskService;
   private final I18n i18n;
   private final EventBus eventBus;
 
-  @Inject
-  public MockChatService(UserService userService, TaskService taskService, I18n i18n, EventBus eventBus) {
-    connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
-    unreadMessagesCount = new SimpleIntegerProperty();
-
-    onChatMessageListeners = new ArrayList<>();
-    channelUserListListeners = new HashMap<>();
-
-    timer = new Timer(true);
-    this.userService = userService;
-    this.taskService = taskService;
-    this.i18n = i18n;
-    this.eventBus = eventBus;
-  }
+  private Timer timer = new Timer(true);
+  private Collection<Consumer<ChatMessage>> onChatMessageListeners = new ArrayList<>();
+  private Map<String, Channel> channelUserListListeners = new HashMap<>();
+  private ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
+  private IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
 
   @Override
   public void afterPropertiesSet() {

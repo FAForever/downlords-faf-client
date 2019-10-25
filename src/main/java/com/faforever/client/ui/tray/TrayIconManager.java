@@ -16,11 +16,10 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.TextAlignment;
-import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.stereotype.Component;
 
-
-import javax.inject.Inject;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -33,17 +32,12 @@ import static java.awt.RenderingHints.KEY_ANTIALIASING;
 import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
 
 @Component
+@RequiredArgsConstructor
 public class TrayIconManager implements InitializingBean {
 
   private final I18n i18n;
   private final EventBus eventBus;
   private int badgeCount;
-
-  @Inject
-  public TrayIconManager(I18n i18n, EventBus eventBus) {
-    this.i18n = i18n;
-    this.eventBus = eventBus;
-  }
 
   @Override
   public void afterPropertiesSet() {

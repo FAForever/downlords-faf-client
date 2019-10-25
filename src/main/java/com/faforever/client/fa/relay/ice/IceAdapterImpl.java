@@ -26,6 +26,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.nbarraille.jjsonrpc.JJsonPeer;
 import com.nbarraille.jjsonrpc.TcpClient;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -37,7 +38,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.SocketUtils;
 
-import javax.inject.Inject;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.ConnectException;
@@ -57,6 +57,7 @@ import static java.util.Arrays.asList;
 @Component
 @Lazy
 @Slf4j
+@RequiredArgsConstructor
 public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableBean {
 
   private static final int CONNECTION_ATTEMPTS = 50;
@@ -69,26 +70,13 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private final PlayerService playerService;
   private final EventBus eventBus;
   private final FafService fafService;
-  private final IceAdapterApi iceAdapterProxy;
   private final PreferencesService preferencesService;
 
+  private IceAdapterApi iceAdapterProxy = newIceAdapterProxy();
   private CompletableFuture<Integer> iceAdapterClientFuture;
   private Process process;
   private LobbyMode lobbyInitMode;
   private JJsonPeer peer;
-
-  @Inject
-  public IceAdapterImpl(ApplicationContext applicationContext, ClientProperties clientProperties, PlayerService playerService,
-                        EventBus eventBus, FafService fafService, PreferencesService preferencesService) {
-    this.applicationContext = applicationContext;
-    this.clientProperties = clientProperties;
-    this.playerService = playerService;
-    this.eventBus = eventBus;
-    this.fafService = fafService;
-    this.preferencesService = preferencesService;
-
-    iceAdapterProxy = newIceAdapterProxy();
-  }
 
   @Override
   public void afterPropertiesSet() {

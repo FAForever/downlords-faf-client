@@ -7,13 +7,13 @@ import com.google.common.net.MediaType;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -27,6 +27,7 @@ import static com.faforever.commons.io.Bytes.formatSize;
 
 @Lazy
 @Component
+@RequiredArgsConstructor
 // TODO reintroduce once it's working better
 public class UrlPreviewResolverImpl implements UrlPreviewResolver {
 
@@ -38,12 +39,6 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
   private final UiService uiService;
 
   private final I18n i18n;
-
-  @Inject
-  public UrlPreviewResolverImpl(UiService uiService, I18n i18n) {
-    this.uiService = uiService;
-    this.i18n = i18n;
-  }
 
   private static boolean testUrl(String urlString) {
     try {

@@ -41,13 +41,13 @@ import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.io.ByteCountListener;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import javax.inject.Inject;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
@@ -61,18 +61,12 @@ import static java.util.stream.Collectors.toList;
 
 @Lazy
 @Service
+@RequiredArgsConstructor
 public class FafService {
 
   private final FafServerAccessor fafServerAccessor;
   private final FafApiAccessor fafApiAccessor;
   private final EventBus eventBus;
-
-  @Inject
-  public FafService(FafServerAccessor fafServerAccessor, FafApiAccessor fafApiAccessor, EventBus eventBus) {
-    this.fafServerAccessor = fafServerAccessor;
-    this.fafApiAccessor = fafApiAccessor;
-    this.eventBus = eventBus;
-  }
 
   public <T extends ServerMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener) {
     fafServerAccessor.addOnMessageListener(type, listener);

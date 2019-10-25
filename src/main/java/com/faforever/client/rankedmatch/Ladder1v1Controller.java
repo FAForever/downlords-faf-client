@@ -38,6 +38,7 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.text.Text;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +46,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.lang.ref.WeakReference;
 import java.time.Duration;
@@ -68,19 +68,20 @@ import static com.faforever.client.game.Faction.UEF;
 @Component
 @Lazy
 @Slf4j
+@RequiredArgsConstructor
 public class Ladder1v1Controller extends AbstractViewController<Node> implements DisposableBean {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final PseudoClass NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("highlighted-bar");
 
-  private final Random random;
+  private final Random random = new Random();
   private final GameService gameService;
   private final PreferencesService preferencesService;
   private final PlayerService playerService;
   private final LeaderboardService leaderboardService;
   private final I18n i18n;
   private final ClientProperties clientProperties;
-  private EventBus eventBus;
+  private final EventBus eventBus;
 
   public CategoryAxis ratingDistributionXAxis;
   public NumberAxis ratingDistributionYAxis;
@@ -114,30 +115,13 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
   private InvalidationListener playerRatingListener;
   private PreferenceUpdateListener preferenceUpdateListener;
 
-  @Inject
-  public Ladder1v1Controller(GameService gameService,
-                             PreferencesService preferencesService,
-                             PlayerService playerService,
-                             LeaderboardService leaderboardService,
-                             I18n i18n, ClientProperties clientProperties,
-                             EventBus eventBus) {
-    this.gameService = gameService;
-    this.preferencesService = preferencesService;
-    this.playerService = playerService;
-    this.leaderboardService = leaderboardService;
-    this.i18n = i18n;
-    this.clientProperties = clientProperties;
-    this.eventBus = eventBus;
-
-    random = new Random();
-
-    youLabel = new Text(i18n.get("ranked1v1.you"));
-    youLabel.setId("1v1-you-text");
-  }
-
   @Override
   public void initialize() {
     super.initialize();
+
+    youLabel = new Text(i18n.get("ranked1v1.you"));
+    youLabel.setId("1v1-you-text");
+
     cancelButton.managedProperty().bind(cancelButton.visibleProperty());
     playButton.managedProperty().bind(playButton.visibleProperty());
     ratingLabel.managedProperty().bind(ratingLabel.visibleProperty());

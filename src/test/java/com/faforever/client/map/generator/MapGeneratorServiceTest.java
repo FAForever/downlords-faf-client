@@ -16,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
@@ -62,7 +61,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
   private ClientProperties clientProperties;
 
   @Before
-  public void setUp() throws IOException {
+  public void setUp() throws Exception {
     fafDataDirectory.newFolder(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY);
     String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
     Files.createFile(fafDataDirectory.getRoot().toPath().resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
@@ -75,7 +74,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
 
     instance = new MapGeneratorService(applicationContext, preferencesService, taskService, clientProperties);
 
-    instance.postConstruct();
+    instance.afterPropertiesSet();
 
     when(downloadMapGeneratorTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
     when(generateMapTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));

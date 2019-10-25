@@ -9,9 +9,9 @@ import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import net.arikia.dev.drpc.DiscordRPC;
 import net.arikia.dev.drpc.DiscordRichPresence;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PreDestroy;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -20,7 +20,7 @@ import java.util.TimerTask;
 
 @Slf4j
 @Service
-public class DiscordRichPresenceService {
+public class DiscordRichPresenceService implements DisposableBean {
   private static final String HOSTING = "Hosting";
   private static final String WAITING = "Waiting";
   private static final String PLAYING = "Playing";
@@ -115,8 +115,8 @@ public class DiscordRichPresenceService {
     }
   }
 
-  @PreDestroy
-  public void onDestroy() {
+  @Override
+  public void destroy() {
     DiscordRPC.discordShutdown();
     timer.cancel();
   }

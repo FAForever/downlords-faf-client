@@ -72,7 +72,7 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
     when(mapService.hasPlayedMap(anyInt(), anyString())).thenReturn(CompletableFuture.completedFuture(true));
     when(mapService.getFileSize(any(URL.class))).thenReturn(CompletableFuture.completedFuture(12));
     when(mapService.getInstalledMaps()).thenReturn(FXCollections.observableArrayList());
-    instance = new MapDetailController(mapService, notificationService, i18n, reportingService, timeService, playerService, reviewService, eventBus);
+    instance = new MapDetailController(mapService, notificationService, i18n, timeService, reportingService, playerService, reviewService, eventBus);
 
     loadFxml("theme/vault/map/map_detail.fxml", param -> {
       if (param == ReviewsController.class) {

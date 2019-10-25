@@ -11,15 +11,15 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.IdenticonUtil;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
-
-import javax.inject.Inject;
 
 /**
  * Displays a notification whenever a friend joins a preferences (if enabled in settings).
  */
 @Component
+@RequiredArgsConstructor
 public class FriendJoinedGameNotifier implements InitializingBean {
 
   private final NotificationService notificationService;
@@ -28,18 +28,6 @@ public class FriendJoinedGameNotifier implements InitializingBean {
   private final JoinGameHelper joinGameHelper;
   private final PreferencesService preferencesService;
   private final AudioService audioService;
-
-  @Inject
-  public FriendJoinedGameNotifier(NotificationService notificationService, I18n i18n, EventBus eventBus,
-                                  JoinGameHelper joinGameHelper, PreferencesService preferencesService,
-                                  AudioService audioService) {
-    this.notificationService = notificationService;
-    this.i18n = i18n;
-    this.eventBus = eventBus;
-    this.joinGameHelper = joinGameHelper;
-    this.preferencesService = preferencesService;
-    this.audioService = audioService;
-  }
 
   @Override
   public void afterPropertiesSet() {
