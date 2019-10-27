@@ -378,4 +378,15 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
     assertFalse(userStillListedInCategoryMap);
   }
+
+  @Test
+  public void testChannelTopicUpdate() {
+    defaultChannel.setTopic("topc1: https://faforever.com");
+    instance.setChannel(defaultChannel);
+    WaitForAsyncUtils.waitForFxEvents();
+    assertEquals(instance.topicText.getChildren().size(), 2);
+    defaultChannel.setTopic("topic2: https://faforever.com topic3: https://faforever.com/example");
+    WaitForAsyncUtils.waitForFxEvents();
+    assertEquals(instance.topicText.getChildren().size(), 4);
+  }
 }

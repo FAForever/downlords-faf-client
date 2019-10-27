@@ -255,6 +255,7 @@ public class ChannelTabController extends AbstractChatTabController {
   private void updateChannelTopic() {
     boolean hasTopic = !Strings.isNullOrEmpty(channel.getTopic());
     topicPane.setVisible(hasTopic);
+    topicText.getChildren().clear();
     if (!hasTopic) {
       return;
     }
