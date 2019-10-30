@@ -1,6 +1,7 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.fa.CloseGameEvent;
 import com.faforever.client.game.Faction;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.FactionDeserializer;
@@ -34,6 +35,7 @@ import com.faforever.client.remote.io.QDataInputStream;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.test.FakeTestException;
+import com.google.common.eventbus.EventBus;
 import com.google.common.hash.Hashing;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -50,6 +52,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.TaskScheduler;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.DataInputStream;
@@ -58,6 +61,7 @@ import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.time.Duration;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
@@ -108,6 +112,10 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private ReportingService reportingService;
   @Mock
+  private TaskScheduler taskScheduler;
+  @Mock
+  private EventBus eventBus;
+  @Mock
   private ClientProperties clientProperties;
 
   private FafServerAccessorImpl instance;
@@ -130,7 +138,7 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
         .setHost(LOOPBACK_ADDRESS.getHostAddress())
         .setPort(fafLobbyServerSocket.getLocalPort());
 
-    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, reportingService, clientProperties);
+    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, reportingService, taskScheduler, eventBus, clientProperties);
     instance.afterPropertiesSet();
     LoginPrefs loginPrefs = new LoginPrefs();
     loginPrefs.setUsername("junit");
@@ -284,6 +292,34 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
     assertThat(notification.getText(), is("foo bar"));
     assertThat(notification.getTitle(), is("Message from Server"));
     verify(i18n).get("messageFromServer");
+
+    instance.disconnect();
+  }
+
+  @Test
+  public void onKillNoticeStopsGame() throws Exception {
+    connectAndLogIn();
+
+    NoticeMessage noticeMessage = new NoticeMessage();
+    noticeMessage.setStyle("kill");
+
+    sendFromServer(noticeMessage);
+
+    verify(eventBus, timeout(1000)).post(any(CloseGameEvent.class));
+
+    instance.disconnect();
+  }
+
+  @Test
+  public void onKickNoticeStopsApplication() throws Exception {
+    connectAndLogIn();
+
+    NoticeMessage noticeMessage = new NoticeMessage();
+    noticeMessage.setStyle("kick");
+
+    sendFromServer(noticeMessage);
+
+    verify(taskScheduler, timeout(1000)).scheduleWithFixedDelay(any(Runnable.class), any(Duration.class));
 
     instance.disconnect();
   }

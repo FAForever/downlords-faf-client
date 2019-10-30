@@ -46,7 +46,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -102,7 +102,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private PlayerService playerService;
   @Mock
-  private Executor executor;
+  private ExecutorService executorService;
   @Mock
   private ReplayServer replayService;
   @Mock
@@ -136,7 +136,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     ClientProperties clientProperties = new ClientProperties();
 
     instance = new GameService(clientProperties, fafService, forgedAllianceService, mapService,
-        preferencesService, gameUpdater, notificationService, i18n, executor, playerService,
+        preferencesService, gameUpdater, notificationService, i18n, executorService, playerService,
         reportingService, eventBus, iceAdapter, modService, platformService, discordRichPresenceService,
         replayService);
 
@@ -155,7 +155,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
         e.printStackTrace();
       }
       return null;
-    }).when(executor).execute(any());
+    }).when(executorService).execute(any());
 
     instance.afterPropertiesSet();
 

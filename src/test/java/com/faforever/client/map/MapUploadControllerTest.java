@@ -11,7 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -24,7 +24,7 @@ public class MapUploadControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private MapService mapService;
   @Mock
-  private ThreadPoolExecutor threadPoolExecutor;
+  private ExecutorService executorService;
   @Mock
   private NotificationService notificationService;
   @Mock
@@ -41,7 +41,7 @@ public class MapUploadControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new MapUploadController(mapService, threadPoolExecutor, notificationService, reportingService, platformService, i18n, eventBus, clientProperties);
+    instance = new MapUploadController(mapService, executorService, notificationService, reportingService, platformService, i18n, eventBus, clientProperties);
     loadFxml("theme/vault/map/map_upload.fxml", param -> instance);
   }
 

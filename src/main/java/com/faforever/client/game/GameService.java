@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.discord.DiscordRichPresenceService;
+import com.faforever.client.fa.CloseGameEvent;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
@@ -75,7 +76,7 @@ import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
 import static com.faforever.client.fa.RatingMode.NONE;
@@ -117,7 +118,7 @@ public class GameService implements InitializingBean {
   private final GameUpdater gameUpdater;
   private final NotificationService notificationService;
   private final I18n i18n;
-  private final Executor executor;
+  private final ExecutorService executorService;
   private final PlayerService playerService;
   private final ReportingService reportingService;
   private final EventBus eventBus;
@@ -147,7 +148,7 @@ public class GameService implements InitializingBean {
                      GameUpdater gameUpdater,
                      NotificationService notificationService,
                      I18n i18n,
-                     Executor executor,
+                     ExecutorService executorService,
                      PlayerService playerService,
                      ReportingService reportingService,
                      EventBus eventBus,
@@ -163,7 +164,7 @@ public class GameService implements InitializingBean {
     this.gameUpdater = gameUpdater;
     this.notificationService = notificationService;
     this.i18n = i18n;
-    this.executor = executor;
+    this.executorService = executorService;
     this.playerService = playerService;
     this.reportingService = reportingService;
     this.eventBus = eventBus;
@@ -533,7 +534,7 @@ public class GameService implements InitializingBean {
 
   @VisibleForTesting
   void spawnTerminationListener(Process process, Boolean forOnlineGame) {
-    executor.execute(() -> {
+    executorService.execute(() -> {
       try {
         rehostRequested = false;
         int exitCode = process.waitFor();
@@ -677,6 +678,18 @@ public class GameService implements InitializingBean {
       game = uidToGameInfoBean.remove(gameInfoMessage.getUid());
     }
     eventBus.post(new GameRemovedEvent(game));
+  }
+
+  public void killGame() {
+    if (process != null && process.isAlive()) {
+      log.info("ForgedAlliance still running, destroying process");
+      process.destroy();
+    }
+  }
+
+  @Subscribe
+  public void onGameCloseRequested(CloseGameEvent event) {
+    killGame();
   }
 
   public void launchTutorial(MapBean mapVersion, String technicalMapName) {

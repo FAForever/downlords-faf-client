@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.lang.invoke.MethodHandles;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Enqueues and runs tasks in background. Services that need to run a task (tasks that finish, not long-running
@@ -25,7 +25,7 @@ public class TaskService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private final Executor executor;
+  private final ExecutorService executorService;
   private final ObservableList<Worker<?>> activeTasks = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
 
   private ObservableList<Worker<?>> unmodifiableObservableList = FXCollections.unmodifiableObservableList(activeTasks);
@@ -45,7 +45,7 @@ public class TaskService {
     });
 
     activeTasks.add(task);
-    executor.execute(task);
+    executorService.execute(task);
 
     return task;
   }

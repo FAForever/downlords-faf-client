@@ -68,7 +68,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -146,7 +146,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private FafService fafService;
   @Mock
-  private ThreadPoolExecutor threadPoolExecutor;
+  private ExecutorService executorService;
   @Mock
   private PlayerService playerService;
   @Mock
@@ -171,7 +171,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
         .setReconnectDelay(100);
 
     instance = new PircBotXChatService(preferencesService, userService, taskService, fafService, i18n, pircBotXFactory,
-        threadPoolExecutor, eventBus, clientProperties, playerService);
+        executorService, eventBus, clientProperties, playerService);
 
     botShutdownLatch = new CountDownLatch(1);
 
@@ -189,7 +189,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     doAnswer(invocation -> {
       WaitForAsyncUtils.async(() -> ((Runnable) invocation.getArgument(0)).run());
       return null;
-    }).when(threadPoolExecutor).execute(any(Runnable.class));
+    }).when(executorService).execute(any(Runnable.class));
 
     doAnswer((InvocationOnMock invocation) -> {
       @SuppressWarnings("unchecked")

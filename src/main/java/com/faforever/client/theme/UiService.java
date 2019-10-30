@@ -67,7 +67,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
 
 import static com.faforever.client.io.FileUtils.deleteRecursively;
 import static com.faforever.client.preferences.Preferences.DEFAULT_THEME_NAME;
@@ -129,7 +129,7 @@ public class UiService implements InitializingBean, DisposableBean {
   private final Set<WeakReference<WebView>> webViews;
 
   private final PreferencesService preferencesService;
-  private final ThreadPoolExecutor threadPoolExecutor;
+  private final ExecutorService executorService;
   private final CacheManager cacheManager;
   private final MessageSource messageSource;
   private final ApplicationContext applicationContext;
@@ -143,12 +143,12 @@ public class UiService implements InitializingBean, DisposableBean {
   private Path currentTempStyleSheet;
   private MessageSourceResourceBundle resources;
 
-  public UiService(PreferencesService preferencesService, ThreadPoolExecutor threadPoolExecutor,
+  public UiService(PreferencesService preferencesService, ExecutorService executorService,
                    CacheManager cacheManager, MessageSource messageSource, ApplicationContext applicationContext,
                    I18n i18n) {
     this.i18n = i18n;
     this.preferencesService = preferencesService;
-    this.threadPoolExecutor = threadPoolExecutor;
+    this.executorService = executorService;
     this.cacheManager = cacheManager;
     this.messageSource = messageSource;
     this.applicationContext = applicationContext;
@@ -196,7 +196,7 @@ public class UiService implements InitializingBean, DisposableBean {
 
   private void startWatchService(Path themesDirectory) throws IOException {
     watchService = themesDirectory.getFileSystem().newWatchService();
-    threadPoolExecutor.execute(() -> {
+    executorService.execute(() -> {
       try {
         while (!Thread.interrupted()) {
           WatchKey key = watchService.take();
@@ -275,7 +275,7 @@ public class UiService implements InitializingBean, DisposableBean {
   private void reloadStylesheet() {
     String[] styleSheets = getStylesheets();
 
-    logger.debug("Changes detected, reloading stylesheets: {}", (Object[]) styleSheets);
+    logger.debug("Changes detected, reloading stylesheets: {}", styleSheets);
     scenes.forEach(scene -> setSceneStyleSheet(scene, styleSheets));
     loadWebViewsStyleSheet(getWebViewStyleSheet());
   }

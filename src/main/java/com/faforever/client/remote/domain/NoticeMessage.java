@@ -38,4 +38,8 @@ public class NoticeMessage extends FafServerMessage {
   public void setStyle(String style) {
     this.style = style;
   }
+
+  public String getStyle() {
+    return style;
+  }
 }

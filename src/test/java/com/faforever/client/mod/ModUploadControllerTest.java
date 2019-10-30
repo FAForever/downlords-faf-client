@@ -14,7 +14,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 
 import java.nio.file.Path;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -41,7 +41,7 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ReportingService reportingService;
   @Mock
-  private ThreadPoolExecutor threadPoolExecutor;
+  private ExecutorService executorService;
 
   @Mock
   private I18n i18n;
@@ -54,12 +54,12 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ModUploadController(modService, threadPoolExecutor, notificationService, reportingService, i18n, eventBus);
+    instance = new ModUploadController(modService, executorService, notificationService, reportingService, i18n, eventBus);
 
     doAnswer(invocation -> {
       ((Runnable) invocation.getArgument(0)).run();
       return null;
-    }).when(threadPoolExecutor).execute(any());
+    }).when(executorService).execute(any());
 
     modUploadTask = new ModUploadTask(preferencesService, fafService, i18n) {
       @Override

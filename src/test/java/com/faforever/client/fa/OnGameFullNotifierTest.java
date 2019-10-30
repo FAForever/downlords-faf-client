@@ -17,7 +17,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -30,7 +30,7 @@ public class OnGameFullNotifierTest {
   @Mock
   private EventBus eventBus;
   @Mock
-  private Executor executor;
+  private ExecutorService executorService;
   @Mock
   private GameService gameService;
   @Mock
@@ -46,14 +46,14 @@ public class OnGameFullNotifierTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new OnGameFullNotifier(platformService, executor, notificationService, i18n,
+    instance = new OnGameFullNotifier(platformService, executorService, notificationService, i18n,
         mapService, eventBus, gameService, new ClientProperties());
     instance.afterPropertiesSet();
 
     doAnswer(invocation -> {
       ((Runnable) invocation.getArgument(0)).run();
       return null;
-    }).when(executor).execute(any(Runnable.class));
+    }).when(executorService).execute(any(Runnable.class));
 
     verify(eventBus).register(instance);
   }
@@ -73,7 +73,7 @@ public class OnGameFullNotifierTest {
     instance.onGameFull(new GameFullEvent());
 
     verify(notificationService).addNotification(any(TransientNotification.class));
-    verify(executor).execute(any(Runnable.class));
+    verify(executorService).execute(any(Runnable.class));
   }
 
   @Test

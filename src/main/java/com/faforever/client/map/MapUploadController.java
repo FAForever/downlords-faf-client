@@ -36,7 +36,7 @@ import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
 
 import static com.faforever.client.notification.Severity.ERROR;
 import static java.util.Arrays.asList;
@@ -47,7 +47,7 @@ public class MapUploadController implements Controller<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final MapService mapService;
-  private final ThreadPoolExecutor threadPoolExecutor;
+  private final ExecutorService executorService;
   private final NotificationService notificationService;
   private final ReportingService reportingService;
   private final PlatformService platformService;
@@ -77,9 +77,9 @@ public class MapUploadController implements Controller<Node> {
   private CompletableTask<Void> uploadMapTask;
   private Runnable cancelButtonClickedListener;
 
-  public MapUploadController(MapService mapService, ThreadPoolExecutor threadPoolExecutor, NotificationService notificationService, ReportingService reportingService, PlatformService platformService, I18n i18n, EventBus eventBus, ClientProperties clientProperties) {
+  public MapUploadController(MapService mapService, ExecutorService executorService, NotificationService notificationService, ReportingService reportingService, PlatformService platformService, I18n i18n, EventBus eventBus, ClientProperties clientProperties) {
     this.mapService = mapService;
-    this.threadPoolExecutor = threadPoolExecutor;
+    this.executorService = executorService;
     this.notificationService = notificationService;
     this.reportingService = reportingService;
     this.platformService = platformService;
@@ -105,7 +105,7 @@ public class MapUploadController implements Controller<Node> {
   public void setMapPath(Path mapPath) {
     this.mapPath = mapPath;
     enterParsingState();
-    CompletableFuture.supplyAsync(() -> mapService.readMap(mapPath), threadPoolExecutor)
+    CompletableFuture.supplyAsync(() -> mapService.readMap(mapPath), executorService)
         .thenAccept(this::setMapInfo)
         .exceptionally(throwable -> {
           logger.warn("Map could not be read", throwable);
