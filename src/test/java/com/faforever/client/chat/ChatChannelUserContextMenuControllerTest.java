@@ -5,6 +5,7 @@ import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.moderator.ModeratorService;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
@@ -36,7 +37,9 @@ import static com.faforever.client.player.SocialStatus.OTHER;
 import static com.faforever.client.player.SocialStatus.SELF;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doThrow;
@@ -48,8 +51,6 @@ import static org.mockito.Mockito.when;
 public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   private static final String TEST_USER_NAME = "junit";
 
-  @Mock
-  private ChatService chatService;
   @Mock
   private PreferencesService preferencesService;
   @Mock
@@ -68,6 +69,8 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
   private JoinGameHelper joinGameHelper;
   @Mock
   private AvatarService avatarService;
+  @Mock
+  private ModeratorService moderatorService;
 
   private ChatUserContextMenuController instance;
   private Player player;
@@ -76,7 +79,7 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
   @Before
   public void setUp() throws Exception {
     instance = new ChatUserContextMenuController(preferencesService, playerService,
-        replayService, notificationService, i18n, eventBus, joinGameHelper, avatarService, uiService);
+        replayService, notificationService, i18n, eventBus, joinGameHelper, avatarService, uiService, moderatorService);
 
     Preferences preferences = mock(Preferences.class);
     ChatPrefs chatPrefs = mock(ChatPrefs.class);
@@ -91,17 +94,54 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
         new AvatarBean(new URL("http://www.example.com/avatar2.png"), "Avatar Number #2"),
         new AvatarBean(new URL("http://www.example.com/avatar3.png"), "Avatar Number #3")
     )));
+    when(moderatorService.isModerator()).thenReturn(CompletableFuture.completedFuture(true));
 
 
     loadFxml("theme/chat/chat_user_context_menu.fxml", clazz -> instance);
 
     player = PlayerBuilder.create(TEST_USER_NAME).socialStatus(SELF).avatar(null).game(new Game()).get();
     chatUser = ChatChannelUserBuilder.create(TEST_USER_NAME).defaultValues().setPlayer(player).get();
+  }
+
+  @Test
+  public void testKickBanContextMenuNotShownForNormalUser() {
+    when(moderatorService.isModerator()).thenReturn(CompletableFuture.completedFuture(false));
     instance.setChatUser(chatUser);
+    player.setSocialStatus(FOE);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertFalse(instance.banItem.isVisible());
+    assertFalse(instance.kickGameItem.isVisible());
+    assertFalse(instance.kickLobbyItem.isVisible());
+    assertFalse(instance.moderatorActionSeparator.isVisible());
+  }
+
+  @Test
+  public void testKickBanContextMenuNotShownForSelf() {
+    player.setSocialStatus(SELF);
+    instance.setChatUser(chatUser);
+
+    assertFalse(instance.banItem.isVisible());
+    assertFalse(instance.kickGameItem.isVisible());
+    assertFalse(instance.kickLobbyItem.isVisible());
+    assertFalse(instance.moderatorActionSeparator.isVisible());
+  }
+
+  @Test
+  public void testKickBanContextMenuShownForMod() {
+    player.setSocialStatus(FOE);
+    instance.setChatUser(chatUser);
+
+    assertTrue(instance.banItem.isVisible());
+    assertTrue(instance.kickGameItem.isVisible());
+    assertTrue(instance.kickLobbyItem.isVisible());
+    assertTrue(instance.moderatorActionSeparator.isVisible());
   }
 
   @Test
   public void testOnSendPrivateMessage() {
+    instance.setChatUser(chatUser);
+
     instance.onSendPrivateMessageSelected();
 
     verify(eventBus).post(any(InitiatePrivateChatEvent.class));
@@ -109,6 +149,8 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
 
   @Test
   public void testOnAddFriendWithFoe() {
+    instance.setChatUser(chatUser);
+
     player.setSocialStatus(FOE);
 
     instance.onAddFriendSelected();
@@ -121,6 +163,8 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
   public void testOnAddFriendWithNeutral() {
     player.setSocialStatus(OTHER);
 
+    instance.setChatUser(chatUser);
+
     instance.onAddFriendSelected();
 
     verify(playerService, never()).removeFoe(player);
@@ -129,6 +173,8 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
 
   @Test
   public void testOnRemoveFriend() {
+    instance.setChatUser(chatUser);
+
     instance.onRemoveFriendSelected();
 
     verify(playerService).removeFriend(player);
@@ -136,6 +182,8 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
 
   @Test
   public void testOnAddFoeWithFriend() {
+    instance.setChatUser(chatUser);
+
     player.setSocialStatus(FRIEND);
 
     instance.onAddFoeSelected();
@@ -146,6 +194,8 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
 
   @Test
   public void testOnAddFoeWithNeutral() {
+    instance.setChatUser(chatUser);
+
     player.setSocialStatus(OTHER);
 
     instance.onAddFoeSelected();
@@ -156,6 +206,8 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
 
   @Test
   public void testOnRemoveFoe() {
+    instance.setChatUser(chatUser);
+
     instance.onRemoveFoeSelected();
 
     verify(playerService).removeFoe(player);
@@ -163,6 +215,8 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
 
   @Test
   public void testOnWatchGame() {
+    instance.setChatUser(chatUser);
+
     instance.onWatchGameSelected();
 
     verify(replayService).runLiveReplay(player.getGame().getId(), player.getId());
@@ -170,6 +224,8 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
 
   @Test
   public void testOnWatchGameThrowsIoExceptionTriggersNotification() {
+    instance.setChatUser(chatUser);
+
     doThrow(new RuntimeException("Error in runLiveReplay")).when(replayService).runLiveReplay(anyInt(), anyInt());
 
     instance.onWatchGameSelected();
@@ -179,6 +235,8 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
 
   @Test
   public void testOnJoinGame() {
+    instance.setChatUser(chatUser);
+
     instance.onJoinGameSelected();
 
     verify(joinGameHelper).join(any());
@@ -186,6 +244,7 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
 
   @Test
   public void onSelectAvatar() throws Exception {
+    instance.setChatUser(chatUser);
     instance.avatarComboBox.show();
 
     WaitForAsyncUtils.waitForAsyncFx(100_000, () -> instance.avatarComboBox.getSelectionModel().select(2));

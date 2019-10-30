@@ -48,11 +48,12 @@
       <MenuItem fx:id="inviteItem" disable="true" mnemonicParsing="false" onAction="#onInviteToGameSelected"
                 text="%chat.userContext.inviteToGame"/>
     <SeparatorMenuItem fx:id="moderatorActionSeparator" mnemonicParsing="false" />
-      <MenuItem fx:id="kickItem" disable="true" mnemonicParsing="false" onAction="#onKickSelected"
-                text="%chat.userContext.kick"/>
-      <MenuItem fx:id="banItem" disable="true" mnemonicParsing="false" onAction="#onBanSelected"
-                text="%chat.userContext.ban"/>
-    <CustomMenuItem fx:id="avatarPickerMenuItem" hideOnClick="false" mnemonicParsing="false">
+      <MenuItem fx:id="kickGameItem" mnemonicParsing="false" onAction="#onKickGame" text="%chat.userContext.kickGame"
+                visible="false"/>
+      <MenuItem fx:id="kickLobbyItem" mnemonicParsing="false" onAction="#onKickLobby" text="%chat.userContext.kickLobby"
+                visible="false"/>
+      <MenuItem fx:id="banItem" mnemonicParsing="false" onAction="#onBan" visible="false" text="%chat.userContext.ban"/>
+      <CustomMenuItem fx:id="avatarPickerMenuItem" hideOnClick="false" mnemonicParsing="false">
       <content>
       </content>
       <content>

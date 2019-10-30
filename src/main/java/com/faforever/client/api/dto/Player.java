@@ -27,4 +27,7 @@ public class Player {
 
   @Relationship("names")
   private List<NameRecord> names;
+
+  @Relationship("lobbyGroup")
+  private LobbyGroup lobbyGroup;
 }

@@ -17,6 +17,7 @@ import com.faforever.client.api.dto.MapVersionReview;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersion;
 import com.faforever.client.api.dto.ModVersionReview;
+import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.api.dto.Tournament;
@@ -130,4 +131,6 @@ public interface FafApiAccessor {
   List<MapVersion> getOwnedMaps(int playerId, int loadMoreCount, int page);
 
   void updateMapVersion(String id, MapVersion mapVersion);
+
+  Player getOwnPlayer();
 }
