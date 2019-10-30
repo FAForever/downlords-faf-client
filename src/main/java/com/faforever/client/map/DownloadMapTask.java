@@ -11,13 +11,12 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import java.io.BufferedInputStream;
+import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Path;
 import java.util.Objects;
-import java.util.zip.ZipInputStream;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -52,7 +51,7 @@ public class DownloadMapTask extends CompletableTask<Void> {
 
     Path targetDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
 
-    try (ZipInputStream inputStream = new ZipInputStream(new BufferedInputStream(urlConnection.getInputStream()))) {
+    try (InputStream inputStream = urlConnection.getInputStream()) {
       Unzipper.from(inputStream)
           .to(targetDirectory)
           .totalBytes(bytesToRead)

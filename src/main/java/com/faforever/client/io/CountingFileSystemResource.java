@@ -51,7 +51,7 @@ public class CountingFileSystemResource extends FileSystemResource {
         this.bytesDone += bytesRead;
       }
 
-      this.listener.updateBytesWritten(this.bytesDone, totalBytes);
+      this.listener.updateBytesProcessed(this.bytesDone, totalBytes);
       return bytesRead;
     }
   }

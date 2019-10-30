@@ -259,12 +259,14 @@ dependencies {
   compile("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:${springSecurityOauth2AutoconfigureVersion}")
   compile("org.springframework:spring-web")
 
-  compile("com.github.FAForever:faf-java-commons:${fafCommonsVersion}")
+  compile("com.github.FAForever:faf-java-commons:${fafCommonsVersion}") {
+    exclude module: 'guava'
+  }
   compile("com.google.code.gson:gson:2.8.5")
   compile("com.github.micheljung:pircbotx:18481dcbfd") {
     exclude module: 'guava'
   }
-  compile("com.google.guava:guava:27.0-jre")
+  compile("com.google.guava:guava:28.0-jre")
   compile("org.apache.commons:commons-compress:1.18")
   compile("net.java.dev.jna:jna:${jnaVersion}")
   compile("net.java.dev.jna:jna-platform:${jnaVersion}")
