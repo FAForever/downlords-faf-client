@@ -8,12 +8,13 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.update.ClientConfiguration.ReleaseInfo;
+import com.faforever.client.user.event.LoggedInEvent;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -45,6 +46,7 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
   private final PreferencesService preferencesService;
 
   private final CompletableFuture<UpdateInfo> updateInfoFuture;
+  private final CompletableFuture<UpdateInfo> updateInfoBetaFuture;
 
   @VisibleForTesting
   String currentVersion;
@@ -74,46 +76,65 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
 
     CheckForUpdateTask task = applicationContext.getBean(CheckForUpdateTask.class);
     this.updateInfoFuture = taskService.submitTask(task).getFuture();
+
+    CheckForBetaUpdateTask betaTask = applicationContext.getBean(CheckForBetaUpdateTask.class);
+    this.updateInfoBetaFuture = taskService.submitTask(betaTask).getFuture();
   }
 
   /**
-   * Returns information about an available mandatory update. Returns {@code null} if no update is available.
+   * Returns information about the newest update. Returns {@code null} if no update is available.
    */
   @Override
-  public CompletableFuture<UpdateInfo> checkForMandatoryUpdate() {
+  public CompletableFuture<UpdateInfo> getNewestUpdate() {
     return updateInfoFuture;
+  }
+
+  @Override
+  public void checkForUpdateInBackground() {
+    if (preferencesService.getPreferences().isPrereleaseCheckEnabled()) {
+      checkForBetaUpdateInBackground();
+    } else {
+      checkForRegularUpdateInBackground();
+    }
+  }
+
+  @EventListener
+  public void onLoggedInEvent(LoggedInEvent loggedInEvent) {
+    checkForUpdateInBackground();
   }
 
   /**
    * Creates an update notification with actions to download and install latest release
    */
-  public void checkForRegularUpdateInBackground() {
-    updateInfoFuture.thenAccept(updateInfo -> {
+  private void checkForRegularUpdateInBackground() {
+    notificationOnUpdate(updateInfoFuture);
+  }
+
+  /**
+   * Creates an update notification with actions to download and install latest beta release
+   */
+  private void checkForBetaUpdateInBackground() {
+    notificationOnUpdate(updateInfoBetaFuture);
+  }
+
+  private void notificationOnUpdate(CompletableFuture<UpdateInfo> updateInfoSupplier) {
+    updateInfoSupplier.thenAccept(updateInfo -> {
       if (updateInfo == null) {
         return;
       }
 
-      try {
-        // no async call because this task runs asynchronously already
-        ReleaseInfo latestRelease = preferencesService.getRemotePreferences().getLatestRelease();
-
-        if (!Version.shouldUpdate(getCurrentVersion(), latestRelease.getVersion())) {
-          return;
-        }
-
-        notificationService.addNotification(new PersistentNotification(
-            i18n.get("clientUpdateAvailable.notification", updateInfo.getName(), formatSize(updateInfo.getSize(), i18n.getUserSpecificLocale())),
-            INFO, asList(
-            new Action(i18n.get("clientUpdateAvailable.downloadAndInstall"), event -> downloadAndInstallInBackground(updateInfo)),
-            new Action(i18n.get("clientUpdateAvailable.releaseNotes"), Action.Type.OK_STAY,
-                event -> platformService.showDocument(updateInfo.getReleaseNotesUrl().toExternalForm())
-            )))
-        );
-
-      } catch (IOException e) {
-        log.warn("Client update check failed", e);
+      if (!Version.shouldUpdate(getCurrentVersion(), updateInfo.getName())) {
+        return;
       }
 
+      notificationService.addNotification(new PersistentNotification(
+          i18n.get(updateInfo.isPrerelease() ? "clientUpdateAvailable.prereleaseNotification" : "clientUpdateAvailable.notification", updateInfo.getName(), formatSize(updateInfo.getSize(), i18n.getUserSpecificLocale())),
+          INFO, asList(
+          new Action(i18n.get("clientUpdateAvailable.downloadAndInstall"), event -> downloadAndInstallInBackground(updateInfo)),
+          new Action(i18n.get("clientUpdateAvailable.releaseNotes"), Action.Type.OK_STAY,
+              event -> platformService.showDocument(updateInfo.getReleaseNotesUrl().toExternalForm())
+          )))
+      );
     }).exceptionally(throwable -> {
       log.warn("Client update check failed", throwable);
       return null;

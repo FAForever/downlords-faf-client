@@ -7,10 +7,22 @@ import java.util.List;
 
 @Data
 // TODO since this class contains both, update info and configuration, the package 'update' doesn't really fit.
+/**
+ * A representation of a config file read from the faf server on start up. The file on the server allows to dynamically change settings in the client remotely.
+ */
 public class ClientConfiguration {
   ReleaseInfo latestRelease;
   List<Integer> recommendedMaps;
   List<Endpoints> endpoints;
+  GitHubRepo gitHubRepo;
+
+  @Data
+  public static class GitHubRepo {
+    /**
+     * Api URL to the client GitHub Repo
+     */
+    private String apiUrl;
+  }
 
   @Data
   public static class Endpoints {

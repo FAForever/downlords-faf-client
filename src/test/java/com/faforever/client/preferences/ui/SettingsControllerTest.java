@@ -11,6 +11,7 @@ import com.faforever.client.preferences.TimeInfo;
 import com.faforever.client.settings.LanguageItemController;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlySetWrapper;
@@ -31,6 +32,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class SettingsControllerTest extends AbstractPlainJavaFxTest {
@@ -54,6 +56,8 @@ public class SettingsControllerTest extends AbstractPlainJavaFxTest {
   private ClientProperties clientProperties;
   @Mock
   private AutoJoinChannelsController autoJoinChannelsController;
+  @Mock
+  private ClientUpdateService clientUpdateService;
 
   private Preferences preferences;
   private SimpleSetProperty<Locale> availableLanguages;
@@ -69,8 +73,16 @@ public class SettingsControllerTest extends AbstractPlainJavaFxTest {
     availableLanguages = new SimpleSetProperty<>(FXCollections.observableSet());
     when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlySetWrapper<>(availableLanguages));
 
-    instance = new SettingsController(userService, preferenceService, uiService, i18n, eventBus, notificationService, platformService, clientProperties);
+    instance = new SettingsController(userService, preferenceService, uiService, i18n, eventBus, notificationService, platformService, clientProperties, clientUpdateService);
     loadFxml("theme/settings/settings.fxml", param -> instance);
+  }
+
+  @Test
+  public void testSearchForBetaUpdateIfOptionIsTurnedOn() {
+    instance.prereleaseToggleButton.setSelected(true);
+    verify(clientUpdateService).checkForUpdateInBackground();
+    instance.prereleaseToggleButton.setSelected(false);
+    verifyNoMoreInteractions(clientUpdateService);
   }
 
   @Test

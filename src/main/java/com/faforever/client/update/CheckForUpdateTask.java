@@ -65,7 +65,8 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
         downloadUrl.getFile().substring(downloadUrl.getFile().lastIndexOf('/') + 1),
         downloadUrl,
         fileSize,
-        latestRelease.getReleaseNotesUrl()
+        latestRelease.getReleaseNotesUrl(),
+        false
     );
   }
 

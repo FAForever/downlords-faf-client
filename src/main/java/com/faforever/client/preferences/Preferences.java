@@ -41,6 +41,7 @@ public class Preferences {
   private final LocalizationPrefs localization;
   private final StringProperty lastGameTitle;
   private final StringProperty lastMap;
+  private final BooleanProperty prereleaseCheckEnabled;
   private final BooleanProperty rememberLastTab;
   private final BooleanProperty showPasswordProtectedGames;
   private final BooleanProperty showModdedGames;
@@ -92,6 +93,7 @@ public class Preferences {
     disallowJoinsViaDiscord = new SimpleBooleanProperty();
     showGameDetailsSidePane = new SimpleBooleanProperty(false);
     advancedIceLogEnabled = new SimpleBooleanProperty(false);
+    prereleaseCheckEnabled = new SimpleBooleanProperty(false);
   }
 
   public VaultPrefs getVaultPrefs() {
@@ -329,6 +331,18 @@ public class Preferences {
 
   public BooleanProperty showGameDetailsSidePaneProperty() {
     return showGameDetailsSidePane;
+  }
+
+  public boolean isPrereleaseCheckEnabled() {
+    return prereleaseCheckEnabled.get();
+  }
+
+  public void setPrereleaseCheckEnabled(boolean prereleaseCheckEnabled) {
+    this.prereleaseCheckEnabled.set(prereleaseCheckEnabled);
+  }
+
+  public BooleanProperty prereleaseCheckEnabledProperty() {
+    return prereleaseCheckEnabled;
   }
 
   public enum UnitDataBaseType {
