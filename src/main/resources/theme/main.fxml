@@ -72,6 +72,10 @@
                                           onAction="#onNavigateButtonClicked"
                                           styleClass="main-navigation-button" text="%main.units"
                                           toggleGroup="$mainNavigation"/>
+                            <ToggleButton fx:id="tutorialsButton" mnemonicParsing="false"
+                                          onAction="#onNavigateButtonClicked"
+                                          styleClass="main-navigation-button" text="%main.tutorials"
+                                          toggleGroup="$mainNavigation"/>
                             <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                                   HBox.hgrow="ALWAYS"/>
                             <StackPane>

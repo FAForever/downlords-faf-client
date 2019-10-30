@@ -23,6 +23,7 @@ import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.api.dto.Tournament;
+import com.faforever.client.api.dto.TutorialCategory;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
@@ -233,6 +234,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
   @Override
   public void deleteGameReview(String id) {
 
+  }
+
+  @Override
+  public List<TutorialCategory> getTutorialCategories() {
+    return Collections.emptyList();
   }
 
   @Override

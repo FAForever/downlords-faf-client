@@ -23,6 +23,7 @@ import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.api.dto.Tournament;
+import com.faforever.client.api.dto.TutorialCategory;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Api;
@@ -429,6 +430,12 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   public List<Ladder1v1Map> getLadder1v1Maps(int count, int page) {
     return getPage("/data/ladder1v1Map", count, page, ImmutableMap.of(
         "include", "mapVersion,mapVersion.map,mapVersion.map.latestVersion,mapVersion.map.latestVersion.reviews,mapVersion.map.author,mapVersion.map.statistics"));
+  }
+
+  @Override
+  public List<TutorialCategory> getTutorialCategories() {
+    return getAll("/data/tutorialCategory",
+        ImmutableMap.of("include", "tutorials,tutorials.mapVersion.map,tutorials.mapVersion.map.latestVersion,tutorials.mapVersion.map.author,tutorials.mapVersion.map.statistics"));
   }
 
   @Override

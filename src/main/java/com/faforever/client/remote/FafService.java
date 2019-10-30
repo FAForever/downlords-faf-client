@@ -36,6 +36,7 @@ import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.replay.Replay;
 import com.faforever.client.tournament.TournamentBean;
+import com.faforever.client.tutorial.TutorialCategory;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
@@ -496,5 +497,13 @@ public class FafService {
   @Async
   public void broadcastMessage(String message) {
     fafServerAccessor.broadcastMessage(message);
+  }
+
+  @Async
+  public CompletableFuture<List<TutorialCategory>> getTutorialCategories() {
+    return CompletableFuture.completedFuture(fafApiAccessor.getTutorialCategories().stream()
+        .map(TutorialCategory::fromDto)
+        .collect(Collectors.toList())
+    );
   }
 }

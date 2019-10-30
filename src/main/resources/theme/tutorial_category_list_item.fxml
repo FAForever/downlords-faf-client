@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<HBox xmlns:fx="http://javafx.com/fxml/1" fx:id="root" styleClass="tutorial-category-item"
+      maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="20.0"
+      xmlns="http://javafx.com/javafx/8.0.121"
+      fx:controller="com.faforever.client.tutorial.TutorialCategoryListItemController">
+    <Label fx:id="titleLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+           styleClass="tutorial-category-title" text="&lt;Category title&gt;" wrapText="true"/>
+</HBox>
