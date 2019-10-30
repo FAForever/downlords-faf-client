@@ -24,6 +24,7 @@ import com.faforever.client.settings.LanguageItemController;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
+import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
@@ -81,6 +82,7 @@ public class SettingsController implements Controller<Node> {
   private final EventBus eventBus;
   private final PlatformService platformService;
   private final ClientProperties clientProperties;
+  private final ClientUpdateService clientUpdateService;
 
   public TextField executableDecoratorField;
   public TextField executionDirectoryField;
@@ -132,6 +134,7 @@ public class SettingsController implements Controller<Node> {
   public ToggleButton secondaryVaultLocationToggleButton;
   public Button autoJoinChannelsButton;
   public ToggleButton advancedIceLogToggleButton;
+  public ToggleButton prereleaseToggleButton;
   private Popup autojoinChannelsPopUp;
   private ChangeListener<Theme> selectedThemeChangeListener;
   private ChangeListener<Theme> currentThemeChangeListener;
@@ -139,7 +142,7 @@ public class SettingsController implements Controller<Node> {
 
   public SettingsController(UserService userService, PreferencesService preferencesService, UiService uiService,
                             I18n i18n, EventBus eventBus, NotificationService notificationService,
-                            PlatformService platformService, ClientProperties clientProperties) {
+                            PlatformService platformService, ClientProperties clientProperties, ClientUpdateService clientUpdateService) {
     this.userService = userService;
     this.preferencesService = preferencesService;
     this.uiService = uiService;
@@ -148,6 +151,7 @@ public class SettingsController implements Controller<Node> {
     this.notificationService = notificationService;
     this.platformService = platformService;
     this.clientProperties = clientProperties;
+    this.clientUpdateService = clientUpdateService;
 
     availableLanguagesListener = observable -> {
       LocalizationPrefs localization = preferencesService.getPreferences().getLocalization();
@@ -291,6 +295,13 @@ public class SettingsController implements Controller<Node> {
     });
 
     advancedIceLogToggleButton.selectedProperty().bindBidirectional(preferences.advancedIceLogEnabledProperty());
+
+    prereleaseToggleButton.selectedProperty().bindBidirectional(preferences.prereleaseCheckEnabledProperty());
+    prereleaseToggleButton.selectedProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue != null && newValue && (oldValue == null || !oldValue)) {
+        clientUpdateService.checkForUpdateInBackground();
+      }
+    });
 
     initUnitDatabaseSelection(preferences);
   }
@@ -507,6 +518,10 @@ public class SettingsController implements Controller<Node> {
   public void onUseNoBackgroundImage(ActionEvent actionEvent) {
     preferencesService.getPreferences().getMainWindow().setBackgroundImagePath(null);
     preferencesService.storeInBackground();
+  }
+
+  public void openDiscordFeedbackChannel() {
+    platformService.showDocument(clientProperties.getDiscord().getDiscordPrereleaseFeedbackChannelUrl());
   }
 }
 

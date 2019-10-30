@@ -14,13 +14,13 @@ import java.util.concurrent.CompletableFuture;
 public class MockClientUpdateService implements ClientUpdateService {
 
   @Override
-  public CompletableFuture<UpdateInfo> checkForMandatoryUpdate() {
-    return null;
+  public CompletableFuture<UpdateInfo> getNewestUpdate() {
+    return CompletableFuture.completedFuture(null);
   }
 
   @Override
-  public void checkForRegularUpdateInBackground() {
-    // in offline mode we do not perform any checks
+  public void checkForUpdateInBackground() {
+
   }
 
   @Override

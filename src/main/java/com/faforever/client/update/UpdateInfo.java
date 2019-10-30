@@ -12,5 +12,6 @@ public class UpdateInfo {
   private URL url;
   private int size;
   private URL releaseNotesUrl;
+  private boolean prerelease;
 
 }

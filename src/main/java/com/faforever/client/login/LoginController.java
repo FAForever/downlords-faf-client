@@ -102,7 +102,7 @@ public class LoginController implements Controller<Node> {
   }
 
   public void initialize() {
-    updateInfoFuture = clientUpdateService.checkForMandatoryUpdate();
+    updateInfoFuture = clientUpdateService.getNewestUpdate();
 
     downloadUpdateButton.managedProperty().bind(downloadUpdateButton.visibleProperty());
     downloadUpdateButton.setVisible(false);

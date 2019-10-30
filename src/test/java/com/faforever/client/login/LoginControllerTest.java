@@ -127,7 +127,7 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testInitializeWithNoMandatoryUpdate() throws Exception {
-    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null);
+    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
     ClientConfiguration clientConfiguration = new ClientConfiguration();
     ClientConfiguration.ReleaseInfo releaseInfo = new ReleaseInfo();
     ClientConfiguration.Endpoints endpoints = mock(Endpoints.class, Answers.RETURNS_DEEP_STUBS);
@@ -137,7 +137,7 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     releaseInfo.setMinimumVersion("2.1.2");
     VersionTest.setCurrentVersion("2.2.0");
 
-    when(clientUpdateService.checkForMandatoryUpdate()).thenReturn(CompletableFuture.completedFuture(updateInfo));
+    when(clientUpdateService.getNewestUpdate()).thenReturn(CompletableFuture.completedFuture(updateInfo));
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
 
     clientProperties.setUseRemotePreferences(true);
@@ -153,12 +153,12 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.downloadUpdateButton.isVisible(), is(false));
     assertThat(instance.loginFormPane.isDisable(), is(false));
 
-    verify(clientUpdateService, atLeastOnce()).checkForMandatoryUpdate();
+    verify(clientUpdateService, atLeastOnce()).getNewestUpdate();
   }
 
   @Test
   public void testInitializeWithMandatoryUpdate() throws Exception {
-    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null);
+    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
     ClientConfiguration clientConfiguration = new ClientConfiguration();
     ClientConfiguration.ReleaseInfo releaseInfo = new ReleaseInfo();
     ClientConfiguration.Endpoints endpoints = mock(Endpoints.class, Answers.RETURNS_DEEP_STUBS);
@@ -168,7 +168,7 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     releaseInfo.setMinimumVersion("2.1.2");
     VersionTest.setCurrentVersion("1.2.0");
 
-    when(clientUpdateService.checkForMandatoryUpdate()).thenReturn(CompletableFuture.completedFuture(updateInfo));
+    when(clientUpdateService.getNewestUpdate()).thenReturn(CompletableFuture.completedFuture(updateInfo));
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
 
     clientProperties.setUseRemotePreferences(true);
@@ -184,13 +184,13 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.downloadUpdateButton.isVisible(), is(true));
     assertThat(instance.loginFormPane.isDisable(), is(true));
 
-    verify(clientUpdateService, atLeastOnce()).checkForMandatoryUpdate();
+    verify(clientUpdateService, atLeastOnce()).getNewestUpdate();
     verify(i18n).get("login.clientTooOldError", "1.2.0", "2.1.2");
   }
 
   @Test
   public void testOnDownloadUpdateButtonClicked() throws Exception {
-    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null);
+    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
     DownloadUpdateTask downloadUpdateTask = new DownloadUpdateTask(i18n, preferencesService);
     when(clientUpdateService.downloadAndInstallInBackground(updateInfo)).thenReturn(downloadUpdateTask);
 

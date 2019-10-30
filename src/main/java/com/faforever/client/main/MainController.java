@@ -34,7 +34,7 @@ import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
-import com.faforever.client.update.ClientUpdateService;
+import com.faforever.client.user.event.LoggedInEvent;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.client.vault.VaultFileSystemLocationChecker;
@@ -76,6 +76,7 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -106,19 +107,18 @@ public class MainController implements Controller<Node> {
   private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
   @VisibleForTesting
   protected static final PseudoClass MAIN_MINIMIZED = PseudoClass.getPseudoClass("minimized");
-  private final Cache<NavigationItem, AbstractViewController<?>> viewCache = CacheBuilder.newBuilder().build();
+  private final Cache<NavigationItem, AbstractViewController<?>> viewCache;
   private final PreferencesService preferencesService;
   private final I18n i18n;
   private final NotificationService notificationService;
   private final PlayerService playerService;
   private final GameService gameService;
-  private final ClientUpdateService clientUpdateService;
   private final UiService uiService;
   private final EventBus eventBus;
   private final GamePathHandler gamePathHandler;
   private final PlatformService platformService;
   private final VaultFileSystemLocationChecker vaultFileSystemLocationChecker;
-  private final ClientProperties clientProperties;
+  private final ApplicationEventPublisher applicationEventPublisher;
   private String mainWindowTitle;
   private int ratingBeta;
   public Pane mainHeaderPane;
@@ -145,23 +145,22 @@ public class MainController implements Controller<Node> {
   @Inject
   public MainController(PreferencesService preferencesService, I18n i18n,
                         NotificationService notificationService, PlayerService playerService,
-                        GameService gameService, ClientUpdateService clientUpdateService,
-                        UiService uiService, EventBus eventBus,
+                        GameService gameService, UiService uiService, EventBus eventBus,
                         GamePathHandler gamePathHandler, PlatformService platformService,
                         VaultFileSystemLocationChecker vaultFileSystemLocationChecker,
-                        ClientProperties clientProperties) {
+                        ClientProperties clientProperties, ApplicationEventPublisher applicationEventPublisher) {
     this.preferencesService = preferencesService;
     this.i18n = i18n;
     this.notificationService = notificationService;
     this.playerService = playerService;
     this.gameService = gameService;
-    this.clientUpdateService = clientUpdateService;
     this.uiService = uiService;
     this.eventBus = eventBus;
     this.gamePathHandler = gamePathHandler;
     this.platformService = platformService;
     this.vaultFileSystemLocationChecker = vaultFileSystemLocationChecker;
-    this.clientProperties = clientProperties;
+    this.applicationEventPublisher = applicationEventPublisher;
+    this.viewCache = CacheBuilder.newBuilder().build();
     this.mainWindowTitle = clientProperties.getMainWindowTitle();
     this.ratingBeta = clientProperties.getTrueSkill().getBeta();
   }
@@ -479,7 +478,7 @@ public class MainController implements Controller<Node> {
     getMainScene().setContent(mainRoot);
     getMainScene().setMoveControl(mainRoot);
 
-    clientUpdateService.checkForRegularUpdateInBackground();
+    applicationEventPublisher.publishEvent(new LoggedInEvent());
 
     gamePathHandler.detectAndUpdateGamePath();
     restoreLastView();

@@ -40,6 +40,8 @@
                                 <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES"/>
                                 <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES"/>
                                 <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES"/>
+                                <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES"/>
+                                <RowConstraints minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES"/>
                                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS"/>
                             </rowConstraints>
                             <children>
@@ -61,10 +63,19 @@
                                        GridPane.rowIndex="3"/>
                                 <JFXToggleButton fx:id="secondaryVaultLocationToggleButton" GridPane.columnIndex="1"
                                                  GridPane.rowIndex="3"/>
-                                <Label styleClass="h3" text="%settings.use.advancedIceLog" wrapText="true"
+                                <Label styleClass="h3" text="%settings.checkForPrerelease" wrapText="true"
                                        GridPane.rowIndex="4"/>
-                                <JFXToggleButton fx:id="advancedIceLogToggleButton" GridPane.columnIndex="1"
+                                <JFXToggleButton fx:id="prereleaseToggleButton" GridPane.columnIndex="1"
                                                  GridPane.rowIndex="4"/>
+                                <Label styleClass="h3" text="%settings.prereleaseFeedback" wrapText="true"
+                                       GridPane.rowIndex="5"/>
+                                <JFXButton text="%settings.giveFeedback" GridPane.columnIndex="1"
+                                           onMouseClicked="#openDiscordFeedbackChannel"
+                                           GridPane.rowIndex="5"/>
+                                <Label styleClass="h3" text="%settings.use.advancedIceLog" wrapText="true"
+                                       GridPane.rowIndex="6"/>
+                                <JFXToggleButton fx:id="advancedIceLogToggleButton" GridPane.columnIndex="1"
+                                                 GridPane.rowIndex="6"/>
                             </children>
                         </GridPane>
                     </content>

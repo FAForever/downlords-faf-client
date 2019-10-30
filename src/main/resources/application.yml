@@ -46,6 +46,7 @@ faf-client:
   show-ice-adapter-debug-Window: ${SHOW_ICE_ADAPTER_DEBUG_WINDOW:false}
 
   discord:
+    discord_prerelease_feedback_channel_url: https://discord.gg/fZc4BsE
     application_id: 464069837237518357
     small_image_key: faf_logo_small
     big_image_key: faf_logo_big

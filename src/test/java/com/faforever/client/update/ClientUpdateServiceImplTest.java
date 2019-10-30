@@ -4,6 +4,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.update.ClientUpdateServiceImpl.InstallerExecutionException;
@@ -27,7 +28,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -51,18 +51,25 @@ public class ClientUpdateServiceImplTest {
   private PreferencesService preferencesService;
   @Mock
   private CheckForUpdateTask checkForUpdateTask;
+  @Mock
+  private CheckForBetaUpdateTask checkForBetaUpdateTask;
+  private Preferences preferences = new Preferences();
 
   @Before
   public void setUp() throws Exception {
-    UpdateInfo updateInfo = new UpdateInfo("v0.4.8.1-alpha", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"));
+    UpdateInfo normalUpdateInfo = new UpdateInfo("v0.4.9.1-alpha", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"), false);
+    UpdateInfo betaUpdateInfo = new UpdateInfo("v0.4.9.0-RC1", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"), true);
     ClientConfiguration clientConfiguration = new ClientConfiguration();
     clientConfiguration.setLatestRelease(new ClientConfiguration.ReleaseInfo());
     clientConfiguration.getLatestRelease().setVersion("v0.4.9.1-alpha");
 
     doReturn(checkForUpdateTask).when(applicationContext).getBean(CheckForUpdateTask.class);
+    doReturn(checkForBetaUpdateTask).when(applicationContext).getBean(CheckForBetaUpdateTask.class);
     doReturn(checkForUpdateTask).when(taskService).submitTask(any(CheckForUpdateTask.class));
-    doReturn(CompletableFuture.completedFuture(updateInfo)).when(checkForUpdateTask).getFuture();
-    doReturn(clientConfiguration).when(preferencesService).getRemotePreferences();
+    doReturn(checkForBetaUpdateTask).when(taskService).submitTask(any(CheckForBetaUpdateTask.class));
+    doReturn(CompletableFuture.completedFuture(normalUpdateInfo)).when(checkForUpdateTask).getFuture();
+    doReturn(CompletableFuture.completedFuture(betaUpdateInfo)).when(checkForBetaUpdateTask).getFuture();
+    doReturn(preferences).when(preferencesService).getPreferences();
 
     instance = new ClientUpdateServiceImpl(taskService, notificationService, i18n, platformService, applicationContext, preferencesService);
   }
@@ -74,9 +81,8 @@ public class ClientUpdateServiceImplTest {
   public void testCheckForUpdateInBackgroundUpdateAvailable() throws Exception {
     instance.currentVersion = "v0.4.8.0-alpha";
 
-    CheckForUpdateTask taskMock = mock(CheckForUpdateTask.class);
-
-    instance.checkForRegularUpdateInBackground();
+    preferences.setPrereleaseCheckEnabled(false);
+    instance.checkForUpdateInBackground();
 
     verify(taskService).submitTask(checkForUpdateTask);
 
@@ -85,7 +91,28 @@ public class ClientUpdateServiceImplTest {
     verify(notificationService).addNotification(captor.capture());
     PersistentNotification persistentNotification = captor.getValue();
 
-    verify(i18n).get("clientUpdateAvailable.notification", "v0.4.8.1-alpha", Bytes.formatSize(56079360L, i18n.getUserSpecificLocale()));
+    verify(i18n).get("clientUpdateAvailable.notification", "v0.4.9.0-RC1", Bytes.formatSize(56079360L, i18n.getUserSpecificLocale()));
+    assertThat(persistentNotification.getSeverity(), is(INFO));
+  }
+
+  /**
+   * Newer prerelease version is available on server.
+   */
+  @Test
+  public void testCheckForBetaUpdateInBackgroundUpdateAvailable() throws Exception {
+    instance.currentVersion = "v0.4.8.0-alpha";
+
+    preferences.setPrereleaseCheckEnabled(true);
+    instance.checkForUpdateInBackground();
+
+    verify(taskService).submitTask(checkForUpdateTask);
+
+    ArgumentCaptor<PersistentNotification> captor = ArgumentCaptor.forClass(PersistentNotification.class);
+
+    verify(notificationService).addNotification(captor.capture());
+    PersistentNotification persistentNotification = captor.getValue();
+
+    verify(i18n).get("clientUpdateAvailable.prereleaseNotification", "v0.4.9.1-alpha", Bytes.formatSize(56079360L, i18n.getUserSpecificLocale()));
     assertThat(persistentNotification.getSeverity(), is(INFO));
   }
 
