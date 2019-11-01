@@ -58,7 +58,7 @@ public class ReplayCardController implements Controller<Node> {
 
   private Replay replay;
   private Consumer<Replay> onOpenDetailListener;
-  private I18n i18n;
+  private final I18n i18n;
   private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
   private JFXRippler jfxRippler;
 
