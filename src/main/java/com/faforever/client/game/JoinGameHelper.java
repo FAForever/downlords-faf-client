@@ -75,7 +75,7 @@ public class JoinGameHelper {
       return;
     }
 
-    if (game.getPasswordProtected() && password == null) {
+    if (game.isPasswordProtected() && password == null) {
       EnterPasswordController enterPasswordController = uiService.loadFxml("theme/enter_password.fxml");
       enterPasswordController.setOnPasswordEnteredListener(this::join);
       enterPasswordController.setGame(game);

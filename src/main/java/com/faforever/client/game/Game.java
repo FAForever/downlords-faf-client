@@ -1,10 +1,7 @@
 package com.faforever.client.game;
 
-import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.VictoryCondition;
-import com.faforever.client.util.TimeUtil;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.MapProperty;
@@ -17,22 +14,11 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
-import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Game {
-
-  private static final String RATING_NUMBER = "\\d+(?:\\.\\d+)?k?";
-  private static final Pattern MIN_RATING_PATTERN = Pattern.compile(">\\s*(" + RATING_NUMBER + ")|(" + RATING_NUMBER + ")\\s*\\+");
-  private static final Pattern MAX_RATING_PATTERN = Pattern.compile("<\\s*(" + RATING_NUMBER + ")");
-  private static final Pattern ABOUT_RATING_PATTERN = Pattern.compile("~\\s*(" + RATING_NUMBER + ")");
-  private static final Pattern BETWEEN_RATING_PATTERN = Pattern.compile("(" + RATING_NUMBER + ")\\s*-\\s*(" + RATING_NUMBER + ")");
-
   private final StringProperty host;
   private final StringProperty title;
   private final StringProperty mapFolderName;
@@ -58,11 +44,6 @@ public class Game {
    */
   private final MapProperty<String, Integer> featuredModVersions;
 
-  public Game(GameInfoMessage gameInfoMessage) {
-    this();
-    updateFromGameInfo(gameInfoMessage, true);
-  }
-
   public Game() {
     id = new SimpleIntegerProperty();
     host = new SimpleStringProperty();
@@ -82,105 +63,6 @@ public class Game {
     featuredModVersions = new SimpleMapProperty<>(FXCollections.observableHashMap());
     status = new SimpleObjectProperty<>();
     startTime = new SimpleObjectProperty<>();
-  }
-
-  void updateFromGameInfo(GameInfoMessage gameInfoMessage) {
-    updateFromGameInfo(gameInfoMessage, false);
-  }
-
-  private void updateFromGameInfo(GameInfoMessage gameInfoMessage, boolean isContructing) {
-    /* Since this method synchronizes on and updates members of "game", deadlocks can happen easily (updates can fire
-     events on the event bus, and each event subscriber is synchronized as well). By ensuring that we run all updates
-     in the application thread, we eliminate this risk. This is not required during construction of the game however,
-     since members are not yet accessible from outside. */
-    if (!isContructing) {
-      JavaFxUtil.assertApplicationThread();
-    }
-
-    id.set(gameInfoMessage.getUid());
-    host.set(gameInfoMessage.getHost());
-    title.set(StringEscapeUtils.unescapeHtml4(gameInfoMessage.getTitle()));
-    mapFolderName.set(gameInfoMessage.getMapname());
-    featuredMod.set(gameInfoMessage.getFeaturedMod());
-    numPlayers.setValue(gameInfoMessage.getNumPlayers());
-    maxPlayers.setValue(gameInfoMessage.getMaxPlayers());
-    victoryCondition.set(gameInfoMessage.getGameType());
-    Optional.ofNullable(gameInfoMessage.getLaunchedAt()).ifPresent(aDouble -> startTime.set(
-        TimeUtil.fromPythonTime(aDouble.longValue()).toInstant()
-    ));
-    status.set(gameInfoMessage.getState());
-    passwordProtected.set(gameInfoMessage.getPasswordProtected());
-
-    synchronized (simMods.get()) {
-      simMods.clear();
-      if (gameInfoMessage.getSimMods() != null) {
-        simMods.putAll(gameInfoMessage.getSimMods());
-      }
-    }
-
-    synchronized (teams.get()) {
-      teams.clear();
-      if (gameInfoMessage.getTeams() != null) {
-        teams.putAll(gameInfoMessage.getTeams());
-      }
-    }
-
-    synchronized (featuredModVersions.get()) {
-      featuredModVersions.clear();
-      if (gameInfoMessage.getFeaturedModVersions() != null) {
-        featuredModVersions.putAll(gameInfoMessage.getFeaturedModVersions());
-      }
-    }
-
-    // TODO this can be removed as soon as we valueOf server side support. Until then, let's be hacky
-    String titleString = title.get();
-    Matcher matcher = BETWEEN_RATING_PATTERN.matcher(titleString);
-    if (matcher.find()) {
-      minRating.set(parseRating(matcher.group(1)));
-      maxRating.set(parseRating(matcher.group(2)));
-    } else {
-      matcher = MIN_RATING_PATTERN.matcher(titleString);
-      if (matcher.find()) {
-        if (matcher.group(1) != null) {
-          minRating.set(parseRating(matcher.group(1)));
-        }
-        if (matcher.group(2) != null) {
-          minRating.set(parseRating(matcher.group(2)));
-        }
-        maxRating.set(3000);
-      } else {
-        matcher = MAX_RATING_PATTERN.matcher(titleString);
-        if (matcher.find()) {
-          minRating.set(0);
-          maxRating.setValue(parseRating(matcher.group(1)));
-        } else {
-          matcher = ABOUT_RATING_PATTERN.matcher(titleString);
-          if (matcher.find()) {
-            int rating = parseRating(matcher.group(1));
-            minRating.set(rating - 300);
-            maxRating.set(rating + 300);
-          }
-        }
-      }
-    }
-  }
-
-  private int parseRating(String string) {
-    try {
-      return Integer.parseInt(string);
-    } catch (NumberFormatException e) {
-      int rating;
-      String[] split = string.replace("k", "").split("\\.");
-      try {
-        rating = Integer.parseInt(split[0]) * 1000;
-        if (split.length == 2) {
-          rating += Integer.parseInt(split[1]) * 100;
-        }
-        return rating;
-      } catch (NumberFormatException e1) {
-        return Integer.MAX_VALUE;
-      }
-    }
   }
 
   public String getHost() {
@@ -377,12 +259,16 @@ public class Game {
     return visibility;
   }
 
-  public boolean getPasswordProtected() {
+  public boolean isPasswordProtected() {
     return passwordProtected.get();
   }
 
   public BooleanProperty passwordProtectedProperty() {
     return passwordProtected;
+  }
+
+  public void setPasswordProtected(boolean passwordProtected) {
+    this.passwordProtected.set(passwordProtected);
   }
 
   public String getPassword() {

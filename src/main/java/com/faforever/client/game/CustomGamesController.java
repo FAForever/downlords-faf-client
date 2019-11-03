@@ -185,7 +185,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
     boolean showModdedGames = showModdedGamesCheckBox.isSelected();
 
     filteredItems.setPredicate(OPEN_CUSTOM_GAMES_PREDICATE.and(gameInfoBean ->
-        (showPasswordProtectedGames || !gameInfoBean.getPasswordProtected())
+        (showPasswordProtectedGames || !gameInfoBean.isPasswordProtected())
             && (showModdedGames || gameInfoBean.getSimMods().isEmpty())));
   }
 

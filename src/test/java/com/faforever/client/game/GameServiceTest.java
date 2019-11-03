@@ -63,6 +63,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
@@ -311,10 +312,16 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage2);
     WaitForAsyncUtils.waitForFxEvents();
 
-    Game game1 = new Game(gameInfoMessage1);
-    Game game2 = new Game(gameInfoMessage2);
-
-    assertThat(instance.getGames(), containsInAnyOrder(game1, game2));
+    assertThat(instance.getGames(), containsInAnyOrder(
+        allOf(
+            GameMatchers.hasId(1),
+            GameMatchers.hasTitle("Game 1")
+        ),
+        allOf(
+            GameMatchers.hasId(2),
+            GameMatchers.hasTitle("Game 2")
+        )
+    ));
   }
 
   @Test
