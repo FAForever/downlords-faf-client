@@ -55,15 +55,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -106,8 +103,6 @@ public class GameService implements InitializingBean {
   private static final Pattern MAX_RATING_PATTERN = Pattern.compile("<\\s*(" + RATING_NUMBER + ")");
   private static final Pattern ABOUT_RATING_PATTERN = Pattern.compile("~\\s*(" + RATING_NUMBER + ")");
   private static final Pattern BETWEEN_RATING_PATTERN = Pattern.compile("(" + RATING_NUMBER + ")\\s*-\\s*(" + RATING_NUMBER + ")");
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @VisibleForTesting
   final BooleanProperty gameRunning;
@@ -267,7 +262,7 @@ public class GameService implements InitializingBean {
 
   public CompletableFuture<Void> hostGame(NewGameInfo newGameInfo) {
     if (isRunning()) {
-      logger.debug("Game is running, ignoring host request");
+      log.debug("Game is running, ignoring host request");
       return completedFuture(null);
     }
 
@@ -281,11 +276,11 @@ public class GameService implements InitializingBean {
 
   public CompletableFuture<Void> joinGame(Game game, String password) {
     if (isRunning()) {
-      logger.debug("Game is running, ignoring join request");
+      log.debug("Game is running, ignoring join request");
       return completedFuture(null);
     }
 
-    logger.info("Joining game: '{}' ({})", game.getTitle(), game.getId());
+    log.info("Joining game: '{}' ({})", game.getTitle(), game.getId());
 
     stopSearchLadder1v1();
 
@@ -298,7 +293,7 @@ public class GameService implements InitializingBean {
           try {
             modService.enableSimMods(simModUIds);
           } catch (IOException e) {
-            logger.warn("SimMods could not be enabled", e);
+            log.warn("SimMods could not be enabled", e);
           }
         })
         .thenCompose(aVoid -> downloadMapIfNecessary(game.getMapFolderName()))
@@ -330,7 +325,7 @@ public class GameService implements InitializingBean {
    */
   public void runWithReplay(Path path, @Nullable Integer replayId, String featuredMod, Integer version, Map<String, Integer> modVersions, Set<String> simMods, String mapName) {
     if (isRunning()) {
-      logger.warn("Forged Alliance is already running, not starting replay");
+      log.warn("Forged Alliance is already running, not starting replay");
       return;
     }
     modService.getFeaturedMod(featuredMod)
@@ -353,7 +348,7 @@ public class GameService implements InitializingBean {
   }
 
   private void notifyCantPlayReplay(@Nullable Integer replayId, Throwable throwable) {
-    logger.error("Could not play replay '" + replayId + "'", throwable);
+    log.error("Could not play replay '" + replayId + "'", throwable);
     notificationService.addNotification(new ImmediateErrorNotification(
         i18n.get("errorTitle"),
         i18n.get("replayCouldNotBeStarted", replayId),
@@ -364,7 +359,7 @@ public class GameService implements InitializingBean {
 
   public CompletableFuture<Void> runWithLiveReplay(URI replayUrl, Integer gameId, String gameType, String mapName) {
     if (isRunning()) {
-      logger.warn("Forged Alliance is already running, not starting live replay");
+      log.warn("Forged Alliance is already running, not starting live replay");
       return completedFuture(null);
     }
 
@@ -395,7 +390,7 @@ public class GameService implements InitializingBean {
   public Game getByUid(int uid) {
     Game game = uidToGameInfoBean.get(uid);
     if (game == null) {
-      logger.warn("Can't find {} in gameInfoBean map", uid);
+      log.warn("Can't find {} in gameInfoBean map", uid);
     }
     return game;
   }
@@ -406,7 +401,7 @@ public class GameService implements InitializingBean {
 
   public CompletableFuture<Void> startSearchLadder1v1(Faction faction) {
     if (isRunning()) {
-      logger.debug("Game is running, ignoring 1v1 search request");
+      log.debug("Game is running, ignoring 1v1 search request");
       return completedFuture(null);
     }
 
@@ -426,9 +421,9 @@ public class GameService implements InitializingBean {
             }))
         .exceptionally(throwable -> {
           if (throwable instanceof CancellationException) {
-            logger.info("Ranked1v1 search has been cancelled");
+            log.info("Ranked1v1 search has been cancelled");
           } else {
-            logger.warn("Ranked1v1 could not be started", throwable);
+            log.warn("Ranked1v1 could not be started", throwable);
           }
           return null;
         });
@@ -481,7 +476,7 @@ public class GameService implements InitializingBean {
    */
   private void startGame(GameLaunchMessage gameLaunchMessage, Faction faction, RatingMode ratingMode) {
     if (isRunning()) {
-      logger.warn("Forged Alliance is already running, not starting game");
+      log.warn("Forged Alliance is already running, not starting game");
       return;
     }
 
@@ -502,7 +497,7 @@ public class GameService implements InitializingBean {
           spawnTerminationListener(process);
         })
         .exceptionally(throwable -> {
-          logger.warn("Game could not be started", throwable);
+          log.warn("Game could not be started", throwable);
           notificationService.addNotification(
               new ImmediateErrorNotification(i18n.get("errorTitle"), i18n.get("game.start.couldNotStart"), throwable, i18n, reportingService)
           );
@@ -548,7 +543,7 @@ public class GameService implements InitializingBean {
       try {
         rehostRequested = false;
         int exitCode = process.waitFor();
-        logger.info("Forged Alliance terminated with exit code {}", exitCode);
+        log.info("Forged Alliance terminated with exit code {}", exitCode);
 
         synchronized (gameRunning) {
           gameRunning.set(false);
@@ -563,7 +558,7 @@ public class GameService implements InitializingBean {
           }
         }
       } catch (InterruptedException e) {
-        logger.warn("Error during post-game processing", e);
+        log.warn("Error during post-game processing", e);
       }
     });
   }
