@@ -34,6 +34,7 @@ import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.util.TimeUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -51,6 +52,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -78,6 +80,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.faforever.client.fa.RatingMode.NONE;
 import static com.faforever.client.game.KnownFeaturedMod.LADDER_1V1;
@@ -96,6 +100,12 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 @Slf4j
 @RequiredArgsConstructor
 public class GameService implements InitializingBean {
+
+  private static final String RATING_NUMBER = "\\d+(?:\\.\\d+)?k?";
+  private static final Pattern MIN_RATING_PATTERN = Pattern.compile(">\\s*(" + RATING_NUMBER + ")|(" + RATING_NUMBER + ")\\s*\\+");
+  private static final Pattern MAX_RATING_PATTERN = Pattern.compile("<\\s*(" + RATING_NUMBER + ")");
+  private static final Pattern ABOUT_RATING_PATTERN = Pattern.compile("~\\s*(" + RATING_NUMBER + ")");
+  private static final Pattern BETWEEN_RATING_PATTERN = Pattern.compile("(" + RATING_NUMBER + ")\\s*-\\s*(" + RATING_NUMBER + ")");
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -509,7 +519,7 @@ public class GameService implements InitializingBean {
 
     notificationService.addNotification(new PersistentNotification(i18n.get("game.ended", game.getTitle()),
         Severity.INFO,
-        singletonList(new Action(i18n.get("game.rate"), actionEvent ->  eventBus.post(new ShowReplayEvent(game.getId()))))));
+        singletonList(new Action(i18n.get("game.rate"), actionEvent -> eventBus.post(new ShowReplayEvent(game.getId()))))));
   }
 
   /**
@@ -660,17 +670,113 @@ public class GameService implements InitializingBean {
     final Game game;
     synchronized (uidToGameInfoBean) {
       if (!uidToGameInfoBean.containsKey(gameId)) {
-        game = new Game(gameInfoMessage);
+        game = new Game();
         uidToGameInfoBean.put(gameId, game);
+        updateFromGameInfo(gameInfoMessage, game);
         eventBus.post(new GameAddedEvent(game));
       } else {
         game = uidToGameInfoBean.get(gameId);
-        game.updateFromGameInfo(gameInfoMessage);
+
+        /* Since this method synchronizes on and updates members of "game", deadlocks can happen easily (updates can
+         fire events on the event bus, and each event subscriber is synchronized as well). By ensuring that we run all
+         updates in the application thread, we eliminate this risk. This is not required during construction of the
+         game however, since members are not yet accessible from outside. */
+        JavaFxUtil.assertApplicationThread();
+
+        updateFromGameInfo(gameInfoMessage, game);
         eventBus.post(new GameUpdatedEvent(game));
       }
     }
     return game;
   }
+
+  public int parseRating(String string) {
+    try {
+      return Integer.parseInt(string);
+    } catch (NumberFormatException e) {
+      int rating;
+      String[] split = string.replace("k", "").split("\\.");
+      try {
+        rating = Integer.parseInt(split[0]) * 1000;
+        if (split.length == 2) {
+          rating += Integer.parseInt(split[1]) * 100;
+        }
+        return rating;
+      } catch (NumberFormatException e1) {
+        return Integer.MAX_VALUE;
+      }
+    }
+  }
+
+  private void updateFromGameInfo(GameInfoMessage gameInfoMessage, Game game) {
+    game.setId(gameInfoMessage.getUid());
+    game.setHost(gameInfoMessage.getHost());
+    game.setTitle(StringEscapeUtils.unescapeHtml4(gameInfoMessage.getTitle()));
+    game.setMapFolderName(gameInfoMessage.getMapname());
+    game.setFeaturedMod(gameInfoMessage.getFeaturedMod());
+    game.setNumPlayers(gameInfoMessage.getNumPlayers());
+    game.setMaxPlayers(gameInfoMessage.getMaxPlayers());
+    game.setVictoryCondition(gameInfoMessage.getGameType());
+    Optional.ofNullable(gameInfoMessage.getLaunchedAt()).ifPresent(aDouble -> game.setStartTime(
+        TimeUtil.fromPythonTime(aDouble.longValue()).toInstant()
+    ));
+    game.setStatus(gameInfoMessage.getState());
+    game.setPasswordProtected(gameInfoMessage.getPasswordProtected());
+
+    synchronized (game.getSimMods()) {
+      game.getSimMods().clear();
+      if (gameInfoMessage.getSimMods() != null) {
+        game.getSimMods().putAll(gameInfoMessage.getSimMods());
+      }
+    }
+
+    synchronized (game.getTeams()) {
+      game.getTeams().clear();
+      if (gameInfoMessage.getTeams() != null) {
+        game.getTeams().putAll(gameInfoMessage.getTeams());
+      }
+    }
+
+    synchronized (game.getFeaturedModVersions()) {
+      game.getFeaturedModVersions().clear();
+      if (gameInfoMessage.getFeaturedModVersions() != null) {
+        game.getFeaturedModVersions().putAll(gameInfoMessage.getFeaturedModVersions());
+      }
+    }
+
+    // TODO this can be removed as soon as we valueOf server side support. Until then, let's be hacky
+    String titleString = game.getTitle();
+    Matcher matcher = BETWEEN_RATING_PATTERN.matcher(titleString);
+    if (matcher.find()) {
+      game.setMinRating(parseRating(matcher.group(1)));
+      game.setMaxRating(parseRating(matcher.group(2)));
+    } else {
+      matcher = MIN_RATING_PATTERN.matcher(titleString);
+      if (matcher.find()) {
+        if (matcher.group(1) != null) {
+          game.setMinRating(parseRating(matcher.group(1)));
+        }
+        if (matcher.group(2) != null) {
+          game.setMinRating(parseRating(matcher.group(2)));
+        }
+        game.setMaxRating(3000);
+      } else {
+        matcher = MAX_RATING_PATTERN.matcher(titleString);
+        if (matcher.find()) {
+          game.setMinRating(0);
+          game.setMaxRating(parseRating(matcher.group(1)));
+        } else {
+          matcher = ABOUT_RATING_PATTERN.matcher(titleString);
+          if (matcher.find()) {
+            int rating = parseRating(matcher.group(1));
+            game.setMinRating(rating - 300);
+            game.setMaxRating(rating + 300);
+          }
+        }
+      }
+    }
+  }
+
 
   private void removeGame(GameInfoMessage gameInfoMessage) {
     Game game;

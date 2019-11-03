@@ -131,7 +131,7 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
    */
   @Test
   public void testJoinGamePasswordProtected() throws Exception {
-    when(game.getPasswordProtected()).thenReturn(true);
+    when(game.isPasswordProtected()).thenReturn(true);
     instance.join(game);
     verify(enterPasswordController).showPasswordDialog(getRoot().getScene().getWindow());
   }
