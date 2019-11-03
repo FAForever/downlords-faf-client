@@ -34,6 +34,7 @@ import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
@@ -65,6 +66,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -703,6 +705,17 @@ public class GameService implements InitializingBean {
     }
   }
 
+  private double calcAverageRating(GameInfoMessage gameInfoMessage) {
+    return gameInfoMessage.getTeams().values().stream()
+        .flatMap(Collection::stream)
+        .map(playerService::getPlayerForUsername)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .mapToInt(RatingUtil::getGlobalRating)
+        .average()
+        .orElse(0.0);
+  }
+
   private void updateFromGameInfo(GameInfoMessage gameInfoMessage, Game game) {
     game.setId(gameInfoMessage.getUid());
     game.setHost(gameInfoMessage.getHost());
@@ -717,6 +730,8 @@ public class GameService implements InitializingBean {
     ));
     game.setStatus(gameInfoMessage.getState());
     game.setPasswordProtected(gameInfoMessage.getPasswordProtected());
+
+    game.setAverageRating(calcAverageRating(gameInfoMessage));
 
     synchronized (game.getSimMods()) {
       game.getSimMods().clear();
