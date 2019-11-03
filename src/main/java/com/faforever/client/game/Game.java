@@ -3,10 +3,12 @@ package com.faforever.client.game;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.VictoryCondition;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -26,6 +28,7 @@ public class Game {
   private final IntegerProperty id;
   private final IntegerProperty numPlayers;
   private final IntegerProperty maxPlayers;
+  private final DoubleProperty averageRating;
   private final IntegerProperty minRating;
   private final IntegerProperty maxRating;
   private final BooleanProperty passwordProtected;
@@ -52,6 +55,7 @@ public class Game {
     featuredMod = new SimpleStringProperty();
     numPlayers = new SimpleIntegerProperty();
     maxPlayers = new SimpleIntegerProperty();
+    averageRating = new SimpleDoubleProperty(0);
     minRating = new SimpleIntegerProperty(0);
     maxRating = new SimpleIntegerProperty(3000);
     passwordProtected = new SimpleBooleanProperty();
@@ -147,6 +151,18 @@ public class Game {
 
   public IntegerProperty maxPlayersProperty() {
     return maxPlayers;
+  }
+
+  public double getAverageRating() {
+    return averageRating.get();
+  }
+
+  public DoubleProperty averageRatingProperty() {
+    return averageRating;
+  }
+
+  public void setAverageRating(double averageRating) {
+    this.averageRating.set(averageRating);
   }
 
   public int getMinRating() {
