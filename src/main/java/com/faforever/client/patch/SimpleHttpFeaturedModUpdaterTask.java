@@ -71,9 +71,9 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
 
         String url = featuredModFile.getUrl();
         downloadService.downloadFile(new URL(url), targetPath, this::updateProgress);
+        UpdaterUtil.extractMoviesIfPresent(targetPath, fafDataDirectory);
       }
 
-      UpdaterUtil.extractMoviesIfPresent(targetPath, fafDataDirectory);
 
       if ("bin".equals(featuredModFile.getGroup()) && initFileName.equalsIgnoreCase(featuredModFile.getName())) {
         initFile = targetPath;

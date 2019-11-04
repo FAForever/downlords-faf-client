@@ -112,6 +112,7 @@ public class BireusFeaturedModUpdateTask extends CompletableTask<PatchResult> {
 
       return PatchResult.withLegacyInitFile(new ComparableVersion(checkedOutVersion), initFile);
     }
+    //TODO: use UpdaterUtil.extractMoviesIfPresent somewhere
 
     try (InputStream inputStream = Files.newInputStream(modInfoLuaFile)) {
       ModVersion modVersion = modService.extractModInfo(inputStream, repositoryPath);
