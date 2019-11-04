@@ -20,6 +20,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.ReconnectTimerService;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.replay.ReplayServer;
@@ -120,6 +121,8 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private PlatformService platformService;
   @Mock
+  private ReconnectTimerService reconnectTimerService;
+  @Mock
   private DiscordRichPresenceService discordRichPresenceService;
 
   @Captor
@@ -138,7 +141,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     instance = new GameService(clientProperties, fafService, forgedAllianceService, mapService,
         preferencesService, gameUpdater, notificationService, i18n, executorService, playerService,
         reportingService, eventBus, iceAdapter, modService, platformService, discordRichPresenceService,
-        replayService);
+        replayService, reconnectTimerService);
 
     Preferences preferences = new Preferences();
 

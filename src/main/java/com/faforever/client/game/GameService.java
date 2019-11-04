@@ -28,6 +28,7 @@ import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.ReconnectTimerService;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameStatus;
@@ -127,6 +128,7 @@ public class GameService implements InitializingBean {
   private final PlatformService platformService;
   private final DiscordRichPresenceService discordRichPresenceService;
   private final ReplayServer replayServer;
+  private final ReconnectTimerService reconnectTimerService;
 
   @VisibleForTesting
   RatingMode ratingMode;
@@ -156,7 +158,8 @@ public class GameService implements InitializingBean {
                      ModService modService,
                      PlatformService platformService,
                      DiscordRichPresenceService discordRichPresenceService,
-                     ReplayServer replayServer) {
+                     ReplayServer replayServer,
+                     ReconnectTimerService reconnectTimerService) {
     this.fafService = fafService;
     this.forgedAllianceService = forgedAllianceService;
     this.mapService = mapService;
@@ -173,6 +176,7 @@ public class GameService implements InitializingBean {
     this.platformService = platformService;
     this.discordRichPresenceService = discordRichPresenceService;
     this.replayServer = replayServer;
+    this.reconnectTimerService = reconnectTimerService;
 
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
     uidToGameInfoBean = FXCollections.observableMap(new ConcurrentHashMap<>());
@@ -200,6 +204,7 @@ public class GameService implements InitializingBean {
         item -> new Observable[]{item.statusProperty(), item.getTeams()}
     );
     JavaFxUtil.attachListToMap(games, uidToGameInfoBean);
+    JavaFxUtil.addListener(gameRunning, (observable, oldValue, newValue) -> reconnectTimerService.setGameRunning(newValue));
   }
 
   @NotNull
