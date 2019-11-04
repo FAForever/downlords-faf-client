@@ -49,6 +49,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -412,6 +413,21 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
 
+  public Path getPathForMapInsensitive(String approxName) {
+    String normalizedName = approxName.toLowerCase();
+    try (DirectoryStream<Path> stream = Files.newDirectoryStream(customMapsDirectory)) {
+      for (Path entry : stream) {
+        if (entry.getFileName().toString().toLowerCase().equals(normalizedName)) {
+          return entry;
+        }
+      }
+    } catch (IOException e) {
+      logger.warn("Could not check maps directory", e);
+      // TODO proper handling?
+    }
+    return null;
+  }
+
   public CompletableTask<Void> uploadMap(Path mapPath, boolean ranked) {
     MapUploadTask mapUploadTask = applicationContext.getBean(MapUploadTask.class);
     mapUploadTask.setMapPath(mapPath);
@@ -485,7 +501,7 @@ public class MapService implements InitializingBean, DisposableBean {
     }
 
     return taskService.submitTask(task).getFuture()
-        .thenAccept(aVoid -> noCatch(() -> addSkirmishMap(getPathForMap(folderName))));
+        .thenAccept(aVoid -> noCatch(() -> addSkirmishMap(getPathForMapInsensitive(folderName))));
   }
 
   public CompletableFuture<List<MapBean>> getOwnedMaps(int playerId, int loadMoreCount, int page) {
