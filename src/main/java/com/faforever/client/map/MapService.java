@@ -319,7 +319,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
 
   public boolean isOfficialMap(String mapName) {
-    return officialMaps.contains(mapName);
+    return officialMaps.stream().anyMatch(name -> name.equalsIgnoreCase(mapName));
   }
 
 
@@ -393,6 +393,9 @@ public class MapService implements InitializingBean, DisposableBean {
 
 
   public CompletableFuture<Void> uninstallMap(MapBean map) {
+    if (isOfficialMap(map.getFolderName())) {
+      throw new IllegalArgumentException("Attempt to uninstall an official map");
+    }
     UninstallMapTask task = applicationContext.getBean(com.faforever.client.map.UninstallMapTask.class);
     task.setMap(map);
     return taskService.submitTask(task).getFuture();
@@ -400,30 +403,29 @@ public class MapService implements InitializingBean, DisposableBean {
 
 
   public Path getPathForMap(MapBean map) {
-    return getPathForMap(map.getFolderName());
+    return getPathForMapInsensitive(map.getFolderName());
   }
 
+  private Path getMapsDirectory(String technicalName) {
+    if (isOfficialMap(technicalName)) {
+      return forgedAlliancePreferences.getInstallationPath().resolve("maps");
+    }
+    return customMapsDirectory;
+  }
 
   public Path getPathForMap(String technicalName) {
-    Path path = customMapsDirectory.resolve(technicalName);
+    Path path = getMapsDirectory(technicalName).resolve(technicalName);
     if (Files.notExists(path)) {
       return null;
     }
     return path;
   }
 
-
   public Path getPathForMapInsensitive(String approxName) {
-    String normalizedName = approxName.toLowerCase();
-    try (DirectoryStream<Path> stream = Files.newDirectoryStream(customMapsDirectory)) {
-      for (Path entry : stream) {
-        if (entry.getFileName().toString().toLowerCase().equals(normalizedName)) {
-          return entry;
-        }
+    for (Path entry : noCatch(() -> Files.newDirectoryStream(getMapsDirectory(approxName)))) {
+      if (entry.getFileName().toString().equalsIgnoreCase(approxName)) {
+        return entry;
       }
-    } catch (IOException e) {
-      logger.warn("Could not check maps directory", e);
-      // TODO proper handling?
     }
     return null;
   }
@@ -447,13 +449,16 @@ public class MapService implements InitializingBean, DisposableBean {
    */
 
   public CompletableFuture<Optional<MapBean>> findByMapFolderName(String folderName) {
-    Path localMapFolder = getPathForMap(folderName);
-    if (localMapFolder != null && Files.exists(localMapFolder)) {
-      return CompletableFuture.completedFuture(Optional.of(readMap(localMapFolder)));
+    Optional<MapBean> installed = findInstalledByMapFolderName(folderName);
+    if (installed.isPresent()) {
+      return CompletableFuture.completedFuture(installed);
     }
     return fafService.findMapByFolderName(folderName);
   }
 
+  public Optional<MapBean> findInstalledByMapFolderName(String folderName) {
+    return installedSkirmishMaps.stream().filter(m -> m.getFolderName().equalsIgnoreCase(folderName)).findAny();
+  }
 
   public CompletableFuture<Boolean> hasPlayedMap(int playerId, String mapVersionId) {
     return fafService.getLastGameOnMap(playerId, mapVersionId)
