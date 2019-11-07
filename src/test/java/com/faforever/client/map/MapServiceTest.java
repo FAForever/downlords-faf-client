@@ -102,7 +102,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     mapsDirectory = gameDirectory.newFolder("maps").toPath();
     when(forgedAlliancePrefs.getCustomMapsDirectory()).thenReturn(customMapsDirectory.getRoot().toPath());
     when(forgedAlliancePrefs.customMapsDirectoryProperty()).thenReturn(customMapsDirectoryProperty);
-    when(forgedAlliancePrefs.getPath()).thenReturn(gameDirectory.getRoot().toPath());
+    when(forgedAlliancePrefs.getInstallationPath()).thenReturn(gameDirectory.getRoot().toPath());
     when(forgedAlliancePrefs.pathProperty()).thenReturn(new SimpleObjectProperty<>());
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);

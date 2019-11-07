@@ -164,20 +164,28 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   private void tryLoadMaps() {
-    customMapsDirectory = forgedAlliancePreferences.getCustomMapsDirectory();
-    if (forgedAlliancePreferences.getPath() == null
-        || customMapsDirectory == null) {
+    if (forgedAlliancePreferences.getInstallationPath() == null) {
+      logger.warn("Could not load maps: installation path is not set");
       return;
     }
-    installedSkirmishMaps.clear();
+
+    Path mapsDirectory = forgedAlliancePreferences.getCustomMapsDirectory();
+    if (mapsDirectory == null) {
+      logger.warn("Could not load maps: custom map directory is not set");
+      return;
+    }
+
     try {
-      Files.createDirectories(customMapsDirectory);
+      Files.createDirectories(mapsDirectory);
       Optional.ofNullable(directoryWatcherThread).ifPresent(Thread::interrupt);
-      directoryWatcherThread = startDirectoryWatcher(customMapsDirectory);
+      directoryWatcherThread = startDirectoryWatcher(mapsDirectory);
     } catch (IOException e) {
       logger.warn("Could not start map directory watcher", e);
       // TODO notify user
     }
+
+    customMapsDirectory = mapsDirectory;
+    installedSkirmishMaps.clear();
     loadInstalledMaps();
   }
 
@@ -206,7 +214,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
       protected Void call() {
         updateTitle(i18n.get("mapVault.loadingMaps"));
-        Path officialMapsPath = forgedAlliancePreferences.getPath().resolve("maps");
+        Path officialMapsPath = forgedAlliancePreferences.getInstallationPath().resolve("maps");
 
         try (Stream<Path> customMapsDirectoryStream = list(customMapsDirectory)) {
           List<Path> mapPaths = new ArrayList<>();
@@ -449,15 +457,11 @@ public class MapService implements InitializingBean, DisposableBean {
    */
 
   public CompletableFuture<Optional<MapBean>> findByMapFolderName(String folderName) {
-    Optional<MapBean> installed = findInstalledByMapFolderName(folderName);
+    Optional<MapBean> installed = getMapLocallyFromName(folderName);
     if (installed.isPresent()) {
       return CompletableFuture.completedFuture(installed);
     }
     return fafService.findMapByFolderName(folderName);
-  }
-
-  public Optional<MapBean> findInstalledByMapFolderName(String folderName) {
-    return installedSkirmishMaps.stream().filter(m -> m.getFolderName().equalsIgnoreCase(folderName)).findAny();
   }
 
   public CompletableFuture<Boolean> hasPlayedMap(int playerId, String mapVersionId) {
