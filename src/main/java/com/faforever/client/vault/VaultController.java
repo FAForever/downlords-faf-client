@@ -5,9 +5,11 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenMapVaultEvent;
 import com.faforever.client.main.event.OpenModVaultEvent;
 import com.faforever.client.main.event.OpenOnlineReplayVaultEvent;
+import com.faforever.client.main.event.OpenReplayVaultEvent;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.replay.OnlineReplayVaultController;
+import com.faforever.client.vault.replay.ReplayVaultController;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
@@ -29,7 +31,9 @@ public class VaultController extends AbstractViewController<Node> {
   public MapVaultController mapVaultController;
   public ModVaultController modVaultController;
   public OnlineReplayVaultController onlineReplayVaultController;
+  public ReplayVaultController localReplayVaultController;
   public Tab onlineReplayVaultTab;
+  public Tab localReplayVaultTab;
   private boolean isHandlingEvent;
 
   public VaultController(EventBus eventBus) {
@@ -54,6 +58,8 @@ public class VaultController extends AbstractViewController<Node> {
         eventBus.post(new OpenModVaultEvent());
       } else if (newValue == onlineReplayVaultTab) {
         eventBus.post(new OpenOnlineReplayVaultEvent());
+      } else if (newValue == localReplayVaultTab) {
+        eventBus.post(new OpenReplayVaultEvent());
       }
       // TODO implement other tabs
     });
@@ -76,6 +82,10 @@ public class VaultController extends AbstractViewController<Node> {
       if (navigateEvent instanceof OpenOnlineReplayVaultEvent) {
         vaultRoot.getSelectionModel().select(onlineReplayVaultTab);
         onlineReplayVaultController.display(navigateEvent);
+      }
+      if (navigateEvent instanceof OpenReplayVaultEvent) {
+        vaultRoot.getSelectionModel().select(localReplayVaultTab);
+        localReplayVaultController.display(navigateEvent);
       }
     } finally {
       isHandlingEvent = false;

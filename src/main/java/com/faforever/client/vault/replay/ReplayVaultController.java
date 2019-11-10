@@ -1,7 +1,9 @@
 package com.faforever.client.vault.replay;
 
+import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
@@ -58,7 +60,7 @@ import static java.util.Arrays.asList;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 // TODO reduce dependencies
-public class ReplayVaultController implements Controller<Node> {
+public class ReplayVaultController extends AbstractViewController<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final NotificationService notificationService;
@@ -106,6 +108,11 @@ public class ReplayVaultController implements Controller<Node> {
     durationColumn.setCellFactory(this::durationCellFactory);
 
     loadLocalReplaysInBackground();
+  }
+
+  @Override
+  protected void onDisplay(NavigateEvent navigateEvent) {
+    super.onDisplay(navigateEvent);
   }
 
   @NotNull
