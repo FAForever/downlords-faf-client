@@ -26,7 +26,6 @@ public class LoadLocalReplaysTask extends CompletableTask<Collection<Replay>> {
   @Override
   protected Collection<Replay> call() throws Exception {
     updateTitle(i18n.get("replays.loadingLocalTask.title"));
-    return replayService.getLocalReplays();
+    return replayService.loadLocalReplays().get();
   }
-
 }

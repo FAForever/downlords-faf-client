@@ -136,7 +136,8 @@ public class ReplayService {
   public void startLoadingAndWatchingLocalReplays() {
     // TODO: Create task?
     executorService.execute(() -> {
-      loadLocalReplays().thenAccept( replays -> {
+      LoadLocalReplaysTask loadLocalReplaysTask = new LoadLocalReplaysTask(this, i18n);
+      taskService.submitTask(loadLocalReplaysTask).getFuture().thenAccept( replays -> {
         localReplays.clear();
         localReplays.addAll(replays);
         eventBus.post(new LocalReplaysChangedEvent(replays, new ArrayList<Replay>()));
@@ -249,7 +250,7 @@ public class ReplayService {
    */
   @SneakyThrows
   @Async
-  private CompletableFuture<Collection<Replay>> loadLocalReplays() {
+  public CompletableFuture<Collection<Replay>> loadLocalReplays() {
     String replayFileGlob = clientProperties.getReplay().getReplayFileGlob();
 
     Path replaysDirectory = preferencesService.getReplaysDirectory();
