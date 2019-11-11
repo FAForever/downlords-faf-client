@@ -3,6 +3,7 @@ package com.faforever.client.vault.replay;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.LocalReplaysChangedEvent;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
@@ -16,11 +17,14 @@ import com.faforever.client.replay.LoadLocalReplaysTask;
 import com.faforever.client.replay.Replay;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.map.MapPreviewTableCellController;
 import com.google.common.base.Joiner;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.SimpleObjectProperty;
@@ -55,6 +59,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
+import static java.util.Arrays.setAll;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -72,6 +77,7 @@ public class ReplayVaultController extends AbstractViewController<Node> {
   private final ReportingService reportingService;
   private final ApplicationContext applicationContext;
   private final UiService uiService;
+  private final EventBus eventBus;
 
   public TableView<Replay> replayVaultRoot;
   public TableColumn<Replay, Number> idColumn;
@@ -81,6 +87,8 @@ public class ReplayVaultController extends AbstractViewController<Node> {
   public TableColumn<Replay, Duration> durationColumn;
   public TableColumn<Replay, String> gameTypeColumn;
   public TableColumn<Replay, MapBean> mapColumn;
+
+  private Boolean isDisplayingForFirstTime = true;
 
   @SuppressWarnings("unchecked")
   public void initialize() {
@@ -106,12 +114,17 @@ public class ReplayVaultController extends AbstractViewController<Node> {
 
     durationColumn.setCellValueFactory(this::durationCellValueFactory);
     durationColumn.setCellFactory(this::durationCellFactory);
-
-    loadLocalReplaysInBackground();
   }
 
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
+    // TODO: Display information that view contents are loading
+    if (isDisplayingForFirstTime) {
+      eventBus.register(this);
+      replayService.startLoadingAndWatchingLocalReplays();
+      isDisplayingForFirstTime = false;
+    }
+
     super.onDisplay(navigateEvent);
   }
 
@@ -241,28 +254,13 @@ public class ReplayVaultController extends AbstractViewController<Node> {
     return new SimpleObjectProperty<>(Duration.between(startTime, endTime));
   }
 
-  public CompletableFuture<Void> loadLocalReplaysInBackground() {
-    // TODO use replay service
-    LoadLocalReplaysTask task = applicationContext.getBean(LoadLocalReplaysTask.class);
-
-    replayVaultRoot.getItems().clear();
-    return taskService.submitTask(task).getFuture()
-        .thenAccept(this::addLocalReplays)
-        .exceptionally(throwable -> {
-              logger.warn("Error while loading local replays", throwable);
-              notificationService.addNotification(new PersistentNotification(
-                  i18n.get("replays.loadingLocalTask.failed"),
-                  Severity.ERROR, asList(new ReportAction(i18n, reportingService, throwable), new DismissAction(i18n))
-              ));
-              return null;
-            }
-        );
-  }
-
-  private void addLocalReplays(Collection<Replay> result) {
-    Collection<Replay> items = result.stream()
-        .collect(Collectors.toCollection(ArrayList::new));
-    Platform.runLater(() -> replayVaultRoot.getItems().addAll(items));
+  @Subscribe
+  public void onLocalReplaysChanged(LocalReplaysChangedEvent event) {
+    Collection<Replay> newReplays = event.getNewReplays();
+    Collection<Replay> deletedReplays = event.getDeletedReplays();
+    replayVaultRoot.getItems().addAll(newReplays);
+    replayVaultRoot.getItems().removeAll(deletedReplays);
+    replayVaultRoot.sort();
   }
 
 //  public void loadOnlineReplaysInBackground() {
