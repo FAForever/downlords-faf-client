@@ -18,6 +18,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.commons.replay.ReplayData;
 
+import com.google.common.eventbus.EventBus;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,6 +26,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
 import org.springframework.context.ApplicationContext;
 
 import java.net.URI;
@@ -35,6 +37,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -122,13 +125,17 @@ public class ReplayServiceTest {
   private ModService modService;
   @Mock
   private MapService mapService;
+  @Mock
+  private EventBus eventBus;
+  @Mock
+  private ExecutorService executorService;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
     instance = new ReplayService(new ClientProperties(), preferencesService, replayFileReader, notificationService, gameService,
-        taskService, i18n, reportingService, applicationContext, platformService, fafService, modService, mapService);
+        taskService, i18n, reportingService, applicationContext, platformService, fafService, modService, mapService, eventBus, executorService);
 
     when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath());
     when(preferencesService.getCorruptedReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath().resolve("corrupt"));

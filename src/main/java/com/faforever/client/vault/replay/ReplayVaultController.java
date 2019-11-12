@@ -118,14 +118,18 @@ public class ReplayVaultController extends AbstractViewController<Node> {
 
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
-    // TODO: Display information that view contents are loading
     if (isDisplayingForFirstTime) {
-      eventBus.register(this);
-      replayService.startLoadingAndWatchingLocalReplays();
+      loadLocalReplaysInBackground();
       isDisplayingForFirstTime = false;
     }
 
     super.onDisplay(navigateEvent);
+  }
+
+  protected void loadLocalReplaysInBackground() {
+    // TODO: Display information that view contents are loading
+    eventBus.register(this);
+    replayService.startLoadingAndWatchingLocalReplays();
   }
 
   @NotNull

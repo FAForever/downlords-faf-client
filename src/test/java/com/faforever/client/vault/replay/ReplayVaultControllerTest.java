@@ -11,6 +11,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
+import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
 import javafx.scene.control.TableView;
 import org.junit.Before;
@@ -57,11 +58,13 @@ public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   private ReportingService reportingService;
   @Mock
   private UiService uiService;
+  @Mock
+  private EventBus eventBus;
 
   @Before
   public void setUp() throws Exception {
     instance = new ReplayVaultController(notificationService, replayService, mapService, taskService, i18n, timeService,
-        reportingService, applicationContext, uiService);
+        reportingService, applicationContext, uiService, eventBus);
 
     doReturn(new LoadLocalReplaysTask(replayService, i18n)).when(applicationContext).getBean(eq(LoadLocalReplaysTask.class));
 
