@@ -262,7 +262,15 @@ public class ReplayService {
     List<CompletableFuture<Replay>> replayFutures = StreamSupport.stream(directoryStream.spliterator(), false)
         .sorted(Comparator.comparing(path -> noCatch(() -> Files.getLastModifiedTime((Path) path))).reversed())
         .limit(MAX_REPLAYS)
-        .map(replayFile -> noCatch(() -> loadLocalReplay(replayFile)))
+        .map( replayFile -> {
+          try {
+            return loadLocalReplay(replayFile);
+          } catch (Exception e) {
+            // do nothing; notification should already be shown to user
+            return null;
+          }
+        })
+        .filter(replay -> replay != null)
         .collect(Collectors.toList());
 
     CompletableFuture[] replayFuturesArray = replayFutures.toArray(new CompletableFuture[replayFutures.size()]);
