@@ -1,9 +1,10 @@
 package com.faforever.client.vault.replay;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.LocalReplaysChangedEvent;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.replay.LoadLocalReplaysTask;
+import com.faforever.client.replay.Replay;
 import com.faforever.client.replay.ReplayInfoBeanBuilder;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
@@ -19,23 +20,17 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
 
 public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
 
@@ -60,15 +55,13 @@ public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   private UiService uiService;
   @Mock
   private EventBus eventBus;
+  @Mock
+  private ExecutorService executorService;
 
   @Before
   public void setUp() throws Exception {
     instance = new ReplayVaultController(notificationService, replayService, mapService, taskService, i18n, timeService,
         reportingService, applicationContext, uiService, eventBus);
-
-    doReturn(new LoadLocalReplaysTask(replayService, i18n)).when(applicationContext).getBean(eq(LoadLocalReplaysTask.class));
-
-    doAnswer(invocation -> invocation.getArgument(0)).when(taskService).submitTask(any());
 
     loadFxml("theme/vault/replay/replay_vault.fxml", clazz -> instance);
   }
@@ -81,24 +74,22 @@ public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testLoadLocalReplaysInBackground() throws Exception {
-    LoadLocalReplaysTask task = mock(LoadLocalReplaysTask.class);
-    when(task.getFuture()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
+
+    var replays = Arrays.asList(
         ReplayInfoBeanBuilder.create().get(),
         ReplayInfoBeanBuilder.create().get(),
         ReplayInfoBeanBuilder.create().get()
-    )));
-
-    when(applicationContext.getBean(LoadLocalReplaysTask.class)).thenReturn(task);
+    );
 
     CountDownLatch loadedLatch = new CountDownLatch(1);
     ((TableView) instance.getRoot()).getItems().addListener((InvalidationListener) observable -> loadedLatch.countDown());
 
     instance.loadLocalReplaysInBackground();
+    instance.onLocalReplaysChanged(new LocalReplaysChangedEvent(replays, new ArrayList<Replay>()));
 
     assertTrue(loadedLatch.await(5000, TimeUnit.MILLISECONDS));
     assertThat(((TableView) instance.getRoot()).getItems().size(), is(3));
 
-    verify(taskService).submitTask(task);
     verifyZeroInteractions(notificationService);
   }
 }

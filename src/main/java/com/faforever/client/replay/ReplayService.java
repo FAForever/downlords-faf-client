@@ -134,14 +134,11 @@ public class ReplayService {
   private List<Replay> localReplays = new ArrayList<Replay>();
 
   public void startLoadingAndWatchingLocalReplays() {
-    // TODO: Create task?
-    executorService.execute(() -> {
-      LoadLocalReplaysTask loadLocalReplaysTask = new LoadLocalReplaysTask(this, i18n);
-      taskService.submitTask(loadLocalReplaysTask).getFuture().thenAccept( replays -> {
-        localReplays.clear();
-        localReplays.addAll(replays);
-        eventBus.post(new LocalReplaysChangedEvent(replays, new ArrayList<Replay>()));
-      });
+    LoadLocalReplaysTask loadLocalReplaysTask = applicationContext.getBean(LoadLocalReplaysTask.class);
+    taskService.submitTask(loadLocalReplaysTask).getFuture().thenAccept( replays -> {
+      localReplays.clear();
+      localReplays.addAll(replays);
+      eventBus.post(new LocalReplaysChangedEvent(replays, new ArrayList<Replay>()));
     });
 
     try {
@@ -156,7 +153,7 @@ public class ReplayService {
     return localReplays;
   }
 
-  private Thread startDirectoryWatcher(Path replaysDirectory) throws IOException {
+  protected Thread startDirectoryWatcher(Path replaysDirectory) throws IOException {
     Thread thread = new Thread(() -> noCatch(() -> {
       try (WatchService watcher = replaysDirectory.getFileSystem().newWatchService()) {
         replaysDirectory.register(watcher, ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE);
