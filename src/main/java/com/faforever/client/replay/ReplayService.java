@@ -134,6 +134,11 @@ public class ReplayService {
   private List<Replay> localReplays = new ArrayList<Replay>();
 
   public void startLoadingAndWatchingLocalReplays() {
+    Path replaysDirectory = preferencesService.getReplaysDirectory();
+    if (Files.notExists(replaysDirectory)) {
+      noCatch(() -> createDirectories(replaysDirectory));
+    }
+
     LoadLocalReplaysTask loadLocalReplaysTask = applicationContext.getBean(LoadLocalReplaysTask.class);
     taskService.submitTask(loadLocalReplaysTask).getFuture().thenAccept( replays -> {
       localReplays.clear();
@@ -143,7 +148,7 @@ public class ReplayService {
 
     try {
       Optional.ofNullable(directoryWatcherThread).ifPresent(Thread::interrupt);
-      directoryWatcherThread = startDirectoryWatcher(preferencesService.getReplaysDirectory());
+      directoryWatcherThread = startDirectoryWatcher(replaysDirectory);
     } catch (IOException e) {
       logger.debug("Failed to start watching the local replays directory");
     }
