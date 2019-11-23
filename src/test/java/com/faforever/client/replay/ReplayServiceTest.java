@@ -230,48 +230,6 @@ public class ReplayServiceTest {
     assertThat(instance.getLocalReplays(), hasSize(3));
     verify(eventBus).post(argThat((LocalReplaysChangedEvent event) -> event.getNewReplays().size() == 3));
     verifyZeroInteractions(notificationService);
-
-  instance.getLocalReplays().clear(); // remove previously used test objects, because they contain null values that prevent properly testing the watcher
-
-    // test folder watching
-
-    LocalReplayInfo localReplayInfo = new LocalReplayInfo();
-    localReplayInfo.setUid(123);
-    localReplayInfo.setTitle("title");
-
-    when(replayFileReader.parseMetaData(any())).thenReturn(localReplayInfo);
-    when(modService.getFeaturedMod(any())).thenReturn(CompletableFuture.completedFuture(null));
-    when(mapService.findByMapFolderName(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(MapBeanBuilder.create().defaultValues().get())));
-
-    TemporaryFolder temporaryFolder = new TemporaryFolder();
-    temporaryFolder.create();
-    Path tempFile = temporaryFolder.getRoot().toPath().resolve("replay.tmp");
-    Path testReplayFile = replayDirectory.getRoot().toPath().resolve("test.fafreplay");
-    try (InputStream inputStream = new BufferedInputStream(getClass().getResourceAsStream("/replay/test.fafreplay"))) {
-      Files.copy(inputStream, tempFile);
-    }
-
-    final CountDownLatch newReplayLatch = new CountDownLatch(1);
-
-    doAnswer(invocation -> {
-      newReplayLatch.countDown();
-      return null;
-    }).when(eventBus).post(any(LocalReplaysChangedEvent.class));
-
-    Files.move(tempFile, testReplayFile, StandardCopyOption.ATOMIC_MOVE);
-    assertTrue(newReplayLatch.await(2000, TimeUnit.MILLISECONDS));
-    verify(eventBus).post(argThat((LocalReplaysChangedEvent event) -> event.getNewReplays().size() == 1));
-
-    final CountDownLatch deletedReplayLatch = new CountDownLatch(1);
-
-    doAnswer(invocation -> {
-      deletedReplayLatch.countDown();
-      return null;
-    }).when(eventBus).post(any(LocalReplaysChangedEvent.class));
-
-    Files.delete(testReplayFile);
-    assertTrue(deletedReplayLatch.await(2000, TimeUnit.MILLISECONDS));
-    verify(eventBus).post(argThat((LocalReplaysChangedEvent event) -> event.getDeletedReplays().size() == 1));
   }
 
   @Test
