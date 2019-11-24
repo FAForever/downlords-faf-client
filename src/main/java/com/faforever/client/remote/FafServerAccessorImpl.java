@@ -473,7 +473,24 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
   private void dispatchAuthenticationFailed(AuthenticationFailedMessage message) {
     fafConnectionTask.cancel();
-    loginFuture.completeExceptionally(new LoginFailedException(message.getText()));
+
+    String text;
+
+    String context = message.getContext();
+    if (context == null) { context = ""; }
+
+    switch (context) {
+      case "denied":
+        text = i18n.get("login.deniedError");
+        break;
+      case "steam_link":
+        text = i18n.get("login.steamLinkError", clientProperties.getWebsite().getSteamLinkUrl());
+        break;
+      default:
+        text = i18n.get("login.failedError");
+    }
+
+    loginFuture.completeExceptionally(new LoginFailedException(text));
     loginFuture = null;
   }
 
