@@ -22,6 +22,7 @@ import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -75,7 +76,7 @@ public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testLoadLocalReplaysInBackground() throws Exception {
 
-    var replays = Arrays.asList(
+    List<Replay> replays = Arrays.asList(
         ReplayInfoBeanBuilder.create().get(),
         ReplayInfoBeanBuilder.create().get(),
         ReplayInfoBeanBuilder.create().get()
