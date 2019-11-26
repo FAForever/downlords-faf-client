@@ -474,24 +474,39 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private void dispatchAuthenticationFailed(AuthenticationFailedMessage message) {
     fafConnectionTask.cancel();
 
-    String text;
+    String text = translateAuthenticationMessage(message);
 
+    loginFuture.completeExceptionally(new LoginFailedException(text));
+    loginFuture = null;
+  }
+
+  private String translateAuthenticationMessage(AuthenticationFailedMessage message) {
     String context = message.getContext();
     if (context == null) { context = ""; }
 
     switch (context) {
       case "denied":
-        text = i18n.get("login.deniedError");
-        break;
+        return i18n.get("login.deniedError");
       case "steam_link":
-        text = i18n.get("login.steamLinkError", clientProperties.getWebsite().getSteamLinkUrl());
-        break;
-      default:
-        text = i18n.get("login.failedError");
+        return i18n.get("login.steamLinkError", clientProperties.getWebsite().getSteamLinkUrl());
+      case "policy":
+        String result = message.getResult();
+        if (result != null) {
+          switch (result) {
+            case "vm":
+              return i18n.get("login.policyVMError", clientProperties.getWebsite().getSteamLinkUrl());
+            case "already_associated":
+              return i18n.get("login.policyAssociatedError", clientProperties.getWebsite().getSteamLinkUrl());
+            case "fraudulent":
+              return i18n.get("login.policyFraudulentError");
+            default:
+              return i18n.get("login.policyError", result);
+          }
+        }
     }
 
-    loginFuture.completeExceptionally(new LoginFailedException(text));
-    loginFuture = null;
+    String messageText = message.getText();
+    return messageText != null ? messageText: i18n.get("login.failedError");
   }
 
   private void onFafLoginSucceeded(LoginMessage loginServerMessage) {
