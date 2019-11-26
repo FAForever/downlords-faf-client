@@ -150,7 +150,7 @@ public class ReplayService {
       Optional.ofNullable(directoryWatcherThread).ifPresent(Thread::interrupt);
       directoryWatcherThread = startDirectoryWatcher(replaysDirectory);
     } catch (IOException e) {
-      logger.debug("Failed to start watching the local replays directory");
+      logger.warn("Failed to start watching the local replays directory");
     }
   }
 
