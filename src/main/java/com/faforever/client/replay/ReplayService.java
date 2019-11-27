@@ -272,7 +272,7 @@ public class ReplayService {
             return null;
           }
         })
-        .filter(replay -> replay != null)
+        .filter(Objects::nonNull)
         .collect(Collectors.toList());
 
     CompletableFuture[] replayFuturesArray = replayFutures.toArray(new CompletableFuture[replayFutures.size()]);
