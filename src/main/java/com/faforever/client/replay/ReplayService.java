@@ -39,7 +39,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
@@ -50,12 +49,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.channels.FileLock;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -68,6 +65,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -184,15 +182,8 @@ public class ReplayService {
       Path fullPathToReplay = preferencesService.getReplaysDirectory().resolve(path);
 
       if (watchEvent.kind() == ENTRY_CREATE) {
-        try {
-          loadLocalReplay(fullPathToReplay)
-              .thenAccept(newReplay -> {
-                newReplays.add(newReplay);
-              });
-        } catch (Exception e) {
-          logger.warn("Failed to load local replay file '{}'", path, e);
-        }
-
+        tryLoadingLocalReplay(fullPathToReplay)
+            .thenAccept(newReplay -> newReplays.add(newReplay));
       } else if (watchEvent.kind() == ENTRY_DELETE) {
         Optional<Replay> existingReplay = localReplays.stream().filter(replay -> replay.getReplayFile().compareTo(fullPathToReplay) == 0).findFirst();
         if (existingReplay.isPresent()) {
@@ -264,14 +255,7 @@ public class ReplayService {
     List<CompletableFuture<Replay>> replayFutures = StreamSupport.stream(directoryStream.spliterator(), false)
         .sorted(Comparator.comparing(path -> noCatch(() -> Files.getLastModifiedTime((Path) path))).reversed())
         .limit(MAX_REPLAYS)
-        .map( replayFile -> {
-          try {
-            return loadLocalReplay(replayFile);
-          } catch (Exception e) {
-            // do nothing; notification should already be shown to user
-            return null;
-          }
-        })
+        .map( replayFile -> tryLoadingLocalReplay(replayFile))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
 
@@ -285,7 +269,7 @@ public class ReplayService {
   }
 
   @Async
-  private CompletableFuture<Replay> loadLocalReplay(Path replayFile) throws Exception  {
+  private CompletableFuture<Replay> tryLoadingLocalReplay(Path replayFile)  {
     try {
       LocalReplayInfo replayInfo = replayFileReader.parseMetaData(replayFile);
 
@@ -302,7 +286,7 @@ public class ReplayService {
     } catch (Exception e) {
       logger.warn("Could not read replay file '{}'", replayFile, e);
       moveCorruptedReplayFile(replayFile);
-      throw e;
+      return CompletableFuture.failedFuture(e);
     }
   }
 
