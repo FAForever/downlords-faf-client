@@ -189,7 +189,7 @@ public class ReplayService {
             .stream()
             .filter(replay -> replay.getReplayFile().compareTo(fullPathToReplay) == 0)
             .findFirst();
-        
+
         if (existingReplay.isPresent()) {
           Replay deletedReplay = existingReplay.get();
           deletedReplays.add(deletedReplay);
@@ -245,9 +245,8 @@ public class ReplayService {
   /**
    * Loads some, but not all, local replays. Loading all local replays could result in OOME.
    */
-  @SneakyThrows
   @Async
-  public CompletableFuture<Collection<Replay>> loadLocalReplays() {
+  public CompletableFuture<Collection<Replay>> loadLocalReplays() throws IOException {
     String replayFileGlob = clientProperties.getReplay().getReplayFileGlob();
 
     Path replaysDirectory = preferencesService.getReplaysDirectory();
@@ -260,7 +259,7 @@ public class ReplayService {
         .sorted(Comparator.comparing(path -> noCatch(() -> Files.getLastModifiedTime((Path) path))).reversed())
         .limit(MAX_REPLAYS)
         .map( replayFile -> tryLoadingLocalReplay(replayFile))
-        .filter(Objects::nonNull)
+        .filter(e -> !e.isCompletedExceptionally())
         .collect(Collectors.toList());
 
     CompletableFuture[] replayFuturesArray = replayFutures.toArray(new CompletableFuture[replayFutures.size()]);
@@ -302,7 +301,12 @@ public class ReplayService {
 
     logger.debug("Moving corrupted replay file from {} to {}", replayFile, target);
 
-    noCatch(() -> move(replayFile, target));
+    try {
+      move(replayFile, target);
+    } catch (IOException e) {
+      logger.warn("Failed to move corrupt replay to " + target, e);
+      return;
+    }
 
     notificationService.addNotification(new PersistentNotification(
         i18n.get("corruptedReplayFiles.notification"), WARN,
@@ -311,7 +315,6 @@ public class ReplayService {
         )
     ));
   }
-
 
   public void runReplay(Replay item) {
     if (item.getReplayFile() != null) {
