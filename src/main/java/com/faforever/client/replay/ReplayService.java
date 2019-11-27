@@ -185,7 +185,11 @@ public class ReplayService {
         tryLoadingLocalReplay(fullPathToReplay)
             .thenAccept(newReplay -> newReplays.add(newReplay));
       } else if (watchEvent.kind() == ENTRY_DELETE) {
-        Optional<Replay> existingReplay = localReplays.stream().filter(replay -> replay.getReplayFile().compareTo(fullPathToReplay) == 0).findFirst();
+        Optional<Replay> existingReplay = localReplays
+            .stream()
+            .filter(replay -> replay.getReplayFile().compareTo(fullPathToReplay) == 0)
+            .findFirst();
+        
         if (existingReplay.isPresent()) {
           Replay deletedReplay = existingReplay.get();
           deletedReplays.add(deletedReplay);
