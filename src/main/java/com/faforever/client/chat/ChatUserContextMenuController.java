@@ -8,6 +8,7 @@ import com.faforever.client.fx.StringListCell;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.ShowUserReplaysEvent;
 import com.faforever.client.moderator.BanDialogController;
 import com.faforever.client.moderator.ModeratorService;
 import com.faforever.client.notification.ImmediateNotification;
@@ -153,6 +154,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public void setChatUser(ChatChannelUser chatUser) {
     this.chatUser = chatUser;
     showUserInfo.visibleProperty().bind(chatUser.playerProperty().isNotNull());
+    viewReplaysItem.visibleProperty().bind(chatUser.playerProperty().isNotNull());
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
@@ -295,7 +297,8 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   }
 
   public void onViewReplaysSelected() {
-    // FIXME implement
+    Player player = getPlayer();
+    eventBus.post(new ShowUserReplaysEvent(player.getId()));
   }
 
   public void onInviteToGameSelected() {
