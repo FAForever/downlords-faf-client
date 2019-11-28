@@ -12,6 +12,7 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
@@ -43,8 +44,6 @@ import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
-
-import static com.faforever.client.query.SearchablePropertyMappings.GAME_PROPERTY_MAPPING;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -104,7 +103,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
 
     searchController.setRootType(Game.class);
     searchController.setSearchListener(this::onSearch);
-    searchController.setSearchableProperties(GAME_PROPERTY_MAPPING);
+    searchController.setSearchableProperties(SearchablePropertyMappings.GAME_PROPERTY_MAPPING);
     searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().onlineReplaySortConfigProperty());
 
     BooleanBinding inSearchableState = Bindings.createBooleanBinding(() -> state.get() != State.SEARCHING, state);
