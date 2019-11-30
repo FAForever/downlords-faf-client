@@ -83,13 +83,13 @@ public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     );
 
     CountDownLatch loadedLatch = new CountDownLatch(1);
-    ((TableView) instance.getRoot()).getItems().addListener((InvalidationListener) observable -> loadedLatch.countDown());
+    instance.replayTableView.getItems().addListener((InvalidationListener) observable -> loadedLatch.countDown());
 
     instance.loadLocalReplaysInBackground();
     instance.onLocalReplaysChanged(new LocalReplaysChangedEvent(replays, new ArrayList<Replay>()));
 
     assertTrue(loadedLatch.await(5000, TimeUnit.MILLISECONDS));
-    assertThat(((TableView) instance.getRoot()).getItems().size(), is(3));
+    assertThat(instance.replayTableView.getItems().size(), is(3));
 
     verifyZeroInteractions(notificationService);
   }
