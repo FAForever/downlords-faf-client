@@ -1,23 +1,16 @@
 package com.faforever.client.vault.replay;
 
 import com.faforever.client.fx.AbstractViewController;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.LocalReplaysChangedEvent;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
-import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
-import com.faforever.client.notification.ReportAction;
-import com.faforever.client.notification.Severity;
-import com.faforever.client.replay.LoadLocalReplaysTask;
 import com.faforever.client.replay.Replay;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
@@ -25,18 +18,20 @@ import com.faforever.client.vault.map.MapPreviewTableCellController;
 import com.google.common.base.Joiner;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -55,10 +50,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
-import static java.util.Arrays.asList;
 import static java.util.Arrays.setAll;
 
 @Component
@@ -79,7 +71,9 @@ public class ReplayVaultController extends AbstractViewController<Node> {
   private final UiService uiService;
   private final EventBus eventBus;
 
-  public TableView<Replay> replayVaultRoot;
+  public Pane replayVaultRoot;
+  public VBox loadingPane;
+  public TableView<Replay> replayTableView;
   public TableColumn<Replay, Number> idColumn;
   public TableColumn<Replay, String> titleColumn;
   public TableColumn<Replay, String> playersColumn;
@@ -93,8 +87,8 @@ public class ReplayVaultController extends AbstractViewController<Node> {
   @SuppressWarnings("unchecked")
   public void initialize() {
 
-    replayVaultRoot.setRowFactory(param -> replayRowFactory());
-    replayVaultRoot.getSortOrder().setAll(Collections.singletonList(timeColumn));
+    replayTableView.setRowFactory(param -> replayRowFactory());
+    replayTableView.getSortOrder().setAll(Collections.singletonList(timeColumn));
 
     idColumn.setCellValueFactory(param -> param.getValue().idProperty());
     idColumn.setCellFactory(this::idCellFactory);
@@ -119,6 +113,7 @@ public class ReplayVaultController extends AbstractViewController<Node> {
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
     if (isDisplayingForFirstTime) {
+      replayTableView.setVisible(false);
       loadLocalReplaysInBackground();
       isDisplayingForFirstTime = false;
     }
@@ -127,7 +122,6 @@ public class ReplayVaultController extends AbstractViewController<Node> {
   }
 
   protected void loadLocalReplaysInBackground() {
-    // TODO: Display information that view contents are loading
     eventBus.register(this);
     replayService.startLoadingAndWatchingLocalReplays();
   }
@@ -262,9 +256,11 @@ public class ReplayVaultController extends AbstractViewController<Node> {
   public void onLocalReplaysChanged(LocalReplaysChangedEvent event) {
     Collection<Replay> newReplays = event.getNewReplays();
     Collection<Replay> deletedReplays = event.getDeletedReplays();
-    replayVaultRoot.getItems().addAll(newReplays);
-    replayVaultRoot.getItems().removeAll(deletedReplays);
-    replayVaultRoot.sort();
+    replayTableView.getItems().addAll(newReplays);
+    replayTableView.getItems().removeAll(deletedReplays);
+    replayTableView.sort();
+    replayTableView.setVisible(true);
+    loadingPane.setVisible(false);
   }
 
 //  public void loadOnlineReplaysInBackground() {
