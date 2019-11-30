@@ -262,27 +262,7 @@ public class ReplayVaultController extends AbstractViewController<Node> {
     replayTableView.setVisible(true);
     loadingPane.setVisible(false);
   }
-
-//  public void loadOnlineReplaysInBackground() {
-//    replayService.getOnlineReplays()
-//        .thenAccept(this::addOnlineReplays)
-//        .exceptionally(throwable -> {
-//          logger.warn("Error while loading online replays", throwable);
-//          notificationService.addNotification(new PersistentNotification(
-//              i18n.valueOf("replays.loadingOnlineTask.failed"),
-//              Severity.ERROR,
-//              Collections.singletonList(new Action(i18n.valueOf("report"), event -> reportingService.reportError(throwable)))
-//          ));
-//          return null;
-//        });
-//  }
-
-//  private void addOnlineReplays(Collection<ReplayInfoBean> result) {
-//    Collection<Item<ReplayInfoBean>> items = result.stream()
-//        .map(Item::new).collect(Collectors.toCollection(ArrayList::new));
-//    Platform.runLater(() -> onlineReplaysRoot.getChildren().addAll(items));
-//  }
-
+  
   public Node getRoot() {
     return replayVaultRoot;
   }
