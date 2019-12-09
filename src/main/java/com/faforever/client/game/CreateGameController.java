@@ -15,6 +15,7 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.mod.ModVersion;
 import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.preferences.LastGamePrefs;
 import com.faforever.client.preferences.PreferenceUpdateListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
@@ -176,8 +177,9 @@ public class CreateGameController implements Controller<Pane> {
     initRatingBoundaries();
     selectLastMap();
     setLastGameTitle();
+    initPassword();
     titleTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().setLastGameTitle(newValue);
+      preferencesService.getPreferences().getLastGamePrefs().setLastGameTitle(newValue);
       preferencesService.storeInBackground();
     });
 
@@ -204,8 +206,18 @@ public class CreateGameController implements Controller<Pane> {
     );
   }
 
+  private void initPassword() {
+    LastGamePrefs lastGamePrefs = preferencesService.getPreferences().getLastGamePrefs();
+    passwordTextField.setText(lastGamePrefs.getLastGamePassword());
+    JavaFxUtil.addListener(passwordTextField.textProperty(), (observable, oldValue, newValue) -> {
+      lastGamePrefs.setLastGamePassword(newValue);
+      preferencesService.storeInBackground();
+    });
+  }
+
   private void bindGameVisibility() {
     preferencesService.getPreferences()
+        .getLastGamePrefs()
         .lastGameOnlyFriendsProperty()
         .bindBidirectional(onlyForFriendsCheckBox.selectedProperty());
     onlyForFriendsCheckBox.selectedProperty().addListener(observable -> preferencesService.storeInBackground());
@@ -241,7 +253,7 @@ public class CreateGameController implements Controller<Pane> {
       return;
     }
 
-    preferencesService.getPreferences().setLastMap(newValue.getFolderName());
+    preferencesService.getPreferences().getLastGamePrefs().setLastMap(newValue.getFolderName());
     preferencesService.storeInBackground();
 
     Image largePreview = mapService.loadPreview(newValue.getFolderName(), PreviewSize.LARGE);
@@ -267,30 +279,30 @@ public class CreateGameController implements Controller<Pane> {
 
   private void initFeaturedModList() {
     featuredModListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().setLastGameType(newValue.getTechnicalName());
+      preferencesService.getPreferences().getLastGamePrefs().setLastGameType(newValue.getTechnicalName());
       preferencesService.storeInBackground();
     });
   }
 
   private void initRatingBoundaries() {
-    int lastGameMinRating = preferencesService.getPreferences().getLastGameMinRating();
-    int lastGameMaxRating = preferencesService.getPreferences().getLastGameMaxRating();
+    int lastGameMinRating = preferencesService.getPreferences().getLastGamePrefs().getLastGameMinRating();
+    int lastGameMaxRating = preferencesService.getPreferences().getLastGamePrefs().getLastGameMaxRating();
 
     minRankingTextField.setText(i18n.number(lastGameMinRating));
     maxRankingTextField.setText(i18n.number(lastGameMaxRating));
 
     minRankingTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().setLastGameMinRating(Integer.parseInt(newValue));
+      preferencesService.getPreferences().getLastGamePrefs().setLastGameMinRating(Integer.parseInt(newValue));
       preferencesService.storeInBackground();
     });
     maxRankingTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().setLastGameMaxRating(Integer.parseInt(newValue));
+      preferencesService.getPreferences().getLastGamePrefs().setLastGameMaxRating(Integer.parseInt(newValue));
       preferencesService.storeInBackground();
     });
   }
 
   private void selectLastMap() {
-    String lastMap = preferencesService.getPreferences().getLastMap();
+    String lastMap = preferencesService.getPreferences().getLastGamePrefs().getLastMap();
     for (MapBean mapBean : mapListView.getItems()) {
       if (mapBean.getFolderName().equalsIgnoreCase(lastMap)) {
         mapListView.getSelectionModel().select(mapBean);
@@ -304,7 +316,7 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   private void setLastGameTitle() {
-    titleTextField.setText(Strings.nullToEmpty(preferencesService.getPreferences().getLastGameTitle()));
+    titleTextField.setText(Strings.nullToEmpty(preferencesService.getPreferences().getLastGamePrefs().getLastGameTitle()));
   }
 
   @NotNull
@@ -329,7 +341,7 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   private void selectLastOrDefaultGameType() {
-    String lastGameMod = preferencesService.getPreferences().getLastGameType();
+    String lastGameMod = preferencesService.getPreferences().getLastGamePrefs().getLastGameType();
     if (lastGameMod == null) {
       lastGameMod = KnownFeaturedMod.DEFAULT.getTechnicalName();
     }

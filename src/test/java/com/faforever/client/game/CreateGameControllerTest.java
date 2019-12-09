@@ -38,11 +38,13 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
@@ -168,7 +170,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetLastGameTitle() {
-    preferences.setLastGameTitle("testGame");
+    preferences.getLastGamePrefs().setLastGameTitle("testGame");
     preferences.getForgedAlliance().setPath(Paths.get(""));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
@@ -180,7 +182,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testButtonBindingIfFeaturedModNotSet() {
-    preferences.setLastGameTitle("123");
+    preferences.getLastGamePrefs().setLastGameTitle("123");
     when(i18n.get("game.create.featuredModMissing")).thenReturn("Mod missing");
     preferences.getForgedAlliance().setPath(Paths.get(""));
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
@@ -229,7 +231,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testSelectLastMap() {
     MapBean lastMapBean = MapBuilder.create().defaultValues().folderName("foo").get();
-    preferences.setLastMap("foo");
+    preferences.getLastGamePrefs().setLastMap("foo");
 
     mapList.add(MapBuilder.create().defaultValues().folderName("Test1").get());
     mapList.add(lastMapBean);
@@ -266,7 +268,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().technicalName("something").get();
     FeaturedMod featuredMod2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName()).get();
 
-    preferences.setLastGameType(null);
+    preferences.getLastGamePrefs().setLastGameType(null);
     when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredMod, featuredMod2)));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
@@ -280,7 +282,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().technicalName("last").get();
     FeaturedMod featuredMod2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName()).get();
 
-    preferences.setLastGameType("last");
+    preferences.getLastGamePrefs().setLastGameType("last");
     when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredMod, featuredMod2)));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
@@ -310,8 +312,15 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnlyFriendsBinding() {
     instance.onlyForFriendsCheckBox.setSelected(true);
-    assertThat(preferences.isLastGameOnlyFriends(), is(true));
+    assertThat(preferences.getLastGamePrefs().isLastGameOnlyFriends(), is(true));
     instance.onlyForFriendsCheckBox.setSelected(false);
-    assertThat(preferences.isLastGameOnlyFriends(), is(false));
+    assertThat(preferences.getLastGamePrefs().isLastGameOnlyFriends(), is(false));
+  }
+
+  @Test
+  public void testPasswordIsSaved() {
+    instance.passwordTextField.setText("1234");
+    assertEquals(preferences.getLastGamePrefs().getLastGamePassword(), "1234");
+    verify(preferencesService).storeInBackground();
   }
 }

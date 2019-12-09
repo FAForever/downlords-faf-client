@@ -1,14 +1,11 @@
 package com.faforever.client.preferences;
 
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
-import com.faforever.client.game.KnownFeaturedMod;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -37,17 +34,13 @@ public class Preferences {
   private final ChatPrefs chat;
   private final NotificationsPrefs notification;
   private final StringProperty themeName;
-  private final StringProperty lastGameType;
   private final LocalizationPrefs localization;
-  private final StringProperty lastGameTitle;
-  private final StringProperty lastMap;
+  private final LastGamePrefs lastGamePrefs;
   private final BooleanProperty prereleaseCheckEnabled;
   private final BooleanProperty rememberLastTab;
   private final BooleanProperty showPasswordProtectedGames;
   private final BooleanProperty showModdedGames;
   private final ListProperty<String> ignoredNotifications;
-  private final IntegerProperty lastGameMinRating;
-  private final IntegerProperty lastGameMaxRating;
   private final StringProperty gamesViewMode;
   private final Ladder1v1Prefs ladder1v1;
   private final NewsPrefs news;
@@ -57,7 +50,6 @@ public class Preferences {
   private final ObjectProperty<TilesSortingOrder> gameTileSortingOrder;
   private final ObjectProperty<UnitDataBaseType> unitDataBaseType;
   private final MapProperty<URI, ArrayList<HttpCookie>> storedCookies;
-  private final BooleanProperty lastGameOnlyFriends;
   private final BooleanProperty disallowJoinsViaDiscord;
   private final BooleanProperty showGameDetailsSidePane;
   private final BooleanProperty advancedIceLogEnabled;
@@ -68,17 +60,13 @@ public class Preferences {
     login = new LoginPrefs();
 
     localization = new LocalizationPrefs();
+    lastGamePrefs = new LastGamePrefs();
     mainWindow = new WindowPrefs();
     forgedAlliance = new ForgedAlliancePrefs();
     themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
-    lastGameType = new SimpleStringProperty(KnownFeaturedMod.DEFAULT.getTechnicalName());
     ignoredNotifications = new SimpleListProperty<>(observableArrayList());
     notification = new NotificationsPrefs();
     rememberLastTab = new SimpleBooleanProperty(true);
-    lastGameTitle = new SimpleStringProperty();
-    lastMap = new SimpleStringProperty();
-    lastGameMinRating = new SimpleIntegerProperty(800);
-    lastGameMaxRating = new SimpleIntegerProperty(1300);
     ladder1v1 = new Ladder1v1Prefs();
     gamesViewMode = new SimpleStringProperty();
     news = new NewsPrefs();
@@ -89,7 +77,6 @@ public class Preferences {
     storedCookies = new SimpleMapProperty<>(FXCollections.observableHashMap());
     showPasswordProtectedGames = new SimpleBooleanProperty(true);
     showModdedGames = new SimpleBooleanProperty(true);
-    lastGameOnlyFriends = new SimpleBooleanProperty();
     disallowJoinsViaDiscord = new SimpleBooleanProperty();
     showGameDetailsSidePane = new SimpleBooleanProperty(false);
     advancedIceLogEnabled = new SimpleBooleanProperty(false);
@@ -169,42 +156,6 @@ public class Preferences {
     return themeName;
   }
 
-  public String getLastGameType() {
-    return lastGameType.get();
-  }
-
-  public void setLastGameType(String lastGameType) {
-    this.lastGameType.set(lastGameType);
-  }
-
-  public StringProperty lastGameTypeProperty() {
-    return lastGameType;
-  }
-
-  public String getLastGameTitle() {
-    return lastGameTitle.get();
-  }
-
-  public void setLastGameTitle(String lastGameTitle) {
-    this.lastGameTitle.set(lastGameTitle);
-  }
-
-  public StringProperty lastGameTitleProperty() {
-    return lastGameTitle;
-  }
-
-  public String getLastMap() {
-    return lastMap.get();
-  }
-
-  public void setLastMap(String lastMap) {
-    this.lastMap.set(lastMap);
-  }
-
-  public StringProperty lastMapProperty() {
-    return lastMap;
-  }
-
   public boolean getRememberLastTab() {
     return rememberLastTab.get();
   }
@@ -227,30 +178,6 @@ public class Preferences {
 
   public ListProperty<String> ignoredNotificationsProperty() {
     return ignoredNotifications;
-  }
-
-  public int getLastGameMinRating() {
-    return lastGameMinRating.get();
-  }
-
-  public void setLastGameMinRating(int lastGameMinRating) {
-    this.lastGameMinRating.set(lastGameMinRating);
-  }
-
-  public IntegerProperty lastGameMinRatingProperty() {
-    return lastGameMinRating;
-  }
-
-  public int getLastGameMaxRating() {
-    return lastGameMaxRating.get();
-  }
-
-  public void setLastGameMaxRating(int lastGameMaxRating) {
-    this.lastGameMaxRating.set(lastGameMaxRating);
-  }
-
-  public IntegerProperty lastGameMaxRatingProperty() {
-    return lastGameMaxRating;
   }
 
   public Ladder1v1Prefs getLadder1v1Prefs() {
@@ -283,18 +210,6 @@ public class Preferences {
 
   public ObservableMap<URI, ArrayList<HttpCookie>> getStoredCookies() {
     return storedCookies.get();
-  }
-
-  public boolean isLastGameOnlyFriends() {
-    return lastGameOnlyFriends.get();
-  }
-
-  public void setLastGameOnlyFriends(boolean lastGameOnlyFriends) {
-    this.lastGameOnlyFriends.set(lastGameOnlyFriends);
-  }
-
-  public BooleanProperty lastGameOnlyFriendsProperty() {
-    return lastGameOnlyFriends;
   }
 
   public boolean isDisallowJoinsViaDiscord() {
@@ -339,6 +254,10 @@ public class Preferences {
 
   public void setPrereleaseCheckEnabled(boolean prereleaseCheckEnabled) {
     this.prereleaseCheckEnabled.set(prereleaseCheckEnabled);
+  }
+
+  public LastGamePrefs getLastGamePrefs() {
+    return lastGamePrefs;
   }
 
   public BooleanProperty prereleaseCheckEnabledProperty() {
