@@ -15,9 +15,9 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.map.MapPreviewTableCellController;
+import com.faforever.client.vault.review.Review;
 import com.google.common.base.Joiner;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
+import javafx.application.Platform;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
@@ -39,7 +39,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Scope;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.lang.invoke.MethodHandles;
@@ -51,10 +53,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static java.util.Arrays.setAll;
-
 @Component
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 // TODO reduce dependencies
 public class ReplayVaultController extends AbstractViewController<Node> {
@@ -69,7 +68,6 @@ public class ReplayVaultController extends AbstractViewController<Node> {
   private final ReportingService reportingService;
   private final ApplicationContext applicationContext;
   private final UiService uiService;
-  private final EventBus eventBus;
 
   public Pane replayVaultRoot;
   public VBox loadingPane;
@@ -122,7 +120,6 @@ public class ReplayVaultController extends AbstractViewController<Node> {
   }
 
   protected void loadLocalReplaysInBackground() {
-    eventBus.register(this);
     replayService.startLoadingAndWatchingLocalReplays();
   }
 
@@ -252,7 +249,7 @@ public class ReplayVaultController extends AbstractViewController<Node> {
     return new SimpleObjectProperty<>(Duration.between(startTime, endTime));
   }
 
-  @Subscribe
+  @EventListener
   public void onLocalReplaysChanged(LocalReplaysChangedEvent event) {
     Collection<Replay> newReplays = event.getNewReplays();
     Collection<Replay> deletedReplays = event.getDeletedReplays();

@@ -30,7 +30,6 @@ import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.replay.ReplayData;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
-import com.google.common.eventbus.EventBus;
 import com.google.common.net.UrlEscapers;
 import com.google.common.primitives.Bytes;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +39,7 @@ import org.eclipse.jgit.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -125,7 +125,7 @@ public class ReplayService {
   private final FafService fafService;
   private final ModService modService;
   private final MapService mapService;
-  private final EventBus eventBus;
+  private final ApplicationEventPublisher publisher;
   private final ExecutorService executorService;
   private Thread directoryWatcherThread;
   private WatchService watchService;
@@ -141,7 +141,7 @@ public class ReplayService {
     taskService.submitTask(loadLocalReplaysTask).getFuture().thenAccept( replays -> {
       localReplays.clear();
       localReplays.addAll(replays);
-      eventBus.post(new LocalReplaysChangedEvent(replays, new ArrayList<Replay>()));
+      publisher.publishEvent(new LocalReplaysChangedEvent(this, replays, new ArrayList<Replay>()));
     });
 
     try {
@@ -199,7 +199,7 @@ public class ReplayService {
     }
 
     localReplays.addAll(newReplays);
-    eventBus.post(new LocalReplaysChangedEvent(newReplays, deletedReplays));
+    publisher.publishEvent(new LocalReplaysChangedEvent(this, newReplays, deletedReplays));
   }
 
   @VisibleForTesting

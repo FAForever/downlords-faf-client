@@ -19,7 +19,6 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.commons.replay.ReplayData;
 
-import com.google.common.eventbus.EventBus;
 import okio.Options;
 import org.junit.Before;
 import org.junit.Rule;
@@ -32,6 +31,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
@@ -140,7 +140,7 @@ public class ReplayServiceTest {
   @Mock
   private MapService mapService;
   @Mock
-  private EventBus eventBus;
+  private ApplicationEventPublisher publisher;
   @Mock
   private ExecutorService executorService;
 
@@ -149,7 +149,7 @@ public class ReplayServiceTest {
     MockitoAnnotations.initMocks(this);
 
     instance = new ReplayService(new ClientProperties(), preferencesService, replayFileReader, notificationService, gameService,
-        taskService, i18n, reportingService, applicationContext, platformService, fafService, modService, mapService, eventBus, executorService);
+        taskService, i18n, reportingService, applicationContext, platformService, fafService, modService, mapService, publisher, executorService);
 
     when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath());
     when(preferencesService.getCorruptedReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath().resolve("corrupt"));
@@ -228,7 +228,7 @@ public class ReplayServiceTest {
 
     verify(taskService).submitTask(task);
     assertThat(instance.getLocalReplays(), hasSize(3));
-    verify(eventBus).post(argThat((LocalReplaysChangedEvent event) -> event.getNewReplays().size() == 3));
+    verify(publisher).publishEvent(argThat((LocalReplaysChangedEvent event) -> event.getNewReplays().size() == 3));
     verifyZeroInteractions(notificationService);
   }
 
