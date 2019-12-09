@@ -6,6 +6,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.ShowReplayEvent;
+import com.faforever.client.main.event.ShowUserReplaysEvent;
 import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -16,6 +17,8 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
+import com.faforever.client.vault.search.SearchController.SortConfig;
+import com.faforever.client.vault.search.SearchController.SortOrder;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -76,6 +79,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   private int currentPage;
   private Supplier<CompletableFuture<List<Replay>>> currentSupplier;
   private final ObjectProperty<State> state;
+  private Boolean newestReplaysLoaded = false;
 
   public OnlineReplayVaultController(ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, PreferencesService preferencesService, ReportingService reportingService) {
     this.replayService = replayService;
@@ -155,23 +159,25 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
 
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
-    if (state.get() == State.UNINITIALIZED) {
-      if (navigateEvent instanceof ShowReplayEvent) {
+    if (navigateEvent instanceof ShowReplayEvent) {
+      if (state.get() == State.UNINITIALIZED) {
         state.addListener(new ChangeListener<State>() {
           @Override
           public void changed(ObservableValue<? extends State> observable, State oldValue, State newValue) {
             if (newValue != State.UNINITIALIZED) {
-              onShowReplayEvent((ShowReplayEvent) navigateEvent);
               state.removeListener(this);
+              onShowReplayEvent((ShowReplayEvent) navigateEvent);
             }
           }
         });
+        loadNewestReplays();
+      } else {
+        onShowReplayEvent((ShowReplayEvent) navigateEvent);
       }
-      refresh();
-      return;
-    }
-    if (navigateEvent instanceof ShowReplayEvent) {
-      onShowReplayEvent((ShowReplayEvent) navigateEvent);
+    } else if (navigateEvent instanceof ShowUserReplaysEvent) {
+      onShowUserReplaysEvent((ShowUserReplaysEvent) navigateEvent);
+    } else if (state.get() == State.UNINITIALIZED) {
+      loadNewestReplays();
     }
   }
 
@@ -185,6 +191,16 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
       }
     });
   }
+
+  private void onShowUserReplaysEvent(ShowUserReplaysEvent event) {
+    enterSearchingState();
+    int playerId = event.getPlayerId();
+    currentPage = 1;
+    SortConfig sortConfig = new SortConfig("startTime", SortOrder.DESC);
+
+    displayReplaysFromSupplier(() -> replayService.getReplaysForPlayer(playerId, MAX_SEARCH_RESULTS, 1, sortConfig));
+  }
+
 
   @Override
   public Node getRoot() {
@@ -221,18 +237,22 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   }
 
   public void onBackButtonClicked() {
-    enterResultState();
+    if (newestReplaysLoaded) {
+      enterResultState();
+    } else {
+      loadNewestReplays();
+    }
   }
 
   public void onRefreshButtonClicked() {
-    refresh();
+    loadNewestReplays();
   }
 
-  private void refresh() {
+  private void loadNewestReplays() {
     enterSearchingState();
     replayService.getNewestReplays(TOP_ELEMENT_COUNT, 1)
         .thenAccept(replays -> populateReplays(replays, newestPane))
-        .thenCompose(aVoid -> replayService.getHighestRatedReplays(TOP_ELEMENT_COUNT, 1).thenAccept(modInfoBeans -> populateReplays(modInfoBeans, highestRatedPane)))
+        .thenCompose(aVoid -> replayService.getHighestRatedReplays(TOP_ELEMENT_COUNT, 1).thenAccept(highestRatedReplays -> populateReplays(highestRatedReplays, highestRatedPane)))
         .thenRun(this::enterResultState)
         .exceptionally(throwable -> {
           logger.warn("Could not populate replays", throwable);

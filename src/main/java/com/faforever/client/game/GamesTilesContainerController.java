@@ -160,6 +160,8 @@ public class GamesTilesContainerController implements Controller<Node> {
   public enum TilesSortingOrder {
     PLAYER_DES(Comparator.comparingInt(o -> ((Game) o.getUserData()).getNumPlayers()), true, "tiles.comparator.playersDescending"),
     PLAYER_ASC(Comparator.comparingInt(o -> ((Game) o.getUserData()).getNumPlayers()), false, "tiles.comparator.playersAscending"),
+    AVG_RATING_DES(Comparator.comparingDouble(o -> ((Game) o.getUserData()).getAverageRating()), true, "tiles.comparator.averageRatingDescending"),
+    AVG_RATING_ASC(Comparator.comparingDouble(o -> ((Game) o.getUserData()).getAverageRating()), false, "tiles.comparator.averageRatingAscending"),
     NAME_DES(Comparator.comparing(o -> ((Game) o.getUserData()).getTitle().toLowerCase(Locale.US)), true, "tiles.comparator.nameDescending"),
     NAME_ASC(Comparator.comparing(o -> ((Game) o.getUserData()).getTitle().toLowerCase(Locale.US)), false, "tiles.comparator.nameAscending");
 

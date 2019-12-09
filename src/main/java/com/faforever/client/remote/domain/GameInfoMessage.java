@@ -2,12 +2,14 @@ package com.faforever.client.remote.domain;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.util.List;
 import java.util.Map;
 
 @Getter
 @Setter
+@ToString(of = {"uid", "title", "state"})
 public class GameInfoMessage extends FafServerMessage {
 
   private String host;
@@ -34,22 +36,5 @@ public class GameInfoMessage extends FafServerMessage {
 
   public GameInfoMessage() {
     super(FafServerMessageType.GAME_INFO);
-  }
-
-  public List<GameInfoMessage> getGames() {
-    return games;
-  }
-
-  public void setGames(List<GameInfoMessage> games) {
-    this.games = games;
-  }
-
-  @Override
-  public String toString() {
-    return "GameInfo{" +
-        "uid=" + uid +
-        ", title='" + title + '\'' +
-        ", state=" + state +
-        '}';
   }
 }

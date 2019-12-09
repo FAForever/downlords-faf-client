@@ -26,6 +26,8 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.replay.ReplayData;
+import com.github.rutledgepaulv.qbuilders.conditions.Condition;
+import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.net.UrlEscapers;
@@ -64,6 +66,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static com.faforever.client.notification.Severity.WARN;
+import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.net.URLDecoder.decode;
 import static java.nio.charset.StandardCharsets.US_ASCII;
@@ -273,21 +276,23 @@ public class ReplayService {
     return fafService.getNewestReplays(topElementCount, page);
   }
 
+  public CompletableFuture<List<Replay>> getReplaysForPlayer(int playerId, int maxResults, int page, SortConfig sortConfig) {
+    Condition<?> filterCondition = qBuilder().intNum("playerStats.player.id").eq(playerId);
+    String query = filterCondition.query(new RSQLVisitor());
+    return fafService.findReplaysByQuery(query, maxResults, page, sortConfig);
+  }
 
   public CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount, int page) {
     return fafService.getHighestRatedReplays(topElementCount, page);
   }
 
-
   public CompletableFuture<List<Replay>> findByQuery(String query, int maxResults, int page, SortConfig sortConfig) {
     return fafService.findReplaysByQuery(query, maxResults, page, sortConfig);
   }
 
-
   public CompletableFuture<Optional<Replay>> findById(int id) {
     return fafService.findReplayById(id);
   }
-
 
   public CompletableFuture<Path> downloadReplay(int id) {
     ReplayDownloadTask task = applicationContext.getBean(ReplayDownloadTask.class);

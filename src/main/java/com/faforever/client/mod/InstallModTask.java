@@ -98,6 +98,7 @@ public class InstallModTask extends CompletableTask<Void> {
 
       Unzipper.from(inputStream)
           .to(modsDirectory)
+          .zipBombByteCountThreshold(100_000_000)
           .listener(this::updateProgress)
           .totalBytes(Files.size(tempFile))
           .unzip();

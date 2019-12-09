@@ -9,13 +9,19 @@
     <searchSequence />
     <variables />
     <mergedProjects />
-    <codeSigning macEnabled="false" macPkcs12File="" windowsEnabled="false" windowsKeySource="pkcs12" windowsPvkFile="" windowsSpcFile="" windowsPkcs12File="" />
+    <codeSigning macEnabled="false" macPkcs12File="" windowsEnabled="false" windowsKeySource="pkcs12" windowsPvkFile="" windowsSpcFile="" windowsPkcs12File="" windowsPkcs11Library="" windowsPkcs11Slot="">
+      <windowsKeystoreIdentifier issuer="" serial="" subject="" />
+      <windowsPkcs11Identifier issuer="" serial="" subject="" />
+    </codeSigning>
   </application>
   <files keepModificationTimes="false" missingFilesStrategy="warn" globalExcludeSuffixes="" defaultOverwriteMode="4" defaultUninstallMode="0" launcherOverwriteMode="3" defaultFileMode="644" defaultDirMode="755">
     <filesets />
-    <roots />
+    <roots>
+      <root id="506" fileset="" location="${installer:sys.programDataDir}" />
+    </roots>
     <mountPoints>
       <mountPoint id="23" root="" location="" mode="755" />
+      <mountPoint id="507" root="506" location="FAForever" mode="755" />
     </mountPoints>
     <entries>
       <dirEntry mountPoint="23" file="./build/resources/native" overwriteMode="4" shared="false" fileMode="755" uninstallMode="0" overrideFileMode="true" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="natives" excludeSuffixes="" dirMode="755" overrideDirMode="false">
@@ -90,6 +96,9 @@
           </java>
         </serializedBean>
         <styleOverrides />
+        <customScript mode="1" file="">
+          <content />
+        </customScript>
         <launcherIds />
         <variables />
         <startup>
@@ -533,6 +542,33 @@ return console.askOkCancel(message, true);
                 </serializedBean>
                 <condition />
               </action>
+              <action name="" id="424" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.AddWindowsFileRightsAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" rollbackBarrierExitCode="0" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.files.AddWindowsFileRightsAction">
+                      <void property="execute">
+                        <boolean>true</boolean>
+                      </void>
+                      <void property="files">
+                        <array class="java.io.File" length="1">
+                          <void index="0">
+                            <object class="java.io.File">
+                              <string>${installer:sys.programDataDir}/FAForever</string>
+                            </object>
+                          </void>
+                        </array>
+                      </void>
+                      <void property="read">
+                        <boolean>true</boolean>
+                      </void>
+                      <void property="write">
+                        <boolean>true</boolean>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
             </actions>
             <formComponents>
               <formComponent name="" id="173" customizedId="" beanClass="com.install4j.runtime.beans.formcomponents.ProgressComponent" enabled="true" commentSet="false" comment="" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false" useExternalParametrization="false" externalParametrizationName="" externalParametrizationMode="all">
@@ -629,6 +665,9 @@ return console.askOkCancel(message, true);
           </java>
         </serializedBean>
         <styleOverrides />
+        <customScript mode="1" file="">
+          <content />
+        </customScript>
         <launcherIds />
         <variables />
         <startup>

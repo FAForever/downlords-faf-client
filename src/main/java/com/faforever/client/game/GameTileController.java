@@ -8,7 +8,6 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Joiner;
 import javafx.application.Platform;
 import javafx.beans.binding.StringBinding;
@@ -25,12 +24,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.OptionalDouble;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -100,20 +96,7 @@ public class GameTileController implements Controller<Node> {
     ));
 
     avgRatingLabel.textProperty().bind(createStringBinding(
-        () -> {
-          OptionalDouble avgRating = game.getTeams().values().stream()
-              .flatMap(Collection::stream)
-              .map(playerService::getPlayerForUsername)
-              .filter(Optional::isPresent)
-              .map(Optional::get)
-              .mapToInt(player -> RatingUtil.getRating(player.getGlobalRatingMean(), player.getGlobalRatingDeviation()))
-              .average();
-          if (avgRating.isPresent()) {
-            return i18n.get("game.avgRating.format", Math.round(avgRating.getAsDouble() / 100.0) * 100.0);
-          } else {
-            return "-";
-          }
-        },
+        () -> i18n.get("game.avgRating.format", Math.round(game.getAverageRating() / 100.0) * 100.0),
         game.teamsProperty()
     ));
 

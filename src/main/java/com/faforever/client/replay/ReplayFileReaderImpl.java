@@ -12,10 +12,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+import static com.github.nocatch.NoCatch.noCatch;
 
 @Lazy
 @Component
@@ -34,16 +40,25 @@ public class ReplayFileReaderImpl implements ReplayFileReader {
   @SneakyThrows
   public LocalReplayInfo parseMetaData(Path replayFile) {
     logger.debug("Parsing metadata of replay file: {}", replayFile);
-    List<String> lines = Files.readAllLines(replayFile);
-    return gson.fromJson(lines.get(0), LocalReplayInfo.class);
+    try (Stream<String> stream = Files.lines(replayFile)) {
+      return stream
+          .findFirst()
+          .map(jsonString -> gson.fromJson(jsonString, LocalReplayInfo.class))
+          .orElseThrow(() -> new IOException(String.format("Failed to extract metadata from replay file: {}", replayFile)));
+    }
   }
 
   @Override
   @SneakyThrows
   public byte[] readRawReplayData(Path replayFile) {
     logger.debug("Reading replay file: {}", replayFile);
-    List<String> lines = Files.readAllLines(replayFile);
-    return QtCompress.qUncompress(BaseEncoding.base64().decode(lines.get(1)));
+    try (Stream<String> stream = Files.lines(replayFile)) {
+      return stream
+          .skip(1)
+          .findFirst()
+          .map(base64String -> noCatch(() -> QtCompress.qUncompress(BaseEncoding.base64().decode(base64String))))
+          .orElseThrow(() -> new IOException(String.format("Failed to extract replay data from replay file: {}", replayFile)));
+    }
   }
 
   @Override

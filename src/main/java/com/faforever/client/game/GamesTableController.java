@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.DecimalCell;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
@@ -40,6 +41,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +64,8 @@ public class GamesTableController implements Controller<Node> {
   public TableColumn<Game, Image> mapPreviewColumn;
   public TableColumn<Game, String> gameTitleColumn;
   public TableColumn<Game, PlayerFill> playersColumn;
-  public TableColumn<Game, RatingRange> ratingColumn;
+  public TableColumn<Game, Number> averageRatingColumn;
+  public TableColumn<Game, RatingRange> ratingRangeColumn;
   public TableColumn<Game, String> modsColumn;
   public TableColumn<Game, String> hostColumn;
   public TableColumn<Game, Boolean> passwordProtectionColumn;
@@ -122,13 +125,22 @@ public class GamesTableController implements Controller<Node> {
         param.getValue().numPlayersProperty(), param.getValue().maxPlayersProperty())
     );
     playersColumn.setCellFactory(param -> playersCell());
-    ratingColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(new RatingRange(param.getValue().getMinRating(), param.getValue().getMaxRating())));
-    ratingColumn.setCellFactory(param -> ratingTableCell());
+    ratingRangeColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(new RatingRange(param.getValue().getMinRating(), param.getValue().getMaxRating())));
+    ratingRangeColumn.setCellFactory(param -> ratingTableCell());
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
     hostColumn.setCellFactory(param -> new StringCell<>(String::toString));
     modsColumn.setCellValueFactory(this::modCell);
     modsColumn.setCellFactory(param -> new StringCell<>(String::toString));
     coopMissionName.setVisible(coopMissionNameProvider != null);
+
+    if (averageRatingColumn != null) {
+      averageRatingColumn.setCellValueFactory(param -> param.getValue().averageRatingProperty());
+      averageRatingColumn.setCellFactory(param -> new DecimalCell<>(
+          new DecimalFormat("0"),
+          number -> Math.round(number.doubleValue() / 100.0) * 100.0,
+          Pos.CENTER)
+      );
+    }
 
     if (coopMissionNameProvider != null) {
       coopMissionName.setCellFactory(param -> new StringCell<>(name -> name));
@@ -137,8 +149,8 @@ public class GamesTableController implements Controller<Node> {
 
     gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue)
         -> Platform.runLater(() -> {
-          selectedGame.set(newValue);
-        }));
+      selectedGame.set(newValue);
+    }));
 
     //bindings do not work as that interferes with some bidirectional bindings in the TableView itself
     JavaFxUtil.addListener(preferencesService.getPreferences().showModdedGamesProperty(), new WeakChangeListener<>(showModdedGamesChangedListener));
