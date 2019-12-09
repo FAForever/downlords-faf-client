@@ -53,6 +53,7 @@ public class DownloadMapTask extends CompletableTask<Void> {
 
     try (InputStream inputStream = urlConnection.getInputStream()) {
       Unzipper.from(inputStream)
+          .zipBombByteCountThreshold(100_000_000)
           .to(targetDirectory)
           .totalBytes(bytesToRead)
           .listener(this::updateProgress)
