@@ -18,7 +18,7 @@
                 text="%chat.userContext.privateMessage"/>
       <MenuItem fx:id="copyUsernameItem" mnemonicParsing="false" onAction="#onCopyUsernameSelected"
                 text="%chat.userContext.copyUsername"/>
-    <CustomMenuItem fx:id="colorPickerMenuItem" hideOnClick="false" mnemonicParsing="false">
+      <CustomMenuItem fx:id="colorPickerMenuItem" hideOnClick="false" mnemonicParsing="false">
         <content>
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                 <children>
@@ -43,7 +43,7 @@
                 text="%chat.userContext.joinGame"/>
       <MenuItem fx:id="watchGameItem" mnemonicParsing="false" onAction="#onWatchGameSelected"
                 text="%chat.userContext.viewLiveReplay"/>
-      <MenuItem fx:id="viewReplaysItem" disable="true" mnemonicParsing="false" onAction="#onViewReplaysSelected"
+      <MenuItem fx:id="viewReplaysItem" mnemonicParsing="false" onAction="#onViewReplaysSelected"
                 text="%chat.userContext.viewReplays"/>
       <MenuItem fx:id="inviteItem" disable="true" mnemonicParsing="false" onAction="#onInviteToGameSelected"
                 text="%chat.userContext.inviteToGame"/>

@@ -262,5 +262,6 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
     chatUser.setPlayer(null);
     instance.setChatUser(chatUser);
     assertThat(instance.showUserInfo.isVisible(), is(false));
+    assertThat(instance.viewReplaysItem.isVisible(), is(false));
   }
 }
