@@ -48,6 +48,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -214,7 +215,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
     
     listenerCaptor.getValue().accept(message);
     WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> instance.timeUntilQueuePopLabel.isVisible());
-    verify(i18n).get(any(), eq(1L), anyInt());
+    verify(i18n, atLeast(1)).get(any(), eq(1L), anyInt());
     WaitForAsyncUtils.waitForFxEvents();
   }
 }
