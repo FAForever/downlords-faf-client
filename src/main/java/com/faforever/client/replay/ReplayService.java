@@ -254,21 +254,23 @@ public class ReplayService {
       noCatch(() -> createDirectories(replaysDirectory));
     }
 
-    DirectoryStream<Path> directoryStream = Files.newDirectoryStream(replaysDirectory, replayFileGlob);
-    List<CompletableFuture<Replay>> replayFutures = StreamSupport.stream(directoryStream.spliterator(), false)
-        .sorted(Comparator.comparing(path -> noCatch(() -> Files.getLastModifiedTime((Path) path))).reversed())
-        .limit(MAX_REPLAYS)
-        .map( replayFile -> tryLoadingLocalReplay(replayFile))
-        .filter(e -> !e.isCompletedExceptionally())
-        .collect(Collectors.toList());
 
-    CompletableFuture[] replayFuturesArray = replayFutures.toArray(new CompletableFuture[replayFutures.size()]);
-    return CompletableFuture.allOf(replayFuturesArray)
-        .thenApply(ignoredVoid ->
-            replayFutures.stream()
-                .map(future -> future.join())
-                .collect(Collectors.toList()));
+    try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(replaysDirectory, replayFileGlob)) {
+      List<CompletableFuture<Replay>> replayFutures = StreamSupport.stream(directoryStream.spliterator(), false)
+          .sorted(Comparator.comparing(path -> noCatch(() -> Files.getLastModifiedTime((Path) path))).reversed())
+          .limit(MAX_REPLAYS)
+          .map( replayFile -> tryLoadingLocalReplay(replayFile))
+          .filter(e -> !e.isCompletedExceptionally())
+          .collect(Collectors.toList());
 
+      CompletableFuture[] replayFuturesArray = replayFutures.toArray(new CompletableFuture[replayFutures.size()]);
+      return CompletableFuture.allOf(replayFuturesArray)
+          .thenApply(ignoredVoid ->
+              replayFutures.stream()
+                  .map(future -> future.join())
+                  .collect(Collectors.toList()));
+
+    }
   }
 
   @Async
