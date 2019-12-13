@@ -5,6 +5,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.LocalReplaysChangedEvent;
 import com.faforever.client.map.MapBeanBuilder;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
@@ -18,6 +19,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.commons.replay.ReplayData;
 
+import okio.Options;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,16 +27,28 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.context.ApplicationContext;
 
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEventPublisher;
+
+import java.io.BufferedInputStream;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -44,11 +58,14 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -122,13 +139,17 @@ public class ReplayServiceTest {
   private ModService modService;
   @Mock
   private MapService mapService;
+  @Mock
+  private ApplicationEventPublisher publisher;
+  @Mock
+  private ExecutorService executorService;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
     instance = new ReplayService(new ClientProperties(), preferencesService, replayFileReader, notificationService, gameService,
-        taskService, i18n, reportingService, applicationContext, platformService, fafService, modService, mapService);
+        taskService, i18n, reportingService, applicationContext, platformService, fafService, modService, mapService, publisher, executorService);
 
     when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath());
     when(preferencesService.getCorruptedReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath().resolve("corrupt"));
@@ -179,12 +200,14 @@ public class ReplayServiceTest {
     doThrow(new FakeTestException()).when(replayFileReader).parseMetaData(file1);
     doThrow(new FakeTestException()).when(replayFileReader).parseMetaData(file2);
 
-    Collection<Replay> localReplays = instance.getLocalReplays();
+    Collection<Replay> localReplays = new ArrayList<Replay>();
+    try {
+      localReplays.addAll(instance.loadLocalReplays().get());
+    } catch (FakeTestException exception) {
+      // expected
+    }
 
     assertThat(localReplays, empty());
-
-    verify(replayFileReader).parseMetaData(file1);
-    verify(replayFileReader).parseMetaData(file2);
     verify(notificationService, times(2)).addNotification(any(PersistentNotification.class));
 
     assertThat(Files.exists(file1), is(false));
@@ -192,7 +215,25 @@ public class ReplayServiceTest {
   }
 
   @Test
-  public void testGetLocalReplays() throws Exception {
+  public void testStartLoadingAndWatchingLocalReplays() throws Exception {
+    LoadLocalReplaysTask task = mock(LoadLocalReplaysTask.class);
+    when(task.getFuture()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
+        ReplayInfoBeanBuilder.create().get(),
+        ReplayInfoBeanBuilder.create().get(),
+        ReplayInfoBeanBuilder.create().get()
+    )));
+    when(applicationContext.getBean(LoadLocalReplaysTask.class)).thenReturn(task);
+
+    instance.startLoadingAndWatchingLocalReplays();
+
+    verify(taskService).submitTask(task);
+    assertThat(instance.getLocalReplays(), hasSize(3));
+    verify(publisher).publishEvent(argThat((LocalReplaysChangedEvent event) -> event.getNewReplays().size() == 3));
+    verifyZeroInteractions(notificationService);
+  }
+
+  @Test
+  public void testLoadLocalReplays() throws Exception {
     Path file1 = replayDirectory.newFile("replay.fafreplay").toPath();
 
     LocalReplayInfo localReplayInfo = new LocalReplayInfo();
@@ -203,7 +244,7 @@ public class ReplayServiceTest {
     when(modService.getFeaturedMod(any())).thenReturn(CompletableFuture.completedFuture(null));
     when(mapService.findByMapFolderName(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(MapBeanBuilder.create().defaultValues().get())));
 
-    Collection<Replay> localReplays = instance.getLocalReplays();
+    Collection<Replay> localReplays = instance.loadLocalReplays().get();
 
     assertThat(localReplays, hasSize(1));
     assertThat(localReplays.iterator().next().getId(), is(123));

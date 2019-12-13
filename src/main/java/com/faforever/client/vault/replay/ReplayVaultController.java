@@ -1,16 +1,13 @@
 package com.faforever.client.vault.replay;
 
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.LocalReplaysChangedEvent;
+import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
-import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
-import com.faforever.client.notification.ReportAction;
-import com.faforever.client.notification.Severity;
-import com.faforever.client.replay.LoadLocalReplaysTask;
 import com.faforever.client.replay.Replay;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
@@ -18,6 +15,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.map.MapPreviewTableCellController;
+import com.faforever.client.vault.review.Review;
 import com.google.common.base.Joiner;
 import javafx.application.Platform;
 import javafx.beans.binding.StringBinding;
@@ -25,12 +23,15 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +39,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Scope;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.lang.invoke.MethodHandles;
@@ -49,16 +52,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-
-import static java.util.Arrays.asList;
 
 @Component
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 // TODO reduce dependencies
-public class ReplayVaultController implements Controller<Node> {
+public class ReplayVaultController extends AbstractViewController<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final NotificationService notificationService;
@@ -71,7 +69,9 @@ public class ReplayVaultController implements Controller<Node> {
   private final ApplicationContext applicationContext;
   private final UiService uiService;
 
-  public TableView<Replay> replayVaultRoot;
+  public Pane replayVaultRoot;
+  public VBox loadingPane;
+  public TableView<Replay> replayTableView;
   public TableColumn<Replay, Number> idColumn;
   public TableColumn<Replay, String> titleColumn;
   public TableColumn<Replay, String> playersColumn;
@@ -80,11 +80,13 @@ public class ReplayVaultController implements Controller<Node> {
   public TableColumn<Replay, String> gameTypeColumn;
   public TableColumn<Replay, MapBean> mapColumn;
 
+  private Boolean isDisplayingForFirstTime = true;
+
   @SuppressWarnings("unchecked")
   public void initialize() {
 
-    replayVaultRoot.setRowFactory(param -> replayRowFactory());
-    replayVaultRoot.getSortOrder().setAll(Collections.singletonList(timeColumn));
+    replayTableView.setRowFactory(param -> replayRowFactory());
+    replayTableView.getSortOrder().setAll(Collections.singletonList(timeColumn));
 
     idColumn.setCellValueFactory(param -> param.getValue().idProperty());
     idColumn.setCellFactory(this::idCellFactory);
@@ -104,8 +106,21 @@ public class ReplayVaultController implements Controller<Node> {
 
     durationColumn.setCellValueFactory(this::durationCellValueFactory);
     durationColumn.setCellFactory(this::durationCellFactory);
+  }
 
-    loadLocalReplaysInBackground();
+  @Override
+  protected void onDisplay(NavigateEvent navigateEvent) {
+    if (isDisplayingForFirstTime) {
+      replayTableView.setVisible(false);
+      loadLocalReplaysInBackground();
+      isDisplayingForFirstTime = false;
+    }
+
+    super.onDisplay(navigateEvent);
+  }
+
+  protected void loadLocalReplaysInBackground() {
+    replayService.startLoadingAndWatchingLocalReplays();
   }
 
   @NotNull
@@ -234,50 +249,17 @@ public class ReplayVaultController implements Controller<Node> {
     return new SimpleObjectProperty<>(Duration.between(startTime, endTime));
   }
 
-  public CompletableFuture<Void> loadLocalReplaysInBackground() {
-    // TODO use replay service
-    LoadLocalReplaysTask task = applicationContext.getBean(LoadLocalReplaysTask.class);
-
-    replayVaultRoot.getItems().clear();
-    return taskService.submitTask(task).getFuture()
-        .thenAccept(this::addLocalReplays)
-        .exceptionally(throwable -> {
-              logger.warn("Error while loading local replays", throwable);
-              notificationService.addNotification(new PersistentNotification(
-                  i18n.get("replays.loadingLocalTask.failed"),
-                  Severity.ERROR, asList(new ReportAction(i18n, reportingService, throwable), new DismissAction(i18n))
-              ));
-              return null;
-            }
-        );
+  @EventListener
+  public void onLocalReplaysChanged(LocalReplaysChangedEvent event) {
+    Collection<Replay> newReplays = event.getNewReplays();
+    Collection<Replay> deletedReplays = event.getDeletedReplays();
+    replayTableView.getItems().addAll(newReplays);
+    replayTableView.getItems().removeAll(deletedReplays);
+    replayTableView.sort();
+    replayTableView.setVisible(true);
+    loadingPane.setVisible(false);
   }
-
-  private void addLocalReplays(Collection<Replay> result) {
-    Collection<Replay> items = result.stream()
-        .collect(Collectors.toCollection(ArrayList::new));
-    Platform.runLater(() -> replayVaultRoot.getItems().addAll(items));
-  }
-
-//  public void loadOnlineReplaysInBackground() {
-//    replayService.getOnlineReplays()
-//        .thenAccept(this::addOnlineReplays)
-//        .exceptionally(throwable -> {
-//          logger.warn("Error while loading online replays", throwable);
-//          notificationService.addNotification(new PersistentNotification(
-//              i18n.valueOf("replays.loadingOnlineTask.failed"),
-//              Severity.ERROR,
-//              Collections.singletonList(new Action(i18n.valueOf("report"), event -> reportingService.reportError(throwable)))
-//          ));
-//          return null;
-//        });
-//  }
-
-//  private void addOnlineReplays(Collection<ReplayInfoBean> result) {
-//    Collection<Item<ReplayInfoBean>> items = result.stream()
-//        .map(Item::new).collect(Collectors.toCollection(ArrayList::new));
-//    Platform.runLater(() -> onlineReplaysRoot.getChildren().addAll(items));
-//  }
-
+  
   public Node getRoot() {
     return replayVaultRoot;
   }
