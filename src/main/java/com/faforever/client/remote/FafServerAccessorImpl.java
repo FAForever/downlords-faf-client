@@ -85,9 +85,8 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Task;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.annotation.Cacheable;
@@ -101,7 +100,6 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.invoke.MethodHandles;
 import java.net.Socket;
 import java.net.URL;
 import java.time.Duration;
@@ -122,11 +120,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Component
 @Profile("!" + FafClientApplication.PROFILE_OFFLINE)
 @RequiredArgsConstructor
+@Slf4j
 public class FafServerAccessorImpl extends AbstractServerAccessor implements FafServerAccessor,
     InitializingBean, DisposableBean {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final long RECONNECT_DELAY = 3000;
   private Gson gson = new GsonBuilder()
       .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
       .registerTypeAdapter(VictoryCondition.class, VictoryConditionTypeAdapter.INSTANCE)
@@ -148,6 +145,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private final ReportingService reportingService;
   private final TaskScheduler taskScheduler;
   private final EventBus eventBus;
+  private final ReconnectTimerService reconnectTimerService;
 
   @org.jetbrains.annotations.NotNull
   private final ClientProperties clientProperties;
@@ -175,13 +173,13 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
   private void onNotice(NoticeMessage noticeMessage) {
     if (Objects.equals(noticeMessage.getStyle(), "kill")) {
-      logger.warn("Game close requested by server...");
+      log.warn("Game close requested by server...");
       notificationService.addNotification(new ImmediateNotification(i18n.get("game.kicked.title"), i18n.get("game.kicked.message", clientProperties.getLinks().get("linksRules")), Severity.ERROR, Collections.singletonList(new DismissAction(i18n))));
       eventBus.post(new CloseGameEvent());
     }
 
     if (Objects.equals(noticeMessage.getStyle(), "kick")) {
-      logger.warn("Kicked from lobby, client closing after delay...");
+      log.warn("Kicked from lobby, client closing after delay...");
       notificationService.addNotification(new ImmediateNotification(i18n.get("server.kicked.title"), i18n.get("server.kicked.message", clientProperties.getLinks().get("linksRules")), Severity.ERROR, Collections.singletonList(new DismissAction(i18n))));
       taskScheduler.scheduleWithFixedDelay(Platform::exit, Duration.ofSeconds(10));
     }
@@ -229,7 +227,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
           String serverHost = server.getHost();
           int serverPort = server.getPort();
 
-          logger.info("Trying to connect to FAF server at {}:{}", serverHost, serverPort);
+          log.info("Trying to connect to FAF server at {}:{}", serverHost, serverPort);
           Platform.runLater(() -> connectionState.set(ConnectionState.CONNECTING));
 
 
@@ -245,17 +243,19 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
             writeToServer(new InitSessionMessage(Version.getCurrentVersion()));
 
-            logger.info("FAF server connection established");
+            log.info("FAF server connection established");
             Platform.runLater(() -> connectionState.set(ConnectionState.CONNECTED));
+            reconnectTimerService.resetConnectionFailures();
 
             blockingReadServer(fafServerSocket);
           } catch (IOException e) {
             Platform.runLater(() -> connectionState.set(ConnectionState.DISCONNECTED));
             if (isCancelled()) {
-              logger.debug("Connection to FAF server has been closed");
+              log.debug("Connection to FAF server has been closed");
             } else {
-              logger.warn("Lost connection to FAF server, trying to reconnect in " + RECONNECT_DELAY / 1000 + "s", e);
-              Thread.sleep(RECONNECT_DELAY);
+              log.warn("Lost connection to Server", e);
+              reconnectTimerService.incrementConnectionFailures();
+              reconnectTimerService.waitForReconnect();
             }
           }
         }
@@ -266,12 +266,13 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
       protected void cancelled() {
         IOUtils.closeQuietly(serverWriter);
         IOUtils.closeQuietly(fafServerSocket);
-        logger.debug("Closed connection to FAF lobby server");
+        log.debug("Closed connection to FAF lobby server");
       }
     };
     executeInBackground(fafConnectionTask);
     return loginFuture;
   }
+
 
   @Override
   public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
@@ -314,6 +315,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   @Override
   public void reconnect() {
     IOUtils.closeQuietly(fafServerSocket);
+    reconnectTimerService.skipWait();
   }
 
   @Override
@@ -410,7 +412,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private void writeToServer(SerializableMessage message) {
     final CompletableFuture loginFuture = this.loginFuture;
     if (message instanceof GpgGameMessage && loginFuture != null && !loginFuture.isDone()) {
-      logger.warn("GPGNetMessage discarded due to not being logged in");
+      log.warn("GPGNetMessage discarded due to not being logged in");
       return;
     }
 
@@ -429,16 +431,16 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private void dispatchServerMessage(ServerCommand serverCommand) {
     switch (serverCommand) {
       case PING:
-        logger.debug("Server PINGed");
+        log.debug("Server PINGed");
         onServerPing();
         break;
 
       case PONG:
-        logger.debug("Server PONGed");
+        log.debug("Server PONGed");
         break;
 
       default:
-        logger.warn("Unknown server response: {}", serverCommand);
+        log.warn("Unknown server response: {}", serverCommand);
     }
   }
 
@@ -446,7 +448,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     try {
       ServerMessage serverMessage = gson.fromJson(jsonString, ServerMessage.class);
       if (serverMessage == null) {
-        logger.debug("Discarding unimplemented server message: {}", jsonString);
+        log.debug("Discarding unimplemented server message: {}", jsonString);
         return;
       }
 
@@ -461,7 +463,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
             .forEach(consumer -> consumer.accept(serverMessage));
       }
     } catch (JsonSyntaxException e) {
-      logger.warn("Could not deserialize message: " + jsonString, e);
+      log.warn("Could not deserialize message: " + jsonString, e);
     }
   }
 
@@ -476,7 +478,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   private void onFafLoginSucceeded(LoginMessage loginServerMessage) {
-    logger.info("FAF login succeeded");
+    log.info("FAF login succeeded");
 
     if (loginFuture != null) {
       loginFuture.complete(loginServerMessage);
@@ -485,7 +487,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   private void onSessionInitiated(SessionMessage sessionMessage) {
-    logger.info("FAF session initiated, session ID: {}", sessionMessage.getSession());
+    log.info("FAF session initiated, session ID: {}", sessionMessage.getSession());
     this.sessionId.set(sessionMessage.getSession());
     sessionFuture.complete(sessionMessage);
     logIn(username, password);
@@ -502,7 +504,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
   @VisibleForTesting
   protected void onUIDNotExecuted(Exception e) {
-    logger.error("UID.exe not executed", e);
+    log.error("UID.exe not executed", e);
     if (e.getMessage() == null) {
       return;
     }
