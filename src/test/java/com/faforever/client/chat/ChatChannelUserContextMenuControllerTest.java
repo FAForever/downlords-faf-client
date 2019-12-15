@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.api.dto.GroupPermission;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.game.Game;
@@ -17,6 +18,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
+import com.google.common.collect.Sets;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -29,6 +31,8 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.player.SocialStatus.FOE;
@@ -94,7 +98,8 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
         new AvatarBean(new URL("http://www.example.com/avatar2.png"), "Avatar Number #2"),
         new AvatarBean(new URL("http://www.example.com/avatar3.png"), "Avatar Number #3")
     )));
-    when(moderatorService.isModerator()).thenReturn(CompletableFuture.completedFuture(true));
+    when(moderatorService.getPermissions())
+        .thenReturn(CompletableFuture.completedFuture(Collections.emptySet()));
 
 
     loadFxml("theme/chat/chat_user_context_menu.fxml", clazz -> instance);
@@ -105,7 +110,8 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
 
   @Test
   public void testKickBanContextMenuNotShownForNormalUser() {
-    when(moderatorService.isModerator()).thenReturn(CompletableFuture.completedFuture(false));
+    when(moderatorService.getPermissions())
+        .thenReturn(CompletableFuture.completedFuture(Collections.emptySet()));
     instance.setChatUser(chatUser);
     player.setSocialStatus(FOE);
     WaitForAsyncUtils.waitForFxEvents();
@@ -128,13 +134,30 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
   }
 
   @Test
-  public void testKickBanContextMenuShownForMod() {
+  public void testKickContextMenuShownForMod() {
+    Set<String> permissions = Sets.newHashSet(GroupPermission.ADMIN_KICK_SERVER);
+    when(moderatorService.getPermissions())
+        .thenReturn(CompletableFuture.completedFuture(permissions));
+    player.setSocialStatus(FOE);
+    instance.setChatUser(chatUser);
+
+    assertFalse(instance.banItem.isVisible());
+    assertTrue(instance.kickGameItem.isVisible());
+    assertTrue(instance.kickLobbyItem.isVisible());
+    assertTrue(instance.moderatorActionSeparator.isVisible());
+  }
+
+  @Test
+  public void testBanContextMenuShownForMod() {
+    Set<String> permissions = Sets.newHashSet(GroupPermission.ROLE_ADMIN_ACCOUNT_BAN);
+    when(moderatorService.getPermissions())
+        .thenReturn(CompletableFuture.completedFuture(permissions));
     player.setSocialStatus(FOE);
     instance.setChatUser(chatUser);
 
     assertTrue(instance.banItem.isVisible());
-    assertTrue(instance.kickGameItem.isVisible());
-    assertTrue(instance.kickLobbyItem.isVisible());
+    assertFalse(instance.kickGameItem.isVisible());
+    assertFalse(instance.kickLobbyItem.isVisible());
     assertTrue(instance.moderatorActionSeparator.isVisible());
   }
 

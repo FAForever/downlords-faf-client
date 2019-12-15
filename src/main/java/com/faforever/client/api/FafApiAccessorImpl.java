@@ -16,6 +16,7 @@ import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapStatistics;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
+import com.faforever.client.api.dto.MeResult;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersion;
 import com.faforever.client.api.dto.ModVersionReview;
@@ -361,8 +362,8 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  public Player getOwnPlayer() {
-    return getOne("/me?include=lobbyGroup", Player.class);
+  public MeResult getOwnPlayer() {
+    return getOne("/me", MeResult.class);
   }
 
   @Override
