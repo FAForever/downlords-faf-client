@@ -91,6 +91,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -103,6 +104,8 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.URL;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -481,32 +484,31 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   private String translateAuthenticationMessage(AuthenticationFailedMessage message) {
-    String context = message.getContext();
-    if (context == null) { context = ""; }
+    ArrayList<String> key = new ArrayList(Arrays.asList("login", "error"));
+    ArrayList<Object> args = new ArrayList();
 
-    switch (context) {
-      case "denied":
-        return i18n.get("login.deniedError");
-      case "steam_link":
-        return i18n.get("login.steamLinkError", clientProperties.getWebsite().getSteamLinkUrl());
-      case "policy":
-        String result = message.getResult();
-        if (result != null) {
-          switch (result) {
-            case "vm":
-              return i18n.get("login.policyVMError", clientProperties.getWebsite().getSteamLinkUrl());
-            case "already_associated":
-              return i18n.get("login.policyAssociatedError", clientProperties.getWebsite().getSteamLinkUrl());
-            case "fraudulent":
-              return i18n.get("login.policyFraudulentError");
-            default:
-              return i18n.get("login.policyError", result);
-          }
-        }
+    String context = message.getContext();
+    if (context != null) {
+      key.add(context);
+      args.add(clientProperties.getWebsite().getSteamLinkUrl());
+
+      String result = message.getResult();
+      if (context.equals("policy") && result != null) {
+        key.add(result);
+        args.add(result);
+      }
+    }
+
+    while(key.size() > 1) {
+      try {
+        return i18n.get(String.join(".", key), args.toArray());
+      } catch(NoSuchMessageException e) {
+        key.remove(key.size() - 1);
+      }
     }
 
     String messageText = message.getText();
-    return messageText != null ? messageText: i18n.get("login.failedError");
+    return messageText != null ? messageText: i18n.get("login.error");
   }
 
   private void onFafLoginSucceeded(LoginMessage loginServerMessage) {
