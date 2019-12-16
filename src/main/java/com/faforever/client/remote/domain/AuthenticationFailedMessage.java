@@ -9,7 +9,10 @@ public class AuthenticationFailedMessage extends FafServerMessage {
 
   private String text;
   private String context;
-  // Policy server result when context == "policy"
+  /**
+   * Policy server result when context == "policy". Expect this to be null
+   * otherwise.
+   */
   private String result;
 
   public AuthenticationFailedMessage() {
