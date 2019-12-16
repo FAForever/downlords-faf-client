@@ -499,9 +499,10 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
       }
     }
 
+    Object[] argsArray = args.toArray();
     while(key.size() > 1) {
       try {
-        return i18n.get(String.join(".", key), args.toArray());
+        return i18n.get(String.join(".", key), argsArray);
       } catch(NoSuchMessageException e) {
         key.remove(key.size() - 1);
       }
