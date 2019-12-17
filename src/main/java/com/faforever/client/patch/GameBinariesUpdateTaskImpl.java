@@ -11,7 +11,6 @@ import com.faforever.client.util.Validator;
 import com.faforever.commons.fa.ForgedAllianceExePatcher;
 import com.faforever.commons.io.ByteCopier;
 import com.google.common.annotations.VisibleForTesting;
-
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +19,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -127,7 +125,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
     Path fafBinDirectory = preferencesService.getFafBinDirectory();
     createDirectories(fafBinDirectory);
 
-    Path faBinPath = preferencesService.getPreferences().getForgedAlliance().getPath().resolve("bin");
+    Path faBinPath = preferencesService.getPreferences().getForgedAlliance().getInstallationPath().resolve("bin");
 
     try (Stream<Path> faBinPathStream = Files.list(faBinPath)) {
       faBinPathStream

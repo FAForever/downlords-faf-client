@@ -11,8 +11,8 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.stereotype.Component;
 
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
@@ -70,7 +70,7 @@ public class GamePathHandler implements InitializingBean {
     Path gamePath = path.getParent();
 
     logger.info("Found game path at {}", gamePath);
-    preferencesService.getPreferences().getForgedAlliance().setPath(gamePath);
+    preferencesService.getPreferences().getForgedAlliance().setInstallationPath(gamePath);
     preferencesService.storeInBackground();
   }
 
@@ -88,7 +88,7 @@ public class GamePathHandler implements InitializingBean {
   }
 
   public void detectAndUpdateGamePath() {
-    Path faPath = preferencesService.getPreferences().getForgedAlliance().getPath();
+    Path faPath = preferencesService.getPreferences().getForgedAlliance().getInstallationPath();
     if (faPath == null || Files.notExists(faPath)) {
       logger.info("Game path is not specified or non-existent, trying to detect");
       detectGamePath();

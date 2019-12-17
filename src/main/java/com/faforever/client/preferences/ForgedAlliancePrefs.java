@@ -10,6 +10,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import org.apache.commons.lang3.NotImplementedException;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,7 +44,6 @@ public class ForgedAlliancePrefs {
   private final ObjectProperty<Path> path;
   private final ObjectProperty<Path> installationPath;
   private final ObjectProperty<Path> preferencesFile;
-  private final ObjectProperty<Path> officialMapsDirectory;
   private final ObjectProperty<Path> vaultBaseDirectory;
   @ExcludeFromGson
   private final ObjectProperty<Path> customMapsDirectory;
@@ -76,7 +76,6 @@ public class ForgedAlliancePrefs {
       path = new SimpleObjectProperty<>();
     }
     installationPath = new SimpleObjectProperty<>();
-    officialMapsDirectory = new SimpleObjectProperty<>(STEAM_FA_PATH.resolve("maps"));
     vaultBaseDirectory = new SimpleObjectProperty<>(GPG_FA_PATH);
     customMapsDirectory = new SimpleObjectProperty<>();
     modsDirectory = new SimpleObjectProperty<>();
@@ -110,14 +109,6 @@ public class ForgedAlliancePrefs {
     return preferencesFile;
   }
 
-  public Path getOfficialMapsDirectory() {
-    return officialMapsDirectory.get();
-  }
-
-  public void setOfficialMapsDirectory(Path officialMapsDirectory) {
-    this.officialMapsDirectory.set(officialMapsDirectory);
-  }
-
   /**
    * @deprecated use {@code installationPath} instead.
    */
@@ -131,8 +122,7 @@ public class ForgedAlliancePrefs {
    */
   @Deprecated
   public void setPath(Path path) {
-    this.path.set(path);
-    this.installationPath.set(path);
+    throw new NotImplementedException("Deprecated variable");
   }
 
   public ObjectProperty<Path> pathProperty() {
@@ -185,10 +175,6 @@ public class ForgedAlliancePrefs {
 
   public ObjectProperty<Path> customMapsDirectoryProperty() {
     return customMapsDirectory;
-  }
-
-  public ObjectProperty<Path> officialMapsDirectoryProperty() {
-    return officialMapsDirectory;
   }
 
   public String getExecutableDecorator() {

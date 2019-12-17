@@ -103,7 +103,7 @@ public class GameUpdaterImpl implements GameUpdater {
 
   @SneakyThrows
   private void createFaPathLuaFile(Path parent) {
-    Path path = preferencesService.getPreferences().getForgedAlliance().getPath();
+    Path path = preferencesService.getPreferences().getForgedAlliance().getInstallationPath();
     String content = String.format("fa_path = \"%s\"", path.toString().replace("\\", "/"));
     Files.write(parent.resolve("fa_path.lua"), content.getBytes(StandardCharsets.UTF_8));
   }

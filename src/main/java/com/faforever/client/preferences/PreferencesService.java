@@ -217,6 +217,7 @@ public class PreferencesService implements InitializingBean {
     try (Reader reader = Files.newBufferedReader(path, CHARSET)) {
       logger.debug("Reading preferences file {}", preferencesFilePath.toAbsolutePath());
       preferences = gson.fromJson(reader, Preferences.class);
+      migratePreferences(preferences);
     } catch (Exception e) {
       logger.warn("Preferences file " + path.toAbsolutePath() + " could not be read", e);
       CountDownLatch waitForUser = new CountDownLatch(1);
@@ -241,8 +242,6 @@ public class PreferencesService implements InitializingBean {
       noCatch((NoCatchRunnable) waitForUser::await);
 
     }
-
-    migratePreferences(preferences);
 
     if (preferences != null) {
       preferences.getForgedAlliance().bindVaultPath();
@@ -333,7 +332,7 @@ public class PreferencesService implements InitializingBean {
   }
 
   public boolean isGamePathValid() {
-    return preferences.getForgedAlliance().getPath() != null && isGamePathValid(preferences.getForgedAlliance().getPath().resolve("bin"));
+    return preferences.getForgedAlliance().getInstallationPath() != null && isGamePathValid(preferences.getForgedAlliance().getInstallationPath().resolve("bin"));
   }
 
   public boolean isGamePathValid(Path binPath) {
