@@ -219,14 +219,14 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
 
     instance.onWatchGameSelected();
 
-    verify(replayService).runLiveReplay(player.getGame().getId(), player.getId());
+    verify(replayService).runLiveReplay(player.getGame().getId());
   }
 
   @Test
   public void testOnWatchGameThrowsIoExceptionTriggersNotification() {
     instance.setChatUser(chatUser);
 
-    doThrow(new RuntimeException("Error in runLiveReplay")).when(replayService).runLiveReplay(anyInt(), anyInt());
+    doThrow(new RuntimeException("Error in runLiveReplay")).when(replayService).runLiveReplay(anyInt());
 
     instance.onWatchGameSelected();
 
