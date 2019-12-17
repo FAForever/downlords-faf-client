@@ -22,7 +22,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ToggleButton;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -157,7 +156,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnPlayButtonClicked() throws Exception {
-    when(forgedAlliancePrefs.getPath()).thenReturn(Paths.get("."));
+    when(forgedAlliancePrefs.getInstallationPath()).thenReturn(Paths.get("."));
 
     instance.aeonButton.setSelected(true);
     instance.onFactionButtonClicked();
@@ -177,7 +176,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnPlayButtonClickedWithNoGamePath() throws Exception {
-    when(forgedAlliancePrefs.getPath()).thenReturn(null);
+    when(forgedAlliancePrefs.getInstallationPath()).thenReturn(null);
 
     instance.onPlayButtonClicked();
 

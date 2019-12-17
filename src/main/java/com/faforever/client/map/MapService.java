@@ -49,7 +49,6 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -98,7 +97,6 @@ public class MapService implements InitializingBean, DisposableBean {
   private final ObservableList<MapBean> installedSkirmishMaps = FXCollections.observableArrayList();
   private final Map<String, MapBean> mapsByFolderName = new HashMap<>();
   private Thread directoryWatcherThread;
-  private Path customMapsDirectory;
 
   @Inject
   public MapService(PreferencesService preferencesService,
@@ -184,7 +182,6 @@ public class MapService implements InitializingBean, DisposableBean {
       // TODO notify user
     }
 
-    customMapsDirectory = mapsDirectory;
     installedSkirmishMaps.clear();
     loadInstalledMaps();
   }
@@ -192,7 +189,7 @@ public class MapService implements InitializingBean, DisposableBean {
   private Thread startDirectoryWatcher(Path mapsDirectory) {
     Thread thread = new Thread(() -> noCatch(() -> {
       try (WatchService watcher = mapsDirectory.getFileSystem().newWatchService()) {
-        customMapsDirectory.register(watcher, ENTRY_DELETE);
+        forgedAlliancePreferences.getCustomMapsDirectory().register(watcher, ENTRY_DELETE);
         while (!Thread.interrupted()) {
           WatchKey key = watcher.take();
           key.pollEvents().stream()
@@ -215,8 +212,7 @@ public class MapService implements InitializingBean, DisposableBean {
       protected Void call() {
         updateTitle(i18n.get("mapVault.loadingMaps"));
         Path officialMapsPath = forgedAlliancePreferences.getInstallationPath().resolve("maps");
-
-        try (Stream<Path> customMapsDirectoryStream = list(customMapsDirectory)) {
+        try (Stream<Path> customMapsDirectoryStream = list(forgedAlliancePreferences.getCustomMapsDirectory())) {
           List<Path> mapPaths = new ArrayList<>();
           customMapsDirectoryStream.collect(toCollection(() -> mapPaths));
           officialMaps.stream()
@@ -230,7 +226,7 @@ public class MapService implements InitializingBean, DisposableBean {
             addSkirmishMap(mapPath);
           }
         } catch (IOException e) {
-          logger.warn("Maps could not be read from: " + customMapsDirectory, e);
+          logger.warn("Maps could not be read from: " + forgedAlliancePreferences.getCustomMapsDirectory(), e);
         }
         return null;
       }
@@ -418,7 +414,7 @@ public class MapService implements InitializingBean, DisposableBean {
     if (isOfficialMap(technicalName)) {
       return forgedAlliancePreferences.getInstallationPath().resolve("maps");
     }
-    return customMapsDirectory;
+    return forgedAlliancePreferences.getCustomMapsDirectory();
   }
 
   public Path getPathForMap(String technicalName) {

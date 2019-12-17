@@ -19,7 +19,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANCE_EXE;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -49,7 +48,7 @@ public class GameBinariesUpdateTaskTest {
     java.nio.file.Files.createDirectories(faPath.resolve("bin"));
 
     Preferences preferences = new Preferences();
-    preferences.getForgedAlliance().setPath(faPath);
+    preferences.getForgedAlliance().setInstallationPath(faPath);
 
     when(preferencesService.getFafBinDirectory()).thenReturn(fafBinDirectory.getRoot().toPath());
     when(preferencesService.getPreferences()).thenReturn(preferences);

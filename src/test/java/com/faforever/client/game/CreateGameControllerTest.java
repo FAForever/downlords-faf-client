@@ -90,7 +90,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     mapList = FXCollections.observableArrayList();
 
     preferences = new Preferences();
-    preferences.getForgedAlliance().setPath(Paths.get("."));
+    preferences.getForgedAlliance().setInstallationPath(Paths.get("."));
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(mapService.getInstalledMaps()).thenReturn(mapList);
     when(modService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(emptyList()));
@@ -171,7 +171,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testSetLastGameTitle() {
     preferences.getLastGamePrefs().setLastGameTitle("testGame");
-    preferences.getForgedAlliance().setPath(Paths.get(""));
+    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -184,7 +184,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   public void testButtonBindingIfFeaturedModNotSet() {
     preferences.getLastGamePrefs().setLastGameTitle("123");
     when(i18n.get("game.create.featuredModMissing")).thenReturn("Mod missing");
-    preferences.getForgedAlliance().setPath(Paths.get(""));
+    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -196,7 +196,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   public void testButtonBindingIfTitleNotSet() {
 
     when(i18n.get("game.create.titleMissing")).thenReturn("title missing");
-    preferences.getForgedAlliance().setPath(Paths.get(""));
+    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -208,7 +208,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   public void testButtonBindingIfNotConnected() {
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.DISCONNECTED));
     when(i18n.get("game.create.disconnected")).thenReturn("disconnected");
-    preferences.getForgedAlliance().setPath(Paths.get(""));
+    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -220,7 +220,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   public void testButtonBindingIfNotConnecting() {
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTING));
     when(i18n.get("game.create.connecting")).thenReturn("connecting");
-    preferences.getForgedAlliance().setPath(Paths.get(""));
+    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
