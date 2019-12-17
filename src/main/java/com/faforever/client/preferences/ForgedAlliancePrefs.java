@@ -135,6 +135,7 @@ public class ForgedAlliancePrefs {
     this.installationPath.set(path);
   }
 
+  @Deprecated
   public ObjectProperty<Path> pathProperty() {
     return path;
   }

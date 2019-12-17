@@ -277,7 +277,7 @@ public class SettingsController implements Controller<Node> {
     notifyOnAtMentionOnlyToggle.selectedProperty().bindBidirectional(preferences.getNotification().notifyOnAtMentionOnlyEnabledProperty());
     enableSoundsToggle.selectedProperty().bindBidirectional(preferences.getNotification().soundsEnabledProperty());
     forceRelayToggle.selectedProperty().bindBidirectional(preferences.getForgedAlliance().forceRelayProperty());
-    gameLocationTextField.textProperty().bindBidirectional(preferences.getForgedAlliance().pathProperty(), PATH_STRING_CONVERTER);
+    gameLocationTextField.textProperty().bindBidirectional(preferences.getForgedAlliance().installationPathProperty(), PATH_STRING_CONVERTER);
     autoDownloadMapsToggle.selectedProperty().bindBidirectional(preferences.getForgedAlliance().autoDownloadMapsProperty());
 
     executableDecoratorField.textProperty().bindBidirectional(preferences.getForgedAlliance().executableDecoratorProperty());

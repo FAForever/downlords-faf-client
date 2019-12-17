@@ -49,7 +49,6 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -158,7 +157,7 @@ public class MapService implements InitializingBean, DisposableBean {
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
-    JavaFxUtil.addListener(forgedAlliancePreferences.pathProperty(), observable -> tryLoadMaps());
+    JavaFxUtil.addListener(forgedAlliancePreferences.installationPathProperty(), observable -> tryLoadMaps());
     JavaFxUtil.addListener(forgedAlliancePreferences.customMapsDirectoryProperty(), observable -> tryLoadMaps());
     tryLoadMaps();
   }
