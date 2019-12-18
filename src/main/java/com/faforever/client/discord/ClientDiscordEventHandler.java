@@ -48,7 +48,7 @@ public class ClientDiscordEventHandler extends DiscordEventHandlers {
   private void onSpectate(String spectateSecret) {
     DiscordSpectateSecret discordSpectateSecret = new Gson().fromJson(spectateSecret, DiscordSpectateSecret.class);
     try {
-      applicationEventPublisher.publishEvent(new DiscordSpectateEvent(discordSpectateSecret.getGameId(), discordSpectateSecret.getPlayerId()));
+      applicationEventPublisher.publishEvent(new DiscordSpectateEvent(discordSpectateSecret.getGameId()));
     } catch (Exception e) {
       notificationService.addImmediateErrorNotification(e, "replay.couldNotOpen", discordSpectateSecret.getGameId());
       log.error("Could not join game from discord rich presence", e);
