@@ -467,7 +467,7 @@ public class MainController implements Controller<Node> {
           BackgroundRepeat.NO_REPEAT,
           BackgroundRepeat.NO_REPEAT,
           BackgroundPosition.CENTER,
-          BackgroundSize.DEFAULT
+          new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, false, true)
       )));
     } else {
       mainRootContent.setBackground(EMPTY);
