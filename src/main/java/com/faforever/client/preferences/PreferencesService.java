@@ -161,7 +161,10 @@ public class PreferencesService implements InitializingBean {
    * migrations.
    */
   private void migratePreferences(Preferences preferences) {
-    preferences.getForgedAlliance().setInstallationPath(preferences.getForgedAlliance().getPath());
+    if (preferences.getForgedAlliance().getPath() != null) {
+      preferences.getForgedAlliance().setInstallationPath(preferences.getForgedAlliance().getPath());
+      preferences.getForgedAlliance().setPath(null);
+    }
     storeInBackground();
   }
 

@@ -10,7 +10,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import org.apache.commons.lang3.NotImplementedException;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -122,7 +121,7 @@ public class ForgedAlliancePrefs {
    */
   @Deprecated
   public void setPath(Path path) {
-    throw new NotImplementedException("Deprecated variable");
+    this.path.set(path);
   }
 
   public ObjectProperty<Path> pathProperty() {
