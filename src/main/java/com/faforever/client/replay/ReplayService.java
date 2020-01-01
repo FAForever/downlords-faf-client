@@ -20,6 +20,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.replay.Replay.ChatMessage;
@@ -67,7 +68,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -79,7 +79,6 @@ import java.util.stream.StreamSupport;
 import static com.faforever.client.notification.Severity.WARN;
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static com.github.nocatch.NoCatch.noCatch;
-import static java.lang.Thread.sleep;
 import static java.net.URLDecoder.decode;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -120,6 +119,7 @@ public class ReplayService {
   private final ReplayFileReader replayFileReader;
   private final NotificationService notificationService;
   private final GameService gameService;
+  private final PlayerService playerService;
   private final TaskService taskService;
   private final I18n i18n;
   private final ReportingService reportingService;
@@ -330,16 +330,18 @@ public class ReplayService {
   }
 
 
-  public void runLiveReplay(int gameId, int playerId) {
+  public void runLiveReplay(int gameId) {
     Game game = gameService.getByUid(gameId);
     if (game == null) {
       throw new RuntimeException("There's no game with ID: " + gameId);
     }
+    /* A courtesy towards the replay server so we can see in logs who we're dealing with. */
+    String playerName = playerService.getCurrentPlayer().map(p -> p.getUsername()).orElse("Unknown");
 
     URI uri = UriComponentsBuilder.newInstance()
         .scheme(FAF_LIFE_PROTOCOL)
         .host(clientProperties.getReplay().getRemoteHost())
-        .path("/" + gameId + "/" + playerId + SUP_COM_REPLAY_FILE_ENDING)
+        .path("/" + gameId + "/" + playerName + SUP_COM_REPLAY_FILE_ENDING)
         .queryParam("map", UrlEscapers.urlFragmentEscaper().escape(game.getMapFolderName()))
         .queryParam("mod", game.getFeaturedMod())
         .build()
@@ -507,8 +509,6 @@ public class ReplayService {
   @EventListener
   public void onDiscordGameJoinEvent(DiscordSpectateEvent discordSpectateEvent) {
     Integer replayId = discordSpectateEvent.getReplayId();
-    Integer playerId = discordSpectateEvent.getPlayerId();
-
-    runLiveReplay(replayId, playerId);
+    runLiveReplay(replayId);
   }
 }

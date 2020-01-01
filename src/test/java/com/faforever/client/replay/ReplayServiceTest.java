@@ -12,6 +12,7 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
@@ -130,6 +131,8 @@ public class ReplayServiceTest {
   @Mock
   private GameService gameService;
   @Mock
+  private PlayerService playerService;
+  @Mock
   private FafService fafService;
   @Mock
   private ReportingService reportingService;
@@ -148,7 +151,7 @@ public class ReplayServiceTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new ReplayService(new ClientProperties(), preferencesService, replayFileReader, notificationService, gameService,
+    instance = new ReplayService(new ClientProperties(), preferencesService, replayFileReader, notificationService, gameService, playerService,
         taskService, i18n, reportingService, applicationContext, platformService, fafService, modService, mapService, publisher, executorService);
 
     when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath());

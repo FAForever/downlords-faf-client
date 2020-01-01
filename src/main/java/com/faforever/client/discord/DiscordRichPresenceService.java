@@ -86,7 +86,7 @@ public class DiscordRichPresenceService implements DisposableBean {
       }
 
       if (game.getStatus() == GameStatus.PLAYING && game.getStartTime() != null && game.getStartTime().isAfter(Instant.now().plus(5, ChronoUnit.MINUTES))) {
-        spectateSecret = new Gson().toJson(new DiscordSpectateSecret(game.getId(),currentPlayerId));
+        spectateSecret = new Gson().toJson(new DiscordSpectateSecret(game.getId()));
       }
 
       discordRichPresence.setSecrets(joinSecret, spectateSecret);

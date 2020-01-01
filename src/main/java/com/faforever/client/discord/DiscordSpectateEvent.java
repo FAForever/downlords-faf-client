@@ -5,5 +5,4 @@ import lombok.Data;
 @Data
 public class DiscordSpectateEvent {
   private final Integer replayId;
-  private final Integer playerId;
 }
