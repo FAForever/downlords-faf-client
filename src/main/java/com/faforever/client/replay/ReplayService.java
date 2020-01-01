@@ -178,15 +178,14 @@ public class ReplayService {
   }
 
   private void onLocalReplaysWatchEvent(WatchKey key) {
-    Collection<Replay> newReplays = new ArrayList<Replay>();
+    List<CompletableFuture<Replay>> newReplaysFutures = new ArrayList<CompletableFuture<Replay>>();
     Collection<Replay> deletedReplays = new ArrayList<Replay>();
     for (WatchEvent<?> watchEvent : key.pollEvents()) {
       Path path = (Path) watchEvent.context();
       Path fullPathToReplay = preferencesService.getReplaysDirectory().resolve(path);
 
       if (watchEvent.kind() == ENTRY_CREATE) {
-        tryLoadingLocalReplay(fullPathToReplay)
-            .thenAccept(newReplay -> newReplays.add(newReplay));
+        newReplaysFutures.add(tryLoadingLocalReplay(fullPathToReplay));
       } else if (watchEvent.kind() == ENTRY_DELETE) {
         Optional<Replay> existingReplay = localReplays
             .stream()
@@ -201,8 +200,21 @@ public class ReplayService {
       }
     }
 
-    localReplays.addAll(newReplays);
-    publisher.publishEvent(new LocalReplaysChangedEvent(this, newReplays, deletedReplays));
+    CompletableFuture[] replayFuturesArray = newReplaysFutures.toArray(new CompletableFuture[newReplaysFutures.size()]);
+    CompletableFuture<List<Replay>> newReplaysFuture = CompletableFuture.allOf(replayFuturesArray)
+        .thenApply(ignoredVoid ->
+            newReplaysFutures.stream()
+                .map(future -> future.join())
+                .collect(Collectors.toList())
+    );
+
+    try {
+      List<Replay> newReplays = newReplaysFuture.get();
+      localReplays.addAll(newReplays);
+      publisher.publishEvent(new LocalReplaysChangedEvent(this, newReplays, deletedReplays));
+    } catch (Exception e) {
+      logger.warn("Failed to load new local replays ({})", e.getMessage());
+    }
   }
 
   @VisibleForTesting
