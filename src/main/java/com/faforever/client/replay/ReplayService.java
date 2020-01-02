@@ -132,7 +132,7 @@ public class ReplayService {
   private final ExecutorService executorService;
   private Thread directoryWatcherThread;
   private WatchService watchService;
-  private List<Replay> localReplays = new ArrayList<Replay>();
+  protected List<Replay> localReplays = new ArrayList<Replay>();
 
   public void startLoadingAndWatchingLocalReplays() {
     Path replaysDirectory = preferencesService.getReplaysDirectory();
@@ -177,7 +177,8 @@ public class ReplayService {
     return thread;
   }
 
-  private void onLocalReplaysWatchEvent(WatchKey key) {
+  @VisibleForTesting
+  protected void onLocalReplaysWatchEvent(WatchKey key) {
     List<CompletableFuture<Replay>> newReplaysFutures = new ArrayList<CompletableFuture<Replay>>();
     Collection<Replay> deletedReplays = new ArrayList<Replay>();
     for (WatchEvent<?> watchEvent : key.pollEvents()) {
