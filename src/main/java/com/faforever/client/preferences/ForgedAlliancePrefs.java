@@ -124,6 +124,7 @@ public class ForgedAlliancePrefs {
     this.path.set(path);
   }
 
+  @Deprecated
   public ObjectProperty<Path> pathProperty() {
     return path;
   }

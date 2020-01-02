@@ -156,7 +156,7 @@ public class MapService implements InitializingBean, DisposableBean {
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
-    JavaFxUtil.addListener(forgedAlliancePreferences.pathProperty(), observable -> tryLoadMaps());
+    JavaFxUtil.addListener(forgedAlliancePreferences.installationPathProperty(), observable -> tryLoadMaps());
     JavaFxUtil.addListener(forgedAlliancePreferences.customMapsDirectoryProperty(), observable -> tryLoadMaps());
     tryLoadMaps();
   }
