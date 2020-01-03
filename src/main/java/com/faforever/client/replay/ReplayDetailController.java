@@ -78,6 +78,7 @@ public class ReplayDetailController implements Controller<Node> {
   public Label timeLabel;
   public Label modLabel;
   public Label durationLabel;
+  public Label replayDurationLabel;
   public Label playerCountLabel;
   public Label ratingLabel;
   public Label qualityLabel;
@@ -169,6 +170,13 @@ public class ReplayDetailController implements Controller<Node> {
       durationLabel.setText(timeService.shortDuration(Duration.between(replay.getStartTime(), endTime)));
     } else {
       durationLabel.setVisible(false);
+    }
+
+    Integer replayTicks = replay.getReplayTicks();
+    if (replayTicks != null) {
+      replayDurationLabel.setText(timeService.shortDuration(Duration.ofMillis(replayTicks * 100)));
+    } else {
+      replayDurationLabel.setVisible(false);
     }
 
     modLabel.setText(replay.getFeaturedMod().getDisplayName());

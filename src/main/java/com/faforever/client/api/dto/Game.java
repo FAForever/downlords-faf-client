@@ -21,6 +21,7 @@ public class Game {
   private String name;
   private OffsetDateTime startTime;
   private OffsetDateTime endTime;
+  private Integer replayTicks;
   private Validity validity;
   private VictoryCondition victoryCondition;
 
