@@ -77,6 +77,12 @@
                                      <Label styleClass="icon" text=""/>
                                  </graphic>
                               </Label>
+                               <Label fx:id="replayDurationLabel" graphicTextGap="10.0" text="&lt;Duration&gt;"
+                                      GridPane.columnIndex="3" GridPane.rowIndex="3">
+                                 <graphic>
+                                     <Label styleClass="icon" text=""/>
+                                 </graphic>
+                              </Label>
                                <Label fx:id="playerCountLabel" graphicTextGap="10.0" text="&lt;PlayerCount&gt;"
                                       GridPane.columnIndex="2" GridPane.rowIndex="3">
                                  <graphic>
@@ -84,7 +90,7 @@
                                  </graphic>
                               </Label>
                                <Label fx:id="ratingLabel" graphicTextGap="10.0" text="&lt;AvgRating&gt;"
-                                      GridPane.columnIndex="3" GridPane.rowIndex="3">
+                                      GridPane.columnIndex="4" GridPane.rowIndex="3">
                                  <graphic>
                                      <Label styleClass="icon" text=""/>
                                  </graphic>
