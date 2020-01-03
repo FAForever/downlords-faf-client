@@ -34,6 +34,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
@@ -143,7 +144,18 @@ public class ReplayDetailController implements Controller<Node> {
 
     reviewsController.getRoot().setMaxSize(Integer.MAX_VALUE, Integer.MAX_VALUE);
 
+
     copyButton.setText(i18n.get("replay.copyUrl"));
+
+    dateLabel.setTooltip(new Tooltip(i18n.get("replay.dateTooltip")));
+    timeLabel.setTooltip(new Tooltip(i18n.get("replay.timeTooltip")));
+    modLabel.setTooltip(new Tooltip(i18n.get("replay.modTooltip")));
+    durationLabel.setTooltip(new Tooltip(i18n.get("replay.durationTooltip")));
+    replayDurationLabel.setTooltip(new Tooltip(i18n.get("replay.replayDurationTooltip")));
+    playerCountLabel.setTooltip(new Tooltip(i18n.get("replay.playerCountTooltip")));
+    ratingLabel.setTooltip(new Tooltip(i18n.get("replay.ratingTooltip")));
+    qualityLabel.setTooltip(new Tooltip(i18n.get("replay.qualityTooltip")));
+
     onClosure = () -> ((Pane) replayDetailRoot.getParent()).getChildren().remove(replayDetailRoot);
   }
 
