@@ -98,9 +98,15 @@ public class ReplayCardController implements Controller<Node> {
         .average()
         .ifPresent(averageRating -> ratingLabel.setText(i18n.number((int) averageRating)));
 
-    durationLabel.setText(Optional.ofNullable(replay.getEndTime())
-        .map(endTime -> timeService.shortDuration(Duration.between(replay.getStartTime(), endTime)))
-        .orElse(i18n.get("notAvailable")));
+    Integer replayTicks = replay.getReplayTicks();
+    if (replayTicks != null) {
+      durationLabel.setText(timeService.shortDuration(Duration.ofMillis(replayTicks * 100)));
+      ((Label) durationLabel.getGraphic()).setText("");
+    } else {
+      durationLabel.setText(Optional.ofNullable(replay.getEndTime())
+          .map(endTime -> timeService.shortDuration(Duration.between(replay.getStartTime(), endTime)))
+          .orElse(i18n.get("notAvailable")));
+    }
 
     String players = replay.getTeams().values().stream()
         .map(team -> Joiner.on(i18n.get("textSeparator")).join(team))
