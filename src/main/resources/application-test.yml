@@ -9,7 +9,7 @@ faf-client:
     base-url: http://content.test.faforever.com
 
   news:
-    feed-url: https://direct.faforever.com/news/feed
+    feed-url: https://direct.test.faforever.com/news/feed
 
   replay:
     remote-host: test.faforever.com
@@ -23,4 +23,4 @@ faf-client:
     client-secret: 6035bd78-7730-11e5-8bcf-feff819cdc9f
 
   forged-alliance:
-    exe-url: http://content.test.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe
+    exe-url: https://content.test.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe
