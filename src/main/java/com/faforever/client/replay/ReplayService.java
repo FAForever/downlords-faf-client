@@ -50,7 +50,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
@@ -68,10 +67,10 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -205,7 +204,8 @@ public class ReplayService {
     CompletableFuture<List<Replay>> newReplaysFuture = CompletableFuture.allOf(replayFuturesArray)
         .thenApply(ignoredVoid ->
             newReplaysFutures.stream()
-                .map(future -> future.join())
+                .map(CompletableFuture::join)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList())
     );
 
@@ -275,7 +275,7 @@ public class ReplayService {
       List<CompletableFuture<Replay>> replayFutures = StreamSupport.stream(directoryStream.spliterator(), false)
           .sorted(Comparator.comparing(path -> noCatch(() -> Files.getLastModifiedTime((Path) path))).reversed())
           .limit(MAX_REPLAYS)
-          .map( replayFile -> tryLoadingLocalReplay(replayFile))
+          .map(this::tryLoadingLocalReplay)
           .filter(e -> !e.isCompletedExceptionally())
           .collect(Collectors.toList());
 
@@ -283,13 +283,13 @@ public class ReplayService {
       return CompletableFuture.allOf(replayFuturesArray)
           .thenApply(ignoredVoid ->
               replayFutures.stream()
-                  .map(future -> future.join())
+                  .map(CompletableFuture::join)
+                  .filter(Objects::nonNull)
                   .collect(Collectors.toList()));
 
     }
   }
 
-  @Async
   private CompletableFuture<Replay> tryLoadingLocalReplay(Path replayFile)  {
     try {
       LocalReplayInfo replayInfo = replayFileReader.parseMetaData(replayFile);
@@ -300,14 +300,14 @@ public class ReplayService {
       return CompletableFuture.allOf(featuredModFuture, mapBeanFuture).thenApply(ignoredVoid  -> {
         Optional<MapBean> mapBean = mapBeanFuture.join();
         if (!mapBean.isPresent()) {
-          throw new CompletionException(new FileNotFoundException());
+          logger.warn("Could not find map for replay file '{}'", replayFile);
         }
-        return new Replay(replayInfo, replayFile, featuredModFuture.join(), mapBean.get());
+        return new Replay(replayInfo, replayFile, featuredModFuture.join(), mapBean.orElse(null));
       });
     } catch (Exception e) {
       logger.warn("Could not read replay file '{}'", replayFile, e);
       moveCorruptedReplayFile(replayFile);
-      return CompletableFuture.failedFuture(e);
+      return CompletableFuture.completedFuture(null);
     }
   }
 
