@@ -191,7 +191,11 @@ public class ReplayDetailController implements Controller<Node> {
       replayDurationLabel.setVisible(false);
     }
 
-    modLabel.setText(replay.getFeaturedMod().getDisplayName());
+    modLabel.setText(
+      Optional.ofNullable(replay.getFeaturedMod())
+        .map(mod -> mod.getDisplayName())
+        .orElseGet(() -> i18n.get("unknown"))
+    );
     playerCountLabel.setText(i18n.number(replay.getTeams().values().stream().mapToInt(List::size).sum()));
     double gameQuality = ratingService.calculateQuality(replay);
     if (!Double.isNaN(gameQuality)) {
