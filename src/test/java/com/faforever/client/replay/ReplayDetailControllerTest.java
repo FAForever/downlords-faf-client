@@ -37,6 +37,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -111,6 +112,22 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     instance.setReplay(replay);
 
     assertEquals(instance.qualityLabel.textProperty().get(), (i18n.get("percentage", 0.43)));
+  }
+
+  @Test
+  public void tickTimeDisplayed() throws Exception {
+    when(replayService.getSize(anyInt())).thenReturn(CompletableFuture.completedFuture(1024));
+    when(timeService.shortDuration(any())).thenReturn("16min 40s");
+    Replay replay = new Replay();
+    replay.setValidity(Validity.VALID);
+    replay.setReplayTicks(10_000);
+
+    instance.setReplay(replay);
+
+    assertThat(instance.replayDurationLabel.isVisible(), is(true));
+    assertThat(instance.durationLabel.isVisible(), is(false));
+
+    assertEquals("16min 40s", instance.replayDurationLabel.getText());
   }
 
   @Test
