@@ -6,7 +6,7 @@ if [ ! -d "${INSTALL4J_DIR}" ]; then
   mkdir -p "$HOME/install4j"
   curl https://download-keycdn.ej-technologies.com/install4j/install4j_unix_7_0_12.tar.gz -o "$HOME/install4j/install4j.tar.gz"
   mkdir -p "${INSTALL4J_DIR}/jres/"
-  curl http://content.faforever.com/jre/windows-amd64-10.0.2.tar.gz -o "${INSTALL4J_DIR}/jres/windows-amd64-10.0.2.tar.gz"
+  curl https://content.faforever.com/jre/windows-amd64-10.0.2.tar.gz -o "${INSTALL4J_DIR}/jres/windows-amd64-10.0.2.tar.gz"
   tar xzf "$HOME/install4j/install4j.tar.gz" -C "$HOME/install4j"
 fi
 
