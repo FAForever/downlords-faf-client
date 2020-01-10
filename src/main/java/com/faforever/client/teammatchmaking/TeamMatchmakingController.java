@@ -15,6 +15,7 @@ import com.google.common.eventbus.EventBus;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDialog;
 import com.jfoenix.controls.JFXListView;
+import javafx.beans.Observable;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -54,6 +55,10 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public JFXListView playerListView;
   @FXML
   public JFXButton leavePartyButton;
+  @FXML
+  public JFXButton readyButton;
+
+
   private EventBus eventBus;
 //  private ObservableList<PartyPlayerItem> playerItems;
 
@@ -103,6 +108,19 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         playerService.currentPlayerProperty()
     ));
     leavePartyButton.disableProperty().bind(createBooleanBinding(() -> teamMatchmakingService.getParty().getMembers().size() <= 1, teamMatchmakingService.getParty().getMembers()));
+
+
+    teamMatchmakingService.getParty().getReadyMembers().addListener((Observable o) -> {
+      if (isSelfReady()) {
+        readyButton.getStyleClass().remove("party-ready-button-not-ready");
+        readyButton.getStyleClass().add("party-ready-button-ready");
+        readyButton.setText(i18n.get("teammatchmaking.ready"));
+      } else {
+        readyButton.getStyleClass().remove("party-ready-button-ready");
+        readyButton.getStyleClass().add("party-ready-button-not-ready");
+        readyButton.setText(i18n.get("teammatchmaking.notReady"));
+      }
+    });
   }
 
   @Override
@@ -138,8 +156,16 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   }
 
   public void onReadyButtonClicked(ActionEvent actionEvent) {
-    //TODO
+    if (!isSelfReady()) {
+      teamMatchmakingService.readyParty();
+    } else {
+      teamMatchmakingService.unreadyParty();
+    }
     //TODO: on server create party when single
   }
 
+  public boolean isSelfReady() {
+    return teamMatchmakingService.getParty().getReadyMembers().stream()
+        .anyMatch(p -> playerService.getCurrentPlayer().map(self -> self.getId() == p.getId()).orElse(false));
+  }
 }

@@ -125,4 +125,12 @@ public class TeamMatchmakingService implements InitializingBean {
     party.getMembers().setAll(owner);
     party.getReadyMembers().clear();
   }
+
+  public void readyParty() {
+    fafServerAccessor.readyParty();
+  }
+
+  public void unreadyParty() {
+    fafServerAccessor.unreadyParty();
+  }
 }

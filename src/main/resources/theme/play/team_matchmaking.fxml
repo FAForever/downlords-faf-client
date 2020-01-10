@@ -34,7 +34,7 @@
                                                text="%teammatchmaking.leaveParty"
                                                onAction="#onLeavePartyButtonClicked"/>
                                 </HBox>
-                                <JFXButton fx:id="readyButton" disable="true" text="%teammatchmaking.notReady"
+                                <JFXButton fx:id="readyButton" text="%teammatchmaking.notReady"
                                            onAction="#onReadyButtonClicked" styleClass="party-ready-button-not-ready"/>
                             </HBox>
                             <JFXListView fx:id="playerListView" focusTraversable="false"

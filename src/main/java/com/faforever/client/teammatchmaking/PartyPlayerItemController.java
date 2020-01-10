@@ -10,6 +10,8 @@ import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Strings;
 import com.jfoenix.controls.JFXButton;
+import javafx.beans.Observable;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -94,7 +96,17 @@ public class PartyPlayerItemController implements Controller<Node> {
 
     kickPlayerButton.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(playerService.currentPlayerProperty()).and(playerService.currentPlayerProperty().isNotEqualTo(player)));
 
-    //TODO READY status for other players, ready button, sendReady
+    teamMatchmakingService.getParty().getReadyMembers().addListener((Observable o) -> {
+      boolean ready = teamMatchmakingService.getParty().getReadyMembers().stream().anyMatch(p -> p.getId() == player.getId());
+      ObservableList<String> classes = playerItemRoot.getStyleClass(); // TODO: is called, but doesn't display
+      if (ready && !classes.contains("card-playerReady")) {
+        classes.add("card-playerReady");
+      }
+      if (!ready && classes.contains("card-playerReady")) {
+        classes.remove("card-playerReady");
+      }
+      System.out.println(player.getUsername() + "  " + ready);//TODO: debug code
+    });
   }
 
   public void onKickPlayerButtonClicked(ActionEvent actionEvent) {

@@ -1081,11 +1081,25 @@
 }
 
 .party-ready-button-ready {
-  -fx-background-color: #609E15;
+  -fx-background-color: #609E15; /* TODO: change color to card color*/
+}
+
+.party-ready-button-ready:hover,
+.party-ready-button-ready:default:hover {
+  -fx-background-color: #83be15; /* TODO: change color to card color*/
 }
 
 .party-ready-button-not-ready {
   -fx-background-color: #9e1515;
+}
+
+.party-ready-button-not-ready:hover,
+.party-ready-button-not-ready:default:hover {
+  -fx-background-color: #cb1616;
+}
+
+.card-playerReady {
+  -fx-background-color: #00400f;
 }
 
 /***************** Rating change*****************/
