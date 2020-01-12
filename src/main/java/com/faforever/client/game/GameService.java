@@ -189,9 +189,14 @@ public class GameService implements InitializingBean {
     uidToGameInfoBean = FXCollections.observableMap(new ConcurrentHashMap<>());
     searching1v1 = new SimpleBooleanProperty();
     gameRunning = new SimpleBooleanProperty();
-
     currentGame = new SimpleObjectProperty<>();
+    games = FXCollections.observableList(new ArrayList<>(),
+        item -> new Observable[]{item.statusProperty(), item.getTeams()}
+    );
+  }
 
+  @Override
+  public void afterPropertiesSet() {
     currentGame.addListener((observable, oldValue, newValue) -> {
       if (newValue == null) {
         discordRichPresenceService.clearGameInfo();
@@ -207,11 +212,27 @@ public class GameService implements InitializingBean {
       statusChangeListener.changed(newValue.statusProperty(), newValue.getStatus(), newValue.getStatus());
     });
 
-    games = FXCollections.observableList(new ArrayList<>(),
-        item -> new Observable[]{item.statusProperty(), item.getTeams()}
-    );
     JavaFxUtil.attachListToMap(games, uidToGameInfoBean);
-    JavaFxUtil.addListener(gameRunning, (observable, oldValue, newValue) -> reconnectTimerService.setGameRunning(newValue));
+    JavaFxUtil.addListener(
+        gameRunning,
+        (observable, oldValue, newValue) -> reconnectTimerService.setGameRunning(newValue)
+    );
+
+    eventBus.register(this);
+
+    fafService.addOnMessageListener(GameInfoMessage.class, message -> Platform.runLater(() -> onGameInfo(message)));
+    fafService.addOnMessageListener(LoginMessage.class, message -> onLoggedIn());
+
+    JavaFxUtil.addListener(
+        fafService.connectionStateProperty(),
+        (observable, oldValue, newValue) -> {
+          if (newValue == ConnectionState.DISCONNECTED) {
+            synchronized (uidToGameInfoBean) {
+              uidToGameInfoBean.clear();
+            }
+          }
+        }
+    );
   }
 
   @NotNull
@@ -596,19 +617,6 @@ public class GameService implements InitializingBean {
     }
   }
 
-  @Override
-  public void afterPropertiesSet() {
-    eventBus.register(this);
-    fafService.addOnMessageListener(GameInfoMessage.class, message -> Platform.runLater(() -> onGameInfo(message)));
-    fafService.addOnMessageListener(LoginMessage.class, message -> onLoggedIn());
-    JavaFxUtil.addListener(fafService.connectionStateProperty(), (observable, oldValue, newValue) -> {
-      if (newValue == ConnectionState.DISCONNECTED) {
-        synchronized (uidToGameInfoBean) {
-          uidToGameInfoBean.clear();
-        }
-      }
-    });
-  }
 
   private void onLoggedIn() {
     if (isGameRunning()) {
