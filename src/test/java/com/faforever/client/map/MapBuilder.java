@@ -1,5 +1,7 @@
 package com.faforever.client.map;
 
+import com.faforever.client.map.MapBean.Type;
+
 public class MapBuilder {
 
   private final MapBean mapBean;
@@ -15,6 +17,7 @@ public class MapBuilder {
   public MapBuilder defaultValues() {
     return displayName("Map name")
         .folderName("map_name.v001")
+        .type(Type.SKIRMISH)
         .mapSize(MapSize.valueOf(512, 512));
   }
 
@@ -30,6 +33,11 @@ public class MapBuilder {
 
   public MapBuilder displayName(String displayName) {
     mapBean.setDisplayName(displayName);
+    return this;
+  }
+
+  public MapBuilder type(Type type) {
+    mapBean.setType(type);
     return this;
   }
 

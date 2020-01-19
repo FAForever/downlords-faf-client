@@ -6,6 +6,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean;
+import com.faforever.client.map.MapBean.Type;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.MapSize;
@@ -112,7 +113,7 @@ public class CreateGameController implements Controller<Pane> {
     mapPreviewPane.prefHeightProperty().bind(mapPreviewPane.widthProperty());
     mapSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue.isEmpty()) {
-        filteredMapBeans.setPredicate(mapInfoBean -> true);
+        filteredMapBeans.setPredicate(null);
       } else {
         filteredMapBeans.setPredicate(mapInfoBean -> mapInfoBean.getDisplayName().toLowerCase().contains(newValue.toLowerCase())
             || mapInfoBean.getFolderName().toLowerCase().contains(newValue.toLowerCase()));
@@ -237,7 +238,7 @@ public class CreateGameController implements Controller<Pane> {
 
   private void initMapSelection() {
     filteredMapBeans = new FilteredList<>(
-        mapService.getInstalledMaps().sorted((o1, o2) -> o1.getDisplayName().compareToIgnoreCase(o2.getDisplayName()))
+        mapService.getInstalledMaps().filtered(mapBean -> mapBean.getType() == Type.SKIRMISH).sorted((o1, o2) -> o1.getDisplayName().compareToIgnoreCase(o2.getDisplayName()))
     );
 
     mapListView.setItems(filteredMapBeans);
