@@ -309,12 +309,7 @@ public class MapService implements InitializingBean, DisposableBean {
   public Optional<MapBean> getMapLocallyFromName(String mapFolderName) {
     logger.debug("Trying to find map '{}' locally", mapFolderName);
     String mapFolderKey = mapFolderName.toLowerCase();
-    if (!mapsByFolderName.containsKey(mapFolderKey)) {
-      return Optional.empty();
-    } else {
-      MapBean mapBean = mapsByFolderName.get(mapFolderKey);
-      return Optional.of(mapBean);
-    }
+    return Optional.ofNullable(mapsByFolderName.get(mapFolderKey));
   }
 
   public boolean isOfficialMap(String mapName) {
