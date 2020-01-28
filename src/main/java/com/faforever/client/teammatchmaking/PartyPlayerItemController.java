@@ -96,6 +96,7 @@ public class PartyPlayerItemController implements Controller<Node> {
 
     kickPlayerButton.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(playerService.currentPlayerProperty()).and(playerService.currentPlayerProperty().isNotEqualTo(player)));
 
+    // TODO: bind to sth else
     teamMatchmakingService.getParty().getReadyMembers().addListener((Observable o) -> {
       boolean ready = teamMatchmakingService.getParty().getReadyMembers().stream().anyMatch(p -> p.getId() == player.getId());
       ObservableList<String> classes = playerItemRoot.getStyleClass(); // TODO: is called, but doesn't display

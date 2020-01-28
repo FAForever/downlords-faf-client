@@ -9,7 +9,6 @@ import com.faforever.client.main.event.ShowLadderMapsEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import com.jfoenix.controls.JFXButton;
@@ -123,6 +122,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     });
   }
 
+  // TODO: FACTION SELECTION + DISPLAY
+
   @Override
   public Node getRoot() {
     return teamMatchmakingRoot;
@@ -140,11 +141,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
   public void onEnterQueueButtonClicked(ActionEvent actionEvent) {
     //TODO
-    if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
-      //TODO: check on party join
-      eventBus.post(new MissingGamePathEvent(true));
-      return;
-    }
+
   }
 
   public void onLeavePartyButtonClicked(ActionEvent actionEvent) {

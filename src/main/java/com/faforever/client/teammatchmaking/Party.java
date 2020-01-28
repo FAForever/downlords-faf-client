@@ -8,21 +8,27 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class Party {
 
   private ObjectProperty<Player> owner;
-  private ObservableList<Player> members;
-  private ObservableList<Player> readyMembers;
+  private ObservableList<PartyMember> members;
 
   public Party() {
     owner = new SimpleObjectProperty<>();
     members = FXCollections.observableArrayList();
-    readyMembers = FXCollections.observableArrayList();
   }
 
   public void fromInfoMessage(PartyInfoMessage message, PlayerService playerService) {
@@ -33,14 +39,20 @@ public class Party {
           }
         });
 
-    playerService.getPlayersByIds(message.getMembers()).thenAccept(players -> {
-      message.getMembers().stream().filter(m -> players.stream().noneMatch(p -> p.getId() == m))
-          .forEach(m -> log.warn("Could not find party member {}", m));
-      Platform.runLater(() -> members.setAll(players));
-    });
-
-    playerService.getPlayersByIds(message.getMembers_ready()).thenAccept(players -> {
-      Platform.runLater(() -> readyMembers.setAll(players));
+    playerService
+        .getPlayersByIds(message.getMembers().stream().map(m -> m.getPlayer()).collect(Collectors.toList()))
+        .thenAccept(players -> {
+//          message.getMembers().stream().filter(m -> players.stream().noneMatch(p -> p.getId() == m))
+//            .forEach(m -> log.warn("Could not find party member {}", m));
+          List<PartyMember> members = message.getMembers().stream().map(member -> {
+            Optional<Player> player = players.stream().filter(p -> p.getId() == member.getPlayer()).findFirst();
+            if (!player.isPresent()) {
+              log.warn("Could not find party member {}", member.getPlayer());
+              return null;
+            }
+            return new PartyMember(player.get(), member.getReady(), member.getFactions());
+          }).filter(Objects::nonNull).collect(Collectors.toList());
+          Platform.runLater(() -> this.members.setAll(members));
     });
   }
 
@@ -56,7 +68,7 @@ public class Party {
     return owner;
   }
 
-  public ObservableList<Player> getMembers() {
+  public ObservableList<PartyMember> getMembers() {
     return members;
   }
 
@@ -64,11 +76,17 @@ public class Party {
     this.members = members;
   }
 
-  public ObservableList<Player> getReadyMembers() {
-    return readyMembers;
-  }
+  @Data
+  @AllArgsConstructor
+  public static class PartyMember {
+    private final Player player;
+    private boolean ready;  // no properties used as this object is recreated for each recevied party info message
+    private List<Boolean> factions;
 
-  public void setReadyMembers(ObservableList<Player> readyMembers) {
-    this.readyMembers = readyMembers;
+    public PartyMember(Player player) {
+      this.player = player;
+      this.ready = false;
+      this.factions = new ArrayList<>(Arrays.asList(false, false, false, false));
+    }
   }
 }

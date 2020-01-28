@@ -9,11 +9,15 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.remote.domain.PartyInfoMessage;
 import com.faforever.client.remote.domain.PartyInviteMessage;
 import com.faforever.client.remote.domain.PartyKickedMessage;
+import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.util.IdenticonUtil;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -32,16 +36,20 @@ public class TeamMatchmakingService implements InitializingBean {
   private final FafServerAccessor fafServerAccessor;
   private final PlayerService playerService;
   private final NotificationService notificationService;
+  private final PreferencesService preferencesService;
+  private final EventBus eventBus;
   private final I18n i18n;
 
   @Getter
   private Party party;
 
 
-  public TeamMatchmakingService(FafServerAccessor fafServerAccessor, PlayerService playerService, NotificationService notificationService, I18n i18n) {
+  public TeamMatchmakingService(FafServerAccessor fafServerAccessor, PlayerService playerService, NotificationService notificationService, PreferencesService preferencesService, EventBus eventBus, I18n i18n) {
     this.fafServerAccessor = fafServerAccessor;
     this.playerService = playerService;
     this.notificationService = notificationService;
+    this.preferencesService = preferencesService;
+    this.eventBus = eventBus;
     this.i18n = i18n;
 
     fafServerAccessor.addOnMessageListener(PartyInviteMessage.class, this::onPartyInvite);
@@ -68,7 +76,7 @@ public class TeamMatchmakingService implements InitializingBean {
   public void onPartyInfo(PartyInfoMessage message) {
     Optional<Player> currentPlayer = playerService.getCurrentPlayer();
     if (currentPlayer.isPresent()) {
-      if (!message.getMembers().contains(currentPlayer.get().getId())) {
+      if (message.getMembers().stream().noneMatch(m -> m.getPlayer() == currentPlayer.get().getId())) {
         Platform.runLater(() -> initParty(currentPlayer.get()));
         return;
       }
@@ -84,7 +92,7 @@ public class TeamMatchmakingService implements InitializingBean {
             return;
           }
           Player player = players.get(0);
-          ActionCallback callback = event -> fafServerAccessor.acceptPartyInvite(player);
+          ActionCallback callback = event -> this.acceptPartyInvite(player);
 
           notificationService.addNotification(new TransientNotification(
               i18n.get("teammatchmaking.notification.invite.title"),
@@ -102,6 +110,15 @@ public class TeamMatchmakingService implements InitializingBean {
               ))
           ));
         });
+  }
+
+  private void acceptPartyInvite(Player player) {
+    if (preferencesService.getPreferences().getForgedAlliance().getInstallationPath() == null) {
+      eventBus.post(new MissingGamePathEvent(true));
+      return;
+    }
+
+    fafServerAccessor.acceptPartyInvite(player);
   }
 
   public void onPartyKicked(PartyKickedMessage message) {
@@ -122,8 +139,7 @@ public class TeamMatchmakingService implements InitializingBean {
 
   private void initParty(Player owner) {
     party.setOwner(owner);
-    party.getMembers().setAll(owner);
-    party.getReadyMembers().clear();
+    party.getMembers().setAll(new PartyMember(owner));
   }
 
   public void readyParty() {
