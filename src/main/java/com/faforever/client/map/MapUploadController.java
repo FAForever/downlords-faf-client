@@ -232,4 +232,8 @@ public class MapUploadController implements Controller<Node> {
   public void onShowRulesClicked() {
     platformService.showDocument(clientProperties.getVault().getRulesUrl());
   }
+
+  public void onShowValidationClicked() {
+    platformService.showDocument(clientProperties.getVault().getMapValidationUrl());
+  }
 }

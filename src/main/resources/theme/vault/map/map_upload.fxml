@@ -10,6 +10,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
@@ -63,7 +64,12 @@
                   <JFXCheckBox fx:id="rulesCheckBox" mnemonicParsing="false"/>
               </graphic>
           </Label>
-          <JFXButton text="%mapVault.upload.openRules" onMouseClicked="#onShowRulesClicked"/>
+          <HBox spacing="10.0">
+              <children>
+                  <JFXButton text="%mapVault.upload.openRules" onMouseClicked="#onShowRulesClicked"/>
+                  <JFXButton text="%mapVault.upload.openValidation" onMouseClicked="#onShowValidationClicked"/>
+              </children>
+          </HBox>
         <ButtonBar prefHeight="40.0" prefWidth="200.0">
           <buttons>
               <JFXButton defaultButton="true" mnemonicParsing="false" onAction="#onUploadClicked" text="%mapVault.upload.uploadNow" />
