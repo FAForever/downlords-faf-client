@@ -244,7 +244,7 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   public CompletableFuture<List<ModVersion>> getNewestMods(int count, int page) {
-    return findByQuery(new SearchConfig(new SortConfig(SearchablePropertyMappings.NEWEST_MOD_KEY, SortOrder.DESC), ""), page, count);
+    return findByQuery(new SearchConfig(new SortConfig(SearchablePropertyMappings.NEWEST_MOD_KEY, SortOrder.DESC), "latestVersion.hidden==\"false\""), page, count);
   }
 
   @NotNull
@@ -327,11 +327,11 @@ public class ModService implements InitializingBean, DisposableBean {
 
   @Async
   public CompletableFuture<List<ModVersion>> getHighestRatedUiMods(int count, int page) {
-    return fafService.findModsByQuery(new SearchConfig(new SortConfig(SearchablePropertyMappings.HIGHEST_RATED_MOD_KEY, SortOrder.DESC), "latestVersion.type==UI"), page, count);
+    return fafService.findModsByQuery(new SearchConfig(new SortConfig(SearchablePropertyMappings.HIGHEST_RATED_MOD_KEY, SortOrder.DESC), "latestVersion.type==UI;latestVersion.hidden==\"false\""), page, count);
   }
 
   public CompletableFuture<List<ModVersion>> getHighestRatedMods(int count, int page) {
-    return fafService.findModsByQuery(new SearchConfig(new SortConfig(SearchablePropertyMappings.HIGHEST_RATED_MOD_KEY, SortOrder.DESC), ""), page, count);
+    return fafService.findModsByQuery(new SearchConfig(new SortConfig(SearchablePropertyMappings.HIGHEST_RATED_MOD_KEY, SortOrder.DESC), "latestVersion.hidden==\"false\""), page, count);
   }
 
   public List<ModVersion> getActivatedSimAndUIMods() throws IOException {
