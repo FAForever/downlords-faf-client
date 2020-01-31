@@ -13,7 +13,7 @@ public enum LobbyMode {
   /**
    * The lobby is skipped; the preferences starts straight away,
    */
-  NO_LOBBY(1);
+  AUTO_LOBBY(1);
 
   private int mode;
 
