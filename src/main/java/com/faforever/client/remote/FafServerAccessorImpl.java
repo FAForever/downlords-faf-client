@@ -8,6 +8,7 @@ import com.faforever.client.fa.CloseGameEvent;
 import com.faforever.client.fa.relay.GpgClientMessageSerializer;
 import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.fa.relay.GpgServerMessageType;
+import com.faforever.client.fa.relay.LobbyMode;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
@@ -61,9 +62,11 @@ import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.remote.domain.SessionMessage;
 import com.faforever.client.remote.domain.VictoryCondition;
 import com.faforever.client.remote.gson.ClientMessageTypeTypeAdapter;
+import com.faforever.client.remote.gson.FactionTypeAdapter;
 import com.faforever.client.remote.gson.GameAccessTypeAdapter;
 import com.faforever.client.remote.gson.GameStateTypeAdapter;
 import com.faforever.client.remote.gson.GpgServerMessageTypeTypeAdapter;
+import com.faforever.client.remote.gson.LobbyModeTypeAdapter;
 import com.faforever.client.remote.gson.MessageTargetTypeAdapter;
 import com.faforever.client.remote.gson.RatingRangeTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeAdapter;
@@ -135,6 +138,8 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
       .registerTypeAdapter(MessageTarget.class, MessageTargetTypeAdapter.INSTANCE)
       .registerTypeAdapter(ServerMessage.class, ServerMessageTypeAdapter.INSTANCE)
       .registerTypeAdapter(RatingRange.class, RatingRangeTypeAdapter.INSTANCE)
+      .registerTypeAdapter(Faction.class, FactionTypeAdapter.INSTANCE)
+      .registerTypeAdapter(LobbyMode.class, LobbyModeTypeAdapter.INSTANCE)
       .create();
   private final HashMap<Class<? extends ServerMessage>, Collection<Consumer<ServerMessage>>> messageListeners = new HashMap<>();
 

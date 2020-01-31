@@ -303,7 +303,7 @@ public class GameService implements InitializingBean {
     return updateGameIfNecessary(newGameInfo.getFeaturedMod(), null, emptyMap(), newGameInfo.getSimMods())
         .thenCompose(aVoid -> downloadMapIfNecessary(newGameInfo.getMap()))
         .thenCompose(aVoid -> fafService.requestHostGame(newGameInfo))
-        .thenAccept(gameLaunchMessage -> startGame(gameLaunchMessage, null, RatingMode.GLOBAL));
+        .thenAccept(gameLaunchMessage -> startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), RatingMode.GLOBAL));
   }
 
   public CompletableFuture<Void> joinGame(Game game, String password) {
@@ -469,8 +469,8 @@ public class GameService implements InitializingBean {
             .thenRun(() -> {
               // TODO this should be sent by the server!
               gameLaunchMessage.setArgs(new ArrayList<>(gameLaunchMessage.getArgs()));
-              gameLaunchMessage.getArgs().add("/team 1");
-              gameLaunchMessage.getArgs().add("/players 2");
+              gameLaunchMessage.getArgs().add("/team" + gameLaunchMessage.getTeam());
+              gameLaunchMessage.getArgs().add("/players " + gameLaunchMessage.getExpectedPlayers());
 
               startGame(gameLaunchMessage, faction, RatingMode.LADDER_1V1);
             }))
