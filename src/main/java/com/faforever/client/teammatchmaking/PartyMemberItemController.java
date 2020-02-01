@@ -6,16 +6,19 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Strings;
 import com.jfoenix.controls.JFXButton;
+import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -27,7 +30,7 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class PartyPlayerItemController implements Controller<Node> {
+public class PartyMemberItemController implements Controller<Node> {
 
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
@@ -54,10 +57,20 @@ public class PartyPlayerItemController implements Controller<Node> {
   public Label gameCountLabel;
   @FXML
   public JFXButton kickPlayerButton;
+  @FXML
+  public ToggleButton aeonButton;
+  @FXML
+  public ToggleButton cybranButton;
+  @FXML
+  public ToggleButton uefButton;
+  @FXML
+  public ToggleButton seraphimButton;
+  @FXML
+  public Label refreshingLabel;
 
-  private Player player;
+  private PartyMember member;
 
-  public PartyPlayerItemController(CountryFlagService countryFlagService, AvatarService avatarService, PlayerService playerService, TeamMatchmakingService teamMatchmakingService, I18n i18n) {
+  public PartyMemberItemController(CountryFlagService countryFlagService, AvatarService avatarService, PlayerService playerService, TeamMatchmakingService teamMatchmakingService, I18n i18n) {
     this.countryFlagService = countryFlagService;
     this.avatarService = avatarService;
     this.playerService = playerService;
@@ -75,8 +88,9 @@ public class PartyPlayerItemController implements Controller<Node> {
     return playerItemRoot;
   }
 
-  void setPlayer(Player player) {
-    this.player = player;
+  void setMember(PartyMember member) {
+    this.member = member;
+    Player player = member.getPlayer();
 
     userImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
 
@@ -97,8 +111,9 @@ public class PartyPlayerItemController implements Controller<Node> {
     kickPlayerButton.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(playerService.currentPlayerProperty()).and(playerService.currentPlayerProperty().isNotEqualTo(player)));
 
     // TODO: bind to sth else
-    teamMatchmakingService.getParty().getReadyMembers().addListener((Observable o) -> {
-      boolean ready = teamMatchmakingService.getParty().getReadyMembers().stream().anyMatch(p -> p.getId() == player.getId());
+    teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> {
+      boolean ready = teamMatchmakingService.getParty().getMembers().stream()
+          .anyMatch(m -> m.getPlayer().getId() == player.getId() && m.isReady());
       ObservableList<String> classes = playerItemRoot.getStyleClass(); // TODO: is called, but doesn't display
       if (ready && !classes.contains("card-playerReady")) {
         classes.add("card-playerReady");
@@ -111,6 +126,25 @@ public class PartyPlayerItemController implements Controller<Node> {
   }
 
   public void onKickPlayerButtonClicked(ActionEvent actionEvent) {
-    teamMatchmakingService.kickPlayerFromParty(player);
+    teamMatchmakingService.kickPlayerFromParty(this.member.getPlayer());
+  }
+
+  public void onFactionButtonClicked(ActionEvent actionEvent) {
+    if (!playerService.getCurrentPlayer().get().equals(this.member.getPlayer())) {
+      return;
+    }
+
+    //TODO
+
+    //TODO: remove
+    refreshingLabel.setVisible(true);
+    //TODO:NO NO NO NO
+    new Thread(() -> {
+      try {
+        Thread.sleep(300);
+      } catch (InterruptedException e) {
+      }
+      Platform.runLater(() -> refreshingLabel.setVisible(false));
+    }).start();
   }
 }

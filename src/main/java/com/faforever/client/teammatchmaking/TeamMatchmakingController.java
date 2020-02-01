@@ -96,7 +96,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 //    playerItems.add(new PartyPlayerItem(playerService.getPlayerForUsername(playerService.getPlayerNames().stream().findAny().get()).get()));
 //    playerItems.add(new PartyPlayerItem(playerService.getPlayerForUsername(playerService.getPlayerNames().stream().findAny().get()).get()));
 
-    playerListView.setCellFactory(listView -> new PartyPlayerItemListCell(uiService));
+    playerListView.setCellFactory(listView -> new PartyMemberItemListCell(uiService));
     playerListView.setItems(teamMatchmakingService.getParty().getMembers());
 
     invitePlayerButton.managedProperty().bind(invitePlayerButton.visibleProperty());
@@ -109,7 +109,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     leavePartyButton.disableProperty().bind(createBooleanBinding(() -> teamMatchmakingService.getParty().getMembers().size() <= 1, teamMatchmakingService.getParty().getMembers()));
 
 
-    teamMatchmakingService.getParty().getReadyMembers().addListener((Observable o) -> {
+    teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> {
       if (isSelfReady()) {
         readyButton.getStyleClass().remove("party-ready-button-not-ready");
         readyButton.getStyleClass().add("party-ready-button-ready");
@@ -162,7 +162,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   }
 
   public boolean isSelfReady() {
-    return teamMatchmakingService.getParty().getReadyMembers().stream()
-        .anyMatch(p -> playerService.getCurrentPlayer().map(self -> self.getId() == p.getId()).orElse(false));
+    return teamMatchmakingService.getParty().getMembers().stream()
+        .anyMatch(p -> p.getPlayer().getId() == playerService.getCurrentPlayer().map(Player::getId).orElse(-1)
+            && p.isReady());
   }
 }

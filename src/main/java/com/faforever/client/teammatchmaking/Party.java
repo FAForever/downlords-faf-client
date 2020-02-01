@@ -72,7 +72,7 @@ public class Party {
     return members;
   }
 
-  public void setMembers(ObservableList<Player> members) {
+  public void setMembers(ObservableList<PartyMember> members) {
     this.members = members;
   }
 
