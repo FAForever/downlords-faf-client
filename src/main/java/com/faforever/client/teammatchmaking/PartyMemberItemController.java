@@ -114,14 +114,13 @@ public class PartyMemberItemController implements Controller<Node> {
     teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> {
       boolean ready = teamMatchmakingService.getParty().getMembers().stream()
           .anyMatch(m -> m.getPlayer().getId() == player.getId() && m.isReady());
-      ObservableList<String> classes = playerItemRoot.getStyleClass(); // TODO: is called, but doesn't display
+      ObservableList<String> classes = playerItemRoot.getStyleClass();
       if (ready && !classes.contains("card-playerReady")) {
         classes.add("card-playerReady");
       }
-      if (!ready && classes.contains("card-playerReady")) {
+      if (!ready) {
         classes.remove("card-playerReady");
       }
-      System.out.println(player.getUsername() + "  " + ready);//TODO: debug code
     });
   }
 

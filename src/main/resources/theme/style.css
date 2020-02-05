@@ -1099,7 +1099,8 @@
 }
 
 .card-playerReady {
-  -fx-background-color: #00400f;
+  -fx-background-color: #00400f !important;
+  -fx-effect: dropshadow(gaussian, #001f06, 6, 0.3, 1, 1) !important;
 }
 
 /***************** Rating change*****************/

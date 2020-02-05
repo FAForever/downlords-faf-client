@@ -111,18 +111,16 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
     teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> {
       if (isSelfReady()) {
-        readyButton.getStyleClass().remove("party-ready-button-not-ready");
+        readyButton.getStyleClass().removeAll("party-ready-button-not-ready");
         readyButton.getStyleClass().add("party-ready-button-ready");
         readyButton.setText(i18n.get("teammatchmaking.ready"));
       } else {
-        readyButton.getStyleClass().remove("party-ready-button-ready");
+        readyButton.getStyleClass().removeAll("party-ready-button-ready");
         readyButton.getStyleClass().add("party-ready-button-not-ready");
         readyButton.setText(i18n.get("teammatchmaking.notReady"));
       }
     });
   }
-
-  // TODO: FACTION SELECTION + DISPLAY
 
   @Override
   public Node getRoot() {
