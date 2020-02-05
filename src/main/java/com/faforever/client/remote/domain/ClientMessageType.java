@@ -25,6 +25,7 @@ public enum ClientMessageType {
   READY_PARTY("ready_party"),
   UNREADY_PARTY("unready_party"),
   LEAVE_PARTY("leave_party"),
+  SET_PARTY_FACTIONS("set_party_factions"),
   MATCHMAKER_INFO("matchmaker_info");
 
   private static Map<String, ClientMessageType> fromString;

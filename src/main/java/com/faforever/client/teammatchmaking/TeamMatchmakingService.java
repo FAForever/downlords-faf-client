@@ -149,4 +149,8 @@ public class TeamMatchmakingService implements InitializingBean {
   public void unreadyParty() {
     fafServerAccessor.unreadyParty();
   }
+
+  public void setPartyFactions(boolean[] factions) {
+    fafServerAccessor.setPartyFactions(factions);
+  }
 }

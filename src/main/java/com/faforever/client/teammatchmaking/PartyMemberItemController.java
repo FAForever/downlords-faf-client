@@ -133,7 +133,14 @@ public class PartyMemberItemController implements Controller<Node> {
       return;
     }
 
-    //TODO
+    boolean[] factions = {
+        aeonButton.isSelected(),
+        cybranButton.isSelected(),
+        uefButton.isSelected(),
+        seraphimButton.isSelected()
+    };
+
+    teamMatchmakingService.setPartyFactions(factions);
 
     //TODO: remove
     refreshingLabel.setVisible(true);

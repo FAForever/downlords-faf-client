@@ -67,6 +67,7 @@ import com.faforever.client.remote.domain.SerializableMessage;
 import com.faforever.client.remote.domain.ServerCommand;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.remote.domain.SessionMessage;
+import com.faforever.client.remote.domain.SetPartyFactionsMessage;
 import com.faforever.client.remote.domain.UnreadyPartyMessage;
 import com.faforever.client.remote.domain.VictoryCondition;
 import com.faforever.client.remote.gson.ClientMessageTypeTypeAdapter;
@@ -601,5 +602,10 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   @Override
   public void leaveParty() {
     writeToServer(new LeavePartyMessage());
+  }
+
+  @Override
+  public void setPartyFactions(boolean[] factions) {
+    writeToServer(new SetPartyFactionsMessage(factions));
   }
 }

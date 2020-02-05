@@ -86,4 +86,6 @@ public interface FafServerAccessor {
   void unreadyParty();
 
   void leaveParty();
+
+  void setPartyFactions(boolean[] factions);
 }
