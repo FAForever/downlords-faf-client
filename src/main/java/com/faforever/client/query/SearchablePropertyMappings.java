@@ -65,7 +65,7 @@ public class SearchablePropertyMappings {
   public static final Map<String, Property> MOD_PROPERTY_MAPPING = ImmutableMap.<String, Property>builder()
       .put("displayName", new Property("mod.displayName", true))
       .put("author", new Property("mod.author", false))
-
+      .put("uploader.login", new Property("mod.uploader.login", false))
       .put("latestVersion.createTime", new Property("mod.uploadedDateTime", true))
       .put("latestVersion.updateTime", new Property("mod.updatedDateTime", false))
       .put("latestVersion.description", new Property("mod.description", false))
