@@ -18,6 +18,7 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateErrorNotification;
+import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
@@ -53,6 +54,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.jetbrains.annotations.NotNull;
@@ -78,7 +80,9 @@ import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -358,7 +362,7 @@ public class GameService implements InitializingBean {
     }
     modService.getFeaturedMod(featuredMod)
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, version, modVersions, simMods))
-        .thenCompose(aVoid -> downloadMapIfNecessary(mapName))
+        .thenCompose(aVoid -> downloadMapIfNecessary(mapName).handleAsync((ignoredResult, throwable) -> askWhetherToStartWithOutMap(throwable)))
         .thenRun(() -> {
           try {
             process = forgedAllianceService.startReplay(path, replayId);
@@ -373,6 +377,26 @@ public class GameService implements InitializingBean {
           notifyCantPlayReplay(replayId, throwable);
           return null;
         });
+  }
+
+  @SneakyThrows
+  private Void askWhetherToStartWithOutMap(Throwable throwable) {
+    JavaFxUtil.assertBackgroundThread();
+    log.warn("Something went wrong loading map for replay", throwable);
+
+    CountDownLatch userAnswered = new CountDownLatch(1);
+    AtomicReference<Boolean> proceed = new AtomicReference<>(false);
+    List<Action> actions = Arrays.asList(new Action(i18n.get("replay.ignoreMapNotFound"), event -> {
+          proceed.set(true);
+          userAnswered.countDown();
+        }),
+        new Action(i18n.get("replay.abortAfterMapNotFound"), event -> userAnswered.countDown()));
+    notificationService.addNotification(new ImmediateNotification(i18n.get("replay.mapDownloadFailed"), i18n.get("replay.mapDownloadFailed.wannaContinue"), Severity.WARN, actions));
+    userAnswered.await();
+    if (!proceed.get()) {
+      throw throwable;
+    }
+    return null;
   }
 
   private void notifyCantPlayReplay(@Nullable Integer replayId, Throwable throwable) {
