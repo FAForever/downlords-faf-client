@@ -18,7 +18,7 @@ faf-client:
 
   vault:
     rules_url: https://forums.faforever.com/viewtopic.php?f=2&t=17873
-    map_validation_url: https://api.faforever.com/maps/validate
+    map_validation_url: ${faf-client.api.base-url}/maps/validate
     mapDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/maps/%s.zip
     mapPreviewUrlFormat: ${faf-client.vault.base-url}/faf/vault/map_previews/%s/%s.png
     replayDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/replay_vault/replay.php?id=%s
