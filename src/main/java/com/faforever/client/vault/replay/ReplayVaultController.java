@@ -15,15 +15,12 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.map.MapPreviewTableCellController;
-import com.faforever.client.vault.review.Review;
 import com.google.common.base.Joiner;
-import javafx.application.Platform;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
-import javafx.scene.control.Spinner;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -37,10 +34,7 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -183,9 +177,12 @@ public class ReplayVaultController extends AbstractViewController<Node> {
       protected void updateItem(MapBean map, boolean empty) {
         super.updateItem(map, empty);
 
-        if (empty || map == null) {
+        if (empty) {
           setText(null);
           setGraphic(null);
+        } else if (map == null) {
+          setGraphic(null);
+          setText(i18n.get("map.unknown"));
         } else {
           imageView.setImage(mapService.loadPreview(map.getFolderName(), PreviewSize.SMALL));
           setGraphic(imageView);
