@@ -78,6 +78,7 @@ public class ClientProperties {
   public static class Vault {
     private String baseUrl;
     private String rulesUrl;
+    private String mapValidationUrl;
     private String mapDownloadUrlFormat;
     private String mapPreviewUrlFormat;
     private String replayDownloadUrlFormat;
