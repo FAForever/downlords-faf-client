@@ -264,6 +264,22 @@ public class Preferences {
     return prereleaseCheckEnabled;
   }
 
+  public boolean isShowPasswordProtectedGames() {
+    return showPasswordProtectedGames.get();
+  }
+
+  public void setShowPasswordProtectedGames(boolean showPasswordProtectedGames) {
+    this.showPasswordProtectedGames.set(showPasswordProtectedGames);
+  }
+
+  public boolean isShowModdedGames() {
+    return showModdedGames.get();
+  }
+
+  public void setShowModdedGames(boolean showModdedGames) {
+    this.showModdedGames.set(showModdedGames);
+  }
+
   public enum UnitDataBaseType {
     SPOOKY("unitDatabase.spooky"),
     RACKOVER("unitDatabase.rackover");
