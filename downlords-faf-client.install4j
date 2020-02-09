@@ -126,6 +126,36 @@
                 </serializedBean>
                 <condition />
               </action>
+              <action name="Kill left over ice adapters" id="621" customizedId="" beanClass="com.install4j.runtime.beans.actions.control.RunScriptAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" rollbackBarrierExitCode="0" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.control.RunScriptAction">
+                      <void property="script">
+                        <object class="com.install4j.api.beans.ScriptProperty">
+                          <void property="value">
+                            <string>ProcessBuilder builder = new ProcessBuilder(
+     "cmd.exe", "/c", "for /f \"tokens=1\" %i in ('jps -m ^| find \"faf-ice-adapter\"') do ( taskkill /F /PID %i )");
+Process p = builder.start();
+p.waitFor(10, java.util.concurrent.TimeUnit.SECONDS);
+Thread.sleep(4000);
+System.out.println("Process exitValue: " + p.exitValue());
+return true;</string>
+                          </void>
+                        </object>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+              <action name="" id="695" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" rollbackBarrierExitCode="0" multiExec="false" failureStrategy="2" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" />
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
             </actions>
             <formComponents />
           </screen>
@@ -719,6 +749,36 @@ return console.askOkCancel(message, true);
                         </object>
                       </void>
                     </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+              <action name="Kill left over ice adapters" id="694" customizedId="" beanClass="com.install4j.runtime.beans.actions.control.RunScriptAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" rollbackBarrierExitCode="0" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.control.RunScriptAction">
+                      <void property="script">
+                        <object class="com.install4j.api.beans.ScriptProperty">
+                          <void property="value">
+                            <string> ProcessBuilder builder = new ProcessBuilder(
+     "cmd.exe", "/c", "for /f \"tokens=1\" %i in ('jps -m ^| find \"faf-ice-adapter\"') do ( taskkill /F /PID %i )");
+Process p = builder.start();
+p.waitFor(10, java.util.concurrent.TimeUnit.SECONDS);
+Thread.sleep(4000);
+System.out.println("Process exitValue: " + p.exitValue());
+return true;</string>
+                          </void>
+                        </object>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+              <action name="" id="696" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" rollbackBarrierExitCode="0" multiExec="false" failureStrategy="3" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" />
                   </java>
                 </serializedBean>
                 <condition />
