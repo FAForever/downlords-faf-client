@@ -56,6 +56,11 @@ public class GameBuilder {
     return this;
   }
 
+  public GameBuilder password(String password) {
+    game.setPassword(password);
+    return this;
+  }
+
   public GameBuilder host(String host) {
     game.setHost(host);
     return this;
