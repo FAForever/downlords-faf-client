@@ -396,4 +396,12 @@ public final class JavaFxUtil {
     int newStyle = user32.GetWindowLong(hwnd, GWL_STYLE) | 0x00020000; //WS_MINIMIZEBOX
     user32.SetWindowLong(hwnd, GWL_STYLE, newStyle);
   }
+
+  public static void assureRunOnMainThread(Runnable runnable) {
+    if (Platform.isFxApplicationThread()) {
+      runnable.run();
+    } else {
+      runLater(runnable);
+    }
+  }
 }
