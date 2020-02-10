@@ -288,7 +288,7 @@ public class PlayerService implements InitializingBean {
   }
 
   private void onPlayersInfo(PlayersMessage playersMessage) {
-    playersMessage.getPlayers().forEach(this::onPlayerInfo);
+    playersMessage.getPlayers().forEach(dto -> JavaFxUtil.assureRunOnMainThread(() -> onPlayerInfo(dto)));
   }
 
   private void onFoeList(SocialMessage socialMessage) {
