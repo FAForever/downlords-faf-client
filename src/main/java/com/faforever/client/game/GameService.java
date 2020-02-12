@@ -381,6 +381,9 @@ public class GameService implements InitializingBean {
 
   @SneakyThrows
   private Void askWhetherToStartWithOutMap(Throwable throwable) {
+    if (throwable == null) {
+      return null;
+    }
     JavaFxUtil.assertBackgroundThread();
     log.warn("Something went wrong loading map for replay", throwable);
 
