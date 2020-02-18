@@ -11,8 +11,8 @@ import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Strings;
 import com.jfoenix.controls.JFXButton;
-import javafx.application.Platform;
 import javafx.beans.Observable;
+import javafx.beans.binding.BooleanBinding;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -68,7 +68,7 @@ public class PartyMemberItemController implements Controller<Node> {
   @FXML
   public Label refreshingLabel;
 
-  private PartyMember member;
+  private Player player;
 
   public PartyMemberItemController(CountryFlagService countryFlagService, AvatarService avatarService, PlayerService playerService, TeamMatchmakingService teamMatchmakingService, I18n i18n) {
     this.countryFlagService = countryFlagService;
@@ -89,8 +89,7 @@ public class PartyMemberItemController implements Controller<Node> {
   }
 
   void setMember(PartyMember member) {
-    this.member = member;
-    Player player = member.getPlayer();
+    this.player = member.getPlayer();
 
     userImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
 
@@ -108,9 +107,24 @@ public class PartyMemberItemController implements Controller<Node> {
     ratingLabel.textProperty().bind(createStringBinding(() -> i18n.get("teammatchmaking.rating", RatingUtil.getRoundedGlobalRating(player)), player.globalRatingMeanProperty(), player.globalRatingDeviationProperty()));
     gameCountLabel.textProperty().bind(createStringBinding(() -> i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()), player.numberOfGamesProperty()));
 
-    kickPlayerButton.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(playerService.currentPlayerProperty()).and(playerService.currentPlayerProperty().isNotEqualTo(player)));
 
-    // TODO: bind to sth else
+    BooleanBinding isDifferentPlayerBinding = playerService.currentPlayerProperty().isNotEqualTo(player);
+    kickPlayerButton.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(playerService.currentPlayerProperty()).and(isDifferentPlayerBinding));
+
+    aeonButton.disableProperty().bind(isDifferentPlayerBinding);
+    cybranButton.disableProperty().bind(isDifferentPlayerBinding);
+    uefButton.disableProperty().bind(isDifferentPlayerBinding);
+    seraphimButton.disableProperty().bind(isDifferentPlayerBinding);
+
+    // no binding as this would prevent the buttons from being pressed
+    teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> {
+      aeonButton.setSelected(isFactionSelectedInParty(0));
+      cybranButton.setSelected(isFactionSelectedInParty(1));
+      uefButton.setSelected(isFactionSelectedInParty(2));
+      seraphimButton.setSelected(isFactionSelectedInParty(3));
+      refreshingLabel.setVisible(false);
+    });
+
     teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> {
       boolean ready = teamMatchmakingService.getParty().getMembers().stream()
           .anyMatch(m -> m.getPlayer().getId() == player.getId() && m.isReady());
@@ -124,12 +138,17 @@ public class PartyMemberItemController implements Controller<Node> {
     });
   }
 
+  private boolean isFactionSelectedInParty(int faction) {
+    return teamMatchmakingService.getParty().getMembers().stream()
+        .anyMatch(m -> m.getPlayer().getId() == player.getId() && m.getFactions().get(faction));
+  }
+
   public void onKickPlayerButtonClicked(ActionEvent actionEvent) {
-    teamMatchmakingService.kickPlayerFromParty(this.member.getPlayer());
+    teamMatchmakingService.kickPlayerFromParty(this.player);
   }
 
   public void onFactionButtonClicked(ActionEvent actionEvent) {
-    if (!playerService.getCurrentPlayer().get().equals(this.member.getPlayer())) {
+    if (!playerService.getCurrentPlayer().get().equals(this.player)) {
       return;
     }
 
@@ -142,15 +161,6 @@ public class PartyMemberItemController implements Controller<Node> {
 
     teamMatchmakingService.setPartyFactions(factions);
 
-    //TODO: remove
     refreshingLabel.setVisible(true);
-    //TODO:NO NO NO NO
-    new Thread(() -> {
-      try {
-        Thread.sleep(300);
-      } catch (InterruptedException e) {
-      }
-      Platform.runLater(() -> refreshingLabel.setVisible(false));
-    }).start();
   }
 }
