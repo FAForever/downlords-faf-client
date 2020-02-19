@@ -42,7 +42,7 @@ public class DiscordRichPresenceService implements DisposableBean {
     this.playerService = playerService;
     this.clientProperties = clientProperties;
     this.preferencesService = preferencesService;
-    this.timer = new Timer(true);
+    this.timer = new Timer("Discord RPC", true);
     String applicationId = clientProperties.getDiscord().getApplicationId();
     if (applicationId == null) {
       return;
