@@ -111,6 +111,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   }
 
   private void displaySearchResult(List<Replay> replays, boolean append) {
+    state.set(State.RESULT);
     showroomGroup.setVisible(false);
     searchResultGroup.setVisible(true);
     loadingPane.setVisible(false);
