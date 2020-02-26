@@ -23,9 +23,11 @@ import org.testfx.util.WaitForAsyncUtils;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
 
@@ -44,11 +46,13 @@ public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
   private GameTooltipController gameTooltipController;
   @Mock
   private Controller<ImageView> imageViewController;
+  private Preferences preferences;
 
   @Before
   public void setUp() throws Exception {
     instance = new GamesTableController(mapService, joinGameHelper, i18n, uiService, preferencesService);
-    when(preferencesService.getPreferences()).thenReturn(new Preferences());
+    preferences = new Preferences();
+    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(uiService.loadFxml("theme/play/game_tooltip.fxml")).thenReturn(gameTooltipController);
     when(uiService.loadFxml("theme/vault/map/map_preview_table_cell.fxml")).thenReturn(imageViewController);
     when(gameTooltipController.getRoot()).thenReturn(new Pane());
@@ -70,6 +74,38 @@ public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
       ));
     });
     WaitForAsyncUtils.waitForFxEvents();
+  }
+
+  @Test
+  public void testPrivateGameColumnIsHidden() throws Exception {
+    preferences.setShowPasswordProtectedGames(false);
+    Platform.runLater(() -> {
+      instance.initializeGameTable(FXCollections.observableArrayList(
+          GameBuilder.create().defaultValues().get(),
+          GameBuilder.create().defaultValues().state(GameStatus.CLOSED).password("ABC").get()
+      ));
+    });
+    WaitForAsyncUtils.waitForFxEvents();
+    assertFalse(instance.passwordProtectionColumn.isVisible());
+    preferences.setShowPasswordProtectedGames(true);
+    WaitForAsyncUtils.waitForFxEvents();
+    assertTrue(instance.passwordProtectionColumn.isVisible());
+  }
+
+  @Test
+  public void testModdedGameColumnIsHidden() throws Exception {
+    preferences.setShowModdedGames(false);
+    Platform.runLater(() -> {
+      instance.initializeGameTable(FXCollections.observableArrayList(
+          GameBuilder.create().defaultValues().get(),
+          GameBuilder.create().defaultValues().state(GameStatus.CLOSED).password("ABC").get()
+      ));
+    });
+    WaitForAsyncUtils.waitForFxEvents();
+    assertFalse(instance.modsColumn.isVisible());
+    preferences.setShowModdedGames(true);
+    WaitForAsyncUtils.waitForFxEvents();
+    assertTrue(instance.modsColumn.isVisible());
   }
 
   @Test

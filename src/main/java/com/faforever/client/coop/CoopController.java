@@ -154,7 +154,7 @@ public class CoopController extends AbstractViewController<Node> {
 
         Function<String, String> coopMissionNameProvider = (mapFolderName -> coopMissionFromFolderNamer(coopMaps, mapFolderName));
 
-        gamesTableController.initializeGameTable(filteredItems, coopMissionNameProvider);
+        gamesTableController.initializeGameTable(filteredItems, coopMissionNameProvider, false);
 
         Node root = gamesTableController.getRoot();
         populateContainer(root);
