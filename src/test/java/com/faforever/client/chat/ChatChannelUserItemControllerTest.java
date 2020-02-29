@@ -28,7 +28,6 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -111,7 +110,6 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.getRoot().getParent(), is(nullValue()));
   }
 
-  @Ignore("Randomly failing test")
   @Test
   public void testSetChatUser() throws Exception {
     Player player = PlayerBuilder.create("junit")
@@ -119,8 +117,8 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
         .clan("e")
         .avatar(new AvatarBean(new URL("http://example.com/avatar.png"), "dog"))
         .get();
-    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().setPlayer(player).get());
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
+    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().setPlayer(player).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.clanMenu.getText(), is("[e]"));
@@ -239,16 +237,16 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnContextMenuRequested() {
+    ChatUserContextMenuController contextMenuController = mock(ChatUserContextMenuController.class);
+    ContextMenu contextMenu = mock(ContextMenu.class);
+    when(contextMenuController.getContextMenu()).thenReturn(contextMenu);
+    when(uiService.loadFxml("theme/chat/chat_user_context_menu.fxml")).thenReturn(contextMenuController);
+
     WaitForAsyncUtils.asyncFx(() -> getRoot().getChildren().setAll(instance.chatUserItemRoot));
 
     ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit").defaultValues().get();
     instance.setChatUser(chatUser);
     WaitForAsyncUtils.waitForFxEvents();
-
-    ChatUserContextMenuController contextMenuController = mock(ChatUserContextMenuController.class);
-    ContextMenu contextMenu = mock(ContextMenu.class);
-    when(contextMenuController.getContextMenu()).thenReturn(contextMenu);
-    when(uiService.loadFxml("theme/chat/chat_user_context_menu.fxml")).thenReturn(contextMenuController);
 
     ContextMenuEvent event = mock(ContextMenuEvent.class);
     instance.onContextMenuRequested(event);
@@ -289,8 +287,8 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
         .clan("e")
         .avatar(new AvatarBean(new URL("http://example.com/avatar.png"), "dog"))
         .get();
-    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().setPlayer(player).get());
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(otherClanLeader));
+    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().setPlayer(player).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     ObservableList<MenuItem> items = instance.clanMenu.getItems();
@@ -300,7 +298,6 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  @Ignore("has async issues")
   public void testContactClanLeaderShowingOtherClan() throws Exception {
     Player player = PlayerBuilder.create("junit")
         .defaultValues()
@@ -312,8 +309,8 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
         .clan("not")
         .avatar(new AvatarBean(new URL("http://example.com/avatar.png"), "dog"))
         .get();
-    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().setPlayer(player).get());
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(otherClanLeader));
+    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().setPlayer(player).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     ObservableList<MenuItem> items = instance.clanMenu.getItems();
