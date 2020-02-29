@@ -912,7 +912,7 @@
 /***************** Create game *****************/
 
 .game-title-input {
-  -fx-font-size: 2em;
+  -fx-font-size: 0.8cm;
 }
 
 /***************** Settings window *****************/
