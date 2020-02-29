@@ -48,7 +48,7 @@
           <versionLine x="539" y="378" text="v${compiler:sys.version}" fontSize="10" fontColor="255,255,255" bold="true" />
         </text>
       </splashScreen>
-      <java mainClass="com.faforever.client.Main" mainMode="1" vmParameters="-DnativeDir=natives -Dprism.dirtyopts=false -XX:+HeapDumpOnOutOfMemoryError -javaagent:lib/webview-patch.jar" arguments="" allowVMPassthroughParameters="true" preferredVM="client" bundleRuntime="true">
+      <java mainClass="com.faforever.client.Main" mainMode="1" vmParameters="-DnativeDir=natives -Dprism.dirtyopts=false -XX:+HeapDumpOnOutOfMemoryError -javaagent:lib/webview-patch.jar -Djava.net.preferIPv4Stack=true" arguments="" allowVMPassthroughParameters="true" preferredVM="client" bundleRuntime="true">
         <classPath>
           <scanDirectory location="lib" failOnError="true" />
         </classPath>
