@@ -81,7 +81,9 @@ public class ModCardController implements Controller<Node> {
     this.modVersion = modVersion;
     thumbnailImageView.setImage(modService.loadThumbnail(modVersion));
     nameLabel.setText(modVersion.getDisplayName());
-    authorLabel.setText(modVersion.getUploader());
+    if (modVersion.getMod() != null) {
+      authorLabel.setText(modVersion.getMod().getAuthor());
+    }
     createdLabel.setText(timeService.asDate(modVersion.getCreateTime()));
     typeLabel.setText(modVersion.getModType() != null ? i18n.get(modVersion.getModType().getI18nKey()) : "");
 

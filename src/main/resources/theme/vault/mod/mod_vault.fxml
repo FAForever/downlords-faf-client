@@ -72,13 +72,13 @@
                                 <FlowPane fx:id="newestPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                           prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
                                           GridPane.rowIndex="3"/>
-                                <Label styleClass="h2" text="%modVault.highestRated" GridPane.rowIndex="6"/>
+                                <Label styleClass="h2" text="%modVault.highestRated" GridPane.rowIndex="4"/>
                                 <JFXButton mnemonicParsing="false" onAction="#showMoreHighestRatedMods"
                                            styleClass="button-raised"
-                                           text="%more" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+                                           text="%more" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
                                 <FlowPane fx:id="highestRatedPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                           prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
-                                          GridPane.rowIndex="7"/>
+                                          GridPane.rowIndex="5"/>
                             </children>
                         </GridPane>
                         <VBox fx:id="searchResultGroup" alignment="TOP_CENTER" spacing="10.0">

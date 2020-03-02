@@ -90,6 +90,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetMod() {
+    when(i18n.get("modVault.details.author", "ModVersion author")).thenReturn("ModVersion author");
     ModVersion modVersion = ModInfoBeanBuilder.create()
         .defaultValues()
         .name("ModVersion name")

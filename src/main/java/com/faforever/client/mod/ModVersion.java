@@ -133,6 +133,7 @@ public class ModVersion {
     Mod mod = Optional.ofNullable(parent)
         .orElseGet(() -> Mod.fromDto(dto.getMod()));
     modVersionVersion.setMod(mod);
+    Optional.ofNullable(mod.getUploader()).ifPresent(uploader -> modVersionVersion.setUploader(uploader.getLogin()));
     return modVersionVersion;
   }
 
@@ -158,6 +159,7 @@ public class ModVersion {
             .map(Review::fromDto)
             .collect(Collectors.toList()));
     modVersion.setModType(ModType.fromDto(modVersionVersion.getType()));
+    modVersion.setMod(Mod.fromDto(dto));
     return modVersion;
   }
 
