@@ -56,7 +56,7 @@
                 <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
                     <children>
                         <ListView fx:id="chatUserListView" maxHeight="1.7976931348623157E308"
-                                  maxWidth="1.7976931348623157E308" styleClass="chat-user-list-view"
+                                  maxWidth="1.7976931348623157E308" styleClass="chat-user-list-view,  big-scroll-bar"
                                   AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                                   AnchorPane.topAnchor="0.0">
                         </ListView>

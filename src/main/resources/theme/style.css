@@ -312,6 +312,11 @@
   -fx-padding: 0;
 }
 
+.big-scroll-bar .scroll-bar {
+  -fx-pref-width: 0.4cm;
+  -fx-pref-height: 0.4cm;
+}
+
 .scroll-bar:vertical > .track-background, .scroll-bar:horizontal > .track-background {
   -fx-background-color: -grey-800;
   -fx-background-insets: 0;
@@ -323,9 +328,12 @@
   -fx-background-radius: 3;
 }
 
-.scroll-bar:vertical > .thumb:hover, .scroll-bar:horizontal > .thumb:hover,
-.scroll-bar:vertical > .thumb:pressed, .scroll-bar:horizontal > .thumb:pressed {
+.scroll-bar:vertical > .thumb:hover, .scroll-bar:horizontal > .thumb:hover {
   -fx-background-color: -grey-600;
+}
+
+.scroll-bar:vertical > .thumb:pressed, .scroll-bar:horizontal > .thumb:pressed {
+  -fx-background-color: -grey-500;
 }
 
 .scroll-bar > .increment-button, .scroll-bar > .decrement-button,

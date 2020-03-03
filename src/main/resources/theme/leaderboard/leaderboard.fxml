@@ -21,16 +21,17 @@
                                  promptText="%ladder.searchPrompt" HBox.hgrow="ALWAYS"/>
                </children>
             </HBox>
-        <TableView fx:id="ratingTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS">
+        <TableView fx:id="ratingTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                   minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS" styleClass="big-scroll-bar">
           <columns>
-            <TableColumn fx:id="rankColumn" text="Rank" />
-            <TableColumn fx:id="nameColumn" text="Name" />
+            <TableColumn fx:id="rankColumn" text="Rank"/>
+            <TableColumn fx:id="nameColumn" text="Name"/>
             <TableColumn fx:id="winLossColumn" text="Win/Loss Ratio" visible="false"/>
-            <TableColumn fx:id="gamesPlayedColumn" text="Games Played" />
-            <TableColumn fx:id="ratingColumn" text="Rating" />
+            <TableColumn fx:id="gamesPlayedColumn" text="Games Played"/>
+            <TableColumn fx:id="ratingColumn" text="Rating"/>
           </columns>
           <columnResizePolicy>
-            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
           </columnResizePolicy>
         </TableView>
       </children>
