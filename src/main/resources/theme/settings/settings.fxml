@@ -522,15 +522,11 @@
                                                 </GridPane>
                                             </children>
                                         </VBox>
-                                        <Label styleClass="h2" text="%settings.account.steamAccount"
-                                               GridPane.columnSpan="2147483647"/>
-                                        <JFXTextField fx:id="steamAccountField" disable="true"
-                                                      maxWidth="1.7976931348623157E308" minWidth="0.0"
-                                                      promptText="%settings.account.steamAccount.prompt"
-                                                      GridPane.rowIndex="1"/>
-                                        <JFXButton disable="true" mnemonicParsing="false"
-                                                   text="%settings.account.steamAccount.linkToSteam"
-                                                   GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                                        <Label styleClass="h2" text="%settings.account.goWebsite"
+                                               GridPane.columnSpan="2147483647" wrapText="true"/>
+                                        <JFXButton onAction="#openWebsite" text="%settings.account.goWebsiteButton"
+                                                   maxWidth="1.7976931348623157E308" minWidth="0.0"
+                                                   GridPane.rowIndex="1"/>
                                         <Label styleClass="h2" text="%settings.account.changePassword"
                                                GridPane.columnSpan="2147483647" GridPane.rowIndex="2">
                                             <GridPane.margin>

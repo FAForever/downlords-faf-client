@@ -523,5 +523,9 @@ public class SettingsController implements Controller<Node> {
   public void openDiscordFeedbackChannel() {
     platformService.showDocument(clientProperties.getDiscord().getDiscordPrereleaseFeedbackChannelUrl());
   }
+
+  public void openWebsite() {
+    platformService.showDocument(clientProperties.getWebsite().getBaseUrl());
+  }
 }
 
