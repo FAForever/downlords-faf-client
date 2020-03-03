@@ -30,69 +30,33 @@
 <div id="imageLoadingDiv">
   <style>
     .loader {
-      width: 100px;
-      height: 100px;
+      width: 50px;
+      height: 50px;
     }
 
-    .circular{
-      animation: rotate 2s linear infinite;
-      height: 100px;
-      position: relative;
-      width: 100px;
+    .loader {
+      border: 8px solid transparent;
+      border-top: 8px solid #009688;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 2s linear infinite;
     }
 
-    .path {
-      stroke-dasharray: 1px,200px;
-      stroke-dashoffset: 0;
-      animation:
-          dash 1.5s ease-in-out infinite,
-          color 6s ease-in-out infinite
-    ;
-      stroke-linecap: round;
-    }
-
-    @keyframes rotate{
-      100%{
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
         transform: rotate(360deg);
       }
     }
-    @keyframes dash{
-      0%{
-        stroke-dasharray: 1px,200px;
-        stroke-dashoffset: 0;
-      }
-      50%{
-        stroke-dasharray: 89px,200px;
-        stroke-dashoffset: -35;
-      }
-      100%{
-        stroke-dasharray: 89px,200px;
-        stroke-dashoffset: -124;
-      }
-    }
-    @keyframes color{
-      100%, 0%{
-        stroke: #d62d20;
-      }
-      40%{
-        stroke: #0057e7;
-      }
-      66%{
-        stroke: #008744;
-      }
-      80%, 90%{
-        stroke: #ffa700;
-      }
-    }
   </style>
-  <div class="loader">
-    <svg class="circular">
-      <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="2" stroke-miterlimit="10"/>
-    </svg>
+  <div class="loader" id="loader">
   </div>
 </div>
 
-<img src="{tournament-image}" class="slow-image" onload="document.getElementById('imageLoadingDiv').style.display='none'">
+<img class="slow-image" onload="document.getElementById('loader').style.display='none'" src="{tournament-image}">
 
 </body>
 </html>
