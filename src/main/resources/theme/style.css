@@ -753,7 +753,7 @@
   -fx-border-width: 0 0 2 0;
 }
 
-.main-navigation-top:minimized {
+.main-navigation-top:restored {
   /* Same as height of close button */
   -fx-padding: 20 100 0 15;
 }

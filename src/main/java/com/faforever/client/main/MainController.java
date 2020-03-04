@@ -106,7 +106,7 @@ public class MainController implements Controller<Node> {
   private static final PseudoClass NOTIFICATION_ERROR_PSEUDO_CLASS = PseudoClass.getPseudoClass("error");
   private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
   @VisibleForTesting
-  protected static final PseudoClass MAIN_MINIMIZED = PseudoClass.getPseudoClass("minimized");
+  protected static final PseudoClass MAIN_WINDOW_RESTORED = PseudoClass.getPseudoClass("restored");
   private final Cache<NavigationItem, AbstractViewController<?>> viewCache;
   private final PreferencesService preferencesService;
   private final I18n i18n;
@@ -207,7 +207,7 @@ public class MainController implements Controller<Node> {
   private void listenOnMinimizedToSetExtraDragBar() {
     WindowPrefs windowPrefs = preferencesService.getPreferences()
         .getMainWindow();
-    InvalidationListener invalidationListener = observable -> mainHeaderPane.pseudoClassStateChanged(MAIN_MINIMIZED, !windowPrefs.getMaximized());
+    InvalidationListener invalidationListener = observable -> mainHeaderPane.pseudoClassStateChanged(MAIN_WINDOW_RESTORED, !windowPrefs.getMaximized());
     JavaFxUtil.addListener(windowPrefs.maximizedProperty(), invalidationListener);
     invalidationListener.invalidated(windowPrefs.maximizedProperty());
   }
