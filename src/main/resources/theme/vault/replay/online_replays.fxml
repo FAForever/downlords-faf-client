@@ -51,17 +51,23 @@
                                 <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
                             </rowConstraints>
                             <children>
-                                <Label styleClass="h2" text="%vault.replays.newest"/>
-                                <JFXButton mnemonicParsing="false" onAction="#onMoreNewestButtonClicked"
+                                <Label styleClass="h2" text="%vault.replays.ownReplays" GridPane.rowIndex="0"/>
+                                <JFXButton mnemonicParsing="false" onAction="#onMoreOwnButtonClicked"
                                            styleClass="button-raised" text="%more" GridPane.columnIndex="1"/>
-                                <VBox fx:id="newestPane" spacing="10.0" GridPane.columnSpan="2147483647"
+                                <VBox fx:id="ownReplaysPane" spacing="10.0" GridPane.columnSpan="2147483647"
                                       GridPane.rowIndex="1"/>
-                                <Label styleClass="h2" text="%vault.replays.highestRated" GridPane.rowIndex="2"/>
-                                <JFXButton mnemonicParsing="false" onAction="#onMoreHighestRatedButtonClicked"
+                                <Label styleClass="h2" text="%vault.replays.newest" GridPane.rowIndex="2"/>
+                                <JFXButton mnemonicParsing="false" onAction="#onMoreNewestButtonClicked"
                                            styleClass="button-raised" text="%more" GridPane.columnIndex="1"
                                            GridPane.rowIndex="2"/>
-                                <VBox fx:id="highestRatedPane" spacing="10.0" GridPane.columnSpan="2147483647"
+                                <VBox fx:id="newestPane" spacing="10.0" GridPane.columnSpan="2147483647"
                                       GridPane.rowIndex="3"/>
+                                <Label styleClass="h2" text="%vault.replays.highestRated" GridPane.rowIndex="4"/>
+                                <JFXButton mnemonicParsing="false" onAction="#onMoreHighestRatedButtonClicked"
+                                           styleClass="button-raised" text="%more" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="4"/>
+                                <VBox fx:id="highestRatedPane" spacing="10.0" GridPane.columnSpan="2147483647"
+                                      GridPane.rowIndex="5"/>
                             </children>
                         </GridPane>
                         <VBox fx:id="searchResultGroup" spacing="10.0">

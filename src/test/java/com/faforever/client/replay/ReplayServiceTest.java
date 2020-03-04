@@ -18,32 +18,27 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.FakeTestException;
+import com.faforever.client.user.UserService;
+import com.faforever.client.vault.search.SearchController.SortConfig;
+import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.replay.ReplayData;
-
-import okio.Options;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
 
-import java.io.BufferedInputStream;
-import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
-import java.nio.file.Watchable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -51,9 +46,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
@@ -65,14 +58,12 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -152,12 +143,14 @@ public class ReplayServiceTest {
   private ApplicationEventPublisher publisher;
   @Mock
   private ExecutorService executorService;
+  @Mock
+  private UserService userService;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new ReplayService(new ClientProperties(), preferencesService, replayFileReader, notificationService, gameService, playerService,
+    instance = new ReplayService(new ClientProperties(), preferencesService, userService, replayFileReader, notificationService, gameService, playerService,
         taskService, i18n, reportingService, applicationContext, platformService, fafService, modService, mapService, publisher, executorService);
 
     when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath());
@@ -362,6 +355,23 @@ public class ReplayServiceTest {
 
     expectedException.expect(FakeTestException.class);
     instance.runReplay(replay);
+  }
+
+  @Test
+  public void testOwnReplays() throws Exception {
+    ArgumentCaptor<String> queryCatcher = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<Integer> pageSizeCatcher = ArgumentCaptor.forClass(Integer.class);
+    ArgumentCaptor<Integer> pageCatcher = ArgumentCaptor.forClass(Integer.class);
+    ArgumentCaptor<SortConfig> sortCatcher = ArgumentCaptor.forClass(SortConfig.class);
+    when(userService.getUserId()).thenReturn(47);
+    when(fafService.findReplaysByQuery(queryCatcher.capture(), pageSizeCatcher.capture(), pageCatcher.capture(), sortCatcher.capture())).thenReturn(CompletableFuture.completedFuture(null));
+    CompletableFuture<List<Replay>> ownReplays = instance.getOwnReplays(100, 1);
+    ownReplays.get();
+    assertEquals("playerStats.player.id==\"47\"", queryCatcher.getValue());
+    assertEquals(100, (int) pageSizeCatcher.getValue());
+    assertEquals(1, (int) pageCatcher.getValue());
+    assertEquals(SortOrder.DESC, sortCatcher.getValue().getSortOrder());
+    assertEquals("startTime", sortCatcher.getValue().getSortProperty());
   }
 
   @Test
