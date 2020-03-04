@@ -59,6 +59,7 @@ public class SearchablePropertyMappings {
       .put("latestVersion.height", new Property("map.height", true))
       .put("latestVersion.folderName", new Property("map.folderName", false))
       .put("latestVersion.ranked", new Property("map.ranked", true))
+      .put("latestVersion.id", new Property("map.versionId", false))
 
       .build();
 
