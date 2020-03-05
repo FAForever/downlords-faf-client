@@ -20,6 +20,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Optional;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 public class GamePathHandler implements InitializingBean {
@@ -55,30 +58,47 @@ public class GamePathHandler implements InitializingBean {
   @Subscribe
   public void onGameDirectoryChosenEvent(GameDirectoryChosenEvent event) {
     Path path = event.getPath();
+    Optional<CompletableFuture<Path>> future = event.getFuture();
 
-    if (path == null || !Files.isDirectory(path)) {
-      notificationService.addNotification(new ImmediateNotification(i18n.get("gameChosen.invalidPath"), i18n.get("gameChosen.couldNotLocatedGame"), Severity.WARN));
+    if (path == null) {
+      notificationService.addNotification(new ImmediateNotification(i18n.get("gameSelect.select.invalidPath"), i18n.get("gamePath.select.noneChosen"), Severity.WARN));
+      future.ifPresent(pathCompletableFuture -> pathCompletableFuture.completeExceptionally(new CancellationException("User cancelled")));
       return;
     }
 
-    if (!Files.isRegularFile(path.resolve(PreferencesService.FORGED_ALLIANCE_EXE)) && !Files.isRegularFile(path.resolve(PreferencesService.SUPREME_COMMANDER_EXE))) {
-      onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(path.resolve("bin")));
-      return;
+    Path pathWithBin = path.resolve("bin");
+    if (Files.isDirectory(pathWithBin)) {
+      path = pathWithBin;
     }
-
     // At this point, path points to the "bin" directory
     Path gamePath = path.getParent();
+
+    String gamePathValidWithError;
+    try {
+      gamePathValidWithError = preferencesService.isGamePathValidWithError(gamePath);
+    } catch (Exception e) {
+      notificationService.addImmediateErrorNotification(e, "gamePath.select.error");
+      future.ifPresent(pathCompletableFuture -> pathCompletableFuture.completeExceptionally(e));
+      return;
+    }
+    if (gamePathValidWithError != null) {
+      notificationService.addNotification(new ImmediateNotification(i18n.get("gameSelect.select.invalidPath"), i18n.get(gamePathValidWithError), Severity.WARN));
+      future.ifPresent(pathCompletableFuture -> pathCompletableFuture.completeExceptionally(new IllegalArgumentException("Invalid path")));
+      return;
+    }
+
 
     logger.info("Found game path at {}", gamePath);
     preferencesService.getPreferences().getForgedAlliance().setInstallationPath(gamePath);
     preferencesService.storeInBackground();
+    future.ifPresent(pathCompletableFuture -> pathCompletableFuture.complete(gamePath));
   }
 
 
   private void detectGamePath() {
     for (Path path : USUAL_GAME_PATHS) {
       if (preferencesService.isGamePathValid(path.resolve("bin"))) {
-        onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(path));
+        onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(path, Optional.empty()));
         return;
       }
     }
