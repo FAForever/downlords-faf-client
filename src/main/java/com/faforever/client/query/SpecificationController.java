@@ -89,6 +89,7 @@ public class SpecificationController implements Controller<Node> {
           .put(Enum.class, Arrays.asList(EQ, NE, IN, NIN))
           .put(ComparableVersion.class, Arrays.asList(EQ, NE, GT, GTE, LT, LTE, IN, NIN))
           .build();
+  public static final String ID_PROPERTY_NAME = "id";
 
   private final I18n i18n;
   private final FilteredList<ComparisonOperator> comparisonOperators;
@@ -178,6 +179,11 @@ public class SpecificationController implements Controller<Node> {
   }
 
   private boolean isOperatorApplicable(ComparisonOperator comparisonOperator, String propertyName) {
+    if (propertyName.endsWith(String.format(".%s", ID_PROPERTY_NAME)) || propertyName.equals(ID_PROPERTY_NAME)) {
+      //Because the dto's id property is String but is internally mapped to an int we need to do a small hack here
+      return VALID_OPERATORS.get(Number.class).contains(comparisonOperator);
+    }
+
     Class<?> propertyClass = ClassUtils.resolvePrimitiveIfNecessary(getPropertyClass(propertyName));
 
     for (Class<?> aClass : VALID_OPERATORS.keySet()) {
@@ -282,6 +288,11 @@ public class SpecificationController implements Controller<Node> {
   }
 
   private Property getProperty(QBuilder<?> qBuilder, String property, Class<?> fieldType) {
+    if (property.endsWith(String.format(".%s", ID_PROPERTY_NAME)) || property.equals(ID_PROPERTY_NAME)) {
+      //Because the dto's id property is String but is internally mapped to an int we need to do a small hack here
+      return qBuilder.intNum(property);
+    }
+
     Property prop;
     if (ClassUtils.isAssignable(Number.class, fieldType)) {
       prop = qBuilder.intNum(property);
