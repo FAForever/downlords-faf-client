@@ -287,7 +287,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
       preferences.getMainWindow().setMaximized(false);
     });
     WaitForAsyncUtils.waitForFxEvents();
-    assertThat(instance.mainHeaderPane.getPseudoClassStates(), hasItem(MainController.MAIN_MINIMIZED));
+    assertThat(instance.mainHeaderPane.getPseudoClassStates(), hasItem(MainController.MAIN_WINDOW_RESTORED));
   }
 
   @Test
@@ -297,7 +297,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
       preferences.getMainWindow().setMaximized(true);
     });
     WaitForAsyncUtils.waitForFxEvents();
-    assertThat(instance.mainHeaderPane.getPseudoClassStates(), not(hasItem(MainController.MAIN_MINIMIZED)));
+    assertThat(instance.mainHeaderPane.getPseudoClassStates(), not(hasItem(MainController.MAIN_WINDOW_RESTORED)));
   }
 
   @Test
