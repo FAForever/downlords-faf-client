@@ -27,7 +27,9 @@ import com.faforever.client.replay.Replay.ChatMessage;
 import com.faforever.client.replay.Replay.GameOption;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.user.UserService;
 import com.faforever.client.vault.search.SearchController.SortConfig;
+import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.replay.ReplayData;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
@@ -115,6 +117,7 @@ public class ReplayService {
 
   private final ClientProperties clientProperties;
   private final PreferencesService preferencesService;
+  private final UserService userService;
   private final ReplayFileReader replayFileReader;
   private final NotificationService notificationService;
   private final GameService gameService;
@@ -523,5 +526,10 @@ public class ReplayService {
   public void onDiscordGameJoinEvent(DiscordSpectateEvent discordSpectateEvent) {
     Integer replayId = discordSpectateEvent.getReplayId();
     runLiveReplay(replayId);
+  }
+
+  public CompletableFuture<List<Replay>> getOwnReplays(int maxResults, int page) {
+    SortConfig sortConfig = new SortConfig("startTime", SortOrder.DESC);
+    return getReplaysForPlayer(userService.getUserId(), maxResults, page, sortConfig);
   }
 }

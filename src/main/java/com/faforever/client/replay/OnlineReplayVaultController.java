@@ -74,6 +74,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   public ScrollPane scrollPane;
   public SearchController searchController;
   public Button moreButton;
+  public VBox ownReplaysPane;
 
   private ReplayDetailController replayDetailController;
   private int currentPage;
@@ -171,14 +172,14 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
             }
           }
         });
-        loadNewestReplays();
+        loadPreselectedReplays();
       } else {
         onShowReplayEvent((ShowReplayEvent) navigateEvent);
       }
     } else if (navigateEvent instanceof ShowUserReplaysEvent) {
       onShowUserReplaysEvent((ShowUserReplaysEvent) navigateEvent);
     } else if (state.get() == State.UNINITIALIZED) {
-      loadNewestReplays();
+      loadPreselectedReplays();
     }
   }
 
@@ -241,19 +242,20 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     if (newestReplaysLoaded) {
       enterResultState();
     } else {
-      loadNewestReplays();
+      loadPreselectedReplays();
     }
   }
 
   public void onRefreshButtonClicked() {
-    loadNewestReplays();
+    loadPreselectedReplays();
   }
 
-  private void loadNewestReplays() {
+  private void loadPreselectedReplays() {
     enterSearchingState();
     replayService.getNewestReplays(TOP_ELEMENT_COUNT, 1)
         .thenAccept(replays -> populateReplays(replays, newestPane))
         .thenCompose(aVoid -> replayService.getHighestRatedReplays(TOP_ELEMENT_COUNT, 1).thenAccept(highestRatedReplays -> populateReplays(highestRatedReplays, highestRatedPane)))
+        .thenCompose(aVoid -> replayService.getOwnReplays(TOP_ELEMENT_COUNT, 1).thenAccept(highestRatedReplays -> populateReplays(highestRatedReplays, ownReplaysPane)))
         .thenRun(this::enterResultState)
         .exceptionally(throwable -> {
           logger.warn("Could not populate replays", throwable);
@@ -288,6 +290,11 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
           enterResultState();
           return null;
         });
+  }
+
+  public void onMoreOwnButtonClicked() {
+    enterSearchingState();
+    displayReplaysFromSupplier(() -> replayService.getOwnReplays(TOP_MORE_ELEMENT_COUNT, currentPage++));
   }
 
   private enum State {
