@@ -36,6 +36,7 @@ import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeUtil;
 import com.google.common.annotations.VisibleForTesting;
@@ -298,6 +299,11 @@ public class GameService implements InitializingBean {
       return completedFuture(null);
     }
 
+    if (!preferencesService.isGamePathValid()) {
+      CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
+      return gameDirectoryFuture.thenCompose(path -> hostGame(newGameInfo));
+    }
+
     stopSearchLadder1v1();
 
     return updateGameIfNecessary(newGameInfo.getFeaturedMod(), null, emptyMap(), newGameInfo.getSimMods())
@@ -310,6 +316,11 @@ public class GameService implements InitializingBean {
     if (isRunning()) {
       log.debug("Game is running, ignoring join request");
       return completedFuture(null);
+    }
+
+    if (!preferencesService.isGamePathValid()) {
+      CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
+      return gameDirectoryFuture.thenCompose(path -> joinGame(game, password));
     }
 
     log.info("Joining game: '{}' ({})", game.getTitle(), game.getId());
@@ -360,6 +371,13 @@ public class GameService implements InitializingBean {
       log.warn("Forged Alliance is already running, not starting replay");
       return;
     }
+
+    if (!preferencesService.isGamePathValid()) {
+      CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
+      gameDirectoryFuture.thenAccept(pathSet -> runWithReplay(path, replayId, featuredMod, version, modVersions, simMods, mapName));
+      return;
+    }
+
     modService.getFeaturedMod(featuredMod)
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, version, modVersions, simMods))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapName).handleAsync((ignoredResult, throwable) -> askWhetherToStartWithOutMap(throwable)))
@@ -377,6 +395,13 @@ public class GameService implements InitializingBean {
           notifyCantPlayReplay(replayId, throwable);
           return null;
         });
+  }
+
+  @NotNull
+  private CompletableFuture<Path> postGameDirectoryChooseEvent() {
+    CompletableFuture<Path> gameDirectoryFuture = new CompletableFuture<>();
+    eventBus.post(new GameDirectoryChooseEvent(gameDirectoryFuture));
+    return gameDirectoryFuture;
   }
 
   @SneakyThrows
@@ -416,6 +441,11 @@ public class GameService implements InitializingBean {
     if (isRunning()) {
       log.warn("Forged Alliance is already running, not starting live replay");
       return completedFuture(null);
+    }
+
+    if (!preferencesService.isGamePathValid()) {
+      CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
+      return gameDirectoryFuture.thenCompose(path -> runWithLiveReplay(replayUrl, gameId, gameType, mapName));
     }
 
     Game gameBean = getByUid(gameId);
@@ -458,6 +488,11 @@ public class GameService implements InitializingBean {
     if (isRunning()) {
       log.debug("Game is running, ignoring 1v1 search request");
       return completedFuture(null);
+    }
+
+    if (!preferencesService.isGamePathValid()) {
+      CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
+      return gameDirectoryFuture.thenCompose(path -> startSearchLadder1v1(faction));
     }
 
     searching1v1.set(true);
@@ -849,6 +884,13 @@ public class GameService implements InitializingBean {
   }
 
   public void launchTutorial(MapBean mapVersion, String technicalMapName) {
+
+    if (!preferencesService.isGamePathValid()) {
+      CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
+      gameDirectoryFuture.thenAccept(path -> launchTutorial(mapVersion, technicalMapName));
+      return;
+    }
+
     modService.getFeaturedMod(TUTORIALS.getTechnicalName())
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapVersion.getFolderName()))

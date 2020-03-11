@@ -4,7 +4,9 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -32,6 +34,7 @@ public class ClientProperties {
   private boolean showIceAdapterDebugWindow;
   private String statusPageUrl;
   private Map<String, String> links = new HashMap<>();
+  private List<String> vanillaGameHashes = new ArrayList<>();
 
   @Data
   public static class News {

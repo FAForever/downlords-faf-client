@@ -18,7 +18,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -68,7 +67,6 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
 
   private Integer version;
 
-  @Inject
   public GameBinariesUpdateTaskImpl(I18n i18n, PreferencesService preferencesService, PlatformService platformService, ClientProperties clientProperties) {
     super(Priority.HIGH);
 

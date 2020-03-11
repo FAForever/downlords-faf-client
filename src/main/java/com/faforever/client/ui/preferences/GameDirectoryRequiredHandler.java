@@ -15,7 +15,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.lang.invoke.MethodHandles;
+import java.nio.file.Path;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static javafx.application.Platform.runLater;
 
@@ -28,6 +30,7 @@ public class GameDirectoryRequiredHandler implements InitializingBean {
 
   private final EventBus eventBus;
   private final I18n i18n;
+  private CompletableFuture<Path> future;
 
   @Override
   public void afterPropertiesSet() {
@@ -43,7 +46,10 @@ public class GameDirectoryRequiredHandler implements InitializingBean {
 
       logger.info("User selected game directory: {}", result);
 
-      eventBus.post(new GameDirectoryChosenEvent(Optional.ofNullable(result).map(File::toPath).orElse(null)));
+      Path path = Optional.ofNullable(result).map(File::toPath).orElse(null);
+      eventBus.post(new GameDirectoryChosenEvent(path, event.getFuture()));
+
     });
   }
+
 }

@@ -36,6 +36,9 @@ faf-client:
     spookiesUrl: https://spooky.github.io/unitdb/#/
     rackOversUrl: https://unitdb.faforever.com?settings64=eyJwcmV2aWV3Q29ybmVyIjoiTm9uZSJ9
 
+  vanillaGameHashes:
+    - 1AFBCD0CA85546470660FA8AC09B230E870EC65C8D1B33FEB6731BB5D4C366C5
+
   map-generator:
     repoAndOwnerName: FAForever/Neroxis-Map-Generator
     queryLatestVersionUrl: https://api.github.com/repos/${faf-client.map-generator.repoAndOwnerName}/releases/latest

@@ -12,8 +12,12 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.nio.file.Paths;
+import java.nio.file.Path;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
@@ -35,13 +39,17 @@ public class GamePathHandlerTest {
 
   @Test
   public void testNotificationOnEmptyString() throws Exception {
-    instance.onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(Paths.get("")));
+    CompletableFuture<Path> completableFuture = new CompletableFuture<>();
+    instance.onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(null, Optional.of(completableFuture)));
     verify(notificationService).addNotification(any(ImmediateNotification.class));
+    assertThat(completableFuture.isCompletedExceptionally(), is(true));
   }
 
   @Test
   public void testNotificationOnNull() throws Exception {
-    instance.onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(null));
+    CompletableFuture<Path> completableFuture = new CompletableFuture<>();
+    instance.onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(null, Optional.of(completableFuture)));
     verify(notificationService).addNotification(any(ImmediateNotification.class));
+    assertThat(completableFuture.isCompletedExceptionally(), is(true));
   }
 }

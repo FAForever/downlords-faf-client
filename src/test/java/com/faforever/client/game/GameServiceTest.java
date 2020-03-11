@@ -26,6 +26,7 @@ import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.SimpleObjectProperty;
@@ -147,6 +148,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     Preferences preferences = new Preferences();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
+    when(preferencesService.isGamePathValid()).thenReturn(true);
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     when(replayService.start(anyInt(), any())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
     when(iceAdapter.start()).thenReturn(completedFuture(GPG_PORT));
@@ -528,5 +530,47 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     WaitForAsyncUtils.waitForFxEvents();
     verify(notificationService).addNotification(any(PersistentNotification.class));
+  }
+
+  @Test
+  public void testGameHostIfNoGameSet() {
+    when(preferencesService.isGamePathValid()).thenReturn(false);
+    instance.hostGame(null);
+    verify(eventBus).post(any(GameDirectoryChooseEvent.class));
+  }
+
+  @Test
+  public void runWithLiveReplayIfNoGameSet() {
+    when(preferencesService.isGamePathValid()).thenReturn(false);
+    instance.runWithLiveReplay(null, null, null, null);
+    verify(eventBus).post(any(GameDirectoryChooseEvent.class));
+  }
+
+  @Test
+  public void startSearchLadder1v1IfNoGameSet() {
+    when(preferencesService.isGamePathValid()).thenReturn(false);
+    instance.startSearchLadder1v1(null);
+    verify(eventBus).post(any(GameDirectoryChooseEvent.class));
+  }
+
+  @Test
+  public void joinGameIfNoGameSet() {
+    when(preferencesService.isGamePathValid()).thenReturn(false);
+    instance.joinGame(null, null);
+    verify(eventBus).post(any(GameDirectoryChooseEvent.class));
+  }
+
+  @Test
+  public void runWithReplayIfNoGameSet() {
+    when(preferencesService.isGamePathValid()).thenReturn(false);
+    instance.runWithReplay(null, null, null, null, null, null, null);
+    verify(eventBus).post(any(GameDirectoryChooseEvent.class));
+  }
+
+  @Test
+  public void launchTutorialIfNoGameSet() {
+    when(preferencesService.isGamePathValid()).thenReturn(false);
+    instance.launchTutorial(null, null);
+    verify(eventBus).post(any(GameDirectoryChooseEvent.class));
   }
 }
