@@ -925,20 +925,10 @@
 
 /***************** Settings window *****************/
 
-.settings-head {
-  -fx-font-size: 1.5em;
-  -fx-padding: 1em;
+.settings .label {
+  -fx-wrap-text: true;
 }
 
-.settings-content {
-  -fx-padding: 1.5em;
-}
-
-.settings-content * {
-  -fx-spacing: 10px;
-  -fx-hgap: 10px;
-  -fx-vgap: 10px;
-}
 
 /***************** Hand cursor *****************/
 
