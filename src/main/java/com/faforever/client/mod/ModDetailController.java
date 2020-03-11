@@ -58,11 +58,12 @@ public class ModDetailController implements Controller<Node> {
   public Button installButton;
   public ImageView thumbnailImageView;
   public Label nameLabel;
-  public Label authorLabel;
+  public Label uploaderLabel;
   public ProgressBar progressBar;
   public Label modDescriptionLabel;
   public Node modDetailRoot;
   public ReviewsController reviewsController;
+  public Label authorLabel;
 
   private ModVersion modVersion;
   private ListChangeListener<ModVersion> installStatusChangeListener;
@@ -124,7 +125,8 @@ public class ModDetailController implements Controller<Node> {
     this.modVersion = modVersion;
     thumbnailImageView.setImage(modService.loadThumbnail(modVersion));
     nameLabel.setText(modVersion.getDisplayName());
-    authorLabel.setText(modVersion.getUploader());
+
+    setUploaderAndAuthor(modVersion);
 
     boolean modInstalled = modService.isModInstalled(modVersion.getUid());
     installButton.setVisible(!modInstalled);
@@ -148,6 +150,19 @@ public class ModDetailController implements Controller<Node> {
     reviewsController.setOwnReview(modVersion.getReviews().stream()
         .filter(review -> review.getPlayer().getId() == player.getId())
         .findFirst());
+  }
+
+  private void setUploaderAndAuthor(ModVersion modVersion) {
+    if (modVersion.getMod() != null) {
+      com.faforever.client.api.dto.Player uploader = modVersion.getMod().getUploader();
+
+      if (uploader != null && uploader.getLogin() != null) {
+        uploaderLabel.setText(i18n.get("modVault.details.uploader", uploader.getLogin()));
+      } else {
+        uploaderLabel.setText(null);
+      }
+      authorLabel.setText(i18n.get("modVault.details.author", modVersion.getMod().getAuthor()));
+    }
   }
 
   private void onDeleteReview(Review review) {
