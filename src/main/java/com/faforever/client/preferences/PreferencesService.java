@@ -21,7 +21,6 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.paint.Color;
 import lombok.SneakyThrows;
-import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -45,6 +44,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
+import java.security.DigestInputStream;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -358,6 +358,7 @@ public class PreferencesService implements InitializingBean {
       exeHash = sha256OfFile(binPath.resolve(SUPREME_COMMANDER_EXE));
     }
     for (String hash : clientProperties.getVanillaGameHashes()) {
+      logger.debug("Hash of Supreme Commander.exe in selected User directory: " + exeHash);
       if (hash.equals(exeHash)) {
         return "gamePath.select.vanillaGameSelected";
       }
@@ -371,17 +372,20 @@ public class PreferencesService implements InitializingBean {
   }
 
   private String sha256OfFile(Path path) throws IOException, NoSuchAlgorithmException {
-    byte[] buffer = new byte[8192];
-    int count;
+    byte[] buffer = new byte[4096];
     MessageDigest digest = MessageDigest.getInstance("SHA-256");
     BufferedInputStream bis = new BufferedInputStream(new FileInputStream(path.toFile()));
-    while ((count = bis.read(buffer)) > 0) {
-      digest.update(buffer, 0, count);
+    DigestInputStream digestInputStream = new DigestInputStream(bis, digest);
+    while (digestInputStream.read(buffer) > -1) {
     }
-    bis.close();
-
-    byte[] hash = digest.digest();
-    return new String(Base64.encodeBase64(hash));
+    digest = digestInputStream.getMessageDigest();
+    digestInputStream.close();
+    byte[] sha256 = digest.digest();
+    StringBuilder sb = new StringBuilder();
+    for (byte b : sha256) {
+      sb.append(String.format("%02X", b));
+    }
+    return sb.toString().toUpperCase();
   }
 
   public boolean isGamePathValid(Path binPath) {
