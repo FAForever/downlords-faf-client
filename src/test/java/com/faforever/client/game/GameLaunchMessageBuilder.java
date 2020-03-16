@@ -1,10 +1,11 @@
 package com.faforever.client.game;
 
+import com.faforever.client.fa.relay.LobbyMode;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 
-import static java.util.Collections.emptyList;
-
 import java.util.Arrays;
+
+import static java.util.Collections.emptyList;
 
 public class GameLaunchMessageBuilder {
 
@@ -36,6 +37,31 @@ public class GameLaunchMessageBuilder {
 
   public GameLaunchMessageBuilder mod(String mod) {
     gameLaunchMessage.setMod(mod);
+    return this;
+  }
+
+  public GameLaunchMessageBuilder expectedPlayers(int expectedPlayers) {
+    gameLaunchMessage.setExpectedPlayers(expectedPlayers);
+    return this;
+  }
+
+  public GameLaunchMessageBuilder team(int team) {
+    gameLaunchMessage.setTeam(team);
+    return this;
+  }
+
+  public GameLaunchMessageBuilder faction(Faction faction) {
+    gameLaunchMessage.setFaction(faction);
+    return this;
+  }
+
+  public GameLaunchMessageBuilder initMode(LobbyMode initMode) {
+    gameLaunchMessage.setInitMode(initMode);
+    return this;
+  }
+
+  public GameLaunchMessageBuilder mapPosition(int mapPosition) {
+    gameLaunchMessage.setMapPosition(mapPosition);
     return this;
   }
 
