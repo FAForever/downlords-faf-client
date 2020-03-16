@@ -175,10 +175,10 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         log.warn("Forcing ice adapter relay connection");
       }
 
-      if (clientProperties.isShowIceAdapterDebugWindow()) {
+//      if (clientProperties.isShowIceAdapterDebugWindow()) {
         cmd.add("--debug-window");
         cmd.add("--info-window");
-      }
+//      }
 
       try {
         ProcessBuilder processBuilder = new ProcessBuilder();
