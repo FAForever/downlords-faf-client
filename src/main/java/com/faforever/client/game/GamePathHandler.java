@@ -29,7 +29,7 @@ public class GamePathHandler implements InitializingBean {
   private static final Collection<Path> USUAL_GAME_PATHS = Arrays.asList(
       Paths.get(System.getenv("ProgramFiles") + "\\THQ\\Gas Powered Games\\Supreme Commander - Forged Alliance"),
       Paths.get(System.getenv("ProgramFiles") + " (x86)\\THQ\\Gas Powered Games\\Supreme Commander - Forged Alliance"),
-      Paths.get(System.getenv("ProgramFiles") + "\\Steam\\steamapps\\common\\supreme commander forged alliance"),
+      Paths.get(System.getenv("ProgramFiles") + " (x86)\\Steam\\steamapps\\common\\supreme commander forged alliance"),
       Paths.get(System.getenv("ProgramFiles") + "\\Supreme Commander - Forged Alliance")
   );
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
