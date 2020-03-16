@@ -469,7 +469,7 @@ public class GameService implements InitializingBean {
             .thenRun(() -> {
               // TODO this should be sent by the server!
               gameLaunchMessage.setArgs(new ArrayList<>(gameLaunchMessage.getArgs()));
-              gameLaunchMessage.getArgs().add("/team" + gameLaunchMessage.getTeam());
+              gameLaunchMessage.getArgs().add("/team " + gameLaunchMessage.getTeam());
               gameLaunchMessage.getArgs().add("/players " + gameLaunchMessage.getExpectedPlayers());
 
               startGame(gameLaunchMessage, faction, RatingMode.LADDER_1V1);

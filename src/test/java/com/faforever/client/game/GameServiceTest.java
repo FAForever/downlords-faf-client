@@ -4,6 +4,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.discord.DiscordRichPresenceService;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
+import com.faforever.client.fa.relay.LobbyMode;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.PlatformService;
@@ -410,11 +411,18 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   public void testStartSearchLadder1v1() throws Exception {
     int uid = 123;
     String map = "scmp_037";
-    GameLaunchMessage gameLaunchMessage = new GameLaunchMessageBuilder().defaultValues().uid(uid).mod("ladder1v1").mapname(map).get();
+    GameLaunchMessage gameLaunchMessage = new GameLaunchMessageBuilder().defaultValues()
+        .uid(uid).mod("ladder1v1").mapname(map)
+        .expectedPlayers(2)
+        .faction(CYBRAN)
+        .initMode(LobbyMode.AUTO_LOBBY)
+        .mapPosition(0)
+        .team(1)
+        .get();
 
     FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
 
-    String[] additionalArgs = { "/team", "1", "/players", "2" };
+    String[] additionalArgs = {"/team", "1", "/players", "2"};
     mockStartGameProcess(uid, RatingMode.LADDER_1V1, CYBRAN, false, additionalArgs);
     when(fafService.startSearchLadder1v1(CYBRAN)).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(completedFuture(null));
