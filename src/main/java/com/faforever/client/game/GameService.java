@@ -471,6 +471,7 @@ public class GameService implements InitializingBean {
               gameLaunchMessage.setArgs(new ArrayList<>(gameLaunchMessage.getArgs()));
               gameLaunchMessage.getArgs().add("/team " + gameLaunchMessage.getTeam());
               gameLaunchMessage.getArgs().add("/players " + gameLaunchMessage.getExpectedPlayers());
+              gameLaunchMessage.getArgs().add("/startspot " + gameLaunchMessage.getMapPosition());
 
               startGame(gameLaunchMessage, faction, RatingMode.LADDER_1V1);
             }))
