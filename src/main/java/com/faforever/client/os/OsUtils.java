@@ -16,7 +16,7 @@ public final class OsUtils {
     throw new AssertionError("Not instantiable");
   }
 
-  public static String execAndGetOutput(String cmd) throws IOException {
+  public static String execAndGetOutput(String... cmd) throws IOException {
     Scanner scanner = new Scanner(
         Runtime.getRuntime().exec(cmd).getInputStream(), UTF_8.name()
     ).useDelimiter("\\A");
