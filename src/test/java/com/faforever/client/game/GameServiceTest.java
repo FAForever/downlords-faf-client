@@ -418,13 +418,13 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
         .expectedPlayers(2)
         .faction(CYBRAN)
         .initMode(LobbyMode.AUTO_LOBBY)
-        .mapPosition(0)
+        .mapPosition(4)
         .team(1)
         .get();
 
     FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
 
-    String[] additionalArgs = {"/team", "1", "/players", "2"};
+    String[] additionalArgs = {"/team", "1", "/players", "2", "/startspot", "4"};
     mockStartGameProcess(uid, RatingMode.LADDER_1V1, CYBRAN, false, additionalArgs);
     when(fafService.startSearchLadder1v1(CYBRAN)).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(completedFuture(null));
