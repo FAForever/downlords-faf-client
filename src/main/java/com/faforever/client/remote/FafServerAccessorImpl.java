@@ -484,21 +484,23 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   private String translateAuthenticationMessage(AuthenticationFailedMessage message) {
-    ArrayList<String> key = new ArrayList(Arrays.asList("login", "error"));
-    ArrayList<Object> args = new ArrayList();
-
     String context = message.getContext();
-    if (context != null) {
-      key.add(context);
-      args.add(clientProperties.getWebsite().getSteamLinkUrl());
-
-      String result = message.getResult();
-      if (context.equals("policy") && result != null) {
-        key.add(result);
-        args.add(result);
-      }
+    if (context == null) {
+      // Fallback to displayaing server side text
+      String messageText = message.getText();
+      return messageText != null ? messageText: i18n.get("login.error");
     }
 
+    ArrayList<String> key = new ArrayList(Arrays.asList("login", "error", context));
+    ArrayList<Object> args = new ArrayList(Arrays.asList(clientProperties.getWebsite().getSteamLinkUrl()));
+
+    String result = message.getResult();
+    if (context.equals("policy") && result != null) {
+      key.add(result);
+      args.add(result);
+    }
+
+    // Resolve the most detailed message we can
     Object[] argsArray = args.toArray();
     while(key.size() > 1) {
       try {
@@ -508,8 +510,8 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
       }
     }
 
-    String messageText = message.getText();
-    return messageText != null ? messageText: i18n.get("login.error");
+    // Our localization file is messed up
+    return "login.error";
   }
 
   private void onFafLoginSucceeded(LoginMessage loginServerMessage) {
