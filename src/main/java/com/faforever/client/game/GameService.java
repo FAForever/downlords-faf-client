@@ -469,9 +469,16 @@ public class GameService implements InitializingBean {
             .thenRun(() -> {
               // TODO this should be sent by the server!
               gameLaunchMessage.setArgs(new ArrayList<>(gameLaunchMessage.getArgs()));
-              gameLaunchMessage.getArgs().add("/team " + gameLaunchMessage.getTeam());
-              gameLaunchMessage.getArgs().add("/players " + gameLaunchMessage.getExpectedPlayers());
-              gameLaunchMessage.getArgs().add("/startspot " + gameLaunchMessage.getMapPosition());
+
+              if (gameLaunchMessage.getTeam() != null && gameLaunchMessage.getExpectedPlayers() != null
+                  && gameLaunchMessage.getMapPosition() != null) {
+                gameLaunchMessage.getArgs().add("/team " + gameLaunchMessage.getTeam());
+                gameLaunchMessage.getArgs().add("/players " + gameLaunchMessage.getExpectedPlayers());
+                gameLaunchMessage.getArgs().add("/startspot " + gameLaunchMessage.getMapPosition());
+              } else {
+                gameLaunchMessage.getArgs().add("/team " + 1);
+                gameLaunchMessage.getArgs().add("/players " + 2);
+              }
 
               startGame(gameLaunchMessage, faction, RatingMode.LADDER_1V1);
             }))

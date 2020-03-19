@@ -13,6 +13,7 @@ import com.faforever.client.fa.relay.event.GameFullEvent;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.event.GpgGameMessageEvent;
 import com.faforever.client.fa.relay.ice.event.IceAdapterStateChanged;
+import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.os.OsUtils;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
@@ -175,10 +176,10 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         log.warn("Forcing ice adapter relay connection");
       }
 
-//      if (clientProperties.isShowIceAdapterDebugWindow()) {
+      if (clientProperties.isShowIceAdapterDebugWindow()) {
         cmd.add("--debug-window");
         cmd.add("--info-window");
-//      }
+      }
 
       try {
         ProcessBuilder processBuilder = new ProcessBuilder();
@@ -291,7 +292,16 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   }
 
   private void updateLobbyModeFromGameInfo(GameLaunchMessage gameLaunchMessage) {
-    lobbyInitMode = gameLaunchMessage.getInitMode();
+    if (gameLaunchMessage.getInitMode() != null) {
+      lobbyInitMode = gameLaunchMessage.getInitMode();
+      return;
+    }
+
+    if (KnownFeaturedMod.LADDER_1V1.getTechnicalName().equals(gameLaunchMessage.getMod())) {
+      lobbyInitMode = LobbyMode.AUTO_LOBBY;
+    } else {
+      lobbyInitMode = LobbyMode.DEFAULT_LOBBY;
+    }
   }
 
   @Override
