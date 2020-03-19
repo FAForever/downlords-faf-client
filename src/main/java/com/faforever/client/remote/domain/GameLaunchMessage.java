@@ -21,9 +21,9 @@ public class GameLaunchMessage extends FafServerMessage {
   private String mapname;
   @NonNull
   private String name;
-  private int expectedPlayers;
-  private int team;
-  private int mapPosition;
+  private Integer expectedPlayers;
+  private Integer team;
+  private Integer mapPosition;
   private Faction faction;
   private LobbyMode initMode;
 
