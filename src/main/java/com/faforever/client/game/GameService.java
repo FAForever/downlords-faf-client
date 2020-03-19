@@ -10,6 +10,7 @@ import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.io.DownloadService;
 import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
@@ -17,6 +18,7 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
+import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -66,6 +68,8 @@ import org.springframework.stereotype.Service;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -141,6 +145,8 @@ public class GameService implements InitializingBean {
   private final ReplayServer replayServer;
   private final ReconnectTimerService reconnectTimerService;
 
+  private final DownloadService downloadService;
+
   @VisibleForTesting
   RatingMode ratingMode;
 
@@ -170,7 +176,7 @@ public class GameService implements InitializingBean {
                      PlatformService platformService,
                      DiscordRichPresenceService discordRichPresenceService,
                      ReplayServer replayServer,
-                     ReconnectTimerService reconnectTimerService) {
+                     ReconnectTimerService reconnectTimerService, DownloadService downloadService) {
     this.fafService = fafService;
     this.forgedAllianceService = forgedAllianceService;
     this.mapService = mapService;
@@ -190,6 +196,7 @@ public class GameService implements InitializingBean {
     this.reconnectTimerService = reconnectTimerService;
 
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
+    this.downloadService = downloadService;
     uidToGameInfoBean = FXCollections.observableMap(new ConcurrentHashMap<>());
     searching1v1 = new SimpleBooleanProperty();
     gameRunning = new SimpleBooleanProperty();
@@ -459,6 +466,26 @@ public class GameService implements InitializingBean {
       log.debug("Game is running, ignoring 1v1 search request");
       return completedFuture(null);
     }
+
+    Path dir = preferencesService.getFafDataDirectory().resolve("gamedata").resolve("2lua.nx2").resolve("lua").resolve("ui").resolve("lobby");
+    if (!Files.exists(dir)) {
+      try {
+        Files.createDirectories(dir);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+    try {
+      downloadService.downloadFile(new URL("https://raw.githubusercontent.com/Askaholic/fa/autolobby-startspot/lua/ui/lobby/autolobby.lua"), dir.resolve("autolobby.lua"), (processed, total) -> {
+      });
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    notificationService.addNotification(new ImmediateNotification(
+        "TMM TESTING READ ME!",
+        "Make sure to delete %ProgramData%/FAForever/gamedata/2lua.nx2 after testing or your normal FAF installation may break",
+        Severity.WARN, Collections.singletonList(new DismissAction(i18n))));
 
     searching1v1.set(true);
 

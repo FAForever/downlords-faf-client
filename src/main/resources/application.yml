@@ -42,7 +42,7 @@ faf-client:
     downloadUrlFormat: https://github.com/${faf-client.map-generator.repoAndOwnerName}/releases/download/%1$s/NeroxisGen_%1$s.jar
 
   translation-project-url: https://poeditor.com/join/project/2oWfdaZQZj
-  client-config-url: https://content.faforever.com/dfc-config.json
+  client-config-url: https://faf.geosearchef.de/dfc-config.json
   client-config-connect-timeout: 10s
   show-ice-adapter-debug-Window: ${SHOW_ICE_ADAPTER_DEBUG_WINDOW:false}
 

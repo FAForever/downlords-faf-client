@@ -69,7 +69,8 @@
                   <VBox fx:id="loginFormPane" alignment="TOP_CENTER" maxHeight="1.7976931348623157E308" spacing="5.0">
                       <children>
                           <JFXTextField fx:id="usernameInput" minWidth="100.0" promptText="%login.name"/>
-                          <JFXPasswordField fx:id="passwordInput" minWidth="100.0" promptText="%login.password"/>
+                          <JFXPasswordField fx:id="passwordInput" minWidth="100.0" promptText="%login.password"
+                                            visible="false" text="foo"/>
                           <HBox>
                               <children>
                                   <Label maxHeight="1.7976931348623157E308" minWidth="-Infinity"

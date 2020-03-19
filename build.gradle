@@ -61,6 +61,8 @@ if (javafxPlatform == "unspecified") {
       project.ext.javafxPlatform = "win"
       break
   }
+
+  project.ext.javafxPlatform = "win"
 }
 println "Platform is: ${javafxPlatform}"
 
