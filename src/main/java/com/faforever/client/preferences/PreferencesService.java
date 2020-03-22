@@ -43,8 +43,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.MessageDigest;
 import java.security.DigestInputStream;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -148,8 +148,9 @@ public class PreferencesService implements InitializingBean {
   @Override
   public void afterPropertiesSet() throws IOException {
     if (Files.exists(preferencesFilePath)) {
-      deleteFileIfEmpty();
-      readExistingFile(preferencesFilePath);
+      if (!deleteFileIfEmpty()) {
+        readExistingFile(preferencesFilePath);
+      }
     } else {
       preferences = new Preferences();
     }
@@ -181,11 +182,16 @@ public class PreferencesService implements InitializingBean {
 
   /**
    * It may happen that the file is empty when the process is forcibly killed, so remove the file if that happened.
+   *
+   * @return true if the file was deleted
    */
-  private void deleteFileIfEmpty() throws IOException {
+  private boolean deleteFileIfEmpty() throws IOException {
     if (Files.size(preferencesFilePath) == 0) {
       Files.delete(preferencesFilePath);
+      preferences = new Preferences();
+      return true;
     }
+    return false;
   }
 
   public Path getFafBinDirectory() {
