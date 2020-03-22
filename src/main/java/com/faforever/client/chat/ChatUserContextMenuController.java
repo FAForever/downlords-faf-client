@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.api.dto.GroupPermission;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.fx.Controller;
@@ -26,8 +27,6 @@ import com.jfoenix.controls.JFXAlert;
 import com.jfoenix.controls.JFXButton;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
@@ -75,7 +74,6 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   private final AvatarService avatarService;
   private final UiService uiService;
   private final ModeratorService moderatorService;
-  private final BooleanProperty isModeratorProperty = new SimpleBooleanProperty(false);
   public ComboBox<AvatarBean> avatarComboBox;
   public CustomMenuItem avatarPickerMenuItem;
   public MenuItem sendPrivateMessageItem;
@@ -128,10 +126,6 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     // Workaround for the issue that the popup gets closed when the "custom color" button is clicked, causing an NPE
     // in the custom color popup window.
     colorPicker.focusedProperty().addListener((observable, oldValue, newValue) -> chatUserContextMenuRoot.setAutoHide(!newValue));
-  }
-
-  private void initModerator() {
-    moderatorService.isModerator().thenAccept(isModeratorProperty::set);
   }
 
   @NotNull
@@ -187,11 +181,14 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
         loadAvailableAvatars(newValue);
       }
 
-      initModerator();
-      kickGameItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF).and(isModeratorProperty));
-      kickLobbyItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF).and(isModeratorProperty));
-      banItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF).and(isModeratorProperty));
-      moderatorActionSeparator.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF).and(isModeratorProperty));
+      kickGameItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF)
+          .and(moderatorService.permissionsContainBinding(GroupPermission.ADMIN_KICK_SERVER)));
+      kickLobbyItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF)
+          .and(moderatorService.permissionsContainBinding(GroupPermission.ADMIN_KICK_SERVER)));
+      banItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF)
+          .and(moderatorService.permissionsContainBinding(GroupPermission.ROLE_ADMIN_ACCOUNT_BAN)));
+      moderatorActionSeparator.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF)
+          .and(kickGameItem.visibleProperty().or(kickLobbyItem.visibleProperty()).or(banItem.visibleProperty())));
 
       sendPrivateMessageItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF));
       addFriendItem.visibleProperty().bind(

@@ -1,36 +1,18 @@
 package com.faforever.client.moderator;
 
-import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.api.dto.LegacyAccessLevel;
-import com.faforever.client.api.dto.LobbyGroup;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.PeriodType;
+import com.faforever.client.user.UserService;
+import javafx.beans.binding.Bindings;
+import javafx.beans.value.ObservableBooleanValue;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-
 @Service
+@RequiredArgsConstructor
 public class ModeratorService {
-  private static CompletableFuture isModerator;
   private final FafService fafService;
-  private final FafApiAccessor fafApiAccessor;
-
-  public ModeratorService(FafService fafService, FafApiAccessor fafApiAccessor) {
-    this.fafService = fafService;
-    this.fafApiAccessor = fafApiAccessor;
-  }
-
-  public CompletableFuture<Boolean> isModerator() {
-    if (isModerator == null) {
-      isModerator = CompletableFuture.supplyAsync(() -> {
-        LegacyAccessLevel role = Optional.ofNullable(fafApiAccessor.getOwnPlayer().getLobbyGroup()).map(LobbyGroup::getAccessLevel).orElse(LegacyAccessLevel.ROLE_USER);
-        return role == LegacyAccessLevel.ROLE_MODERATOR || role == LegacyAccessLevel.ROLE_ADMINISTRATOR;
-      });
-    }
-
-    return isModerator;
-  }
+  private final UserService userService;
 
   public void banPlayer(int playerId, int duration, PeriodType periodType, String reason) {
     fafService.banPlayer(playerId, duration, periodType, reason);
@@ -46,5 +28,9 @@ public class ModeratorService {
 
   public void broadcastMessage(String message) {
     fafService.broadcastMessage(message);
+  }
+
+  public ObservableBooleanValue permissionsContainBinding(String permission) {
+    return Bindings.createBooleanBinding(() -> userService.getOwnUser().getPermissions().contains(permission), userService.ownUserProperty());
   }
 }

@@ -21,8 +21,8 @@ import com.faforever.client.remote.domain.FafServerMessage;
 import com.faforever.client.remote.domain.FafServerMessageType;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.InitSessionMessage;
-import com.faforever.client.remote.domain.LoginClientMessage;
 import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.remote.domain.LoginOauthClientMessage;
 import com.faforever.client.remote.domain.MessageTarget;
 import com.faforever.client.remote.domain.NoticeMessage;
 import com.faforever.client.remote.domain.RatingRange;
@@ -201,13 +201,13 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
     sendFromServer(sessionMessage);
 
     json = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    LoginClientMessage loginClientMessage = gson.fromJson(json, LoginClientMessage.class);
+    LoginOauthClientMessage loginOauthClientMessage = gson.fromJson(json, LoginOauthClientMessage.class);
 
-    assertThat(loginClientMessage.getCommand(), is(ClientMessageType.LOGIN));
-    assertThat(loginClientMessage.getLogin(), is(username));
-    assertThat(loginClientMessage.getPassword(), is(Hashing.sha256().hashString(password, UTF_8).toString()));
-    assertThat(loginClientMessage.getSession(), is(sessionId));
-    assertThat(loginClientMessage.getUniqueId(), is("encrypteduidstring"));
+    assertThat(loginOauthClientMessage.getCommand(), is(ClientMessageType.LOGIN));
+    assertThat(loginOauthClientMessage.getLogin(), is(username));
+    assertThat(loginOauthClientMessage.getPassword(), is(Hashing.sha256().hashString(password, UTF_8).toString()));
+    assertThat(loginOauthClientMessage.getSession(), is(sessionId));
+    assertThat(loginOauthClientMessage.getUniqueId(), is("encrypteduidstring"));
 
     LoginMessage loginServerMessage = new LoginMessage();
     loginServerMessage.setId(playerUid);

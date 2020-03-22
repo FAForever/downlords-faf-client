@@ -14,10 +14,10 @@ import com.faforever.client.api.dto.Ladder1v1Map;
 import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
+import com.faforever.client.api.dto.MeResult;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersion;
 import com.faforever.client.api.dto.ModVersionReview;
-import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.api.dto.Tournament;
@@ -49,7 +49,9 @@ public interface FafApiAccessor {
 
   AchievementDefinition getAchievementDefinition(String achievementId);
 
-  void authorize(int playerId, String username, String password);
+  String authorize(String username, String password);
+
+  void authorize(String refreshToken);
 
   List<Mod> getMods();
 
@@ -135,5 +137,5 @@ public interface FafApiAccessor {
 
   void updateMapVersion(String id, MapVersion mapVersion);
 
-  Player getOwnPlayer();
+  MeResult getOwnPlayer();
 }

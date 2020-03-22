@@ -9,6 +9,7 @@ import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
+import com.faforever.client.api.dto.MeResult;
 import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.chat.avatar.AvatarBean;
@@ -31,7 +32,6 @@ import com.faforever.client.remote.domain.GameEndedMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.IceMessage;
 import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
-import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.replay.Replay;
@@ -45,6 +45,7 @@ import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -55,6 +56,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -107,8 +109,29 @@ public class FafService {
     fafServerAccessor.sendGpgMessage(message);
   }
 
-  public CompletableFuture<LoginMessage> connectAndLogIn(String username, String password) {
-    return fafServerAccessor.connectAndLogIn(username, password);
+  @Async
+  public CompletableFuture<UserAndRefreshToken> logIn(String username, String password) {
+    String token;
+    token = fafApiAccessor.authorize(username, password);
+    MeResult ownPlayer = fafApiAccessor.getOwnPlayer();
+    return CompletableFuture.completedFuture(new UserAndRefreshToken(token, ownPlayer));
+  }
+
+  @Async
+  public CompletableFuture<UserAndRefreshToken> logIn(String refreshToken) {
+    fafApiAccessor.authorize(refreshToken);
+    MeResult ownPlayer = fafApiAccessor.getOwnPlayer();
+    return CompletableFuture.completedFuture(new UserAndRefreshToken(refreshToken, ownPlayer));
+  }
+
+  @Async
+  public CompletableFuture<UserAndRefreshToken> connectServer(UserAndRefreshToken userAndRefreshToken) {
+    try {
+      fafServerAccessor.connectAndLogIn(userAndRefreshToken.getRefreshToken()).get();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    return CompletableFuture.completedFuture(userAndRefreshToken);
   }
 
   public void disconnect() {
@@ -197,6 +220,12 @@ public class FafService {
     return CompletableFuture.completedFuture(fafServerAccessor.getAvailableAvatars().stream()
         .map(AvatarBean::fromAvatar)
         .collect(Collectors.toList()));
+  }
+
+  @Async
+  @Cacheable(CacheNames.PERMISSION)
+  public CompletableFuture<Set<String>> getPermissions() {
+    return CompletableFuture.completedFuture(fafApiAccessor.getOwnPlayer().getPermissions());
   }
 
   public void selectAvatar(AvatarBean avatar) {
@@ -331,7 +360,7 @@ public class FafService {
       );
       review.setId(updatedReview.getId());
     } else {
-      fafApiAccessor.updateGameReview((GameReview) gameReview.setId(String.valueOf(review.getId())));
+      fafApiAccessor.updateGameReview((GameReview) gameReview.setId(review.getId()));
     }
     return CompletableFuture.completedFuture(null);
   }
@@ -352,7 +381,7 @@ public class FafService {
       );
       review.setId(updatedReview.getId());
     } else {
-      fafApiAccessor.updateModVersionReview((ModVersionReview) modVersionReview.setId(String.valueOf(review.getId())));
+      fafApiAccessor.updateModVersionReview((ModVersionReview) modVersionReview.setId(review.getId()));
     }
     return CompletableFuture.completedFuture(null);
   }
@@ -373,7 +402,7 @@ public class FafService {
       );
       review.setId(updatedReview.getId());
     } else {
-      fafApiAccessor.updateMapVersionReview((MapVersionReview) mapVersionReview.setId(String.valueOf(review.getId())));
+      fafApiAccessor.updateMapVersionReview((MapVersionReview) mapVersionReview.setId(review.getId()));
     }
 
     return CompletableFuture.completedFuture(null);

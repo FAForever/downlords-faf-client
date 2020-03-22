@@ -3,13 +3,12 @@ package com.faforever.client.chat;
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
+import com.faforever.client.remote.domain.IrcPasswordServerMessage;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.client.util.ConcurrentUtil;
 import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
@@ -22,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -56,14 +56,16 @@ public class MockChatService implements ChatService, InitializingBean {
   private Map<String, Channel> channelUserListListeners = new HashMap<>();
   private ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
   private IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
+  private String password;
 
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
   }
 
-  @Subscribe
-  public void onLoginSuccessEvent(LoginSuccessEvent event) {
+  @EventListener
+  public void onIrcPassword(IrcPasswordServerMessage event) {
+    password = event.getPassword();
     connect();
   }
 

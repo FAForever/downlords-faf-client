@@ -63,7 +63,7 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
     when(i18n.get(LOGIN_WITH_EMAIL_WARNING_KEY)).thenReturn(LOGIN_WITH_EMAIL_WARNING_KEY);
 
-    instance = new LoginController(userService, preferencesService, platformService, clientProperties, i18n, clientUpdateService);
+    instance = new LoginController(userService, preferencesService, platformService, clientProperties, i18n, clientUpdateService, notificationService);
 
     Website website = clientProperties.getWebsite();
     website.setCreateAccountUrl("create");

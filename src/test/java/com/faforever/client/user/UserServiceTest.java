@@ -98,7 +98,7 @@ public class UserServiceTest {
 
   @Test
   public void testCancelLoginDisconnectsIfLoginInProgress() throws Exception {
-    when(fafService.connectAndLogIn(any(), any())).thenReturn(new CompletableFuture<>());
+    when(fafService.logIn(any(), any(), refreshToken)).thenReturn(new CompletableFuture<>());
 
     instance.login("username", "password", false);
     instance.cancelLogin();

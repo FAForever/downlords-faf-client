@@ -16,18 +16,17 @@ import com.faforever.client.player.event.CurrentPlayerInfo;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.domain.IrcPasswordServerMessage;
 import com.faforever.client.remote.domain.SocialMessage;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LoggedOutEvent;
-import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.google.common.hash.Hashing;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -68,6 +67,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -144,6 +144,7 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
    */
   private boolean autoChannelsJoined;
   private boolean newbieChannelJoined;
+  private String password;
 
   @Override
   public void afterPropertiesSet() {
@@ -233,9 +234,13 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
     sendIdentify(event.getBot().getConfiguration());
   }
 
-  @Subscribe
-  public void onLoginSuccessEvent(LoginSuccessEvent event) {
-    connect();
+
+  @EventListener
+  public void onIrcPassword(IrcPasswordServerMessage event) {
+    password = event.getPassword();
+    if (connectionState.get() == ConnectionState.DISCONNECTED) {
+      connect();
+    }
   }
 
   @Subscribe
@@ -253,7 +258,7 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
       if (containsIgnoreCase(message, config.getNickservOnSuccess()) || containsIgnoreCase(message, "registered under your account")) {
         onIdentified();
       } else if (message.contains("isn't registered")) {
-        pircBotX.sendIRC().message(config.getNickservNick(), format("register %s %s@users.faforever.com", getPassword(), userService.getUsername()));
+        pircBotX.sendIRC().message(config.getNickservNick(), format("register %s %s@users.faforever.com", password, userService.getUsername()));
       } else if (message.contains(" registered")) {
         // We just registered and are now identified
         onIdentified();
@@ -265,7 +270,7 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
   }
 
   private void sendIdentify(Configuration config) {
-    pircBotX.sendIRC().message(config.getNickservNick(), format("identify %s", getPassword()));
+    pircBotX.sendIRC().message(config.getNickservNick(), format("identify %s", password));
   }
 
   private void onIdentified() {
@@ -379,16 +384,11 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
         .setSocketTimeout(SOCKET_TIMEOUT)
         .setMessageDelay(new StaticDelay(0))
         .setAutoReconnectDelay(new StaticDelay(irc.getReconnectDelay()))
-        .setNickservPassword(getPassword())
+        .setNickservPassword(password)
         .setAutoReconnect(true)
         .buildConfiguration();
 
     pircBotX = pircBotXFactory.createPircBotX(configuration);
-  }
-
-  @NotNull
-  private String getPassword() {
-    return Hashing.md5().hashString(Hashing.sha256().hashString(userService.getPassword(), UTF_8).toString(), UTF_8).toString();
   }
 
   private void onSocialMessage(SocialMessage socialMessage) {

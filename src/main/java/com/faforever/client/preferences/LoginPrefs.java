@@ -1,33 +1,31 @@
 package com.faforever.client.preferences;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.extern.slf4j.Slf4j;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
 @Slf4j
 
 public class LoginPrefs {
 
-  private static final String KEY = System.getProperty("user.name");
-
   private final StringProperty username;
+  @Deprecated
   private final StringProperty password;
+  @Deprecated
   private final BooleanProperty autoLogin;
+  private final StringProperty refreshToken;
+  private final ObjectProperty<RememberMeType> rememberMeType;
 
   public LoginPrefs() {
     username = new SimpleStringProperty();
     password = new SimpleStringProperty();
-    autoLogin = new SimpleBooleanProperty();
-
-  }
-
-  public String getUsername() {
-    return username.get();
+    autoLogin = new SimpleBooleanProperty(false);
+    refreshToken = new SimpleStringProperty();
+    rememberMeType = new SimpleObjectProperty<>(RememberMeType.NEVER);
   }
 
   public LoginPrefs setUsername(String username) {
@@ -35,66 +33,72 @@ public class LoginPrefs {
     return this;
   }
 
+  public String getUsername() {
+    return username.get();
+  }
+
+  @Deprecated
+  public String getPassword() {
+    return password.get();
+  }
+
+  public LoginPrefs setPassword(String password) {
+    this.password.set(password);
+    return this;
+  }
+
   public StringProperty usernameProperty() {
     return username;
   }
 
-  public String getPassword() {
-    // FIXME remove poor man's security once refresh tokens are implemented
-    try {
-      return deObfuscate(password.get());
-    } catch (Exception e) {
-      log.warn("Could not deobfuscate password", e);
-      setAutoLogin(false);
-      return null;
-    }
-  }
-
-  public LoginPrefs setPassword(String password) {
-    // FIXME remove poor man's security once refresh tokens are implemented
-    this.password.set(obfuscate(password));
-    return this;
-  }
-
+  @Deprecated
   public StringProperty passwordProperty() {
     return password;
   }
 
-  public boolean getAutoLogin() {
+  @Deprecated
+  public boolean isAutoLogin() {
     return autoLogin.get();
   }
 
+  @Deprecated
   public LoginPrefs setAutoLogin(boolean autoLogin) {
     this.autoLogin.set(autoLogin);
     return this;
   }
 
+  @Deprecated
   public BooleanProperty autoLoginProperty() {
     return autoLogin;
   }
 
-  private String obfuscate(String string) {
-    if (string == null) {
-      return null;
-    }
-    char[] result = new char[string.length()];
-    for (int i = 0; i < string.length(); i++) {
-      result[i] = (char) (string.charAt(i) + KEY.charAt(i % KEY.length()));
-    }
-
-    return Base64.getEncoder().encodeToString(new String(result).getBytes(StandardCharsets.UTF_8));
+  public String getRefreshToken() {
+    return refreshToken.get();
   }
 
-  private String deObfuscate(String string) {
-    if (string == null) {
-      return null;
-    }
-    String innerString = new String(Base64.getDecoder().decode(string), StandardCharsets.UTF_8);
-    char[] result = new char[innerString.length()];
-    for (int i = 0; i < innerString.length(); i++) {
-      result[i] = (char) (innerString.charAt(i) - KEY.charAt(i % KEY.length()));
-    }
+  public void setRefreshToken(String refreshToken) {
+    this.refreshToken.set(refreshToken);
+  }
 
-    return new String(result);
+  public StringProperty refreshTokenProperty() {
+    return refreshToken;
+  }
+
+  public RememberMeType getRememberMeType() {
+    return rememberMeType.get();
+  }
+
+  public void setRememberMeType(RememberMeType rememberMeType) {
+    this.rememberMeType.set(rememberMeType);
+  }
+
+  public ObjectProperty<RememberMeType> rememberMeTypeProperty() {
+    return rememberMeType;
+  }
+
+  public enum RememberMeType {
+    NEVER,
+    SHORT,
+    LONG
   }
 }

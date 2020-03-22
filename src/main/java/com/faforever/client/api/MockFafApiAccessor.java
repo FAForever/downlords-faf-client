@@ -16,6 +16,7 @@ import com.faforever.client.api.dto.Ladder1v1Map;
 import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
+import com.faforever.client.api.dto.MeResult;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersion;
 import com.faforever.client.api.dto.ModVersionReview;
@@ -72,7 +73,12 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public void authorize(int playerId, String username, String password) {
+  public String authorize(String username, String password) {
+    return null;
+  }
+
+  @Override
+  public void authorize(String refreshToken) {
 
   }
 
@@ -296,7 +302,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public Player getOwnPlayer() {
+  public MeResult getOwnPlayer() {
     return null;
   }
 

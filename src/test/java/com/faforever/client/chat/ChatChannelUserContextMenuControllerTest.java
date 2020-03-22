@@ -19,6 +19,7 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableMap;
 import org.junit.Before;
@@ -94,7 +95,8 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
         new AvatarBean(new URL("http://www.example.com/avatar2.png"), "Avatar Number #2"),
         new AvatarBean(new URL("http://www.example.com/avatar3.png"), "Avatar Number #3")
     )));
-    when(moderatorService.isModerator()).thenReturn(CompletableFuture.completedFuture(true));
+    when(moderatorService.permissionsContainBinding(any()))
+        .thenReturn(new SimpleBooleanProperty(true));
 
 
     loadFxml("theme/chat/chat_user_context_menu.fxml", clazz -> instance);
@@ -105,7 +107,7 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
 
   @Test
   public void testKickBanContextMenuNotShownForNormalUser() {
-    when(moderatorService.isModerator()).thenReturn(CompletableFuture.completedFuture(false));
+    when(moderatorService.permissionsContainBinding(any())).thenReturn(new SimpleBooleanProperty(false));
     instance.setChatUser(chatUser);
     player.setSocialStatus(FOE);
     WaitForAsyncUtils.waitForFxEvents();

@@ -8,7 +8,12 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.LoginPrefs;
+import com.faforever.client.preferences.LoginPrefs.RememberMeType;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.update.ClientConfiguration;
 import com.faforever.client.update.ClientConfiguration.Endpoints;
@@ -18,17 +23,18 @@ import com.faforever.client.update.UpdateInfo;
 import com.faforever.client.update.Version;
 import com.faforever.client.user.UserService;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
 import com.jfoenix.controls.JFXButton;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
@@ -42,11 +48,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.lang.invoke.MethodHandles;
+import java.util.Arrays;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -61,12 +66,16 @@ public class LoginController implements Controller<Node> {
   private final ClientProperties clientProperties;
   private final I18n i18n;
   private final ClientUpdateService clientUpdateService;
+  private final NotificationService notificationService;
+  public ToggleGroup rememberGroup;
+  public RadioButton rememberNever;
+  public RadioButton rememberShort;
+  public RadioButton rememberLong;
   private CompletableFuture<Void> initializeFuture;
   private Boolean loginAllowed;
 
   public Pane loginFormPane;
   public Pane loginProgressPane;
-  public CheckBox autoLoginCheckBox;
   public TextField usernameInput;
   public TextField passwordInput;
   public ComboBox<ClientConfiguration.Endpoints> environmentComboBox;
@@ -92,13 +101,14 @@ public class LoginController implements Controller<Node> {
       PreferencesService preferencesService,
       PlatformService platformService,
       ClientProperties clientProperties,
-      I18n i18n, ClientUpdateService clientUpdateService) {
+      I18n i18n, ClientUpdateService clientUpdateService, NotificationService notificationService) {
     this.userService = userService;
     this.preferencesService = preferencesService;
     this.platformService = platformService;
     this.clientProperties = clientProperties;
     this.i18n = i18n;
     this.clientUpdateService = clientUpdateService;
+    this.notificationService = notificationService;
   }
 
   public void initialize() {
@@ -233,28 +243,42 @@ public class LoginController implements Controller<Node> {
     setShowLoginProgress(false);
 
     LoginPrefs loginPrefs = preferencesService.getPreferences().getLogin();
-    String username = loginPrefs.getUsername();
-    String password = loginPrefs.getPassword();
-    boolean isAutoLogin = loginPrefs.getAutoLogin();
 
-    // Fill the form even if autoLogin is true, since user may cancel the login
-    usernameInput.setText(Strings.nullToEmpty(username));
-    autoLoginCheckBox.setSelected(isAutoLogin);
-
-    initializeFuture.thenRun(() -> {
+    initializeFuture.thenCompose(argument -> {
       if (loginAllowed == null) {
         log.error("loginAllowed not set for unknown reason. Possible race condition detected. Enabling login now to preserve user experience.");
         loginAllowed = true;
       }
 
-      if (loginAllowed && loginPrefs.getAutoLogin() && !isNullOrEmpty(username) && !isNullOrEmpty(password)) {
-        login(username, password, true);
-      } else if (isNullOrEmpty(username)) {
-        usernameInput.requestFocus();
+      if (preferencesService.getPreferences().getLogin().isAutoLogin()) {
+        //The user is migrating from an old version we want to ask him to change to remember with a refresh token
+        CompletableFuture<Void> userAnswered = new CompletableFuture<>();
+        notificationService.addNotification(new ImmediateNotification(i18n.get("login.remember.migrate.title"), i18n.get("login.remember.migrate.message"), Severity.WARN, Arrays.asList(
+            new Action(i18n.get("login.remember.migrate.stayUnsafe"), event -> {
+              loginPrefs.setRememberMeType(RememberMeType.LONG);
+              loginPrefs.setAutoLogin(false);
+              preferencesService.storeInBackground();
+              userAnswered.complete(null);
+            }),
+            new Action(i18n.get("login.remember.migrate.goSafe"), event -> {
+              loginPrefs.setRememberMeType(RememberMeType.SHORT);
+              loginPrefs.setAutoLogin(false);
+              preferencesService.storeInBackground();
+              userAnswered.complete(null);
+            })
+        )));
+        return userAnswered;
       } else {
-        passwordInput.requestFocus();
+        return CompletableFuture.completedFuture(null);
       }
-    });
+    }).thenRun(() -> Platform.runLater(() -> {
+      if (loginPrefs.getRememberMeType() != RememberMeType.NEVER) {
+        setConnectionProperties();
+        autoLogin(loginPrefs);
+      } else {
+        usernameInput.requestFocus();
+      }
+    }));
   }
 
   private void setShowLoginProgress(boolean show) {
@@ -266,13 +290,17 @@ public class LoginController implements Controller<Node> {
     loginButton.setDisable(show);
   }
 
-  private void login(String username, String password, boolean autoLogin) {
+  private void autoLogin(LoginPrefs loginPrefs) {
+    login(loginPrefs.getRememberMeType(), loginPrefs.getUsername(), loginPrefs.getPassword(), loginPrefs.getRefreshToken());
+  }
+
+  private void login(RememberMeType rememberMeType, String username, String password, String refreshToken) {
     setShowLoginProgress(true);
-    if (EMAIL_REGEX.matcher(username).matches()) {
+    if (username != null && EMAIL_REGEX.matcher(username).matches()) {
       onLoginWithEmail();
       return;
     }
-    userService.login(username, password, autoLogin)
+    userService.login(username, password, refreshToken, rememberMeType)
         .exceptionally(throwable -> {
           onLoginFailed(throwable);
           return null;
@@ -307,8 +335,21 @@ public class LoginController implements Controller<Node> {
     String username = usernameInput.getText();
     String password = passwordInput.getText();
 
-    boolean autoLogin = autoLoginCheckBox.isSelected();
+    setConnectionProperties();
 
+    Toggle selectedToggle = rememberGroup.getSelectedToggle();
+    RememberMeType rememberMeType;
+    if (selectedToggle == rememberNever) {
+      rememberMeType = RememberMeType.NEVER;
+    } else if (selectedToggle == rememberShort) {
+      rememberMeType = RememberMeType.SHORT;
+    } else {
+      rememberMeType = RememberMeType.LONG;
+    }
+    login(rememberMeType, username, password, null);
+  }
+
+  private void setConnectionProperties() {
     Server server = clientProperties.getServer();
     server.setHost(serverHostField.getText());
     server.setPort(Integer.parseInt(serverPortField.getText()));
@@ -322,8 +363,6 @@ public class LoginController implements Controller<Node> {
     irc.setPort(Integer.parseInt(ircServerPortField.getText()));
 
     clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
-
-    login(username, password, autoLogin);
   }
 
   public void onCancelLoginButtonClicked() {

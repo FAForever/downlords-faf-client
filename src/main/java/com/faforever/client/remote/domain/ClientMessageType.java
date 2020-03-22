@@ -11,7 +11,7 @@ public enum ClientMessageType {
   SOCIAL_ADD("social_add"),
   SOCIAL_REMOVE("social_remove"),
   STATISTICS("stats"),
-  LOGIN("hello"),
+  LOGIN("auth"),
   GAME_MATCH_MAKING("game_matchmaking"),
   AVATAR("avatar"),
   ICE_SERVERS("ice_servers"),

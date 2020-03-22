@@ -120,8 +120,8 @@ public class PlayerService implements InitializingBean {
 
   @Subscribe
   public void onLoginSuccess(LoginSuccessEvent event) {
-    Player player = createAndGetPlayerForUsername(event.getUsername());
-    player.setId(event.getUserId());
+    Player player = createAndGetPlayerForUsername(event.getUser().getUserName());
+    player.setId(event.getUser().getUserId());
     currentPlayer.set(player);
     player.setIdleSince(Instant.now());
   }

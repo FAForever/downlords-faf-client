@@ -4,6 +4,7 @@ public final class CacheNames {
 
   public static final String AVATARS = "avatars";
   public static final String COUNTRY_FLAGS = "countryFlags";
+  public static final String PERMISSION = "permission";
   public static final String MAP_PREVIEW = "mapPreview";
   public static final String URL_PREVIEW = "urlPreview";
   public static final String STATISTICS = "statistics";
