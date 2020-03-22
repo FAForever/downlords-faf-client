@@ -212,6 +212,9 @@ task downloadUnixUid(type: Download) {
   src "https://github.com/FAForever/uid/releases/download/v${faf_uid_version}/faf-uid"
   dest file("${buildDir}/resources/native/faf-uid")
   onlyIfNewer true
+  doLast {
+    file("${buildDir}/resources/native/faf-uid").setExecutable(true, false)
+  }
 }
 
 task downloadWindowsUid(type: Download) {
