@@ -12,6 +12,7 @@ import com.faforever.client.player.PlayerOnlineEvent;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.player.UserOfflineEvent;
+import com.faforever.client.player.event.CurrentPlayerInfo;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
@@ -103,6 +104,7 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
   private static final List<UserLevel> MODERATOR_USER_LEVELS = Arrays.asList(UserLevel.OP, UserLevel.HALFOP, UserLevel.SUPEROP, UserLevel.OWNER);
   private static final int SOCKET_TIMEOUT = 10000;
   private static final String NEWBIE_CHANNEL_NAME = "#newbie";
+  public static final int MAX_GAMES_FOR_NEWBIE_CHANNEL = 50;
 
   private final PreferencesService preferencesService;
   private final UserService userService;
@@ -141,6 +143,7 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
    * channels after a reconnect that the user left before the reconnect.
    */
   private boolean autoChannelsJoined;
+  private boolean newbieChannelJoined;
 
   @Override
   public void afterPropertiesSet() {
@@ -275,14 +278,17 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
           channels.keySet().forEach(this::joinChannel);
         }
         joinSavedAutoChannels();
-        playerService.getCurrentPlayer().ifPresent(player -> {
-          if (player.getNumberOfGames() < 50) {
-            joinChannel(NEWBIE_CHANNEL_NAME);
-          }
-        });
       }
     });
     identifiedFuture.complete(null);
+  }
+
+  @Subscribe
+  public void onCurrentPlayerInfo(CurrentPlayerInfo currentPlayerInfo) {
+    if (!newbieChannelJoined && currentPlayerInfo.getCurrentPlayer().getNumberOfGames() < MAX_GAMES_FOR_NEWBIE_CHANNEL) {
+      joinChannel(NEWBIE_CHANNEL_NAME);
+    }
+    newbieChannelJoined = true;
   }
 
   private void joinAutoChannels() {
@@ -489,6 +495,7 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
       }
     }
     identifiedFuture = new CompletableFuture<>();
+    newbieChannelJoined = false;
   }
 
   @Override
