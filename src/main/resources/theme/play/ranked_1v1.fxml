@@ -9,6 +9,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
@@ -80,7 +81,7 @@
                 </HBox>
                   <Label fx:id="searchingForOpponentLabel" contentDisplay="BOTTOM" text="%ranked1v1.searching" wrapText="true" GridPane.halignment="CENTER" GridPane.rowIndex="3">
                       <graphic>
-                          <JFXProgressBar fx:id="searchProgressIndicator" maxWidth="1.7976931348623157E308"/>
+                          <ImageView fx:id="searchProgressIndicator"/>
                       </graphic>
                   </Label>
               </children>

@@ -37,6 +37,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.text.Text;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -89,7 +91,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
   public Label ratingHintLabel;
   public Label searchingForOpponentLabel;
   public Label ratingLabel;
-  public ProgressIndicator searchProgressIndicator;
+  public ImageView searchProgressIndicator;
   public ProgressIndicator ratingProgressIndicator;
   public ToggleButton aeonButton;
   public ToggleButton uefButton;
@@ -119,6 +121,10 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
   public void initialize() {
     super.initialize();
 
+    searchProgressIndicator.setImage(new Image(getClass().getResource("/images/loading-dancing-acu.gif").toExternalForm()));
+    searchingForOpponentLabel.managedProperty().bind(searchingForOpponentLabel.visibleProperty());
+
+    searchProgressIndicator.managedProperty().bind(searchProgressIndicator.visibleProperty());
     youLabel = new Text(i18n.get("ranked1v1.you"));
     youLabel.setId("1v1-you-text");
 
@@ -197,7 +203,6 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
   void setSearching(boolean searching) {
     cancelButton.setVisible(searching);
     playButton.setVisible(!searching);
-    searchProgressIndicator.setVisible(searching);
     searchingForOpponentLabel.setVisible(searching);
     setFactionButtonsDisabled(searching);
   }
