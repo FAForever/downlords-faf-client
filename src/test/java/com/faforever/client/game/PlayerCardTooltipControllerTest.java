@@ -36,8 +36,11 @@ public class PlayerCardTooltipControllerTest extends AbstractPlainJavaFxTest {
         .defaultValues()
         .socialStatus(SocialStatus.FOE);
     Player player = playerBuilder.get();
-    instance.setPlayer(player, 1000);
+    instance.setPlayer(player, 1000, Faction.CYBRAN);
 
+    assertThat(instance.factionIcon.getText(), is("\uE902"));
+    assertThat(instance.factionIcon.isVisible(), is(true));
+    assertThat(instance.factionImage.isVisible(), is(false));
     assertThat(instance.foeIconText.isVisible(), is(true));
     assertThat(instance.friendIconText.isVisible(), is(false));
     assertThat(instance.playerInfo.getText(), is("foe(1000)"));
@@ -51,8 +54,11 @@ public class PlayerCardTooltipControllerTest extends AbstractPlainJavaFxTest {
         .defaultValues()
         .socialStatus(SocialStatus.FRIEND);
     Player player = playerBuilder.get();
-    instance.setPlayer(player, 1000);
+    instance.setPlayer(player, 1000, Faction.SERAPHIM);
 
+    assertThat(instance.factionIcon.getText(), is("\uE903"));
+    assertThat(instance.factionIcon.isVisible(), is(true));
+    assertThat(instance.factionImage.isVisible(), is(false));
     assertThat(instance.foeIconText.isVisible(), is(false));
     assertThat(instance.friendIconText.isVisible(), is(true));
     assertThat(instance.playerInfo.getText(), is("user(1000)"));
@@ -66,8 +72,11 @@ public class PlayerCardTooltipControllerTest extends AbstractPlainJavaFxTest {
         .defaultValues()
         .socialStatus(SocialStatus.OTHER);
     Player player = playerBuilder.get();
-    instance.setPlayer(player, 1000);
+    instance.setPlayer(player, 1000, Faction.RANDOM);
 
+    assertThat(instance.factionIcon.isVisible(), is(false));
+    assertThat(instance.factionImage.getImage().getUrl(), is(PlayerCardTooltipController.RANDOM_IMAGE.getUrl()));
+    assertThat(instance.factionImage.isVisible(), is(true));
     assertThat(instance.foeIconText.isVisible(), is(false));
     assertThat(instance.friendIconText.isVisible(), is(false));
     assertThat(instance.playerInfo.getText(), is("user(1000)"));
