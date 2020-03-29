@@ -170,7 +170,13 @@ public class LoginController implements Controller<Node> {
       initializeFuture = preferencesService.getRemotePreferencesAsync()
           .thenApply(clientConfiguration -> {
             String minimumVersion = clientConfiguration.getLatestRelease().getMinimumVersion();
-            if (minimumVersion != null && Version.shouldUpdate(Version.getCurrentVersion(), minimumVersion)) {
+            boolean shouldUpdate = false;
+            try {
+              shouldUpdate = Version.shouldUpdate(Version.getCurrentVersion(), minimumVersion);
+            } catch (Exception e) {
+              log.error("Something went wrong checking for update", e);
+            }
+            if (minimumVersion != null && shouldUpdate) {
               loginAllowed = false;
               Platform.runLater(() -> showClientOutdatedPane(minimumVersion));
             } else {
@@ -178,13 +184,11 @@ public class LoginController implements Controller<Node> {
             }
             return clientConfiguration;
           })
-          .thenAccept(clientConfiguration -> {
-            Platform.runLater(() -> {
-              Endpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
-              environmentComboBox.getItems().addAll(clientConfiguration.getEndpoints());
-              environmentComboBox.getSelectionModel().select(defaultEndpoint);
-            });
-          }).exceptionally(throwable -> {
+          .thenAccept(clientConfiguration -> Platform.runLater(() -> {
+            Endpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
+            environmentComboBox.getItems().addAll(clientConfiguration.getEndpoints());
+            environmentComboBox.getSelectionModel().select(defaultEndpoint);
+          })).exceptionally(throwable -> {
             log.warn("Could not read remote preferences", throwable);
             loginAllowed = true;
             return null;
