@@ -185,7 +185,7 @@ public class LoginController implements Controller<Node> {
               environmentComboBox.getSelectionModel().select(defaultEndpoint);
             });
           }).exceptionally(throwable -> {
-            log.warn("Could not read remote preferences");
+            log.warn("Could not read remote preferences", throwable);
             loginAllowed = true;
             return null;
           });

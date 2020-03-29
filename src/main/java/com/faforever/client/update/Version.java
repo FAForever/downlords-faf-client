@@ -14,6 +14,7 @@ public final class Version {
 
   private static final String SNAPSHOT_VERSION = "snapshot";
   private static final Pattern SEMVER_PATTERN = Pattern.compile("v?\\d+(\\.\\d+)*[^.]*");
+  private static final String UNSPECIFIED_VERSION = "unspecified";
 
   static {
     String version = Version.class.getPackage().getImplementationVersion();
@@ -41,7 +42,7 @@ public final class Version {
     String fromVersion = removePrefix(fromVersionRaw);
     String toVersion = removePrefix(toVersionRaw);
 
-    if (fromVersion.equals(SNAPSHOT_VERSION)) {
+    if (fromVersion.equals(SNAPSHOT_VERSION) || fromVersion.equals(UNSPECIFIED_VERSION)) {
       log.info("Snapshot versions are not to be updated");
       return false;
     }
