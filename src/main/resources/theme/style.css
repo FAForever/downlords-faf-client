@@ -1035,8 +1035,16 @@
 .toggle-button.cybran:selected .text,
 .toggle-button.uef:selected .text,
 .toggle-button.seraphim:selected .text {
-  -fx-opacity: 1;
+  -fx-opacity: 1 !important;
 }
+
+.toggle-button.aeon:disabled .text,
+.toggle-button.cybran:disabled .text,
+.toggle-button.uef:disabled .text,
+.toggle-button.seraphim:disabled .text {
+  -fx-opacity: 0;
+}
+
 
 /***************** Faction label *****************/
 
