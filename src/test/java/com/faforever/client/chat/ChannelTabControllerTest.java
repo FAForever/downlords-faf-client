@@ -382,7 +382,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testChannelTopicUpdate() {
     defaultChannel.setTopic("topc1: https://faforever.com");
-    instance.setChannel(defaultChannel);
+    Platform.runLater(() -> instance.setChannel(defaultChannel));
     WaitForAsyncUtils.waitForFxEvents();
     assertEquals(instance.topicText.getChildren().size(), 2);
     defaultChannel.setTopic("topic2: https://faforever.com topic3: https://faforever.com/example");
