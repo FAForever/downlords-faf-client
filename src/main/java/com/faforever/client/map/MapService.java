@@ -78,6 +78,7 @@ import static java.util.stream.Collectors.toCollection;
 public class MapService implements InitializingBean, DisposableBean {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  public static final String DEBUG = "debug";
 
   private final PreferencesService preferencesService;
   private final TaskService taskService;
@@ -222,6 +223,9 @@ public class MapService implements InitializingBean, DisposableBean {
           long totalMaps = mapPaths.size();
           long mapsRead = 0;
           for (Path mapPath : mapPaths) {
+            if (mapPath.getFileName().toString().equals(DEBUG)) {
+              continue;
+            }
             updateProgress(++mapsRead, totalMaps);
             addInstalledMap(mapPath);
           }
