@@ -234,14 +234,14 @@ public class ChatUserItemController implements Controller<Node> {
     if (contextMenuController != null) {
       ChatUserContextMenuController controller = contextMenuController.get();
       if (controller != null) {
-        controller.getContextMenu().show(chatUserItemRoot, event.getScreenX(), event.getScreenY());
+        controller.getContextMenu().show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         return;
       }
     }
 
     ChatUserContextMenuController controller = uiService.loadFxml("theme/chat/chat_user_context_menu.fxml");
     controller.setChatUser(chatUser);
-    controller.getContextMenu().show(chatUserItemRoot, event.getScreenX(), event.getScreenY());
+    controller.getContextMenu().show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
 
     contextMenuController = new WeakReference<>(controller);
   }
