@@ -383,7 +383,7 @@
 
 /***************** Icon *****************/
 
-.icon {
+.icon, .icon .text {
   -fx-font-family: 'dfc-icons';
   -fx-font-size: 20;
   -fx-fill: -fx-light-text-color;
@@ -979,19 +979,19 @@
   -fx-border-color: -divider-color;
 }
 
-.toggle-button.aeon .text {
+.aeon .text {
   -fx-fill: -green-500;
 }
 
-.toggle-button.cybran .text {
+.cybran .text {
   -fx-fill: -red-500;
 }
 
-.toggle-button.uef .text {
+.uef .text {
   -fx-fill: -blue-500;
 }
 
-.toggle-button.seraphim .text {
+.seraphim .text {
   -fx-fill: -amber-500;
 }
 
@@ -1000,6 +1000,28 @@
 .toggle-button.uef:selected .text,
 .toggle-button.seraphim:selected .text {
   -fx-opacity: 1;
+}
+
+/***************** Faction label *****************/
+
+.icon.faction-label .text, .icon.faction-label {
+  -fx-font-size: 2em;
+}
+
+.faction-label.aeon .text {
+  -fx-fill: -green-500;
+}
+
+.faction-label.cybran .text {
+  -fx-fill: -red-500;
+}
+
+.faction-label.uef .text {
+  -fx-fill: -blue-500;
+}
+
+.faction-label.seraphim .text {
+  -fx-fill: -amber-500;
 }
 
 /***************** Map preview *****************/

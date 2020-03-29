@@ -58,12 +58,12 @@ public class TeamCardController implements Controller<Node> {
 
       TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
       teamCardController.setPlayersInTeam(entry.getKey(), players,
-          player -> new Rating(player.getGlobalRatingMean(), player.getGlobalRatingDeviation()), RatingType.ROUNDED);
+          player -> new Rating(player.getGlobalRatingMean(), player.getGlobalRatingDeviation()), null, RatingType.ROUNDED);
       teamsPane.getChildren().add(teamCardController.getRoot());
     }
   }
 
-  public void setPlayersInTeam(String team, List<Player> playerList, Function<Player, Rating> ratingProvider, RatingType ratingType) {
+  public void setPlayersInTeam(String team, List<Player> playerList, Function<Player, Rating> ratingProvider, Function<Player, Faction> playerFactionProvider, RatingType ratingType) {
     int totalRating = 0;
     for (Player player : playerList) {
       // If the server wasn't bugged, this would never be the case.
@@ -77,7 +77,11 @@ public class TeamCardController implements Controller<Node> {
       if (ratingType == RatingType.ROUNDED) {
         playerRating = RatingUtil.getRoundedGlobalRating(player);
       }
-      playerCardTooltipController.setPlayer(player, playerRating);
+      Faction faction = null;
+      if(playerFactionProvider != null) {
+        faction = playerFactionProvider.apply(player);
+      }
+      playerCardTooltipController.setPlayer(player, playerRating, faction);
 
       RatingChangeLabelController ratingChangeLabelController = uiService.loadFxml("theme/rating_change_label.fxml");
       ratingChangeControllersByPlayerId.put(player.getId(), ratingChangeLabelController);

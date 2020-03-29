@@ -12,7 +12,7 @@ public enum Faction {
   CYBRAN("cybran"),
   UEF("uef"),
   SERAPHIM("seraphim"),
-  NOMAD("nomad"),
+  RANDOM("random"),
   CIVILIAN("civilian");
 
   private static final Map<String, Faction> fromString;

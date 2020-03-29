@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Label?>
-<Label xmlns:fx="http://javafx.com/fxml"
-       xmlns="http://javafx.com/javafx"
-       fx:controller="com.faforever.client.game.RatingChangeLabelController"
-       fx:id="ratingChangLabelRoot"
-       styleClass="rating-change-label">
+<Label fx:id="ratingChangeLabelRoot"
+       minWidth="-Infinity"
+       styleClass="rating-change-label"
+       xmlns="http://javafx.com/javafx/11.0.1"
+       xmlns:fx="http://javafx.com/fxml/1"
+       fx:controller="com.faforever.client.game.RatingChangeLabelController">
 </Label>

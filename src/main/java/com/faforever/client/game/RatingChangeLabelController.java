@@ -18,17 +18,17 @@ import org.springframework.stereotype.Component;
 public class RatingChangeLabelController implements Controller<Node> {
   private static final PseudoClass POSITIVE = PseudoClass.getPseudoClass("positive");
   private static final PseudoClass NEGATIVE = PseudoClass.getPseudoClass("negative");
-  public Label ratingChangLabelRoot;
+  public Label ratingChangeLabelRoot;
   private final I18n i18n;
 
   @Override
   public Node getRoot() {
-    return ratingChangLabelRoot;
+    return ratingChangeLabelRoot;
   }
 
   @Override
   public void initialize() {
-    ratingChangLabelRoot.setVisible(false);
+    ratingChangeLabelRoot.setVisible(false);
   }
 
   public void setRatingChange(PlayerStats playerStats) {
@@ -39,9 +39,9 @@ public class RatingChangeLabelController implements Controller<Node> {
     int oldRating = RatingUtil.getRating(playerStats.getBeforeMean(), playerStats.getBeforeDeviation());
 
     int ratingChange = newRating - oldRating;
-    ratingChangLabelRoot.setText(i18n.numberWithSign(ratingChange));
-    ratingChangLabelRoot.pseudoClassStateChanged(ratingChange < 0 ? NEGATIVE : POSITIVE, true);
+    ratingChangeLabelRoot.setText(i18n.numberWithSign(ratingChange));
+    ratingChangeLabelRoot.pseudoClassStateChanged(ratingChange < 0 ? NEGATIVE : POSITIVE, true);
 
-    ratingChangLabelRoot.setVisible(true);
+    ratingChangeLabelRoot.setVisible(true);
   }
 }

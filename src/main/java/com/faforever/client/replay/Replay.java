@@ -3,6 +3,7 @@ package com.faforever.client.replay;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.Validity;
+import com.faforever.client.game.Faction;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.vault.review.Review;
@@ -402,6 +403,7 @@ public class Replay {
     private final Double afterMean;
     private final Double afterDeviation;
     private final int score;
+    private final Faction faction;
 
     public static PlayerStats fromDto(GamePlayerStats gamePlayerStats) {
       return new PlayerStats(
@@ -410,7 +412,8 @@ public class Replay {
           gamePlayerStats.getBeforeDeviation(),
           gamePlayerStats.getAfterMean() == null ? null : Double.valueOf(gamePlayerStats.getAfterMean()),
           gamePlayerStats.getAfterDeviation() == null ? null : Double.valueOf(gamePlayerStats.getAfterDeviation()),
-          gamePlayerStats.getScore()
+          gamePlayerStats.getScore(),
+          gamePlayerStats.getFaction()
       );
     }
   }
