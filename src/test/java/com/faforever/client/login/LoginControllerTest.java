@@ -26,7 +26,9 @@ import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -201,5 +203,30 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
 
     verify(i18n).get("login.button.downloadPreparing");
     verify(clientUpdateService, atLeastOnce()).downloadAndInstallInBackground(updateInfo);
+  }
+
+  @Test
+  public void testOnLoginErrorIsRemoved() throws Exception {
+    instance.loginErrorLabel.setVisible(true);
+    when(userService.login(eq("username"), eq("password"), anyBoolean())).thenReturn(CompletableFuture.completedFuture(null));
+    instance.usernameInput.setText("username");
+    instance.passwordInput.setText("password");
+    instance.onLoginButtonClicked();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertFalse(instance.loginErrorLabel.isVisible());
+  }
+
+  @Test
+  public void testWarningOnLoginWithEmail() throws Exception {
+    instance.loginErrorLabel.setVisible(false);
+    instance.usernameInput.setText("username@example.com");
+    instance.passwordInput.setText("password");
+    instance.onLoginButtonClicked();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verifyZeroInteractions(userService);
+    verify(i18n).get("login.withEmailWarning");
+    assertTrue(instance.loginErrorLabel.isVisible());
   }
 }
