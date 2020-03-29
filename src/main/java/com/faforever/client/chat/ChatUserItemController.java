@@ -22,8 +22,6 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
-import javafx.collections.MapChangeListener;
-import javafx.collections.WeakMapChangeListener;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -82,7 +80,7 @@ public class ChatUserItemController implements Controller<Node> {
 
   private final InvalidationListener colorChangeListener;
   private final InvalidationListener formatChangeListener;
-  private final MapChangeListener<String, Color> colorPerUserMapChangeListener;
+  private final InvalidationListener colorPerUserInvalidationListener;
   private final ChangeListener<String> avatarChangeListener;
   private final ChangeListener<String> clanChangeListener;
   private final ChangeListener<String> countryChangeListener;
@@ -99,6 +97,7 @@ public class ChatUserItemController implements Controller<Node> {
   private final WeakChangeListener<String> weakAvatarChangeListener;
   private final WeakChangeListener<String> weakClanChangeListener;
   private final WeakChangeListener<String> weakCountryChangeListener;
+  private final WeakInvalidationListener weakColorPerUserInvalidationListener;
 
   public ImageView playerStatusIndicator;
 
@@ -108,7 +107,6 @@ public class ChatUserItemController implements Controller<Node> {
   public Label usernameLabel;
   public MenuButton clanMenu;
   private ChatChannelUser chatUser;
-  private boolean randomColorsAllowed;
   @VisibleForTesting
   protected Tooltip countryTooltip;
   @VisibleForTesting
@@ -132,25 +130,23 @@ public class ChatUserItemController implements Controller<Node> {
     this.uiService = uiService;
     this.eventBus = eventBus;
     this.timeService = timeService;
-
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+
+    colorPerUserInvalidationListener = change -> {
+      if (chatUser != null) {
+        updateColor();
+      }
+    };
+
     colorChangeListener = observable -> updateColor();
     formatChangeListener = observable -> updateFormat();
     weakColorInvalidationListener = new WeakInvalidationListener(colorChangeListener);
     weakFormatInvalidationListener = new WeakInvalidationListener(formatChangeListener);
+    weakColorPerUserInvalidationListener = new WeakInvalidationListener(colorPerUserInvalidationListener);
 
     JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), weakColorInvalidationListener);
     JavaFxUtil.addListener(chatPrefs.chatFormatProperty(), weakFormatInvalidationListener);
 
-    colorPerUserMapChangeListener = change -> {
-      if (chatUser != null) {
-        String lowerUsername = chatUser.getUsername().toLowerCase(US);
-        if (lowerUsername.equalsIgnoreCase(change.getKey())) {
-          Color newColor = chatPrefs.getUserToColor().get(lowerUsername);
-          assignColor(newColor);
-        }
-      }
-    };
     userActivityListener = (observable) -> JavaFxUtil.runLater(this::onUserActivity);
     gameStatusChangeListener = (observable, oldValue, newValue) -> JavaFxUtil.runLater(this::updateGameStatus);
     avatarChangeListener = (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> setAvatarUrl(newValue));
@@ -211,9 +207,14 @@ public class ChatUserItemController implements Controller<Node> {
   }
 
   private void updateFormat() {
+    ChatFormat chatFormat = preferencesService.getPreferences().getChat().getChatFormat();
+    if (chatFormat == ChatFormat.COMPACT) {
+      JavaFxUtil.removeListener(preferencesService.getPreferences().getChat().getUserToColor(), weakColorPerUserInvalidationListener);
+      JavaFxUtil.addListener(preferencesService.getPreferences().getChat().getUserToColor(), weakColorPerUserInvalidationListener);
+    }
     getRoot().pseudoClassStateChanged(
         COMPACT,
-        preferencesService.getPreferences().getChat().getChatFormat() == ChatFormat.COMPACT
+        chatFormat == ChatFormat.COMPACT
     );
   }
 
@@ -227,6 +228,8 @@ public class ChatUserItemController implements Controller<Node> {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     weakColorInvalidationListener.invalidated(chatPrefs.chatColorModeProperty());
     weakFormatInvalidationListener.invalidated(chatPrefs.chatFormatProperty());
+
+    updateFormat();
   }
 
   private WeakReference<ChatUserContextMenuController> contextMenuController = null;
@@ -272,9 +275,7 @@ public class ChatUserItemController implements Controller<Node> {
       if (chatPrefs.getUserToColor().containsKey(lowerUsername)) {
         color = chatPrefs.getUserToColor().get(lowerUsername);
       }
-
-      JavaFxUtil.addListener(chatPrefs.getUserToColor(), new WeakMapChangeListener<>(colorPerUserMapChangeListener));
-    } else if (chatPrefs.getChatColorMode() == ChatColorMode.RANDOM && randomColorsAllowed) {
+    } else if (chatPrefs.getChatColorMode() == ChatColorMode.RANDOM) {
       color = ColorGeneratorUtil.generateRandomColor(chatUser.getUsername().hashCode());
     }
 
@@ -405,12 +406,6 @@ public class ChatUserItemController implements Controller<Node> {
         updateCountryTooltip();
       });
     }
-  }
-
-  //TODO: see where this should be called
-  void setRandomColorAllowed(boolean randomColorsAllowed) {
-    this.randomColorsAllowed = randomColorsAllowed;
-    updateColor();
   }
 
   public void setVisible(boolean visible) {

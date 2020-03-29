@@ -325,6 +325,16 @@ public final class JavaFxUtil {
   }
 
   /**
+   * Since the JavaFX properties API is not thread safe, removing listeners must be synchronized on the property - which
+   * is what this method does.
+   */
+  public static <T, U> void removeListener(ObservableMap<T, U> observable, MapChangeListener<T, U> listener) {
+    synchronized (observable) {
+      observable.removeListener(listener);
+    }
+  }
+
+  /**
    * Since the JavaFX properties API is not thread safe, binding a property must be synchronized on the property - which
    * is what this method does.
    */
