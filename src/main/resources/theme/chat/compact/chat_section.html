@@ -1,14 +1,17 @@
 <table class="chat-section compact chat-section-{username}">
   <tr>
-    <td class="author">
+    <td>
       <span class="author" style="{inline-style}">
         <img class="avatar" src="{avatar}"/>
+      </span>
+    </td>
+    <td ; class="author" style="text-align: right">
+      <span class="author" style="{inline-style}">
         <img class="country-flag" src="{country-flag}"/>
         <span class="clan-tag {css-classes}"
               onmouseover="showClanInfo('{clan-tag}')"
               onmouseout="hideClanInfo()"
               onclick="showClanWebsite('{clan-tag}')">{decorated-clan-tag}</span>
-
         <span class="username {css-classes}"
               onmouseover="showPlayerInfo('{username}')"
               onmouseout="hidePlayerInfo()"

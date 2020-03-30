@@ -556,7 +556,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     String timeString = timeService.asShortTime(chatMessage.getTime());
     html = html.replace("{time}", timeString)
         .replace("{avatar}", StringUtils.defaultString(avatarUrl))
-        .replace("{username}", login)
+        .replace("{username}", login + ":")
         .replace("{clan-tag}", clanTag)
         .replace("{decorated-clan-tag}", decoratedClanTag)
         .replace("{country-flag}", StringUtils.defaultString(countryFlagUrl))
