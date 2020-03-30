@@ -269,6 +269,8 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
     instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().setPlayer(player).get());
     WaitForAsyncUtils.waitForFxEvents();
 
+    instance.clanMenu.getOnMouseClicked().handle(null);
+
     ObservableList<MenuItem> items = instance.clanMenu.getItems();
     assertThat(items.size(), is(1));
     boolean containsMessageItem = items.stream().anyMatch((item) -> "Message clan leader".equals(item.getText()));
@@ -292,6 +294,8 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
     instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().setPlayer(player).get());
     WaitForAsyncUtils.waitForFxEvents();
 
+    instance.clanMenu.getOnMouseClicked().handle(null);
+
     ObservableList<MenuItem> items = instance.clanMenu.getItems();
     assertThat(items.size(), is(2));
     boolean containsMessageItem = items.stream().anyMatch((item) -> "Message clan leader".equals(item.getText()));
@@ -313,6 +317,8 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(otherClanLeader));
     instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().setPlayer(player).get());
     WaitForAsyncUtils.waitForFxEvents();
+
+    instance.clanMenu.getOnMouseClicked().handle(null);
 
     ObservableList<MenuItem> items = instance.clanMenu.getItems();
     assertThat(items.size(), is(2));
