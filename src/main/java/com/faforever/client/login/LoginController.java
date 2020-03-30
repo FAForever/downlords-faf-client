@@ -258,6 +258,9 @@ public class LoginController implements Controller<Node> {
   }
 
   private void setShowLoginProgress(boolean show) {
+    if (show) {
+      loginErrorLabel.setVisible(false);
+    }
     loginFormPane.setVisible(!show);
     loginProgressPane.setVisible(show);
     loginButton.setDisable(show);
