@@ -10,6 +10,7 @@ import com.faforever.client.game.Game;
 import com.faforever.client.game.GameAddedEvent;
 import com.faforever.client.game.GameRemovedEvent;
 import com.faforever.client.game.GameUpdatedEvent;
+import com.faforever.client.player.event.CurrentPlayerInfo;
 import com.faforever.client.player.event.FriendJoinedGameEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameStatus;
@@ -323,6 +324,7 @@ public class PlayerService implements InitializingBean {
       Player player = getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
       player.updateFromDto(dto);
       player.setSocialStatus(SELF);
+      eventBus.post(new CurrentPlayerInfo(player));
     } else {
       Player player = createAndGetPlayerForUsername(dto.getLogin());
 
