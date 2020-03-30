@@ -113,6 +113,7 @@ public class ChatUserItemController implements Controller<Node> {
   protected Tooltip avatarTooltip;
   @VisibleForTesting
   protected Tooltip userTooltip;
+  private Clan clan;
 
   // TODO reduce dependencies, rely on eventBus instead
   public ChatUserItemController(PreferencesService preferencesService, AvatarService avatarService,
@@ -233,6 +234,7 @@ public class ChatUserItemController implements Controller<Node> {
   }
 
   private WeakReference<ChatUserContextMenuController> contextMenuController = null;
+
   public void onContextMenuRequested(ContextMenuEvent event) {
     if (contextMenuController != null) {
       ChatUserContextMenuController controller = contextMenuController.get();
@@ -431,30 +433,10 @@ public class ChatUserItemController implements Controller<Node> {
   }
 
   private void updateClanMenu(Optional<Clan> optionalClan) {
-    clanMenu.getItems().clear();
+    clan = optionalClan.orElse(null);
     if (!optionalClan.isPresent()) {
       return;
     }
-
-    Player currentPlayer = playerService.getCurrentPlayer()
-        .orElseThrow(() -> new IllegalStateException("Player has to be set"));
-
-    Clan clan = optionalClan.get();
-    if (currentPlayer.getId() != clan.getLeader().getId()
-        && playerService.isOnline(clan.getLeader().getId())) {
-      MenuItem messageLeaderItem = new MenuItem(i18n.get("clan.messageLeader"));
-      messageLeaderItem.setOnAction(event -> eventBus.post(new InitiatePrivateChatEvent(clan.getLeader().getUsername())));
-      clanMenu.getItems().add(messageLeaderItem);
-    }
-
-    MenuItem visitClanPageAction = new MenuItem(i18n.get("clan.visitPage"));
-    visitClanPageAction.setOnAction(event -> {
-      platformService.showDocument(clan.getWebsiteUrl());
-      // TODO: Could be viewed in clan section (if implemented)
-    });
-    clanMenu.getItems().add(visitClanPageAction);
-
-    Optional.ofNullable(clanMenu.getTooltip()).ifPresent(tooltip -> clanMenu.setTooltip(null));
 
     ClanTooltipController clanTooltipController = uiService.loadFxml("theme/chat/clan_tooltip.fxml");
     clanTooltipController.setClan(clan);
@@ -462,6 +444,7 @@ public class ChatUserItemController implements Controller<Node> {
     Tooltip clanTooltip = new Tooltip();
     clanTooltip.setMaxHeight(clanTooltipController.getRoot().getHeight());
     clanTooltip.setGraphic(clanTooltipController.getRoot());
+    Optional.ofNullable(clanMenu.getTooltip()).ifPresent(tooltip -> clanMenu.setTooltip(null));
 
     Tooltip.install(clanMenu, clanTooltip);
   }
@@ -509,5 +492,34 @@ public class ChatUserItemController implements Controller<Node> {
 
   public void onMouseEnteredUserNameLabel() {
     chatUser.getPlayer().ifPresent(this::updateNameLabelText);
+  }
+
+  /**
+   * Memory analysis suggest this menu uses tons of memory while it stays unclear why exactly (something java fx
+   * internal). We just load the menu on click. Also we destroy it over and over again.
+   */
+  public void onClanMenuRequested() {
+    clanMenu.getItems().clear();
+    if (clan == null) {
+      return;
+    }
+
+    Player currentPlayer = playerService.getCurrentPlayer()
+        .orElseThrow(() -> new IllegalStateException("Player has to be set"));
+
+    if (currentPlayer.getId() != clan.getLeader().getId()
+        && playerService.isOnline(clan.getLeader().getId())) {
+      MenuItem messageLeaderItem = new MenuItem(i18n.get("clan.messageLeader"));
+      messageLeaderItem.setOnAction(event -> eventBus.post(new InitiatePrivateChatEvent(clan.getLeader().getUsername())));
+      clanMenu.getItems().add(messageLeaderItem);
+    }
+
+    MenuItem visitClanPageAction = new MenuItem(i18n.get("clan.visitPage"));
+    visitClanPageAction.setOnAction(event -> platformService.showDocument(clan.getWebsiteUrl()));
+    clanMenu.getItems().add(visitClanPageAction);
+
+    //reload to load newly set UI
+    clanMenu.hide();
+    clanMenu.show();
   }
 }
