@@ -147,7 +147,6 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
     verify(gameService).stopSearchLadder1v1();
     assertThat(instance.cancelButton.isVisible(), is(false));
     assertThat(instance.playButton.isVisible(), is(true));
-    assertThat(instance.searchProgressIndicator.isVisible(), is(false));
     assertThat(instance.searchingForOpponentLabel.isVisible(), is(false));
     for (ToggleButton button : instance.factionsToButtons.values()) {
       assertThat(button.isDisable(), is(false));
@@ -185,7 +184,6 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
 
     assertThat(instance.cancelButton.isVisible(), is(false));
     assertThat(instance.playButton.isVisible(), is(true));
-    assertThat(instance.searchProgressIndicator.isVisible(), is(false));
     assertThat(instance.searchingForOpponentLabel.isVisible(), is(false));
   }
 
