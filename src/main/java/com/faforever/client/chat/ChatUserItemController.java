@@ -324,7 +324,7 @@ public class ChatUserItemController implements Controller<Node> {
     }
     clanMenu.setText(String.format("[%s]", clanTag));
     clanMenu.setVisible(true);
-    updateClanMenu();
+    setClan();
   }
 
   private static void loadPlayerStatusIcons(UiService uiService) throws IOException {
@@ -367,8 +367,8 @@ public class ChatUserItemController implements Controller<Node> {
     });
   }
 
-  private void updateClanMenu() {
-    chatUser.getPlayer().ifPresent(this::updateClanMenu);
+  private void setClan() {
+    chatUser.getPlayer().ifPresent(this::setClan);
   }
 
   private void updateNameLabelTooltip() {
@@ -434,16 +434,16 @@ public class ChatUserItemController implements Controller<Node> {
     }
   }
 
-  private void updateClanMenu(Player player) {
+  private void setClan(Player player) {
     clanService.getClanByTag(player.getClan())
-        .thenAccept(optionalClan -> JavaFxUtil.runLater(() -> updateClanMenu(optionalClan)))
+        .thenAccept(optionalClan -> JavaFxUtil.runLater(() -> setClan(optionalClan)))
         .exceptionally(throwable -> {
           log.warn("Clan was not updated", throwable);
           return null;
         });
   }
 
-  private void updateClanMenu(Optional<Clan> optionalClan) {
+  private void setClan(Optional<Clan> optionalClan) {
     clan = optionalClan.orElse(null);
   }
 

@@ -121,6 +121,7 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
     instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().setPlayer(player).get());
     WaitForAsyncUtils.waitForFxEvents();
+    instance.clanMenu.getOnMouseClicked().handle(null);
 
     assertThat(instance.clanMenu.getText(), is("[e]"));
     assertThat(instance.clanMenu.isVisible(), is(true));
@@ -128,6 +129,7 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.countryTooltip, CoreMatchers.notNullValue());
     assertThat(instance.avatarTooltip, CoreMatchers.notNullValue());
     assertThat(instance.userTooltip, CoreMatchers.notNullValue());
+    instance.clanMenu.getOnMouseEntered().handle(null);
     verify(clanTooltipControllerMock).setClan(testClan);
   }
 
