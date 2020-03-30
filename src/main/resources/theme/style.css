@@ -1008,22 +1008,6 @@
   -fx-font-size: 2em;
 }
 
-.faction-label.aeon .text {
-  -fx-fill: -green-500;
-}
-
-.faction-label.cybran .text {
-  -fx-fill: -red-500;
-}
-
-.faction-label.uef .text {
-  -fx-fill: -blue-500;
-}
-
-.faction-label.seraphim .text {
-  -fx-fill: -amber-500;
-}
-
 /***************** Map preview *****************/
 
 .map-preview {
