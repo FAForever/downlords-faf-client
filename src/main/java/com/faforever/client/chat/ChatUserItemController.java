@@ -113,6 +113,9 @@ public class ChatUserItemController implements Controller<Node> {
   protected Tooltip avatarTooltip;
   @VisibleForTesting
   protected Tooltip userTooltip;
+  private Clan clan;
+  private ClanTooltipController clanTooltipController;
+  private Tooltip clanTooltip;
 
   // TODO reduce dependencies, rely on eventBus instead
   public ChatUserItemController(PreferencesService preferencesService, AvatarService avatarService,
@@ -206,6 +209,14 @@ public class ChatUserItemController implements Controller<Node> {
     weakUsernameInvalidationListener = new WeakInvalidationListener(usernameInvalidationListener);
   }
 
+  private void initClanTooltip() {
+    clanTooltipController = uiService.loadFxml("theme/chat/clan_tooltip.fxml");
+
+    clanTooltip = new Tooltip();
+    clanTooltip.setGraphic(clanTooltipController.getRoot());
+    Tooltip.install(clanMenu, clanTooltip);
+  }
+
   private void updateFormat() {
     ChatFormat chatFormat = preferencesService.getPreferences().getChat().getChatFormat();
     if (chatFormat == ChatFormat.COMPACT) {
@@ -230,9 +241,11 @@ public class ChatUserItemController implements Controller<Node> {
     weakFormatInvalidationListener.invalidated(chatPrefs.chatFormatProperty());
 
     updateFormat();
+    initClanTooltip();
   }
 
   private WeakReference<ChatUserContextMenuController> contextMenuController = null;
+
   public void onContextMenuRequested(ContextMenuEvent event) {
     if (contextMenuController != null) {
       ChatUserContextMenuController controller = contextMenuController.get();
@@ -311,7 +324,7 @@ public class ChatUserItemController implements Controller<Node> {
     }
     clanMenu.setText(String.format("[%s]", clanTag));
     clanMenu.setVisible(true);
-    updateClanMenu();
+    setClan();
   }
 
   private static void loadPlayerStatusIcons(UiService uiService) throws IOException {
@@ -354,8 +367,8 @@ public class ChatUserItemController implements Controller<Node> {
     });
   }
 
-  private void updateClanMenu() {
-    chatUser.getPlayer().ifPresent(this::updateClanMenu);
+  private void setClan() {
+    chatUser.getPlayer().ifPresent(this::setClan);
   }
 
   private void updateNameLabelTooltip() {
@@ -421,49 +434,17 @@ public class ChatUserItemController implements Controller<Node> {
     }
   }
 
-  private void updateClanMenu(Player player) {
+  private void setClan(Player player) {
     clanService.getClanByTag(player.getClan())
-        .thenAccept(optionalClan -> JavaFxUtil.runLater(() -> updateClanMenu(optionalClan)))
+        .thenAccept(optionalClan -> JavaFxUtil.runLater(() -> setClan(optionalClan)))
         .exceptionally(throwable -> {
           log.warn("Clan was not updated", throwable);
           return null;
         });
   }
 
-  private void updateClanMenu(Optional<Clan> optionalClan) {
-    clanMenu.getItems().clear();
-    if (!optionalClan.isPresent()) {
-      return;
-    }
-
-    Player currentPlayer = playerService.getCurrentPlayer()
-        .orElseThrow(() -> new IllegalStateException("Player has to be set"));
-
-    Clan clan = optionalClan.get();
-    if (currentPlayer.getId() != clan.getLeader().getId()
-        && playerService.isOnline(clan.getLeader().getId())) {
-      MenuItem messageLeaderItem = new MenuItem(i18n.get("clan.messageLeader"));
-      messageLeaderItem.setOnAction(event -> eventBus.post(new InitiatePrivateChatEvent(clan.getLeader().getUsername())));
-      clanMenu.getItems().add(messageLeaderItem);
-    }
-
-    MenuItem visitClanPageAction = new MenuItem(i18n.get("clan.visitPage"));
-    visitClanPageAction.setOnAction(event -> {
-      platformService.showDocument(clan.getWebsiteUrl());
-      // TODO: Could be viewed in clan section (if implemented)
-    });
-    clanMenu.getItems().add(visitClanPageAction);
-
-    Optional.ofNullable(clanMenu.getTooltip()).ifPresent(tooltip -> clanMenu.setTooltip(null));
-
-    ClanTooltipController clanTooltipController = uiService.loadFxml("theme/chat/clan_tooltip.fxml");
-    clanTooltipController.setClan(clan);
-
-    Tooltip clanTooltip = new Tooltip();
-    clanTooltip.setMaxHeight(clanTooltipController.getRoot().getHeight());
-    clanTooltip.setGraphic(clanTooltipController.getRoot());
-
-    Tooltip.install(clanMenu, clanTooltip);
+  private void setClan(Optional<Clan> optionalClan) {
+    clan = optionalClan.orElse(null);
   }
 
   public void updateAvatarTooltip() {
@@ -509,5 +490,46 @@ public class ChatUserItemController implements Controller<Node> {
 
   public void onMouseEnteredUserNameLabel() {
     chatUser.getPlayer().ifPresent(this::updateNameLabelText);
+  }
+
+  /**
+   * Memory analysis suggest this menu uses tons of memory while it stays unclear why exactly (something java fx
+   * internal). We just load the menu on click. Also we destroy it over and over again.
+   */
+  public void onClanMenuRequested() {
+    clanMenu.getItems().clear();
+    if (clan == null) {
+      return;
+    }
+
+    Player currentPlayer = playerService.getCurrentPlayer()
+        .orElseThrow(() -> new IllegalStateException("Player has to be set"));
+
+    if (currentPlayer.getId() != clan.getLeader().getId()
+        && playerService.isOnline(clan.getLeader().getId())) {
+      MenuItem messageLeaderItem = new MenuItem(i18n.get("clan.messageLeader"));
+      messageLeaderItem.setOnAction(event -> eventBus.post(new InitiatePrivateChatEvent(clan.getLeader().getUsername())));
+      clanMenu.getItems().add(messageLeaderItem);
+    }
+
+    MenuItem visitClanPageAction = new MenuItem(i18n.get("clan.visitPage"));
+    visitClanPageAction.setOnAction(event -> platformService.showDocument(clan.getWebsiteUrl()));
+    clanMenu.getItems().add(visitClanPageAction);
+
+    //reload to load newly set UI
+    clanMenu.hide();
+    clanMenu.show();
+  }
+
+  /**
+   * Because of a bug in java fx tooltip when controls are updated without the tooltip showing the ui is leaked, so we
+   * only update when the user hover over the tooltip. This will reduce that to a minimum.
+   */
+  public void updateClanData() {
+    if (clan == null) {
+      return;
+    }
+    clanTooltipController.setClan(clan);
+    clanTooltip.setMaxHeight(clanTooltipController.getRoot().getHeight());
   }
 }

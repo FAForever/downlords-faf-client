@@ -28,7 +28,7 @@
                    preserveRatio="true" GridPane.columnIndex="1" GridPane.valignment="CENTER"/>
         <MenuButton fx:id="clanMenu" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                     styleClass="chat-user-control-clan" text="[CLAN]"
-                    GridPane.columnIndex="2"/>
+                    GridPane.columnIndex="2" onMouseClicked="#onClanMenuRequested" onMouseEntered="#updateClanData"/>
         <Label fx:id="usernameLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" onMouseClicked="#onItemClicked"
                onMouseEntered="#onMouseEnteredUserNameLabel" styleClass="chat-user-item-username"
                text="&lt;Username&gt;"
