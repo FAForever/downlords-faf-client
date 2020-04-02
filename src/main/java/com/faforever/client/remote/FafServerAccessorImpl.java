@@ -95,9 +95,9 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
+import javax.security.auth.login.LoginException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -218,10 +218,10 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     this.password = password;
 
     // TODO extract class?
-    fafConnectionTask = new Task<Void>() {
+    fafConnectionTask = new Task<>() {
 
       @Override
-      protected Void call() throws Exception {
+      protected Void call() {
         while (!isCancelled()) {
           Server server = clientProperties.getServer();
           String serverHost = server.getHost();
@@ -253,6 +253,12 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
             if (isCancelled()) {
               log.debug("Connection to FAF server has been closed");
             } else {
+              if (loginFuture != null) {
+                loginFuture.completeExceptionally(new LoginFailedException("Lost connection to server during login"));
+                loginFuture = null;
+                fafConnectionTask.cancel();
+                return null;
+              }
               log.warn("Lost connection to Server", e);
               reconnectTimerService.incrementConnectionFailures();
               reconnectTimerService.waitForReconnect();
@@ -260,6 +266,18 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
           }
         }
         return null;
+      }
+
+      @Override
+      protected void failed() {
+        super.failed();
+        log.error("Server connection task failed", getException());
+        if (loginFuture != null) {
+          loginFuture.completeExceptionally(new LoginException("The server connection task failed, an internal error occurred"));
+          loginFuture = null;
+        }
+        IOUtils.closeQuietly(serverWriter);
+        IOUtils.closeQuietly(fafServerSocket);
       }
 
       @Override
@@ -458,10 +476,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
             .forEach(consumer -> consumer.accept(serverMessage));
         messageClass = messageClass.getSuperclass();
       }
-      for (Class<?> type : ClassUtils.getAllInterfacesForClassAsSet(messageClass)) {
-        messageListeners.getOrDefault(messageClass, Collections.emptyList())
-            .forEach(consumer -> consumer.accept(serverMessage));
-      }
+
     } catch (JsonSyntaxException e) {
       log.warn("Could not deserialize message: " + jsonString, e);
     }
@@ -483,6 +498,8 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     if (loginFuture != null) {
       loginFuture.complete(loginServerMessage);
       loginFuture = null;
+    } else {
+      log.warn("Unexpected login message from server");
     }
   }
 
