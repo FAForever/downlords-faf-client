@@ -86,6 +86,12 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   public void initialize() {
+    gameDetailRoot.parentProperty().addListener(observable -> {
+      if (!(gameDetailRoot.getParent() instanceof Pane)) {
+        return;
+      }
+      gameDetailRoot.maxWidthProperty().bind(((Pane) gameDetailRoot.getParent()).widthProperty());
+    });
     watchButton = watchButtonController.getRoot();
 
     joinButton.managedProperty().bind(joinButton.visibleProperty());

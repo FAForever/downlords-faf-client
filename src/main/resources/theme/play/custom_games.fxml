@@ -19,7 +19,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="gamesRoot" alignment="TOP_CENTER"
-           xmlns="http://javafx.com/javafx/10.0.2" fx:controller="com.faforever.client.game.CustomGamesController">
+           xmlns="http://javafx.com/javafx/11.0.1" fx:controller="com.faforever.client.game.CustomGamesController">
     <children>
         <GridPane fx:id="gamesGridPane">
             <columnConstraints>
@@ -80,8 +80,8 @@
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
                     </padding>
                 </VBox>
-                <ScrollPane fx:id="gameDetailPane" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1"
-                            GridPane.rowSpan="2147483647">
+                <ScrollPane fx:id="gameDetailPane" hbarPolicy="NEVER" maxWidth="1.7976931348623157E308"
+                            GridPane.columnIndex="1" GridPane.rowSpan="2147483647">
                     <content>
                         <fx:include fx:id="gameDetail" source="game_detail.fxml"/>
                     </content>
