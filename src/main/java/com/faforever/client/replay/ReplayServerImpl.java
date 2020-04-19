@@ -80,7 +80,7 @@ public class ReplayServerImpl implements ReplayServer {
   }
 
   @Override
-  public CompletableFuture<Integer> start(int gameId, Supplier<Game> onGameInfoFinished) {
+  public CompletableFuture<Integer> start(int gameId, Supplier<Game> gameSupplier) {
     stoppedGracefully = false;
     CompletableFuture<Integer> future = new CompletableFuture<>();
     new Thread(() -> {
@@ -96,11 +96,11 @@ public class ReplayServerImpl implements ReplayServer {
 
         try (Socket remoteReplayServerSocket = new Socket(remoteReplayServerHost, remoteReplayServerPort);
              DataOutputStream fafReplayOutputStream = new DataOutputStream(remoteReplayServerSocket.getOutputStream())) {
-          recordAndRelay(gameId, localSocket, fafReplayOutputStream, onGameInfoFinished);
+          recordAndRelay(gameId, localSocket, fafReplayOutputStream, gameSupplier);
         } catch (ConnectException e) {
           log.warn("Could not connect to remote replay server", e);
           notificationService.addNotification(new PersistentNotification(i18n.get("replayServer.unreachable"), Severity.WARN));
-          recordAndRelay(gameId, localSocket, null, onGameInfoFinished);
+          recordAndRelay(gameId, localSocket, null, gameSupplier);
         }
       } catch (IOException e) {
         if (stoppedGracefully) {
@@ -110,7 +110,7 @@ public class ReplayServerImpl implements ReplayServer {
         log.warn("Error in replay server", e);
         notificationService.addNotification(new PersistentNotification(
             i18n.get("replayServer.listeningFailed"),
-            Severity.WARN, Collections.singletonList(new Action(i18n.get("replayServer.retry"), event -> start(gameId, onGameInfoFinished)))
+            Severity.WARN, Collections.singletonList(new Action(i18n.get("replayServer.retry"), event -> start(gameId, gameSupplier)))
         ));
       }
     }).start();
@@ -132,6 +132,7 @@ public class ReplayServerImpl implements ReplayServer {
    */
   private void recordAndRelay(int uid, ServerSocket serverSocket, @Nullable OutputStream fafReplayOutputStream, Supplier<Game> onGameInfoFinished) throws IOException {
     Socket socket = serverSocket.accept();
+    Game game = onGameInfoFinished.get();
     log.debug("Accepted connection from {}", socket.getRemoteSocketAddress());
 
     initReplayInfo(uid);
@@ -166,13 +167,11 @@ public class ReplayServerImpl implements ReplayServer {
     }
 
     log.debug("FAF has disconnected, writing replay data to file");
-    finishReplayInfo(onGameInfoFinished);
+    finishReplayInfo(game);
     replayFileWriter.writeReplayDataToFile(replayData, replayInfo);
   }
 
-  private void finishReplayInfo(Supplier<Game> onGameInfoFinished) {
-    Game game = onGameInfoFinished.get();
-
+  private void finishReplayInfo(Game game) {
     replayInfo.updateFromGameInfoBean(game);
     replayInfo.setGameEnd(pythonTime());
     replayInfo.setRecorder(userService.getUsername());
