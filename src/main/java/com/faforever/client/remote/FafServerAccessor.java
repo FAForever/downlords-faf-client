@@ -44,6 +44,8 @@ public interface FafServerAccessor {
 
   void addFoe(int playerId);
 
+  void requestMatchmakerInfo();
+
   CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction);
 
   void stopSearchingRanked();

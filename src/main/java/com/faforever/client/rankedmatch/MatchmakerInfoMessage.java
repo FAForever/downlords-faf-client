@@ -7,7 +7,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-public class MatchmakerMessage extends FafServerMessage {
+public class MatchmakerInfoMessage extends FafServerMessage {
 
   public static class MatchmakerQueue {
 
@@ -66,7 +66,7 @@ public class MatchmakerMessage extends FafServerMessage {
   private String action;
   private List<MatchmakerQueue> queues;
 
-  public MatchmakerMessage() {
+  public MatchmakerInfoMessage() {
     super(FafServerMessageType.MATCHMAKER_INFO);
   }
 

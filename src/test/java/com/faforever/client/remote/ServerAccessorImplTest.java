@@ -12,8 +12,8 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.rankedmatch.MatchmakerMessage;
-import com.faforever.client.rankedmatch.MatchmakerMessage.MatchmakerQueue.QueueName;
+import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
+import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue.QueueName;
 import com.faforever.client.rankedmatch.SearchLadder1v1ClientMessage;
 import com.faforever.client.rankedmatch.StopSearchLadder1v1ClientMessage;
 import com.faforever.client.remote.domain.ClientMessageType;
@@ -256,18 +256,18 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
   public void testRankedMatchNotification() throws Exception {
     connectAndLogIn();
 
-    MatchmakerMessage matchmakerMessage = new MatchmakerMessage();
-    matchmakerMessage.setQueues(singletonList(new MatchmakerMessage.MatchmakerQueue(QueueName.LADDER_1V1, null, singletonList(new RatingRange(100, 200)), singletonList(new RatingRange(100, 200)))));
+    MatchmakerInfoMessage matchmakerMessage = new MatchmakerInfoMessage();
+    matchmakerMessage.setQueues(singletonList(new MatchmakerInfoMessage.MatchmakerQueue(QueueName.LADDER_1V1, null, singletonList(new RatingRange(100, 200)), singletonList(new RatingRange(100, 200)))));
 
-    CompletableFuture<MatchmakerMessage> serviceStateDoneFuture = new CompletableFuture<>();
+    CompletableFuture<MatchmakerInfoMessage> serviceStateDoneFuture = new CompletableFuture<>();
 
     WaitForAsyncUtils.waitForAsyncFx(200, () -> instance.addOnMessageListener(
-        MatchmakerMessage.class, serviceStateDoneFuture::complete
+        MatchmakerInfoMessage.class, serviceStateDoneFuture::complete
     ));
 
     sendFromServer(matchmakerMessage);
 
-    MatchmakerMessage matchmakerServerMessage = serviceStateDoneFuture.get(TIMEOUT, TIMEOUT_UNIT);
+    MatchmakerInfoMessage matchmakerServerMessage = serviceStateDoneFuture.get(TIMEOUT, TIMEOUT_UNIT);
     assertThat(matchmakerServerMessage.getQueues(), not(empty()));
 
     instance.disconnect();

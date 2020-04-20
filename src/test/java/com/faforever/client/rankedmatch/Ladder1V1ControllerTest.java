@@ -13,7 +13,8 @@ import com.faforever.client.preferences.Ladder1v1Prefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
-import com.faforever.client.rankedmatch.MatchmakerMessage.MatchmakerQueue.QueueName;
+import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue.QueueName;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
@@ -76,6 +77,8 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
   private Ladder1v1Prefs ladder1V1Prefs;
   @Mock
   private ForgedAlliancePrefs forgedAlliancePrefs;
+  @Mock
+  private FafService fafService;
 
   @Mock
   private EventBus eventBus;
@@ -86,7 +89,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     instance = new Ladder1v1Controller(gameService, preferencesService, playerService, leaderboardService, i18n,
-        new ClientProperties(), eventBus);
+        new ClientProperties(), fafService, eventBus);
 
     Player player = new Player(USERNAME);
     player.setId(PLAYER_ID);
@@ -202,13 +205,15 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testQueuePopTime() throws TimeoutException {
+    verify(fafService).requestMatchmakerInfo();
+
     @SuppressWarnings("unchecked")
-    ArgumentCaptor<Consumer<MatchmakerMessage>> listenerCaptor = ArgumentCaptor.forClass(Consumer.class);
+    ArgumentCaptor<Consumer<MatchmakerInfoMessage>> listenerCaptor = ArgumentCaptor.forClass(Consumer.class);
     verify(gameService).addOnRankedMatchNotificationListener(listenerCaptor.capture());
     
-    MatchmakerMessage message = new MatchmakerMessage();
+    MatchmakerInfoMessage message = new MatchmakerInfoMessage();
     String timeString = DateTimeFormatter.ISO_INSTANT.format(Instant.now().plusSeconds(65));
-    message.setQueues(List.of(new MatchmakerMessage.MatchmakerQueue(QueueName.LADDER_1V1, timeString, null, null)));
+    message.setQueues(List.of(new MatchmakerInfoMessage.MatchmakerQueue(QueueName.LADDER_1V1, timeString, null, null)));
     
     listenerCaptor.getValue().accept(message);
     WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> instance.timeUntilQueuePopLabel.isVisible());

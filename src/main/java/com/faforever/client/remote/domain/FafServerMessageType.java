@@ -1,6 +1,6 @@
 package com.faforever.client.remote.domain;
 
-import com.faforever.client.rankedmatch.MatchmakerMessage;
+import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
 import com.faforever.client.remote.UpdatedAchievementsMessage;
 
 import java.util.HashMap;
@@ -12,7 +12,7 @@ public enum FafServerMessageType implements ServerMessageType {
   GAME_INFO("game_info", GameInfoMessage.class),
   PLAYER_INFO("player_info", PlayersMessage.class),
   GAME_LAUNCH("game_launch", GameLaunchMessage.class),
-  MATCHMAKER_INFO("matchmaker_info", MatchmakerMessage.class),
+  MATCHMAKER_INFO("matchmaker_info", MatchmakerInfoMessage.class),
   SOCIAL("social", SocialMessage.class),
   AUTHENTICATION_FAILED("authentication_failed", AuthenticationFailedMessage.class),
   UPDATED_ACHIEVEMENTS("updated_achievements", UpdatedAchievementsMessage.class),

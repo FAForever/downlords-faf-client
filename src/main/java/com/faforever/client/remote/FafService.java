@@ -95,6 +95,10 @@ public class FafService {
     return fafServerAccessor.startSearchLadder1v1(faction);
   }
 
+  public void requestMatchmakerInfo() {
+    fafServerAccessor.requestMatchmakerInfo();
+  }
+
   public void stopSearchingRanked() {
     fafServerAccessor.stopSearchingRanked();
   }

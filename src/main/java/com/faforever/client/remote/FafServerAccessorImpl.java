@@ -20,6 +20,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.rankedmatch.MatchmakerInfoClientMessage;
 import com.faforever.client.rankedmatch.SearchLadder1v1ClientMessage;
 import com.faforever.client.rankedmatch.StopSearchLadder1v1ClientMessage;
 import com.faforever.client.remote.domain.AddFoeMessage;
@@ -326,6 +327,11 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   @Override
   public void addFoe(int playerId) {
     writeToServer(new AddFoeMessage(playerId));
+  }
+
+  @Override
+  public void requestMatchmakerInfo() {
+    writeToServer(new MatchmakerInfoClientMessage());
   }
 
   @Override
