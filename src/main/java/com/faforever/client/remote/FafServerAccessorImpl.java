@@ -523,7 +523,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     gameLaunchFuture = null;
   }
 
-  @Scheduled(fixedRate = 60_000, initialDelay = 60_000)
+  @Scheduled(fixedDelay = 60_000, initialDelay = 60_000)
   @Override
   public void ping() {
     if (fafServerSocket == null || !fafServerSocket.isConnected() || serverWriter == null) {
