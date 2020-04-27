@@ -65,7 +65,6 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
 
     clientProperties.setClientConfigUrl("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
 
-    instance.fileSizeReader = url -> 123;
     UpdateInfo updateInfo = instance.call();
 
     assertThat(updateInfo.getSize(), is(123));
