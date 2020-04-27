@@ -10,9 +10,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 
 @Component
 @Slf4j
@@ -21,16 +24,24 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
 
   private final I18n i18n;
   private final PreferencesService preferencesService;
-
-  @VisibleForTesting
-  FileSizeReader fileSizeReader = url -> url
-      .openConnection()
-      .getContentLength();
-
   public CheckForUpdateTask(I18n i18n, PreferencesService preferencesService) {
     super(Priority.LOW);
     this.i18n = i18n;
     this.preferencesService = preferencesService;
+  }
+
+  @VisibleForTesting
+  int getFileSize(URL url) throws IOException {
+    URLConnection connection = url.openConnection();
+    Assert.state(connection instanceof HttpURLConnection, "Unexpected connection type: " + connection.getClass());
+
+    HttpURLConnection httpConnection = (HttpURLConnection) connection;
+    httpConnection.setRequestMethod("HEAD");
+
+    int fileSize = httpConnection.getContentLength();
+    httpConnection.disconnect();
+
+    return fileSize;
   }
 
   @Override
@@ -68,11 +79,6 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
         latestRelease.getReleaseNotesUrl(),
         false
     );
-  }
-
-  @SneakyThrows
-  private int getFileSize(URL downloadUrl) {
-    return fileSizeReader.read(downloadUrl);
   }
 
   // TODO make this available as a bean and use it in MapService as well
