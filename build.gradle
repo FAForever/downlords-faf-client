@@ -310,6 +310,5 @@ dependencies {
 
   optional("org.springframework.boot:spring-boot-configuration-processor")
 
-
   codacy("com.github.codacy:codacy-coverage-reporter:-SNAPSHOT")
 }
