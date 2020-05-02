@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="7.0.12" transformSequenceNumber="7">
   <directoryPresets config="./src/media/appicon" />
-  <application name="Downlord's FAF Client" distributionSourceDir="" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="dfc" publisher="Downlord" publisherWeb="https://github.com/FAForever/downlords-faf-client" version="" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" macVolumeId="e230e730a6fc064c" javaMinVersion="10" javaMaxVersion="13" allowBetaVM="true" jdkMode="runtimeJre" jdkName="">
+  <application name="Downlord's FAF Client" distributionSourceDir="" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="dfc" publisher="Downlord" publisherWeb="https://github.com/FAForever/downlords-faf-client" version="" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" macVolumeId="e230e730a6fc064c" javaMinVersion="11" javaMaxVersion="13" allowBetaVM="true" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
       <additionalLanguages />
@@ -1369,7 +1369,7 @@ return console.askYesNo(message, true);
     </styles>
   </installerGui>
   <mediaSets>
-    <windows name="Windows" id="26" customizedId="" mediaFileName="" installDir="${compiler:sys.fullName}" overridePrincipalLanguage="false" jreBitType="64" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" downloadURL="" includeAllDownloadableComponents="false" includedJRE="windows-amd64-10.0.2" manualJREEntry="false" bundleType="1" jreURL="https://content.faforever.com/jre/windows-amd64-10.0.2.tar.gz" jreShared="false" directDownload="false" installOnlyIfNecessary="false" customInstallBaseDir="" contentFilesType="1" verifyIntegrity="true">
+    <windows name="Windows" id="26" customizedId="" mediaFileName="" installDir="${compiler:sys.fullName}" overridePrincipalLanguage="false" jreBitType="64" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" downloadURL="" includeAllDownloadableComponents="false" includedJRE="windows-amd64-11.0.7_packed" manualJREEntry="false" bundleType="1" jreURL="https://content.faforever.com/jre/windows-amd64-11.0.7.tar.gz" jreShared="false" directDownload="true" installOnlyIfNecessary="false" customInstallBaseDir="" contentFilesType="1" verifyIntegrity="true">
       <excludedComponents />
       <includedDownloadableComponents />
       <excludedLaunchers />
@@ -1385,7 +1385,7 @@ return console.askYesNo(message, true);
         <customAttributes />
       </autoUpdate>
     </windows>
-    <windowsArchive name="Windows Archive" id="330" customizedId="" mediaFileName="" installDir="downlords-faf-client-${compiler:sys.version}" overridePrincipalLanguage="false" jreBitType="64" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" downloadURL="" includeAllDownloadableComponents="true" includedJRE="windows-amd64-10.0.2" manualJREEntry="false">
+    <windowsArchive name="Windows Archive" id="330" customizedId="" mediaFileName="" installDir="downlords-faf-client-${compiler:sys.version}" overridePrincipalLanguage="false" jreBitType="64" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" downloadURL="" includeAllDownloadableComponents="true" includedJRE="windows-amd64-11.0.7_packed" manualJREEntry="false">
       <excludedComponents />
       <includedDownloadableComponents />
       <excludedLaunchers />
