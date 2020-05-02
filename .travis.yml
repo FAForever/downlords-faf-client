@@ -1,6 +1,5 @@
 language: java
 
-#Can not be used any longer as travis moved to adoptjdk which as issues with our project
 jdk:
   - openjdk11
 

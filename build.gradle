@@ -231,10 +231,6 @@ task downloadNativeDependencies(dependsOn: [downloadUnixUid, downloadWindowsUid,
 compileJava.dependsOn 'downloadNativeDependencies'
 compileJava.dependsOn ':webview-patch:build'
 
-task wrapper(type: Wrapper) {
-  gradleVersion = '4.5.1'
-}
-
 task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
   main = "com.codacy.CodacyCoverageReporter"
   classpath = configurations.codacy
