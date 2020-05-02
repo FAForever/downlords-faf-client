@@ -26,6 +26,7 @@ before_script:
 
 script:
   - echo "$JAVA_HOME"
+  - echo "$PATH"
   - java -version
   - chmod +x ./ci/build.sh && ./ci/build.sh
   - chmod +x ./ci/test.sh && ./ci/test.sh
