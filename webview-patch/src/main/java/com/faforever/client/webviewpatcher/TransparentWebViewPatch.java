@@ -17,6 +17,8 @@ package com.faforever.client.webviewpatcher; /**
  * software.
  * <p>
  * 3. This notice may not be removed or altered from any source distribution.
+ *
+ * See GitHub history to see applied changes to the original document from https://gist.github.com/riccardobl/18603f9de508b1ab6c9e
  */
 
 import javassist.ClassPool;
@@ -55,17 +57,6 @@ public class TransparentWebViewPatch implements ClassFileTransformer {
             + "setBackgroundColor(0);\n"
             + "}");
 
-        _CLASS_POOL.importPackage("com.sun.webkit.graphics");
-
-        // Then we replace the scroll method body in order to force the
-        // repaint of the entire frame
-        // when the page is scrolled
-        CtMethod scroll_method = ct_class.getDeclaredMethod("scroll");
-        scroll_method.setBody(
-            "{\n" + "   "
-                + "addDirtyRect(new com.sun.webkit.graphics.WCRectangle(0f,0f,(float)width,(float)height));\n"
-                + "}"
-        );
         byte_code = ct_class.toBytecode();
         ct_class.detach();
       } catch (Exception e) {
@@ -81,7 +72,7 @@ public class TransparentWebViewPatch implements ClassFileTransformer {
 
         // Then, we edit the the WCGraphicsPrismContext.setClip method
         // in order to call clearRect over the area of the clip.
-        CtClass signature[] = new CtClass[]{_CLASS_POOL.get("com.sun.webkit.graphics.WCRectangle")};
+        CtClass[] signature = new CtClass[]{_CLASS_POOL.get("com.sun.webkit.graphics.WCRectangle")};
         CtMethod setClip_method = ct_class.getDeclaredMethod("setClip", signature);
         setClip_method.insertBefore(
             "{" + "  "

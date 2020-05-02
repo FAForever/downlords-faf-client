@@ -2,11 +2,12 @@
 
 # Download install4j and the required JRE, only if it doesn't already exist (from Travis cache)
 INSTALL4J_DIR="$HOME/install4j/install4j7.0.12"
-if [ ! -d "${INSTALL4J_DIR}" ]; then
+if [ ! -d "${INSTALL4J_DIR}" ] || [ ! -d "${INSTALL4J_DIR}/jres/windows-amd64-11.0.7.tar.gz" ]; then
+  rm -rf "$HOME/install4j"
   mkdir -p "$HOME/install4j"
   curl https://download-keycdn.ej-technologies.com/install4j/install4j_unix_7_0_12.tar.gz -o "$HOME/install4j/install4j.tar.gz"
   mkdir -p "${INSTALL4J_DIR}/jres/"
-  curl https://content.faforever.com/jre/windows-amd64-10.0.2.tar.gz -o "${INSTALL4J_DIR}/jres/windows-amd64-10.0.2.tar.gz"
+  curl https://content.faforever.com/jre/windows-amd64-11.0.7.tar.gz -o "${INSTALL4J_DIR}/jres/windows-amd64-11.0.7.tar.gz"
   tar xzf "$HOME/install4j/install4j.tar.gz" -C "$HOME/install4j"
 fi
 
