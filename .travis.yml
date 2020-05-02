@@ -12,21 +12,23 @@ install: true
 
 env:
   global:
-  - secure: "UVIbeoJpx9n0KSWHbpdWZuR4zeZfXw3JQBq2Zb1h0/j4uREfXWiGFuNVQBPjsdtYi2+LkecjJ/MgKWo+SS0SjsvTa/ZPkOXt4408H1qYgwVnvWoeL/g1QQ6T8ADNysl/4ZtJLnSp0WXYEBkfHYZJD++vgDwkpVhnCLVzSFVAHls="
+    - secure: "UVIbeoJpx9n0KSWHbpdWZuR4zeZfXw3JQBq2Zb1h0/j4uREfXWiGFuNVQBPjsdtYi2+LkecjJ/MgKWo+SS0SjsvTa/ZPkOXt4408H1qYgwVnvWoeL/g1QQ6T8ADNysl/4ZtJLnSp0WXYEBkfHYZJD++vgDwkpVhnCLVzSFVAHls="
 
 before_install:
-- export JAVA_TOOL_OPTIONS="-Dprism.verbose=true -Dprism.order=sw"
-- export APP_VERSION=$([ -n "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG#*v}" || echo "${TRAVIS_BRANCH##*/}")
-- export GITHUB_RELEASE_VERSION=$([ -n "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG}" || echo "${TRAVIS_BRANCH##*/}")
+  - export JAVA_TOOL_OPTIONS="-Dprism.verbose=true -Dprism.order=sw"
+  - export APP_VERSION=$([ -n "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG#*v}" || echo "${TRAVIS_BRANCH##*/}")
+  - export GITHUB_RELEASE_VERSION=$([ -n "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG}" || echo "${TRAVIS_BRANCH##*/}")
+  - sudo rm "${JAVA_HOME}/lib/security/cacerts"
+  - sudo ln -s /etc/ssl/certs/java/cacerts "${JAVA_HOME}/lib/security/cacerts"
 
 script:
-- echo "$JAVA_HOME"
-- chmod +x ./ci/build.sh && ./ci/build.sh
-- chmod +x ./ci/test.sh && ./ci/test.sh
-- chmod +x ./ci/test-report.sh && ./ci/test-report.sh
+  - echo "$JAVA_HOME"
+  - chmod +x ./ci/build.sh && ./ci/build.sh
+  - chmod +x ./ci/test.sh && ./ci/test.sh
+  - chmod +x ./ci/test-report.sh && ./ci/test-report.sh
 
 after_success:
-- if [ -n "${TRAVIS_TAG}" ]; then chmod +x ./ci/github-release.sh && ./ci/github-release.sh; fi
+  - if [ -n "${TRAVIS_TAG}" ]; then chmod +x ./ci/github-release.sh && ./ci/github-release.sh; fi
 
 after_failure:
 - cat /home/travis/build/FAForever/downlords-faf-client/hs_err_pid*.log
