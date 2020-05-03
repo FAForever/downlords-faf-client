@@ -18,7 +18,7 @@ package com.faforever.client.webviewpatcher; /**
  * <p>
  * 3. This notice may not be removed or altered from any source distribution.
  *
- *
+ * Changes made to the original can be seen in the git history.
  */
 
 import javassist.ClassPool;
