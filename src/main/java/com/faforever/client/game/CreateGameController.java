@@ -32,7 +32,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -47,7 +46,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundSize;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -171,17 +169,6 @@ public class CreateGameController implements Controller<Pane> {
       featuredModListView.setItems(FXCollections.observableList(featuredModBeans).filtered(FeaturedMod::isVisible));
       selectLastOrDefaultGameType();
     }));
-    
-    Label generateMapButtonLabel = new Label(i18n.get("game.create.generatedMap"));
-    Label generatedMapButtonNewLabel = new Label(i18n.get("game.create.generatedMapNew"));
-    HBox container = new HBox(generateMapButtonLabel, generatedMapButtonNewLabel);
-    container.setAlignment(Pos.CENTER);
-    container.setSpacing(10);
-    
-    generateMapButtonLabel.setFont(generateMapButton.getFont());
-    generatedMapButtonNewLabel.setFont(generateMapButton.getFont());
-    generatedMapButtonNewLabel.getStyleClass().add("button-mini-label");
-    generateMapButton.graphicProperty().set(container);
 
     if (preferencesService.getPreferences().getForgedAlliance().getInstallationPath() == null) {
       preferenceUpdateListener = preferences -> {

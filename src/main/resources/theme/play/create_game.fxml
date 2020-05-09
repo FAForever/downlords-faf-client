@@ -81,13 +81,16 @@
             		GridPane.halignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="7" />
         
         <!-- Map Preview, Random Map -->
-        <Pane fx:id="mapPreviewPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="map-preview" GridPane.columnIndex="3" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.rowSpan="3" GridPane.valignment="CENTER" />
-        <VBox alignment="BOTTOM_LEFT" styleClass="card-dimmer" GridPane.columnIndex="3" GridPane.columnSpan="2147483647" GridPane.rowIndex="3" GridPane.rowSpan="3">
+        <Pane fx:id="mapPreviewPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="map-preview"
+        		GridPane.columnIndex="3" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.rowSpan="3" GridPane.valignment="CENTER" />
+        <VBox alignment="BOTTOM_LEFT" styleClass="card-dimmer"
+        		GridPane.columnIndex="3" GridPane.columnSpan="2" GridPane.rowIndex="3" GridPane.rowSpan="3">
             <children>
                 <Label fx:id="mapNameLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="card-title" text="&lt;Very long map title to see if wrapping works&gt;" wrapText="true" />
             </children>
         </VBox>
-        <GridPane hgap="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnIndex="3" GridPane.columnSpan="2147483647" GridPane.rowIndex="6" GridPane.vgrow="ALWAYS">
+        <GridPane hgap="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+        		GridPane.columnIndex="3" GridPane.columnSpan="2" GridPane.rowIndex="6" GridPane.vgrow="ALWAYS">
             <columnConstraints>
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
@@ -122,8 +125,14 @@
         
         <!-- text="%game.create.generatedMap" -->
         <JFXButton fx:id="generateMapButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onGenerateMapButtonClicked" 
-        		styleClass="game-generate-map"
-        		GridPane.columnIndex="3" GridPane.rowIndex="7" GridPane.columnSpan="2"/>
+        		styleClass="game-generate-map" text="%game.create.generatedMap" contentDisplay="RIGHT"
+        		GridPane.columnIndex="3" GridPane.rowIndex="7" GridPane.columnSpan="2">
+        	<graphic>
+        		<Label styleClass="button-mini-label" text="%game.create.generatedMapNew">
+        			<Insets left="250"/>
+        		</Label>
+        	</graphic>
+       	</JFXButton>
         
         <!-- Cancel, Ok -->
         <JFXButton mnemonicParsing="false" onAction="#onCloseButtonClicked" text="%cancel"

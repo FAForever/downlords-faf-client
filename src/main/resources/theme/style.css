@@ -924,6 +924,10 @@
 }
 .game-generate-map {
   -fx-background-color: -dimmed-accent;
+  -fx-graphic-text-gap: 0.7em;
+}
+.game-generate-map:hover {
+  -fx-background-color: -fx-accent;
 }
 .button.more-button-padding {
   -fx-padding: 0.7em 5em;
@@ -933,10 +937,8 @@
   -fx-background-radius: 3;
   -fx-padding: 0.16em 0.4em;
   
-/*   -fx-text-fill: -fx-dark-text-color; */
-/*   -fx-background-color: white; */
-  -fx-text-fill: -fx-light-text-color;
-  -fx-background-color: -fx-accent;
+  -fx-text-fill: -fx-dark-text-color;
+  -fx-background-color: -orange-500;
 }
 
 /***************** Settings window *****************/
