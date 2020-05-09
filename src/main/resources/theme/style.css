@@ -922,6 +922,22 @@
 .game-title-input {
   -fx-font-size: 0.8cm;
 }
+.game-generate-map {
+  -fx-background-color: -dimmed-accent;
+}
+.button.more-button-padding {
+  -fx-padding: 0.7em 5em;
+}
+.button-mini-label {
+  -fx-font-size: 0.7em;
+  -fx-background-radius: 3;
+  -fx-padding: 0.16em 0.4em;
+  
+/*   -fx-text-fill: -fx-dark-text-color; */
+/*   -fx-background-color: white; */
+  -fx-text-fill: -fx-light-text-color;
+  -fx-background-color: -fx-accent;
+}
 
 /***************** Settings window *****************/
 
