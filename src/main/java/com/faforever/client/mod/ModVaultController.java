@@ -166,19 +166,6 @@ public class ModVaultController extends AbstractViewController<Node> {
   private void replaceSearchResult(List<ModVersion> modVersions, Pane pane) {
     Platform.runLater(() -> pane.getChildren().clear());
     appendSearchResult(modVersions, pane);
-    switch (pane.getId()) {
-      case "highestRatedUiPane":
-        pane.getChildren().add(moreHighestRatedUiButton);
-        break;
-      case "newestPane":
-        pane.getChildren().add(moreNewestButton);
-        break;
-      case "highestRatedPane":
-        pane.getChildren().add(moreHighestRatedButton);
-        break;
-      default:
-        // Do nothing
-    }
   }
 
   private void enterLoadingState() {
@@ -305,6 +292,19 @@ public class ModVaultController extends AbstractViewController<Node> {
     Iterators.partition(controllers.iterator(), BATCH_SIZE).forEachRemaining(modCardControllers -> Platform.runLater(() -> {
       for (ModCardController modCardController : modCardControllers) {
         children.add(modCardController.getRoot());
+      }
+      switch (pane.getId()) {
+        case "highestRatedUiPane":
+          pane.getChildren().add(moreHighestRatedUiButton);
+          break;
+        case "newestPane":
+          pane.getChildren().add(moreNewestButton);
+          break;
+        case "highestRatedPane":
+          pane.getChildren().add(moreHighestRatedButton);
+          break;
+        default:
+          // Do nothing
       }
     }));
   }
