@@ -377,9 +377,6 @@ public class MapVaultController extends AbstractViewController<Node> {
         default:
           // Do nothing
       }
-
-
-
     }));
   }
 

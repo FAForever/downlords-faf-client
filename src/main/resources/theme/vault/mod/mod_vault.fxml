@@ -60,21 +60,21 @@
                             </rowConstraints>
                             <children>
                                 <Label styleClass="h2" text="%modVault.highestRatedUiMods"/>
-                                <Button mnemonicParsing="false" onAction="#showMoreHighestRatedUiMods"
-                                        styleClass="button-raised" text="%more" GridPane.columnIndex="1"/>
+                                <JFXButton mnemonicParsing="false" onAction="#showMoreHighestRatedUiMods"
+                                           fx:id="moreHighestRatedUiButton"  text="%more" GridPane.columnIndex="1"/>
                                 <FlowPane fx:id="highestRatedUiPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                           prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
                                           GridPane.rowIndex="1"/>
                                 <Label styleClass="h2" text="%modVault.newestMods" GridPane.rowIndex="2"/>
                                 <JFXButton mnemonicParsing="false" onAction="#showMoreNewestMods"
-                                           styleClass="button-raised"
+                                           fx:id="moreNewestButton"
                                            text="%more" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
                                 <FlowPane fx:id="newestPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                           prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
                                           GridPane.rowIndex="3"/>
                                 <Label styleClass="h2" text="%modVault.highestRated" GridPane.rowIndex="4"/>
                                 <JFXButton mnemonicParsing="false" onAction="#showMoreHighestRatedMods"
-                                           styleClass="button-raised"
+                                           fx:id="moreHighestRatedButton"
                                            text="%more" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
                                 <FlowPane fx:id="highestRatedPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                           prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
