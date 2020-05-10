@@ -64,27 +64,27 @@
                             </rowConstraints>
                             <children>
                                 <Label styleClass="h2" text="%mapVault.recommended" />
-                                <JFXButton mnemonicParsing="false" onAction="#showMoreRecommendedMaps"
-                                           styleClass="button-raised" text="%more" GridPane.columnIndex="1"/>
+                                <JFXButton fx:id="moreRecommendedButton" mnemonicParsing="false" onAction="#showMoreRecommendedMaps"
+                                           text="%more" GridPane.columnIndex="1"/>
                                 <FlowPane fx:id="recommendedPane" hgap="10.0" maxWidth="1.7976931348623157E308" prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
                                 <Label styleClass="h2" text="%mapVault.mostLikedMaps" GridPane.rowIndex="2"/>
-                                <JFXButton mnemonicParsing="false" onAction="#showMoreHighestRatedMaps"
-                                           styleClass="button-raised" text="%more" GridPane.columnIndex="1"
+                                <JFXButton fx:id="moreMostLikedButton" mnemonicParsing="false" onAction="#showMoreHighestRatedMaps"
+                                           text="%more" GridPane.columnIndex="1"
                                            GridPane.rowIndex="2"/>
                                 <FlowPane fx:id="mostLikedPane" hgap="10.0" maxWidth="1.7976931348623157E308" prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="3" />
                                 <Label styleClass="h2" text="%mapVault.newestMaps" GridPane.rowIndex="4" />
-                                <JFXButton mnemonicParsing="false" onAction="#showMoreMostRecentMaps"
-                                           styleClass="button-raised" text="%more" GridPane.columnIndex="1"
+                                <JFXButton fx:id="moreNewestButton" mnemonicParsing="false" onAction="#showMoreMostRecentMaps"
+                                           text="%more" GridPane.columnIndex="1"
                                            GridPane.rowIndex="4"/>
                                 <FlowPane fx:id="newestPane" hgap="10.0" maxWidth="1.7976931348623157E308" prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="5" />
                                 <Label styleClass="h2" text="%mapVault.mostPlayed" GridPane.rowIndex="6" />
-                                <JFXButton mnemonicParsing="false" onAction="#showMoreMostPlayedMaps"
-                                           styleClass="button-raised" text="%more" GridPane.columnIndex="1"
+                                <JFXButton fx:id="moreMostPlayedButton" mnemonicParsing="false" onAction="#showMoreMostPlayedMaps"
+                                           text="%more" GridPane.columnIndex="1"
                                            GridPane.rowIndex="6"/>
                                 <FlowPane fx:id="mostPlayedPane" hgap="10.0" maxWidth="1.7976931348623157E308" prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="7" />
                                 <Label styleClass="h2" text="%mapVault.ladder" GridPane.rowIndex="8"/>
-                                <JFXButton mnemonicParsing="false" onAction="#showMoreLadderdMaps"
-                                           styleClass="button-raised" text="%more" GridPane.columnIndex="1"
+                                <JFXButton fx:id="moreLadderButton" mnemonicParsing="false" onAction="#showMoreLadderdMaps"
+                                           text="%more" GridPane.columnIndex="1"
                                            GridPane.rowIndex="8"/>
                                 <FlowPane fx:id="ladderPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                           prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"
@@ -92,7 +92,7 @@
                                 <Label fx:id="ownedMoreLabel" styleClass="h2" text="%mapVault.owned"
                                        GridPane.rowIndex="10"/>
                                 <JFXButton fx:id="ownedMoreButton" mnemonicParsing="false" onAction="#showMoreOwnedMaps"
-                                           styleClass="button-raised" text="%more" GridPane.columnIndex="1"
+                                           text="%more" GridPane.columnIndex="1"
                                            GridPane.rowIndex="10"/>
                                 <FlowPane fx:id="ownedPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                           prefWrapLength="1500.0" vgap="10.0" GridPane.columnSpan="2147483647"

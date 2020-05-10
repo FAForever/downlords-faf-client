@@ -17,6 +17,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDialog;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -75,6 +76,9 @@ public class ModVaultController extends AbstractViewController<Node> {
   public Pane highestRatedUiPane;
   public Pane newestPane;
   public Pane highestRatedPane;
+  public JFXButton moreHighestRatedUiButton;
+  public JFXButton moreNewestButton;
+  public JFXButton moreHighestRatedButton;
   public StackPane modVaultRoot;
   public ScrollPane scrollPane;
   public Button backButton;
@@ -288,6 +292,19 @@ public class ModVaultController extends AbstractViewController<Node> {
     Iterators.partition(controllers.iterator(), BATCH_SIZE).forEachRemaining(modCardControllers -> Platform.runLater(() -> {
       for (ModCardController modCardController : modCardControllers) {
         children.add(modCardController.getRoot());
+      }
+      switch (pane.getId()) {
+        case "highestRatedUiPane":
+          pane.getChildren().add(moreHighestRatedUiButton);
+          break;
+        case "newestPane":
+          pane.getChildren().add(moreNewestButton);
+          break;
+        case "highestRatedPane":
+          pane.getChildren().add(moreHighestRatedButton);
+          break;
+        default:
+          // Do nothing
       }
     }));
   }

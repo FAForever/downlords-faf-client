@@ -6,10 +6,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="replayVaultRoot" xmlns="http://javafx.com/javafx/8.0.111"
@@ -37,39 +34,23 @@
                                 </JFXButton>
                             </children>
                         </HBox>
-                        <GridPane fx:id="showroomGroup" vgap="10.0">
-                            <columnConstraints>
-                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
-                            </columnConstraints>
-                            <rowConstraints>
-                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                            </rowConstraints>
-                            <children>
-                                <Label styleClass="h2" text="%vault.replays.ownReplays" GridPane.rowIndex="0"/>
-                                <JFXButton mnemonicParsing="false" onAction="#onMoreOwnButtonClicked"
-                                           styleClass="button-raised" text="%more" GridPane.columnIndex="1"/>
-                                <VBox fx:id="ownReplaysPane" spacing="10.0" GridPane.columnSpan="2147483647"
-                                      GridPane.rowIndex="1"/>
-                                <Label styleClass="h2" text="%vault.replays.newest" GridPane.rowIndex="2"/>
-                                <JFXButton mnemonicParsing="false" onAction="#onMoreNewestButtonClicked"
-                                           styleClass="button-raised" text="%more" GridPane.columnIndex="1"
-                                           GridPane.rowIndex="2"/>
-                                <VBox fx:id="newestPane" spacing="10.0" GridPane.columnSpan="2147483647"
-                                      GridPane.rowIndex="3"/>
-                                <Label styleClass="h2" text="%vault.replays.highestRated" GridPane.rowIndex="4"/>
-                                <JFXButton mnemonicParsing="false" onAction="#onMoreHighestRatedButtonClicked"
-                                           styleClass="button-raised" text="%more" GridPane.columnIndex="1"
-                                           GridPane.rowIndex="4"/>
-                                <VBox fx:id="highestRatedPane" spacing="10.0" GridPane.columnSpan="2147483647"
-                                      GridPane.rowIndex="5"/>
-                            </children>
-                        </GridPane>
+                          <VBox fx:id="showroomGroup" spacing="10.0" alignment="CENTER">
+                             <children>
+                                 <Label styleClass="h2" text="%vault.replays.ownReplays"
+                                        prefWidth="${showroomGroup.width}"/>
+                                 <VBox fx:id="ownReplaysPane" spacing="10.0"/>
+                                 <JFXButton mnemonicParsing="false" onAction="#onMoreOwnButtonClicked" text="%more"/>
+                                 <Label styleClass="h2" text="%vault.replays.newest"
+                                        prefWidth="${showroomGroup.width}"/>
+                                 <VBox fx:id="newestPane" spacing="10.0"/>
+                                 <JFXButton mnemonicParsing="false" onAction="#onMoreNewestButtonClicked" text="%more"/>
+                                 <Label styleClass="h2" text="%vault.replays.highestRated"
+                                        prefWidth="${showroomGroup.width}"/>
+                                 <VBox fx:id="highestRatedPane" spacing="10.0"/>
+                                 <JFXButton mnemonicParsing="false" onAction="#onMoreHighestRatedButtonClicked"
+                                            text="%more"/>
+                             </children>
+                          </VBox>
                         <VBox fx:id="searchResultGroup" spacing="10.0">
                             <children>
                                 <Label styleClass="h2" text="%searchResult"/>
