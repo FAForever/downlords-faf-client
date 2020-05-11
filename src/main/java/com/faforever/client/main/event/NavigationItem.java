@@ -10,7 +10,11 @@ public enum NavigationItem {
   LEADERBOARD("theme/leaderboard/leaderboards.fxml"),
   UNITS("theme/units.fxml"),
   TUTORIALS("theme/tutorial.fxml"),
-  TOURNAMENTS("theme/tournaments/tournaments.fxml");
+  TOURNAMENTS("theme/tournaments/tournaments.fxml"),
+
+  CUSTOM_GAMES("theme/play/custom_games.fxml"),
+  RANKED_1V1("theme/play/ranked_1v1.fxml"),
+  COOP("theme/play/coop/coop.fxml");
 
   private static final HashMap<String, NavigationItem> fromString;
 

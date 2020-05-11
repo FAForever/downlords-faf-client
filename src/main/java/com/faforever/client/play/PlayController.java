@@ -4,14 +4,20 @@ import com.faforever.client.coop.CoopController;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.game.CustomGamesController;
 import com.faforever.client.main.event.NavigateEvent;
+import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.main.event.Open1v1Event;
 import com.faforever.client.main.event.OpenCoopEvent;
 import com.faforever.client.main.event.OpenCustomGamesEvent;
 import com.faforever.client.rankedmatch.Ladder1v1Controller;
 import com.google.common.eventbus.EventBus;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.AnchorPane;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -30,6 +36,11 @@ public class PlayController extends AbstractViewController<Node> {
   public CustomGamesController customGamesController;
   public Ladder1v1Controller ladderController;
   public CoopController coopController;
+  public ToggleButton customGamesButton;
+  public ToggleButton ladderButton;
+  public ToggleButton coopButton;
+  public ToggleGroup playNavigation;
+  public AnchorPane contentPane;
   private boolean isHandlingEvent;
 
 
@@ -39,7 +50,12 @@ public class PlayController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
-    playRootTabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+    customGamesButton.setUserData(NavigationItem.CUSTOM_GAMES);
+    ladderButton.setUserData(NavigationItem.RANKED_1V1);
+    coopButton.setUserData(NavigationItem.COOP);
+    eventBus.register(this);
+
+    /*playRootTabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
       if (isHandlingEvent) {
         return;
       }
@@ -51,7 +67,7 @@ public class PlayController extends AbstractViewController<Node> {
       } else if (newValue == coopTab) {
         eventBus.post(new OpenCoopEvent());
       }
-    });
+    });*/
   }
 
   @Override
@@ -88,5 +104,10 @@ public class PlayController extends AbstractViewController<Node> {
   public Node getRoot() {
     return playRoot;
   }
+
+  public void onNavigateButtonClicked(ActionEvent event) {
+    eventBus.post(new NavigateEvent((NavigationItem) ((Node) event.getSource()).getUserData()));
+  }
+
 
 }
