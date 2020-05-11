@@ -42,6 +42,8 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private GamesTableController gamesTableController;
   @Mock
+  private CreateGameController createGameController;
+  @Mock
   private EventBus eventBus;
   @Mock
   private GameDetailController gameDetailController;
@@ -71,6 +73,8 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
     when(uiService.loadFxml("theme/play/games_tiles_container.fxml")).thenReturn(gamesTilesContainerController);
+    when(uiService.loadFxml("theme/play/create_game.fxml")).thenReturn(createGameController);
+    when(createGameController.getRoot()).thenReturn(new Pane());
     when(gamesTilesContainerController.getRoot()).thenReturn(new Pane());
     when(gamesTableController.getRoot()).thenReturn(new Pane());
     when(gamesTableController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
