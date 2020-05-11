@@ -7,16 +7,16 @@
       fx:controller="com.faforever.client.play.PlayController">
     <HBox fx:id="playRoot">
         <Pane prefWidth="65.0"/>
-        <ToggleButton fx:id="customGamesButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked"
+        <ToggleButton fx:id="customGamesButton" mnemonicParsing="false" onAction="#onCustomNavigateButtonClicked"
                       styleClass="navigation-button" text="%play.custom">
             <toggleGroup>
                 <ToggleGroup fx:id="playNavigation"/>
             </toggleGroup>
         </ToggleButton>
-        <ToggleButton fx:id="ladderButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked"
+        <ToggleButton fx:id="ladderButton" mnemonicParsing="false" onAction="#on1v1NavigateButtonClicked"
                       styleClass="navigation-button" text="%play.ranked1v1" toggleGroup="$playNavigation">
         </ToggleButton>
-        <ToggleButton fx:id="coopButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked"
+        <ToggleButton fx:id="coopButton" mnemonicParsing="false" onAction="#onCoopNavigateButtonClicked"
                       styleClass="navigation-button" text="%play.coop" toggleGroup="$playNavigation">
         </ToggleButton>
     </HBox>
