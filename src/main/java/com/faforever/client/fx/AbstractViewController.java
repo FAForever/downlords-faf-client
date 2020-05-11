@@ -26,7 +26,7 @@ public abstract class AbstractViewController<ROOT extends Node> implements Contr
   /**
    * Subclasses may override in order to perform actions when the view is no longer being displayed.
    */
-  protected void onHide() {
+  public void onHide() {
     // To be overridden by subclass
   }
 }

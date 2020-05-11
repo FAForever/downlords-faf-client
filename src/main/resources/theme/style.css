@@ -556,8 +556,9 @@
 /***************** Tabs *****************/
 
 .tab-header-area {
-  -fx-border-color: -fx-box-border;
+  -fx-border-color: black;
   -fx-border-width: 0 0 1 0;
+  -fx-padding: 0 0 0 20;
 }
 
 .tab-header-background {
@@ -568,16 +569,12 @@
   -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-accent;
 }
 
-.tab-pane > .tab-header-area {
-  -fx-padding: 0;
-  -fx-border-width: 0;
-}
-
 .tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
   -fx-border-width: 0;
 }
 
 .tab {
+  -fx-font-size: 1.1em;
   -fx-background-color: transparent;
   -fx-border-color: transparent;
 }
@@ -587,16 +584,13 @@
 }
 
 .tab:selected {
+  -fx-background-color: -card-color;
   -fx-border-color: -fx-accent;
 }
 
-.tab-label {
-  -fx-padding: 0 4 0 0;
-}
-
 .tab:top {
-  -fx-padding: 10 15;
-  -fx-border-width: 0 0 2 0;
+  -fx-padding: 5 20;
+  -fx-border-width: 0 0 4 0;
 }
 
 .tab:left {
@@ -762,9 +756,9 @@
   -fx-color: transparent;
   -fx-font-size: 1.2em;
   -fx-padding: 10 20;
-  -fx-border-width: 0 0 2 0;
+  -fx-border-width: 0 0 4 0;
   -fx-border-color: transparent;
-  -fx-max-height: Infinity;
+  -fx-max-height: 60;
 }
 
 .main-navigation-button:highlighted {
@@ -777,7 +771,7 @@
 }
 
 .main-navigation-button:armed, .main-navigation-button:selected, .main-navigation-button:focused:selected {
-  -fx-background-color: transparent;
+  -fx-background-color: -card-color;
   -fx-border-color: -fx-accent;
 }
 
@@ -952,6 +946,11 @@
   -fx-wrap-text: true;
 }
 
+.settings .tab-header-area {
+  -fx-border-color: black;
+  -fx-border-width: 0 0 1 0;
+  -fx-padding: 0 0 0 0;
+}
 
 /***************** Hand cursor *****************/
 
