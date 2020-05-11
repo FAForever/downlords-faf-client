@@ -1,64 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
-<?import javafx.scene.Group?>
 <?import javafx.scene.layout.VBox?>
+
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="playRoot" maxHeight="1.7976931348623157E308"
       xmlns="http://javafx.com/javafx/8.0.60" fx:controller="com.faforever.client.play.PlayController">
     <children>
-        <TabPane fx:id="playRootTabPane" rotateGraphic="true" side="LEFT" tabClosingPolicy="UNAVAILABLE"
-                 tabMaxHeight="170.0"
-                 tabMinHeight="170.0" VBox.vgrow="ALWAYS">
+        <TabPane fx:id="playRootTabPane" tabClosingPolicy="UNAVAILABLE">
             <tabs>
-                <Tab fx:id="customGamesTab">
-                    <content>
-                        <fx:include source="custom_games.fxml" fx:id="customGames"/>
-                    </content>
-                    <graphic>
-                        <Group>
-                            <children>
-                                <VBox prefWidth="170.0" rotate="90.0">
-                                    <children>
-                                        <Label text="%play.custom" styleClass="tab-label"/>
-                                    </children>
-                                </VBox>
-                            </children>
-                        </Group>
-                    </graphic>
+                <Tab fx:id="customGamesTab" text="%play.custom">
+                    <fx:include source="custom_games.fxml" fx:id="customGames"/>
                 </Tab>
-                <Tab fx:id="ladderTab">
-               <content>
-                   <fx:include source="ranked_1v1.fxml" fx:id="ladder"/>
-               </content>
-               <graphic>
-                  <Group>
-                     <children>
-                         <VBox prefWidth="170.0" rotate="90.0">
-                           <children>
-                               <Label text="%play.ranked1v1" styleClass="tab-label"/>
-                           </children>
-                        </VBox>
-                     </children>
-                  </Group>
-               </graphic>
-            </Tab>
-                <Tab fx:id="coopTab">
-                    <content>
-                        <fx:include source="coop/coop.fxml" fx:id="coop"/>
-                    </content>
-                    <graphic>
-                        <Group>
-                            <children>
-                                <VBox prefWidth="170.0" rotate="90.0">
-                                    <children>
-                                        <Label text="%play.coop" styleClass="tab-label"/>
-                                    </children>
-                                </VBox>
-                            </children>
-                        </Group>
-                    </graphic>
+                <Tab fx:id="ladderTab" text="%play.ranked1v1">
+                    <fx:include source="ranked_1v1.fxml" fx:id="ladder"/>
+                </Tab>
+                <Tab fx:id="coopTab" text="%play.coop">
+                    <fx:include source="coop/coop.fxml" fx:id="coop"/>
                 </Tab>
             </tabs>
         </TabPane>
