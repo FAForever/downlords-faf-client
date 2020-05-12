@@ -194,7 +194,7 @@
 .button-raised {
   -fx-padding: 0.7em 1em;
   -jfx-button-type: RAISED;
-  -fx-background-color: #e48800;
+  -fx-background-color: #f08f00;
   -fx-text-fill: -fx-dark-text-color;
 }
 .button-raised .icon {
@@ -762,7 +762,7 @@
   -fx-color: transparent;
   -fx-font-size: 1.2em;
   -fx-padding: 10 20;
-  -fx-border-width: 0 0 2 0;
+  -fx-border-width: 0 0 4 0;
   -fx-border-color: transparent;
   -fx-max-height: 60;
 }
@@ -785,7 +785,7 @@
   -fx-color: transparent;
   -fx-font-size: 1.1em;
   -fx-padding: 10 20;
-  -fx-border-width: 0 0 2 0;
+  -fx-border-width: 0 0 4 0;
   -fx-border-color: transparent;
   -fx-max-height: 60;
 }

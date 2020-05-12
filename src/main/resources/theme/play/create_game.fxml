@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="createGameRoot" hgap="10.0" styleClass="create-game-root" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.game.CreateGameController">
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="createGameRoot" hgap="10.0" styleClass="modal-popup" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.game.CreateGameController">
     <columnConstraints>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="256.0" />
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="256.0" />
@@ -51,11 +51,11 @@
         <JFXButton fx:id="createGameButton" defaultButton="true" maxWidth="1.7976931348623157E308" minWidth="-Infinity" mnemonicParsing="false" onAction="#onCreateButtonClicked" text="%game.create.create" GridPane.columnIndex="4" GridPane.rowIndex="7" />
         <HBox alignment="CENTER" maxWidth="1.7976931348623157E308" spacing="10.0" GridPane.columnIndex="3" GridPane.columnSpan="2147483647" GridPane.rowIndex="1">
             <children>
-                <JFXTextField fx:id="minRankingTextField" minWidth="30.0" prefWidth="60.0" promptText="%games.create.minRating" HBox.hgrow="NEVER" />
                 <Label text="%games.create.minRating" />
+                <JFXTextField fx:id="minRankingTextField" minWidth="30.0" prefWidth="40.0" promptText="%games.create.minRating" HBox.hgrow="NEVER" />
                 <Pane minHeight="0.0" minWidth="0.0" HBox.hgrow="ALWAYS" />
                 <Label text="%games.create.maxRating" />
-                <JFXTextField fx:id="maxRankingTextField" minWidth="30.0" prefWidth="60.0" promptText="%games.create.maxRating" HBox.hgrow="NEVER" />
+                <JFXTextField fx:id="maxRankingTextField" minWidth="30.0" prefWidth="40.0" promptText="%games.create.maxRating" HBox.hgrow="NEVER" />
             </children>
             <padding>
                 <Insets left="2.0" right="2.0" top="2.0" />
