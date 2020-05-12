@@ -16,12 +16,12 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
-<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="replayDetailRoot" onMouseClicked="#onDimmerClicked"
-            styleClass="dimmer" xmlns="http://javafx.com/javafx/8.0.121"
-            fx:controller="com.faforever.client.replay.ReplayDetailController">
+<?import javafx.scene.layout.StackPane?>
+<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="replayDetailRoot" onMouseClicked="#onDimmerClicked"
+           styleClass="dimmer" xmlns="http://javafx.com/javafx/8.0.121" alignment="CENTER"
+           fx:controller="com.faforever.client.replay.ReplayDetailController">
    <children>
-       <AnchorPane onMouseClicked="#onContentPaneClicked" styleClass="modal-popup" AnchorPane.bottomAnchor="50.0"
-                   AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="50.0">
+       <AnchorPane maxHeight="800" maxWidth="800" minWidth="660" onMouseClicked="#onContentPaneClicked" styleClass="modal-popup">
          <children>
              <ScrollPane fx:id="scrollPane" fitToWidth="true" layoutX="21.0" layoutY="31.0"
                          AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
@@ -212,4 +212,7 @@
          </children>
       </AnchorPane>
    </children>
-</AnchorPane>
+    <padding>
+        <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
+    </padding>
+</StackPane>

@@ -7,14 +7,14 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
-
-  <AnchorPane fx:id="modDetailRoot" onMouseClicked="#onContentPaneClicked" styleClass="modal-popup" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.mod.ModDetailController">
+<StackPane fx:id="modDetailRoot" alignment="CENTER" onMouseClicked="#onDimmerClicked" styleClass="dimmer" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.mod.ModDetailController">
+    <AnchorPane maxHeight="800" maxWidth="800" minWidth="500" onMouseClicked="#onContentPaneClicked" styleClass="modal-popup">
       <children>
           <ScrollPane fx:id="scrollPane" fitToWidth="true" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="20.0">
               <content>
                   <VBox alignment="TOP_CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="20.0">
                       <children>
-                          <GridPane hgap="20.0" maxWidth="1.7976931348623157E308" vgap="10.0">
+                          <GridPane focusTraversable="true" hgap="20.0" maxWidth="1.7976931348623157E308" vgap="10.0">
                               <columnConstraints>
                                   <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
                                   <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
@@ -88,4 +88,8 @@
               </styleClass>
           </JFXButton>
       </children>
-  </AnchorPane>
+    </AnchorPane>
+    <padding>
+        <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
+    </padding>
+</StackPane>
