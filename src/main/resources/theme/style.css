@@ -31,7 +31,7 @@
   -fx-box-border: -grey-600;
 
   /* color of non-focused yet selected elements */
-  -fx-selection-bar-non-focused: -indigo-800;
+  -fx-selection-bar-non-focused: #28306D;
 
   /* Meaningful Colors */
   -good: -green-500;
@@ -194,7 +194,7 @@
 .button-raised {
   -fx-padding: 0.7em 1em;
   -jfx-button-type: RAISED;
-  -fx-background-color: -amber-700; /* white */
+  -fx-background-color: #e48800;
   -fx-text-fill: -fx-dark-text-color;
 }
 .button-raised .icon {
@@ -203,7 +203,7 @@
 
 .button:default:hover,
 .button-raised:hover {
-  -fx-background-color: #F29800; /* -grey-200 */
+  -fx-background-color: #ff9800;
 }
 
 .toggle-button {
@@ -745,7 +745,7 @@
   -fx-font-size: 14px;
 }
 
-/***************** Main window header *****************/
+/***************** Navigation Buttons *****************/
 
 .main-navigation-top {
   -fx-padding: 0 100 0 15;
@@ -764,7 +764,7 @@
   -fx-padding: 10 20;
   -fx-border-width: 0 0 2 0;
   -fx-border-color: transparent;
-  -fx-max-height: Infinity;
+  -fx-max-height: 60;
 }
 
 .main-navigation-button:highlighted {
@@ -777,9 +777,34 @@
 }
 
 .main-navigation-button:armed, .main-navigation-button:selected, .main-navigation-button:focused:selected {
-  -fx-background-color: transparent;
+  -fx-background-color: -card-color;
   -fx-border-color: -fx-accent;
 }
+
+.navigation-button {;
+  -fx-color: transparent;
+  -fx-font-size: 1.1em;
+  -fx-padding: 10 20;
+  -fx-border-width: 0 0 2 0;
+  -fx-border-color: transparent;
+  -fx-max-height: 60;
+}
+
+.navigation-button:highlighted {
+  -fx-background-color: -fx-accent;
+}
+
+.navigation-button:hover {
+  -fx-color: transparent;
+  -fx-border-color: -dimmed-accent;
+}
+
+.navigation-button:armed, .main-navigation-button:selected, .main-navigation-button:focused:selected {
+  -fx-background-color: -card-color;
+  -fx-border-color: -fx-accent;
+}
+
+/***************** Main window header *****************/
 
 .main-menu-button {
   -fx-color: transparent;
@@ -920,7 +945,7 @@
 /***************** Create game *****************/
 
 .game-title-input {
-  -fx-font-size: 0.8cm;
+  -fx-font-size: 0.6cm;
 }
 
 /***************** Settings window *****************/
