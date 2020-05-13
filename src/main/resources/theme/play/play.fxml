@@ -24,8 +24,5 @@
     <AnchorPane fx:id="contentPane" maxHeight="1.7976931348623157E308"
                 maxWidth="1.7976931348623157E308"
                 VBox.vgrow="ALWAYS">
-        <children>
-            <fx:include source="custom_games.fxml" fx:id="customGames" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
-        </children>
     </AnchorPane>
 </VBox>

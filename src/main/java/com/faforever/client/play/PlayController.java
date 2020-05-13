@@ -13,10 +13,13 @@ import com.faforever.client.rankedmatch.Ladder1v1Controller;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.AnchorPane;
@@ -50,66 +53,56 @@ public class PlayController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
-    //eventBus.post(new OpenCustomGamesEvent());
-    customGamesButton.setUserData(NavigationItem.CUSTOM_GAMES);
-    ladderButton.setUserData(NavigationItem.RANKED_1V1);
-    coopButton.setUserData(NavigationItem.COOP);
-    eventBus.register(this);
-    customGamesButton.setSelected(true);
-    /*playRootTabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+    playNavigation.selectedToggleProperty().addListener((observable, toggle, newToggle) -> {
       if (isHandlingEvent) {
         return;
       }
 
-      if (newValue == customGamesTab) {
+      if (newToggle == customGamesButton) {
         eventBus.post(new OpenCustomGamesEvent());
-      } else if (newValue == ladderTab) {
+      } else if (newToggle == ladderButton) {
+        ladderButton.setSelected(true);
         eventBus.post(new Open1v1Event());
-      } else if (newValue == coopTab) {
+      } else if (newToggle == coopButton) {
         eventBus.post(new OpenCoopEvent());
       }
-    });*/
+    });
   }
 
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
+    isHandlingEvent = true;
 
-
-
+    try {
       if (Objects.equals(navigateEvent.getClass(), NavigateEvent.class)
           || navigateEvent instanceof OpenCustomGamesEvent) {
-
+        Node node = customGamesController.getRoot();
+        contentPane.getChildren().add(node);
+        JavaFxUtil.setAnchors(node, 0d);
         customGamesController.display(navigateEvent);
       }
       if (navigateEvent instanceof Open1v1Event) {
-
+        Node node = ladderController.getRoot();
+        contentPane.getChildren().add(node);
+        JavaFxUtil.setAnchors(node, 0d);
+        ladderController.display(navigateEvent);
       }
       if (navigateEvent instanceof OpenCoopEvent) {
-        coopController = uiService.loadFxml("theme/play/coop/coop.fxml");
+        Node node = coopController.getRoot();
+        contentPane.getChildren().add(node);
+        JavaFxUtil.setAnchors(node, 0d);
         coopController.display(navigateEvent);
       }
-
-
-
-    Node node = ladderController.getRoot();
-    ObservableList<Node> children = contentPane.getChildren();
-
-    if (!children.contains(node)) {
-      children.add(node);
-      JavaFxUtil.setAnchors(node, 0d);
+    } finally {
+      isHandlingEvent = false;
     }
-    ladderButton.setSelected(true);
-
-    //ladderController = uiService.loadFxml("theme/play/ranked_1v1.fxml");
-    ladderController.display(navigateEvent);
-
   }
 
   @Override
   protected void onHide() {
-/*    customGamesController.hide();
+    customGamesController.hide();
     ladderController.hide();
-    coopController.hide();*/
+    coopController.hide();
   }
 
   @Override
@@ -117,32 +110,13 @@ public class PlayController extends AbstractViewController<Node> {
     return playRoot;
   }
 
-  public void on1v1NavigateButtonClicked(ActionEvent actionEvent) {
-    eventBus.post(new Open1v1Event());
-  }
-
   public void onCustomNavigateButtonClicked(ActionEvent actionEvent) {
-    eventBus.post(new OpenCustomGamesEvent());
   }
 
-  public void onCoopNavigateButtonClicked(ActionEvent event) {
-    Node node = ladderController.getRoot();
-    ObservableList<Node> children = contentPane.getChildren();
-
-    if (!children.contains(node)) {
-      children.add(node);
-      JavaFxUtil.setAnchors(node, 0d);
-    }
-    ladderButton.setSelected(true);
-
-    //ladderController = uiService.loadFxml("theme/play/ranked_1v1.fxml");
-    ladderController.display(new NavigateEvent((NavigationItem) ((Node) event.getSource()).getUserData()));
+  public void on1v1NavigateButtonClicked(ActionEvent actionEvent) {
   }
 
-  @Subscribe
-  public void onOpen1v1Event(Open1v1Event open1v1Event) {
-
-
+  public void onCoopNavigateButtonClicked(ActionEvent actionEvent) {
   }
 
 }

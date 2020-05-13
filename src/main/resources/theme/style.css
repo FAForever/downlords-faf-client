@@ -799,7 +799,7 @@
   -fx-border-color: -dimmed-accent;
 }
 
-.navigation-button:armed, .main-navigation-button:selected, .main-navigation-button:focused:selected {
+.navigation-button:armed, .navigation-button:selected, .navigation-button:focused:selected {
   -fx-background-color: -card-color;
   -fx-border-color: -fx-accent;
 }
