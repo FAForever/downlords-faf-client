@@ -46,12 +46,6 @@
                                         <HBox alignment="BASELINE_LEFT"/>
                                     </children>
                                 </FlowPane>
-                                <Button fx:id="toggleSidePaneButton" minWidth="-Infinity" mnemonicParsing="false"
-                                        onAction="#toggleSidePane" text="%view.hideSidePane">
-                                    <padding>
-                                        <Insets right="50"/>
-                                    </padding>
-                                </Button>
                                 <ToggleButton fx:id="tableButton" minWidth="-Infinity" mnemonicParsing="false"
                                               onAction="#onTableButtonClicked" styleClass="game-list-type"
                                               text="%view.table">
@@ -70,9 +64,12 @@
                                         <Label styleClass="icon" text=""/>
                                     </graphic>
                                 </ToggleButton>
+                                <Button fx:id="toggleSidePaneButton" mnemonicParsing="false"
+                                        onAction="#toggleSidePane" styleClass="icon-button" text="">
+                                </Button>
                             </children>
                             <padding>
-                                <Insets bottom="10.0" left="20.0" right="10.0" top="10.0"/>
+                                <Insets bottom="10.0" left="20.0" right="-10.0" top="10.0"/>
                             </padding>
                         </HBox>
                 <ScrollPane fx:id="gameDetailPane" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1"
