@@ -44,6 +44,7 @@ public class PlayController extends AbstractViewController<Node> {
   public ToggleGroup playNavigation;
   public AnchorPane contentPane;
   private boolean isHandlingEvent;
+  private AbstractViewController<Node> activeController;
 
 
   public PlayController(UiService uiService, EventBus eventBus) {
@@ -53,15 +54,21 @@ public class PlayController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
+    activeController = getCustomGamesController();
+
     playNavigation.selectedToggleProperty().addListener((observable, toggle, newToggle) -> {
       if (isHandlingEvent) {
+        return;
+      }
+      if (newToggle == null) {
+        toggle.setSelected(true);
+        System.out.println("toggle=null");
         return;
       }
 
       if (newToggle == customGamesButton) {
         eventBus.post(new OpenCustomGamesEvent());
       } else if (newToggle == ladderButton) {
-        ladderButton.setSelected(true);
         eventBus.post(new Open1v1Event());
       } else if (newToggle == coopButton) {
         eventBus.post(new OpenCoopEvent());
@@ -72,33 +79,49 @@ public class PlayController extends AbstractViewController<Node> {
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
     isHandlingEvent = true;
+    /* if (activeButton == null) {
+      eventBus.post(new OpenCustomGamesEvent());
+    }*/
+    System.out.println(navigateEvent.toString());
+    AbstractViewController<Node> controller = activeController;
 
     try {
-      if (Objects.equals(navigateEvent.getClass(), NavigateEvent.class)
-          || navigateEvent instanceof OpenCustomGamesEvent) {
-        customGamesController = uiService.loadFxml("theme/play/custom_games.fxml");
-        Node node = customGamesController.getRoot();
-        contentPane.getChildren().setAll(node);
-        JavaFxUtil.setAnchors(node, 0d);
-        customGamesController.display(navigateEvent);
+
+      if (navigateEvent instanceof OpenCustomGamesEvent) {
+        controller = getCustomGamesController();
+      } else if (navigateEvent instanceof Open1v1Event) {
+        controller = getLadder1v1Controller();
+      } else if (navigateEvent instanceof OpenCoopEvent) {
+        controller = getCoopController();
       }
-      if (navigateEvent instanceof Open1v1Event) {
-        ladderController = uiService.loadFxml("theme/play/ranked_1v1.fxml");
-        Node node = ladderController.getRoot();
-        contentPane.getChildren().setAll(node);
-        JavaFxUtil.setAnchors(node, 0d);
-        ladderController.display(navigateEvent);
-      }
-      if (navigateEvent instanceof OpenCoopEvent) {
-        coopController = uiService.loadFxml("theme/play/coop/coop.fxml");
-        Node node = coopController.getRoot();
-        contentPane.getChildren().setAll(node);
-        JavaFxUtil.setAnchors(node, 0d);
-        coopController.display(navigateEvent);
-      }
+      Node node = controller.getRoot();
+      contentPane.getChildren().setAll(node);
+      JavaFxUtil.setAnchors(node, 0d);
+      controller.display(navigateEvent);
     } finally {
       isHandlingEvent = false;
     }
+  }
+
+  private CustomGamesController getCustomGamesController() {
+    if (customGamesController == null) {
+      customGamesController = uiService.loadFxml("theme/play/custom_games.fxml");
+    }
+    return customGamesController;
+  }
+
+  private Ladder1v1Controller getLadder1v1Controller() {
+    if (ladderController == null) {
+      ladderController = uiService.loadFxml("theme/play/ranked_1v1.fxml");
+    }
+    return ladderController;
+  }
+
+  private CoopController getCoopController() {
+    if (coopController == null) {
+      coopController = uiService.loadFxml("theme/play/coop/coop.fxml");
+    }
+    return coopController;
   }
 
   @Override
@@ -114,6 +137,8 @@ public class PlayController extends AbstractViewController<Node> {
   }
 
   public void onCustomNavigateButtonClicked(ActionEvent actionEvent) {
+    System.out.println("clicked");
+
   }
 
   public void on1v1NavigateButtonClicked(ActionEvent actionEvent) {
