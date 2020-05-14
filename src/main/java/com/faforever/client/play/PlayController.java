@@ -55,6 +55,7 @@ public class PlayController extends AbstractViewController<Node> {
   @Override
   public void initialize() {
     activeController = getCustomGamesController();
+    customGamesButton.setSelected(true);
 
     playNavigation.selectedToggleProperty().addListener((observable, toggle, newToggle) -> {
       if (isHandlingEvent) {
@@ -62,7 +63,6 @@ public class PlayController extends AbstractViewController<Node> {
       }
       if (newToggle == null) {
         toggle.setSelected(true);
-        System.out.println("toggle=null");
         return;
       }
 
@@ -79,25 +79,22 @@ public class PlayController extends AbstractViewController<Node> {
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
     isHandlingEvent = true;
-    /* if (activeButton == null) {
-      eventBus.post(new OpenCustomGamesEvent());
-    }*/
-    System.out.println(navigateEvent.toString());
-    AbstractViewController<Node> controller = activeController;
 
     try {
-
       if (navigateEvent instanceof OpenCustomGamesEvent) {
-        controller = getCustomGamesController();
+        activeController = getCustomGamesController();
+        customGamesButton.setSelected(true);
       } else if (navigateEvent instanceof Open1v1Event) {
-        controller = getLadder1v1Controller();
+        activeController = getLadder1v1Controller();
+        ladderButton.setSelected(true);
       } else if (navigateEvent instanceof OpenCoopEvent) {
-        controller = getCoopController();
+        activeController = getCoopController();
+        coopButton.setSelected(true);
       }
-      Node node = controller.getRoot();
+      Node node = activeController.getRoot();
       contentPane.getChildren().setAll(node);
       JavaFxUtil.setAnchors(node, 0d);
-      controller.display(navigateEvent);
+      activeController.display(navigateEvent);
     } finally {
       isHandlingEvent = false;
     }
@@ -137,8 +134,6 @@ public class PlayController extends AbstractViewController<Node> {
   }
 
   public void onCustomNavigateButtonClicked(ActionEvent actionEvent) {
-    System.out.println("clicked");
-
   }
 
   public void on1v1NavigateButtonClicked(ActionEvent actionEvent) {
