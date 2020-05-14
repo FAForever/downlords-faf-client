@@ -280,10 +280,10 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   private void setSidePane(boolean displayed) {
     if (displayed) {
-      toggleSidePaneButton.setText(i18n.get("view.hideSidePane"));
+      toggleSidePaneButton.setText("");
       sidePaneColumn.setMinWidth(sidePaneColumn.getPrefWidth());
     } else {
-      toggleSidePaneButton.setText(i18n.get("view.showSidePane"));
+      toggleSidePaneButton.setText("");
       sidePaneColumn.setMinWidth(0);
     }
   }
