@@ -25,21 +25,25 @@
             </children>
         </VBox>
         <SplitPane fx:id="splitPane" dividerPositions="0.8" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
-        <items>
-          <AnchorPane>
-            <children>
-              <WebView fx:id="messagesWebView" minHeight="100.0" minWidth="100.0" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-              <HBox fx:id="searchFieldContainer" visible="false" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <AnchorPane>
                 <children>
-                    <JFXButton fx:id="closeSearchFieldButton" contentDisplay="RIGHT" focusTraversable="false"
-                               maxHeight="1.7976931348623157E308" mnemonicParsing="false"
-                               onMouseClicked="#onSearchFieldClose" styleClass="close-search-text-button"
-                               visible="false"/>
-                    <JFXTextField fx:id="searchField" promptText="%chat.filter.prompt" visible="false"/>
+                    <WebView fx:id="messagesWebView" minHeight="100.0" minWidth="100.0" AnchorPane.bottomAnchor="30.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                    <HBox fx:id="searchFieldContainer" visible="false" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <children>
+                            <JFXButton fx:id="closeSearchFieldButton" contentDisplay="RIGHT" focusTraversable="false"
+                                       maxHeight="1.7976931348623157E308" mnemonicParsing="false"
+                                       onMouseClicked="#onSearchFieldClose" styleClass="close-search-text-button"
+                                       visible="false"/>
+                            <JFXTextField fx:id="searchField" promptText="%chat.filter.prompt" visible="false"/>
+                        </children>
+                    </HBox>
+                    <JFXTextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage"
+                                  promptText="%chat.messagePrompt"
+                                  AnchorPane.bottomAnchor="2.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="0.0">
+                    </JFXTextField>
                 </children>
-              </HBox>
-            </children>
-          </AnchorPane>
+            </AnchorPane>
+
           <VBox fx:id="channelTabScrollPaneVBox" maxHeight="1.7976931348623157E308" SplitPane.resizableWithParent="false">
             <children>
               <HBox alignment="CENTER">
@@ -53,25 +57,21 @@
                            <Insets left="10.0" />
                         </VBox.margin>
               </HBox>
-                <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+              <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
                     <children>
                         <ListView fx:id="chatUserListView" maxHeight="1.7976931348623157E308"
-                                  maxWidth="1.7976931348623157E308" styleClass="chat-user-list-view,  big-scroll-bar"
+                                  maxWidth="1.7976931348623157E308" styleClass="chat-user-list-view"
                                   AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                                   AnchorPane.topAnchor="0.0">
                         </ListView>
                     </children>
-                </AnchorPane>
+                    <padding>
+                        <Insets right="10.0"/>
+                    </padding>
+              </AnchorPane>
             </children>
           </VBox>
-        </items>
-      </SplitPane>
-        <JFXTextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage"
-                      promptText="%chat.messagePrompt">
-            <VBox.margin>
-                <Insets bottom="5.0"/>
-            </VBox.margin>
-        </JFXTextField>
+        </SplitPane>
     </children>
   </VBox>
 </Tab>
