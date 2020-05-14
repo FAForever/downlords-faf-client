@@ -76,20 +76,23 @@ public class PlayController extends AbstractViewController<Node> {
     try {
       if (Objects.equals(navigateEvent.getClass(), NavigateEvent.class)
           || navigateEvent instanceof OpenCustomGamesEvent) {
+        customGamesController = uiService.loadFxml("theme/play/custom_games.fxml");
         Node node = customGamesController.getRoot();
-        contentPane.getChildren().add(node);
+        contentPane.getChildren().setAll(node);
         JavaFxUtil.setAnchors(node, 0d);
         customGamesController.display(navigateEvent);
       }
       if (navigateEvent instanceof Open1v1Event) {
+        ladderController = uiService.loadFxml("theme/play/ranked_1v1.fxml");
         Node node = ladderController.getRoot();
-        contentPane.getChildren().add(node);
+        contentPane.getChildren().setAll(node);
         JavaFxUtil.setAnchors(node, 0d);
         ladderController.display(navigateEvent);
       }
       if (navigateEvent instanceof OpenCoopEvent) {
+        coopController = uiService.loadFxml("theme/play/coop/coop.fxml");
         Node node = coopController.getRoot();
-        contentPane.getChildren().add(node);
+        contentPane.getChildren().setAll(node);
         JavaFxUtil.setAnchors(node, 0d);
         coopController.display(navigateEvent);
       }
@@ -100,9 +103,9 @@ public class PlayController extends AbstractViewController<Node> {
 
   @Override
   protected void onHide() {
-    customGamesController.hide();
+/*    customGamesController.hide();
     ladderController.hide();
-    coopController.hide();
+    coopController.hide();*/
   }
 
   @Override

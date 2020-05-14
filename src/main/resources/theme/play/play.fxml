@@ -6,7 +6,7 @@
 <VBox fx:id="playRoot" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.faforever.client.play.PlayController">
     <HBox>
-        <Pane prefWidth="65.0"/>
+        <Pane prefWidth="64.0"/>
         <ToggleButton fx:id="customGamesButton" mnemonicParsing="false" onAction="#onCustomNavigateButtonClicked"
                       styleClass="navigation-button" text="%play.custom">
             <toggleGroup>
