@@ -71,6 +71,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
   public GameDetailController gameDetailController;
   public ColumnConstraints sidePaneColumn;
   private GamesTableController gamesTableController;
+  private CreateGameController createGameController;
 
   public GridPane gamesGridPane;
   public ToggleButton tableButton;
@@ -110,6 +111,11 @@ public class CustomGamesController extends AbstractViewController<Node> {
         createGameButton.disableProperty().unbind();
       }
     });
+    createGameController = uiService.loadFxml("theme/play/create_game.fxml");
+    Pane createGameRoot = createGameController.getRoot();
+    gamesRoot.getChildren().add(createGameRoot);
+    JavaFxUtil.setAnchors(createGameRoot, 0d);
+    createGameRoot.setVisible(false);
 
     chooseSortingTypeChoiceBox.setVisible(false);
     chooseSortingTypeChoiceBox.setConverter(new StringConverter<>() {
@@ -201,17 +207,12 @@ public class CustomGamesController extends AbstractViewController<Node> {
       return;
     }
 
-    CreateGameController createGameController = uiService.loadFxml("theme/play/create_game.fxml");
-
     if (mapFolderName != null && !createGameController.selectMap(mapFolderName)) {
       log.warn("Map with folder name '{}' could not be found in map list", mapFolderName);
     }
 
-    Pane root = createGameController.getRoot();
-    JFXDialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("games.create"));
-    createGameController.setOnCloseButtonClickedListener(dialog::close);
-
-    root.requestFocus();
+    createGameController.getRoot().setVisible(true);
+    createGameController.getRoot().requestFocus();
   }
 
   public Node getRoot() {

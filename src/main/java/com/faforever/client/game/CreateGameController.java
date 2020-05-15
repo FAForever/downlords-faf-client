@@ -166,7 +166,7 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   public void onCloseButtonClicked() {
-    onCloseButtonClickedListener.run();
+    getRoot().setVisible(false);
   }
 
 
@@ -450,5 +450,13 @@ public class CreateGameController implements Controller<Pane> {
 
   void setOnCloseButtonClickedListener(Runnable onCloseButtonClickedListener) {
     this.onCloseButtonClickedListener = onCloseButtonClickedListener;
+  }
+
+  public void onDimmerClicked() {
+    onCloseButtonClicked();
+  }
+
+  public void onContentPaneClicked(MouseEvent event) {
+    event.consume();
   }
 }
