@@ -47,6 +47,7 @@ public class VaultController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
+    vaultRoot.getSelectionModel().select(mapVaultTab);
     vaultRoot.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
       if (isHandlingEvent) {
         return;
@@ -70,8 +71,7 @@ public class VaultController extends AbstractViewController<Node> {
     isHandlingEvent = true;
 
     try {
-      if (Objects.equals(navigateEvent.getClass(), NavigateEvent.class)
-          || navigateEvent instanceof OpenMapVaultEvent) {
+      if (navigateEvent instanceof OpenMapVaultEvent) {
         vaultRoot.getSelectionModel().select(mapVaultTab);
         mapVaultController.display(navigateEvent);
       }

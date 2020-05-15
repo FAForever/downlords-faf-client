@@ -1,28 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="playRoot" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.faforever.client.play.PlayController">
-    <HBox>
-        <Pane prefWidth="64.0"/>
-        <ToggleButton fx:id="customGamesButton" mnemonicParsing="false" onAction="#onCustomNavigateButtonClicked"
-                      styleClass="navigation-button" text="%play.custom">
-            <toggleGroup>
-                <ToggleGroup fx:id="playNavigation"/>
-            </toggleGroup>
-        </ToggleButton>
-        <ToggleButton fx:id="ladderButton" mnemonicParsing="false" onAction="#on1v1NavigateButtonClicked"
-                      styleClass="navigation-button" text="%play.ranked1v1" toggleGroup="$playNavigation">
-        </ToggleButton>
-        <ToggleButton fx:id="coopButton" mnemonicParsing="false" onAction="#onCoopNavigateButtonClicked"
-                      styleClass="navigation-button" text="%play.coop" toggleGroup="$playNavigation">
-        </ToggleButton>
-    </HBox>
-    <Separator/>
-    <AnchorPane fx:id="contentPane" maxHeight="1.7976931348623157E308"
-                maxWidth="1.7976931348623157E308"
-                VBox.vgrow="ALWAYS">
-    </AnchorPane>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="playRoot" maxHeight="1.7976931348623157E308"
+      xmlns="http://javafx.com/javafx/8.0.60" fx:controller="com.faforever.client.play.PlayController">
+    <children>
+        <TabPane fx:id="playRootTabPane" tabClosingPolicy="UNAVAILABLE">
+            <tabs>
+                <Tab fx:id="customGamesTab" text="%play.custom">
+                    <fx:include source="custom_games.fxml" fx:id="customGames"/>
+                </Tab>
+                <Tab fx:id="ladderTab" text="%play.ranked1v1">
+                    <fx:include source="ranked_1v1.fxml" fx:id="ladder"/>
+                </Tab>
+                <Tab fx:id="coopTab" text="%play.coop">
+                    <fx:include source="coop/coop.fxml" fx:id="coop"/>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </children>
 </VBox>
