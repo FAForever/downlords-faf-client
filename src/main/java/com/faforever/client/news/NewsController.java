@@ -31,25 +31,14 @@ import java.io.Reader;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class NewsController extends AbstractViewController<Node> {
 
-  private static final ClassPathResource NEWS_DETAIL_HTML_RESOURCE = new ClassPathResource("/theme/news_detail.html");
-  private final PreferencesService preferencesService;
-  private final I18n i18n;
-  private final NewsService newsService;
-  private final UiService uiService;
   private final EventBus eventBus;
   private final WebViewConfigurer webViewConfigurer;
   public Pane newsRoot;
-  public WebView newsDetailWebView;
-  public Button showLadderMapsButton;
-  public ListView<NewsItem> newsListView;
+  public WebView newsWebView;
   public Control loadingIndicator;
   private ChangeListener<Boolean> loadingIndicatorListener;
 
-  public NewsController(PreferencesService preferencesService, I18n i18n, NewsService newsService, UiService uiService, EventBus eventBus, WebViewConfigurer webViewConfigurer) {
-    this.preferencesService = preferencesService;
-    this.i18n = i18n;
-    this.newsService = newsService;
-    this.uiService = uiService;
+  public NewsController(EventBus eventBus, WebViewConfigurer webViewConfigurer) {
     this.eventBus = eventBus;
     this.webViewConfigurer = webViewConfigurer;
 
@@ -62,8 +51,6 @@ public class NewsController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
-    newsListView.setCellFactory(param -> new NewsItemListCell(uiService));
-    newsListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> displayNewsItem(newValue));
 
     loadingIndicator.managedProperty().bind(loadingIndicator.visibleProperty());
     loadingIndicator.visibleProperty().addListener(loadingIndicatorListener);
@@ -83,17 +70,9 @@ public class NewsController extends AbstractViewController<Node> {
 
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
-    if (!newsListView.getItems().isEmpty()) {
-      return;
-    }
-
     eventBus.post(new UnreadNewsEvent(false));
-
-    showLadderMapsButton.managedProperty().bind(showLadderMapsButton.visibleProperty());
-    showLadderMapsButton.setVisible(false);
-    newsDetailWebView.setContextMenuEnabled(false);
-    webViewConfigurer.configureWebView(newsDetailWebView);
-
+    newsWebView.setContextMenuEnabled(false);
+    webViewConfigurer.configureWebView(newsWebView);
     onLoadingStart();
     loadNews();
   }
@@ -108,38 +87,14 @@ public class NewsController extends AbstractViewController<Node> {
 
 
   private void loadNews() {
-    newsService.fetchNews().thenAccept(newsItems -> {
-      Platform.runLater(() -> {
-        newsListView.getItems().setAll(newsItems);
-        onLoadingStop();
-        if (!newsItems.isEmpty()) {
-          NewsItem mostRecentItem = newsItems.get(0);
-          preferencesService.getPreferences().getNews().setLastReadNewsUrl(mostRecentItem.getLink());
-          preferencesService.storeInBackground();
-        }
-        newsListView.getSelectionModel().selectFirst();
-      });
+    Platform.runLater(() -> {
+      newsWebView.getEngine().load("https://www.faforever.com/news");
+      onLoadingStop();
     });
-  }
-
-  @SneakyThrows
-  private void displayNewsItem(NewsItem newsItem) {
-    showLadderMapsButton.setVisible(newsItem.getNewsCategory().equals(NewsCategory.LADDER));
-
-    try (Reader reader = new InputStreamReader(NEWS_DETAIL_HTML_RESOURCE.getInputStream())) {
-      String html = CharStreams.toString(reader).replace("{title}", newsItem.getTitle())
-          .replace("{content}", newsItem.getContent())
-          .replace("{authored}", i18n.get("news.authoredFormat", newsItem.getAuthor(), newsItem.getDate()));
-
-      Platform.runLater(() -> newsDetailWebView.getEngine().loadContent(html));
-    }
   }
 
   public Node getRoot() {
     return newsRoot;
   }
 
-  public void showLadderMaps() {
-    eventBus.post(new ShowLadderMapsEvent());
-  }
 }
