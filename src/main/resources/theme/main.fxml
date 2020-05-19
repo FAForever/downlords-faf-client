@@ -28,16 +28,16 @@
                         <children>
                             <MenuButton focusTraversable="false" mnemonicParsing="false" text="">
                                 <items>
-                                    <MenuItem onAction="#onSettingsSelected" text="%menu.settings"/>
-                                    <SeparatorMenuItem mnemonicParsing="false"/>
-                                    <MenuItem disable="true" text="%menu.feedback"/>
-                                    <MenuItem onAction="#onLinksAndHelp" text="%help.title"/>
-                                    <SeparatorMenuItem mnemonicParsing="false"/>
                                     <MenuItem onAction="#onRevealLogFolder" text="%menu.revealLogFolder"/>
                                     <MenuItem onAction="#onRevealMapFolder" text="%menu.revealMapFolder"/>
                                     <MenuItem onAction="#onRevealModFolder" text="%menu.revealModFolder"/>
                                     <MenuItem onAction="#onRevealReplayFolder" text="%menu.revealReplayFolder"/>
                                     <MenuItem onAction="#onRevealGamePrefsFolder" text="%menu.revealGamePrefsFile"/>
+                                    <SeparatorMenuItem mnemonicParsing="false"/>
+                                    <MenuItem disable="true" text="%menu.feedback"/>
+                                    <MenuItem onAction="#onLinksAndHelp" text="%help.title"/>
+                                    <SeparatorMenuItem mnemonicParsing="false"/>
+                                    <MenuItem onAction="#onSettingsSelected" text="%menu.settings"/>
                                     <SeparatorMenuItem mnemonicParsing="false"/>
                                     <MenuItem onAction="#onExitItemSelected" text="%menu.exit"/>
                                 </items>
