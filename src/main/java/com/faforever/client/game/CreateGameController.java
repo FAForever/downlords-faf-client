@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.fa.FaStrings;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.DualStringListCell;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.i18n.I18n;
@@ -21,8 +22,10 @@ import com.faforever.client.preferences.PreferenceUpdateListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.theme.UiService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
+import com.jfoenix.controls.JFXButton;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -59,6 +62,7 @@ import java.lang.ref.WeakReference;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.net.ConnectionState.CONNECTED;
@@ -72,6 +76,7 @@ public class CreateGameController implements Controller<Pane> {
 
   private static final int MAX_RATING_LENGTH = 4;
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  public static final String STYLE_CLASS_DUAL_LIST_CELL = "create-game-dual-list-cell";
   private final MapService mapService;
   private final ModService modService;
   private final GameService gameService;
@@ -81,6 +86,7 @@ public class CreateGameController implements Controller<Pane> {
   private final ReportingService reportingService;
   private final FafService fafService;
   private final MapGeneratorService mapGeneratorService;
+  private final UiService uiService;
   public Label mapSizeLabel;
   public Label mapPlayersLabel;
   public Label mapDescriptionLabel;
@@ -98,6 +104,7 @@ public class CreateGameController implements Controller<Pane> {
   public Pane mapPreviewPane;
   public Label versionLabel;
   public CheckBox onlyForFriendsCheckBox;
+  public JFXButton generateMapButton;
   @VisibleForTesting
   FilteredList<MapBean> filteredMapBeans;
   private Runnable onCloseButtonClickedListener;
@@ -140,8 +147,14 @@ public class CreateGameController implements Controller<Pane> {
       selectionModel.select(newMapIndex);
       mapListView.scrollTo(newMapIndex);
     });
+    
+    Function<FeaturedMod, String> isDefaultModString = mod ->
+      Objects.equals(mod.getTechnicalName(), KnownFeaturedMod.DEFAULT.getTechnicalName()) ?
+      " " + i18n.get("game.create.defaultGameTypeMarker") : null;
 
-    featuredModListView.setCellFactory(param -> new StringListCell<>(FeaturedMod::getDisplayName));
+    featuredModListView.setCellFactory(param ->
+        new DualStringListCell<>(FeaturedMod::getDisplayName, isDefaultModString, STYLE_CLASS_DUAL_LIST_CELL, uiService)
+    );
 
     JavaFxUtil.makeNumericTextField(minRankingTextField, MAX_RATING_LENGTH);
     JavaFxUtil.makeNumericTextField(maxRankingTextField, MAX_RATING_LENGTH);
@@ -420,10 +433,6 @@ public class CreateGameController implements Controller<Pane> {
 
   public Pane getRoot() {
     return createGameRoot;
-  }
-
-  public void onSelectDefaultGameTypeButtonClicked() {
-    featuredModListView.getSelectionModel().select(0);
   }
 
   public void onDeselectModsButtonClicked() {
