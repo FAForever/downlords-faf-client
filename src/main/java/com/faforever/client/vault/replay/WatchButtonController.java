@@ -27,7 +27,7 @@ public class WatchButtonController implements Controller<Node> {
 
   public Button watchButton;
   private Game game;
-  private I18n i18n;
+  private final I18n i18n;
   private Timeline delayTimeline;
 
   public WatchButtonController(ReplayService replayService, ClientProperties clientProperties, TimeService timeService, I18n i18n) {
@@ -65,11 +65,11 @@ public class WatchButtonController implements Controller<Node> {
     );
     if (watchDelay.isZero() || watchDelay.isNegative()) {
       delayTimeline.stop();
-      delayTimeline = null;
       watchButton.setText(i18n.get("game.watch"));
       watchButton.setDisable(false);
     } else {
       watchButton.setText(i18n.get("game.watchDelayedFormat", timeService.shortDuration(watchDelay)));
+      watchButton.setDisable(true);
     }
   }
 
