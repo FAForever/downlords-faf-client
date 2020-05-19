@@ -1,44 +1,22 @@
 package com.faforever.client.fx;
 
-import java.util.function.Function;
-
+import com.faforever.client.theme.UiService;
 import javafx.application.Platform;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
+import lombok.RequiredArgsConstructor;
+
+import java.util.function.Function;
 
 /**
  * Alternative to {@link StringListCell} that allows to display to differently styled strings in each cell.
  */
+@RequiredArgsConstructor
 public class DualStringListCell<T> extends ListCell<T> {
-  protected Label left = new Label();
-  protected Label right = new Label();
-  protected Region spacer = new Region();
-  
-  private HBox container = new HBox(left, spacer, right);
-
-  private Function<T, String> functionLeft;
-  private Function<T, String> functionRight;
-  
-  /**
-   * @param growSpacer - If true, space between left and right string will be maximized.
-   */
-  public DualStringListCell(Function<T, String> functionLeft, Function<T, String> functionRight, boolean growSpacer) {
-    super();
-    this.functionLeft = functionLeft;
-    this.functionRight = functionRight;
-    if (growSpacer) {
-      HBox.setHgrow(spacer, Priority.ALWAYS);
-    }
-    init();
-  }
-  
-  /**
-   * Customize {@link #left}, {@link #right}, {@link #spacer}.
-   */
-  protected void init() {}
+  private final Function<T, String> functionLeft;
+  private final Function<T, String> functionRight;
+  private final String styleClasses;
+  private final UiService uiService;
+  public DualStringListCellController dualStringListCellController;
 
   @Override
   protected void updateItem(T item, boolean empty) {
@@ -48,12 +26,15 @@ public class DualStringListCell<T> extends ListCell<T> {
         setText(null);
         setGraphic(null);
       } else {
-        left.setText(functionLeft.apply(item));
-        right.setText(functionRight.apply(item));
+        if (dualStringListCellController == null) {
+          dualStringListCellController = uiService.loadFxml("theme/dual_string_list_cell.fxml");
+        }
+        dualStringListCellController.setLeftText(functionLeft.apply(item));
+        dualStringListCellController.setRightText(functionRight.apply(item));
         // copy font styles
-        left.setFont(getFont());
-        right.setFont(getFont());
-        setGraphic(container);
+        dualStringListCellController.applyFont(getFont());
+        dualStringListCellController.applyStyleClass(styleClasses);
+        setGraphic(dualStringListCellController.getRoot());
       }
     });
   }

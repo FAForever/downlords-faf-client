@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<HBox xmlns:fx="http://javafx.com/fxml/1" fx:id="root" maxWidth="1.7976931348623157E308" spacing="10.0"
+      styleClass="dual-string-list-cell" xmlns="http://javafx.com/javafx/11.0.1"
+      fx:controller="com.faforever.client.fx.DualStringListCellController">
+   <children>
+      <Label fx:id="left" styleClass="left-label"/>
+      <Label fx:id="right" styleClass="right-label"/>
+   </children>
+</HBox>

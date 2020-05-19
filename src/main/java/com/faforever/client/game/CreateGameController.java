@@ -22,13 +22,12 @@ import com.faforever.client.preferences.PreferenceUpdateListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.theme.UiService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.jfoenix.controls.JFXButton;
-
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -47,8 +46,6 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.util.Callback;
 import lombok.RequiredArgsConstructor;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -79,6 +76,7 @@ public class CreateGameController implements Controller<Pane> {
 
   private static final int MAX_RATING_LENGTH = 4;
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  public static final String STYLE_CLASS_DUAL_LIST_CELL = "create-game-dual-list-cell";
   private final MapService mapService;
   private final ModService modService;
   private final GameService gameService;
@@ -88,6 +86,7 @@ public class CreateGameController implements Controller<Pane> {
   private final ReportingService reportingService;
   private final FafService fafService;
   private final MapGeneratorService mapGeneratorService;
+  private final UiService uiService;
   public Label mapSizeLabel;
   public Label mapPlayersLabel;
   public Label mapDescriptionLabel;
@@ -152,15 +151,10 @@ public class CreateGameController implements Controller<Pane> {
     Function<FeaturedMod, String> isDefaultModString = mod ->
       Objects.equals(mod.getTechnicalName(), KnownFeaturedMod.DEFAULT.getTechnicalName()) ?
       " " + i18n.get("game.create.defaultGameTypeMarker") : null;
-    
+
     featuredModListView.setCellFactory(param ->
-        new DualStringListCell<FeaturedMod>(FeaturedMod::getDisplayName, isDefaultModString, false) {
-      @Override
-      protected void init() {
-        // use bind to overwrite updates from css
-        right.textFillProperty().bind(new SimpleObjectProperty<Paint>(Color.GREY));
-      }
-    });
+        new DualStringListCell<>(FeaturedMod::getDisplayName, isDefaultModString, STYLE_CLASS_DUAL_LIST_CELL, uiService)
+    );
 
     JavaFxUtil.makeNumericTextField(minRankingTextField, MAX_RATING_LENGTH);
     JavaFxUtil.makeNumericTextField(maxRankingTextField, MAX_RATING_LENGTH);
