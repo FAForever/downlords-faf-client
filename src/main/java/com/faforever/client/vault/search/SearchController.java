@@ -10,6 +10,7 @@ import com.faforever.client.theme.UiService;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
+import com.jfoenix.controls.JFXToggleButton;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.BooleanBinding;
@@ -21,6 +22,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -54,6 +56,12 @@ public class SearchController implements Controller<Pane> {
   public ComboBox<Property> sortPropertyComboBox;
   public ComboBox<SortOrder> sortOrderChoiceBox;
   public HBox sortBox;
+  public JFXToggleButton revealAdvancedSearchButton;
+  public VBox advancedSearchPane;
+  public VBox basicSearchPane;
+  public VBox basicSearchPaneMaps;
+  public VBox basicSearchPaneMods;
+  public VBox basicSearchPaneReplays;
 
   private List<LogicalNodeController> queryNodes;
   private InvalidationListener queryInvalidationListener;
@@ -77,6 +85,13 @@ public class SearchController implements Controller<Pane> {
   public void initialize() {
     queryTextField.managedProperty().bind(queryTextField.visibleProperty());
     queryTextField.visibleProperty().bind(displayQueryCheckBox.selectedProperty());
+    advancedSearchPane.managedProperty().bind(advancedSearchPane.visibleProperty());
+    advancedSearchPane.visibleProperty().bind(revealAdvancedSearchButton.selectedProperty());
+    basicSearchPane.managedProperty().bind(basicSearchPane.visibleProperty());
+    basicSearchPane.visibleProperty().bind(revealAdvancedSearchButton.selectedProperty().not());
+    basicSearchPaneMaps.managedProperty().bind(basicSearchPaneMaps.visibleProperty());
+    basicSearchPaneMods.managedProperty().bind(basicSearchPaneMods.visibleProperty());
+    basicSearchPaneReplays.managedProperty().bind(basicSearchPaneReplays.visibleProperty());
 
     initialLogicalNodeController.logicalOperatorField.managedProperty()
         .bind(initialLogicalNodeController.logicalOperatorField.visibleProperty());
@@ -241,7 +256,7 @@ public class SearchController implements Controller<Pane> {
   }
 
   public void setSearchButtonDisabledCondition(BooleanBinding inSearchableState) {
-    searchButton.disableProperty().bind(queryTextField.textProperty().isEmpty().or(inSearchableState.not()));
+    searchButton.disableProperty().bind(inSearchableState.not());
   }
 
   @Getter

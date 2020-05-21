@@ -1,61 +1,105 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXButton?>
-<?import com.jfoenix.controls.JFXCheckBox?>
-<?import com.jfoenix.controls.JFXComboBox?>
-<?import com.jfoenix.controls.JFXTextField?>
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="searchRoot" maxHeight="-Infinity" maxWidth="-Infinity"
-      minHeight="-Infinity" minWidth="-Infinity" spacing="10.0" xmlns="http://javafx.com/javafx/8.0.121"
-      fx:controller="com.faforever.client.vault.search.SearchController">
-    <children>
-        <VBox fx:id="criteriaPane">
-            <children>
-                <HBox alignment="CENTER_LEFT" spacing="10.0">
-                    <children>
-                        <fx:include fx:id="initialLogicalNode" source="logical_node.fxml"/>
-                    </children>
+<?import com.jfoenix.controls.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="searchRoot" alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" spacing="10.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.vault.search.SearchController">
+    <VBox spacing="20.0" styleClass="invite-card">
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="ADVANCED SEARCH" styleClass="h3"/>
+            <JFXToggleButton fx:id="revealAdvancedSearchButton" mnemonicParsing="false"/>
+            <padding>
+                <Insets bottom="-20.0"/>
+            </padding>
+        </HBox>
+        <VBox fx:id="basicSearchPane">
+            <VBox fx:id="basicSearchPaneMaps" spacing="20.0" visible="false">
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Name:" />
+                    <JFXTextField fx:id="MapNameTextField" maxWidth="250"/>
                 </HBox>
-            </children>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Author:" />
+                    <JFXTextField fx:id="mapAuthorTextField" maxWidth="250"/>
+                </HBox>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Size (km):" />
+                    <JFXTextField fx:id="mapSizeTextField" maxWidth="100"/>
+                </HBox>
+            </VBox>
+            <VBox fx:id="basicSearchPaneMods" spacing="20.0" visible="false">
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Name:" />
+                    <JFXTextField fx:id="modNameTextField" maxWidth="250"/>
+                </HBox>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Author:" />
+                    <JFXTextField fx:id="modAuthorTextField" maxWidth="250"/>
+                </HBox>
+                <HBox spacing="40">
+                    <JFXCheckBox fx:id="simMods" mnemonicParsing="false" selected="true" text="SIM" />
+                    <JFXCheckBox fx:id="UIMods" mnemonicParsing="false" selected="true" text="UI" />
+                </HBox>
+            </VBox>
+            <VBox fx:id="basicSearchPaneReplays" spacing="20.0" visible="false">
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Player:" />
+                    <JFXTextField fx:id="playerTextField" maxWidth="250"/>
+                </HBox>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Min. Rating:" />
+                    <JFXTextField fx:id="ratingTextField" prefWidth="110"/>
+                </HBox>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Map:" />
+                    <JFXTextField fx:id="replayMapTextField" maxWidth="250"/>
+                </HBox>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Game Type:" />
+                    <JFXComboBox />
+                </HBox>
+                <JFXCheckBox fx:id="timeRange" mnemonicParsing="false" selected="true" text="only past year" />
+            </VBox>
         </VBox>
-        <HBox alignment="CENTER_LEFT" spacing="10.0">
+        <VBox fx:id="advancedSearchPane" spacing="10">
+            <VBox fx:id="criteriaPane" spacing="10">
+                <children>
+                    <HBox alignment="CENTER_LEFT" spacing="10.0">
+                        <children>
+                            <fx:include fx:id="initialLogicalNode" source="logical_node.fxml" />
+                        </children>
+                    </HBox>
+                </children>
+            </VBox>
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                <children>
+                    <JFXButton maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#onAddCriteriaButtonClicked" text="%query.addCriteria" />
+                    <JFXButton layoutX="10.0" layoutY="10.0" maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#onResetButtonClicked" text="%reset" />
+                </children>
+            </HBox>
+            <JFXCheckBox fx:id="displayQueryCheckBox" mnemonicParsing="false" text="%vault.replays.displayQuery">
+            </JFXCheckBox>
+            <JFXTextField fx:id="queryTextField" maxWidth="1.7976931348623157E308" onAction="#onSearchButtonClicked" promptText="%vault.replays.queryPrompt" />
+        </VBox>
+        <HBox fx:id="sortBox" alignment="CENTER_LEFT" spacing="5">
             <children>
-                <JFXButton maxHeight="1.7976931348623157E308" mnemonicParsing="false"
-                           onAction="#onAddCriteriaButtonClicked" text="%query.addCriteria"/>
-                <JFXButton layoutX="10.0" layoutY="10.0" maxHeight="1.7976931348623157E308" mnemonicParsing="false"
-                        onAction="#onResetButtonClicked" text="%reset"/>
-                <HBox fx:id="sortBox" alignment="CENTER_LEFT" spacing="5">
-                    <padding>
-                        <Insets>
-                            <left>
-                                20
-                            </left>
-                            <right>
-                                20
-                            </right>
-                        </Insets>
-                    </padding>
-                    <children>
-                        <Label text="%search.sort"/>
-                        <JFXComboBox fx:id="sortPropertyComboBox"/>
-                        <JFXComboBox fx:id="sortOrderChoiceBox"/>
-                    </children>
-                </HBox>
-
-                <JFXButton fx:id="searchButton" defaultButton="true" mnemonicParsing="false"
-                           onAction="#onSearchButtonClicked" styleClass="button-raised" text="%search">
-                    <graphic>
-                        <Label styleClass="icon" text=""/>
-                    </graphic>
-                </JFXButton>
-                <JFXCheckBox fx:id="displayQueryCheckBox" mnemonicParsing="false" text="%vault.replays.displayQuery"/>
-
+                <Label text="%search.sort" />
+                <JFXComboBox fx:id="sortPropertyComboBox" />
+                <JFXComboBox fx:id="sortOrderChoiceBox" />
             </children>
         </HBox>
-        <JFXTextField fx:id="queryTextField" onAction="#onSearchButtonClicked" maxWidth="1.7976931348623157E308"
-                   promptText="%vault.replays.queryPrompt"/>
-    </children>
+        <JFXButton fx:id="searchButton" defaultButton="true" mnemonicParsing="false" onAction="#onSearchButtonClicked" styleClass="button-raised" text="%search">
+            <graphic>
+                <Label styleClass="icon" text="" />
+            </graphic>
+        </JFXButton>
+        <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="0.0" />
+        </padding>
+    </VBox>
+    <padding>
+        <Insets bottom="20.0" left="20.0" top="20.0" right="10.0"/>
+    </padding>
 </VBox>

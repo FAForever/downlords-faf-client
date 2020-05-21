@@ -253,6 +253,17 @@
   -fx-font-size: 2em;
 }
 
+.icon-button.decline {
+  -fx-background-radius: 1em;
+  -fx-pref-width: 1em;
+  -fx-pref-height: 1em;
+}
+
+.icon-button.decline > .text {
+  -fx-fill: -red-400;
+  -fx-font-size: 1em;
+}
+
 .icon-button:hover {
   -fx-background-color: transparent;
 }
@@ -1031,6 +1042,17 @@
   -fx-border-color: -divider-color;
   -fx-padding: 1em;
   -fx-graphic-text-gap: 1em;
+}
+
+/***************** Match maker *****************/
+
+
+.invite-card {
+  -fx-background-color: #141414;
+  -fx-border-color: #818181;
+  -fx-background-radius: 9;
+  -fx-border-radius: 9;
+  -fx-border-width: 1;
 }
 
 /***************** Faction buttons *****************/

@@ -6,13 +6,15 @@
 <?import javafx.scene.layout.*?>
 
 <StackPane fx:id="mapVaultRoot" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.map.MapVaultController">
-    <children>
-        <ScrollPane fx:id="scrollPane" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+    <HBox>
+        <ScrollPane fx:id="searchScrollPane" hbarPolicy="NEVER">
+            <fx:include fx:id="search" source="../search/search.fxml"/>
+        </ScrollPane>
+        <ScrollPane fx:id="scrollPane" fitToWidth="true" maxHeight="1.7976931348623157E308"
+                    maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" prefWidth="10.0">
             <content>
                 <VBox spacing="10.0">
                     <children>
-                        <fx:include fx:id="search" source="../search/search.fxml" />
-                        <Separator maxWidth="1.7976931348623157E308" />
                         <HBox spacing="10.0">
                             <children>
                                 <JFXButton fx:id="backButton" mnemonicParsing="false" onAction="#onBackButtonClicked" text="%back">
@@ -85,10 +87,10 @@
                         </Label>
                     </children>
                     <padding>
-                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                        <Insets bottom="20.0" left="10.0" right="20.0" top="20.0" />
                     </padding>
                 </VBox>
             </content>
         </ScrollPane>
-    </children>
+    </HBox>
 </StackPane>

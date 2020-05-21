@@ -102,6 +102,7 @@ public class MapVaultController extends AbstractViewController<Node> {
   public JFXButton nextButton;
   public Label currentPageLabel;
   public HBox paginationHBox;
+  public ScrollPane searchScrollPane;
   private MapDetailController mapDetailController;
   private int currentPage;
   private Supplier<CompletableFuture<List<MapBean>>> currentSupplier;
@@ -125,6 +126,7 @@ public class MapVaultController extends AbstractViewController<Node> {
   public void initialize() {
     super.initialize();
     JavaFxUtil.fixScrollSpeed(scrollPane);
+    JavaFxUtil.fixScrollSpeed(searchScrollPane);
 
     loadingLabel.managedProperty().bind(loadingLabel.visibleProperty());
     showroomGroup.managedProperty().bind(showroomGroup.visibleProperty());
@@ -140,6 +142,7 @@ public class MapVaultController extends AbstractViewController<Node> {
     AnchorPane.setBottomAnchor(mapDetailRoot, 0d);
     AnchorPane.setLeftAnchor(mapDetailRoot, 0d);
     mapDetailRoot.setVisible(false);
+    searchController.basicSearchPaneMaps.setVisible(true);
 
     eventBus.register(this);
 

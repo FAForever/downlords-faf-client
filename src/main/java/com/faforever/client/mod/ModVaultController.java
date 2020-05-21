@@ -84,6 +84,7 @@ public class ModVaultController extends AbstractViewController<Node> {
   public Button backButton;
   public SearchController searchController;
   public Button moreButton;
+  public ScrollPane searchScrollPane;
 
   private boolean initialized;
   private ModDetailController modDetailController;
@@ -107,6 +108,7 @@ public class ModVaultController extends AbstractViewController<Node> {
   public void initialize() {
     super.initialize();
     JavaFxUtil.fixScrollSpeed(scrollPane);
+    JavaFxUtil.fixScrollSpeed(searchScrollPane);
 
     loadingLabel.managedProperty().bind(loadingLabel.visibleProperty());
     showroomGroup.managedProperty().bind(showroomGroup.visibleProperty());
@@ -122,6 +124,7 @@ public class ModVaultController extends AbstractViewController<Node> {
     AnchorPane.setBottomAnchor(modDetailRoot, 0d);
     AnchorPane.setLeftAnchor(modDetailRoot, 0d);
     modDetailRoot.setVisible(false);
+    searchController.basicSearchPaneMods.setVisible(true);
 
     eventBus.register(this);
 

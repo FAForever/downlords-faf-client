@@ -3,13 +3,21 @@
 <?import com.jfoenix.controls.JFXButton?>
 <?import com.jfoenix.controls.JFXComboBox?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.geometry.Insets?>
 <HBox xmlns:fx="http://javafx.com/fxml/1" fx:id="logicalNodeRoot" alignment="CENTER_LEFT" maxHeight="-Infinity"
-      maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" spacing="10.0"
+      maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
       xmlns="http://javafx.com/javafx/8.0.60" fx:controller="com.faforever.client.query.LogicalNodeController">
     <children>
-        <JFXComboBox fx:id="logicalOperatorField" maxHeight="1.7976931348623157E308" prefWidth="100.0"/>
+        <JFXComboBox fx:id="logicalOperatorField" maxHeight="1.7976931348623157E308">
+            <padding>
+                <Insets right="10.0"/>
+            </padding>
+        </JFXComboBox>
         <fx:include fx:id="specification" source="specification.fxml"/>
         <JFXButton fx:id="removeCriteriaButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
-                   onAction="#onRemoveCriteriaButtonClicked" text="%query.removeCriteria"/>
+                   onAction="#onRemoveCriteriaButtonClicked" styleClass="decline, icon-button" text=""/>
     </children>
+    <padding>
+        <Insets right="-15.0"/>
+    </padding>
 </HBox>
