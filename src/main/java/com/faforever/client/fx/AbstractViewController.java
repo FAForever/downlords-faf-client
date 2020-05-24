@@ -7,7 +7,6 @@ import javafx.scene.Node;
 public abstract class AbstractViewController<ROOT extends Node> implements Controller<ROOT> {
 
   public final void display(NavigateEvent navigateEvent) {
-    getRoot().setVisible(true);
     onDisplay(navigateEvent);
   }
 
@@ -19,14 +18,13 @@ public abstract class AbstractViewController<ROOT extends Node> implements Contr
   }
 
   public final void hide() {
-    getRoot().setVisible(false);
     onHide();
   }
 
   /**
    * Subclasses may override in order to perform actions when the view is no longer being displayed.
    */
-  protected void onHide() {
+  public void onHide() {
     // To be overridden by subclass
   }
 }

@@ -31,7 +31,6 @@ public class PlayController extends AbstractViewController<Node> {
   public Ladder1v1Controller ladderController;
   public CoopController coopController;
   private boolean isHandlingEvent;
-  private AbstractViewController<?> lastTab;
 
 
   public PlayController(EventBus eventBus) {
@@ -64,19 +63,14 @@ public class PlayController extends AbstractViewController<Node> {
       if (navigateEvent instanceof OpenCustomGamesEvent) {
         playRootTabPane.getSelectionModel().select(customGamesTab);
         customGamesController.display(navigateEvent);
-        lastTab = customGamesController;
       }
-      else if (navigateEvent instanceof Open1v1Event) {
+      if (navigateEvent instanceof Open1v1Event) {
         playRootTabPane.getSelectionModel().select(ladderTab);
         ladderController.display(navigateEvent);
-        lastTab = ladderController;
       }
-      else if (navigateEvent instanceof OpenCoopEvent) {
+      if (navigateEvent instanceof OpenCoopEvent) {
         playRootTabPane.getSelectionModel().select(coopTab);
         coopController.display(navigateEvent);
-        lastTab = coopController;
-      } else if (Objects.equals(navigateEvent.getClass(), NavigateEvent.class)) {
-        lastTab.display(navigateEvent);
       }
     } finally {
       isHandlingEvent = false;
@@ -84,10 +78,10 @@ public class PlayController extends AbstractViewController<Node> {
   }
 
   @Override
-  protected void onHide() {
-    customGamesController.hide();
-    ladderController.hide();
-    coopController.hide();
+  public void onHide() {
+    customGamesController.onHide();
+    ladderController.onHide();
+    coopController.onHide();
   }
 
   @Override
