@@ -269,7 +269,7 @@ public class ChatController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void onHide() {
+  protected void onHide() {
     super.onHide();
     if (!tabPane.getTabs().isEmpty()) {
       Tab tab = tabPane.getSelectionModel().getSelectedItem();

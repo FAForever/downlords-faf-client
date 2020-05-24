@@ -19,6 +19,7 @@
     <children>
         <VBox fx:id="topicPane" maxWidth="1.7976931348623157E308" VBox.vgrow="NEVER">
             <children>
+                <Separator maxWidth="1.7976931348623157E308"/>
                 <TextFlow fx:id="topicText" maxWidth="1.7976931348623157E308"/>
                 <Separator maxWidth="1.7976931348623157E308"/>
             </children>

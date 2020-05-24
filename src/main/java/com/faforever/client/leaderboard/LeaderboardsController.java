@@ -39,7 +39,6 @@ public class LeaderboardsController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
-    eventBus.post(new OpenLadder1v1LeaderboardEvent());
     ladder1v1LeaderboardController.setRatingType(KnownFeaturedMod.LADDER_1V1);
     globalLeaderboardController.setRatingType(KnownFeaturedMod.FAF);
 
@@ -62,7 +61,8 @@ public class LeaderboardsController extends AbstractViewController<Node> {
     isHandlingEvent = true;
 
     try {
-      if (navigateEvent instanceof OpenLadder1v1LeaderboardEvent) {
+      if (Objects.equals(navigateEvent.getClass(), NavigateEvent.class)
+          || navigateEvent instanceof OpenLadder1v1LeaderboardEvent) {
         leaderboardRoot.getSelectionModel().select(ladder1v1LeaderboardTab);
         ladder1v1LeaderboardController.display(navigateEvent);
       }

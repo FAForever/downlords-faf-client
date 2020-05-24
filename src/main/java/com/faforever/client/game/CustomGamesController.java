@@ -265,7 +265,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void onHide() {
+  protected void onHide() {
     // Hide all games to free up memory
     filteredItems.setPredicate(game -> false);
   }
