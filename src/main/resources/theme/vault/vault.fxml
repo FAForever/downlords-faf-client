@@ -1,90 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
-<?import javafx.scene.Group?>
 <?import javafx.scene.layout.VBox?>
+
 <VBox xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.60"
       fx:controller="com.faforever.client.vault.VaultController">
    <children>
-      <TabPane fx:id="vaultRoot" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" rotateGraphic="true" side="LEFT" tabClosingPolicy="UNAVAILABLE" tabMaxHeight="200.0" tabMinHeight="200.0">
+      <TabPane fx:id="vaultRoot" tabClosingPolicy="UNAVAILABLE">
           <tabs>
-              <Tab fx:id="mapVaultTab">
+              <Tab fx:id="mapVaultTab" text="%vault.maps">
                   <fx:include fx:id="mapVault" source="map/map_vault.fxml" />
-                  <graphic>
-                      <Group>
-                          <children>
-                              <VBox prefWidth="200.0" rotate="90.0">
-                                  <children>
-                                      <Label text="%vault.maps" styleClass="tab-label"/>
-                                  </children>
-                              </VBox>
-                          </children>
-                      </Group>
-                  </graphic>
               </Tab>
-              <Tab fx:id="modVaultTab">
+              <Tab fx:id="modVaultTab" text="%vault.mods">
                   <fx:include fx:id="modVault" source="mod/mod_vault.fxml" />
-                  <graphic>
-                      <Group>
-                          <children>
-                              <VBox prefWidth="200.0" rotate="90.0">
-                                  <children>
-                                      <Label text="%vault.mods" styleClass="tab-label"/>
-                                  </children>
-                              </VBox>
-                          </children>
-                      </Group>
-                  </graphic>
               </Tab>
-              <Tab fx:id="liveReplayVaultTab">
+              <Tab fx:id="liveReplayVaultTab" text="%vault.liveReplays">
                   <fx:include fx:id="liveReplayVault" source="replay/live_replays.fxml"/>
-                  <graphic>
-                      <Group>
-                          <children>
-                              <VBox prefWidth="200.0" rotate="90.0">
-                                  <children>
-                                      <Label text="%vault.liveReplays" styleClass="tab-label"/>
-                                  </children>
-                              </VBox>
-                          </children>
-                      </Group>
-                  </graphic>
               </Tab>
-              <Tab fx:id="onlineReplayVaultTab">
+              <Tab fx:id="onlineReplayVaultTab" text="%vault.onlineReplays">
                   <fx:include fx:id="onlineReplayVault" source="replay/online_replays.fxml"/>
-                  <graphic>
-                      <Group>
-                          <children>
-                              <VBox prefWidth="200.0" rotate="90.0">
-                                  <children>
-                                      <Label text="%vault.onlineReplays" styleClass="tab-label"/>
-                                  </children>
-                              </VBox>
-                          </children>
-                      </Group>
-                  </graphic>
               </Tab>
-              <Tab fx:id="localReplayVaultTab">
+              <Tab fx:id="localReplayVaultTab" text="%vault.localReplays">
                   <fx:include fx:id="localReplayVault" source="replay/replay_vault.fxml"/>
-                  <graphic>
-                      <Group>
-                          <children>
-                              <VBox prefWidth="200.0" rotate="90.0">
-                                  <children>
-                                      <Label text="%vault.localReplays" styleClass="tab-label"/>
-                                  </children>
-                              </VBox>
-                          </children>
-                      </Group>
-                  </graphic>
               </Tab>
           </tabs>
       </TabPane>
    </children>
-   <padding>
-      <Insets top="20.0" />
-   </padding>
 </VBox>

@@ -39,6 +39,7 @@ public class PlayController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
+    eventBus.post(new OpenCustomGamesEvent());
     playRootTabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
       if (isHandlingEvent) {
         return;
@@ -59,8 +60,7 @@ public class PlayController extends AbstractViewController<Node> {
     isHandlingEvent = true;
 
     try {
-      if (Objects.equals(navigateEvent.getClass(), NavigateEvent.class)
-          || navigateEvent instanceof OpenCustomGamesEvent) {
+      if (navigateEvent instanceof OpenCustomGamesEvent) {
         playRootTabPane.getSelectionModel().select(customGamesTab);
         customGamesController.display(navigateEvent);
       }
@@ -78,10 +78,10 @@ public class PlayController extends AbstractViewController<Node> {
   }
 
   @Override
-  protected void onHide() {
-    customGamesController.hide();
-    ladderController.hide();
-    coopController.hide();
+  public void onHide() {
+    customGamesController.onHide();
+    ladderController.onHide();
+    coopController.onHide();
   }
 
   @Override
