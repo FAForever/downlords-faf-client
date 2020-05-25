@@ -37,7 +37,6 @@ public class Preferences {
   private final LocalizationPrefs localization;
   private final LastGamePrefs lastGamePrefs;
   private final BooleanProperty prereleaseCheckEnabled;
-  private final BooleanProperty rememberLastTab;
   private final BooleanProperty showPasswordProtectedGames;
   private final BooleanProperty showModdedGames;
   private final ListProperty<String> ignoredNotifications;
@@ -66,7 +65,6 @@ public class Preferences {
     themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
     ignoredNotifications = new SimpleListProperty<>(observableArrayList());
     notification = new NotificationsPrefs();
-    rememberLastTab = new SimpleBooleanProperty(true);
     ladder1v1 = new Ladder1v1Prefs();
     gamesViewMode = new SimpleStringProperty();
     news = new NewsPrefs();
@@ -154,18 +152,6 @@ public class Preferences {
 
   public StringProperty themeNameProperty() {
     return themeName;
-  }
-
-  public boolean getRememberLastTab() {
-    return rememberLastTab.get();
-  }
-
-  public void setRememberLastTab(boolean rememberLastTab) {
-    this.rememberLastTab.set(rememberLastTab);
-  }
-
-  public BooleanProperty rememberLastTabProperty() {
-    return rememberLastTab;
   }
 
   public ObservableList<String> getIgnoredNotifications() {

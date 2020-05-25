@@ -5,7 +5,6 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.Player;
@@ -19,7 +18,6 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.google.common.eventbus.EventBus;
-
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
 import org.junit.Before;
@@ -86,7 +84,6 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void setUp() throws IOException, ExecutionException, InterruptedException {
     PreferencesService preferencesService = new PreferencesService(new ClientProperties());
     preferencesService.afterPropertiesSet();
-    preferencesService.getPreferences().getMainWindow().setLastView(NavigationItem.CHAT.name());
 
     instance = new PrivateChatTabController(userService, preferencesService, playerService, timeService,
         i18n, imageUploadService, notificationService, reportingService, uiService, eventBus,

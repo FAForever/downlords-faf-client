@@ -47,7 +47,7 @@
                                 </styleClass>
                             </MenuButton>
                             <ToggleButton fx:id="newsButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked"
-                                          styleClass="main-navigation-button" text="%main.community.news">
+                                          styleClass="main-navigation-button" text="%main.news">
                                 <toggleGroup>
                                     <ToggleGroup fx:id="mainNavigation"/>
                                 </toggleGroup>

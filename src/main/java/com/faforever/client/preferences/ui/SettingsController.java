@@ -8,6 +8,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -20,6 +21,7 @@ import com.faforever.client.preferences.Preferences.UnitDataBaseType;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.TimeInfo;
 import com.faforever.client.preferences.ToastPosition;
+import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.settings.LanguageItemController;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.UiService;
@@ -52,6 +54,7 @@ import javafx.scene.layout.Region;
 import javafx.stage.FileChooser;
 import javafx.stage.Popup;
 import javafx.stage.Screen;
+import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -112,7 +115,6 @@ public class SettingsController implements Controller<Node> {
   public CheckBox afterGameReviewCheckBox;
   public Region settingsRoot;
   public ComboBox<Theme> themeComboBox;
-  public Toggle rememberLastTabToggle;
   public ToggleGroup toastPositionToggleGroup;
   public ComboBox<Screen> toastScreenComboBox;
   public ToggleButton bottomLeftToastButton;
@@ -130,15 +132,16 @@ public class SettingsController implements Controller<Node> {
   public Toggle notifyOnAtMentionOnlyToggle;
   public Pane languagesContainer;
   public TextField backgroundImageLocation;
-  public CheckBox disallowJoinsCheckBox;
+  public ToggleButton disallowJoinsCheckBox;
   public ToggleButton secondaryVaultLocationToggleButton;
   public Button autoJoinChannelsButton;
   public ToggleButton advancedIceLogToggleButton;
   public ToggleButton prereleaseToggleButton;
+  private final InvalidationListener availableLanguagesListener;
   private Popup autojoinChannelsPopUp;
   private ChangeListener<Theme> selectedThemeChangeListener;
   private ChangeListener<Theme> currentThemeChangeListener;
-  private InvalidationListener availableLanguagesListener;
+  public ComboBox<NavigationItem> startTabChoiceBox;
 
   public SettingsController(UserService userService, PreferencesService preferencesService, UiService uiService,
                             I18n i18n, EventBus eventBus, NotificationService notificationService,
@@ -258,8 +261,8 @@ public class SettingsController implements Controller<Node> {
     configureChatSetting(preferences);
     configureLanguageSelection();
     configureThemeSelection(preferences);
-    configureRememberLastTab(preferences);
     configureToastScreen(preferences);
+    configureStartTab(preferences);
 
     displayFriendOnlineToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendOnlineToastEnabledProperty());
     displayFriendOfflineToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendOfflineToastEnabledProperty());
@@ -304,6 +307,24 @@ public class SettingsController implements Controller<Node> {
     });
 
     initUnitDatabaseSelection(preferences);
+  }
+
+  private void configureStartTab(Preferences preferences) {
+    WindowPrefs mainWindow = preferences.getMainWindow();
+    startTabChoiceBox.setItems(FXCollections.observableArrayList(NavigationItem.values()));
+    startTabChoiceBox.setConverter(new StringConverter<>() {
+      @Override
+      public String toString(NavigationItem navigationItem) {
+        return i18n.get(navigationItem.getI18nKey());
+      }
+
+      @Override
+      public NavigationItem fromString(String s) {
+        throw new UnsupportedOperationException("Not needed");
+      }
+    });
+    startTabChoiceBox.getSelectionModel().select(mainWindow.getNavigationItem());
+    mainWindow.navigationItemProperty().bind(startTabChoiceBox.getSelectionModel().selectedItemProperty());
   }
 
   private void initUnitDatabaseSelection(Preferences preferences) {
@@ -369,10 +390,6 @@ public class SettingsController implements Controller<Node> {
         colorModeToggleGroup.selectToggle(randomColorsToggle);
         break;
     }
-  }
-
-  private void configureRememberLastTab(Preferences preferences) {
-    JavaFxUtil.bindBidirectional(rememberLastTabToggle.selectedProperty(), preferences.rememberLastTabProperty());
   }
 
   private void configureThemeSelection(Preferences preferences) {
