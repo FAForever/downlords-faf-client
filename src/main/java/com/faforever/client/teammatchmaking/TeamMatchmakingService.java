@@ -41,8 +41,7 @@ public class TeamMatchmakingService implements InitializingBean {
   private final I18n i18n;
 
   @Getter
-  private Party party;
-
+  private final Party party;
 
   public TeamMatchmakingService(FafServerAccessor fafServerAccessor, PlayerService playerService, NotificationService notificationService, PreferencesService preferencesService, EventBus eventBus, I18n i18n) {
     this.fafServerAccessor = fafServerAccessor;
@@ -81,7 +80,7 @@ public class TeamMatchmakingService implements InitializingBean {
         return;
       }
     }
-    party.fromInfoMessage(message, playerService);
+    Platform.runLater(() -> party.fromInfoMessage(message, playerService));
   }
 
   public void onPartyInvite(PartyInviteMessage message) {
@@ -113,7 +112,7 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   private void acceptPartyInvite(Player player) {
-    if (preferencesService.getPreferences().getForgedAlliance().getInstallationPath() == null) {
+    if (!preferencesService.isGamePathValid()) {
       eventBus.post(new MissingGamePathEvent(true));
       return;
     }
@@ -122,7 +121,7 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   public void onPartyKicked(PartyKickedMessage message) {
-    initParty(playerService.getCurrentPlayer().get());
+    Platform.runLater(() -> initParty(playerService.getCurrentPlayer().get()));
   }
 
   public void invitePlayer(String player) {

@@ -398,7 +398,7 @@ public class GameService implements InitializingBean {
   }
 
   @NotNull
-  private CompletableFuture<Path> postGameDirectoryChooseEvent() {
+  public CompletableFuture<Path> postGameDirectoryChooseEvent() {
     CompletableFuture<Path> gameDirectoryFuture = new CompletableFuture<>();
     eventBus.post(new GameDirectoryChooseEvent(gameDirectoryFuture));
     return gameDirectoryFuture;
