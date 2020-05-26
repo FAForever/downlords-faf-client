@@ -42,6 +42,8 @@ public class NewsController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
+    newsWebView.setContextMenuEnabled(false);
+    webViewConfigurer.configureWebView(newsWebView);
 
     loadingIndicator.managedProperty().bind(loadingIndicator.visibleProperty());
     loadingIndicator.visibleProperty().addListener(loadingIndicatorListener);
@@ -62,8 +64,6 @@ public class NewsController extends AbstractViewController<Node> {
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
     eventBus.post(new UnreadNewsEvent(false));
-    newsWebView.setContextMenuEnabled(false);
-    webViewConfigurer.configureWebView(newsWebView);
     onLoadingStart();
     loadNews();
   }
