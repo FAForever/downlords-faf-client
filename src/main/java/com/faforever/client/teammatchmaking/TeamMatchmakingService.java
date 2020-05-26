@@ -1,6 +1,7 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.Action.ActionCallback;
 import com.faforever.client.notification.NotificationService;
@@ -54,6 +55,11 @@ public class TeamMatchmakingService implements InitializingBean {
     fafServerAccessor.addOnMessageListener(PartyInviteMessage.class, this::onPartyInvite);
     fafServerAccessor.addOnMessageListener(PartyKickedMessage.class, this::onPartyKicked);
     fafServerAccessor.addOnMessageListener(PartyInfoMessage.class, this::onPartyInfo);
+    fafServerAccessor.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue == ConnectionState.DISCONNECTED) {
+        Platform.runLater(() -> initParty(playerService.getCurrentPlayer().get()));
+      }
+    });
 
     party = new Party();
 
@@ -71,7 +77,6 @@ public class TeamMatchmakingService implements InitializingBean {
 
   }
 
-
   public void onPartyInfo(PartyInfoMessage message) {
     Optional<Player> currentPlayer = playerService.getCurrentPlayer();
     if (currentPlayer.isPresent()) {
@@ -80,7 +85,7 @@ public class TeamMatchmakingService implements InitializingBean {
         return;
       }
     }
-    Platform.runLater(() -> party.fromInfoMessage(message, playerService));
+    party.fromInfoMessage(message, playerService);
   }
 
   public void onPartyInvite(PartyInviteMessage message) {
@@ -134,6 +139,7 @@ public class TeamMatchmakingService implements InitializingBean {
 
   public void leaveParty() {
     fafServerAccessor.leaveParty();
+    initParty(playerService.getCurrentPlayer().get());
   }
 
   private void initParty(Player owner) {

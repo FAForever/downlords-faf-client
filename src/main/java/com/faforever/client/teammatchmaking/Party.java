@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class Party {
 
-  private ObjectProperty<Player> owner;
+  private final ObjectProperty<Player> owner;
   private ObservableList<PartyMember> members;
 
   public Party() {
@@ -33,27 +33,26 @@ public class Party {
 
   public void fromInfoMessage(PartyInfoMessage message, PlayerService playerService) {
     playerService.getPlayersByIds(Collections.singletonList(message.getOwner()))
-        .thenAccept(p -> {
-          if (!p.isEmpty()) {
-            Platform.runLater(() -> owner.set(p.get(0)));
+        .thenAccept(players -> {
+          if (!players.isEmpty()) {
+            Platform.runLater(() -> owner.set(players.get(0)));
           }
         });
 
     playerService
-        .getPlayersByIds(message.getMembers().stream().map(m -> m.getPlayer()).collect(Collectors.toList()))
+        .getPlayersByIds(message.getMembers().stream().map(PartyInfoMessage.PartyMember::getPlayer).collect(Collectors.toList()))
         .thenAccept(players -> {
-//          message.getMembers().stream().filter(m -> players.stream().noneMatch(p -> p.getId() == m))
-//            .forEach(m -> log.warn("Could not find party member {}", m));
           List<PartyMember> members = message.getMembers().stream().map(member -> {
-            Optional<Player> player = players.stream().filter(p -> p.getId() == member.getPlayer()).findFirst();
+            Optional<Player> player = players.stream().filter(playerToBeFiltered -> playerToBeFiltered.getId() == member.getPlayer()).findFirst();
             if (!player.isPresent()) {
               log.warn("Could not find party member {}", member.getPlayer());
               return null;
             }
             return new PartyMember(player.get(), member.getReady(), member.getFactions());
           }).filter(Objects::nonNull).collect(Collectors.toList());
+          //TODO: this is a race condition. The api might answer with big delay and then server message order might be changed.
           Platform.runLater(() -> this.members.setAll(members));
-    });
+        });
   }
 
   public Player getOwner() {
