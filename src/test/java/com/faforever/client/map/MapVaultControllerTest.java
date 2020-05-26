@@ -204,7 +204,8 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.showroomGroup.isVisible(), is(true));
     assertThat(instance.searchResultGroup.isVisible(), is(false));
     assertThat(instance.recommendedPane.isVisible(), is(true));
-    assertThat(instance.recommendedPane.getChildren().size(), is(TOP_ELEMENT_COUNT));
+    // size is one more, because a button is also in there
+    assertThat(instance.recommendedPane.getChildren().size(), is(TOP_ELEMENT_COUNT + 1));
 
     // first page / search results
     instance.showMoreRecommendedMaps();
@@ -255,12 +256,14 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     when(mapService.getMostPlayedMaps(anyInt(), eq(1))).thenReturn(mocksAsFuture(2));
     instance.display(new OpenMapVaultEvent());
     WaitForAsyncUtils.waitForFxEvents();
-    assertThat(instance.mostPlayedPane.getChildren().size(), is(2));
+    // size is one more, because a button is also in there
+    assertThat(instance.mostPlayedPane.getChildren().size(), is(3));
     
     // more maps were added, refresh should update
     when(mapService.getMostPlayedMaps(anyInt(), eq(1))).thenReturn(mocksAsFuture(4));
     instance.onRefreshButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
-    assertThat(instance.mostPlayedPane.getChildren().size(), is(4));
+    // size is one more, because a button is also in there
+    assertThat(instance.mostPlayedPane.getChildren().size(), is(5));
   }
 }
