@@ -26,6 +26,7 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -34,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -265,5 +267,27 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForFxEvents();
     // size is one more, because a button is also in there
     assertThat(instance.mostPlayedPane.getChildren().size(), is(5));
+  }
+
+  @Test
+  public void testOwnedMapsHiddenWhenUserOwnsNoMaps() {
+    when(mapService.getOwnedMaps(anyInt(), anyInt(), anyInt()))
+        .thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
+    instance.display(new OpenMapVaultEvent());
+    WaitForAsyncUtils.waitForFxEvents();
+    assertFalse(instance.ownedPane.isVisible()
+        || instance.moreOwnedButton.isVisible()
+        || instance.ownedMoreLabel.isVisible());
+  }
+
+  @Test
+  public void testOwnedMapsShownWhenUserOwnsMaps() {
+    when(mapService.getOwnedMaps(anyInt(), anyInt(), anyInt()))
+        .thenReturn(CompletableFuture.completedFuture(createMockMaps(5)));
+    instance.display(new OpenMapVaultEvent());
+    WaitForAsyncUtils.waitForFxEvents();
+    assertTrue(instance.ownedPane.isVisible()
+        && instance.moreOwnedButton.isVisible()
+        && instance.ownedMoreLabel.isVisible());
   }
 }

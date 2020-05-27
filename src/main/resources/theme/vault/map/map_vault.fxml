@@ -61,7 +61,7 @@
                                 </FlowPane>
                                 <Label fx:id="ownedMoreLabel" styleClass="h2" text="%mapVault.owned" />
                                 <FlowPane fx:id="ownedPane" hgap="10.0" maxWidth="1.7976931348623157E308" prefWrapLength="1500.0" vgap="10.0">
-                                    <JFXButton fx:id="ownedMoreButton" mnemonicParsing="false" onAction="#showMoreOwnedMaps" styleClass="card, more-button" text="">
+                                    <JFXButton fx:id="moreOwnedButton" mnemonicParsing="false" onAction="#showMoreOwnedMaps" styleClass="card, more-button" text="">
                                     </JFXButton>
                                 </FlowPane>
                             </children>
