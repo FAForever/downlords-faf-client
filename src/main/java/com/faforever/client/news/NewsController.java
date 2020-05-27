@@ -9,6 +9,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
+import javafx.concurrent.Worker;
 import javafx.scene.Node;
 import javafx.scene.control.Control;
 import javafx.scene.layout.Pane;
@@ -51,6 +52,11 @@ public class NewsController extends AbstractViewController<Node> {
 
     loadingIndicator.getParent().getChildrenUnmodifiable()
         .forEach(node -> node.managedProperty().bind(node.visibleProperty()));
+    newsWebView.getEngine().getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
+      if (newState == Worker.State.SUCCEEDED) {
+        onLoadingStop();
+      }
+    });
   }
 
   private void onLoadingStart() {
@@ -81,7 +87,6 @@ public class NewsController extends AbstractViewController<Node> {
     Platform.runLater(() -> {
       Website website = clientProperties.getWebsite();
       newsWebView.getEngine().load(website.getNewsHubUrl());
-      onLoadingStop();
     });
   }
 
