@@ -85,6 +85,11 @@ public class MapVaultController extends AbstractViewController<Node> {
   public Pane mostPlayedPane;
   public Pane mostLikedPane;
   public Pane recommendedPane;
+  public JFXButton moreNewestButton;
+  public JFXButton moreMostPlayedButton;
+  public JFXButton moreMostLikedButton;
+  public JFXButton moreRecommendedButton;
+  public JFXButton moreLadderButton;
   public StackPane mapVaultRoot;
   public ScrollPane scrollPane;
   public Button backButton;
@@ -92,7 +97,7 @@ public class MapVaultController extends AbstractViewController<Node> {
   public FlowPane ladderPane;
   public FlowPane ownedPane;
   public Label ownedMoreLabel;
-  public Button ownedMoreButton;
+  public Button moreOwnedButton;
   public JFXButton previousButton;
   public JFXButton nextButton;
   public Label currentPageLabel;
@@ -190,7 +195,7 @@ public class MapVaultController extends AbstractViewController<Node> {
   private void hideOwned() {
     Platform.runLater(() -> {
       ownedPane.setVisible(false);
-      ownedMoreButton.setVisible(false);
+      moreOwnedButton.setVisible(false);
       ownedMoreLabel.setVisible(false);
     });
   }
@@ -353,7 +358,33 @@ public class MapVaultController extends AbstractViewController<Node> {
       for (MapCardController mapCardController : mapCardControllers) {
         pane.getChildren().add(mapCardController.getRoot());
       }
+      addMoreButton(pane);
     }));
+  }
+
+  private void addMoreButton(Pane pane) {
+    switch (pane.getId()) {
+      case "recommendedPane":
+        pane.getChildren().add(moreRecommendedButton);
+        break;
+      case "mostLikedPane":
+        pane.getChildren().add(moreMostLikedButton);
+        break;
+      case "newestPane":
+        pane.getChildren().add(moreNewestButton);
+        break;
+      case "mostPlayedPane":
+        pane.getChildren().add(moreMostPlayedButton);
+        break;
+      case "ladderPane":
+        pane.getChildren().add(moreLadderButton);
+        break;
+      case "ownedPane":
+        pane.getChildren().add(moreOwnedButton);
+        break;
+      default:
+        // Do nothing
+    }
   }
 
   private void displayMapsFromSupplier(Supplier<CompletableFuture<List<MapBean>>> mapsSupplier) {
