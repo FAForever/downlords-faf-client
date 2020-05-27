@@ -240,6 +240,16 @@
   -fx-background-color: transparent;
 }
 
+.more-button {
+  -fx-pref-height: 296px;
+}
+
+.more-button > .text {
+  -fx-font-family: 'dfc-icons';
+  -fx-padding: 10;
+  -fx-font-size: 4.5em;
+}
+
 /*******************************************************************************
  *                                                                             *
  * WebView                  			  				                                   *

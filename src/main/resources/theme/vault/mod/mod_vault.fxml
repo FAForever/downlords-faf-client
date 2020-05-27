@@ -47,32 +47,21 @@
                                 <FlowPane fx:id="highestRatedUiPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                           prefWrapLength="1500.0" vgap="10.0" >
                                     <JFXButton mnemonicParsing="false" onAction="#showMoreHighestRatedUiMods"
-                                               fx:id="moreHighestRatedUiButton"  text="%more" >
-                                        <FlowPane.margin>
-                                            <Insets left="80.0" />
-                                        </FlowPane.margin>
+                                               fx:id="moreHighestRatedUiButton" styleClass="card, more-button" text="">
                                     </JFXButton>
                                 </FlowPane>
                                 <Label styleClass="h2" text="%modVault.newestMods" />
                                 <FlowPane fx:id="newestPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                           prefWrapLength="1500.0" vgap="10.0" >
                                     <JFXButton mnemonicParsing="false" onAction="#showMoreNewestMods"
-                                               fx:id="moreNewestButton"
-                                               text="%more" >
-                                        <FlowPane.margin>
-                                            <Insets left="80.0" />
-                                        </FlowPane.margin>
+                                               fx:id="moreNewestButton" styleClass="card, more-button" text="">
                                     </JFXButton>
                                 </FlowPane>
                                 <Label styleClass="h2" text="%modVault.highestRated" />
                                 <FlowPane fx:id="highestRatedPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                           prefWrapLength="1500.0" vgap="10.0" >
                                     <JFXButton mnemonicParsing="false" onAction="#showMoreHighestRatedMods"
-                                               fx:id="moreHighestRatedButton"
-                                               text="%more" >
-                                        <FlowPane.margin>
-                                            <Insets left="80.0" />
-                                        </FlowPane.margin>
+                                               fx:id="moreHighestRatedButton" styleClass="card, more-button" text="">
                                     </JFXButton>
                                 </FlowPane>
                             </children>

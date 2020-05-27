@@ -36,50 +36,32 @@
                             <children>
                                 <Label styleClass="h2" text="%mapVault.recommended" />
                                 <FlowPane fx:id="recommendedPane" hgap="10.0" maxWidth="1.7976931348623157E308" prefWrapLength="1500.0" vgap="10.0">
-                                    <JFXButton fx:id="moreRecommendedButton" mnemonicParsing="false" onAction="#showMoreRecommendedMaps" text="%more">
-                                      <FlowPane.margin>
-                                         <Insets left="80.0" />
-                                      </FlowPane.margin>
+                                    <JFXButton fx:id="moreRecommendedButton" mnemonicParsing="false" onAction="#showMoreRecommendedMaps" styleClass="card, more-button" text="">
                                     </JFXButton>
                                 </FlowPane>
                                 <Label styleClass="h2" text="%mapVault.mostLikedMaps" />
                                 <FlowPane fx:id="mostLikedPane" hgap="10.0" maxWidth="1.7976931348623157E308" prefWrapLength="1500.0" vgap="10.0">
-                                    <JFXButton fx:id="moreMostLikedButton" mnemonicParsing="false" onAction="#showMoreHighestRatedMaps" text="%more">
-                                        <FlowPane.margin>
-                                            <Insets left="80.0" />
-                                        </FlowPane.margin>
+                                    <JFXButton fx:id="moreMostLikedButton" mnemonicParsing="false" onAction="#showMoreHighestRatedMaps" styleClass="card, more-button" text="">
                                     </JFXButton>
                                 </FlowPane>
                                 <Label styleClass="h2" text="%mapVault.newestMaps" />
                                 <FlowPane fx:id="newestPane" hgap="10.0" maxWidth="1.7976931348623157E308" prefWrapLength="1500.0" vgap="10.0">
-                                    <JFXButton fx:id="moreNewestButton" mnemonicParsing="false" onAction="#showMoreMostRecentMaps" text="%more">
-                                        <FlowPane.margin>
-                                            <Insets left="80.0" />
-                                        </FlowPane.margin>
+                                    <JFXButton fx:id="moreNewestButton" mnemonicParsing="false" onAction="#showMoreMostRecentMaps" styleClass="card, more-button" text="">
                                     </JFXButton>
                                 </FlowPane>
                                 <Label styleClass="h2" text="%mapVault.mostPlayed" />
                                 <FlowPane fx:id="mostPlayedPane" hgap="10.0" maxWidth="1.7976931348623157E308" prefWrapLength="1500.0" vgap="10.0">
-                                    <JFXButton fx:id="moreMostPlayedButton" mnemonicParsing="false" onAction="#showMoreMostPlayedMaps" text="%more">
-                                        <FlowPane.margin>
-                                            <Insets left="80.0" />
-                                        </FlowPane.margin>
+                                    <JFXButton fx:id="moreMostPlayedButton" mnemonicParsing="false" onAction="#showMoreMostPlayedMaps" styleClass="card, more-button" text="">
                                     </JFXButton>
                                 </FlowPane>
                                 <Label styleClass="h2" text="%mapVault.ladder" />
                                 <FlowPane fx:id="ladderPane" hgap="10.0" maxWidth="1.7976931348623157E308" prefWrapLength="1500.0" vgap="10.0">
-                                    <JFXButton fx:id="moreLadderButton" mnemonicParsing="false" onAction="#showMoreLadderdMaps" text="%more">
-                                        <FlowPane.margin>
-                                            <Insets left="80.0" />
-                                        </FlowPane.margin>
+                                    <JFXButton fx:id="moreLadderButton" mnemonicParsing="false" onAction="#showMoreLadderdMaps" styleClass="card, more-button" text="">
                                     </JFXButton>
                                 </FlowPane>
                                 <Label fx:id="ownedMoreLabel" styleClass="h2" text="%mapVault.owned" />
                                 <FlowPane fx:id="ownedPane" hgap="10.0" maxWidth="1.7976931348623157E308" prefWrapLength="1500.0" vgap="10.0">
-                                    <JFXButton fx:id="ownedMoreButton" mnemonicParsing="false" onAction="#showMoreOwnedMaps" text="%more">
-                                        <FlowPane.margin>
-                                            <Insets left="80.0" />
-                                        </FlowPane.margin>
+                                    <JFXButton fx:id="ownedMoreButton" mnemonicParsing="false" onAction="#showMoreOwnedMaps" styleClass="card, more-button" text="">
                                     </JFXButton>
                                 </FlowPane>
                             </children>
