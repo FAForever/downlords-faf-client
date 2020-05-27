@@ -59,6 +59,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -441,6 +442,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
           messageTextField.clear();
           messageTextField.setDisable(false);
           messageTextField.requestFocus();
+          onChatMessage(new ChatMessage(userService.getUsername(), Instant.now(), userService.getUsername(), message, true));
         })
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
