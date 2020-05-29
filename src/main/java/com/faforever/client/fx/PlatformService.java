@@ -7,6 +7,7 @@ import com.sun.jna.platform.win32.WinDef.HWND;
 import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.platform.win32.WinUser.WINDOWPLACEMENT;
 import javafx.application.HostServices;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,9 +45,19 @@ public class PlatformService {
   /**
    * Show a file in its parent directory, if possible selecting the file (not possible on all platforms).
    */
-  
+  @SneakyThrows
   public void reveal(Path path) {
-    noCatch(() -> show(path.toFile()));
+    if (isWindows) {
+      Path finalPath = path;
+      noCatch(() -> show(finalPath.toFile()));
+    } else if (Platform.isLinux()) {
+      //Might not work on all linux distros but let's give it a try
+      if (Files.isRegularFile(path)) {
+        path = path.getParent();
+      }
+      ProcessBuilder builder = new ProcessBuilder("gio", "open", path.toAbsolutePath().toString());
+      builder.start();
+    }
   }
 
 
