@@ -150,6 +150,8 @@ public class SettingsController implements Controller<Node> {
 
   private ChangeListener<Theme> selectedThemeChangeListener;
   private ChangeListener<Theme> currentThemeChangeListener;
+  public ComboBox<NavigationItem> startTabChoiceBox;
+  public TextField cacheLifeTimeTextField;
 
   public SettingsController(UserService userService, PreferencesService preferencesService, UiService uiService,
                             I18n i18n, EventBus eventBus, NotificationService notificationService,
@@ -219,17 +221,19 @@ public class SettingsController implements Controller<Node> {
     toastScreenComboBox.setItems(Screen.getScreens());
     NumberFormat integerNumberFormat = NumberFormat.getIntegerInstance();
     integerNumberFormat.setGroupingUsed(false);
+    NumberStringConverter numberToStringConverter = new NumberStringConverter(integerNumberFormat);
 
     Preferences preferences = preferencesService.getPreferences();
     temporarilyDisableUnsupportedSettings(preferences);
 
-    JavaFxUtil.bindBidirectional(maxMessagesTextField.textProperty(), preferences.getChat().maxMessagesProperty(), new NumberStringConverter(integerNumberFormat));
+    JavaFxUtil.bindBidirectional(maxMessagesTextField.textProperty(), preferences.getChat().maxMessagesProperty(), numberToStringConverter);
     imagePreviewToggle.selectedProperty().bindBidirectional(preferences.getChat().previewImageUrlsProperty());
     enableNotificationsToggle.selectedProperty().bindBidirectional(preferences.getNotification().transientNotificationsEnabledProperty());
 
     hideFoeToggle.selectedProperty().bindBidirectional(preferences.getChat().hideFoeMessagesProperty());
 
     disallowJoinsCheckBox.selectedProperty().bindBidirectional(preferences.disallowJoinsViaDiscordProperty());
+    JavaFxUtil.bindBidirectional(cacheLifeTimeTextField.textProperty(), preferences.cacheLifeTimeProperty(), numberToStringConverter);
 
     JavaFxUtil.addListener(preferences.getChat().chatColorModeProperty(), (observable, oldValue, newValue) -> setSelectedColorMode(newValue));
     setSelectedColorMode(preferences.getChat().getChatColorMode());

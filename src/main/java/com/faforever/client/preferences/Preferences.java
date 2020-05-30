@@ -2,10 +2,12 @@ package com.faforever.client.preferences;
 
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -53,6 +55,7 @@ public class Preferences {
   private final BooleanProperty disallowJoinsViaDiscord;
   private final BooleanProperty showGameDetailsSidePane;
   private final BooleanProperty advancedIceLogEnabled;
+  private final IntegerProperty cacheLifeTime;
 
   public Preferences() {
     gameTileSortingOrder = new SimpleObjectProperty<>(TilesSortingOrder.PLAYER_DES);
@@ -81,6 +84,7 @@ public class Preferences {
     showGameDetailsSidePane = new SimpleBooleanProperty(false);
     advancedIceLogEnabled = new SimpleBooleanProperty(false);
     prereleaseCheckEnabled = new SimpleBooleanProperty(false);
+    cacheLifeTime = new SimpleIntegerProperty(30);
   }
 
   public VaultPrefs getVaultPrefs() {
@@ -283,4 +287,17 @@ public class Preferences {
       this.i18nKey = i18nKey;
     }
   }
+
+  public int getCacheLifeTime() {
+    return cacheLifeTime.get();
+  }
+
+  public void setCacheLifeTime(int cacheLifeTime) {
+    this.cacheLifeTime.set(cacheLifeTime);
+  }
+
+  public IntegerProperty cacheLifeTimeProperty() {
+    return cacheLifeTime;
+  }
+
 }
