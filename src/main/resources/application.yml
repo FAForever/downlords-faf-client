@@ -27,6 +27,7 @@ faf-client:
   website:
       forgot-password-url: ${faf-client.website.base-url}/account/password/reset
       create-account-url: ${faf-client.website.base-url}/account/register
+      news-hub-url: ${faf-client.website.base-url}/newshub
 
   imgur:
     upload:
