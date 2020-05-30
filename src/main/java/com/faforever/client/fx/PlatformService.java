@@ -55,7 +55,7 @@ public class PlatformService {
       if (Files.isRegularFile(path)) {
         path = path.getParent();
       }
-      ProcessBuilder builder = new ProcessBuilder("gio", "open", path.toAbsolutePath().toString());
+      ProcessBuilder builder = new ProcessBuilder("xdg-open", path.toAbsolutePath().toString());
       builder.start();
     }
   }
