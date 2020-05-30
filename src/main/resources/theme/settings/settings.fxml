@@ -46,20 +46,19 @@
                                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS"/>
                             </rowConstraints>
                             <children>
-                                <JFXToggleButton fx:id="rememberLastTabToggle" contentDisplay="GRAPHIC_ONLY"
-                                                 mnemonicParsing="false" GridPane.columnIndex="1"/>
-                                <Label styleClass="h3" text="%settings.general.rememberLastTab"/>
+                                <JFXComboBox fx:id="startTabChoiceBox" GridPane.columnIndex="1"/>
+                                <Label styleClass="h3" text="%settings.general.startTab"/>
                                 <Label styleClass="h3" text="%settings.general.unitDatabase"
                                        GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
                                 <JFXComboBox fx:id="unitDatabaseComboBox" minHeight="-Infinity" minWidth="-Infinity"
                                              GridPane.columnIndex="1" GridPane.rowIndex="1"/>
                                 <Label styleClass="h3" text="%discord.disallowJoins" GridPane.rowIndex="2"/>
-                                <JFXCheckBox fx:id="disallowJoinsCheckBox" alignment="CENTER" mnemonicParsing="false"
-                                             GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                <JFXToggleButton fx:id="disallowJoinsCheckBox" mnemonicParsing="false"
+                                                 GridPane.columnIndex="1" GridPane.rowIndex="2">
                                     <GridPane.margin>
                                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
                                     </GridPane.margin>
-                                </JFXCheckBox>
+                                </JFXToggleButton>
                                 <Label styleClass="h3" text="%settings.use.secondaryVaultLocation" wrapText="true"
                                        GridPane.rowIndex="3"/>
                                 <JFXToggleButton fx:id="secondaryVaultLocationToggleButton" GridPane.columnIndex="1"

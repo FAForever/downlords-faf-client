@@ -1,16 +1,21 @@
 package com.faforever.client.main.event;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import java.util.HashMap;
 
+@RequiredArgsConstructor
+@Getter
 public enum NavigationItem {
-  NEWS("theme/news.fxml"),
-  CHAT("theme/chat/chat.fxml"),
-  PLAY("theme/play/play.fxml"),
-  VAULT("theme/vault/vault.fxml"),
-  LEADERBOARD("theme/leaderboard/leaderboards.fxml"),
-  UNITS("theme/units.fxml"),
-  TUTORIALS("theme/tutorial.fxml"),
-  TOURNAMENTS("theme/tournaments/tournaments.fxml");
+  NEWS("theme/news.fxml", "main.news"),
+  CHAT("theme/chat/chat.fxml", "main.chat"),
+  PLAY("theme/play/play.fxml", "main.play"),
+  VAULT("theme/vault/vault.fxml", "main.vault"),
+  LEADERBOARD("theme/leaderboard/leaderboards.fxml", "main.leaderboards"),
+  UNITS("theme/units.fxml", "main.units"),
+  TUTORIALS("theme/tutorial.fxml", "main.tutorials"),
+  TOURNAMENTS("theme/tournaments/tournaments.fxml", "main.tournaments");
 
   private static final HashMap<String, NavigationItem> fromString;
 
@@ -22,10 +27,7 @@ public enum NavigationItem {
   }
 
   private final String fxmlFile;
-
-  NavigationItem(String fxmlFile) {
-    this.fxmlFile = fxmlFile;
-  }
+  private final String i18nKey;
 
   public static NavigationItem fromString(String string) {
     if (string == null) {
@@ -34,7 +36,4 @@ public enum NavigationItem {
     return fromString.get(string);
   }
 
-  public String getFxmlFile() {
-    return fxmlFile;
-  }
 }

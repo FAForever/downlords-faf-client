@@ -8,7 +8,10 @@ import com.faforever.client.game.GamePathHandler;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.LoginController;
+import com.faforever.client.main.event.NavigateEvent;
+import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.notification.TransientNotificationsController;
@@ -216,6 +219,20 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.getRoot().getParent(), CoreMatchers.is(nullValue()));
   }
 
+  @Test
+  public void testOpenStartTabWithItemSet() throws Exception {
+    preferences.getMainWindow().setNavigationItem(NavigationItem.PLAY);
+    instance.openStartTab();
+    verify(eventBus, times(1)).post(eq(new NavigateEvent(NavigationItem.PLAY)));
+  }
+
+  @Test
+  public void testOpenStartTabWithItemNotSet() throws Exception {
+    preferences.getMainWindow().setNavigationItem(null);
+    instance.openStartTab();
+    verify(eventBus, times(1)).post(eq(new NavigateEvent(NavigationItem.NEWS)));
+    verify(notificationService, times(1)).addNotification(any(PersistentNotification.class));
+  }
 
   @Test
   public void testOnMatchMakerMessageDisplaysNotification80Quality() {
@@ -317,6 +334,9 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  /**
+   * Test fails in certain 2 Screen setups
+   */
   public void testWindowOutsideScreensGetsCentered() throws Exception {
     Rectangle2D visualBounds = Screen.getPrimary().getBounds();
     preferences.getMainWindow().setY(visualBounds.getMaxY() + 1);

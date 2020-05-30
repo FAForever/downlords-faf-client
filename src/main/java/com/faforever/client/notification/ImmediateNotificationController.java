@@ -10,8 +10,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -27,12 +27,11 @@ import java.util.stream.Collectors;
 public class ImmediateNotificationController implements Controller<Node> {
 
   private final WebViewConfigurer webViewConfigurer;
-  public Pane immediateNotificationRoot;
+  private final JFXDialogLayout dialogLayout;
   public WebView errorMessageView;
   public Label exceptionAreaTitleLabel;
   public TextArea exceptionTextArea;
-
-  private JFXDialogLayout dialogLayout;
+  public VBox immediateNotificationRoot;
   private Runnable closeListener;
 
   public ImmediateNotificationController(WebViewConfigurer webViewConfigurer) {
@@ -66,7 +65,9 @@ public class ImmediateNotificationController implements Controller<Node> {
     Optional.ofNullable(notification.getActions())
         .map(actions -> actions.stream().map(this::createButton).collect(Collectors.toList()))
         .ifPresent(buttons -> dialogLayout.setActions(buttons));
-
+    if (notification.getCustomUI() != null) {
+      immediateNotificationRoot.getChildren().add(notification.getCustomUI());
+    }
     return this;
   }
 

@@ -56,6 +56,8 @@ public class ReconnectTimerService {
   }
 
   void skipWait() {
-    waitForReconnectLatch.countDown();
+    if (waitForReconnectLatch != null) {
+      waitForReconnectLatch.countDown();
+    }
   }
 }

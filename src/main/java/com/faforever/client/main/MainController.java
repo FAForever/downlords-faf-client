@@ -15,6 +15,7 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.main.event.Open1v1Event;
 import com.faforever.client.news.UnreadNewsEvent;
+import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.ImmediateNotificationController;
 import com.faforever.client.notification.NotificationService;
@@ -119,8 +120,8 @@ public class MainController implements Controller<Node> {
   private final PlatformService platformService;
   private final VaultFileSystemLocationChecker vaultFileSystemLocationChecker;
   private final ApplicationEventPublisher applicationEventPublisher;
-  private String mainWindowTitle;
-  private int ratingBeta;
+  private final String mainWindowTitle;
+  private final int ratingBeta;
   public Pane mainHeaderPane;
   public Labeled notificationsBadge;
   public Pane contentPane;
@@ -483,18 +484,41 @@ public class MainController implements Controller<Node> {
     applicationEventPublisher.publishEvent(new LoggedInEvent());
 
     gamePathHandler.detectAndUpdateGamePath();
-    restoreLastView();
+    openStartTab();
   }
 
-  private void restoreLastView() {
-    final NavigationItem navigationItem;
-    if (preferencesService.getPreferences().getRememberLastTab()) {
-      final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
-      navigationItem = Optional.ofNullable(NavigationItem.fromString(mainWindowPrefs.getLastView())).orElse(NavigationItem.NEWS);
-    } else {
+  @VisibleForTesting
+  void openStartTab() {
+    final WindowPrefs mainWindow = preferencesService.getPreferences().getMainWindow();
+    NavigationItem navigationItem = mainWindow.getNavigationItem();
+    if (navigationItem == null) {
       navigationItem = NavigationItem.NEWS;
+      askUserForPreferenceOverStartTab(mainWindow);
     }
     eventBus.post(new NavigateEvent(navigationItem));
+  }
+
+  private void askUserForPreferenceOverStartTab(WindowPrefs mainWindow) {
+    mainWindow.setNavigationItem(NavigationItem.NEWS);
+    preferencesService.storeInBackground();
+    List<Action> actions = Collections.singletonList(new Action(i18n.get("startTab.configure"), event -> {
+      makePopUpAskingForPreferenceInStartTab(mainWindow);
+    }));
+    notificationService.addNotification(new PersistentNotification(i18n.get("startTab.wantToConfigure"), Severity.INFO, actions));
+  }
+
+  private void makePopUpAskingForPreferenceInStartTab(WindowPrefs mainWindow) {
+    StartTabChooseController startTabChooseController = uiService.loadFxml("theme/start_tab_choose.fxml");
+    Action saveAction = new Action(i18n.get("startTab.save"), event -> {
+      NavigationItem newSelection = startTabChooseController.getSelected();
+      mainWindow.setNavigationItem(newSelection);
+      preferencesService.storeInBackground();
+      eventBus.post(new NavigateEvent(newSelection));
+    });
+    ImmediateNotification notification =
+        new ImmediateNotification(i18n.get("startTab.title"), i18n.get("startTab.message"),
+            Severity.INFO, null, Collections.singletonList(saveAction), startTabChooseController.getRoot());
+    notificationService.addNotification(notification);
   }
 
   public void onNotificationsButtonClicked() {
@@ -549,8 +573,6 @@ public class MainController implements Controller<Node> {
         .ifPresent(toggle -> toggle.setSelected(true));
 
     currentItem = item;
-    preferencesService.getPreferences().getMainWindow().setLastView(item.name());
-    preferencesService.storeInBackground();
   }
 
   private AbstractViewController<?> getView(NavigationItem item) {

@@ -80,7 +80,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   private int currentPage;
   private Supplier<CompletableFuture<List<Replay>>> currentSupplier;
   private final ObjectProperty<State> state;
-  private Boolean newestReplaysLoaded = false;
+  private final Boolean newestReplaysLoaded = false;
 
   public OnlineReplayVaultController(ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, PreferencesService preferencesService, ReportingService reportingService) {
     this.replayService = replayService;

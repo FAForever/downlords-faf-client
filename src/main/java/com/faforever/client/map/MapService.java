@@ -295,7 +295,6 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   @NotNull
-
   @Cacheable(value = CacheNames.MAP_PREVIEW, unless = "#result == null")
   public Image loadPreview(String mapName, PreviewSize previewSize) {
     if (mapGeneratorService.isGeneratedMap(mapName)) {

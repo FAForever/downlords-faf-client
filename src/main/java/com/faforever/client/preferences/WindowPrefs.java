@@ -1,19 +1,14 @@
 package com.faforever.client.preferences;
 
+import com.faforever.client.main.event.NavigationItem;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
 
 import java.nio.file.Path;
 
@@ -22,8 +17,7 @@ public class WindowPrefs {
   private final IntegerProperty width;
   private final IntegerProperty height;
   private final BooleanProperty maximized;
-  private final StringProperty lastView;
-  private final MapProperty<String, String> lastChildViews;
+  private final ObjectProperty<NavigationItem> navigationItem;
   private final DoubleProperty x;
   private final DoubleProperty y;
   private final ObjectProperty<Path> backgroundImagePath;
@@ -34,8 +28,7 @@ public class WindowPrefs {
     x = new SimpleDoubleProperty(-1d);
     y = new SimpleDoubleProperty(-1d);
     maximized = new SimpleBooleanProperty();
-    lastView = new SimpleStringProperty();
-    lastChildViews = new SimpleMapProperty<>(FXCollections.observableHashMap());
+    navigationItem = new SimpleObjectProperty<>();
     backgroundImagePath = new SimpleObjectProperty<>();
   }
 
@@ -75,18 +68,6 @@ public class WindowPrefs {
     return maximized;
   }
 
-  public String getLastView() {
-    return lastView.get();
-  }
-
-  public void setLastView(String lastView) {
-    this.lastView.set(lastView);
-  }
-
-  public StringProperty lastViewProperty() {
-    return lastView;
-  }
-
   public double getX() {
     return x.get();
   }
@@ -111,18 +92,6 @@ public class WindowPrefs {
     return y;
   }
 
-  public ObservableMap<String, String> getLastChildViews() {
-    return lastChildViews.get();
-  }
-
-  public void setLastChildViews(ObservableMap<String, String> lastChildViews) {
-    this.lastChildViews.set(lastChildViews);
-  }
-
-  public MapProperty<String, String> lastChildViewsProperty() {
-    return lastChildViews;
-  }
-
   public ObjectProperty<Path> backgroundImagePathProperty() {
     return backgroundImagePath;
   }
@@ -133,5 +102,17 @@ public class WindowPrefs {
 
   public void setBackgroundImagePath(Path path) {
     this.backgroundImagePath.setValue(path);
+  }
+
+  public NavigationItem getNavigationItem() {
+    return navigationItem.get();
+  }
+
+  public void setNavigationItem(NavigationItem navigationItem) {
+    this.navigationItem.set(navigationItem);
+  }
+
+  public ObjectProperty<NavigationItem> navigationItemProperty() {
+    return navigationItem;
   }
 }
