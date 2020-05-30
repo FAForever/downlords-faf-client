@@ -573,8 +573,6 @@ public class MainController implements Controller<Node> {
         .ifPresent(toggle -> toggle.setSelected(true));
 
     currentItem = item;
-    preferencesService.getPreferences().getMainWindow().setNavigationItem(item);
-    preferencesService.storeInBackground();
   }
 
   private AbstractViewController<?> getView(NavigationItem item) {
