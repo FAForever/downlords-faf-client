@@ -15,6 +15,7 @@ import javafx.beans.Observable;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +48,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public JFXButton leavePartyButton;
   @FXML
   public JFXButton readyButton;
+  @FXML
+  public Label refreshingLabel;
 
   @Override
   public void initialize() {
@@ -71,6 +74,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         readyButton.getStyleClass().add("party-ready-button-not-ready");
         readyButton.setText(i18n.get("teammatchmaking.notReady"));
       }
+
+      refreshingLabel.setVisible(false);
     });
   }
 
@@ -107,7 +112,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     } else {
       teamMatchmakingService.unreadyParty();
     }
-    //TODO: on server create party when single
+
+    refreshingLabel.setVisible(true);
   }
 
   public boolean isSelfReady() {

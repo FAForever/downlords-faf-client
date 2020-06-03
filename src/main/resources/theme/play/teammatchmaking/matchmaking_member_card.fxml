@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
 <HBox xmlns:fx="http://javafx.com/fxml/1" fx:id="playerItemRoot" alignment="CENTER_LEFT" spacing="20" styleClass="card"
-      xmlns="http://javafx.com/javafx/11.0.1"
+      xmlns="http://javafx.com/javafx/11.0.1" onContextMenuRequested="#onContextMenuRequested"
       fx:controller="com.faforever.client.teammatchmaking.PartyMemberItemController">
 
     <children>

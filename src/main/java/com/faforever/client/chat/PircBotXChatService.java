@@ -526,20 +526,23 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
     synchronized (chatChannelUsersByChannelAndName) {
       String key = mapKey(username, channel);
       if (!chatChannelUsersByChannelAndName.containsKey(key)) {
-        ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-        Color color = null;
-
-        if (chatPrefs.getChatColorMode() == CUSTOM && chatPrefs.getUserToColor().containsKey(userToColorKey(username))) {
-          color = chatPrefs.getUserToColor().get(userToColorKey(username));
-        } else if (chatPrefs.getChatColorMode() == RANDOM) {
-          color = ColorGeneratorUtil.generateRandomColor(userToColorKey(username).hashCode());
-        }
-
-        ChatChannelUser chatChannelUser = new ChatChannelUser(username, color, isModerator);
+        ChatChannelUser chatChannelUser = new ChatChannelUser(username, getChatUserColor(username), isModerator);
         eventBus.post(new ChatUserCreatedEvent(chatChannelUser));
         chatChannelUsersByChannelAndName.put(key, chatChannelUser);
       }
       return chatChannelUsersByChannelAndName.get(key);
+    }
+  }
+
+  @Override
+  public Color getChatUserColor(String username) {
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+    if (chatPrefs.getChatColorMode() == CUSTOM && chatPrefs.getUserToColor().containsKey(userToColorKey(username))) {
+      return chatPrefs.getUserToColor().get(userToColorKey(username));
+    } else if (chatPrefs.getChatColorMode() == RANDOM) {
+      return ColorGeneratorUtil.generateRandomColor(userToColorKey(username).hashCode());
+    } else {
+      return null;
     }
   }
 

@@ -1,5 +1,8 @@
 package com.faforever.client.teammatchmaking;
 
+import com.faforever.client.chat.ChatChannelUser;
+import com.faforever.client.chat.ChatService;
+import com.faforever.client.chat.ChatUserContextMenuController;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.fx.Controller;
@@ -7,6 +10,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Strings;
@@ -20,10 +24,13 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ContextMenuEvent;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
+import java.lang.ref.WeakReference;
 
 import static javafx.beans.binding.Bindings.createObjectBinding;
 import static javafx.beans.binding.Bindings.createStringBinding;
@@ -36,6 +43,8 @@ public class PartyMemberItemController implements Controller<Node> {
   private final AvatarService avatarService;
   private final PlayerService playerService;
   private final TeamMatchmakingService teamMatchmakingService;
+  private final UiService uiService;
+  private final ChatService chatService;
   private final I18n i18n;
 
   @FXML
@@ -69,14 +78,8 @@ public class PartyMemberItemController implements Controller<Node> {
   public Label refreshingLabel;
 
   private Player player;
-
-  public PartyMemberItemController(CountryFlagService countryFlagService, AvatarService avatarService, PlayerService playerService, TeamMatchmakingService teamMatchmakingService, I18n i18n) {
-    this.countryFlagService = countryFlagService;
-    this.avatarService = avatarService;
-    this.playerService = playerService;
-    this.teamMatchmakingService = teamMatchmakingService;
-    this.i18n = i18n;
-  }
+  //TODO: this is a bit hacky
+  private WeakReference<ChatUserContextMenuController> contextMenuController = null;
 
   @Override
   public void initialize() {
@@ -88,8 +91,49 @@ public class PartyMemberItemController implements Controller<Node> {
     return playerItemRoot;
   }
 
+  private ChatChannelUser chatUser;
+
+  private boolean isFactionSelectedInParty(int faction) {
+    return teamMatchmakingService.getParty().getMembers().stream()
+        .anyMatch(m -> m.getPlayer().getId() == player.getId() && m.getFactions().get(faction));
+  }
+
+  public void onKickPlayerButtonClicked(ActionEvent actionEvent) {
+    teamMatchmakingService.kickPlayerFromParty(this.player);
+  }
+
+  public void onFactionButtonClicked(ActionEvent actionEvent) {
+    if (!playerService.getCurrentPlayer().get().equals(this.player)) {
+      return;
+    }
+
+    boolean[] factions = {
+        aeonButton.isSelected(),
+        cybranButton.isSelected(),
+        uefButton.isSelected(),
+        seraphimButton.isSelected()
+    };
+
+    teamMatchmakingService.setPartyFactions(factions);
+
+    refreshingLabel.setVisible(true);
+  }
+
+
+  public PartyMemberItemController(CountryFlagService countryFlagService, AvatarService avatarService, PlayerService playerService, TeamMatchmakingService teamMatchmakingService, UiService uiService, ChatService chatService, I18n i18n) {
+    this.countryFlagService = countryFlagService;
+    this.avatarService = avatarService;
+    this.playerService = playerService;
+    this.teamMatchmakingService = teamMatchmakingService;
+    this.uiService = uiService;
+    this.chatService = chatService;
+    this.i18n = i18n;
+  }
+
   void setMember(PartyMember member) {
     this.player = member.getPlayer();
+    //TODO: this is a bit hacky, a chat channel user is required to create a context menu as in the chat tab (for foeing/befriending/messaging people...)
+    chatUser = new ChatChannelUser(player.getUsername(), chatService.getChatUserColor(player.getUsername()), false, player);
 
     userImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
 
@@ -138,29 +182,19 @@ public class PartyMemberItemController implements Controller<Node> {
     });
   }
 
-  private boolean isFactionSelectedInParty(int faction) {
-    return teamMatchmakingService.getParty().getMembers().stream()
-        .anyMatch(m -> m.getPlayer().getId() == player.getId() && m.getFactions().get(faction));
-  }
-
-  public void onKickPlayerButtonClicked(ActionEvent actionEvent) {
-    teamMatchmakingService.kickPlayerFromParty(this.player);
-  }
-
-  public void onFactionButtonClicked(ActionEvent actionEvent) {
-    if (!playerService.getCurrentPlayer().get().equals(this.player)) {
-      return;
+  public void onContextMenuRequested(ContextMenuEvent event) {
+    if (contextMenuController != null) {
+      ChatUserContextMenuController controller = contextMenuController.get();
+      if (controller != null) {
+        controller.getContextMenu().show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        return;
+      }
     }
 
-    boolean[] factions = {
-        aeonButton.isSelected(),
-        cybranButton.isSelected(),
-        uefButton.isSelected(),
-        seraphimButton.isSelected()
-    };
+    ChatUserContextMenuController controller = uiService.loadFxml("theme/chat/chat_user_context_menu.fxml");
+    controller.setChatUser(chatUser);
+    controller.getContextMenu().show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
 
-    teamMatchmakingService.setPartyFactions(factions);
-
-    refreshingLabel.setVisible(true);
+    contextMenuController = new WeakReference<>(controller);
   }
 }

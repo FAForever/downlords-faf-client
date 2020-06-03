@@ -147,7 +147,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
         });
   }
 
-  ContextMenu getContextMenu() {
+  public ContextMenu getContextMenu() {
     return chatUserContextMenuRoot;
   }
 
