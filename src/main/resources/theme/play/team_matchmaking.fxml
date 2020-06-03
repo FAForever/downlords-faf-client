@@ -24,7 +24,7 @@
                         </padding>
                         <children>
                             <Label styleClass="h2" text="Party"/>
-                            <HBox spacing="10.0">
+                            <HBox spacing="10.0" alignment="CENTER">
                                 <HBox spacing="10.0" HBox.hgrow="ALWAYS">
                                     <JFXButton fx:id="invitePlayerButton" defaultButton="true"
                                                text="%teammatchmaking.invitePlayer"

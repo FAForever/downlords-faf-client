@@ -3,6 +3,7 @@ package com.faforever.client.teammatchmaking;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.player.SocialStatus;
 import com.jfoenix.controls.JFXListView;
 import com.jfoenix.controls.JFXTextField;
 import javafx.beans.binding.Bindings;
@@ -44,14 +45,21 @@ public class InvitePlayerController implements Controller<Pane> {
       playersListView.getSelectionModel().selectFirst();
     });
 
-    filteredPlayerList.predicateProperty().bind(Bindings.createObjectBinding(() ->
-            p -> p.toLowerCase().contains(playerTextField.getText().toLowerCase())
-                && playerService.getCurrentPlayer().map(Player::getUsername).map(n -> !n.equals(p)).orElse(true),
-        playerTextField.textProperty()
+    filteredPlayerList.predicateProperty().bind(Bindings.createObjectBinding(() -> p -> {
+          if (playerService.getCurrentPlayer().map(Player::getUsername).map(n -> n.equals(p)).orElse(true)) {
+            return false;
+          }
+
+          if (playerTextField.getText().trim().equals("")) {
+            return playerService.getPlayerForUsername(p).map(player -> player.getSocialStatus() == SocialStatus.FRIEND).orElse(false);
+          } else {
+            return p.toLowerCase().contains(playerTextField.getText().toLowerCase());
+          }
+        }, playerTextField.textProperty()
     ));
 
     playersListView.setItems(filteredPlayerList);
-    playerTextField.setText("");
+    playerTextField.setText(""); // TODO doesn't show friends on first open
     playerTextField.requestFocus();
   }
 

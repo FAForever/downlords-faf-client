@@ -17,31 +17,32 @@
         <ImageView fx:id="userImageView" fitHeight="64.0" fitWidth="64.0" pickOnBounds="true" preserveRatio="true"
                    AnchorPane.leftAnchor="0"/>
 
-        <VBox alignment="CENTER" spacing="15">
-            <HBox spacing="10">
+        <VBox alignment="CENTER" spacing="10" minWidth="220" maxWidth="220">
+            <HBox spacing="10" alignment="CENTER">
+                <!--                <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true"-->
+                <!--                           preserveRatio="true"/> TODO-->
                 <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true"
                            preserveRatio="true"/>
-                <HBox>
-                    <Label fx:id="clanLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                <HBox spacing="5">
+                    <Label fx:id="clanLabel" style="-fx-font-size: 20px" maxHeight="1.7976931348623157E308"
+                           maxWidth="1.7976931348623157E308"
                            styleClass="chat-user-control-clan" text="[CLAN]"/>
-                    <Label fx:id="usernameLabel" maxWidth="1.7976931348623157E308" minWidth="0.0"
+                    <Label fx:id="usernameLabel" style="-fx-font-size: 20px;-fx-font-weight: bold"
+                           maxWidth="1.7976931348623157E308" minWidth="0.0"
                            text="&lt;Username&gt;"/>
                 </HBox>
             </HBox>
-            <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true"
-                       preserveRatio="true"/>
+
+            <HBox spacing="20" alignment="CENTER">
+
+                <Label fx:id="ratingLabel" text="%teammatchmaking.rating"/>
+                <Label fx:id="gameCountLabel" text="%teammatchmaking.gameCount"/>
+            </HBox>
+
             <padding>
                 <Insets left="10"/>
             </padding>
         </VBox>
-
-        <VBox alignment="CENTER" spacing="15">
-            <Label fx:id="ratingLabel" text="%teammatchmaking.rating">
-            </Label>
-            <Label fx:id="gameCountLabel" text="%teammatchmaking.gameCount">
-            </Label>
-        </VBox>
-
 
         <HBox alignment="CENTER" spacing="5.0">
             <children>
@@ -88,6 +89,6 @@
     </children>
 
     <padding>
-        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+        <Insets bottom="12.0" left="12.0" right="12.0" top="12.0"/>
     </padding>
 </HBox>
