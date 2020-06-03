@@ -7,21 +7,18 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<StackPane xmlns:fx="http://javafx.com/fxml/1" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0"
-           prefWidth="1280.0" xmlns="http://javafx.com/javafx/11.0.1"
+<StackPane xmlns:fx="http://javafx.com/fxml/1" minHeight="-Infinity" minWidth="-Infinity"
+           xmlns="http://javafx.com/javafx/11.0.1"
            fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingController"
            fx:id="teamMatchmakingRoot">
     <VBox>
-        <children>
-            <HBox maxHeight="1.7976931348623157E308" maxWidth="Infinity" prefWidth="1278.0" spacing="10.0"
-                  VBox.vgrow="ALWAYS">
-                <children>
-                    <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity"
-                          prefWidth="889.0" styleClass="card" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+        <HBox spacing="10.0" VBox.vgrow="ALWAYS">
+            <children>
 
-                        <padding>
-                            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-                        </padding>
+                <!-- LEFT COLUMN -->
+                <VBox maxHeight="1.7976931348623157E308" minWidth="720" minHeight="-Infinity"
+                      HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS" spacing="10">
+                    <VBox styleClass="card" VBox.vgrow="ALWAYS">
                         <children>
                             <Label styleClass="h2" text="Party"/>
                             <HBox spacing="10.0" alignment="CENTER">
@@ -44,14 +41,29 @@
                                          styleClass="party-player-list-view"
                                          VBox.vgrow="ALWAYS"/>
                         </children>
-                        <opaqueInsets>
-                            <Insets/>
-                        </opaqueInsets>
-                    </VBox>
-                    <VBox maxHeight="1.7976931348623157E308" minWidth="350.0" styleClass="card">
                         <padding>
                             <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
                         </padding>
+                    </VBox>
+
+                    <!-- BOTTOM LEFT card -->
+                    <VBox styleClass="card" minHeight="250">
+                        <children>
+                            <Label styleClass="h2" text="%teammatchmaking.statistics"/>
+
+                        </children>
+                        <padding>
+                            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                        </padding>
+                    </VBox>
+                </VBox>
+
+                <!-- RIGHT COLUMN -->
+                <VBox maxHeight="1.7976931348623157E308" minWidth="350.0" prefWidth="350.0" spacing="10"
+                      HBox.hgrow="ALWAYS">
+
+                    <!-- QUEUE CARD -->
+                    <VBox maxHeight="300.0" minHeight="300.0" styleClass="card">
                         <children>
                             <Label styleClass="h2" text="%teammatchmaking.availableQueues"/>
                             <HBox spacing="10.0">
@@ -62,15 +74,25 @@
                             </HBox>
                             <JFXListView VBox.vgrow="ALWAYS"/>
                         </children>
-                        <opaqueInsets>
-                            <Insets/>
-                        </opaqueInsets>
+                        <padding>
+                            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                        </padding>
                     </VBox>
-                </children>
-                <padding>
-                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-                </padding>
-            </HBox>
-        </children>
+
+                    <!-- BOTTOM RIGHT CARD -->
+                    <VBox maxHeight="1.7976931348623157E308" styleClass="card" VBox.vgrow="ALWAYS">
+                        <children>
+                            <Label styleClass="h2" text="%teammatchmaking.chat"/>
+                        </children>
+                        <padding>
+                            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                        </padding>
+                    </VBox>
+                </VBox>
+            </children>
+            <padding>
+                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+            </padding>
+        </HBox>
     </VBox>
 </StackPane>

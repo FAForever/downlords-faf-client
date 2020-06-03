@@ -236,7 +236,7 @@
 
 .icon-button > .text {
   -fx-font-family: 'dfc-icons';
-  -fx-padding: 4;
+  -fx-padding: 0;
   -fx-font-size: 2em;
 }
 
