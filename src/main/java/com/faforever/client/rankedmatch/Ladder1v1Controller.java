@@ -14,7 +14,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferenceUpdateListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
-import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue.QueueName;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.annotations.VisibleForTesting;
@@ -161,12 +160,12 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
     JavaFxUtil.addListener(playerService.currentPlayerProperty(), (observable, oldValue, newValue) -> Platform.runLater(() -> setCurrentPlayer(newValue)));
     playerService.getCurrentPlayer().ifPresent(this::setCurrentPlayer);
     
-    gameService.addOnRankedMatchNotificationListener(message -> {
+    gameService.addOnMatchmakerQueueNotificationListener(message -> {
       if (message.getQueues() == null) {
         return;
       }
       for (MatchmakerInfoMessage.MatchmakerQueue matchmakerQueue : message.getQueues()) {
-        if (!Objects.equals(QueueName.LADDER_1V1, matchmakerQueue.getQueueName())) {
+        if (!Objects.equals("ladder1v1", matchmakerQueue.getQueueName())) {
           continue;
         }
         String nextPopTime = matchmakerQueue.getQueuePopTime();

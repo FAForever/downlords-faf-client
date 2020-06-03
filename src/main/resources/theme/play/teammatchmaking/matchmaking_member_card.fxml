@@ -45,7 +45,7 @@
         </VBox>
 
         <!-- FACTION BUTTONS -->
-        <HBox alignment="BASELINE_CENTER" spacing="0.0">
+        <HBox alignment="CENTER" spacing="0.0">
             <children>
                 <ToggleButton fx:id="aeonButton" mnemonicParsing="false" onAction="#onFactionButtonClicked"
                               selected="true" text="">

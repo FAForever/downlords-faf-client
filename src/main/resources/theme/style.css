@@ -1088,6 +1088,22 @@
   -fx-text-fill: -fx-light-text-color
 }
 
+/* TODO can the following be combined with party-player-invite-list-view? */
+.matchmaking-queue-list-view {
+  -fx-padding: 20 0 0 0;
+}
+
+.matchmaking-queue-list-view .list-cell {
+  -fx-background-color: transparent;
+  -fx-padding: 10 10 10 10;
+}
+
+.matchmaking-queue-list-view .list-cell {
+  -fx-background-color: transparent;
+  -fx-padding: 10px 10px 10px 10px;
+  -fx-text-fill: -fx-light-text-color
+}
+
 .party-ready-button-ready {
   -fx-background-color: #609E15; /* TODO: change color to card color*/
 }

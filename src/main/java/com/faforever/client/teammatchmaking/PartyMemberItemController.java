@@ -154,8 +154,8 @@ public class PartyMemberItemController implements Controller<Node> {
 
 
     BooleanBinding isDifferentPlayerBinding = playerService.currentPlayerProperty().isNotEqualTo(player);
-//    kickPlayerButton.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(playerService.currentPlayerProperty()).and(isDifferentPlayerBinding));
-    kickPlayerButton.visibleProperty().set(true);
+    kickPlayerButton.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(playerService.currentPlayerProperty()).and(isDifferentPlayerBinding));
+//    kickPlayerButton.visibleProperty().set(true); // TODO: remove
 
     aeonButton.disableProperty().bind(isDifferentPlayerBinding);
     cybranButton.disableProperty().bind(isDifferentPlayerBinding);

@@ -9,32 +9,32 @@ import java.util.List;
 
 public class MatchmakerInfoMessage extends FafServerMessage {
 
+  private String action; // TODO: doesn't exist anymore
+
   public static class MatchmakerQueue {
 
-    private QueueName queueName;
+    private String queueName;
     private String queuePopTime;
+
+    // The boundaries indicate the ranges applicable for other searching players,
+    // boundarys.size() therefore indicates the players currently in queue
     @SerializedName("boundary_75s")
     private List<RatingRange> boundary75s;
     @SerializedName("boundary_80s")
     private List<RatingRange> boundary80s;
 
-    public static enum QueueName {
-      @SerializedName("ladder1v1")
-      LADDER_1V1
-    }
-
-    public MatchmakerQueue(QueueName queueName, String queuePopTime, List<RatingRange> boundary75s, List<RatingRange> boundary80s) {
+    public MatchmakerQueue(String queueName, String queuePopTime, List<RatingRange> boundary75s, List<RatingRange> boundary80s) {
       this.queueName = queueName;
       this.queuePopTime = queuePopTime;
       this.boundary75s = boundary75s;
       this.boundary80s = boundary80s;
     }
 
-    public QueueName getQueueName() {
+    public String getQueueName() {
       return queueName;
     }
 
-    public void setQueueName(QueueName queueName) {
+    public void setQueueName(String queueName) {
       this.queueName = queueName;
     }
 
@@ -62,8 +62,6 @@ public class MatchmakerInfoMessage extends FafServerMessage {
       this.boundary80s = boundary80s;
     }
   }
-
-  private String action;
   private List<MatchmakerQueue> queues;
 
   public MatchmakerInfoMessage() {

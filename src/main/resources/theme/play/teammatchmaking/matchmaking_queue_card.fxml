@@ -1,8 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.AnchorPane?>
-<AnchorPane xmlns:fx="http://javafx.com/fxml"
-            xmlns="http://javafx.com/javafx"
-            fx:controller="theme.play.teammatchmaking.MatchmakingQueueCardController">
+<?import com.jfoenix.controls.JFXButton?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<HBox xmlns:fx="http://javafx.com/fxml/1" fx:id="queueItemRoot" alignment="CENTER_LEFT" spacing="10" styleClass="card"
+      xmlns="http://javafx.com/javafx/11.0.1"
+      fx:controller="com.faforever.client.teammatchmaking.MatchmakingQueueItemController">
 
-</AnchorPane>
+    <children>
+        <VBox alignment="CENTER_LEFT" spacing="10" minWidth="220" maxWidth="320">
+            <Label fx:id="queuenameLabel" style="-fx-font-size: 20px;-fx-font-weight: bold"
+                   maxWidth="1.7976931348623157E308" minWidth="0.0"
+                   text="&lt;QueueName&gt;"/>
+
+            <HBox spacing="20" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                <Label fx:id="playersInQueueLabel" text="%teammatchmaking.playersInQueue"/>
+                <Label fx:id="maxPartySizeLabel" text="Max. party size: ?"/> <!-- TODO: i18n -->
+                <!--<Label fx:id="queuePopTimeLabel" text="QueuePopTimeWIP: ?:??"/>-->
+            </HBox>
+
+            <padding>
+                <Insets left="10"/>
+            </padding>
+        </VBox>
+
+        <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
+            <JFXButton fx:id="joinQueueButton" text="%teammatchmaking.joinQueue" onAction="#onJoinQueueClicked"/>
+            <padding>
+                <Insets right="10"/>
+            </padding>
+        </HBox>
+
+    </children>
+
+    <padding>
+        <Insets bottom="10.0" left="15.0" right="0.0" top="10.0"/>
+    </padding>
+</HBox>

@@ -51,10 +51,17 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   @FXML
   public Label refreshingLabel;
 
+  @FXML
+  public JFXListView<MatchmakingQueue> queueListView;
+
   @Override
   public void initialize() {
+
     playerListView.setCellFactory(listView -> new PartyMemberItemListCell(uiService));
     playerListView.setItems(teamMatchmakingService.getParty().getMembers());
+
+    queueListView.setCellFactory(listView -> new MatchmakingQueueItemListCell(uiService));
+    queueListView.setItems(teamMatchmakingService.getMatchmakingQueues());
 
     invitePlayerButton.managedProperty().bind(invitePlayerButton.visibleProperty());
     invitePlayerButton.visibleProperty().bind(createBooleanBinding(
@@ -84,6 +91,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     return teamMatchmakingRoot;
   }
 
+  // TODO: use
   public void showMatchmakingMaps(ActionEvent actionEvent) {
     eventBus.post(new ShowLadderMapsEvent());//TODO show team matchmaking maps and not ladder maps
   }

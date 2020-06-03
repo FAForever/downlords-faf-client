@@ -30,7 +30,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
-import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue.QueueName;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
@@ -197,7 +196,7 @@ public class MainController implements Controller<Node> {
     notificationService.addPersistentNotificationListener(change -> runLater(() -> updateNotificationsButton(change.getSet())));
     notificationService.addImmediateNotificationListener(notification -> runLater(() -> displayImmediateNotification(notification)));
     notificationService.addTransientNotificationListener(notification -> runLater(() -> transientNotificationsController.addNotification(notification)));
-    gameService.addOnRankedMatchNotificationListener(this::onMatchmakerMessage);
+    gameService.addOnMatchmakerQueueNotificationListener(this::onMatchmakerMessage);
     // Always load chat immediately so messages or joined channels don't need to be cached until we display them.
     getView(NavigationItem.CHAT);
 
@@ -305,6 +304,8 @@ public class MainController implements Controller<Node> {
     }
   }
 
+
+  //TODO: adapt for TMM
   private void onMatchmakerMessage(MatchmakerInfoMessage message) {
     if (message.getQueues() == null
         || gameService.gameRunningProperty().get()
@@ -332,7 +333,7 @@ public class MainController implements Controller<Node> {
     float leaderboardRatingMean = currentPlayer.getLeaderboardRatingMean();
     boolean showNotification = false;
     for (MatchmakerInfoMessage.MatchmakerQueue matchmakerQueue : message.getQueues()) {
-      if (!Objects.equals(QueueName.LADDER_1V1, matchmakerQueue.getQueueName())) {
+      if (!Objects.equals("ladder1v1", matchmakerQueue.getQueueName())) {
         continue;
       }
       List<RatingRange> ratingRanges = ratingRangesSupplier.apply(matchmakerQueue);

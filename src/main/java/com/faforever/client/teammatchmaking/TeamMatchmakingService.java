@@ -12,7 +12,9 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
+import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
 import com.faforever.client.remote.FafServerAccessor;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.PartyInfoMessage;
 import com.faforever.client.remote.domain.PartyInviteMessage;
 import com.faforever.client.remote.domain.PartyKickedMessage;
@@ -20,13 +22,17 @@ import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.util.IdenticonUtil;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import java.time.OffsetDateTime;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Optional;
 
 @Lazy
@@ -38,17 +44,21 @@ public class TeamMatchmakingService implements InitializingBean {
   private final PlayerService playerService;
   private final NotificationService notificationService;
   private final PreferencesService preferencesService;
+  private final FafService fafService;
   private final EventBus eventBus;
   private final I18n i18n;
 
   @Getter
   private final Party party;
+  @Getter
+  private final ObservableList<MatchmakingQueue> matchmakingQueues = FXCollections.observableArrayList();
 
-  public TeamMatchmakingService(FafServerAccessor fafServerAccessor, PlayerService playerService, NotificationService notificationService, PreferencesService preferencesService, EventBus eventBus, I18n i18n) {
+  public TeamMatchmakingService(FafServerAccessor fafServerAccessor, PlayerService playerService, NotificationService notificationService, PreferencesService preferencesService, FafService fafService, EventBus eventBus, I18n i18n) {
     this.fafServerAccessor = fafServerAccessor;
     this.playerService = playerService;
     this.notificationService = notificationService;
     this.preferencesService = preferencesService;
+    this.fafService = fafService;
     this.eventBus = eventBus;
     this.i18n = i18n;
 
@@ -60,6 +70,8 @@ public class TeamMatchmakingService implements InitializingBean {
         Platform.runLater(() -> initParty(playerService.getCurrentPlayer().get()));
       }
     });
+
+    fafService.addOnMessageListener(MatchmakerInfoMessage.class, this::onMatchmakerInfo);
 
     party = new Party();
 
@@ -75,6 +87,23 @@ public class TeamMatchmakingService implements InitializingBean {
   @Override
   public void afterPropertiesSet() throws Exception {
 
+  }
+
+  private void onMatchmakerInfo(MatchmakerInfoMessage message) {
+    Platform.runLater(() -> {
+      message.getQueues().forEach(remoteQueue -> {
+        MatchmakingQueue localQueue = matchmakingQueues.stream()
+            .filter(q -> Objects.equals(q.getQueueName(), remoteQueue.getQueueName())).findFirst().orElse(null);
+
+        if (localQueue == null) {
+          localQueue = new MatchmakingQueue(remoteQueue.getQueueName());
+          matchmakingQueues.add(localQueue);
+        }
+
+        localQueue.setQueuePopTime(OffsetDateTime.parse(remoteQueue.getQueuePopTime()).toInstant());
+        localQueue.setPlayersInQueue(remoteQueue.getBoundary75s().size());
+      });
+    });
   }
 
   public void onPartyInfo(PartyInfoMessage message) {

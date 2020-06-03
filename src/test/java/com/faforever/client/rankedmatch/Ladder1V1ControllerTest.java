@@ -209,7 +209,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
 
     @SuppressWarnings("unchecked")
     ArgumentCaptor<Consumer<MatchmakerInfoMessage>> listenerCaptor = ArgumentCaptor.forClass(Consumer.class);
-    verify(gameService).addOnRankedMatchNotificationListener(listenerCaptor.capture());
+    verify(gameService).addOnMatchmakerQueueNotificationListener(listenerCaptor.capture());
     
     MatchmakerInfoMessage message = new MatchmakerInfoMessage();
     String timeString = DateTimeFormatter.ISO_INSTANT.format(Instant.now().plusSeconds(65));

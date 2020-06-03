@@ -13,7 +13,6 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
 import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue;
-import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue.QueueName;
 import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.GameAccess;
 import com.faforever.client.remote.domain.GameInfoMessage;
@@ -137,7 +136,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
           @Override
           public void run() {
             MatchmakerInfoMessage matchmakerServerMessage = new MatchmakerInfoMessage();
-            matchmakerServerMessage.setQueues(singletonList(new MatchmakerQueue(QueueName.LADDER_1V1, null, singletonList(new RatingRange(100, 200)), singletonList(new RatingRange(100, 200)))));
+            matchmakerServerMessage.setQueues(singletonList(new MatchmakerQueue("ladder1v1", null, singletonList(new RatingRange(100, 200)), singletonList(new RatingRange(100, 200)))));
             messageListeners.getOrDefault(matchmakerServerMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(matchmakerServerMessage));
           }
         }, 7000);

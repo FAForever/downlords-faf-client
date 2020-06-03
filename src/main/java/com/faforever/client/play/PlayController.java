@@ -68,17 +68,17 @@ public class PlayController extends AbstractViewController<Node> {
     isHandlingEvent = true;
 
     try {
-      if (navigateEvent instanceof OpenTeamMatchmakingEvent) {
+      if (Objects.equals(navigateEvent.getClass(), navigateEvent)
+          || navigateEvent instanceof OpenTeamMatchmakingEvent) {
         playRootTabPane.getSelectionModel().select(teamMatchmakingTab);
         teamMatchmakingController.display(navigateEvent);
-        lastTab = customGamesController;
+        lastTab = teamMatchmakingController;
       }
       if (navigateEvent instanceof OpenCustomGamesEvent) {
         playRootTabPane.getSelectionModel().select(customGamesTab);
         customGamesController.display(navigateEvent);
         lastTab = customGamesController;
-      }
-      else if (navigateEvent instanceof Open1v1Event) {
+      } else if (navigateEvent instanceof Open1v1Event) {
         playRootTabPane.getSelectionModel().select(ladderTab);
         ladderController.display(navigateEvent);
         lastTab = ladderController;
