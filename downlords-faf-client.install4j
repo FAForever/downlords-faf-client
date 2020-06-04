@@ -148,10 +148,39 @@ return true;</string>
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="695" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" rollbackBarrierExitCode="0" multiExec="false" failureStrategy="2" errorMessage="">
+              <action name="" id="695" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" rollbackBarrierExitCode="0" multiExec="false" failureStrategy="3" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" />
+                    <object class="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction">
+                      <void property="additionalExecutables">
+                        <array class="java.io.File" length="3">
+                          <void index="0">
+                            <object class="java.io.File">
+                              <string>/ForgedAlliance.exe</string>
+                            </object>
+                          </void>
+                          <void index="1">
+                            <object class="java.io.File">
+                              <string>natives/faf-ice-adapter.jar</string>
+                            </object>
+                          </void>
+                          <void index="2">
+                            <object class="java.io.File">
+                              <string>${installer:sys.installationDir}/jre/bin/java.exe</string>
+                            </object>
+                          </void>
+                        </array>
+                      </void>
+                      <void property="allowIgnore">
+                        <boolean>true</boolean>
+                      </void>
+                      <void property="closeStrategy">
+                        <object class="java.lang.Enum" method="valueOf">
+                          <class>com.install4j.runtime.beans.actions.misc.CloseStrategy</class>
+                          <string>ASK_FOR_CLOSE_AND_TERMINATE</string>
+                        </object>
+                      </void>
+                    </object>
                   </java>
                 </serializedBean>
                 <condition />
@@ -729,30 +758,6 @@ return console.askOkCancel(message, true);
                 </serializedBean>
                 <condition />
               </action>
-              <action name="Kill left over ice adapters" id="621" customizedId="" beanClass="com.install4j.runtime.beans.actions.control.RunScriptAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" rollbackBarrierExitCode="0" multiExec="false" failureStrategy="1" errorMessage="">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.control.RunScriptAction">
-                      <void property="script">
-                        <object class="com.install4j.api.beans.ScriptProperty">
-                          <void property="value">
-                            <string> try{            
-     Runtime rt = Runtime.getRuntime();
-     Process proc = rt.exec("for /f \"tokens=1\" %i in ('jps -m ^| find \"faf-ice-adapter\"') do ( taskkill /F /PID %i )");
-     int exitVal = proc.waitFor();
-     System.out.println("Process exitValue: " + exitVal);
-} catch (Throwable t){
-     t.printStackTrace();
-}
- return true;</string>
-                          </void>
-                        </object>
-                      </void>
-                    </object>
-                  </java>
-                </serializedBean>
-                <condition />
-              </action>
               <action name="Kill left over ice adapters" id="694" customizedId="" beanClass="com.install4j.runtime.beans.actions.control.RunScriptAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" rollbackBarrierExitCode="0" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
@@ -775,10 +780,39 @@ return true;</string>
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="696" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" rollbackBarrierExitCode="0" multiExec="false" failureStrategy="3" errorMessage="">
+              <action name="" id="807" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" rollbackBarrierExitCode="0" multiExec="false" failureStrategy="3" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" />
+                    <object class="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction">
+                      <void property="additionalExecutables">
+                        <array class="java.io.File" length="3">
+                          <void index="0">
+                            <object class="java.io.File">
+                              <string>ForgedAlliance.exe</string>
+                            </object>
+                          </void>
+                          <void index="1">
+                            <object class="java.io.File">
+                              <string>natives/faf-ice-adapter.jar</string>
+                            </object>
+                          </void>
+                          <void index="2">
+                            <object class="java.io.File">
+                              <string>${installer:sys.installationDir}/jre/bin/java.exe</string>
+                            </object>
+                          </void>
+                        </array>
+                      </void>
+                      <void property="allowIgnore">
+                        <boolean>true</boolean>
+                      </void>
+                      <void property="closeStrategy">
+                        <object class="java.lang.Enum" method="valueOf">
+                          <class>com.install4j.runtime.beans.actions.misc.CloseStrategy</class>
+                          <string>ASK_FOR_CLOSE_AND_TERMINATE</string>
+                        </object>
+                      </void>
+                    </object>
                   </java>
                 </serializedBean>
                 <condition />
@@ -835,6 +869,26 @@ return console.askYesNo(message, true);
                 <visibilityScript />
                 <externalParametrizationPropertyNames />
               </formComponent>
+              <formComponent name="" id="809" customizedId="" beanClass="com.install4j.runtime.beans.formcomponents.CheckboxComponent" enabled="true" commentSet="false" comment="" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false" useExternalParametrization="false" externalParametrizationName="" externalParametrizationMode="all">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.formcomponents.CheckboxComponent">
+                      <void property="helpText">
+                        <string>Deletes C:\ProgramData\FaForever and $USER_HOME$\AppData\Roaming\Forged Alliance Forever</string>
+                      </void>
+                      <void property="labelText">
+                        <string>Delete metadata like settings and game files.</string>
+                      </void>
+                      <void property="variableName">
+                        <string>delAll</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <initScript />
+                <visibilityScript />
+                <externalParametrizationPropertyNames />
+              </formComponent>
             </formComponents>
           </screen>
           <screen name="" id="16" customizedId="" beanClass="com.install4j.runtime.beans.screens.UninstallationScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" styleId="" rollbackBarrier="false" rollbackBarrierExitCode="1" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
@@ -856,6 +910,32 @@ return console.askYesNo(message, true);
                   </java>
                 </serializedBean>
                 <condition />
+              </action>
+              <action name="" id="808" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.DeleteFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" rollbackBarrierExitCode="0" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.files.DeleteFileAction">
+                      <void property="files">
+                        <array class="java.io.File" length="2">
+                          <void index="0">
+                            <object class="java.io.File">
+                              <string>${installer:sys.programDataDir}/FAForever</string>
+                            </object>
+                          </void>
+                          <void index="1">
+                            <object class="java.io.File">
+                              <string>${installer:sys.appdataDir}/Forged Alliance Forever</string>
+                            </object>
+                          </void>
+                        </array>
+                      </void>
+                      <void property="recursive">
+                        <boolean>true</boolean>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>context.getBooleanVariable("delAll")</condition>
               </action>
             </actions>
             <formComponents>
