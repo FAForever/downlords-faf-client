@@ -13,7 +13,4 @@ wget "$url" -P ~/bin/ || {
 }
 chmod +x ~/bin/install-jdk.sh
 export JAVA_HOME="~/$JDK"
-# shellcheck disable=SC2016
-export PATH="$JAVA_HOME/bin:$PATH"
-# shellcheck disable=2088
-~/bin/install-jdk.sh --url "https://download.java.net/openjdk/jdk10/ri/jdk-10_linux-x64_bin_ri.tar.gz" --target "$JAVA_HOME" --workspace "$TRAVIS_HOME/.cache/install-jdk" --cacerts
+~/bin/install-jdk.sh --url "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.7%2B10/OpenJDK11U-jdk_x64_linux_hotspot_11.0.7_10.tar.gz" --target "$JAVA_HOME" --workspace "$TRAVIS_HOME/.cache/install-jdk" --cacerts

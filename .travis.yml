@@ -1,9 +1,5 @@
 language: java
 
-#Can not be used any longer as travis moved to adoptjdk which as issues with our project
-#jdk:
-#-openjdk10
-
 sudo: false
 
 services:
@@ -13,27 +9,31 @@ install: true
 
 env:
   global:
-  - secure: "UVIbeoJpx9n0KSWHbpdWZuR4zeZfXw3JQBq2Zb1h0/j4uREfXWiGFuNVQBPjsdtYi2+LkecjJ/MgKWo+SS0SjsvTa/ZPkOXt4408H1qYgwVnvWoeL/g1QQ6T8ADNysl/4ZtJLnSp0WXYEBkfHYZJD++vgDwkpVhnCLVzSFVAHls="
+    - secure: "UVIbeoJpx9n0KSWHbpdWZuR4zeZfXw3JQBq2Zb1h0/j4uREfXWiGFuNVQBPjsdtYi2+LkecjJ/MgKWo+SS0SjsvTa/ZPkOXt4408H1qYgwVnvWoeL/g1QQ6T8ADNysl/4ZtJLnSp0WXYEBkfHYZJD++vgDwkpVhnCLVzSFVAHls="
 
 before_install:
-#JDK defines the directory to store the jdk in
-- export JDK="openjdk10"
-#Installs the normal openjdk as this is not supported by travis itself
-- chmod +x ./ci/installjdk.sh && sudo ./ci/installjdk.sh
-- export JAVA_HOME="~/$JDK"
-- export PATH="$JAVA_HOME/bin:$PATH"
-- export JAVA_TOOL_OPTIONS="-Dprism.verbose=true -Dprism.order=sw -Djava.library.path=$HOME/openjfx/javafx-sdk-11/lib"
-- export APP_VERSION=$([ -n "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG#*v}" || echo "${TRAVIS_BRANCH##*/}")
-- export GITHUB_RELEASE_VERSION=$([ -n "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG}" || echo "${TRAVIS_BRANCH##*/}")
+  - export JDK="openjdk11"
+  #Installs the normal openjdk as this is not supported by travis itself
+  - chmod +x ./ci/installjdk.sh && sudo ./ci/installjdk.sh
+  - export JAVA_HOME="~/$JDK"
+  - export JAVA_TOOL_OPTIONS="-Dprism.verbose=true -Dprism.order=sw -Djava.library.path=$HOME/openjfx/javafx-sdk-11/lib"
+  - export JAVA_TOOL_OPTIONS="-Dprism.verbose=true -Dprism.order=sw"
+  - export APP_VERSION=$([ -n "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG#*v}" || echo "${TRAVIS_BRANCH##*/}")
+  - export GITHUB_RELEASE_VERSION=$([ -n "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG}" || echo "${TRAVIS_BRANCH##*/}")
+
+before_script:
+  - export PATH="$JAVA_HOME/bin:$PATH"
 
 script:
-- echo "$JAVA_HOME"
-- chmod +x ./ci/build.sh && ./ci/build.sh
-- chmod +x ./ci/test.sh && ./ci/test.sh
-- chmod +x ./ci/test-report.sh && ./ci/test-report.sh
+  - echo "$JAVA_HOME"
+  - echo "$PATH"
+  - java -version
+  - chmod +x ./ci/build.sh && ./ci/build.sh
+  - chmod +x ./ci/test.sh && ./ci/test.sh
+  - chmod +x ./ci/test-report.sh && ./ci/test-report.sh
 
 after_success:
-- if [ -n "${TRAVIS_TAG}" ]; then chmod +x ./ci/github-release.sh && ./ci/github-release.sh; fi
+  - if [ -n "${TRAVIS_TAG}" ]; then chmod +x ./ci/github-release.sh && ./ci/github-release.sh; fi
 
 after_failure:
 - cat /home/travis/build/FAForever/downlords-faf-client/hs_err_pid*.log
@@ -81,10 +81,7 @@ before_cache:
 cache:
   directories:
   - $HOME/install4j/
-  - $HOME/openjfx/
   - $HOME/.gradle/caches/
   - $HOME/.gradle/wrapper/
   - /home/travis/build/FAForever/downlords-faf-client/build/cache/
-  - $HOME/.install4j8/
-  - ~/openjdk10
-
+  - ~/openjdk11
