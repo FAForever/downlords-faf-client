@@ -11,8 +11,6 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.util.IdenticonUtil;
-import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Strings;
 import com.jfoenix.controls.JFXButton;
 import javafx.beans.Observable;
@@ -50,12 +48,15 @@ public class PartyMemberItemController implements Controller<Node> {
   @FXML
   public Node playerItemRoot;
 
-  @FXML
-  public ImageView userImageView;
-  //  @FXML
+//  @FXML
+//  public ImageView userImageView;
+//  @FXML
 //  public ImageView avatarImageView;
+@FXML
+public ImageView leagueImageView;
   @FXML
   public ImageView countryImageView;
+
   @FXML
   public Label clanLabel;
   @FXML
@@ -135,13 +136,16 @@ public class PartyMemberItemController implements Controller<Node> {
     //TODO: this is a bit hacky, a chat channel user is required to create a context menu as in the chat tab (for foeing/befriending/messaging people...)
     chatUser = new ChatChannelUser(player.getUsername(), chatService.getChatUserColor(player.getUsername()), false, player);
 
-    userImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
+//    userImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
 
-    countryImageView.visibleProperty().bind(player.countryProperty().isNotEmpty());
-    countryImageView.imageProperty().bind(createObjectBinding(() -> StringUtils.isEmpty(player.getCountry()) ? null : countryFlagService.loadCountryFlag(player.getCountry()).orElse(null), player.countryProperty()));
+//    countryImageView.visibleProperty().bind(player.countryProperty().isNotEmpty());
+    countryImageView.imageProperty().bind(createObjectBinding(() -> StringUtils.isEmpty(player.getCountry()) ?
+        countryFlagService.loadCountryFlag("").orElse(null) // loads earth flag
+        : countryFlagService.loadCountryFlag(player.getCountry()).orElse(null), player.countryProperty()));
 
-//    avatarImageView.managedProperty().bind(player.avatarUrlProperty().isNotNull().and(player.avatarUrlProperty().isNotEmpty())); //TODO: remove
-//    avatarImageView.imageProperty().bind(createObjectBinding(() -> Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));
+//    leagueImageView.visibleProperty().bind(player.avatarUrlProperty().isNotNull().and(player.avatarUrlProperty().isNotEmpty()));
+//    leagueImageView.imageProperty().bind(createObjectBinding(() -> Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));
+    leagueImageView.setImage(avatarService.loadAvatar("https://content.faforever.com/faf/avatars/ICE_Test.png"));
 
     clanLabel.visibleProperty().bind(player.clanProperty().isNotEmpty().and(player.clanProperty().isNotNull()));
     clanLabel.textProperty().bind(createStringBinding(() -> Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan()), player.clanProperty()));
@@ -149,7 +153,7 @@ public class PartyMemberItemController implements Controller<Node> {
     usernameLabel.textProperty().bind(player.usernameProperty());
 //    usernameLabel.setText("GGGGGGGGGGGGGGGG"); // TODO: REMOVE
 
-    ratingLabel.textProperty().bind(createStringBinding(() -> i18n.get("teammatchmaking.rating", RatingUtil.getRoundedGlobalRating(player)), player.globalRatingMeanProperty(), player.globalRatingDeviationProperty()));
+//    ratingLabel.textProperty().bind(createStringBinding(() -> i18n.get("teammatchmaking.rating", RatingUtil.getRoundedGlobalRating(player)), player.globalRatingMeanProperty(), player.globalRatingDeviationProperty()));
     gameCountLabel.textProperty().bind(createStringBinding(() -> i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()), player.numberOfGamesProperty()));
 
 

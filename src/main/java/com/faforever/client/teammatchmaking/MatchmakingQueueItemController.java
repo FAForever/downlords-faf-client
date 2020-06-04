@@ -7,14 +7,20 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.beans.binding.Bindings;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.image.ImageView;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.time.Duration;
+import java.time.Instant;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -33,7 +39,15 @@ public class MatchmakingQueueItemController implements Controller<Node> {
   @FXML
   public Label queuenameLabel;
   @FXML
-  public Label playersInQueueLabel;
+  public Label partiesInQueueLabel;
+  @FXML
+  public Label teamSizeLabel;
+  @FXML
+  public ImageView leagueImageView;
+  @FXML
+  public Label queuePopTimeLabel;
+
+  private Timeline queuePopTimeUpdater;
 
   private MatchmakingQueue queue;
 
@@ -62,10 +76,34 @@ public class MatchmakingQueueItemController implements Controller<Node> {
 
     queuenameLabel.textProperty().bind(queue.queueNameProperty());
 
-    playersInQueueLabel.textProperty().bind(Bindings.createStringBinding(
-        () -> i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue()),
-        queue.playersInQueueProperty()));
-    //TODO hook into all queue pop times and start animation
+    teamSizeLabel.textProperty().bind(Bindings.createStringBinding(
+        () -> i18n.get("teammatchmaking.teamSize", queue.getTeamSize()),
+        queue.teamSizeProperty()));
+    partiesInQueueLabel.textProperty().bind(Bindings.createStringBinding(
+        () -> i18n.get("teammatchmaking.partiesInQueue", queue.getPartiesInQueue()),
+        queue.partiesInQueueProperty()));
+
+
+//    leagueImageView.imageProperty().bind(createObjectBinding(() -> avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));
+    leagueImageView.setImage(avatarService.loadAvatar("https://content.faforever.com/faf/avatars/ICE_Test.png"));
+
+
+    queuePopTimeLabel.visibleProperty().bind(queue.queuePopTimeProperty().isNotNull());
+    queuePopTimeUpdater = new Timeline(1, new KeyFrame(javafx.util.Duration.seconds(0), (ActionEvent event) -> {
+      if (queue.getQueuePopTime() != null) {
+        Instant now = Instant.now();
+        Duration timeUntilPopQueue = Duration.between(now, queue.getQueuePopTime());
+        if (!timeUntilPopQueue.isNegative()) {
+          String formatted = i18n.get("teammatchmaking.queuePopTimer",
+              timeUntilPopQueue.toMinutes(),
+              timeUntilPopQueue.toSecondsPart());
+          queuePopTimeLabel.setText(formatted);
+          return;
+        }
+      }
+    }), new KeyFrame(javafx.util.Duration.seconds(1)));
+    queuePopTimeUpdater.setCycleCount(Timeline.INDEFINITE);
+    queuePopTimeUpdater.play();
   }
 
   public void onJoinQueueClicked(ActionEvent actionEvent) {

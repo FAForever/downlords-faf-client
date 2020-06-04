@@ -15,6 +15,8 @@ public class MatchmakerInfoMessage extends FafServerMessage {
 
     private String queueName;
     private String queuePopTime;
+    @SerializedName("team_size")
+    private int teamSize;
 
     // The boundaries indicate the ranges applicable for other searching players,
     // boundarys.size() therefore indicates the players currently in queue
@@ -60,6 +62,14 @@ public class MatchmakerInfoMessage extends FafServerMessage {
 
     public void setBoundary80s(List<RatingRange> boundary80s) {
       this.boundary80s = boundary80s;
+    }
+
+    public int getTeamSize() {
+      return teamSize;
+    }
+
+    public void setTeamSize(int team_size) {
+      this.teamSize = team_size;
     }
   }
   private List<MatchmakerQueue> queues;

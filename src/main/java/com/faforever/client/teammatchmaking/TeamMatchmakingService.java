@@ -101,7 +101,8 @@ public class TeamMatchmakingService implements InitializingBean {
         }
 
         localQueue.setQueuePopTime(OffsetDateTime.parse(remoteQueue.getQueuePopTime()).toInstant());
-        localQueue.setPlayersInQueue(remoteQueue.getBoundary75s().size());
+        localQueue.setTeamSize(remoteQueue.getTeamSize());
+        localQueue.setPartiesInQueue(remoteQueue.getBoundary75s().size());
       });
     });
   }

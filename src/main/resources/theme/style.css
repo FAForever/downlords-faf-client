@@ -1079,7 +1079,7 @@
 
 .party-player-list-view .list-cell {
   -fx-background-color: transparent;
-  -fx-padding: 10 10 10 10;
+  -fx-padding: 20 10 0 10;
 }
 
 .party-player-invite-list-view .list-cell {
@@ -1088,20 +1088,14 @@
   -fx-text-fill: -fx-light-text-color
 }
 
-/* TODO can the following be combined with party-player-invite-list-view? */
+/* TODO can the following be combined with party-player-list-view? */
 .matchmaking-queue-list-view {
-  -fx-padding: 20 0 0 0;
+  -fx-padding: 0 0 0 0;
 }
 
 .matchmaking-queue-list-view .list-cell {
   -fx-background-color: transparent;
-  -fx-padding: 10 10 10 10;
-}
-
-.matchmaking-queue-list-view .list-cell {
-  -fx-background-color: transparent;
-  -fx-padding: 10px 10px 10px 10px;
-  -fx-text-fill: -fx-light-text-color
+  -fx-padding: 20 10 0 10;
 }
 
 .party-ready-button-ready {

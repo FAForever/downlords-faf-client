@@ -3,6 +3,7 @@
 <?import com.jfoenix.controls.JFXButton?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <HBox xmlns:fx="http://javafx.com/fxml/1" fx:id="queueItemRoot" alignment="CENTER_LEFT" spacing="10" styleClass="card"
@@ -11,14 +12,25 @@
 
     <children>
         <VBox alignment="CENTER_LEFT" spacing="10" minWidth="220" maxWidth="320">
-            <Label fx:id="queuenameLabel" style="-fx-font-size: 20px;-fx-font-weight: bold"
-                   maxWidth="1.7976931348623157E308" minWidth="0.0"
-                   text="&lt;QueueName&gt;"/>
-
             <HBox spacing="20" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
-                <Label fx:id="playersInQueueLabel" text="%teammatchmaking.playersInQueue"/>
-                <Label fx:id="maxPartySizeLabel" text="Max. party size: ?"/> <!-- TODO: i18n -->
-                <!--<Label fx:id="queuePopTimeLabel" text="QueuePopTimeWIP: ?:??"/>-->
+                <Label fx:id="queuenameLabel" style="-fx-font-size: 20px;-fx-font-weight: bold"
+                       maxWidth="120.0" minWidth="120.0"
+                       text="&lt;QueueName&gt;"/>
+
+            </HBox>
+
+            <HBox spacing="20" alignment="TOP_LEFT" HBox.hgrow="ALWAYS">
+                <Label fx:id="teamSizeLabel" text="%teammatchmaking.teamSize"/> <!-- TODO: i18n -->
+                <padding>
+                    <Insets bottom="10"/>
+                </padding>
+            </HBox>
+
+            <!-- RATING -->
+            <HBox spacing="20" alignment="TOP_LEFT" HBox.hgrow="ALWAYS">
+                <ImageView fx:id="leagueImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true"
+                           preserveRatio="true"/>
+                <Label fx:id="ratingLabel" text="In Placement (4/10 games)"/>
             </HBox>
 
             <padding>
@@ -27,7 +39,12 @@
         </VBox>
 
         <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
-            <JFXButton fx:id="joinQueueButton" text="%teammatchmaking.joinQueue" onAction="#onJoinQueueClicked"/>
+            <VBox spacing="10" alignment="CENTER_RIGHT">
+                <Label fx:id="queuePopTimeLabel" style="-fx-font-size: 20px;" text="-:--" visible="false"/>
+                <Label fx:id="partiesInQueueLabel" text="%teammatchmaking.partiesInQueue"/>
+                <JFXButton fx:id="joinQueueButton" text="%teammatchmaking.joinQueue" onAction="#onJoinQueueClicked"
+                           defaultButton="true"/>
+            </VBox>
             <padding>
                 <Insets right="10"/>
             </padding>

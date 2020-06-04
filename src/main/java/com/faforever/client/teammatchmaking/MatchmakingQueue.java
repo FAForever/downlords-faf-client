@@ -13,12 +13,14 @@ import java.time.Instant;
 public class MatchmakingQueue {
   private StringProperty queueName;
   private ObjectProperty<Instant> queuePopTime;
-  private IntegerProperty playersInQueue;
+  private IntegerProperty teamSize;
+  private IntegerProperty partiesInQueue;
 
   public MatchmakingQueue(String queueName) {
     this.queueName = new SimpleStringProperty(queueName);
     this.queuePopTime = new SimpleObjectProperty<>(Instant.now().plus(Duration.ofDays(1)));
-    this.playersInQueue = new SimpleIntegerProperty(0);
+    this.teamSize = new SimpleIntegerProperty(0);
+    this.partiesInQueue = new SimpleIntegerProperty(0);
   }
 
   public String getQueueName() {
@@ -45,15 +47,27 @@ public class MatchmakingQueue {
     return queuePopTime;
   }
 
-  public int getPlayersInQueue() {
-    return playersInQueue.get();
+  public int getPartiesInQueue() {
+    return partiesInQueue.get();
   }
 
-  public void setPlayersInQueue(int playersInQueue) {
-    this.playersInQueue.set(playersInQueue);
+  public void setPartiesInQueue(int partiesInQueue) {
+    this.partiesInQueue.set(partiesInQueue);
   }
 
-  public IntegerProperty playersInQueueProperty() {
-    return playersInQueue;
+  public IntegerProperty partiesInQueueProperty() {
+    return partiesInQueue;
+  }
+
+  public int getTeamSize() {
+    return teamSize.get();
+  }
+
+  public void setTeamSize(int teamSize) {
+    this.teamSize.set(teamSize);
+  }
+
+  public IntegerProperty teamSizeProperty() {
+    return teamSize;
   }
 }
