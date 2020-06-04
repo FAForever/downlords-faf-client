@@ -38,8 +38,8 @@ apply plugin: 'propdeps'
 apply plugin: 'distribution'
 
 
-sourceCompatibility = 1.11
-targetCompatibility = 1.11
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
 
 // These are read from gradle.properties
 version "${version}"
