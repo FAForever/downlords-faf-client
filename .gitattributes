@@ -8,4 +8,5 @@
 *.mp3                   binary
 *.zip                   binary
 *.exe                   binary
+*.enc                   binary
 src/main/native/uid     binary

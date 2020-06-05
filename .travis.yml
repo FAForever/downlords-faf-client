@@ -12,6 +12,8 @@ env:
     - secure: "UVIbeoJpx9n0KSWHbpdWZuR4zeZfXw3JQBq2Zb1h0/j4uREfXWiGFuNVQBPjsdtYi2+LkecjJ/MgKWo+SS0SjsvTa/ZPkOXt4408H1qYgwVnvWoeL/g1QQ6T8ADNysl/4ZtJLnSp0WXYEBkfHYZJD++vgDwkpVhnCLVzSFVAHls="
 
 before_install:
+  - openssl aes-256-cbc -K $encrypted_01456a3862ee_key -iv $encrypted_01456a3862ee_iv -in ./ci/id_rsa.key.enc -out /tmp/id_rsa.key -d
+  - chmod 600 /tmp/id_rsa.key
   - export JDK="openjdk14"
   #Installs the normal openjdk as this is not supported by travis itself
   - chmod +x ./ci/installjdk.sh && ./ci/installjdk.sh
@@ -34,6 +36,9 @@ script:
 
 after_success:
   - if [ -n "${TRAVIS_TAG}" ]; then chmod +x ./ci/github-release.sh && ./ci/github-release.sh; fi
+  - chmod +x ./ci/publish-update4j.sh && ./ci/publish-update4j.sh
+  - cp build/update4j/win/*/update4j.xml build/update4j/update4j-win.xml
+  - cp build/update4j/unix/*/update4j.xml build/update4j/update4j-unix.xml
 
 after_failure:
 - cat /home/travis/build/FAForever/downlords-faf-client/hs_err_pid*.log
@@ -49,6 +54,7 @@ deploy:
   - build/install4j/*.gz
   - build/install4j/*.deb
   - build/install4j/*.rpm
+  - build/update4j/update4j-*.xml
   skip_cleanup: true
   name: ${GITHUB_RELEASE_VERSION}
   draft: true

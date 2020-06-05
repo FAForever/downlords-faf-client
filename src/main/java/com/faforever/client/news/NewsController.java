@@ -3,11 +3,11 @@ package com.faforever.client.news;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Website;
 import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.main.event.NavigateEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Worker;
 import javafx.scene.Node;
@@ -60,11 +60,11 @@ public class NewsController extends AbstractViewController<Node> {
   }
 
   private void onLoadingStart() {
-    Platform.runLater(() -> loadingIndicator.setVisible(true));
+    JavaFxUtil.runLater(() -> loadingIndicator.setVisible(true));
   }
 
   private void onLoadingStop() {
-    Platform.runLater(() -> loadingIndicator.setVisible(false));
+    JavaFxUtil.runLater(() -> loadingIndicator.setVisible(false));
   }
 
   @Override
@@ -84,7 +84,7 @@ public class NewsController extends AbstractViewController<Node> {
 
 
   private void loadNews() {
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       Website website = clientProperties.getWebsite();
       newsWebView.getEngine().load(website.getNewsHubUrl());
     });

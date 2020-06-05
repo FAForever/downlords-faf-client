@@ -8,10 +8,12 @@ import java.util.List;
 
 @Data
 public class GitHubRelease {
-  private boolean prerelease;
+  @JsonProperty("prerelease")
+  private boolean preRelease;
+  private String name;
   @JsonProperty("tag_name")
   private String tagName;
   @JsonProperty("html_url")
   private URL releaseNotes;
-  private List<GitHubAssets> assets;
+  private List<GitHubAsset> assets;
 }

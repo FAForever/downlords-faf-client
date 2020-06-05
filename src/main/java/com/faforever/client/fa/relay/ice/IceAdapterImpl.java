@@ -151,7 +151,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   public CompletableFuture<Integer> start() {
     iceAdapterClientFuture = new CompletableFuture<>();
     Thread thread = new Thread(() -> {
-      String nativeDir = System.getProperty("nativeDir", "lib");
+      String externalToolsDir = System.getProperty("externalToolsDir", "tools");
 
       int adapterPort = SocketUtils.findAvailableTcpPort();
       int gpgPort = SocketUtils.findAvailableTcpPort();
@@ -159,7 +159,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
       Player currentPlayer = playerService.getCurrentPlayer()
           .orElseThrow(() -> new IllegalStateException("Player has not been set"));
 
-      Path workDirectory = Paths.get(nativeDir).toAbsolutePath();
+      Path workDirectory = Paths.get(externalToolsDir).toAbsolutePath();
 
       List<String> cmd = Lists.newArrayList(
           Paths.get(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString(),

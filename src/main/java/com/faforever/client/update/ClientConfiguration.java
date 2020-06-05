@@ -1,20 +1,26 @@
 package com.faforever.client.update;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 
 import java.net.URL;
+import java.util.LinkedList;
 import java.util.List;
 
-@Data
 // TODO since this class contains both, update info and configuration, the package 'update' doesn't really fit.
+
 /**
- * A representation of a config file read from the faf server on start up. The file on the server allows to dynamically change settings in the client remotely.
+ * A representation of a config file read from the faf server on start up. The file on the server allows to dynamically
+ * change settings in the client remotely.
  */
+@Data
 public class ClientConfiguration {
-  ReleaseInfo latestRelease;
-  List<Integer> recommendedMaps;
-  List<Endpoints> endpoints;
-  GitHubRepo gitHubRepo;
+  ReleaseInfo latestRelease = new ReleaseInfo();
+  List<Integer> recommendedMaps = new LinkedList<>();
+  List<Endpoints> endpoints = new LinkedList<>();
+  GitHubRepo gitHubRepo = new GitHubRepo();
 
   @Data
   public static class GitHubRepo {
@@ -45,9 +51,12 @@ public class ClientConfiguration {
   }
 
   @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
   public static class ReleaseInfo {
-    String version;
-    String minimumVersion;
+    ComparableVersion version;
+    ComparableVersion minimumVersion;
+    URL update4jConfigUrl;
     URL windowsUrl;
     URL linuxUrl;
     URL macUrl;

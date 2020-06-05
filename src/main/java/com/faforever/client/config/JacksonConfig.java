@@ -31,7 +31,9 @@ public class JacksonConfig {
 
     @Override
     public ComparableVersion deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-      return new ComparableVersion(p.getValueAsString());
+      String valueAsString = p.getValueAsString();
+      valueAsString = valueAsString.startsWith("v") ? valueAsString.substring(1) : valueAsString;
+      return new ComparableVersion(valueAsString);
     }
   }
 

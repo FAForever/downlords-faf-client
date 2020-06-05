@@ -15,22 +15,23 @@ fi
   -PjavafxPlatform=linux \
   -Pinstall4jHomeDir="${INSTALL4J_DIR}" \
   -Pinstall4jLicense=${install4jLicense} \
-  buildInstall4jMediaFiles
+  -Pupdate4jBaseUrl="https://${PUBLISH_SSH_HOST}/unix/\${version}" \
+  buildInstall4jMediaFiles update4jConfig
 
 ./gradlew -Pversion=${APP_VERSION} \
   -PjavafxPlatform=win \
   -Pinstall4jHomeDir="${INSTALL4J_DIR}" \
   -Pinstall4jLicense=${install4jLicense} \
-  --info \
-  --stacktrace \
-  buildInstall4jMediaFiles
+  -Pupdate4jBaseUrl="https://${PUBLISH_SSH_HOST}/win/\${version}" \
+  buildInstall4jMediaFiles update4jConfig
 
 ./gradlew -Pversion=${APP_VERSION} \
   -PjavafxPlatform=mac \
   -Pinstall4jHomeDir="${INSTALL4J_DIR}" \
   -Pinstall4jLicense=${install4jLicense} \
-  buildInstall4jMediaFiles
+  -Pupdate4jBaseUrl="https://${PUBLISH_SSH_HOST}/mac/\${version}" \
+  buildInstall4jMediaFiles update4jConfig
 
 RELEASE_BODY=$(python3 ./ci/release-body.py ${GITHUB_RELEASE_VERSION})
 echo "Release body:
-${RELEASE_BODY}";
+${RELEASE_BODY}"

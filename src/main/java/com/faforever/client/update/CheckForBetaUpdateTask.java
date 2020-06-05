@@ -1,8 +1,10 @@
 package com.faforever.client.update;
 
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.CompletableTask;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Scope;
@@ -13,70 +15,55 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.update4j.Configuration;
 
+import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class CheckForBetaUpdateTask extends CompletableTask<UpdateInfo> {
+public class CheckForBetaUpdateTask extends AbstractCheckForUpdateTask {
 
-  public static final String PATH_FOR_RELEASE = "/releases";
-  private final PreferencesService preferencesService;
-  private final RestTemplate restTemplate;
-
-  public CheckForBetaUpdateTask(PreferencesService preferencesService, RestTemplateBuilder restTemplateBuilder) {
-    super(Priority.LOW);
-    this.preferencesService = preferencesService;
-    restTemplate = restTemplateBuilder.build();
+  public CheckForBetaUpdateTask(I18n i18n, PreferencesService preferencesService, RestTemplateBuilder restTemplateBuilder) {
+    super(i18n, preferencesService, restTemplateBuilder);
   }
 
   @Override
-  protected UpdateInfo call() throws Exception {
-
-    LinkedMultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-    headers.add("Accept", "application/vnd.github.v3+json");
-    HttpEntity<String> entity = new HttpEntity<>(null, headers);
-
-    ClientConfiguration clientConfiguration = preferencesService.getRemotePreferences();
-    //Important List<GitHubRelease> needs to stay in  new ParameterizedTypeReference<List<GitHubRelease>>() {}), because of a openjdk compiler bug
-    ResponseEntity<List<GitHubRelease>> response = restTemplate.exchange(clientConfiguration.getGitHubRepo().getApiUrl() + PATH_FOR_RELEASE, HttpMethod.GET, entity, new ParameterizedTypeReference<List<GitHubRelease>>() {
-    });
-    List<GitHubRelease> responseBody = response.getBody();
-    if (responseBody == null || responseBody.isEmpty()) {
-      return null;
-    }
-    GitHubRelease latestRelease = responseBody.get(0);
-    if (!latestRelease.isPrerelease()) {
-      return null;
+  protected Optional<UpdateInfo> getUpdateInfo(ClientConfiguration clientConfiguration) {
+    Optional<List<GitHubRelease>> gitHubReleases = getGitHubReleases(clientConfiguration);
+    if (gitHubReleases.isEmpty() || gitHubReleases.get().isEmpty()) {
+      return Optional.empty();
     }
 
-    GitHubAssets asset;
-    if (org.bridj.Platform.isWindows()) {
-      asset = getAssetOfFileWithEnding(latestRelease, ".exe");
-    } else if (org.bridj.Platform.isLinux()) {
-      asset = getAssetOfFileWithEnding(latestRelease, ".tar.gz");
-    } else if (org.bridj.Platform.isMacOSX()) {
-      asset = getAssetOfFileWithEnding(latestRelease, ".tar.gz");
-    } else {
-      return null;
+    GitHubRelease latestRelease = gitHubReleases.get().get(0);
+    if (!latestRelease.isPreRelease()) {
+      return Optional.empty();
     }
-    String version = latestRelease.getTagName().substring(1);
 
-    return new UpdateInfo(
-        version,
-        asset.getName(),
-        asset.getBrowserDownloadUrl(),
-        asset.getSize(),
+    URL update4jConfigUrl = getUpdate4jConfigAsset(latestRelease)
+        .map(GitHubAsset::getBrowserDownloadUrl)
+        .orElse(null);
+
+    Configuration newConfig = readConfiguration(update4jConfigUrl);
+    if (newConfig == null) {
+      return Optional.empty();
+    }
+
+    // FIXME read from local disk
+    Optional<Configuration> oldConfiguration = getCurrentConfiguration(gitHubReleases.get());
+
+    long size = calculateUpdateSize(oldConfiguration, newConfig);
+
+    return Optional.of(new UpdateInfo(
+        latestRelease.getName(),
+        versionFromTag(latestRelease.getTagName()),
+        oldConfiguration,
+        newConfig,
+        size,
         latestRelease.getReleaseNotes(),
-        latestRelease.isPrerelease()
-    );
-  }
-
-  private GitHubAssets getAssetOfFileWithEnding(GitHubRelease latestRelease, String ending) {
-    return latestRelease.getAssets().stream()
-        .filter(asset -> asset.getName().contains(ending))
-        .findFirst()
-        .orElseThrow();
+        true
+    ));
   }
 }

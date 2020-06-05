@@ -393,7 +393,7 @@ public class ChannelTabController extends AbstractChatTabController {
     if (chatUser.getColor() != null) {
       color = JavaFxUtil.toRgbCode(chatUser.getColor());
     }
-    getJsObject().call("updateUserMessageColor", chatUser.getUsername(), color);
+//    getJsObject().call("updateUserMessageColor", chatUser.getUsername(), color);
   }
 
   private void removeUserMessageClass(ChatChannelUser chatUser, String cssClass) {
@@ -404,7 +404,7 @@ public class ChannelTabController extends AbstractChatTabController {
     //Workaround for issue #1080 https://github.com/FAForever/downlords-faf-client/issues/1080
     Platform.runLater(() -> {
       try {
-        engine.executeScript("removeUserMessageClass(\'" + String.format(USER_CSS_CLASS_FORMAT, chatUser.getUsername()) + "\',\'" + cssClass + "\');");
+//        engine.executeScript("removeUserMessageClass(\'" + String.format(USER_CSS_CLASS_FORMAT, chatUser.getUsername()) + "\',\'" + cssClass + "\');");
       } catch (Exception ignored) {
         //before with "getJsObject().call..." if the engine was not yet loaded the Exception was ignored and hence I know to the same
         //TODO: only accept calls after the engine loaded the page completely

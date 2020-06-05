@@ -1,0 +1,32 @@
+plugins {
+  id 'com.github.johnrengelman.shadow' version '6.0.0'
+  id 'java'
+}
+
+repositories {
+  jcenter()
+}
+
+sourceCompatibility = JavaVersion.VERSION_14
+targetCompatibility = JavaVersion.VERSION_14
+
+version "${version}"
+
+jar.enabled = false
+jar.dependsOn shadowJar
+
+shadowJar {
+  doFirst {
+    manifest {
+      attributes "Main-Class": "com.faforever.client.updater.UpdateFinalizer"
+    }
+  }
+}
+
+shadowJar {
+  archiveClassifier = ''
+}
+
+dependencies {
+  implementation "org.update4j:update4j:${update4jVersion}"
+}
