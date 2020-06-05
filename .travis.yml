@@ -48,6 +48,7 @@ deploy:
   - build/install4j/*.gz
   - build/install4j/*.deb
   - build/install4j/*.rpm
+  - build/libs/*.jar
   skip_cleanup: true
   name: ${GITHUB_RELEASE_VERSION}
   draft: true

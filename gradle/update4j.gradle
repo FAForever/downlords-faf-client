@@ -1,0 +1,92 @@
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "org.update4j:update4j:${update4jVersion}"
+  }
+}
+
+import org.update4j.FileMetadata
+import org.update4j.OS
+
+task createUpdate4jConfig {
+  group 'update4j'
+  doLast {
+    def ignoreBootConflicts = ["jul-to-slf4j"]
+
+    def dir = file("${rootProject.buildDir}/update4j")
+    mkdir(dir)
+
+    def builder = org.update4j.Configuration.builder()
+        .basePath('${app.lib}')
+        .updateHandler('com.faforever.client.bootstrap.${update.handler.class}')
+        .launcher('com.faforever.client.Main')
+        .property('app.name', 'Downlord\'s FAF Client')
+        .property('app.dir', '${user.dir}/${app.name}')
+        .property('app.lib', '${LOCALAPPDATA}/${app.name}/lib', OS.WINDOWS)
+        .property('app.lib', '${app.dir}/lib')
+        .property('update.handler.class', 'DefaultUpdateHandler')
+
+    configurations.compile.resolvedConfiguration.resolvedArtifacts.each { dep ->
+      String path
+      if (dep.classifier != null) {
+        path = String.format('%s-%s-%s.%s', dep.moduleVersion.id.name, dep.moduleVersion.id.version, dep.classifier, dep.extension)
+      } else {
+        path = String.format('%s-%s.%s', dep.moduleVersion.id.name, dep.moduleVersion.id.version, dep.extension)
+      }
+
+      String url = rootProject.repositories
+          .collect {
+            def baseUrl = it.url.toString().replaceFirst('/$', '');
+            dep.classifier != null
+                ? String.format('%1$s/%2$s/%3$s/%4$s/%3$s-%4$s-%5$s.%6$s', baseUrl, dep.moduleVersion.id.group.replace('.', '/'), dep.moduleVersion.id.name, dep.moduleVersion.id.version, dep.classifier, dep.extension)
+                : String.format('%1$s/%2$s/%3$s/%4$s/%3$s-%4$s.%5$s', baseUrl, dep.moduleVersion.id.group.replace('.', '/'), dep.moduleVersion.id.name, dep.moduleVersion.id.version, dep.extension)
+          }
+          .find { url ->
+            logger.debug("Testing ${url}")
+            new URL(url).openConnection().with {
+              requestMethod = 'HEAD'
+              connect()
+              responseCode
+            } == HttpURLConnection.HTTP_OK
+          }
+
+      if (url == null) {
+        throw new GradleException("Could not find a valid URL for: ${dep}")
+      }
+
+      def file = FileMetadata.readFrom(dep.file.toPath())
+          .uri(url)
+          .path(path)
+          .ignoreBootConflict(ignoreBootConflicts.contains(dep.name))
+          .classpath()
+
+      builder.file(file)
+    }
+
+    builder.file(FileMetadata.readFrom(downloadUnixUid.outputs.files.first().toPath())
+        .os(OS.LINUX)
+        .uri(downloadUnixUid.src.toString())
+        .path(downloadUnixUid.dest.toPath().fileName)
+    )
+    builder.file(FileMetadata.readFrom(downloadWindowsUid.outputs.files.first().toPath())
+        .os(OS.WINDOWS)
+        .uri(downloadWindowsUid.src.toString())
+        .path(downloadWindowsUid.dest.toPath().fileName)
+    )
+    builder.file(FileMetadata.readFrom(downloadIceAdapter.outputs.files.first().toPath())
+        .uri(downloadIceAdapter.src.toString())
+        .path(downloadIceAdapter.dest.toPath().fileName)
+    )
+    builder.file(FileMetadata.readFrom(jar.outputs.files.first().toPath())
+        .uri("https://github.com/FAForever/downlords-faf-client/releases/download/v${project.version}/downlords-faf-client-${project.version}.jar")
+        .path(jar.outputs.files.first().toPath().fileName)
+    )
+
+    def configuration = builder.build()
+    file("${dir}/config.xml").withWriter { writer ->
+      configuration.write(writer)
+    }
+  }
+}
