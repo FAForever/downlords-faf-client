@@ -1,0 +1,16 @@
+plugins {
+  id 'java'
+}
+
+repositories {
+  jcenter()
+}
+
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
+
+version "${version}"
+
+dependencies {
+  implementation 'org.update4j:update4j:1.4.5'
+}
