@@ -12,7 +12,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.TimeInfo;
 import com.faforever.client.settings.LanguageItemController;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
@@ -25,9 +24,7 @@ import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.testfx.util.WaitForAsyncUtils;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -35,7 +32,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -43,13 +39,12 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class SettingsControllerTest extends AbstractPlainJavaFxTest {
-  private static final Theme FIRST_THEME = new Theme("First", "none", 1, "1");
-  private static final Theme SECOND_THEME = new Theme("Second", "none", 1, "1");
 
   private SettingsController instance;
   @Mock
@@ -79,13 +74,6 @@ public class SettingsControllerTest extends AbstractPlainJavaFxTest {
     preferences = new Preferences();
     when(preferenceService.getPreferences()).thenReturn(preferences);
     when(uiService.currentThemeProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(uiService.getCurrentTheme())
-        .thenReturn(FIRST_THEME);
-    when(uiService.getAvailableThemes())
-        .thenReturn(Arrays.asList(
-            FIRST_THEME,
-            SECOND_THEME
-        ));
 
     availableLanguages = new SimpleSetProperty<>(FXCollections.observableSet());
     when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlySetWrapper<>(availableLanguages));
@@ -95,36 +83,11 @@ public class SettingsControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testThemesDisplayed() {
-    assertThat(instance.themeComboBox.getSelectionModel().getSelectedItem(), is(FIRST_THEME));
-    assertThat(instance.themeComboBox.getItems(), hasItem(FIRST_THEME));
-    assertThat(instance.themeComboBox.getItems(), hasItem(SECOND_THEME));
-  }
-
-  @Test
-  public void testSelectingSecondThemeCausesReloadAndRestartPrompt() {
-    when(uiService.doesThemeNeedRestart(SECOND_THEME)).thenReturn(true);
-    instance.themeComboBox.getSelectionModel().select(SECOND_THEME);
-    WaitForAsyncUtils.waitForFxEvents();
-    verify(uiService).setTheme(SECOND_THEME);
-    verify(notificationService).addNotification(any(PersistentNotification.class));
-  }
-
-  @Test
-  public void testSelectingDefaultThemeDoesNotCausesRestartPrompt() {
-    when(uiService.doesThemeNeedRestart(SECOND_THEME)).thenReturn(false);
-    instance.themeComboBox.getSelectionModel().select(SECOND_THEME);
-    WaitForAsyncUtils.waitForFxEvents();
-    verify(notificationService, never()).addNotification(any(PersistentNotification.class));
-    verify(uiService).setTheme(SECOND_THEME);
-  }
-
-  @Test
   public void testSearchForBetaUpdateIfOptionIsTurnedOn() {
     instance.prereleaseToggle.setSelected(true);
     verify(clientUpdateService).checkForUpdateInBackground();
     instance.prereleaseToggle.setSelected(false);
-    verifyNoMoreInteractions(clientUpdateService);
+    verify(clientUpdateService, times(2)).checkForUpdateInBackground();
   }
 
   @Test

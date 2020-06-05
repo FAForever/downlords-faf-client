@@ -11,15 +11,14 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.user.event.LoggedInEvent;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Path;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.notification.Severity.INFO;
@@ -27,7 +26,6 @@ import static com.faforever.client.notification.Severity.WARN;
 import static com.faforever.commons.io.Bytes.formatSize;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.apache.commons.lang3.StringUtils.defaultString;
 
 
 @Lazy
@@ -36,8 +34,6 @@ import static org.apache.commons.lang3.StringUtils.defaultString;
 @Profile("!" + FafClientApplication.PROFILE_OFFLINE)
 public class ClientUpdateServiceImpl implements ClientUpdateService {
 
-  private static final String DEVELOPMENT_VERSION_STRING = "dev";
-
   private final TaskService taskService;
   private final NotificationService notificationService;
   private final I18n i18n;
@@ -45,17 +41,8 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
   private final ApplicationContext applicationContext;
   private final PreferencesService preferencesService;
 
-  private final CompletableFuture<UpdateInfo> updateInfoFuture;
-  private final CompletableFuture<UpdateInfo> updateInfoBetaFuture;
-
   @VisibleForTesting
-  String currentVersion;
-
-  public static class InstallerExecutionException extends UncheckedIOException {
-    public InstallerExecutionException(String message, IOException cause) {
-      super(message, cause);
-    }
-  }
+  ComparableVersion currentVersion;
 
   public ClientUpdateServiceImpl(
       TaskService taskService,
@@ -71,111 +58,76 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
     this.applicationContext = applicationContext;
     this.preferencesService = preferencesService;
 
-    currentVersion = defaultString(Version.getCurrentVersion(), DEVELOPMENT_VERSION_STRING);
+    currentVersion = Version.getCurrentVersion();
     log.info("Current version: {}", currentVersion);
-
-    CheckForUpdateTask task = applicationContext.getBean(CheckForUpdateTask.class);
-    this.updateInfoFuture = taskService.submitTask(task).getFuture();
-
-    CheckForBetaUpdateTask betaTask = applicationContext.getBean(CheckForBetaUpdateTask.class);
-    this.updateInfoBetaFuture = taskService.submitTask(betaTask).getFuture();
-  }
-
-  /**
-   * Returns information about the newest update. Returns {@code null} if no update is available.
-   */
-  @Override
-  public CompletableFuture<UpdateInfo> getNewestUpdate() {
-    return updateInfoFuture;
   }
 
   @Override
-  public void checkForUpdateInBackground() {
+  public CompletableFuture<Optional<UpdateInfo>> checkForUpdateInBackground() {
+    CompletableFuture<Optional<UpdateInfo>> task;
     if (preferencesService.getPreferences().isPrereleaseCheckEnabled()) {
-      checkForBetaUpdateInBackground();
+      task = taskService.submitTask(applicationContext.getBean(CheckForBetaUpdateTask.class)).getFuture();
     } else {
-      checkForRegularUpdateInBackground();
+      task = taskService.submitTask(applicationContext.getBean(CheckForReleaseUpdateTask.class)).getFuture();
     }
-  }
 
-  @EventListener
-  public void onLoggedInEvent(LoggedInEvent loggedInEvent) {
-    checkForUpdateInBackground();
-  }
-
-  /**
-   * Creates an update notification with actions to download and install latest release
-   */
-  private void checkForRegularUpdateInBackground() {
-    notificationOnUpdate(updateInfoFuture);
-  }
-
-  /**
-   * Creates an update notification with actions to download and install latest beta release
-   */
-  private void checkForBetaUpdateInBackground() {
-    notificationOnUpdate(updateInfoBetaFuture);
-  }
-
-  private void notificationOnUpdate(CompletableFuture<UpdateInfo> updateInfoSupplier) {
-    updateInfoSupplier.thenAccept(updateInfo -> {
-      if (updateInfo == null) {
-        return;
-      }
-
-      if (!Version.shouldUpdate(getCurrentVersion(), updateInfo.getName())) {
-        return;
-      }
-
-      notificationService.addNotification(new PersistentNotification(
-          i18n.get(updateInfo.isPrerelease() ? "clientUpdateAvailable.prereleaseNotification" : "clientUpdateAvailable.notification", updateInfo.getName(), formatSize(updateInfo.getSize(), i18n.getUserSpecificLocale())),
-          INFO, asList(
-          new Action(i18n.get("clientUpdateAvailable.downloadAndInstall"), event -> downloadAndInstallInBackground(updateInfo)),
-          new Action(i18n.get("clientUpdateAvailable.releaseNotes"), Action.Type.OK_STAY,
-              event -> platformService.showDocument(updateInfo.getReleaseNotesUrl().toExternalForm())
-          )))
-      );
-    }).exceptionally(throwable -> {
+    return task.exceptionally(throwable -> {
       log.warn("Client update check failed", throwable);
-      return null;
+      return Optional.empty();
     });
   }
 
+  @EventListener(classes = LoggedInEvent.class)
+  public void onLoggedInEvent() {
+    checkForUpdateInBackground().thenAccept(updateInfoOptional -> {
+      if (updateInfoOptional.isEmpty()) {
+        return;
+      }
+      UpdateInfo updateInfo = updateInfoOptional.get();
+      if (preferencesService.getPreferences().isAutoUpdate()) {
+        updateIfNecessary(updateInfo);
+      } else {
+        notificationService.addNotification(new PersistentNotification(
+            i18n.get(updateInfo.isPrerelease() ? "clientUpdateAvailable.prereleaseNotification" : "clientUpdateAvailable.notification", updateInfo.getName(), formatSize(updateInfo.getSize(), i18n.getUserSpecificLocale())),
+            INFO, asList(
+            new Action(i18n.get("clientUpdateAvailable.downloadAndInstall"), event -> updateInBackground(updateInfo)),
+            new Action(i18n.get("clientUpdateAvailable.releaseNotes"), Action.Type.OK_STAY,
+                event -> platformService.showDocument(updateInfo.getReleaseNotesUrl().toExternalForm())
+            ))));
+      }
+    });
+  }
+
+  private void updateIfNecessary(UpdateInfo updateInfo) {
+    if (updateInfo == null) {
+      return;
+    }
+
+    if (!Version.shouldUpdate(updateInfo.getVersion())) {
+      return;
+    }
+
+    if (!preferencesService.getPreferences().isAutoUpdate()) {
+      return;
+    }
+    updateInBackground(updateInfo);
+  }
+
   @Override
-  public String getCurrentVersion() {
+  public ComparableVersion getCurrentVersion() {
     return currentVersion;
   }
 
-  @VisibleForTesting
-  void install(Path binaryPath) {
-    try {
-      platformService.setUnixExecutableAndWritableBits(binaryPath);
-    } catch (IOException e) {
-      throw new InstallerExecutionException("Unix execute bit could not be set", e);
-    }
-    String command = binaryPath.toAbsolutePath().toString();
-    try {
-      log.info("Starting installer at {}", command);
-      new ProcessBuilder(command).inheritIO().start();
-    } catch (IOException e) {
-      throw new InstallerExecutionException("Installation could not be started", e);
-    }
-  }
-
-  public DownloadUpdateTask downloadAndInstallInBackground(UpdateInfo updateInfo) {
-    DownloadUpdateTask task = applicationContext.getBean(DownloadUpdateTask.class);
+  public ClientUpdateTask updateInBackground(UpdateInfo updateInfo) {
+    ClientUpdateTask task = applicationContext.getBean(ClientUpdateTask.class);
     task.setUpdateInfo(updateInfo);
 
     taskService.submitTask(task).getFuture()
-        .thenAccept(this::install)
         .exceptionally(throwable -> {
-          if (throwable instanceof InstallerExecutionException) {
-            log.warn(throwable.getMessage(), throwable.getCause());
-          }
-          log.warn("Error while downloading client update", throwable);
+          log.warn("Update failed", throwable);
           notificationService.addNotification(
               new PersistentNotification(i18n.get("clientUpdateDownloadFailed.notification"), WARN, singletonList(
-                  new Action(i18n.get("clientUpdateDownloadFailed.retry"), event -> downloadAndInstallInBackground(updateInfo))
+                  new Action(i18n.get("clientUpdateDownloadFailed.retry"), event -> updateInBackground(updateInfo))
               ))
           );
           return null;

@@ -11,10 +11,12 @@ import com.faforever.client.update.ClientConfiguration;
 import com.faforever.client.update.ClientConfiguration.Endpoints;
 import com.faforever.client.update.ClientConfiguration.ReleaseInfo;
 import com.faforever.client.update.ClientUpdateService;
-import com.faforever.client.update.DownloadUpdateTask;
+import com.faforever.client.update.ClientUpdateTask;
 import com.faforever.client.update.UpdateInfo;
+import com.faforever.client.update.Version;
 import com.faforever.client.update.VersionTest;
 import com.faforever.client.user.UserService;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Answers;
@@ -23,11 +25,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -36,7 +39,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class LoginControllerTest extends AbstractPlainJavaFxTest {
@@ -112,7 +115,7 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     instance.passwordInput.setText("foo");
     instance.loginButton.fire();
     verify(i18n).get(LOGIN_WITH_EMAIL_WARNING_KEY);
-    verifyZeroInteractions(userService);
+    verifyNoInteractions(userService);
     assertThat(instance.loginErrorLabel.isVisible(), is(true));
     assertThat(instance.loginErrorLabel.getText(), is(LOGIN_WITH_EMAIL_WARNING_KEY));
   }
@@ -129,17 +132,15 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testInitializeWithNoMandatoryUpdate() throws Exception {
-    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
     ClientConfiguration clientConfiguration = new ClientConfiguration();
     ClientConfiguration.ReleaseInfo releaseInfo = new ReleaseInfo();
     ClientConfiguration.Endpoints endpoints = mock(Endpoints.class, Answers.RETURNS_DEEP_STUBS);
     clientConfiguration.setLatestRelease(releaseInfo);
     clientConfiguration.setEndpoints(Collections.singletonList(endpoints));
 
-    releaseInfo.setMinimumVersion("2.1.2");
-    VersionTest.setCurrentVersion("2.2.0");
+    releaseInfo.setMinimumVersion(new ComparableVersion("2.1.2"));
+    Version.currentVersion = new ComparableVersion("2.2.0");
 
-    when(clientUpdateService.getNewestUpdate()).thenReturn(CompletableFuture.completedFuture(updateInfo));
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
 
     clientProperties.setUseRemotePreferences(true);
@@ -154,23 +155,19 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.loginErrorLabel.isVisible(), is(false));
     assertThat(instance.downloadUpdateButton.isVisible(), is(false));
     assertThat(instance.loginFormPane.isDisable(), is(false));
-
-    verify(clientUpdateService, atLeastOnce()).getNewestUpdate();
   }
 
   @Test
   public void testInitializeWithMandatoryUpdate() throws Exception {
-    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
     ClientConfiguration clientConfiguration = new ClientConfiguration();
     ClientConfiguration.ReleaseInfo releaseInfo = new ReleaseInfo();
     ClientConfiguration.Endpoints endpoints = mock(Endpoints.class, Answers.RETURNS_DEEP_STUBS);
     clientConfiguration.setLatestRelease(releaseInfo);
     clientConfiguration.setEndpoints(Collections.singletonList(endpoints));
 
-    releaseInfo.setMinimumVersion("2.1.2");
-    VersionTest.setCurrentVersion("1.2.0");
+    releaseInfo.setMinimumVersion(new ComparableVersion("2.1.2"));
+    Version.currentVersion = new ComparableVersion("1.2.0");
 
-    when(clientUpdateService.getNewestUpdate()).thenReturn(CompletableFuture.completedFuture(updateInfo));
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
 
     clientProperties.setUseRemotePreferences(true);
@@ -186,23 +183,21 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.downloadUpdateButton.isVisible(), is(true));
     assertThat(instance.loginFormPane.isDisable(), is(true));
 
-    verify(clientUpdateService, atLeastOnce()).getNewestUpdate();
-    verify(i18n).get("login.clientTooOldError", "1.2.0", "2.1.2");
+    verify(i18n).get("login.clientTooOldError", new ComparableVersion("1.2.0"), new ComparableVersion("2.1.2"));
   }
 
   @Test
   public void testOnDownloadUpdateButtonClicked() throws Exception {
-    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
-    DownloadUpdateTask downloadUpdateTask = new DownloadUpdateTask(i18n, preferencesService);
-    when(clientUpdateService.downloadAndInstallInBackground(updateInfo)).thenReturn(downloadUpdateTask);
-
-    ReflectionTestUtils.setField(instance, "updateInfoFuture", CompletableFuture.completedFuture(updateInfo));
+    UpdateInfo updateInfo = new UpdateInfo(null, null, Optional.empty(), null, 5, null, false);
+    ClientUpdateTask clientUpdateTask = new ClientUpdateTask(i18n, preferencesService);
+    when(clientUpdateService.updateInBackground(updateInfo)).thenReturn(clientUpdateTask);
+    when(clientUpdateService.checkForUpdateInBackground()).thenReturn(CompletableFuture.completedFuture(Optional.of(updateInfo)));
 
     instance.onDownloadUpdateButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(i18n).get("login.button.downloadPreparing");
-    verify(clientUpdateService, atLeastOnce()).downloadAndInstallInBackground(updateInfo);
+    verify(clientUpdateService, atLeastOnce()).updateInBackground(updateInfo);
   }
 
   @Test
@@ -225,7 +220,7 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     instance.onLoginButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verifyZeroInteractions(userService);
+    verifyNoInteractions(userService);
     verify(i18n).get("login.withEmailWarning");
     assertTrue(instance.loginErrorLabel.isVisible());
   }
