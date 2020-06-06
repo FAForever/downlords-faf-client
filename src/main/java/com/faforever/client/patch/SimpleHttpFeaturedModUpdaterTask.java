@@ -2,39 +2,32 @@ package com.faforever.client.patch;
 
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.io.FeaturedModFileCacheService;
 import com.faforever.client.io.DownloadService;
+import com.faforever.client.io.FeaturedModFileCacheService;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
-import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.util.UpdaterUtil;
 import com.google.common.hash.Hashing;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Slf4j
 public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResult> {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
   private final FafService fafService;
   private final PreferencesService preferencesService;
   private final DownloadService downloadService;
@@ -88,7 +81,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
       }
 
       if (!featuredModFile.getMd5().equals(existingTargetFileHash)) {
-        logger.info(String.format("downloading: %s", cacheFilePath.toString()));
+        log.info("Downloading: {}", cacheFilePath);
         downloadFeaturedModFile(featuredModFile, cacheFilePath);
       }
 
@@ -103,7 +96,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
       String existingTargetFileHash = knownTargetHashes.get(targetPath.toString());
 
       if (!featuredModFile.getMd5().equals(existingTargetFileHash)) {
-        logger.info(String.format("copying featured mod file: %s to %s", cacheFilePath.toString(), targetPath.toString()));
+        log.info("copying featured mod file: {} to {}", cacheFilePath, targetPath);
         featuredModFileCacheService.copyFeaturedModFileFromCache(cacheFilePath, targetPath);
       }
     }
