@@ -13,7 +13,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.update.ClientConfiguration;
 import com.faforever.client.update.ClientConfiguration.Endpoints;
 import com.faforever.client.update.ClientUpdateService;
-import com.faforever.client.update.DownloadUpdateTask;
+import com.faforever.client.update.ClientUpdateTask;
 import com.faforever.client.update.UpdateInfo;
 import com.faforever.client.update.Version;
 import com.faforever.client.user.UserService;
@@ -335,15 +335,13 @@ public class LoginController implements Controller<Pane> {
     log.info("Downloading update");
     updateInfoFuture
         .thenAccept(updateInfo -> {
-          DownloadUpdateTask downloadUpdateTask = clientUpdateService.downloadAndInstallInBackground(updateInfo);
+          ClientUpdateTask clientUpdateTask = clientUpdateService.updateInBackground(updateInfo);
 
-          if (downloadUpdateTask != null) {
-            downloadUpdateButton.textProperty().bind(
-                Bindings.createStringBinding(() -> downloadUpdateTask.getProgress() == -1 ?
-                        i18n.get("login.button.downloadPreparing") :
-                        i18n.get("login.button.downloadProgress", downloadUpdateTask.getProgress()),
-                    downloadUpdateTask.progressProperty()));
-          }
+          downloadUpdateButton.textProperty().bind(
+              Bindings.createStringBinding(() -> clientUpdateTask.getProgress() == -1 ?
+                      i18n.get("login.button.downloadPreparing") :
+                      i18n.get("login.button.downloadProgress", clientUpdateTask.getProgress()),
+                  clientUpdateTask.progressProperty()));
         });
   }
 

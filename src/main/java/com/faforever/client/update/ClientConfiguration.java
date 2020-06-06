@@ -48,6 +48,7 @@ public class ClientConfiguration {
   public static class ReleaseInfo {
     String version;
     String minimumVersion;
+    URL update4jConfigUrl;
     URL windowsUrl;
     URL linuxUrl;
     URL macUrl;

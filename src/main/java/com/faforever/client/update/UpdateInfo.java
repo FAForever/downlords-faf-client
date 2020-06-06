@@ -1,17 +1,17 @@
 package com.faforever.client.update;
 
 import lombok.Value;
+import org.update4j.Configuration;
 
 import java.net.URL;
 
 @Value
 public class UpdateInfo {
 
-  private String name;
-  private String fileName;
-  private URL url;
-  private int size;
-  private URL releaseNotesUrl;
-  private boolean prerelease;
+  String name;
+  Configuration configuration;
+  long size;
+  URL releaseNotesUrl;
+  boolean prerelease;
 
 }

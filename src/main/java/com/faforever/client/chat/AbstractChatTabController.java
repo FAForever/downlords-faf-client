@@ -144,6 +144,9 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private ChatMessage lastMessage;
   WebEngine engine;
 
+  /** Cached. */
+  private JSObject jsWindow;
+
   @Inject
   // TODO cut dependencies
   public AbstractChatTabController(WebViewConfigurer webViewConfigurer,
@@ -384,7 +387,10 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   protected abstract WebView getMessagesWebView();
 
   protected JSObject getJsObject() {
-    return (JSObject) engine.executeScript("window");
+    if (jsWindow == null) {
+      jsWindow = (JSObject) engine.executeScript("window");
+    }
+    return jsWindow;
   }
 
   protected void onWebViewLoaded() {
