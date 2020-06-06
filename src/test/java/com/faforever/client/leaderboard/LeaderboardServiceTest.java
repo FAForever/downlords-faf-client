@@ -23,17 +23,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class LeaderboardServiceImplTest {
+public class LeaderboardServiceTest {
 
   private static final int PLAYER_ID = 123;
   @Mock
   private FafService fafService;
 
-  private LeaderboardServiceImpl instance;
+  private LeaderboardService instance;
 
   @Before
   public void setUp() throws Exception {
-    instance = new LeaderboardServiceImpl(fafService);
+    instance = new LeaderboardService(fafService);
   }
 
   @Test

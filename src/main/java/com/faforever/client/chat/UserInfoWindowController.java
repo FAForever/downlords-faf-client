@@ -133,8 +133,8 @@ public class UserInfoWindowController implements Controller<Node> {
   public TableColumn<NameRecord, OffsetDateTime> changeDateColumn;
   public TableColumn<NameRecord, String> nameColumn;
   private Player player;
-  private Map<String, AchievementItemController> achievementItemById = new HashMap<>();
-  private Map<String, AchievementDefinition> achievementDefinitionById= new HashMap<>();
+  private final Map<String, AchievementItemController> achievementItemById = new HashMap<>();
+  private final Map<String, AchievementDefinition> achievementDefinitionById = new HashMap<>();
   private Window ownerWindow;
 
   private static boolean isUnlocked(PlayerAchievement playerAchievement) {

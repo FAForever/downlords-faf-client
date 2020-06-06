@@ -10,6 +10,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.Validator;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.scene.Node;
 import javafx.scene.control.TableColumn;
@@ -107,15 +108,19 @@ public class LeaderboardController extends AbstractViewController<Node> {
 
     contentPane.setVisible(false);
     leaderboardService.getEntries(ratingType).thenAccept(leaderboardEntryBeans -> {
-      ratingTable.setItems(observableList(leaderboardEntryBeans));
-      contentPane.setVisible(true);
+      Platform.runLater(() -> {
+        ratingTable.setItems(observableList(leaderboardEntryBeans));
+        contentPane.setVisible(true);
+      });
     }).exceptionally(throwable -> {
-      contentPane.setVisible(false);
-      logger.warn("Error while loading leaderboard entries", throwable);
-      notificationService.addNotification(new ImmediateErrorNotification(
-          i18n.get("errorTitle"), i18n.get("leaderboard.failedToLoad"),
-          throwable, i18n, reportingService
-      ));
+      Platform.runLater(() -> {
+        contentPane.setVisible(false);
+        logger.warn("Error while loading leaderboard entries", throwable);
+        notificationService.addNotification(new ImmediateErrorNotification(
+            i18n.get("errorTitle"), i18n.get("leaderboard.failedToLoad"),
+            throwable, i18n, reportingService
+        ));
+      });
       return null;
     });
   }
