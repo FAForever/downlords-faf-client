@@ -233,7 +233,7 @@ public class SettingsController implements Controller<Node> {
     hideFoeToggle.selectedProperty().bindBidirectional(preferences.getChat().hideFoeMessagesProperty());
 
     disallowJoinsCheckBox.selectedProperty().bindBidirectional(preferences.disallowJoinsViaDiscordProperty());
-    JavaFxUtil.bindBidirectional(cacheLifeTimeTextField.textProperty(), preferences.cacheLifeTimeProperty(), numberToStringConverter);
+    JavaFxUtil.bindBidirectional(cacheLifeTimeTextField.textProperty(), preferences.cacheLifeTimeInDaysProperty(), numberToStringConverter);
 
     JavaFxUtil.addListener(preferences.getChat().chatColorModeProperty(), (observable, oldValue, newValue) -> setSelectedColorMode(newValue));
     setSelectedColorMode(preferences.getChat().getChatColorMode());
