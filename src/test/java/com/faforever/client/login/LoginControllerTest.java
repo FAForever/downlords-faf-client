@@ -11,7 +11,7 @@ import com.faforever.client.update.ClientConfiguration;
 import com.faforever.client.update.ClientConfiguration.Endpoints;
 import com.faforever.client.update.ClientConfiguration.ReleaseInfo;
 import com.faforever.client.update.ClientUpdateService;
-import com.faforever.client.update.DownloadUpdateTask;
+import com.faforever.client.update.ClientUpdateTask;
 import com.faforever.client.update.UpdateInfo;
 import com.faforever.client.update.VersionTest;
 import com.faforever.client.user.UserService;
@@ -129,7 +129,7 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testInitializeWithNoMandatoryUpdate() throws Exception {
-    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
+    UpdateInfo updateInfo = new UpdateInfo(null, null, 5, null, false);
     ClientConfiguration clientConfiguration = new ClientConfiguration();
     ClientConfiguration.ReleaseInfo releaseInfo = new ReleaseInfo();
     ClientConfiguration.Endpoints endpoints = mock(Endpoints.class, Answers.RETURNS_DEEP_STUBS);
@@ -160,7 +160,7 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testInitializeWithMandatoryUpdate() throws Exception {
-    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
+    UpdateInfo updateInfo = new UpdateInfo(null, null, 5, null, false);
     ClientConfiguration clientConfiguration = new ClientConfiguration();
     ClientConfiguration.ReleaseInfo releaseInfo = new ReleaseInfo();
     ClientConfiguration.Endpoints endpoints = mock(Endpoints.class, Answers.RETURNS_DEEP_STUBS);
@@ -192,9 +192,9 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnDownloadUpdateButtonClicked() throws Exception {
-    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
-    DownloadUpdateTask downloadUpdateTask = new DownloadUpdateTask(i18n, preferencesService);
-    when(clientUpdateService.downloadAndInstallInBackground(updateInfo)).thenReturn(downloadUpdateTask);
+    UpdateInfo updateInfo = new UpdateInfo(null, null, 5, null, false);
+    ClientUpdateTask clientUpdateTask = new ClientUpdateTask(i18n, preferencesService);
+    when(clientUpdateService.updateInBackground(updateInfo)).thenReturn(clientUpdateTask);
 
     ReflectionTestUtils.setField(instance, "updateInfoFuture", CompletableFuture.completedFuture(updateInfo));
 
@@ -202,7 +202,7 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(i18n).get("login.button.downloadPreparing");
-    verify(clientUpdateService, atLeastOnce()).downloadAndInstallInBackground(updateInfo);
+    verify(clientUpdateService, atLeastOnce()).updateInBackground(updateInfo);
   }
 
   @Test

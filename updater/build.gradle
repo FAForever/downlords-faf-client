@@ -1,0 +1,42 @@
+plugins {
+  id 'java'
+  id 'distribution'
+}
+
+repositories {
+  jcenter()
+}
+
+sourceCompatibility = JavaVersion.VERSION_14
+targetCompatibility = JavaVersion.VERSION_14
+
+distributions {
+  main {
+    contents {
+      from {
+        [
+            configurations.runtime,
+            jar
+        ]
+      }
+      exclude('**/i4jruntime*.jar')
+    }
+  }
+}
+
+version "${version}"
+project.ext.javafxPlatform = rootProject.ext.javafxPlatform
+
+dependencies {
+  implementation 'org.update4j:update4j:1.4.5'
+
+  /* Workaround for https://github.com/update4j/update4j/issues/83.
+     FIXME Bootstrap should not depend on JavaFX. As long as it does, we can't update the client's JavaFX without
+      risking issues. Alternatively, the Bootstrap application could start the client in a separate JVM instea of
+      calling configuration.launch(). */
+  compile "org.openjfx:javafx-base:${javafxVersion}:${javafxPlatform}"
+  compile "org.openjfx:javafx-controls:${javafxVersion}:${javafxPlatform}"
+  compile "org.openjfx:javafx-graphics:${javafxVersion}:${javafxPlatform}"
+  compile "org.openjfx:javafx-media:${javafxVersion}:${javafxPlatform}"
+  compile "org.openjfx:javafx-web:${javafxVersion}:${javafxPlatform}"
+}

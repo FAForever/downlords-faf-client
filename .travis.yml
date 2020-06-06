@@ -50,6 +50,7 @@ deploy:
   - build/install4j/*.deb
   - build/install4j/*.rpm
   - build/libs/*.jar
+  - build/resources/main/update4j/update4j.xml
   skip_cleanup: true
   name: ${GITHUB_RELEASE_VERSION}
   draft: true
