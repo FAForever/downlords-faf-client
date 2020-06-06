@@ -14,5 +14,5 @@ public interface ClientUpdateService {
 
   String getCurrentVersion();
 
-  DownloadUpdateTask downloadAndInstallInBackground(UpdateInfo updateInfo);
+  ClientUpdateTask updateInBackground(UpdateInfo updateInfo);
 }

@@ -15,25 +15,26 @@ task createUpdate4jConfig {
   doLast {
     def ignoreBootConflicts = ["jul-to-slf4j"]
 
-    def dir = file("${rootProject.buildDir}/update4j")
+    def dir = file("${rootProject.buildDir}/resources/main/update4j")
     mkdir(dir)
 
     def builder = org.update4j.Configuration.builder()
-        .basePath('${app.lib}')
-        .updateHandler('com.faforever.client.bootstrap.${update.handler.class}')
-        .launcher('com.faforever.client.Main')
+        .basePath('${app.dir}')
+        .updateHandler('com.faforever.client.updater.${update.handler.class}')
+        .property('default.launcher.main.class', 'com.faforever.client.Main')
+        .property('default.launcher.system.nativeDir', '${app.dir}')
         .property('app.name', 'Downlord\'s FAF Client')
+        .property('app.dir', '${LOCALAPPDATA}/${app.name}', OS.WINDOWS)
         .property('app.dir', '${user.dir}/${app.name}')
-        .property('app.lib', '${LOCALAPPDATA}/${app.name}/lib', OS.WINDOWS)
         .property('app.lib', '${app.dir}/lib')
         .property('update.handler.class', 'DefaultUpdateHandler')
 
-    configurations.compile.resolvedConfiguration.resolvedArtifacts.each { dep ->
+    configurations.runtime.resolvedConfiguration.resolvedArtifacts.each { dep ->
       String path
       if (dep.classifier != null) {
-        path = String.format('%s-%s-%s.%s', dep.moduleVersion.id.name, dep.moduleVersion.id.version, dep.classifier, dep.extension)
+        path = String.format('${app.lib}/%s-%s-%s.%s', dep.moduleVersion.id.name, dep.moduleVersion.id.version, dep.classifier, dep.extension)
       } else {
-        path = String.format('%s-%s.%s', dep.moduleVersion.id.name, dep.moduleVersion.id.version, dep.extension)
+        path = String.format('${app.lib}/%s-%s.%s', dep.moduleVersion.id.name, dep.moduleVersion.id.version, dep.extension)
       }
 
       String url = rootProject.repositories
@@ -68,24 +69,27 @@ task createUpdate4jConfig {
     builder.file(FileMetadata.readFrom(downloadUnixUid.outputs.files.first().toPath())
         .os(OS.LINUX)
         .uri(downloadUnixUid.src.toString())
-        .path(downloadUnixUid.dest.toPath().fileName)
+        .path('${app.dir}/' + downloadUnixUid.dest.toPath().fileName)
     )
     builder.file(FileMetadata.readFrom(downloadWindowsUid.outputs.files.first().toPath())
         .os(OS.WINDOWS)
         .uri(downloadWindowsUid.src.toString())
-        .path(downloadWindowsUid.dest.toPath().fileName)
+        .path('${app.dir}/' + downloadWindowsUid.dest.toPath().fileName)
     )
     builder.file(FileMetadata.readFrom(downloadIceAdapter.outputs.files.first().toPath())
         .uri(downloadIceAdapter.src.toString())
-        .path(downloadIceAdapter.dest.toPath().fileName)
+        .path('${app.dir}/' + downloadIceAdapter.dest.toPath().fileName)
     )
     builder.file(FileMetadata.readFrom(jar.outputs.files.first().toPath())
-        .uri("https://github.com/FAForever/downlords-faf-client/releases/download/v${project.version}/downlords-faf-client-${project.version}.jar")
+        .uri("file:///C:/Users/Downlord/git/downlords-faf-client/build/libs/downlords-faf-client-unspecified.jar")
+    // FIXME use this URL
+//        .uri("https://github.com/FAForever/downlords-faf-client/releases/download/v${project.version}/downlords-faf-client-${project.version}.jar")
         .path(jar.outputs.files.first().toPath().fileName)
+        .classpath()
     )
 
     def configuration = builder.build()
-    file("${dir}/config.xml").withWriter { writer ->
+    file("${dir}/update4j.xml").withWriter { writer ->
       configuration.write(writer)
     }
   }

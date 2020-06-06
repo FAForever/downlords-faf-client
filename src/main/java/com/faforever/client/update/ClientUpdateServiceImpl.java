@@ -17,9 +17,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.notification.Severity.INFO;
@@ -44,18 +41,11 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
   private final PlatformService platformService;
   private final ApplicationContext applicationContext;
   private final PreferencesService preferencesService;
-
   private final CompletableFuture<UpdateInfo> updateInfoFuture;
   private final CompletableFuture<UpdateInfo> updateInfoBetaFuture;
 
   @VisibleForTesting
   String currentVersion;
-
-  public static class InstallerExecutionException extends UncheckedIOException {
-    public InstallerExecutionException(String message, IOException cause) {
-      super(message, cause);
-    }
-  }
 
   public ClientUpdateServiceImpl(
       TaskService taskService,
@@ -74,11 +64,11 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
     currentVersion = defaultString(Version.getCurrentVersion(), DEVELOPMENT_VERSION_STRING);
     log.info("Current version: {}", currentVersion);
 
-    CheckForUpdateTask task = applicationContext.getBean(CheckForUpdateTask.class);
-    this.updateInfoFuture = taskService.submitTask(task).getFuture();
+    CheckForReleaseUpdateTask task = applicationContext.getBean(CheckForReleaseUpdateTask.class);
+    updateInfoFuture = taskService.submitTask(task).getFuture();
 
     CheckForBetaUpdateTask betaTask = applicationContext.getBean(CheckForBetaUpdateTask.class);
-    this.updateInfoBetaFuture = taskService.submitTask(betaTask).getFuture();
+    updateInfoBetaFuture = taskService.submitTask(betaTask).getFuture();
   }
 
   /**
@@ -130,7 +120,7 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
       notificationService.addNotification(new PersistentNotification(
           i18n.get(updateInfo.isPrerelease() ? "clientUpdateAvailable.prereleaseNotification" : "clientUpdateAvailable.notification", updateInfo.getName(), formatSize(updateInfo.getSize(), i18n.getUserSpecificLocale())),
           INFO, asList(
-          new Action(i18n.get("clientUpdateAvailable.downloadAndInstall"), event -> downloadAndInstallInBackground(updateInfo)),
+          new Action(i18n.get("clientUpdateAvailable.downloadAndInstall"), event -> updateInBackground(updateInfo)),
           new Action(i18n.get("clientUpdateAvailable.releaseNotes"), Action.Type.OK_STAY,
               event -> platformService.showDocument(updateInfo.getReleaseNotesUrl().toExternalForm())
           )))
@@ -146,36 +136,16 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
     return currentVersion;
   }
 
-  @VisibleForTesting
-  void install(Path binaryPath) {
-    try {
-      platformService.setUnixExecutableAndWritableBits(binaryPath);
-    } catch (IOException e) {
-      throw new InstallerExecutionException("Unix execute bit could not be set", e);
-    }
-    String command = binaryPath.toAbsolutePath().toString();
-    try {
-      log.info("Starting installer at {}", command);
-      new ProcessBuilder(command).inheritIO().start();
-    } catch (IOException e) {
-      throw new InstallerExecutionException("Installation could not be started", e);
-    }
-  }
-
-  public DownloadUpdateTask downloadAndInstallInBackground(UpdateInfo updateInfo) {
-    DownloadUpdateTask task = applicationContext.getBean(DownloadUpdateTask.class);
+  public ClientUpdateTask updateInBackground(UpdateInfo updateInfo) {
+    ClientUpdateTask task = applicationContext.getBean(ClientUpdateTask.class);
     task.setUpdateInfo(updateInfo);
 
     taskService.submitTask(task).getFuture()
-        .thenAccept(this::install)
         .exceptionally(throwable -> {
-          if (throwable instanceof InstallerExecutionException) {
-            log.warn(throwable.getMessage(), throwable.getCause());
-          }
-          log.warn("Error while downloading client update", throwable);
+          log.warn("Update failed", throwable);
           notificationService.addNotification(
               new PersistentNotification(i18n.get("clientUpdateDownloadFailed.notification"), WARN, singletonList(
-                  new Action(i18n.get("clientUpdateDownloadFailed.retry"), event -> downloadAndInstallInBackground(updateInfo))
+                  new Action(i18n.get("clientUpdateDownloadFailed.retry"), event -> updateInBackground(updateInfo))
               ))
           );
           return null;

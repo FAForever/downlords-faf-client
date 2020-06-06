@@ -20,7 +20,6 @@ import java.io.Reader;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -28,12 +27,12 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 @Slf4j
-public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
+public class CheckForReleaseUpdateTaskTest extends AbstractPlainJavaFxTest {
 
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
 
   private ServerSocket fakeConfigServerSocket;
-  private CheckForUpdateTask instance;
+  private CheckForReleaseUpdateTask instance;
 
   @Mock
   private I18n i18n;
@@ -46,7 +45,7 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     clientProperties = new ClientProperties();
-    instance = new CheckForUpdateTask(i18n, preferencesService);
+    instance = new CheckForReleaseUpdateTask(i18n, preferencesService);
 
     terminateLatch = new CountDownLatch(1);
   }
@@ -55,33 +54,6 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
   public void tearDown() {
     IOUtils.closeQuietly(fakeConfigServerSocket);
     terminateLatch.countDown();
-  }
-
-  @Test
-  @Ignore("For unknown reasons, Travis throws a SocketException probably when trying to connect to the fake server")
-  public void testIsNewer() throws Exception {
-    startFakeConfigServer();
-    int port = fakeConfigServerSocket.getLocalPort();
-
-    clientProperties.setClientConfigUrl("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
-
-    UpdateInfo updateInfo = instance.call();
-
-    assertThat(updateInfo.getSize(), is(123));
-    assertThat(updateInfo.getFileName(), is("dfaf_windows_0_4_7-alpha.exe"));
-    assertThat(updateInfo.getName(), is("0.4.7-alpha"));
-    assertThat(updateInfo.getReleaseNotesUrl(), is(new URL("https://www.example.com/")));
-
-    if (org.bridj.Platform.isWindows()) {
-      assertThat(updateInfo.getUrl(), is(new URL("https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_windows_0_4_7-alpha.exe")));
-    } else if (org.bridj.Platform.isLinux()) {
-      assertThat(updateInfo.getUrl(), is(new URL("https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_linux_0_4_7-alpha.tar.gz")));
-    } else if (org.bridj.Platform.isMacOSX()) {
-      assertThat(updateInfo.getUrl(), is(new URL("https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_mac_0_4_7-alpha.dmg")));
-    } else {
-      throw new IllegalStateException("Unsupported platform");
-    }
-
   }
 
   private void startFakeConfigServer() throws Exception {

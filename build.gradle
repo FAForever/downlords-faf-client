@@ -1,10 +1,5 @@
 import com.install4j.gradle.Install4jTask
 import de.undercouch.gradle.tasks.download.Download
-import groovy.json.JsonSlurper
-import groovyx.net.http.ContentType
-import groovyx.net.http.HTTPBuilder
-import groovyx.net.http.Method
-import groovyx.net.http.ParserRegistry
 import org.gradle.internal.os.OperatingSystem
 
 buildscript {
@@ -29,6 +24,7 @@ plugins {
   id 'net.ltgt.apt' version '0.19'
   id 'jacoco'
   id 'com.github.kt3k.coveralls' version "${coverallsGradlePluginVersion}"
+  id "org.jetbrains.gradle.plugin.idea-ext" version "0.7"
 }
 
 apply from: "${rootProject.rootDir}/gradle/update4j.gradle"
@@ -81,40 +77,6 @@ lombok {
   sha256 = ""
 }
 
-class HttpBuilder extends HTTPBuilder {
-
-  HttpBuilder(String url) {
-    super(url)
-    this.parser.'text/json' = { resp ->
-      def bufferedText = resp.entity.content.getText(ParserRegistry.getCharset(resp)).trim()
-      return new JsonSlurper().parseText(bufferedText)
-    }
-    this.parser.'application/json' = this.parser.'text/json'
-  }
-}
-
-def httpRequest(Method method, String url, onSuccess) {
-  def http = new HttpBuilder(url)
-
-  http.request(method) {
-    requestContentType = ContentType.JSON
-
-    headers.'User-Agent' = 'downlords-faf-client-gradle'
-    headers.'Authorization' = "token ${project.github.token}"
-    headers.'Accept' = 'application/vnd.github.v3+json'
-
-    response.success = onSuccess
-
-    response.failure = { resp, json ->
-      logger.debug 'Response headers: \n' + resp.headers.collect { "< $it" }.join('\n')
-      def errorMessage = json ? json.message : resp.statusLine
-      def ref = json ? "See $json.documentation_url" : ''
-      def errorDetails = json && json.errors ? "Details: " + json.errors.collect { it }.join('\n') : ''
-      throw new GradleScriptException("$errorMessage. $ref. $errorDetails", null)
-    }
-  }
-}
-
 jacocoTestReport {
   reports {
     xml.enabled = true
@@ -129,11 +91,12 @@ test {
 
 configurations {
   codacy
+  webViewPatch
 }
 
 
 bootRun {
-    main = "com.faforever.client.Main"
+  main = "com.faforever.client.Main"
 }
 
 jar {
@@ -199,6 +162,15 @@ task buildInstall4jMediaFiles(type: Install4jTask) {
   }
 }
 
+task downloadWebViewPatch(type: Copy) {
+  from(configurations.webViewPatch) {
+    include "*webview-patch*.jar"
+  }
+  into "${buildDir}/webview-patch/"
+  rename '.*webview-patch.*\\.jar', 'webview-patch.jar'
+}
+assemble.dependsOn downloadWebViewPatch
+
 task downloadIceAdapter(type: Download) {
   group "native dependencies"
   src "https://github.com/FAForever/java-ice-adapter/releases/download/v${faf_ice_adapter_version}/faf-ice-adapter.jar"
@@ -234,6 +206,10 @@ task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
   main = "com.codacy.CodacyCoverageReporter"
   classpath = configurations.codacy
   args = ["-l", "Java", "-r", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"]
+}
+
+idea.project.settings.taskTriggers {
+  beforeSync tasks.getByName("downloadNativeDependencies"), tasks.getByName("downloadWebViewPatch")
 }
 
 repositories {
@@ -287,7 +263,6 @@ dependencies {
   compile("org.apache.httpcomponents:httpclient")
   compile("ch.micheljung.fxstage:fxstage:0.7.2")
   compile("ch.micheljung.waitomo:jfx-waitomo-theme:0.2.0")
-  // FIXME remove, just here so I can inspect the JAR
   compile "org.update4j:update4j:${update4jVersion}"
 
   compile("org.openjfx:javafx-base:${javafxVersion}:${javafxPlatform}")
@@ -297,8 +272,9 @@ dependencies {
   compile("org.openjfx:javafx-fxml:${javafxVersion}:${javafxPlatform}")
   compile("org.openjfx:javafx-web:${javafxVersion}:${javafxPlatform}")
   compile("org.openjfx:javafx-media:${javafxVersion}:${javafxPlatform}")
-  compile ("com.github.axel1200:discord-rpc:${discordRpcVersion}")
+  compile("com.github.axel1200:discord-rpc:${discordRpcVersion}")
 
+  webViewPatch('com.github.micheljung:javafx-transparent-webview-patch:0468c80')
   compile('com.github.micheljung:javafx-transparent-webview-patch:0468c80')
   compile("org.javassist:javassist:${project.ext['javassist.version']}")
 
