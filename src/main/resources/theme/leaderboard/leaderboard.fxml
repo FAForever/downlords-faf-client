@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXButton?>
 <?import com.jfoenix.controls.JFXSpinner?>
 <?import com.jfoenix.controls.JFXTextField?>
 <?import javafx.geometry.Insets?>
@@ -17,12 +16,8 @@
       <children>
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                <children>
-                   <JFXTextField fx:id="searchTextField" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="189.0" promptText="%ladder.searchPrompt" HBox.hgrow="ALWAYS" />
-                  <JFXButton fx:id="searchButton" prefHeight="25.0" prefWidth="151.0" text="Search" wrapText="true">
-                 <graphic>
-                   <Label styleClass="icon" text="" />
-                 </graphic>
-                  </JFXButton>
+                  <Label contentDisplay="RIGHT" graphicTextGap="10.0" maxWidth="1.7976931348623157E308" styleClass="icon" text="" />
+                   <JFXTextField fx:id="searchTextField" maxWidth="1.7976931348623157E308" promptText="%ladder.searchPrompt" HBox.hgrow="ALWAYS" />
                </children>
             </HBox>
         <TableView fx:id="ratingTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" styleClass="big-scroll-bar" VBox.vgrow="ALWAYS">
