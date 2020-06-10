@@ -10,6 +10,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.Validator;
+import com.jfoenix.controls.JFXButton;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.scene.Node;
 import javafx.scene.control.TableColumn;
@@ -48,6 +49,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public TextField searchTextField;
   public Pane connectionProgressPane;
   public Pane contentPane;
+  public JFXButton searchButton;
   private KnownFeaturedMod ratingType;
 
   @Override
