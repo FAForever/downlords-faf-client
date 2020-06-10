@@ -285,7 +285,6 @@ dependencies {
   compile("com.github.ben-manes.caffeine:caffeine")
   compile("org.apache.httpcomponents:httpclient")
   compile("com.github.micheljung:FX-BorderlessScene:3.5.0")
-
   compile("org.openjfx:javafx-base:${javafxVersion}:${javafxPlatform}")
   compile("org.openjfx:javafx-controls:${javafxVersion}:${javafxPlatform}")
   compile("org.openjfx:javafx-graphics:${javafxVersion}:${javafxPlatform}")
