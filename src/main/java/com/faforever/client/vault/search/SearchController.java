@@ -54,6 +54,7 @@ public class SearchController implements Controller<Pane> {
   public ComboBox<Property> sortPropertyComboBox;
   public ComboBox<SortOrder> sortOrderChoiceBox;
   public HBox sortBox;
+  public CheckBox onlyShowLastYearCheckBox;
 
   private List<LogicalNodeController> queryNodes;
   private InvalidationListener queryInvalidationListener;
@@ -77,6 +78,13 @@ public class SearchController implements Controller<Pane> {
   public void initialize() {
     queryTextField.managedProperty().bind(queryTextField.visibleProperty());
     queryTextField.visibleProperty().bind(displayQueryCheckBox.selectedProperty());
+
+    //FIXME code style probably not good
+    //FIXME this might always be visible, only show this on online replays
+    onlyShowLastYearCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+        //TODO implement adding filter to query
+    });
+    onlyShowLastYearCheckBox.setSelected(true);
 
     initialLogicalNodeController.logicalOperatorField.managedProperty()
         .bind(initialLogicalNodeController.logicalOperatorField.visibleProperty());

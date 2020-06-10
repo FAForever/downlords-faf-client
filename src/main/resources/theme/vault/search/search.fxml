@@ -52,6 +52,7 @@
                     </graphic>
                 </JFXButton>
                 <JFXCheckBox fx:id="displayQueryCheckBox" mnemonicParsing="false" text="%vault.replays.displayQuery"/>
+                <JFXCheckBox fx:id="onlyShowLastYearCheckBox" mnemonicParsing="false" text="%vault.replays.onlyShowLastYear"/>
 
             </children>
         </HBox>
