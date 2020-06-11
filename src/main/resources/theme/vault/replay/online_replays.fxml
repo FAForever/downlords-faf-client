@@ -4,6 +4,7 @@
 <?import com.jfoenix.controls.JFXSpinner?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Pagination?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.HBox?>
@@ -34,31 +35,27 @@
                                 </JFXButton>
                             </children>
                         </HBox>
-                          <VBox fx:id="showroomGroup" spacing="10.0" alignment="CENTER">
-                             <children>
-                                 <Label styleClass="h2" text="%vault.replays.ownReplays"
-                                        prefWidth="${showroomGroup.width}"/>
-                                 <VBox fx:id="ownReplaysPane" spacing="10.0"/>
-                                 <JFXButton mnemonicParsing="false" onAction="#onMoreOwnButtonClicked" text="%more"/>
-                                 <Label styleClass="h2" text="%vault.replays.newest"
-                                        prefWidth="${showroomGroup.width}"/>
-                                 <VBox fx:id="newestPane" spacing="10.0"/>
-                                 <JFXButton mnemonicParsing="false" onAction="#onMoreNewestButtonClicked" text="%more"/>
-                                 <Label styleClass="h2" text="%vault.replays.highestRated"
-                                        prefWidth="${showroomGroup.width}"/>
-                                 <VBox fx:id="highestRatedPane" spacing="10.0"/>
-                                 <JFXButton mnemonicParsing="false" onAction="#onMoreHighestRatedButtonClicked"
-                                            text="%more"/>
-                             </children>
-                          </VBox>
-                        <VBox fx:id="searchResultGroup" spacing="10.0">
+                        <VBox fx:id="showroomGroup" spacing="10.0" alignment="CENTER">
                             <children>
-                                <Label styleClass="h2" text="%searchResult"/>
-                                <VBox fx:id="searchResultPane" spacing="10.0"/>
-                                <JFXButton fx:id="moreButton" mnemonicParsing="false"
-                                           onAction="#onLoadMoreButtonClicked"
-                                           text="%vault.more"/>
+                                <Label styleClass="h2" text="%vault.replays.ownReplays"
+                                       prefWidth="${showroomGroup.width}"/>
+                                <VBox fx:id="ownReplaysPane" spacing="10.0"/>
+                                <JFXButton mnemonicParsing="false" onAction="#onMoreOwnButtonClicked" text="%more"/>
+                                <Label styleClass="h2" text="%vault.replays.newest"
+                                       prefWidth="${showroomGroup.width}"/>
+                                <VBox fx:id="newestPane" spacing="10.0"/>
+                                <JFXButton mnemonicParsing="false" onAction="#onMoreNewestButtonClicked" text="%more"/>
+                                <Label styleClass="h2" text="%vault.replays.highestRated"
+                                       prefWidth="${showroomGroup.width}"/>
+                                <VBox fx:id="highestRatedPane" spacing="10.0"/>
+                                <JFXButton mnemonicParsing="false" onAction="#onMoreHighestRatedButtonClicked"
+                                           text="%more"/>
                             </children>
+                        </VBox>
+                        <VBox fx:id="searchResultGroup" spacing="10.0">
+                            <Label styleClass="h2" text="%searchResult"/>
+                            <VBox fx:id="searchResultPane" spacing="10.0"/>
+                            <Pagination fx:id="pagination"/>
                         </VBox>
                     </children>
                     <padding>
