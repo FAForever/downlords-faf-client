@@ -30,6 +30,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Pagination;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
@@ -73,8 +74,8 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   public Button backButton;
   public ScrollPane scrollPane;
   public SearchController searchController;
-  public Button moreButton;
   public VBox ownReplaysPane;
+  public Pagination pagination;
 
   private ReplayDetailController replayDetailController;
   private int currentPage;
@@ -93,6 +94,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     state = new SimpleObjectProperty<>(State.UNINITIALIZED);
   }
 
+  @Override
   public void initialize() {
     super.initialize();
     JavaFxUtil.fixScrollSpeed(scrollPane);
@@ -100,7 +102,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     showroomGroup.managedProperty().bind(showroomGroup.visibleProperty());
     searchResultGroup.managedProperty().bind(searchResultGroup.visibleProperty());
     backButton.managedProperty().bind(backButton.visibleProperty());
-    moreButton.managedProperty().bind(moreButton.visibleProperty());
+    pagination.managedProperty().bind(pagination.visibleProperty());
 
     searchController.setRootType(Game.class);
     searchController.setSearchListener(this::onSearch);
@@ -118,7 +120,9 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     loadingPane.setVisible(false);
     backButton.setVisible(true);
     populateReplays(replays, searchResultPane, append);
-    moreButton.setVisible(replays.size() == MAX_SEARCH_RESULTS);
+    //FIXME change this to fit the new pagination; always visible?
+    //moreButton.setVisible(replays.size() == MAX_SEARCH_RESULTS);
+    pagination.setVisible(true);
   }
 
   private void populateReplays(List<Replay> replays, Pane pane, boolean append) {
@@ -163,7 +167,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   protected void onDisplay(NavigateEvent navigateEvent) {
     if (navigateEvent instanceof ShowReplayEvent) {
       if (state.get() == State.UNINITIALIZED) {
-        state.addListener(new ChangeListener<State>() {
+        state.addListener(new ChangeListener<>() {
           @Override
           public void changed(ObservableValue<? extends State> observable, State oldValue, State newValue) {
             if (newValue != State.UNINITIALIZED) {
@@ -216,7 +220,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     searchResultGroup.setVisible(false);
     loadingPane.setVisible(true);
     backButton.setVisible(false);
-    moreButton.setVisible(false);
+    pagination.setVisible(false);
   }
 
   private void enterResultState() {
@@ -226,7 +230,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     searchResultGroup.setVisible(false);
     loadingPane.setVisible(false);
     backButton.setVisible(false);
-    moreButton.setVisible(false);
+    pagination.setVisible(false);
   }
 
   private void onSearch(SearchConfig searchConfig) {
@@ -280,7 +284,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
 
   private void displayReplaysFromSupplier(Supplier<CompletableFuture<List<Replay>>> mapsSupplier) {
     currentPage = 1;
-    this.currentSupplier = mapsSupplier;
+    currentSupplier = mapsSupplier;
     mapsSupplier.get()
         .thenAccept(this::displaySearchResult)
         .exceptionally(throwable -> {
