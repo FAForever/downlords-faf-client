@@ -5,6 +5,8 @@ import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.JoinGameHelper;
+import com.faforever.client.game.KnownFeaturedMod;
+import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.moderator.ModeratorService;
 import com.faforever.client.notification.ImmediateNotification;
@@ -15,6 +17,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
@@ -41,6 +44,7 @@ import static com.faforever.client.player.SocialStatus.OTHER;
 import static com.faforever.client.player.SocialStatus.SELF;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -159,6 +163,44 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
     assertFalse(instance.kickGameItem.isVisible());
     assertFalse(instance.kickLobbyItem.isVisible());
     assertTrue(instance.moderatorActionSeparator.isVisible());
+  }
+
+  @Test
+  public void testJoinGameContextMenuNotShownForIdleUser() {
+    instance.setChatUser(chatUser);
+    player.setSocialStatus(OTHER);
+
+    assertFalse(instance.joinGameItem.isVisible());
+  }
+
+  @Test
+  public void testJoinGameContextMenuShownForHostingUser() {
+    Game game = new Game();
+    game.setFeaturedMod(KnownFeaturedMod.FAF.getTechnicalName());
+    game.setStatus(GameStatus.OPEN);
+    game.setHost(player.getUsername());
+
+    player.setSocialStatus(OTHER);
+    player.setGame(game);
+    instance.setChatUser(chatUser);
+
+    assertEquals(player.getStatus(), PlayerStatus.HOSTING);
+    assertTrue(instance.joinGameItem.isVisible());
+  }
+
+  @Test
+  public void testJoinGameContextMenuNotShownForLadderUser() {
+    Game game = new Game();
+    game.setFeaturedMod(KnownFeaturedMod.LADDER_1V1.getTechnicalName());
+    game.setStatus(GameStatus.OPEN);
+    game.setHost(player.getUsername());
+
+    player.setSocialStatus(OTHER);
+    player.setGame(game);
+    instance.setChatUser(chatUser);
+
+    assertEquals(player.getStatus(), PlayerStatus.HOSTING);
+    assertFalse(instance.joinGameItem.isVisible());
   }
 
   @Test
