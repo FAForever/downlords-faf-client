@@ -391,8 +391,13 @@
  *                                                                             *
  ******************************************************************************/
 
-.pagination-control {
+.pagination * {
   -fx-font-size: 1.5em;
+}
+
+.number-button:selected {
+  -fx-text-fill: -fx-accent;
+  -fx-underline: true;
 }
 
 /***************** Icon *****************/
