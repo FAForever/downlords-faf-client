@@ -195,6 +195,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
       removeFoeItem.visibleProperty().bind(newValue.socialStatusProperty().isEqualTo(FOE));
 
       // TODO: Make this ignore TMM games too and not just ladder
+      // https://github.com/FAForever/downlords-faf-client/issues/1770
       joinGameItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF)
           .and(newValue.statusProperty().isEqualTo(PlayerStatus.LOBBYING)
               .or(newValue.statusProperty().isEqualTo(PlayerStatus.HOSTING)))
