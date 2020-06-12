@@ -199,10 +199,16 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
       joinGameItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF)
           .and(newValue.statusProperty().isEqualTo(PlayerStatus.LOBBYING)
               .or(newValue.statusProperty().isEqualTo(PlayerStatus.HOSTING)))
-          .and(newValue.getGame().featuredModProperty().isNotEqualTo(KnownFeaturedMod.LADDER_1V1.getTechnicalName())));
+          .and(Bindings.createBooleanBinding(() -> {
+                return newValue.getGame() != null
+                    && newValue.getGame().getFeaturedMod() != null
+                    && !newValue.getGame().getFeaturedMod().equals(KnownFeaturedMod.LADDER_1V1.getTechnicalName());
+              }, newValue.gameProperty())
+          ));
       watchGameItem.visibleProperty().bind(newValue.statusProperty().isEqualTo(PlayerStatus.PLAYING));
       inviteItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF)
           .and(newValue.statusProperty().isNotEqualTo(PlayerStatus.PLAYING)));
+
     };
     JavaFxUtil.addListener(chatUser.playerProperty(), new WeakChangeListener<>(playerChangeListener));
     playerChangeListener.changed(chatUser.playerProperty(), null, chatUser.getPlayer().orElse(null));
