@@ -36,7 +36,7 @@ public class GenerateMapTask extends CompletableTask<Void> {
   @Setter
   private String version;
   @Setter
-  private long seed;
+  private String seed;
   @Setter
   private Path generatorExecutableFile;
   @Setter
@@ -64,7 +64,7 @@ public class GenerateMapTask extends CompletableTask<Void> {
     ProcessBuilder processBuilder = new ProcessBuilder();
     processBuilder.inheritIO();
     processBuilder.directory(workingDirectory.toFile());
-    processBuilder.command("java", "-jar", generatorExecutableFile.toAbsolutePath().toString(), ".", String.valueOf(seed), version, mapFilename);
+    processBuilder.command("java", "-jar", generatorExecutableFile.toAbsolutePath().toString(), ".", String.valueOf(seed), "0.1.6", mapFilename, "8");
 
     logger.info("Starting map generator in directory: {} with command: {}", processBuilder.directory(), processBuilder.command().stream().reduce((l, r) -> l + " " + r).get());
     try {

@@ -41,8 +41,9 @@ public class MapGeneratorService implements InitializingBean {
   /**
    * Naming template for generated maps. It is all lower case because server expects lower case names for maps.
    */
-  public static final String GENERATED_MAP_NAME = "neroxis_map_generator_%s_%d";
+  public static final String GENERATED_MAP_NAME = "neroxis_map_generator_%s_%s";
   public static final String GENERATOR_EXECUTABLE_FILENAME = "MapGenerator_%s.jar";
+  public static final byte DEFAULT_SPAWN_COUNT = 6;
   @VisibleForTesting
   public static final String GENERATOR_EXECUTABLE_SUB_DIRECTORY = "map_generator";
   public static final int GENERATION_TIMEOUT_SECONDS = 60;
@@ -56,8 +57,8 @@ public class MapGeneratorService implements InitializingBean {
   private final ClientProperties clientProperties;
 
   @Getter
-  private Path customMapsDirectory;
-  private Random seedGenerator;
+  private final Path customMapsDirectory;
+  private final Random seedGenerator;
 
   @Getter
   private Image generatedMapPreviewImage;
@@ -107,9 +108,16 @@ public class MapGeneratorService implements InitializingBean {
     }
   }
 
-
-  public CompletableFuture<String> generateMap() {
-    return generateMap(queryNewestVersion(), seedGenerator.nextLong());
+  /**
+   * We concatenate the spawnCount on the seed, that's is the only way to keep compatibility. Some day in the future
+   * though I proper way of passing generic options would be appreciated. In the future concatenating(making the seed
+   * number long/bigger) options at the end of the seed is preferred over the bit shift.
+   */
+  public CompletableFuture<String> generateMap(Byte spawnCount) {
+    long seed = seedGenerator.nextLong();
+    spawnCount = spawnCount == null ? DEFAULT_SPAWN_COUNT : spawnCount;
+    long seedWithOptions = seed << Byte.SIZE | spawnCount;
+    return generateMap(queryNewestVersion(), String.valueOf(seedWithOptions));
   }
 
   @VisibleForTesting
@@ -132,11 +140,10 @@ public class MapGeneratorService implements InitializingBean {
     if (!matcher.find()) {
       throw new IllegalArgumentException("Map name is not a generated map");
     }
-    return generateMap(matcher.group(1), Long.parseLong(matcher.group(2)));
+    return generateMap(matcher.group(1), matcher.group(2));
   }
 
-
-  public CompletableFuture<String> generateMap(String version, long seed) {
+  public CompletableFuture<String> generateMap(String version, String seedWithOptions) {
 
     String generatorExecutableFileName = String.format(GENERATOR_EXECUTABLE_FILENAME, version);
     Path generatorExecutablePath = this.generatorExecutablePath.resolve(generatorExecutableFileName);
@@ -159,11 +166,11 @@ public class MapGeneratorService implements InitializingBean {
       downloadGeneratorFuture = CompletableFuture.completedFuture(null);
     }
 
-    String mapFilename = String.format(GENERATED_MAP_NAME, version, seed);
+    String mapFilename = String.format(GENERATED_MAP_NAME, version, seedWithOptions);
 
     GenerateMapTask generateMapTask = applicationContext.getBean(GenerateMapTask.class);
     generateMapTask.setVersion(version);
-    generateMapTask.setSeed(seed);
+    generateMapTask.setSeed(seedWithOptions);
     generateMapTask.setGeneratorExecutableFile(generatorExecutablePath);
     generateMapTask.setMapFilename(mapFilename);
 

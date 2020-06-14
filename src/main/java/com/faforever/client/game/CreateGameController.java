@@ -17,6 +17,7 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.mod.ModVersion;
 import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.preferences.GeneratorPrefs;
 import com.faforever.client.preferences.LastGamePrefs;
 import com.faforever.client.preferences.PreferenceUpdateListener;
 import com.faforever.client.preferences.PreferencesService;
@@ -38,6 +39,8 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
@@ -105,6 +108,7 @@ public class CreateGameController implements Controller<Pane> {
   public Label versionLabel;
   public CheckBox onlyForFriendsCheckBox;
   public JFXButton generateMapButton;
+  public Spinner<Integer> spawnCountSpinner;
   @VisibleForTesting
   FilteredList<MapBean> filteredMapBeans;
   private Runnable onCloseButtonClickedListener;
@@ -147,10 +151,10 @@ public class CreateGameController implements Controller<Pane> {
       selectionModel.select(newMapIndex);
       mapListView.scrollTo(newMapIndex);
     });
-    
+
     Function<FeaturedMod, String> isDefaultModString = mod ->
-      Objects.equals(mod.getTechnicalName(), KnownFeaturedMod.DEFAULT.getTechnicalName()) ?
-      " " + i18n.get("game.create.defaultGameTypeMarker") : null;
+        Objects.equals(mod.getTechnicalName(), KnownFeaturedMod.DEFAULT.getTechnicalName()) ?
+            " " + i18n.get("game.create.defaultGameTypeMarker") : null;
 
     featuredModListView.setCellFactory(param ->
         new DualStringListCell<>(FeaturedMod::getDisplayName, isDefaultModString, STYLE_CLASS_DUAL_LIST_CELL, uiService)
@@ -176,6 +180,18 @@ public class CreateGameController implements Controller<Pane> {
     } else {
       init();
     }
+
+    initSpawnCountSpinner();
+  }
+
+  private void initSpawnCountSpinner() {
+    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGeneratorPrefs();
+    int spawnCountProperty = generatorPrefs.getSpawnCountProperty();
+    spawnCountSpinner.setValueFactory(new IntegerSpinnerValueFactory(2, 16, spawnCountProperty, 2));
+    spawnCountSpinner.getValueFactory().valueProperty().addListener((observable, oldValue, newValue) -> {
+      generatorPrefs.setSpawnCountProperty(newValue);
+      preferencesService.storeInBackground();
+    });
   }
 
   public void onCloseButtonClicked() {
@@ -377,7 +393,8 @@ public class CreateGameController implements Controller<Pane> {
 
   public void onGenerateMapButtonClicked() {
     try {
-      mapGeneratorService.generateMap().thenAccept(mapName -> {
+      byte spawnCount = (byte) preferencesService.getPreferences().getGeneratorPrefs().getSpawnCountProperty();
+      mapGeneratorService.generateMap(spawnCount).thenAccept(mapName -> {
         Platform.runLater(() -> {
           initMapSelection();
           mapListView.getItems().stream()
