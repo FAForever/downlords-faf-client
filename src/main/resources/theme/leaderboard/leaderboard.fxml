@@ -18,7 +18,7 @@
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                <children>
                    <JFXTextField fx:id="searchTextField" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="189.0" promptText="%ladder.searchPrompt" HBox.hgrow="ALWAYS" />
-                  <JFXButton fx:id="searchButton" prefHeight="25.0" prefWidth="151.0" text="Search" wrapText="true">
+                  <JFXButton fx:id="searchButton" onAction="#handleSearchButtonClicked" prefHeight="25.0" prefWidth="151.0" text="Search" wrapText="true">
                  <graphic>
                    <Label styleClass="icon" text="" />
                  </graphic>
@@ -52,6 +52,6 @@
         </Label>
       </children>
     </VBox>
-      <Pagination maxPageIndicatorCount="3" prefHeight="88.0" prefWidth="322.0" />
+      <Pagination maxPageIndicatorCount="3" minHeight="-Infinity" minWidth="-Infinity" pageCount="11" />
   </children>
 </VBox>

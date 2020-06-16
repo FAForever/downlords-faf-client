@@ -12,10 +12,13 @@ import com.faforever.client.util.Assert;
 import com.faforever.client.util.Validator;
 import com.jfoenix.controls.JFXButton;
 import javafx.beans.property.SimpleFloatProperty;
+import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -73,34 +76,6 @@ public class LeaderboardController extends AbstractViewController<Node> {
     contentPane.managedProperty().bind(contentPane.visibleProperty());
     connectionProgressPane.managedProperty().bind(connectionProgressPane.visibleProperty());
     connectionProgressPane.visibleProperty().bind(contentPane.visibleProperty().not());
-
-    searchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      if (Validator.isInt(newValue)) {
-        ratingTable.scrollTo(Integer.parseInt(newValue) - 1);
-      } else {
-        LeaderboardEntry foundPlayer = null;
-        for (LeaderboardEntry leaderboardEntry : ratingTable.getItems()) {
-          if (leaderboardEntry.getUsername().toLowerCase().startsWith(newValue.toLowerCase())) {
-            foundPlayer = leaderboardEntry;
-            break;
-          }
-        }
-        if (foundPlayer == null) {
-          for (LeaderboardEntry leaderboardEntry : ratingTable.getItems()) {
-            if (leaderboardEntry.getUsername().toLowerCase().contains(newValue.toLowerCase())) {
-              foundPlayer = leaderboardEntry;
-              break;
-            }
-          }
-        }
-        if (foundPlayer != null) {
-          ratingTable.scrollTo(foundPlayer);
-          ratingTable.getSelectionModel().select(foundPlayer);
-        } else {
-          ratingTable.getSelectionModel().select(null);
-        }
-      }
-    });
   }
 
   @Override
@@ -128,5 +103,36 @@ public class LeaderboardController extends AbstractViewController<Node> {
 
   public void setRatingType(KnownFeaturedMod ratingType) {
     this.ratingType = ratingType;
+  }
+
+  public void handleSearchButtonClicked(ActionEvent event) {
+
+    String searchTextFieldText = searchTextField.getText();
+
+    if (Validator.isInt(searchTextFieldText)) {
+      ratingTable.scrollTo(Integer.parseInt(searchTextFieldText) - 1);
+    } else {
+      LeaderboardEntry foundPlayer = null;
+      for (LeaderboardEntry leaderboardEntry : ratingTable.getItems()) {
+        if (leaderboardEntry.getUsername().toLowerCase().startsWith(searchTextFieldText.toLowerCase())) {
+          foundPlayer = leaderboardEntry;
+          break;
+        }
+      }
+      if (foundPlayer == null) {
+        for (LeaderboardEntry leaderboardEntry : ratingTable.getItems()) {
+          if (leaderboardEntry.getUsername().toLowerCase().contains(searchTextFieldText.toLowerCase())) {
+            foundPlayer = leaderboardEntry;
+            break;
+          }
+        }
+      }
+      if (foundPlayer != null) {
+        ratingTable.scrollTo(foundPlayer);
+        ratingTable.getSelectionModel().select(foundPlayer);
+      } else {
+        ratingTable.getSelectionModel().select(null);
+      }
+    }
   }
 }
