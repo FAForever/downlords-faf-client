@@ -109,6 +109,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
 
     String searchTextFieldText = searchTextField.getText();
 
+    //if the user is searching for a particular entry in the table...
     if (Validator.isInt(searchTextFieldText)) {
       ratingTable.scrollTo(Integer.parseInt(searchTextFieldText) - 1);
     } else {
