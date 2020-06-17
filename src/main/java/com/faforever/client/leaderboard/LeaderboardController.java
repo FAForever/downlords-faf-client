@@ -58,6 +58,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public Pane contentPane;
   public JFXButton searchButton;
   private KnownFeaturedMod ratingType;
+  private final int NUMBER_OF_PLAYERS_PER_PAGE = 10;
 
 
   @Override
@@ -114,11 +115,10 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public void handleSearchButtonClicked(ActionEvent event) {
 
     String searchTextFieldText = searchTextField.getText();
-    leaderboardService.getSearchResults(searchTextFieldText);
 
     Assert.checkNullIllegalState(ratingType, "ratingType must not be null");
     contentPane.setVisible(false);
-    leaderboardService.getSearchResults(searchTextFieldText).thenAccept(leaderboardEntryBeans -> {
+    leaderboardService.getSearchResults(ratingType,searchTextFieldText,1 /*get page of pagination*/,NUMBER_OF_PLAYERS_PER_PAGE).thenAccept(leaderboardEntryBeans -> {
       ratingTable.setItems(observableList(leaderboardEntryBeans));
       contentPane.setVisible(true);
     }).exceptionally(throwable -> {
