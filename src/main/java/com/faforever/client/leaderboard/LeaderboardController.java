@@ -55,6 +55,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public JFXButton searchButton;
   private KnownFeaturedMod ratingType;
 
+
   @Override
   public void initialize() {
     super.initialize();
@@ -113,31 +114,10 @@ public class LeaderboardController extends AbstractViewController<Node> {
 
     String searchTextFieldText = searchTextField.getText();
 
+
+
     //if the user is searching for a particular entry in the table...
-    if (Validator.isInt(searchTextFieldText)) {
-      ratingTable.scrollTo(Integer.parseInt(searchTextFieldText) - 1);
-    } else {
-      LeaderboardEntry foundPlayer = null;
-      for (LeaderboardEntry leaderboardEntry : ratingTable.getItems()) {
-        if (leaderboardEntry.getUsername().toLowerCase().startsWith(searchTextFieldText.toLowerCase())) {
-          foundPlayer = leaderboardEntry;
-          break;
-        }
-      }
-      if (foundPlayer == null) {
-        for (LeaderboardEntry leaderboardEntry : ratingTable.getItems()) {
-          if (leaderboardEntry.getUsername().toLowerCase().contains(searchTextFieldText.toLowerCase())) {
-            foundPlayer = leaderboardEntry;
-            break;
-          }
-        }
-      }
-      if (foundPlayer != null) {
-        ratingTable.scrollTo(foundPlayer);
-        ratingTable.getSelectionModel().select(foundPlayer);
-      } else {
-        ratingTable.getSelectionModel().select(null);
-      }
-    }
+
+
   }
 }
