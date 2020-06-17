@@ -1,7 +1,6 @@
 package com.faforever.client.rankedmatch;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.fa.CloseGameEvent;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Faction;
@@ -230,6 +229,10 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
 
   public void onMatchFoundMessage() {
     setSearching(false);
+    notificationService.addNotification(new TransientNotification(
+        i18n.get("ranked1v1.matchFoundNotification.title"),
+        i18n.get("ranked1v1.matchFoundNotification.message")
+    ));
   }
 
   public void onMatchCancelledMessage() {
