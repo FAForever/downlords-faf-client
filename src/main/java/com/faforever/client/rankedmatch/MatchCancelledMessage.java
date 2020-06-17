@@ -8,6 +8,6 @@ import com.google.gson.annotations.SerializedName;
 public class MatchCancelledMessage extends FafServerMessage {
 
   public MatchCancelledMessage() {
-    super(FafServerMessageType.MATCH_FOUND);
+    super(FafServerMessageType.MATCH_CANCELLED);
   }
 }
