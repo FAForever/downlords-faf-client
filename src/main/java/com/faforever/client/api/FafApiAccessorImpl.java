@@ -478,6 +478,11 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
+  public List<GlobalLeaderboardEntry> findGlobalLeaderboardEntryByQuery(SearchConfig searchConfig, int page, int count) {
+    return null;
+  }
+
+  @Override
   public Optional<MapVersion> findMapVersionById(String id) {
     // FIXME: that is not gonna work this way
     //FIXME: filter hidden maps
