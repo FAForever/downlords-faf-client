@@ -1,6 +1,7 @@
 package com.faforever.client.rankedmatch;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.fa.CloseGameEvent;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Faction;
@@ -9,6 +10,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.leaderboard.RatingStat;
 import com.faforever.client.main.event.ShowLadderMapsEvent;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferenceUpdateListener;
@@ -49,6 +52,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import javax.management.Notification;
 import java.lang.invoke.MethodHandles;
 import java.lang.ref.WeakReference;
 import java.time.Duration;
@@ -86,6 +90,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
   private final ClientProperties clientProperties;
   private final FafService fafService;
   private final EventBus eventBus;
+  private final NotificationService notificationService;
 
   public CategoryAxis ratingDistributionXAxis;
   public NumberAxis ratingDistributionYAxis;
@@ -198,6 +203,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
     fafService.requestMatchmakerInfo();
 
     fafService.addOnMessageListener(MatchFoundMessage.class, message -> onMatchFoundMessage());
+    fafService.addOnMessageListener(MatchCancelledMessage.class, message ->onMatchCancelledMessage());
   }
 
   @Override
@@ -224,6 +230,13 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
 
   public void onMatchFoundMessage() {
     setSearching(false);
+  }
+
+  public void onMatchCancelledMessage() {
+    notificationService.addNotification(new TransientNotification(
+        i18n.get("ranked1v1.matchCancelledNotification.title"),
+        i18n.get("ranked1v1.matchCancelledNotification.message")
+    ));
   }
 
   @Override

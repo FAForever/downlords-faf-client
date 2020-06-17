@@ -366,8 +366,8 @@ public class MainController implements Controller<Node> {
     }
 
     notificationService.addNotification(new TransientNotification(
-        i18n.get("ranked1v1.notification.title"),
-        i18n.get("ranked1v1.notification.message"),
+        i18n.get("ranked1v1.availableOpponentNotification.title"),
+        i18n.get("ranked1v1.availableOpponentNotification.message"),
         uiService.getThemeImage(UiService.LADDER_1V1_IMAGE),
         event -> eventBus.post(new Open1v1Event())
     ));

@@ -1,6 +1,7 @@
 package com.faforever.client.remote.domain;
 
 import com.faforever.client.rankedmatch.MatchFoundMessage;
+import com.faforever.client.rankedmatch.MatchCancelledMessage;
 import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
 import com.faforever.client.remote.UpdatedAchievementsMessage;
 
@@ -15,6 +16,7 @@ public enum FafServerMessageType implements ServerMessageType {
   GAME_LAUNCH("game_launch", GameLaunchMessage.class),
   MATCHMAKER_INFO("matchmaker_info", MatchmakerInfoMessage.class),
   MATCH_FOUND("match_found", MatchFoundMessage.class),
+  MATCH_CANCELLED("match_cancelled", MatchCancelledMessage.class),
   SOCIAL("social", SocialMessage.class),
   AUTHENTICATION_FAILED("authentication_failed", AuthenticationFailedMessage.class),
   UPDATED_ACHIEVEMENTS("updated_achievements", UpdatedAchievementsMessage.class),
