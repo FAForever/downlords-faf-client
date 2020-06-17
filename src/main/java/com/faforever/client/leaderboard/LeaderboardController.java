@@ -78,6 +78,10 @@ public class LeaderboardController extends AbstractViewController<Node> {
     connectionProgressPane.visibleProperty().bind(contentPane.visibleProperty().not());
   }
 
+  public void search() {
+
+  }
+
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
     Assert.checkNullIllegalState(ratingType, "ratingType must not be null");
