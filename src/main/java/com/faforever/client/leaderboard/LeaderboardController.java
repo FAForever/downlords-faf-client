@@ -113,6 +113,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public void handleSearchButtonClicked(ActionEvent event) {
 
     String searchTextFieldText = searchTextField.getText();
+    leaderboardService.getSearchResults(searchTextFieldText);
 
 
 
