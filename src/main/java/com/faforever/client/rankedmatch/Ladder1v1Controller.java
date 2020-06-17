@@ -18,6 +18,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue.QueueName;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
@@ -90,6 +91,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
   private final FafService fafService;
   private final EventBus eventBus;
   private final NotificationService notificationService;
+  private final UiService uiService;
 
   public CategoryAxis ratingDistributionXAxis;
   public NumberAxis ratingDistributionYAxis;
@@ -231,14 +233,16 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
     setSearching(false);
     notificationService.addNotification(new TransientNotification(
         i18n.get("ranked1v1.matchFoundNotification.title"),
-        i18n.get("ranked1v1.matchFoundNotification.message")
+        i18n.get("ranked1v1.matchFoundNotification.message"),
+        uiService.getThemeImage(UiService.LADDER_1V1_IMAGE)
     ));
   }
 
   public void onMatchCancelledMessage() {
     notificationService.addNotification(new TransientNotification(
         i18n.get("ranked1v1.matchCancelledNotification.title"),
-        i18n.get("ranked1v1.matchCancelledNotification.message")
+        i18n.get("ranked1v1.matchCancelledNotification.message"),
+        uiService.getThemeImage(UiService.LADDER_1V1_IMAGE)
     ));
   }
 
