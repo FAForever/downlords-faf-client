@@ -23,22 +23,19 @@ import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 @Service
 @Profile(FafClientApplication.PROFILE_OFFLINE)
 @RequiredArgsConstructor
-public class MockLeaderboardService implements LeaderboardService {
+public class MockLeaderboardService{
 
   private final TaskService taskService;
   private final I18n i18n;
 
-  @Override
   public CompletableFuture<List<RatingStat>> getLadder1v1Stats() {
     return CompletableFuture.completedFuture(Collections.emptyList());
   }
 
-  @Override
   public CompletableFuture<LeaderboardEntry> getEntryForPlayer(int playerId) {
     return CompletableFuture.completedFuture(createLadderInfoBean("Player #" + playerId, 111, 222, 333, 55.55f));
   }
 
-  @Override
   public CompletableFuture<List<LeaderboardEntry>> getEntries(KnownFeaturedMod ratingType) {
     return taskService.submitTask(new CompletableTask<List<LeaderboardEntry>>(HIGH) {
       @Override

@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class LeaderboardService {
   private final FafService fafService;
-  final int MINIMUM_GAMES_PLAYED_TO_BE_SHOWN = 10;
+  public static final int MINIMUM_GAMES_PLAYED_TO_BE_SHOWN = 10;
 
   public CompletableFuture<List<RatingStat>> getLadder1v1Stats() {
     return fafService.getLadder1v1Leaderboard().thenApply(this::toRatingStats);
