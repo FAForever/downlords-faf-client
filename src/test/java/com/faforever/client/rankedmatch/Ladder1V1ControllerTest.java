@@ -6,6 +6,7 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardEntry;
 import com.faforever.client.leaderboard.LeaderboardService;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
@@ -16,6 +17,7 @@ import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue.QueueName;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -79,9 +81,12 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
   private ForgedAlliancePrefs forgedAlliancePrefs;
   @Mock
   private FafService fafService;
-
   @Mock
   private EventBus eventBus;
+  @Mock
+  private NotificationService notificationService;
+  @Mock
+  private UiService uiService;
 
   private ObjectProperty<Player> currentPlayerProperty;
   private ObservableList<Faction> factionList;
@@ -89,7 +94,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     instance = new Ladder1v1Controller(gameService, preferencesService, playerService, leaderboardService, i18n,
-        new ClientProperties(), fafService, eventBus);
+        new ClientProperties(), fafService, eventBus, notificationService, uiService);
 
     Player player = new Player(USERNAME);
     player.setId(PLAYER_ID);
