@@ -125,6 +125,8 @@ public interface FafApiAccessor {
 
   List<Ladder1v1LeaderboardEntry> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count);
 
+  List<Map> findGlobalLeaderboardEntryByQuery(SearchConfig searchConfig, int page, int count);
+
   Optional<MapVersion> findMapVersionById(String id);
 
   void deleteMapVersionReview(String id);
