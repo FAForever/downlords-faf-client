@@ -83,9 +83,6 @@ public class LeaderboardController extends AbstractViewController<Node> {
     connectionProgressPane.visibleProperty().bind(contentPane.visibleProperty().not());
   }
 
-  public void search() {
-
-  }
 
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
@@ -118,6 +115,21 @@ public class LeaderboardController extends AbstractViewController<Node> {
 
     String searchTextFieldText = searchTextField.getText();
     leaderboardService.getSearchResults(searchTextFieldText);
+
+    Assert.checkNullIllegalState(ratingType, "ratingType must not be null");
+    contentPane.setVisible(false);
+    leaderboardService.getSearchResults(searchTextFieldText).thenAccept(leaderboardEntryBeans -> {
+      ratingTable.setItems(observableList(leaderboardEntryBeans));
+      contentPane.setVisible(true);
+    }).exceptionally(throwable -> {
+      contentPane.setVisible(false);
+      logger.warn("Error while loading leaderboard entries", throwable);
+      notificationService.addNotification(new ImmediateErrorNotification(
+          i18n.get("errorTitle"), i18n.get("leaderboard.failedToLoad"),
+          throwable, i18n, reportingService
+      ));
+      return null;
+    });
 
 
 
