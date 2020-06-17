@@ -2,9 +2,12 @@ package com.faforever.client.leaderboard;
 
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.game.KnownFeaturedMod;
+import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
+import com.faforever.client.vault.search.SearchController.SortConfig;
+import com.faforever.client.vault.search.SearchController.SortOrder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
@@ -62,5 +65,7 @@ public class LeaderboardService {
     }
   }
 
-
+  public CompletableFuture<List<LeaderboardEntry>> getSearchResults(String search) {
+    return fafService.findGlobalLeaderboardEntryByQuery(new SearchConfig(new SortConfig(SearchablePropertyMappings.HIGHEST_RATING_KEY, SortOrder.DESC), search), 1, 10);
+  }
 }
