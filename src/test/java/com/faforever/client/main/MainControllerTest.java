@@ -267,7 +267,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
         Optional.ofNullable(PlayerBuilder.create("JUnit").leaderboardRatingMean(1500).leaderboardRatingDeviation(deviation).get())
     );
 
-    verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
+    verify(gameService).addOnMatchmakerInfoListener(matchmakerMessageCaptor.capture());
 
     MatchmakerInfoMessage matchmakerMessage = new MatchmakerInfoMessage();
     matchmakerMessage.setQueues(singletonList(new MatchmakerInfoMessage.MatchmakerQueue(QueueName.LADDER_1V1, null,
@@ -299,7 +299,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     @SuppressWarnings("unchecked")
     ArgumentCaptor<Consumer<MatchmakerInfoMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
 
-    verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
+    verify(gameService).addOnMatchmakerInfoListener(matchmakerMessageCaptor.capture());
 
     MatchmakerInfoMessage matchmakerMessage = new MatchmakerInfoMessage();
     matchmakerMessage.setQueues(null);
@@ -314,7 +314,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     ArgumentCaptor<Consumer<MatchmakerInfoMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
     preferences.getNotification().setLadder1v1ToastEnabled(true);
 
-    verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
+    verify(gameService).addOnMatchmakerInfoListener(matchmakerMessageCaptor.capture());
 
     MatchmakerInfoMessage matchmakerMessage = new MatchmakerInfoMessage();
     matchmakerMessage.setQueues(singletonList(new MatchmakerInfoMessage.MatchmakerQueue(QueueName.LADDER_1V1, null,

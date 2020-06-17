@@ -161,7 +161,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
     JavaFxUtil.addListener(playerService.currentPlayerProperty(), (observable, oldValue, newValue) -> Platform.runLater(() -> setCurrentPlayer(newValue)));
     playerService.getCurrentPlayer().ifPresent(this::setCurrentPlayer);
     
-    gameService.addOnRankedMatchNotificationListener(message -> {
+    gameService.addOnMatchmakerInfoListener(message -> {
       if (message.getQueues() == null) {
         return;
       }
@@ -176,7 +176,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
         }
       }
     });
-    
+
     timeUntilQueuePopLabel.setVisible(false);
     queuePopTimeUpdater = new Timeline(1,new KeyFrame(javafx.util.Duration.seconds(0), (ActionEvent event) -> {
       if (nextQueuePopTime != null) {
@@ -196,6 +196,8 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
     queuePopTimeUpdater.setCycleCount(Timeline.INDEFINITE);
 
     fafService.requestMatchmakerInfo();
+
+    fafService.addOnMessageListener(MatchFoundMessage.class, message -> onMatchFoundMessage());
   }
 
   @Override
@@ -217,6 +219,10 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
 
   public void onCancelButtonClicked() {
     gameService.stopSearchLadder1v1();
+    setSearching(false);
+  }
+
+  public void onMatchFoundMessage() {
     setSearching(false);
   }
 

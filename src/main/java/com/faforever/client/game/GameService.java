@@ -480,7 +480,7 @@ public class GameService implements InitializingBean {
     return game;
   }
 
-  public void addOnRankedMatchNotificationListener(Consumer<MatchmakerInfoMessage> listener) {
+  public void addOnMatchmakerInfoListener(Consumer<MatchmakerInfoMessage> listener) {
     fafService.addOnMessageListener(MatchmakerInfoMessage.class, listener);
   }
 

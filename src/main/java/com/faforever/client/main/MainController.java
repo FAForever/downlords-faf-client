@@ -219,7 +219,7 @@ public class MainController implements Controller<Node> {
     notificationService.addPersistentNotificationListener(change -> runLater(() -> updateNotificationsButton(change.getSet())));
     notificationService.addImmediateNotificationListener(notification -> runLater(() -> displayImmediateNotification(notification)));
     notificationService.addTransientNotificationListener(notification -> runLater(() -> transientNotificationsController.addNotification(notification)));
-    gameService.addOnRankedMatchNotificationListener(this::onMatchmakerMessage);
+    gameService.addOnMatchmakerInfoListener(this::onMatchmakerMessage);
     // Always load chat immediately so messages or joined channels don't need to be cached until we display them.
     getView(NavigationItem.CHAT);
 
