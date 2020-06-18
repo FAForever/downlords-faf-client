@@ -75,6 +75,7 @@ public class SearchController implements Controller<Pane> {
     queryNodes = new ArrayList<>();
   }
 
+  @Override
   public void initialize() {
     queryTextField.managedProperty().bind(queryTextField.visibleProperty());
     queryTextField.visibleProperty().bind(displayQueryCheckBox.selectedProperty());
@@ -82,9 +83,11 @@ public class SearchController implements Controller<Pane> {
     //FIXME code style probably not good
     //FIXME this might always be visible, only show this on online replays
     onlyShowLastYearCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-        //TODO implement adding filter to query
+      //TODO implement adding filter to query
     });
     onlyShowLastYearCheckBox.setSelected(true);
+    onlyShowLastYearCheckBox.managedProperty().bind(onlyShowLastYearCheckBox.visibleProperty());
+    onlyShowLastYearCheckBox.setVisible(false);
 
     initialLogicalNodeController.logicalOperatorField.managedProperty()
         .bind(initialLogicalNodeController.logicalOperatorField.visibleProperty());
@@ -102,7 +105,7 @@ public class SearchController implements Controller<Pane> {
   }
 
   private void initSorting() {
-    sortPropertyComboBox.setConverter(new StringConverter<Property>() {
+    sortPropertyComboBox.setConverter(new StringConverter<>() {
       @Override
       public String toString(Property property) {
         return i18n.get(property.getI18nKey());
@@ -113,7 +116,7 @@ public class SearchController implements Controller<Pane> {
         throw new UnsupportedOperationException("Not supported");
       }
     });
-    sortOrderChoiceBox.setConverter(new StringConverter<SortOrder>() {
+    sortOrderChoiceBox.setConverter(new StringConverter<>() {
       @Override
       public String toString(SortOrder order) {
         return i18n.get(order.getI18nKey());
@@ -250,6 +253,10 @@ public class SearchController implements Controller<Pane> {
 
   public void setSearchButtonDisabledCondition(BooleanBinding inSearchableState) {
     searchButton.disableProperty().bind(queryTextField.textProperty().isEmpty().or(inSearchableState.not()));
+  }
+
+  public void setOnlyShowLastYearCheckBoxVisible(boolean visible) {
+    onlyShowLastYearCheckBox.setVisible(visible);
   }
 
   @Getter

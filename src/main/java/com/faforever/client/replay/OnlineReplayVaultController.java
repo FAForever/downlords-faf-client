@@ -111,6 +111,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
 
     BooleanBinding inSearchableState = Bindings.createBooleanBinding(() -> state.get() != State.SEARCHING, state);
     searchController.setSearchButtonDisabledCondition(inSearchableState);
+    searchController.setOnlyShowLastYearCheckBoxVisible(true);
   }
 
   private void displaySearchResult(List<Replay> replays, boolean append) {
