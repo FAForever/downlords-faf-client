@@ -7,6 +7,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardEntry;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
@@ -53,6 +54,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
@@ -159,6 +161,29 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
     for (ToggleButton button : instance.factionsToButtons.values()) {
       assertThat(button.isDisable(), is(false));
     }
+  }
+
+  @Test
+  public void testOnMatchFoundMessage() throws Exception {
+    instance.onMatchFoundMessage();
+
+    verify(gameService, never()).stopSearchLadder1v1();
+    verify(notificationService).addNotification(any(TransientNotification.class));
+
+    assertThat(instance.cancelButton.isVisible(), is(false));
+    assertThat(instance.playButton.isVisible(), is(true));
+    assertThat(instance.searchingForOpponentLabel.isVisible(), is(false));
+    for (ToggleButton button : instance.factionsToButtons.values()) {
+      assertThat(button.isDisable(), is(false));
+    }
+  }
+
+  @Test
+  public void testOnMatchCancelledMessage() throws Exception {
+    instance.onMatchCancelledMessage();
+
+    verify(gameService).stopSearchLadder1v1();
+    verify(notificationService).addNotification(any(TransientNotification.class));
   }
 
   @Test
