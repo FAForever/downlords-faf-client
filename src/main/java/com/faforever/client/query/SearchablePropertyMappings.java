@@ -15,7 +15,6 @@ import java.util.Map;
 public class SearchablePropertyMappings {
   public static final String NEWEST_MOD_KEY = "latestVersion.createTime";
   public static final String HIGHEST_RATED_MOD_KEY = "latestVersion.reviewsSummary.lowerBound";
-  public static final String HIGHEST_RATING_KEY = "-rating";
 
   public static final Map<String, Property> GAME_PROPERTY_MAPPING = ImmutableMap.<String, Property>builder()
       .put("playerStats.player.login", new Property("game.player.username", false))
