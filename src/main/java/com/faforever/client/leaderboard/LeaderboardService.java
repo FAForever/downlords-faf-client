@@ -67,7 +67,7 @@ public class LeaderboardService {
     }
   }
 
-  public CompletableFuture<List<LeaderboardEntry>> getSearchResults(KnownFeaturedMod ratingType, String nameToSearch, int page, int count) {
+  public CompletableFuture<List<Rating>> getSearchResults(KnownFeaturedMod ratingType, String nameToSearch, int page, int count) {
     switch (ratingType) {
       case FAF:
         return fafService.findGlobalLeaderboardEntryByQuery(nameToSearch, page, count);
