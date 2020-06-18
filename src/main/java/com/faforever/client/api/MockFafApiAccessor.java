@@ -23,6 +23,7 @@ import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
+import com.faforever.client.api.dto.Rating;
 import com.faforever.client.api.dto.Tournament;
 import com.faforever.client.api.dto.TutorialCategory;
 import com.faforever.client.game.KnownFeaturedMod;
@@ -253,7 +254,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<GlobalLeaderboardEntry> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
+  public List<Rating> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
     return Collections.emptyList();
   }
 
