@@ -118,7 +118,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
 
     Assert.checkNullIllegalState(ratingType, "ratingType must not be null");
     contentPane.setVisible(false);
-    leaderboardService.getSearchResults(ratingType,searchTextFieldText,1 /*get page of pagination*/,NUMBER_OF_PLAYERS_PER_PAGE).thenAccept(leaderboardEntryBeans -> {
+    leaderboardService.getSearchResults(1,NUMBER_OF_PLAYERS_PER_PAGE, searchTextFieldText).thenAccept(leaderboardEntryBeans -> {
       ratingTable.setItems(observableList(leaderboardEntryBeans));
       contentPane.setVisible(true);
     }).exceptionally(throwable -> {
