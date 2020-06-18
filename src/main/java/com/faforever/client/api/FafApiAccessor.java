@@ -21,6 +21,7 @@ import com.faforever.client.api.dto.ModVersion;
 import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
+import com.faforever.client.api.dto.Rating;
 import com.faforever.client.api.dto.Tournament;
 import com.faforever.client.api.dto.TutorialCategory;
 import com.faforever.client.game.KnownFeaturedMod;
@@ -119,7 +120,7 @@ public interface FafApiAccessor {
 
   List<Map> findMapsByQuery(SearchConfig searchConfig, int page, int count);
 
-  List<GlobalLeaderboardEntry> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count);
+  List<Rating> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count);
 
   Optional<MapVersion> findMapVersionById(String id);
 

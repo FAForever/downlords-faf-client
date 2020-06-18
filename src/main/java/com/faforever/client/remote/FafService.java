@@ -7,10 +7,12 @@ import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
+import com.faforever.client.api.dto.GlobalRating;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
 import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.PlayerAchievement;
+import com.faforever.client.api.dto.Rating;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.clan.Clan;
@@ -261,10 +263,9 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<List<LeaderboardEntry>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
+  public CompletableFuture<List<Rating>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
     return CompletableFuture.completedFuture(fafApiAccessor.findGlobalLeaderboardEntryByQuery(nameToSearch, page, count)
         .parallelStream()
-        .map(LeaderboardEntry::fromGlobalRating)
         .collect(toList()));
   }
 

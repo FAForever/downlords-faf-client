@@ -1,6 +1,8 @@
 package com.faforever.client.leaderboard;
 
 import com.faforever.client.FafClientApplication;
+import com.faforever.client.api.dto.GlobalRating;
+import com.faforever.client.api.dto.Rating;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.remote.FafService;
@@ -65,7 +67,7 @@ public class LeaderboardService {
     }
   }
 
-  public CompletableFuture<List<LeaderboardEntry>> getSearchResults(KnownFeaturedMod ratingType, String nameToSearch, int page, int count) {
+  public CompletableFuture<List<Rating>> getSearchResults(KnownFeaturedMod ratingType, String nameToSearch, int page, int count) {
     switch (ratingType) {
       case FAF:
         return fafService.findGlobalLeaderboardEntryByQuery(nameToSearch, page, count);
