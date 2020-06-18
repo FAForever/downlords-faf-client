@@ -119,7 +119,7 @@ public interface FafApiAccessor {
 
   List<Map> findMapsByQuery(SearchConfig searchConfig, int page, int count);
 
-  List<GlobalLeaderboardEntry> findGlobalLeaderboardEntryByQuery(SearchConfig searchConfig, int page, int count);
+  List<GlobalLeaderboardEntry> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count);
 
   Optional<MapVersion> findMapVersionById(String id);
 
