@@ -499,7 +499,13 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public List<GlobalLeaderboardEntry> findGlobalLeaderboardEntryByQuery(SearchConfig searchConfig, int page, int count) {
-    return null;
+    MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
+    if (searchConfig.hasQuery()) {
+      parameterMap.add("filter", searchConfig.getSearchQuery());
+    }
+    parameterMap.add("include", "player");
+    parameterMap.add("sort", searchConfig.getSortConfig().getSortProperty());
+    return getPage(GLOBAL_RATING_ENDPOINT, count, page, parameterMap);
   }
 
   @Override
