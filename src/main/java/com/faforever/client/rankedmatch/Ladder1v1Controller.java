@@ -239,6 +239,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
   }
 
   public void onMatchCancelledMessage() {
+    gameService.stopSearchLadder1v1();
     notificationService.addNotification(new TransientNotification(
         i18n.get("ranked1v1.matchCancelledNotification.title"),
         i18n.get("ranked1v1.matchCancelledNotification.message"),
