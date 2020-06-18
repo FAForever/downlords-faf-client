@@ -12,6 +12,7 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.Validator;
 import com.jfoenix.controls.JFXButton;
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.value.ChangeListener;
@@ -91,15 +92,19 @@ public class LeaderboardController extends AbstractViewController<Node> {
 
     contentPane.setVisible(false);
     leaderboardService.getEntries(ratingType).thenAccept(leaderboardEntryBeans -> {
-      ratingTable.setItems(observableList(leaderboardEntryBeans));
-      contentPane.setVisible(true);
+      Platform.runLater(() -> {
+        ratingTable.setItems(observableList(leaderboardEntryBeans));
+        contentPane.setVisible(true);
+      });
     }).exceptionally(throwable -> {
-      contentPane.setVisible(false);
-      logger.warn("Error while loading leaderboard entries", throwable);
-      notificationService.addNotification(new ImmediateErrorNotification(
-          i18n.get("errorTitle"), i18n.get("leaderboard.failedToLoad"),
-          throwable, i18n, reportingService
-      ));
+      Platform.runLater(() -> {
+        contentPane.setVisible(false);
+        logger.warn("Error while loading leaderboard entries", throwable);
+        notificationService.addNotification(new ImmediateErrorNotification(
+            i18n.get("errorTitle"), i18n.get("leaderboard.failedToLoad"),
+            throwable, i18n, reportingService
+        ));
+      });
       return null;
     });
   }
@@ -119,15 +124,19 @@ public class LeaderboardController extends AbstractViewController<Node> {
     Assert.checkNullIllegalState(ratingType, "ratingType must not be null");
     contentPane.setVisible(false);
     leaderboardService.getSearchResults(ratingType,searchTextFieldText,1 /*get page of pagination*/,NUMBER_OF_PLAYERS_PER_PAGE).thenAccept(leaderboardEntryBeans -> {
-      ratingTable.setItems(observableList(leaderboardEntryBeans));
-      contentPane.setVisible(true);
+      Platform.runLater(() -> {
+        ratingTable.setItems(observableList(leaderboardEntryBeans));
+        contentPane.setVisible(true);
+      });
     }).exceptionally(throwable -> {
-      contentPane.setVisible(false);
-      logger.warn("Error while loading leaderboard entries", throwable);
-      notificationService.addNotification(new ImmediateErrorNotification(
-          i18n.get("errorTitle"), i18n.get("leaderboard.failedToLoad"),
-          throwable, i18n, reportingService
-      ));
+      Platform.runLater(() -> {
+        contentPane.setVisible(false);
+        logger.warn("Error while loading leaderboard entries", throwable);
+        notificationService.addNotification(new ImmediateErrorNotification(
+            i18n.get("errorTitle"), i18n.get("leaderboard.failedToLoad"),
+            throwable, i18n, reportingService
+        ));
+      });
       return null;
     });
 
