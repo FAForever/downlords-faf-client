@@ -119,32 +119,26 @@ public class LeaderboardController extends AbstractViewController<Node> {
 
   public void handleSearchButtonClicked(ActionEvent event) {
 
-
     String searchTextFieldText = searchTextField.getText();
-    if(searchTextFieldText.isEmpty())
-    {
-      //TODO Fill with some stuff
-    }
-    else {
-      Assert.checkNullIllegalState(ratingType, "ratingType must not be null");
-      contentPane.setVisible(false);
-      leaderboardService.getSearchResults(1 /*get page of pagination*/, NUMBER_OF_PLAYERS_PER_PAGE, searchTextFieldText).thenAccept(leaderboardEntryBeans -> {
-        Platform.runLater(() -> {
-          ratingTable.setItems(observableList(leaderboardEntryBeans));
-          contentPane.setVisible(true);
-        });
-      }).exceptionally(throwable -> {
-        Platform.runLater(() -> {
-          contentPane.setVisible(false);
-          logger.warn("Error while loading leaderboard entries", throwable);
-          notificationService.addNotification(new ImmediateErrorNotification(
-              i18n.get("errorTitle"), i18n.get("leaderboard.failedToLoad"),
-              throwable, i18n, reportingService
-          ));
-        });
-        return null;
+
+    Assert.checkNullIllegalState(ratingType, "ratingType must not be null");
+    contentPane.setVisible(false);
+    leaderboardService.getSearchResults(ratingType, searchTextFieldText, 1 /*get page of pagination*/,NUMBER_OF_PLAYERS_PER_PAGE).thenAccept(leaderboardEntryBeans -> {
+      Platform.runLater(() -> {
+        ratingTable.setItems(observableList(leaderboardEntryBeans));
+        contentPane.setVisible(true);
       });
-    }
+    }).exceptionally(throwable -> {
+      Platform.runLater(() -> {
+        contentPane.setVisible(false);
+        logger.warn("Error while loading leaderboard entries", throwable);
+        notificationService.addNotification(new ImmediateErrorNotification(
+            i18n.get("errorTitle"), i18n.get("leaderboard.failedToLoad"),
+            throwable, i18n, reportingService
+        ));
+      });
+      return null;
+    });
 
 
 

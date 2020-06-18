@@ -65,7 +65,15 @@ public class LeaderboardService {
     }
   }
 
-  public CompletableFuture<List<LeaderboardEntry>> getSearchResults(int page, int count, String search) {
-    return fafService.findGlobalLeaderboardEntryByQuery(new SearchConfig(new SortConfig(SearchablePropertyMappings.HIGHEST_RATING_KEY, SortOrder.DESC), "player.login==" + search + "*"), page, count);
+  public CompletableFuture<List<LeaderboardEntry>> getSearchResults(KnownFeaturedMod ratingType, String nameToSearch, int page, int count) {
+    switch (ratingType) {
+      case FAF:
+        return fafService.findGlobalLeaderboardEntryByQuery(nameToSearch, page, count);
+      case LADDER_1V1:
+        return null; //TODO add second method
+      default:
+        throw new IllegalArgumentException("Not supported: " + ratingType);
+    }
+
   }
 }
