@@ -10,6 +10,7 @@ import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.GameReviewsSummary;
 import com.faforever.client.api.dto.GlobalLeaderboardEntry;
+import com.faforever.client.api.dto.GlobalRating;
 import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
 import com.faforever.client.api.dto.Ladder1v1Map;
 import com.faforever.client.api.dto.Map;
@@ -30,6 +31,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Api;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.io.CountingFileSystemResource;
+import com.faforever.client.leaderboard.LeaderboardEntry;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
@@ -83,6 +85,7 @@ import java.util.stream.Collectors;
 public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   private static final String MAP_ENDPOINT = "/data/map";
+  private static final String GLOBAL_RATING_ENDPOINT = "/data/globalRating";
   private static final String TOURNAMENT_LIST_ENDPOINT = "/challonge/v1/tournaments.json";
   private static final String REPLAY_INCLUDES = "featuredMod,playerStats,playerStats.player,reviews,reviews.player,mapVersion,mapVersion.map,mapVersion.reviews,reviewsSummary";
   private static final String COOP_RESULT_INCLUDES = "game.playerStats.player";
@@ -479,7 +482,13 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public List<GlobalLeaderboardEntry> findGlobalLeaderboardEntryByQuery(SearchConfig searchConfig, int page, int count) {
-    return null;
+    MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
+    if (searchConfig.hasQuery()) {
+      parameterMap.add("filter", searchConfig.getSearchQuery());
+    }
+    parameterMap.add("include", "player");
+    parameterMap.add("sort", searchConfig.getSortConfig().getSortProperty());
+    return getPage(GLOBAL_RATING_ENDPOINT, count, page, parameterMap);
   }
 
   @Override
