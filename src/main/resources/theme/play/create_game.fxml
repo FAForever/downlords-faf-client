@@ -127,17 +127,14 @@
                        onAction="#onGenerateMapButtonClicked"
                        styleClass="game-generate-map" text="%game.create.generatedMap" contentDisplay="RIGHT"
                        HBox.hgrow="ALWAYS">
-                <graphic>
-                    <Label styleClass="button-mini-label" text="%game.create.generatedMapNew">
-                        <Insets left="250"/>
-                    </Label>
-                </graphic>
             </JFXButton>
             <Spinner fx:id="spawnCountSpinner" style="-fx-pref-width: 5em" maxHeight="Infinity">
                 <tooltip>
                     <Tooltip text="%game.create.spawnCount"/>
                 </tooltip>
             </Spinner>
+            <Label text="%game.create.waterOption"></Label>
+            <JFXCheckBox fx:id="generateWaterCheckBox" mnemonicParsing="false"/>
         </HBox>
 
 

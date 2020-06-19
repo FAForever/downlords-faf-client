@@ -1,15 +1,17 @@
 package com.faforever.client.preferences;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 
 public class GeneratorPrefs {
   private final IntegerProperty spawnCountProperty;
-  private final IntegerProperty landDensityProperty;
+  private final BooleanProperty generateWaterProperty;
 
   public GeneratorPrefs() {
     spawnCountProperty = new SimpleIntegerProperty(6);
-    landDensityProperty = new SimpleIntegerProperty(51);
+    generateWaterProperty = new SimpleBooleanProperty(false);
   }
 
   public int getSpawnCountProperty() {
@@ -20,19 +22,19 @@ public class GeneratorPrefs {
     this.spawnCountProperty.set(spawnCountProperty);
   }
 
-  public int getLandDensityProperty() {
-    return landDensityProperty.get();
-  }
-
-  public void setLandDensityProperty(int landDensityProperty) {
-    this.landDensityProperty.set(landDensityProperty);
-  }
-
   public IntegerProperty spawnCountPropertyProperty() {
     return spawnCountProperty;
   }
 
-  public IntegerProperty landDensityPropertyProperty() {
-    return landDensityProperty;
+  public boolean getGenerateWaterProperty() {
+    return generateWaterProperty.get();
+  }
+
+  public void setGenerateWaterProperty(boolean generateWaterProperty) {
+    this.generateWaterProperty.set(generateWaterProperty);
+  }
+
+  public BooleanProperty generateWaterPropertyProperty() {
+    return generateWaterProperty;
   }
 }
