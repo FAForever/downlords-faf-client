@@ -303,7 +303,7 @@ public class GameService implements InitializingBean {
       return gameDirectoryFuture.thenCompose(path -> hostGame(newGameInfo));
     }
 
-    stopSearchLadder();
+    stopSearchLadder(ratingMode);
 
     return updateGameIfNecessary(newGameInfo.getFeaturedMod(), null, emptyMap(), newGameInfo.getSimMods())
         .thenCompose(aVoid -> downloadMapIfNecessary(newGameInfo.getMap()))
@@ -324,7 +324,7 @@ public class GameService implements InitializingBean {
 
     log.info("Joining game: '{}' ({})", game.getTitle(), game.getId());
 
-    stopSearchLadder();
+    stopSearchLadder(ratingMode);
 
     Map<String, Integer> featuredModVersions = game.getFeaturedModVersions();
     Set<String> simModUIds = game.getSimMods().keySet();
@@ -519,7 +519,7 @@ public class GameService implements InitializingBean {
         });
   }
 
-  public void stopSearchLadder() {
+  public void stopSearchLadder(RatingMode ratingMode) {
     if (searchingLadder.get()) {
       fafService.stopSearchingRanked(ratingMode);
       searchingLadder.set(false);
@@ -570,7 +570,7 @@ public class GameService implements InitializingBean {
       return;
     }
 
-    stopSearchLadder();
+    stopSearchLadder(ratingMode);
     int uid = gameLaunchMessage.getUid();
     replayServer.start(uid, () -> getByUid(uid))
         .thenCompose(port -> {

@@ -208,7 +208,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
     verify(mapService, never()).download(any());
     verify(replayService).start(eq(game.getId()), any());
-    
+
     verify(forgedAllianceService).startGame(
         gameLaunchMessage.getUid(), null, asList(), GLOBAL,
         GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
@@ -426,15 +426,15 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     String[] additionalArgs = {"/team", "1", "/players", "2", "/startspot", "4"};
     mockStartGameProcess(uid, RatingMode.LADDER_1V1, CYBRAN, false, additionalArgs);
-    when(fafService.startSearchLadder(CYBRAN)).thenReturn(completedFuture(gameLaunchMessage));
+    when(fafService.startSearchLadder(RatingMode.LADDER_1V1, CYBRAN)).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(completedFuture(null));
     when(mapService.isInstalled(map)).thenReturn(false);
     when(mapService.download(map)).thenReturn(completedFuture(null));
     when(modService.getFeaturedMod(LADDER_1V1.getTechnicalName())).thenReturn(completedFuture(featuredMod));
 
-    instance.startSearchLadder(CYBRAN).toCompletableFuture();
+    instance.startSearchLadder(RatingMode.LADDER_1V1, CYBRAN).toCompletableFuture();
 
-    verify(fafService).startSearchLadder(CYBRAN);
+    verify(fafService).startSearchLadder(RatingMode.LADDER_1V1, CYBRAN);
     verify(mapService).download(map);
     verify(replayService).start(eq(uid), any());
     verify(forgedAllianceService).startGame(
@@ -464,7 +464,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     instance.hostGame(newGameInfo);
     gameRunningLatch.await(TIMEOUT, TIME_UNIT);
 
-    instance.startSearchLadder(AEON);
+    instance.startSearchLadder(RatingMode.LADDER_1V1, AEON);
 
     assertThat(instance.searchingLadderProperty().get(), is(false));
   }
@@ -472,17 +472,17 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testStopSearchLadder1v1() {
     instance.searchingLadderProperty().set(true);
-    instance.stopSearchLadder();
+    instance.stopSearchLadder(RatingMode.LADDER_1V1);
     assertThat(instance.searchingLadderProperty().get(), is(false));
-    verify(fafService).stopSearchingRanked();
+    verify(fafService).stopSearchingRanked(RatingMode.LADDER_1V1);
   }
 
   @Test
   public void testStopSearchLadder1v1NotSearching() {
     instance.searchingLadderProperty().set(false);
-    instance.stopSearchLadder();
+    instance.stopSearchLadder(RatingMode.LADDER_1V1);
     assertThat(instance.searchingLadderProperty().get(), is(false));
-    verify(fafService, never()).stopSearchingRanked();
+    verify(fafService, never()).stopSearchingRanked(RatingMode.LADDER_1V1);
   }
 
   @Test
@@ -557,7 +557,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void startSearchLadder1v1IfNoGameSet() {
     when(preferencesService.isGamePathValid()).thenReturn(false);
-    instance.startSearchLadder(null);
+    instance.startSearchLadder(RatingMode.LADDER_1V1, null);
     verify(eventBus).post(any(GameDirectoryChooseEvent.class));
   }
 

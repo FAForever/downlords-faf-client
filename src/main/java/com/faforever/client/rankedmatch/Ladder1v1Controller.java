@@ -1,6 +1,7 @@
 package com.faforever.client.rankedmatch;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Faction;
@@ -216,7 +217,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
   }
 
   public void onCancelButtonClicked() {
-    gameService.stopSearchLadder();
+    gameService.stopSearchLadder(RatingMode.LADDER_1V1);
     setSearching(false);
   }
 
@@ -236,7 +237,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
     ObservableList<Faction> factions = preferencesService.getPreferences().getLadder1v1Prefs().getFactions();
 
     Faction randomFaction = factions.get(random.nextInt(factions.size()));
-    gameService.startSearchLadder(randomFaction);
+    gameService.startSearchLadder(RatingMode.LADDER_1V1, randomFaction);
   }
 
   public void onFactionButtonClicked() {

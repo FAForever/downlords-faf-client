@@ -147,7 +147,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
   public void testOnCancelButtonClicked() throws Exception {
     instance.onCancelButtonClicked();
 
-    verify(gameService).stopSearchLadder();
+    verify(gameService).stopSearchLadder(any());
     assertThat(instance.cancelButton.isVisible(), is(false));
     assertThat(instance.playButton.isVisible(), is(true));
     assertThat(instance.searchingForOpponentLabel.isVisible(), is(false));
@@ -166,7 +166,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
     instance.onPlayButtonClicked();
     instance.setSearching(true);
 
-    verify(gameService).startSearchLadder(any());
+    verify(gameService).startSearchLadder(any(), any());
     assertThat(instance.cancelButton.isVisible(), is(true));
     assertThat(instance.playButton.isVisible(), is(false));
     assertThat(instance.searchProgressIndicator.isVisible(), is(true));
@@ -182,7 +182,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
 
     instance.onPlayButtonClicked();
 
-    verify(gameService, never()).startSearchLadder(any());
+    verify(gameService, never()).startSearchLadder(any(), any());
     verify(eventBus).post(new MissingGamePathEvent(true));
 
     assertThat(instance.cancelButton.isVisible(), is(false));
@@ -210,11 +210,11 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
     @SuppressWarnings("unchecked")
     ArgumentCaptor<Consumer<MatchmakerInfoMessage>> listenerCaptor = ArgumentCaptor.forClass(Consumer.class);
     verify(gameService).addOnRankedMatchNotificationListener(listenerCaptor.capture());
-    
+
     MatchmakerInfoMessage message = new MatchmakerInfoMessage();
     String timeString = DateTimeFormatter.ISO_INSTANT.format(Instant.now().plusSeconds(65));
     message.setQueues(List.of(new MatchmakerInfoMessage.MatchmakerQueue(QueueName.LADDER_1V1, timeString, null, null)));
-    
+
     listenerCaptor.getValue().accept(message);
     WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> instance.timeUntilQueuePopLabel.isVisible());
     verify(i18n, atLeast(1)).get(any(), eq(1L), anyInt());

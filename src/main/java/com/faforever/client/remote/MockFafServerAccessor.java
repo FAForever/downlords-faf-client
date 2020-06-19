@@ -1,6 +1,7 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.FafClientApplication;
+import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.KnownFeaturedMod;
@@ -245,7 +246,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> startSearchLadder(Faction faction) {
+  public CompletableFuture<GameLaunchMessage> startSearchLadder(RatingMode ratingMode, Faction faction) {
     logger.debug("Searching 1v1 match with faction: {}", faction);
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setUid(123);
@@ -254,7 +255,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public void stopSearchingRanked() {
+  public void stopSearchingRanked(RatingMode ratingMode) {
     logger.debug("Stopping searching 1v1 match");
   }
 

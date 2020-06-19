@@ -2,6 +2,7 @@ package com.faforever.client.remote;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.CloseGameEvent;
+import com.faforever.client.fa.RatingMode;
 import com.faforever.client.game.Faction;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.FactionDeserializer;
@@ -330,7 +331,7 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
   public void startSearchLadder1v1WithAeon() throws Exception {
     connectAndLogIn();
 
-    CompletableFuture<GameLaunchMessage> future = instance.startSearchLadder(Faction.AEON).toCompletableFuture();
+    CompletableFuture<GameLaunchMessage> future = instance.startSearchLadder(RatingMode.LADDER_1V1, Faction.AEON).toCompletableFuture();
 
     String clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     SearchLadderClientMessage searchRanked1v1Message = gson.fromJson(clientMessage, SearchLadderClientMessage.class);
@@ -351,7 +352,7 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
   public void stopSearchingLadder1v1Match() throws Exception {
     connectAndLogIn();
 
-    instance.stopSearchingRanked();
+    instance.stopSearchingRanked(RatingMode.LADDER_1V1);
 
     String clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     StopSearchLadder1v1ClientMessage stopSearchRanked1v1Message = gson.fromJson(clientMessage, StopSearchLadder1v1ClientMessage.class);
