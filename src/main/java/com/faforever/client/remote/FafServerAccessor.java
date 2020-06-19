@@ -1,5 +1,6 @@
 package com.faforever.client.remote;
 
+import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
@@ -46,9 +47,9 @@ public interface FafServerAccessor {
 
   void requestMatchmakerInfo();
 
-  CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction);
+  CompletableFuture<GameLaunchMessage> startSearchLadder(RatingMode ratingMode, Faction faction);
 
-  void stopSearchingRanked();
+  void stopSearchingRanked(RatingMode ratingMode);
 
   void sendGpgMessage(GpgGameMessage message);
 

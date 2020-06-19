@@ -143,7 +143,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
 
     setSearching(false);
 
-    JavaFxUtil.addListener(gameService.searching1v1Property(), (observable, oldValue, newValue) -> setSearching(newValue));
+    JavaFxUtil.addListener(gameService.searchingLadderProperty(), (observable, oldValue, newValue) -> setSearching(newValue));
 
     ObservableList<Faction> factions = preferencesService.getPreferences().getLadder1v1Prefs().getFactions();
     for (Faction faction : EnumSet.of(AEON, CYBRAN, UEF, SERAPHIM)) {
@@ -216,7 +216,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
   }
 
   public void onCancelButtonClicked() {
-    gameService.stopSearchLadder1v1();
+    gameService.stopSearchLadder();
     setSearching(false);
   }
 
@@ -236,7 +236,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
     ObservableList<Faction> factions = preferencesService.getPreferences().getLadder1v1Prefs().getFactions();
 
     Faction randomFaction = factions.get(random.nextInt(factions.size()));
-    gameService.startSearchLadder1v1(randomFaction);
+    gameService.startSearchLadder(randomFaction);
   }
 
   public void onFactionButtonClicked() {

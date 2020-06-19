@@ -14,7 +14,7 @@ import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
 import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue.QueueName;
-import com.faforever.client.rankedmatch.SearchLadder1v1ClientMessage;
+import com.faforever.client.rankedmatch.SearchLadderClientMessage;
 import com.faforever.client.rankedmatch.StopSearchLadder1v1ClientMessage;
 import com.faforever.client.remote.domain.ClientMessageType;
 import com.faforever.client.remote.domain.FafServerMessage;
@@ -330,12 +330,12 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
   public void startSearchLadder1v1WithAeon() throws Exception {
     connectAndLogIn();
 
-    CompletableFuture<GameLaunchMessage> future = instance.startSearchLadder1v1(Faction.AEON).toCompletableFuture();
+    CompletableFuture<GameLaunchMessage> future = instance.startSearchLadder(Faction.AEON).toCompletableFuture();
 
     String clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    SearchLadder1v1ClientMessage searchRanked1v1Message = gson.fromJson(clientMessage, SearchLadder1v1ClientMessage.class);
+    SearchLadderClientMessage searchRanked1v1Message = gson.fromJson(clientMessage, SearchLadderClientMessage.class);
 
-    assertThat(searchRanked1v1Message, instanceOf(SearchLadder1v1ClientMessage.class));
+    assertThat(searchRanked1v1Message, instanceOf(SearchLadderClientMessage.class));
     assertThat(searchRanked1v1Message.getFaction(), is(Faction.AEON));
 
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();

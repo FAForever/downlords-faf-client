@@ -308,7 +308,7 @@ public class MainController implements Controller<Node> {
   private void onMatchmakerMessage(MatchmakerInfoMessage message) {
     if (message.getQueues() == null
         || gameService.gameRunningProperty().get()
-        || gameService.searching1v1Property().get()
+        || gameService.searchingLadderProperty().get()
         || !preferencesService.getPreferences().getNotification().getLadder1v1ToastEnabled()
         || !playerService.getCurrentPlayer().isPresent()) {
       return;

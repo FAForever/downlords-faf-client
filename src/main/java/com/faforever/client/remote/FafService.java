@@ -17,6 +17,7 @@ import com.faforever.client.clan.Clan;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.coop.CoopMission;
 import com.faforever.client.domain.RatingHistoryDataPoint;
+import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.KnownFeaturedMod;
@@ -91,16 +92,16 @@ public class FafService {
     return fafServerAccessor.requestJoinGame(gameId, password);
   }
 
-  public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction) {
-    return fafServerAccessor.startSearchLadder1v1(faction);
+  public CompletableFuture<GameLaunchMessage> startSearchLadder(RatingMode ratingMode, Faction faction) {
+    return fafServerAccessor.startSearchLadder(ratingMode, faction);
   }
 
   public void requestMatchmakerInfo() {
     fafServerAccessor.requestMatchmakerInfo();
   }
 
-  public void stopSearchingRanked() {
-    fafServerAccessor.stopSearchingRanked();
+  public void stopSearchingRanked(RatingMode ratingMode) {
+    fafServerAccessor.stopSearchingRanked(ratingMode);
   }
 
   public void sendGpgGameMessage(GpgGameMessage message) {

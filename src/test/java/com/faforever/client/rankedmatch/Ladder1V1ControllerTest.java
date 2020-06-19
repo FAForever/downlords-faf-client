@@ -104,7 +104,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
 
     when(leaderboardService.getLadder1v1Stats()).thenReturn(CompletableFuture.completedFuture(new ArrayList<>()));
     when(leaderboardService.getEntryForPlayer(PLAYER_ID)).thenReturn(CompletableFuture.completedFuture(leaderboardEntry));
-    when(gameService.searching1v1Property()).thenReturn(searching1v1Property);
+    when(gameService.searchingLadderProperty()).thenReturn(searching1v1Property);
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getLadder1v1Prefs()).thenReturn(ladder1V1Prefs);
     when(ladder1V1Prefs.getFactions()).thenReturn(factionList);
@@ -147,7 +147,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
   public void testOnCancelButtonClicked() throws Exception {
     instance.onCancelButtonClicked();
 
-    verify(gameService).stopSearchLadder1v1();
+    verify(gameService).stopSearchLadder();
     assertThat(instance.cancelButton.isVisible(), is(false));
     assertThat(instance.playButton.isVisible(), is(true));
     assertThat(instance.searchingForOpponentLabel.isVisible(), is(false));
@@ -166,7 +166,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
     instance.onPlayButtonClicked();
     instance.setSearching(true);
 
-    verify(gameService).startSearchLadder1v1(any());
+    verify(gameService).startSearchLadder(any());
     assertThat(instance.cancelButton.isVisible(), is(true));
     assertThat(instance.playButton.isVisible(), is(false));
     assertThat(instance.searchProgressIndicator.isVisible(), is(true));
@@ -182,7 +182,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
 
     instance.onPlayButtonClicked();
 
-    verify(gameService, never()).startSearchLadder1v1(any());
+    verify(gameService, never()).startSearchLadder(any());
     verify(eventBus).post(new MissingGamePathEvent(true));
 
     assertThat(instance.cancelButton.isVisible(), is(false));

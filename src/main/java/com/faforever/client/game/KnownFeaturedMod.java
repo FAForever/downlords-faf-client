@@ -13,6 +13,7 @@ public enum KnownFeaturedMod {
   FAF_DEVELOP("fafdevelop"),
   BALANCE_TESTING("balancetesting"),
   LADDER_1V1("ladder1v1"),
+  LADDER_2V2("ladder2v2"),
   COOP("coop"),
   GALACTIC_WAR("gw"),
   MATCHMAKER("matchmaker"),

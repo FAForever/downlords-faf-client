@@ -5,6 +5,7 @@ import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.fa.CloseGameEvent;
+import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.GpgClientMessageSerializer;
 import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.fa.relay.GpgServerMessageType;
@@ -22,7 +23,7 @@ import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerInfoClientMessage;
-import com.faforever.client.rankedmatch.SearchLadder1v1ClientMessage;
+import com.faforever.client.rankedmatch.SearchLadderClientMessage;
 import com.faforever.client.rankedmatch.StopSearchLadder1v1ClientMessage;
 import com.faforever.client.remote.domain.AddFoeMessage;
 import com.faforever.client.remote.domain.AddFriendMessage;
@@ -358,15 +359,15 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction) {
+  public CompletableFuture<GameLaunchMessage> startSearchLadder(RatingMode ratingMode, Faction faction) {
     gameLaunchFuture = new CompletableFuture<>();
-    writeToServer(new SearchLadder1v1ClientMessage(faction));
+    writeToServer(new SearchLadderClientMessage(ratingMode, faction));
     return gameLaunchFuture;
   }
 
   @Override
-  public void stopSearchingRanked() {
-    writeToServer(new StopSearchLadder1v1ClientMessage());
+  public void stopSearchingRanked(RatingMode ratingMode) {
+    writeToServer(new StopSearchLadder1v1ClientMessage(ratingMode));
     gameLaunchFuture = null;
   }
 

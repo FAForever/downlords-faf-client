@@ -426,15 +426,15 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     String[] additionalArgs = {"/team", "1", "/players", "2", "/startspot", "4"};
     mockStartGameProcess(uid, RatingMode.LADDER_1V1, CYBRAN, false, additionalArgs);
-    when(fafService.startSearchLadder1v1(CYBRAN)).thenReturn(completedFuture(gameLaunchMessage));
+    when(fafService.startSearchLadder(CYBRAN)).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(completedFuture(null));
     when(mapService.isInstalled(map)).thenReturn(false);
     when(mapService.download(map)).thenReturn(completedFuture(null));
     when(modService.getFeaturedMod(LADDER_1V1.getTechnicalName())).thenReturn(completedFuture(featuredMod));
 
-    instance.startSearchLadder1v1(CYBRAN).toCompletableFuture();
+    instance.startSearchLadder(CYBRAN).toCompletableFuture();
 
-    verify(fafService).startSearchLadder1v1(CYBRAN);
+    verify(fafService).startSearchLadder(CYBRAN);
     verify(mapService).download(map);
     verify(replayService).start(eq(uid), any());
     verify(forgedAllianceService).startGame(
@@ -464,24 +464,24 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     instance.hostGame(newGameInfo);
     gameRunningLatch.await(TIMEOUT, TIME_UNIT);
 
-    instance.startSearchLadder1v1(AEON);
+    instance.startSearchLadder(AEON);
 
-    assertThat(instance.searching1v1Property().get(), is(false));
+    assertThat(instance.searchingLadderProperty().get(), is(false));
   }
 
   @Test
   public void testStopSearchLadder1v1() {
-    instance.searching1v1Property().set(true);
-    instance.stopSearchLadder1v1();
-    assertThat(instance.searching1v1Property().get(), is(false));
+    instance.searchingLadderProperty().set(true);
+    instance.stopSearchLadder();
+    assertThat(instance.searchingLadderProperty().get(), is(false));
     verify(fafService).stopSearchingRanked();
   }
 
   @Test
   public void testStopSearchLadder1v1NotSearching() {
-    instance.searching1v1Property().set(false);
-    instance.stopSearchLadder1v1();
-    assertThat(instance.searching1v1Property().get(), is(false));
+    instance.searchingLadderProperty().set(false);
+    instance.stopSearchLadder();
+    assertThat(instance.searchingLadderProperty().get(), is(false));
     verify(fafService, never()).stopSearchingRanked();
   }
 
@@ -557,7 +557,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void startSearchLadder1v1IfNoGameSet() {
     when(preferencesService.isGamePathValid()).thenReturn(false);
-    instance.startSearchLadder1v1(null);
+    instance.startSearchLadder(null);
     verify(eventBus).post(any(GameDirectoryChooseEvent.class));
   }
 

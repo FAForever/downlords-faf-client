@@ -53,6 +53,8 @@ public class ForgedAllianceService {
     float mean;
 
     switch (ratingMode) {
+      case LADDER_2V2:
+        //TODO change deviation or mean here if it should be different from a 1vs1 ladder game (don't forget a "break;" statement)
       case LADDER_1V1:
         deviation = currentPlayer.getLeaderboardRatingDeviation();
         mean = currentPlayer.getLeaderboardRatingMean();
