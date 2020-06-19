@@ -23,8 +23,10 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Base64;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
@@ -41,13 +43,15 @@ public class MapGeneratorService implements InitializingBean {
   /**
    * Naming template for generated maps. It is all lower case because server expects lower case names for maps.
    */
-  public static final String GENERATED_MAP_NAME = "neroxis_map_generator_%s_%d";
+  public static final String GENERATED_MAP_NAME = "neroxis_map_generator_%s_%s";
   public static final String GENERATOR_EXECUTABLE_FILENAME = "MapGenerator_%s.jar";
+  public static final byte DEFAULT_SPAWN_COUNT = 6;
+  public static final byte DEFAULT_LAND_DENSITY = 51;
   @VisibleForTesting
   public static final String GENERATOR_EXECUTABLE_SUB_DIRECTORY = "map_generator";
   public static final int GENERATION_TIMEOUT_SECONDS = 60;
   private static final Pattern VERSION_PATTERN = Pattern.compile("\\d\\d?\\d?\\.\\d\\d?\\d?\\.\\d\\d?\\d?");
-  private static final Pattern GENERATED_MAP_PATTERN = Pattern.compile("neroxis_map_generator_(" + VERSION_PATTERN + ")_(-?\\d+)");
+  private static final Pattern GENERATED_MAP_PATTERN = Pattern.compile("neroxis_map_generator_(" + VERSION_PATTERN + ")_(-?.*)");
   @Getter
   private final Path generatorExecutablePath;
   private final ApplicationContext applicationContext;
@@ -56,8 +60,8 @@ public class MapGeneratorService implements InitializingBean {
   private final ClientProperties clientProperties;
 
   @Getter
-  private Path customMapsDirectory;
-  private Random seedGenerator;
+  private final Path customMapsDirectory;
+  private final Random seedGenerator;
 
   @Getter
   private Image generatedMapPreviewImage;
@@ -108,8 +112,13 @@ public class MapGeneratorService implements InitializingBean {
   }
 
 
-  public CompletableFuture<String> generateMap() {
-    return generateMap(queryNewestVersion(), seedGenerator.nextLong());
+  public CompletableFuture<String> generateMap(byte spawnCount, byte landDensity) {
+    ByteBuffer seedBuffer = ByteBuffer.allocate(8);
+    seedBuffer.putLong(seedGenerator.nextLong());
+    String seedString = Base64.getEncoder().encodeToString(seedBuffer.array());
+    byte[] optionArray = {spawnCount, landDensity};
+    String optionString = Base64.getEncoder().encodeToString(optionArray);
+    return generateMap(queryNewestVersion(),seedString+'_'+optionString);
   }
 
   @VisibleForTesting
@@ -132,11 +141,11 @@ public class MapGeneratorService implements InitializingBean {
     if (!matcher.find()) {
       throw new IllegalArgumentException("Map name is not a generated map");
     }
-    return generateMap(matcher.group(1), Long.parseLong(matcher.group(2)));
+    return generateMap(matcher.group(1), matcher.group(2));
   }
 
 
-  public CompletableFuture<String> generateMap(String version, long seed) {
+  public CompletableFuture<String> generateMap(String version, String seedAndOptions) {
 
     String generatorExecutableFileName = String.format(GENERATOR_EXECUTABLE_FILENAME, version);
     Path generatorExecutablePath = this.generatorExecutablePath.resolve(generatorExecutableFileName);
@@ -159,11 +168,11 @@ public class MapGeneratorService implements InitializingBean {
       downloadGeneratorFuture = CompletableFuture.completedFuture(null);
     }
 
-    String mapFilename = String.format(GENERATED_MAP_NAME, version, seed);
+    String mapFilename = String.format(GENERATED_MAP_NAME, version, seedAndOptions);
 
     GenerateMapTask generateMapTask = applicationContext.getBean(GenerateMapTask.class);
     generateMapTask.setVersion(version);
-    generateMapTask.setSeed(seed);
+    generateMapTask.setSeed(seedAndOptions);
     generateMapTask.setGeneratorExecutableFile(generatorExecutablePath);
     generateMapTask.setMapFilename(mapFilename);
 
