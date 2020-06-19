@@ -109,6 +109,7 @@ public class CreateGameController implements Controller<Pane> {
   public CheckBox onlyForFriendsCheckBox;
   public JFXButton generateMapButton;
   public Spinner<Integer> spawnCountSpinner;
+  public CheckBox generateWaterCheckBox;
   @VisibleForTesting
   FilteredList<MapBean> filteredMapBeans;
   private Runnable onCloseButtonClickedListener;
@@ -182,6 +183,7 @@ public class CreateGameController implements Controller<Pane> {
     }
 
     initSpawnCountSpinner();
+    initGenerateWaterCheckbox();
   }
 
   private void initSpawnCountSpinner() {
@@ -192,6 +194,14 @@ public class CreateGameController implements Controller<Pane> {
       generatorPrefs.setSpawnCountProperty(newValue);
       preferencesService.storeInBackground();
     });
+  }
+
+  private void initGenerateWaterCheckbox() {
+    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGeneratorPrefs();
+    boolean generateWaterProperty = generatorPrefs.getGenerateWaterProperty();
+    generateWaterCheckBox.setSelected(generateWaterProperty);
+    generateWaterCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+      generatorPrefs.setGenerateWaterProperty(newValue);});
   }
 
   public void onCloseButtonClicked() {
@@ -393,8 +403,8 @@ public class CreateGameController implements Controller<Pane> {
 
   public void onGenerateMapButtonClicked() {
     try {
-      byte spawnCount = (byte) preferencesService.getPreferences().getGeneratorPrefs().getSpawnCountProperty();
-      byte landDensity = (byte) preferencesService.getPreferences().getGeneratorPrefs().getLandDensityProperty();
+      byte spawnCount = spawnCountSpinner.getValue().byteValue();
+      byte landDensity = generateWaterCheckBox.isSelected() ? (byte) 51 : (byte) 127;
       mapGeneratorService.generateMap(spawnCount, landDensity).thenAccept(mapName -> {
         Platform.runLater(() -> {
           initMapSelection();
