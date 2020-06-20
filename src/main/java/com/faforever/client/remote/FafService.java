@@ -265,6 +265,14 @@ public class FafService {
   }
 
   @Async
+  public CompletableFuture<List<LeaderboardEntry>> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count) {
+    return CompletableFuture.completedFuture(fafApiAccessor.findLadder1v1LeaderboardEntryByQuery(nameToSearch, page, count)
+        .parallelStream()
+        .map(LeaderboardEntry::fromLadder1v1)
+        .collect(toList()));
+  }
+
+  @Async
   public CompletableFuture<List<Replay>> getNewestReplays(int topElementCount, int page) {
     return CompletableFuture.completedFuture(fafApiAccessor.getNewestReplays(topElementCount, page)
         .parallelStream()
