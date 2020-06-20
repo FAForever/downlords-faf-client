@@ -72,7 +72,7 @@ public class LeaderboardService {
       case FAF:
         return fafService.findGlobalLeaderboardEntryByQuery(nameToSearch, page, count);
       case LADDER_1V1:
-        return null; //TODO add second method
+        return fafService.findLadder1v1LeaderboardEntryByQuery(nameToSearch, page, count);
       default:
         throw new IllegalArgumentException("Not supported: " + ratingType);
     }

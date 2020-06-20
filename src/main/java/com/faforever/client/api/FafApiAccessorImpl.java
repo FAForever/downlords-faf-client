@@ -488,6 +488,12 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
+  public List<Ladder1v1LeaderboardEntry> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count) {
+    return getAll("/leaderboards/ladder1v1",
+        ImmutableMap.of("playerNameMatchesRegex", nameToSearch + "%", "page[number]", page, "page[size]", count));
+  }
+
+  @Override
   public Optional<MapVersion> findMapVersionById(String id) {
     // FIXME: that is not gonna work this way
     //FIXME: filter hidden maps
