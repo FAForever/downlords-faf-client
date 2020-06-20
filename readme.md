@@ -12,12 +12,12 @@ Post a bountie on GitHub Issues on Issue Hunt. You can promise money to develope
 
 # How to run
 
-1. Use Oracle JDK 10 or AdoptOpenJDK 11 (others might not work)
+1. Use AdoptOpenJDK 11 or Oracle JDK 11 (others might not work)
 1. Clone the project with git
 1. Open the project into IntelliJ Ultimate or Community
 1. Make sure you have the IntelliJ [Lombok plugin](https://plugins.jetbrains.com/idea/plugin/6317-lombok-plugin) installed
 1. Make sure you have `Enable annotation processing` enabled in the settings
-1. Select `FafClientApplication` as run configuration next to the hammer button in the top right
+1. Select `Main` as run configuration next to the hammer button in the top right
 1. Press play
 
 See the video [here](https://www.youtube.com/watch?v=_kJoRehdBcM) .Don't forget step 5.
