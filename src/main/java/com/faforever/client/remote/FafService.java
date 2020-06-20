@@ -257,9 +257,10 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<List<Rating>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
+  public CompletableFuture<List<LeaderboardEntry>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
     return CompletableFuture.completedFuture(fafApiAccessor.findGlobalLeaderboardEntryByQuery(nameToSearch, page, count)
         .parallelStream()
+        .map(LeaderboardEntry::fromGlobalRating)
         .collect(toList()));
   }
 
