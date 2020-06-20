@@ -2,6 +2,7 @@ package com.faforever.client.map.generator;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.io.FileUtils;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.google.common.annotations.VisibleForTesting;
@@ -56,6 +57,7 @@ public class MapGeneratorService implements InitializingBean {
   private final Path generatorExecutablePath;
   private final ApplicationContext applicationContext;
   private final PreferencesService preferencesService;
+  private final NotificationService notificationService;
   private final TaskService taskService;
   private final ClientProperties clientProperties;
 
@@ -66,9 +68,10 @@ public class MapGeneratorService implements InitializingBean {
   @Getter
   private Image generatedMapPreviewImage;
 
-  public MapGeneratorService(ApplicationContext applicationContext, PreferencesService preferencesService, TaskService taskService, ClientProperties clientProperties) {
+  public MapGeneratorService(ApplicationContext applicationContext, PreferencesService preferencesService, TaskService taskService, NotificationService notificationService, ClientProperties clientProperties) {
     this.applicationContext = applicationContext;
     this.preferencesService = preferencesService;
+    this.notificationService = notificationService;
     this.taskService = taskService;
 
     generatorExecutablePath = preferencesService.getFafDataDirectory().resolve(GENERATOR_EXECUTABLE_SUB_DIRECTORY);
@@ -120,7 +123,7 @@ public class MapGeneratorService implements InitializingBean {
     if (landDensity<=26){landDensity = DEFAULT_LAND_DENSITY;}
     byte[] optionArray = {spawnCount, landDensity};
     String optionString = Base64.getEncoder().encodeToString(optionArray);
-    return generateMap(queryNewestVersion(),seedString+'_'+optionString);
+    return generateMap("1.0.0",seedString+'_'+optionString);
   }
 
   @VisibleForTesting
@@ -138,6 +141,35 @@ public class MapGeneratorService implements InitializingBean {
     return mainObject.get("tag_name").getAsString();
   }
 
+  @VisibleForTesting
+  public String queryMaxSupportedVersion() {
+    String version = queryNewestVersion();
+    String majorVersion = version.split("\\.")[0];
+    if (Integer.parseInt(majorVersion)>clientProperties.getMapGenerator().getMaxSupportedMajorVersion() ||
+        Integer.parseInt(majorVersion)<clientProperties.getMapGenerator().getMinSupportedMajorVersion()) {
+
+      RestTemplate restTemplate = new RestTemplate();
+
+      LinkedMultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+      headers.add("Accept", "application/vnd.github.v3+json");
+      HttpEntity<String> entity = new HttpEntity<>(null, headers);
+
+      ResponseEntity<String> response = restTemplate.exchange(clientProperties.getMapGenerator().getQueryVersionsUrl(), HttpMethod.GET, entity, String.class);
+      JsonElement jsonElement = new JsonParser().parse(response.getBody());
+      for(JsonElement element: jsonElement.getAsJsonArray()) {
+        JsonObject mainObject = element.getAsJsonObject();
+        version = mainObject.get("tag_name").getAsString();
+        majorVersion = version.split("\\.")[0];
+        if (Integer.parseInt(majorVersion)<clientProperties.getMapGenerator().getMaxSupportedMajorVersion() &&
+            Integer.parseInt(majorVersion)>clientProperties.getMapGenerator().getMinSupportedMajorVersion()) {
+          return version;
+        }
+      }
+      throw new RuntimeException("No Valid Generator Version Found");
+    }
+    return version;
+  }
+
   public CompletableFuture<String> generateMap(String mapName) {
     Matcher matcher = GENERATED_MAP_PATTERN.matcher(mapName);
     if (!matcher.find()) {
@@ -149,6 +181,13 @@ public class MapGeneratorService implements InitializingBean {
 
   public CompletableFuture<String> generateMap(String version, String seedAndOptions) {
 
+    String majorVersion = version.split("\\.")[0];
+    if (Integer.parseInt(majorVersion)>clientProperties.getMapGenerator().getMaxSupportedMajorVersion()){
+      notificationService.addImmediateErrorNotification(new IllegalArgumentException("Map Version Not Supported"), "mapGenerator.tooNewVersion");
+    }
+    if (Integer.parseInt(majorVersion)<clientProperties.getMapGenerator().getMinSupportedMajorVersion()) {
+      notificationService.addImmediateErrorNotification(new IllegalArgumentException("Map Version Not supported"), "mapGenerator.tooOldVersion");
+    }
     String generatorExecutableFileName = String.format(GENERATOR_EXECUTABLE_FILENAME, version);
     Path generatorExecutablePath = this.generatorExecutablePath.resolve(generatorExecutableFileName);
 
@@ -171,10 +210,15 @@ public class MapGeneratorService implements InitializingBean {
     }
 
     String mapFilename = String.format(GENERATED_MAP_NAME, version, seedAndOptions);
+    String[] seedParts = seedAndOptions.split("_");
+    String seedString = seedParts[0];
+    byte[] seedBytes = Base64.getDecoder().decode(seedString);
+    ByteBuffer seedWrapper = ByteBuffer.wrap(seedBytes);
+    String seed = Long.toString(seedWrapper.getLong());
 
     GenerateMapTask generateMapTask = applicationContext.getBean(GenerateMapTask.class);
     generateMapTask.setVersion(version);
-    generateMapTask.setSeed(seedAndOptions);
+    generateMapTask.setSeed(seed);
     generateMapTask.setGeneratorExecutableFile(generatorExecutablePath);
     generateMapTask.setMapFilename(mapFilename);
 
