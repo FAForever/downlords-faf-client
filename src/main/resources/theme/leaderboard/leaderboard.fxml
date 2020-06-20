@@ -17,7 +17,7 @@
       <children>
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                <children>
-                   <JFXTextField fx:id="searchTextField" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="189.0" promptText="%ladder.searchPrompt" HBox.hgrow="ALWAYS" />
+                   <JFXTextField fx:id="searchTextField" maxWidth="1.7976931348623157E308" onAction="#handleSearchButtonClicked" prefHeight="25.0" prefWidth="189.0" promptText="%ladder.searchPrompt" HBox.hgrow="ALWAYS" />
                   <JFXButton fx:id="searchButton" onAction="#handleSearchButtonClicked" prefHeight="25.0" prefWidth="151.0" text="Search" wrapText="true">
                  <graphic>
                    <Label styleClass="icon" text="" />
