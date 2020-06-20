@@ -10,6 +10,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.LocalReplaysChangedEvent;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
+import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.Action;
@@ -131,6 +132,7 @@ public class ReplayService {
   private final ModService modService;
   private final MapService mapService;
   private final ApplicationEventPublisher publisher;
+  private final MapGeneratorService mapGeneratorService;
   private final ExecutorService executorService;
   private Thread directoryWatcherThread;
   private WatchService watchService;
@@ -231,6 +233,7 @@ public class ReplayService {
   static String parseMapName(byte[] rawReplayBytes) {
     int mapDelimiterIndex = Bytes.indexOf(rawReplayBytes, new byte[]{0x00, 0x0D, 0x0A, 0x1A});
     String mapPath = new String(rawReplayBytes, MAP_NAME_OFFSET, mapDelimiterIndex - MAP_NAME_OFFSET, US_ASCII);
+    // TODO make sure that these are valid characters for a file name? this is potentially unsafe user input
     return mapPath.split("/")[2];
   }
 
@@ -249,6 +252,7 @@ public class ReplayService {
 
     String mapPath = new String(rawReplayBytes, mapStartIndex, mapEndIndex + 1 - mapStartIndex, US_ASCII);
     //mapPath looks like /maps/my_awesome_map.v008/my_awesome_map.lua
+    // TODO make sure that these are valid characters for a file name? this is potentially unsafe user input
     return mapPath.split("/")[2];
   }
 
@@ -503,6 +507,14 @@ public class ReplayService {
       mapName = parseMapFolderName(rawReplayBytes);
     }
 
+    // For map generator games the map name is "None" because replay server gets map name by from DB based on filename
+    // from replay data, and DB does not contain generated maps.
+    if (StringUtils.equalsIgnoreCase(mapName, "None")) {
+      String maybeMapGen = parseMapFolderName(rawReplayBytes);
+      if (mapGeneratorService.isGeneratedMap(maybeMapGen)) {
+        mapName = maybeMapGen;
+      }
+    }
 
     Set<String> simMods = replayInfo.getSimMods() != null ? replayInfo.getSimMods().keySet() : emptySet();
 
