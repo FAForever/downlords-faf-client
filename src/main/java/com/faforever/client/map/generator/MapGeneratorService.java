@@ -123,7 +123,7 @@ public class MapGeneratorService implements InitializingBean {
     if (landDensity<=26){landDensity = DEFAULT_LAND_DENSITY;}
     byte[] optionArray = {spawnCount, landDensity};
     String optionString = Base64.getEncoder().encodeToString(optionArray);
-    return generateMap("1.0.0",seedString+'_'+optionString);
+    return generateMap(queryMaxSupportedVersion(),seedString+'_'+optionString);
   }
 
   @VisibleForTesting
