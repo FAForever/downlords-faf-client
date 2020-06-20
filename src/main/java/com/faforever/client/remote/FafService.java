@@ -57,6 +57,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -199,6 +200,11 @@ public class FafService {
     return CompletableFuture.completedFuture(fafServerAccessor.getAvailableAvatars().stream()
         .map(AvatarBean::fromAvatar)
         .collect(Collectors.toList()));
+  }
+
+  @Async
+  public CompletableFuture<Set<String>> getPermissions() {
+    return CompletableFuture.completedFuture(fafApiAccessor.getOwnPlayer().getPermissions());
   }
 
   public void selectAvatar(AvatarBean avatar) {
@@ -349,7 +355,7 @@ public class FafService {
       );
       review.setId(updatedReview.getId());
     } else {
-      fafApiAccessor.updateGameReview((GameReview) gameReview.setId(String.valueOf(review.getId())));
+      fafApiAccessor.updateGameReview((GameReview) gameReview.setId(review.getId()));
     }
     return CompletableFuture.completedFuture(null);
   }
@@ -370,7 +376,7 @@ public class FafService {
       );
       review.setId(updatedReview.getId());
     } else {
-      fafApiAccessor.updateModVersionReview((ModVersionReview) modVersionReview.setId(String.valueOf(review.getId())));
+      fafApiAccessor.updateModVersionReview((ModVersionReview) modVersionReview.setId(review.getId()));
     }
     return CompletableFuture.completedFuture(null);
   }
@@ -391,7 +397,7 @@ public class FafService {
       );
       review.setId(updatedReview.getId());
     } else {
-      fafApiAccessor.updateMapVersionReview((MapVersionReview) mapVersionReview.setId(String.valueOf(review.getId())));
+      fafApiAccessor.updateMapVersionReview((MapVersionReview) mapVersionReview.setId(review.getId()));
     }
 
     return CompletableFuture.completedFuture(null);
