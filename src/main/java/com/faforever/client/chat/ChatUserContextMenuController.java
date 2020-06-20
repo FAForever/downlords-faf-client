@@ -7,6 +7,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.game.JoinGameHelper;
+import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
@@ -193,12 +194,21 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
       addFoeItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(FOE).and(newValue.socialStatusProperty().isNotEqualTo(SELF)));
       removeFoeItem.visibleProperty().bind(newValue.socialStatusProperty().isEqualTo(FOE));
 
+      // TODO: Make this ignore TMM games too and not just ladder
+      // https://github.com/FAForever/downlords-faf-client/issues/1770
       joinGameItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF)
           .and(newValue.statusProperty().isEqualTo(PlayerStatus.LOBBYING)
-              .or(newValue.statusProperty().isEqualTo(PlayerStatus.HOSTING))));
+              .or(newValue.statusProperty().isEqualTo(PlayerStatus.HOSTING)))
+          .and(Bindings.createBooleanBinding(() -> {
+                return newValue.getGame() != null
+                    && newValue.getGame().getFeaturedMod() != null
+                    && !newValue.getGame().getFeaturedMod().equals(KnownFeaturedMod.LADDER_1V1.getTechnicalName());
+              }, newValue.gameProperty())
+          ));
       watchGameItem.visibleProperty().bind(newValue.statusProperty().isEqualTo(PlayerStatus.PLAYING));
       inviteItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF)
           .and(newValue.statusProperty().isNotEqualTo(PlayerStatus.PLAYING)));
+
     };
     JavaFxUtil.addListener(chatUser.playerProperty(), new WeakChangeListener<>(playerChangeListener));
     playerChangeListener.changed(chatUser.playerProperty(), null, chatUser.getPlayer().orElse(null));
