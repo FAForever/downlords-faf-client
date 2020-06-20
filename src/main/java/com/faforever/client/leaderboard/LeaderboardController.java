@@ -74,8 +74,9 @@ public class LeaderboardController extends AbstractViewController<Node> {
 
     searchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
       if (Validator.isInt(newValue)) {
-        ratingTable.scrollTo(Integer.parseInt(newValue) - 1);
-        ratingTable.getSelectionModel().select(Integer.parseInt(newValue) - 1);
+        int ranking = Integer.parseInt(newValue) - 1;
+        ratingTable.scrollTo(ranking);
+        ratingTable.getSelectionModel().select(ranking);
       } else {
         LeaderboardEntry foundPlayer = null;
         for (LeaderboardEntry leaderboardEntry : ratingTable.getItems()) {
