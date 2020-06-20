@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXCheckBox?>
+<?import com.jfoenix.controls.JFXTextField?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.*?>
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="generateMapRoot" hgap="10.0" styleClass="create-game-root" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.game.GenerateMapController">
+    <columnConstraints>
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="256.0" />
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="256.0" />
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints minHeight="10.0" vgrow="NEVER" />
+        <RowConstraints minHeight="10.0" vgrow="NEVER" />
+        <RowConstraints minHeight="10.0" vgrow="NEVER" />
+        <RowConstraints minHeight="10.0" vgrow="NEVER" />
+    </rowConstraints>
+    <children>
+        <!-- text="%game.create.generatedMap" -->
+        <Label text="%game.generate.generatedName" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <JFXTextField fx:id="previousMapName" style="-fx-pref-width: 5em" maxHeight="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="0">
+            <tooltip>
+                <Tooltip text="%game.generate.nameCaution"/>
+            </tooltip>
+        </JFXTextField>
+        <Label text="%game.create.spawnCount" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <Spinner fx:id="spawnCountSpinner" style="-fx-pref-width: 5em" maxHeight="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1">
+            <tooltip>
+                <Tooltip text="%game.create.spawnCount"/>
+            </tooltip>
+        </Spinner>
+        <Label text="%game.generate.waterOption" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+        <JFXCheckBox fx:id="generateWaterCheckBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+
+        <JFXButton fx:id="generateMapButton" mnemonicParsing="false"
+                   onAction="#onGenerateMapButtonClicked"
+                   styleClass="game-generate-map" text="%game.generate" contentDisplay="RIGHT"
+                   GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.halignment="LEFT">
+        </JFXButton>
+
+        <!-- Cancel, Ok -->
+        <JFXButton mnemonicParsing="false" onAction="#onCloseButtonClicked" text="%cancel"
+                   styleClass="more-button-padding"
+                   GridPane.halignment="RIGHT" GridPane.columnIndex="1" GridPane.rowIndex="3">
+            <GridPane.margin>
+                <Insets top="15"/>
+            </GridPane.margin>
+            <padding>
+                <Insets left="100.0" right="100.0"/>
+            </padding>
+        </JFXButton>
+
+    </children>
+    <padding>
+        <Insets left="20.0" right="20.0" />
+    </padding>
+</GridPane>
+

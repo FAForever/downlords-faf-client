@@ -9,8 +9,6 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.Spinner?>
-<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.*?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="createGameRoot" hgap="10.0" styleClass="create-game-root" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.game.CreateGameController">
     <columnConstraints>
@@ -121,22 +119,16 @@
             </children>
         </GridPane>
 
-        <HBox GridPane.columnIndex="3" GridPane.rowIndex="7" GridPane.columnSpan="2" alignment="CENTER">
-            <!-- text="%game.create.generatedMap" -->
-            <JFXButton fx:id="generateMapButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
-                       onAction="#onGenerateMapButtonClicked"
-                       styleClass="game-generate-map" text="%game.create.generatedMap" contentDisplay="RIGHT"
-                       HBox.hgrow="ALWAYS">
-            </JFXButton>
-            <Spinner fx:id="spawnCountSpinner" style="-fx-pref-width: 5em" maxHeight="Infinity">
-                <tooltip>
-                    <Tooltip text="%game.create.spawnCount"/>
-                </tooltip>
-            </Spinner>
-            <Label text="%game.create.waterOption"></Label>
-            <JFXCheckBox fx:id="generateWaterCheckBox" mnemonicParsing="false"/>
-        </HBox>
-
+        <!-- text="%game.create.generatedMap" -->
+        <JFXButton fx:id="generateMapButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onGenerateMapButtonClicked"
+                   styleClass="game-generate-map" text="%game.generate" contentDisplay="RIGHT"
+                   GridPane.columnIndex="3" GridPane.rowIndex="7" GridPane.columnSpan="2">
+            <graphic>
+                <Label styleClass="button-mini-label" text="%game.generate.generatedMapNew">
+                    <Insets left="250"/>
+                </Label>
+            </graphic>
+        </JFXButton>
 
         <!-- Cancel, Ok -->
         <JFXButton mnemonicParsing="false" onAction="#onCloseButtonClicked" text="%cancel"

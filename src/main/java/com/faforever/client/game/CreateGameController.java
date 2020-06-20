@@ -17,7 +17,6 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.mod.ModVersion;
 import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.GeneratorPrefs;
 import com.faforever.client.preferences.LastGamePrefs;
 import com.faforever.client.preferences.PreferenceUpdateListener;
 import com.faforever.client.preferences.PreferencesService;
@@ -27,6 +26,7 @@ import com.faforever.client.theme.UiService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.jfoenix.controls.JFXButton;
+import com.jfoenix.controls.JFXDialog;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -39,8 +39,6 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
@@ -49,6 +47,7 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
 import lombok.RequiredArgsConstructor;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -102,14 +101,13 @@ public class CreateGameController implements Controller<Pane> {
   public TextField maxRankingTextField;
   public ListView<FeaturedMod> featuredModListView;
   public ListView<MapBean> mapListView;
+  public StackPane gamesRoot;
   public Pane createGameRoot;
   public Button createGameButton;
   public Pane mapPreviewPane;
   public Label versionLabel;
   public CheckBox onlyForFriendsCheckBox;
   public JFXButton generateMapButton;
-  public Spinner<Integer> spawnCountSpinner;
-  public CheckBox generateWaterCheckBox;
   @VisibleForTesting
   FilteredList<MapBean> filteredMapBeans;
   private Runnable onCloseButtonClickedListener;
@@ -181,27 +179,6 @@ public class CreateGameController implements Controller<Pane> {
     } else {
       init();
     }
-
-    initSpawnCountSpinner();
-    initGenerateWaterCheckbox();
-  }
-
-  private void initSpawnCountSpinner() {
-    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGeneratorPrefs();
-    int spawnCountProperty = generatorPrefs.getSpawnCountProperty();
-    spawnCountSpinner.setValueFactory(new IntegerSpinnerValueFactory(2, 16, spawnCountProperty, 2));
-    spawnCountSpinner.getValueFactory().valueProperty().addListener((observable, oldValue, newValue) -> {
-      generatorPrefs.setSpawnCountProperty(newValue);
-      preferencesService.storeInBackground();
-    });
-  }
-
-  private void initGenerateWaterCheckbox() {
-    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGeneratorPrefs();
-    boolean generateWaterProperty = generatorPrefs.getGenerateWaterProperty();
-    generateWaterCheckBox.setSelected(generateWaterProperty);
-    generateWaterCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-      generatorPrefs.setGenerateWaterProperty(newValue);});
   }
 
   public void onCloseButtonClicked() {
@@ -275,7 +252,7 @@ public class CreateGameController implements Controller<Pane> {
     modListView.scrollTo(modListView.getSelectionModel().getSelectedItem());
   }
 
-  private void initMapSelection() {
+  protected void initMapSelection() {
     filteredMapBeans = new FilteredList<>(
         mapService.getInstalledMaps().filtered(mapBean -> mapBean.getType() == Type.SKIRMISH).sorted((o1, o2) -> o1.getDisplayName().compareToIgnoreCase(o2.getDisplayName()))
     );
@@ -285,7 +262,7 @@ public class CreateGameController implements Controller<Pane> {
     mapListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> Platform.runLater(() -> setSelectedMap(newValue)));
   }
 
-  private void setSelectedMap(MapBean newValue) {
+  protected void setSelectedMap(MapBean newValue) {
     JavaFxUtil.assertApplicationThread();
 
     if (newValue == null) {
@@ -401,26 +378,19 @@ public class CreateGameController implements Controller<Pane> {
     mapListView.scrollTo(mapIndex);
   }
 
-  public void onGenerateMapButtonClicked() {
-    try {
-      byte spawnCount = spawnCountSpinner.getValue().byteValue();
-      byte landDensity = generateWaterCheckBox.isSelected() ? (byte) 51 : (byte) 127;
-      mapGeneratorService.generateMap(spawnCount, landDensity).thenAccept(mapName -> {
-        Platform.runLater(() -> {
-          initMapSelection();
-          mapListView.getItems().stream()
-              .filter(mapBean -> mapBean.getFolderName().equalsIgnoreCase(mapName))
-              .findAny().ifPresent(mapBean -> {
-            mapListView.getSelectionModel().select(mapBean);
-            mapListView.scrollTo(mapBean);
-            setSelectedMap(mapBean);
-          });
-        });
-      });
-    } catch (Exception e) {
-      notificationService.addImmediateErrorNotification(e, "mapGenerator.generationFailed");
-      logger.error("Map generation failed", e);
-    }
+  public void onGenerateMapButtonClicked(){
+    onGenerateMap();
+  }
+
+  private void onGenerateMap() {
+    GenerateMapController generateMapController = uiService.loadFxml("theme/play/generate_map.fxml");
+
+    Pane root = generateMapController.getRoot();
+    generateMapController.setCreateGameController(this);
+    JFXDialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("game.generate.dialog"));
+    generateMapController.setOnCloseButtonClickedListener(dialog::close);
+
+    root.requestFocus();
   }
 
   public void onCreateButtonClicked() {
@@ -461,6 +431,10 @@ public class CreateGameController implements Controller<Pane> {
 
   public Pane getRoot() {
     return createGameRoot;
+  }
+
+  public void setGamesRoot(StackPane root) {
+    gamesRoot = root;
   }
 
   public void onDeselectModsButtonClicked() {
