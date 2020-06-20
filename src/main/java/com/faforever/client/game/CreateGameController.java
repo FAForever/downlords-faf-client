@@ -386,7 +386,6 @@ public class CreateGameController implements Controller<Pane> {
   private void onGenerateMap() {
     try {
       String generatorVersion = mapGeneratorService.queryMaxSupportedVersion();
-      generatorVersion = "1.0.0";
       String majorVersion = generatorVersion.split("\\.")[0];
       if (majorVersion.equals("1")) {
         GenerateMapController generateMapController = uiService.loadFxml("theme/play/generate_map.fxml");
