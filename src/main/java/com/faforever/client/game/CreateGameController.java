@@ -61,6 +61,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.ref.WeakReference;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -383,14 +384,37 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   private void onGenerateMap() {
-    GenerateMapController generateMapController = uiService.loadFxml("theme/play/generate_map.fxml");
+    try {
+      String generatorVersion = mapGeneratorService.queryMaxSupportedVersion();
+      generatorVersion = "1.0.0";
+      String majorVersion = generatorVersion.split("\\.")[0];
+      if (majorVersion.equals("1")) {
+        GenerateMapController generateMapController = uiService.loadFxml("theme/play/generate_map.fxml");
 
-    Pane root = generateMapController.getRoot();
-    generateMapController.setCreateGameController(this);
-    JFXDialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("game.generate.dialog"));
-    generateMapController.setOnCloseButtonClickedListener(dialog::close);
+        Pane root = generateMapController.getRoot();
+        generateMapController.setCreateGameController(this);
+        JFXDialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("game.generate.dialog"));
+        generateMapController.setOnCloseButtonClickedListener(dialog::close);
 
-    root.requestFocus();
+        root.requestFocus();
+      } else {
+        mapGeneratorService.generateMap((byte) 0, (byte) 0).thenAccept(mapName -> {
+          Platform.runLater(() -> {
+            initMapSelection();
+            mapListView.getItems().stream()
+                .filter(mapBean -> mapBean.getFolderName().equalsIgnoreCase(mapName))
+                .findAny().ifPresent(mapBean -> {
+              mapListView.getSelectionModel().select(mapBean);
+              mapListView.scrollTo(mapBean);
+              setSelectedMap(mapBean);
+            });
+          });
+        });
+      }
+    } catch (Exception e) {
+      notificationService.addImmediateErrorNotification(e, "mapGenerator.generationFailed");
+      logger.error("Map generation failed", e);
+    }
   }
 
   public void onCreateButtonClicked() {

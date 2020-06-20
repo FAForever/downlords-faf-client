@@ -1,6 +1,7 @@
 package com.faforever.client.map.generator;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
@@ -52,6 +53,8 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private TaskService taskService;
   @Mock
+  private NotificationService notificationService;
+  @Mock
   private ApplicationContext applicationContext;
   @Mock
   private DownloadMapGeneratorTask downloadMapGeneratorTask;
@@ -72,7 +75,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
     preferences.getForgedAlliance().setVaultBaseDirectory(Paths.get(vaultBaseDir.getRoot().getAbsolutePath()));
 
-    instance = new MapGeneratorService(applicationContext, preferencesService, taskService, clientProperties);
+    instance = new MapGeneratorService(applicationContext, preferencesService, taskService, notificationService, clientProperties);
 
     instance.afterPropertiesSet();
 
