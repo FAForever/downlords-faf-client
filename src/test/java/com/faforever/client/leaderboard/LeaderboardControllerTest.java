@@ -60,6 +60,26 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void testFilterByRank() throws Exception {
+    LeaderboardEntry entry1 = new LeaderboardEntry();
+    entry1.setUsername("Aa");
+    LeaderboardEntry entry2 = new LeaderboardEntry();
+    entry2.setUsername("Ab");
+
+    when(leaderboardService.getEntries(KnownFeaturedMod.LADDER_1V1)).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
+        entry1, entry2
+    )));
+    instance.setRatingType(KnownFeaturedMod.LADDER_1V1);
+    instance.display(new OpenLadder1v1LeaderboardEvent());
+
+    assertThat(instance.ratingTable.getSelectionModel().getSelectedItem(), nullValue());
+
+    instance.searchTextField.setText("2");
+    assertThat(instance.ratingTable.getItems(), hasSize(2));
+    assertThat(instance.ratingTable.getSelectionModel().getSelectedItem().getUsername(), is("Ab"));
+  }
+
+  @Test
   public void testFilterByNamePlayerExactMatch() throws Exception {
     LeaderboardEntry entry1 = new LeaderboardEntry();
     entry1.setUsername("Aa");
