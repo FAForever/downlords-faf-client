@@ -46,7 +46,7 @@ public class MapGeneratorService implements InitializingBean {
   public static final String GENERATED_MAP_NAME = "neroxis_map_generator_%s_%s";
   public static final String GENERATOR_EXECUTABLE_FILENAME = "MapGenerator_%s.jar";
   public static final byte DEFAULT_SPAWN_COUNT = 6;
-  public static final byte DEFAULT_LAND_DENSITY = 51;
+  public static final byte DEFAULT_LAND_DENSITY = 26;
   @VisibleForTesting
   public static final String GENERATOR_EXECUTABLE_SUB_DIRECTORY = "map_generator";
   public static final int GENERATION_TIMEOUT_SECONDS = 60;
@@ -116,6 +116,8 @@ public class MapGeneratorService implements InitializingBean {
     ByteBuffer seedBuffer = ByteBuffer.allocate(8);
     seedBuffer.putLong(seedGenerator.nextLong());
     String seedString = Base64.getEncoder().encodeToString(seedBuffer.array());
+    if (spawnCount<2 || spawnCount>16){spawnCount = DEFAULT_SPAWN_COUNT;}
+    if (landDensity<=26){landDensity = DEFAULT_LAND_DENSITY;}
     byte[] optionArray = {spawnCount, landDensity};
     String optionString = Base64.getEncoder().encodeToString(optionArray);
     return generateMap(queryNewestVersion(),seedString+'_'+optionString);
