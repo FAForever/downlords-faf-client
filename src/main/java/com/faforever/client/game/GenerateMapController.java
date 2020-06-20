@@ -118,7 +118,7 @@ public class GenerateMapController implements Controller<Pane> {
         });
       } else {
       byte spawnCount = spawnCountSpinner.getValue().byteValue();
-      byte landDensity = generateWaterCheckBox.isSelected() ? (byte) 51 : (byte) 127;
+      byte landDensity = generateWaterCheckBox.isSelected() ? (byte) 26 : (byte) 127;
       mapGeneratorService.generateMap(spawnCount, landDensity).thenAccept(mapName -> {
         Platform.runLater(() -> {
           createGameController.initMapSelection();
