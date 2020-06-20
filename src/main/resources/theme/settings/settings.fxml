@@ -609,7 +609,7 @@
                                     <children>
                                         <Label styleClass="h3" text="%settings.general.theme"
                                                GridPane.columnSpan="2147483647"/>
-                                        <JFXComboBox fx:id="themeComboBox" disable="true"
+                                        <JFXComboBox fx:id="themeComboBox"
                                                      maxWidth="1.7976931348623157E308" GridPane.columnSpan="2147483647"
                                                      GridPane.rowIndex="1"/>
                                         <Label styleClass="h3" text="%settings.appearance.backgoundImage"

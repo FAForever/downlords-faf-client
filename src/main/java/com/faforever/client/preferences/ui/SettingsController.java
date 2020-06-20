@@ -239,7 +239,14 @@ public class SettingsController implements Controller<Node> {
     });
 
     currentThemeChangeListener = (observable, oldValue, newValue) -> themeComboBox.getSelectionModel().select(newValue);
-    selectedThemeChangeListener = (observable, oldValue, newValue) -> uiService.setTheme(newValue);
+    selectedThemeChangeListener = (observable, oldValue, newValue) -> {
+      uiService.setTheme(newValue);
+      if (oldValue != null && uiService.doesThemeNeedRestart(newValue)) {
+        notificationService.addNotification(new PersistentNotification(i18n.get("theme.needsRestart.message", newValue.getDisplayName()), Severity.WARN,
+            Collections.singletonList(new Action(i18n.get("theme.needsRestart.quit"), event -> Platform.exit()))));
+        // FIXME reload application (stage & application context) https://github.com/FAForever/downlords-faf-client/issues/1794
+      }
+    };
 
     JavaFxUtil.addListener(preferences.getNotification().toastPositionProperty(), (observable, oldValue, newValue) -> setSelectedToastPosition(newValue));
     setSelectedToastPosition(preferences.getNotification().getToastPosition());
@@ -260,7 +267,7 @@ public class SettingsController implements Controller<Node> {
     configureTimeSetting(preferences);
     configureChatSetting(preferences);
     configureLanguageSelection();
-    configureThemeSelection(preferences);
+    configureThemeSelection();
     configureToastScreen(preferences);
     configureStartTab(preferences);
 
@@ -392,13 +399,10 @@ public class SettingsController implements Controller<Node> {
     }
   }
 
-  private void configureThemeSelection(Preferences preferences) {
+  private void configureThemeSelection() {
     themeComboBox.setItems(FXCollections.observableArrayList(uiService.getAvailableThemes()));
 
-    Theme currentTheme = themeComboBox.getItems().stream()
-        .filter(theme -> theme.getDisplayName().equals(preferences.getThemeName()))
-        .findFirst().orElse(UiService.DEFAULT_THEME);
-    themeComboBox.getSelectionModel().select(currentTheme);
+    themeComboBox.getSelectionModel().select(uiService.getCurrentTheme());
 
     themeComboBox.getSelectionModel().selectedItemProperty().addListener(selectedThemeChangeListener);
     JavaFxUtil.addListener(uiService.currentThemeProperty(), new WeakChangeListener<>(currentThemeChangeListener));

@@ -68,6 +68,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Stream;
 
 import static com.faforever.client.io.FileUtils.deleteRecursively;
 import static com.faforever.client.preferences.Preferences.DEFAULT_THEME_NAME;
@@ -110,14 +111,7 @@ public class UiService implements InitializingBean, DisposableBean {
   public static final String CHAT_LIST_STATUS_LOBBYING = "theme/images/player_status/lobby.png";
   public static final String CHAT_LIST_STATUS_PLAYING = "theme/images/player_status/playing.png";
 
-  public static Theme DEFAULT_THEME = new Theme() {
-    {
-      setAuthor("Downlord");
-      setCompatibilityVersion(1);
-      setDisplayName("Default");
-      setThemeVersion("1.0");
-    }
-  };
+  public static Theme DEFAULT_THEME = new Theme("Default", "Downlord", 1, "1");
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   /**
@@ -136,10 +130,10 @@ public class UiService implements InitializingBean, DisposableBean {
   private final I18n i18n;
 
   private WatchService watchService;
-  private ObservableMap<String, Theme> themesByFolderName;
-  private Map<Theme, String> folderNamesByTheme;
-  private Map<Path, WatchKey> watchKeys;
-  private ObjectProperty<Theme> currentTheme;
+  private final ObservableMap<String, Theme> themesByFolderName;
+  private final Map<Theme, String> folderNamesByTheme;
+  private final Map<Path, WatchKey> watchKeys;
+  private final ObjectProperty<Theme> currentTheme;
   private Path currentTempStyleSheet;
   private MessageSourceResourceBundle resources;
 
@@ -178,7 +172,12 @@ public class UiService implements InitializingBean, DisposableBean {
     loadThemes();
 
     String storedTheme = preferencesService.getPreferences().getThemeName();
-    setTheme(themesByFolderName.get(storedTheme));
+    if (themesByFolderName.containsKey(storedTheme)) {
+      setTheme(themesByFolderName.get(storedTheme));
+    } else {
+      logger.warn("Selected theme was not found in folder {}, falling back to default.", storedTheme);
+      setTheme(DEFAULT_THEME);
+    }
 
     loadWebViewsStyleSheet(getWebViewStyleSheet());
   }
@@ -235,11 +234,9 @@ public class UiService implements InitializingBean, DisposableBean {
     deleteStylesheetsCacheDirectory();
   }
 
-  private void stopWatchingTheme(Theme theme) {
-    Path path = getThemeDirectory(theme);
-    if (watchKeys.containsKey(path)) {
-      watchKeys.remove(path).cancel();
-    }
+  private void stopWatchingOldThemes() {
+    watchKeys.values().forEach(WatchKey::cancel);
+    watchKeys.clear();
   }
 
   /**
@@ -317,7 +314,7 @@ public class UiService implements InitializingBean, DisposableBean {
 
 
   public void setTheme(Theme theme) {
-    stopWatchingTheme(theme);
+    stopWatchingOldThemes();
 
     if (theme == DEFAULT_THEME) {
       preferencesService.getPreferences().setThemeName(DEFAULT_THEME_NAME);
@@ -326,9 +323,9 @@ public class UiService implements InitializingBean, DisposableBean {
       preferencesService.getPreferences().setThemeName(getThemeDirectory(theme).getFileName().toString());
     }
     preferencesService.storeInBackground();
-    reloadStylesheet();
     currentTheme.set(theme);
     cacheManager.getCache(CacheNames.THEME_IMAGES).clear();
+    reloadStylesheet();
   }
 
   /**
@@ -367,7 +364,8 @@ public class UiService implements InitializingBean, DisposableBean {
         JFoenixResources.load("css/jfoenix-fonts.css").toExternalForm(),
         JFoenixResources.load("css/jfoenix-design.css").toExternalForm(),
         getThemeFile("theme/jfoenix.css"),
-        getSceneStyleSheet()
+        getSceneStyleSheet(),
+        getThemeFile("theme/style_extension.css")
     };
   }
 
@@ -390,11 +388,13 @@ public class UiService implements InitializingBean, DisposableBean {
     });
   }
 
-
   public Collection<Theme> getAvailableThemes() {
     return new ArrayList<>(themesByFolderName.values());
   }
 
+  public Theme getCurrentTheme() {
+    return currentTheme.get();
+  }
 
   public ReadOnlyObjectProperty<Theme> currentThemeProperty() {
     return currentTheme;
@@ -471,5 +471,12 @@ public class UiService implements InitializingBean, DisposableBean {
 
     dialog.show(parent);
     return dialog;
+  }
+
+  @SneakyThrows
+  public boolean doesThemeNeedRestart(Theme theme) {
+    try (Stream<Path> stream = Files.list(getThemeDirectory(theme))) {
+      return stream.anyMatch(path -> Files.isRegularFile(path) && !path.endsWith(".css") && !path.endsWith(".properties"));
+    }
   }
 }
