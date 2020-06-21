@@ -27,7 +27,7 @@ public class DualStringListCellController implements Controller<Node> {
     left.setText(apply);
   }
 
-  public void setLeftTextOver(String apply) {
+  public void setLeftTextTooltip(String apply) {
     final WebView web = new WebView();
     uiService.registerWebView(web);
     web.setPrefSize(web.getPrefWidth() / 2, web.getPrefHeight() / 2);
