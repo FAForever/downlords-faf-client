@@ -13,6 +13,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class DualStringListCell<T> extends ListCell<T> {
   private final Function<T, String> functionLeft;
+  private final Function<T, String> functionLeftOnHover;
   private final Function<T, String> functionRight;
   private final String styleClasses;
   private final UiService uiService;
@@ -30,6 +31,7 @@ public class DualStringListCell<T> extends ListCell<T> {
           dualStringListCellController = uiService.loadFxml("theme/dual_string_list_cell.fxml");
         }
         dualStringListCellController.setLeftText(functionLeft.apply(item));
+        dualStringListCellController.setLeftTextOver(functionLeftOnHover.apply(item));
         dualStringListCellController.setRightText(functionRight.apply(item));
         // copy font styles
         dualStringListCellController.applyFont(getFont());

@@ -149,7 +149,7 @@ public class CreateGameController implements Controller<Pane> {
             " " + i18n.get("game.create.defaultGameTypeMarker") : null;
 
     featuredModListView.setCellFactory(param ->
-        new DualStringListCell<>(FeaturedMod::getDisplayName, isDefaultModString, STYLE_CLASS_DUAL_LIST_CELL, uiService)
+        new DualStringListCell<>(FeaturedMod::getDisplayName, FeaturedMod::getDescription, isDefaultModString, STYLE_CLASS_DUAL_LIST_CELL, uiService)
     );
 
     JavaFxUtil.makeNumericTextField(minRankingTextField, MAX_RATING_LENGTH);
