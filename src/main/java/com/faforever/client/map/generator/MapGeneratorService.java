@@ -209,13 +209,18 @@ public class MapGeneratorService implements InitializingBean {
       downloadGeneratorFuture = CompletableFuture.completedFuture(null);
     }
 
-    String mapFilename = String.format(GENERATED_MAP_NAME, version, seedAndOptions);
     String[] seedParts = seedAndOptions.split("_");
     String seedString = seedParts[0];
     byte[] seedBytes = Base64.getDecoder().decode(seedString);
     ByteBuffer seedWrapper = ByteBuffer.wrap(seedBytes);
     String seed = Long.toString(seedWrapper.getLong());
 
+    String mapFilename;
+    if (majorVersion.equals("0")){
+      mapFilename = String.format(GENERATED_MAP_NAME, version, seed);
+    } else {
+      mapFilename = String.format(GENERATED_MAP_NAME, version, seedAndOptions);
+    }
     GenerateMapTask generateMapTask = applicationContext.getBean(GenerateMapTask.class);
     generateMapTask.setVersion(version);
     generateMapTask.setSeed(seed);
