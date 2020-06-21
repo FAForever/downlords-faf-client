@@ -3,7 +3,6 @@ package com.faforever.client.leaderboard;
 
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.api.dto.Rating;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,9 +14,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
@@ -125,16 +122,30 @@ public class LeaderboardServiceTest {
   }
 
   @Test
-  public void testFindGlobalLeaderboardEntryByQuery(KnownFeaturedMod ratingType, String nameToSearch, int page, int count) throws Exception {
+  public void testFindGlobalLeaderboardEntryByQuery() throws Exception { //test-methods don't have parameters
 
-    List<Rating> globalEntries= Collections.emptyList();
-    when(fafService.findGlobalLeaderboardEntryByQuery(nameToSearch, page, count))
+    List<LeaderboardEntry> globalEntries= Collections.emptyList();
+    when(fafService.findGlobalLeaderboardEntryByQuery("krristi", 1, 11))
         .thenReturn(CompletableFuture.completedFuture(globalEntries));
 
-    List<Rating> resultList = instance.getSearchResults(ratingType, nameToSearch, page, count).toCompletableFuture()
+    List<LeaderboardEntry> resultList = instance.getSearchResults(KnownFeaturedMod.FAF, "krristi", 1, 11).toCompletableFuture()
         .get(2, TimeUnit.SECONDS);
 
-    verify(fafService).findGlobalLeaderboardEntryByQuery(nameToSearch, page, count);
+    verify(fafService).findGlobalLeaderboardEntryByQuery("krristi", 1, 11);
+    assertThat(resultList, is(globalEntries));
+  }
+
+  @Test
+  public void testFindLadder1v1LeaderboardEntryByQuery() throws Exception {
+
+    List<LeaderboardEntry> globalEntries= Collections.emptyList();
+    when(fafService.findLadder1v1LeaderboardEntryByQuery("krristi", 1, 11))
+        .thenReturn(CompletableFuture.completedFuture(globalEntries));
+
+    List<LeaderboardEntry> resultList = instance.getSearchResults(KnownFeaturedMod.LADDER_1V1, "krristi", 1, 11).toCompletableFuture()
+        .get(2, TimeUnit.SECONDS);
+
+    verify(fafService).findLadder1v1LeaderboardEntryByQuery("krristi", 1, 11);
     assertThat(resultList, is(globalEntries));
   }
 }
