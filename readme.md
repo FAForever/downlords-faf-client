@@ -1,6 +1,6 @@
 # Downlord's FAF Client
 <img src="https://steamuserimages-a.akamaihd.net/ugc/961979645585692753/48588B65300A3EDE35622C75922E863B1D5CAE9A/" width="512">
--
+
 [![Build Status](https://travis-ci.org/FAForever/downlords-faf-client.svg?branch=master)](https://travis-ci.org/FAForever/downlords-faf-client)
 [![Coverage Status](https://coveralls.io/repos/github/FAForever/downlords-faf-client/badge.svg?branch=develop)](https://coveralls.io/github/FAForever/downlords-faf-client?branch=develop)
 
