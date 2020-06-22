@@ -14,14 +14,13 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.jfoenix.controls.JFXButton;
-import com.jfoenix.controls.JFXDialog;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -85,11 +84,11 @@ public class MapVaultController extends AbstractViewController<Node> {
   public Pane mostPlayedPane;
   public Pane mostLikedPane;
   public Pane recommendedPane;
-  public JFXButton moreNewestButton;
-  public JFXButton moreMostPlayedButton;
-  public JFXButton moreMostLikedButton;
-  public JFXButton moreRecommendedButton;
-  public JFXButton moreLadderButton;
+  public Button moreNewestButton;
+  public Button moreMostPlayedButton;
+  public Button moreMostLikedButton;
+  public Button moreRecommendedButton;
+  public Button moreLadderButton;
   public StackPane mapVaultRoot;
   public ScrollPane scrollPane;
   public Button backButton;
@@ -98,8 +97,8 @@ public class MapVaultController extends AbstractViewController<Node> {
   public FlowPane ownedPane;
   public Label ownedMoreLabel;
   public Button moreOwnedButton;
-  public JFXButton previousButton;
-  public JFXButton nextButton;
+  public Button previousButton;
+  public Button nextButton;
   public Label currentPageLabel;
   public HBox paginationHBox;
   private MapDetailController mapDetailController;
@@ -182,7 +181,7 @@ public class MapVaultController extends AbstractViewController<Node> {
         .thenAccept(mapBeans -> {
           if (mapBeans.isEmpty()) {
             hideOwned();
-      	  }
+          }
           replaceSearchResult(mapBeans, ownedPane);
         })
         .thenRun(this::enterShowroomState)
@@ -266,7 +265,7 @@ public class MapVaultController extends AbstractViewController<Node> {
     mapUploadController.setMapPath(path);
 
     Node root = mapUploadController.getRoot();
-    JFXDialog dialog = uiService.showInDialog(mapVaultRoot, root, i18n.get("mapVault.upload.title"));
+    Dialog dialog = uiService.showInDialog(mapVaultRoot, root, i18n.get("mapVault.upload.title"));
     mapUploadController.setOnCancelButtonClickedListener(dialog::close);
   }
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXButton?>
-<?import com.jfoenix.controls.JFXCheckBox?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import com.jfoenix.controls.JFXProgressBar?>
 <?import com.jfoenix.controls.JFXSpinner?>
 <?import javafx.geometry.Insets?>
@@ -14,6 +14,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
+<?import javafx.scene.layout.Region?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="mapUploadRoot" minHeight="100.0" minWidth="100.0" prefWidth="900.0"
       styleClass="dialog-window" xmlns="http://javafx.com/javafx/8.0.141"
       fx:controller="com.faforever.client.map.MapUploadController">
@@ -22,7 +23,7 @@
       <children>
           <Label maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="info" text="%mapVault.upload.hint" wrapText="true">
           <graphic>
-              <Label contentDisplay="RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="icon" text="" wrapText="true" />
+              <Region maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="icon,info-icon" />
           </graphic>
             </Label>
           <Label fx:id="mapNameLabel" alignment="CENTER" contentDisplay="TOP" maxWidth="1.7976931348623157E308" styleClass="h2" text="&lt;Name&gt;" wrapText="true" VBox.vgrow="ALWAYS">
@@ -55,25 +56,25 @@
         </GridPane>
           <Label fx:id="rankedLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="%mapVault.upload.rankedConfirm" wrapText="true">
           <graphic>
-              <JFXCheckBox fx:id="rankedCheckbox" mnemonicParsing="false" selected="true" />
+              <CheckBox fx:id="rankedCheckbox" mnemonicParsing="false" selected="true" />
           </graphic>
           </Label>
           <Label fx:id="rulesLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                  text="%mapVault.upload.rules" wrapText="true">
               <graphic>
-                  <JFXCheckBox fx:id="rulesCheckBox" mnemonicParsing="false"/>
+                  <CheckBox fx:id="rulesCheckBox" mnemonicParsing="false"/>
               </graphic>
           </Label>
           <HBox spacing="10.0">
               <children>
-                  <JFXButton text="%mapVault.upload.openRules" onMouseClicked="#onShowRulesClicked"/>
-                  <JFXButton text="%mapVault.upload.openValidation" onMouseClicked="#onShowValidationClicked"/>
+                  <Button text="%mapVault.upload.openRules" onMouseClicked="#onShowRulesClicked"/>
+                  <Button text="%mapVault.upload.openValidation" onMouseClicked="#onShowValidationClicked"/>
               </children>
           </HBox>
         <ButtonBar prefHeight="40.0" prefWidth="200.0">
           <buttons>
-              <JFXButton defaultButton="true" mnemonicParsing="false" onAction="#onUploadClicked" text="%mapVault.upload.uploadNow" />
-              <JFXButton mnemonicParsing="false" onAction="#onCancelClicked" text="%cancel" />
+              <Button defaultButton="true" mnemonicParsing="false" onAction="#onUploadClicked" text="%mapVault.upload.uploadNow" />
+              <Button mnemonicParsing="false" onAction="#onCancelClicked" text="%cancel" />
           </buttons>
                <VBox.margin>
                   <Insets top="10.0" />
@@ -95,7 +96,7 @@
           <Label fx:id="uploadTaskTitleLabel" contentDisplay="TOP" layoutX="108.0" layoutY="30.0" styleClass="h2" text="%mapVault.upload.uploading" />
           <JFXProgressBar fx:id="uploadProgressBar" maxWidth="1.7976931348623157E308" progress="0.0" />
           <Label fx:id="uploadTaskMessageLabel" text="&lt;bytes&gt;" />
-          <JFXButton mnemonicParsing="false" onAction="#onCancelUploadClicked" text="%cancel" />
+          <Button mnemonicParsing="false" onAction="#onCancelUploadClicked" text="%cancel" />
       </children>
     </VBox>
       <VBox fx:id="uploadCompletePane" alignment="CENTER" layoutX="20.0" layoutY="648.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="20.0" VBox.vgrow="ALWAYS">

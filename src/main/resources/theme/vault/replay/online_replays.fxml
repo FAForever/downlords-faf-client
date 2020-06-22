@@ -1,78 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXButton?>
 <?import com.jfoenix.controls.JFXSpinner?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="replayVaultRoot" xmlns="http://javafx.com/javafx/8.0.111"
-           fx:controller="com.faforever.client.replay.OnlineReplayVaultController">
+
+<StackPane fx:id="replayVaultRoot" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.replay.OnlineReplayVaultController">
     <children>
-        <ScrollPane fx:id="scrollPane" fitToWidth="true" maxHeight="1.7976931348623157E308"
-                    maxWidth="1.7976931348623157E308">
+        <ScrollPane fx:id="scrollPane" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
             <content>
                 <VBox fx:id="contentPane" spacing="10.0">
                     <children>
-                        <fx:include fx:id="search" source="../search/search.fxml"/>
-                        <Separator maxWidth="1.7976931348623157E308"/>
+                        <fx:include fx:id="search" source="../search/search.fxml" />
+                        <Separator maxWidth="1.7976931348623157E308" />
                         <HBox spacing="10.0">
                             <children>
-                                <JFXButton fx:id="backButton" mnemonicParsing="false" onAction="#onBackButtonClicked"
-                                           text="%back">
+                                <Button fx:id="backButton" mnemonicParsing="false" onAction="#onBackButtonClicked" text="%back">
                                     <graphic>
-                                        <Label styleClass="icon" text=""/>
+                                        <Region styleClass="icon,back-icon" />
                                     </graphic>
-                                </JFXButton>
-                                <JFXButton mnemonicParsing="false" onAction="#onRefreshButtonClicked" text="%refresh">
+                                </Button>
+                                <Button mnemonicParsing="false" onAction="#onRefreshButtonClicked" text="%refresh">
                                     <graphic>
-                                        <Label styleClass="icon" text=""/>
+                                        <Region styleClass="icon,refresh-icon" />
                                     </graphic>
-                                </JFXButton>
+                                </Button>
                             </children>
                         </HBox>
-                          <VBox fx:id="showroomGroup" spacing="10.0" alignment="CENTER">
+                          <VBox fx:id="showroomGroup" alignment="CENTER" spacing="10.0">
                              <children>
-                                 <Label styleClass="h2" text="%vault.replays.ownReplays"
-                                        prefWidth="${showroomGroup.width}"/>
-                                 <VBox fx:id="ownReplaysPane" spacing="10.0"/>
-                                 <JFXButton mnemonicParsing="false" onAction="#onMoreOwnButtonClicked" text="%more"/>
-                                 <Label styleClass="h2" text="%vault.replays.newest"
-                                        prefWidth="${showroomGroup.width}"/>
-                                 <VBox fx:id="newestPane" spacing="10.0"/>
-                                 <JFXButton mnemonicParsing="false" onAction="#onMoreNewestButtonClicked" text="%more"/>
-                                 <Label styleClass="h2" text="%vault.replays.highestRated"
-                                        prefWidth="${showroomGroup.width}"/>
-                                 <VBox fx:id="highestRatedPane" spacing="10.0"/>
-                                 <JFXButton mnemonicParsing="false" onAction="#onMoreHighestRatedButtonClicked"
-                                            text="%more"/>
+                                 <Label prefWidth="${showroomGroup.width}" styleClass="h2" text="%vault.replays.ownReplays" />
+                                 <VBox fx:id="ownReplaysPane" spacing="10.0" />
+                                 <Button mnemonicParsing="false" onAction="#onMoreOwnButtonClicked" text="%more" />
+                                 <Label prefWidth="${showroomGroup.width}" styleClass="h2" text="%vault.replays.newest" />
+                                 <VBox fx:id="newestPane" spacing="10.0" />
+                                 <Button mnemonicParsing="false" onAction="#onMoreNewestButtonClicked" text="%more" />
+                                 <Label prefWidth="${showroomGroup.width}" styleClass="h2" text="%vault.replays.highestRated" />
+                                 <VBox fx:id="highestRatedPane" spacing="10.0" />
+                                 <Button mnemonicParsing="false" onAction="#onMoreHighestRatedButtonClicked" text="%more" />
                              </children>
                           </VBox>
                         <VBox fx:id="searchResultGroup" spacing="10.0">
                             <children>
-                                <Label styleClass="h2" text="%searchResult"/>
-                                <VBox fx:id="searchResultPane" spacing="10.0"/>
-                                <JFXButton fx:id="moreButton" mnemonicParsing="false"
-                                           onAction="#onLoadMoreButtonClicked"
-                                           text="%vault.more"/>
+                                <Label styleClass="h2" text="%searchResult" />
+                                <VBox fx:id="searchResultPane" spacing="10.0" />
+                                <Button fx:id="moreButton" mnemonicParsing="false" onAction="#onLoadMoreButtonClicked" text="%vault.more" />
                             </children>
                         </VBox>
                     </children>
                     <padding>
-                        <Insets bottom="20.0" left="20.0" right="20.0" top="30.0"/>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                     </padding>
                 </VBox>
             </content>
         </ScrollPane>
-        <VBox fx:id="loadingPane" alignment="CENTER" maxHeight="1.7976931348623157E308"
-              maxWidth="1.7976931348623157E308" mouseTransparent="true" spacing="10.0">
+        <VBox fx:id="loadingPane" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mouseTransparent="true" spacing="10.0">
             <children>
                 <Label contentDisplay="TOP" text="%vault.replays.loading">
                     <graphic>
-                        <JFXSpinner/>
+                        <JFXSpinner />
                     </graphic>
                 </Label>
             </children>

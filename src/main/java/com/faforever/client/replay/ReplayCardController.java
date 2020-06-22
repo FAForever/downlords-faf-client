@@ -101,7 +101,9 @@ public class ReplayCardController implements Controller<Node> {
     Integer replayTicks = replay.getReplayTicks();
     if (replayTicks != null) {
       durationLabel.setText(timeService.shortDuration(Duration.ofMillis(replayTicks * 100)));
-      ((Label) durationLabel.getGraphic()).setText("");
+      // FIXME which icon was added in https://github.com/FAForever/downlords-faf-client/commit/58357c603eafead218ef7cceb8907e86c5d864b6#r40460680
+//      durationLabel.getGraphic().getStyleClass().remove("duration-icon");
+//      durationLabel.getGraphic().getStyleClass().remove("time-icon");
     } else {
       durationLabel.setText(Optional.ofNullable(replay.getEndTime())
           .map(endTime -> timeService.shortDuration(Duration.between(replay.getStartTime(), endTime)))

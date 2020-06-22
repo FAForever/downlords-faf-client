@@ -15,7 +15,7 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
 import com.google.common.eventbus.EventBus;
-import com.jfoenix.controls.JFXButton;
+import javafx.scene.control.Button;
 
 import javafx.beans.Observable;
 import javafx.scene.layout.Pane;
@@ -243,7 +243,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     verify(mapService, times(2)).getRecommendedMaps(LOAD_PER_PAGE, 2);
   }
   
-  private void assertButtonAvailability(JFXButton button, boolean expectedIsAvailable) {
+  private void assertButtonAvailability(Button button, boolean expectedIsAvailable) {
     if (expectedIsAvailable) {
       assertThat(button.isDisabled(), is(false));
       assertThat(button.isVisible(), is(true));

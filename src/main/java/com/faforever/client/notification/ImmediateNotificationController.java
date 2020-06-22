@@ -2,8 +2,7 @@ package com.faforever.client.notification;
 
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.WebViewConfigurer;
-import com.jfoenix.controls.JFXButton;
-import com.jfoenix.controls.JFXDialogLayout;
+import com.faforever.client.ui.dialog.DialogLayout;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -27,7 +26,7 @@ import java.util.stream.Collectors;
 public class ImmediateNotificationController implements Controller<Node> {
 
   private final WebViewConfigurer webViewConfigurer;
-  private final JFXDialogLayout dialogLayout;
+  private final DialogLayout dialogLayout;
   public WebView errorMessageView;
   public Label exceptionAreaTitleLabel;
   public TextArea exceptionTextArea;
@@ -36,7 +35,7 @@ public class ImmediateNotificationController implements Controller<Node> {
 
   public ImmediateNotificationController(WebViewConfigurer webViewConfigurer) {
     this.webViewConfigurer = webViewConfigurer;
-    dialogLayout = new JFXDialogLayout();
+    dialogLayout = new DialogLayout();
   }
 
   public void initialize() {
@@ -72,7 +71,7 @@ public class ImmediateNotificationController implements Controller<Node> {
   }
 
   private Button createButton(Action action) {
-    JFXButton button = new JFXButton(action.getTitle());
+    Button button = new Button(action.getTitle());
     button.setOnAction(event -> {
       action.call(event);
       if (action.getType() == Action.Type.OK_DONE) {
@@ -108,7 +107,7 @@ public class ImmediateNotificationController implements Controller<Node> {
     return this;
   }
 
-  public JFXDialogLayout getJfxDialogLayout() {
+  public DialogLayout getDialogLayout() {
     return dialogLayout;
   }
 }

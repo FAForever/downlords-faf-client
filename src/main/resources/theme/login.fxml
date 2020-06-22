@@ -1,140 +1,116 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXButton?>
-<?import com.jfoenix.controls.JFXCheckBox?>
-<?import com.jfoenix.controls.JFXComboBox?>
-<?import com.jfoenix.controls.JFXPasswordField?>
 <?import com.jfoenix.controls.JFXSpinner?>
-<?import com.jfoenix.controls.JFXTextField?>
+<?import java.lang.String?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
 <?import javafx.scene.text.Text?>
-<?import java.lang.String?>
-<VBox fx:id="loginRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="login-root"
-      xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.faforever.client.login.LoginController">
+
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.Region?>
+<VBox fx:id="loginRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="login-root" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.login.LoginController">
   <children>
       <VBox alignment="CENTER" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
           <VBox alignment="CENTER" maxWidth="-Infinity" prefWidth="400.0" styleClass="login">
               <children>
-                  <Text onMouseClicked="#onMouseClicked" strokeType="OUTSIDE" strokeWidth="0.0" text="">
+                  <StackPane onMouseClicked="#onMouseClicked">
                       <VBox.margin>
                           <Insets bottom="70.0" top="70.0"/>
                       </VBox.margin>
-                      <styleClass>
-                          <String fx:value="login-logo"/>
-                          <String fx:value="icon"/>
-                      </styleClass>
-                  </Text>
+                      <Region styleClass="login-logo"/>
+                  </StackPane>
                   <VBox fx:id="loginProgressPane" alignment="CENTER" maxWidth="1.7976931348623157E308">
                       <children>
-                          <JFXSpinner prefHeight="80.0" prefWidth="80.0"/>
+                          <JFXSpinner prefHeight="80.0" prefWidth="80.0" />
                           <Label text="%login.progress.message">
                               <VBox.margin>
-                                  <Insets top="14.0"/>
+                                  <Insets top="14.0" />
                               </VBox.margin>
                           </Label>
-                          <Pane VBox.vgrow="ALWAYS"/>
-                          <JFXButton maxWidth="1.7976931348623157E308" mnemonicParsing="false"
-                                     onAction="#onCancelLoginButtonClicked" text="%login.button.cancel">
+                          <Pane VBox.vgrow="ALWAYS" />
+                          <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onCancelLoginButtonClicked" text="%login.button.cancel">
                               <VBox.margin>
-                                  <Insets top="20.0"/>
+                                  <Insets top="20.0" />
                               </VBox.margin>
-                          </JFXButton>
+                          </Button>
                       </children>
                   </VBox>
-                  <Label fx:id="loginErrorLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-                         minHeight="0.0" minWidth="0.0" styleClass="hint"
-                         text="This error message is supposed to be long enough to test text wrapping" wrapText="true">
+                  <Label fx:id="loginErrorLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" styleClass="hint" text="This error message is supposed to be long enough to test text wrapping" wrapText="true">
                       <graphic>
-                          <Label styleClass="icon" text=""/>
+                          <Region styleClass="icon,error-icon" />
                       </graphic>
                       <VBox.margin>
-                          <Insets bottom="5.0"/>
+                          <Insets bottom="5.0" />
                       </VBox.margin>
                   </Label>
-                  <JFXButton fx:id="downloadUpdateButton" maxWidth="1.7976931348623157E308" minWidth="-Infinity"
-                             onAction="#onDownloadUpdateButtonClicked" prefHeight="50.0"
-                             style="-fx-background-color: -dimmed-accent;" text="%login.button.downloadUpdate">
+                  <Button fx:id="downloadUpdateButton" maxWidth="1.7976931348623157E308" minWidth="-Infinity" onAction="#onDownloadUpdateButtonClicked" prefHeight="50.0" text="%login.button.downloadUpdate">
                       <VBox.margin>
-                          <Insets bottom="10.0"/>
+                          <Insets bottom="10.0" />
                       </VBox.margin>
-                  </JFXButton>
+                  </Button>
                   <VBox fx:id="loginFormPane" alignment="TOP_CENTER" maxHeight="1.7976931348623157E308" spacing="5.0">
                       <children>
-                          <JFXTextField fx:id="usernameInput" minWidth="100.0" promptText="%login.name"/>
-                          <JFXPasswordField fx:id="passwordInput" minWidth="100.0" promptText="%login.password"/>
+                          <TextField fx:id="usernameInput" minWidth="100.0" promptText="%login.name" />
+                          <PasswordField fx:id="passwordInput" minWidth="100.0" promptText="%login.password" />
                           <HBox>
                               <children>
-                                  <Label maxHeight="1.7976931348623157E308" minWidth="-Infinity"
-                                         text="%login.environment">
+                                  <Label maxHeight="1.7976931348623157E308" minWidth="-Infinity" text="%login.environment">
                                       <HBox.margin>
-                                          <Insets right="10.0"/>
+                                          <Insets right="10.0" />
                                       </HBox.margin>
                                   </Label>
-                                  <JFXComboBox fx:id="environmentComboBox" maxWidth="1.7976931348623157E308"
-                                               HBox.hgrow="ALWAYS"/>
+                                  <ComboBox fx:id="environmentComboBox" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
                               </children>
                           </HBox>
                           <GridPane fx:id="serverConfigPane" vgap="5.0">
                               <columnConstraints>
-                                  <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0"/>
-                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+                                  <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                               </columnConstraints>
                               <rowConstraints>
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                               </rowConstraints>
                               <children>
-                                  <JFXTextField fx:id="serverHostField" promptText="%login.serverHost"/>
-                                  <JFXTextField fx:id="serverPortField" prefColumnCount="6" promptText="%port"
-                                                GridPane.columnIndex="1"/>
-                                  <JFXTextField fx:id="replayServerHostField" layoutX="10.0" layoutY="7.0"
-                                                promptText="%login.replayServerHost" GridPane.rowIndex="1"/>
-                                  <JFXTextField fx:id="replayServerPortField" layoutX="310.0" layoutY="7.0"
-                                                prefColumnCount="6" promptText="%port" GridPane.columnIndex="1"
-                                                GridPane.rowIndex="1"/>
-                                  <JFXTextField fx:id="apiBaseUrlField" prefColumnCount="6"
-                                                promptText="%login.apiBaseUrl" GridPane.columnSpan="2147483647"
-                                                GridPane.rowIndex="3"/>
-                                  <JFXTextField fx:id="ircServerHostField" promptText="%login.ircServerHost"
-                                                GridPane.rowIndex="2"/>
-                                  <JFXTextField fx:id="ircServerPortField" promptText="%port" GridPane.columnIndex="1"
-                                                GridPane.rowIndex="2"/>
+                                  <TextField fx:id="serverHostField" promptText="%login.serverHost" />
+                                  <TextField fx:id="serverPortField" prefColumnCount="6" promptText="%port" GridPane.columnIndex="1" />
+                                  <TextField fx:id="replayServerHostField" layoutX="10.0" layoutY="7.0" promptText="%login.replayServerHost" GridPane.rowIndex="1" />
+                                  <TextField fx:id="replayServerPortField" layoutX="310.0" layoutY="7.0" prefColumnCount="6" promptText="%port" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                  <TextField fx:id="apiBaseUrlField" prefColumnCount="6" promptText="%login.apiBaseUrl" GridPane.columnSpan="2147483647" GridPane.rowIndex="3" />
+                                  <TextField fx:id="ircServerHostField" promptText="%login.ircServerHost" GridPane.rowIndex="2" />
+                                  <TextField fx:id="ircServerPortField" promptText="%port" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                               </children>
                               <VBox.margin>
-                                  <Insets top="20.0"/>
+                                  <Insets top="20.0" />
                               </VBox.margin>
                           </GridPane>
-                          <JFXCheckBox fx:id="autoLoginCheckBox" alignment="CENTER_RIGHT"
-                                       maxWidth="1.7976931348623157E308" mnemonicParsing="false"
-                                       text="%login.autoLogin">
+                          <CheckBox fx:id="autoLoginCheckBox" alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%login.autoLogin">
                               <VBox.margin>
-                                  <Insets bottom="10.0" top="10.0"/>
+                                  <Insets bottom="10.0" top="10.0" />
                               </VBox.margin>
-                          </JFXCheckBox>
-                          <JFXButton fx:id="loginButton" defaultButton="true" maxWidth="1.7976931348623157E308"
-                                     mnemonicParsing="false" onAction="#onLoginButtonClicked"
-                                     text="%login.button.login"/>
+                          </CheckBox>
+                          <Button fx:id="loginButton" defaultButton="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onLoginButtonClicked" text="%login.button.login" />
                           <HBox alignment="CENTER" spacing="10.0">
                               <children>
-                                  <JFXButton alignment="CENTER" maxWidth="1.7976931348623157E308"
-                                             mnemonicParsing="false" onAction="#forgotLoginClicked" text="%login.forgot"
-                                             HBox.hgrow="ALWAYS"/>
-                                  <JFXButton alignment="CENTER" maxWidth="1.7976931348623157E308"
-                                             mnemonicParsing="false" onAction="#createNewAccountClicked"
-                                             text="%login.create" HBox.hgrow="ALWAYS"/>
+                                  <Button alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#forgotLoginClicked" text="%login.forgot" HBox.hgrow="ALWAYS" />
+                                  <Button alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#createNewAccountClicked" text="%login.create" HBox.hgrow="ALWAYS" />
                               </children>
                               <VBox.margin>
-                                  <Insets top="20.0"/>
+                                  <Insets top="20.0" />
                               </VBox.margin>
                           </HBox>
                       </children>
@@ -144,18 +120,14 @@
       </VBox>
       <HBox alignment="BOTTOM_RIGHT" maxWidth="1.7976931348623157E308" VBox.vgrow="NEVER">
           <children>
-              <JFXButton fx:id="serverStatusButton" onMouseClicked="#seeServerStatus" text="See server status">
+              <Button fx:id="serverStatusButton" onMouseClicked="#seeServerStatus" text="See server status">
                   <graphic>
-                      <Text text="">
-                          <styleClass>
-                              <String fx:value="icon"/>
-                          </styleClass>
-                      </Text>
+                      <Region styleClass="icon,info-icon"/>
                   </graphic>
                   <HBox.margin>
-                      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                   </HBox.margin>
-              </JFXButton>
+              </Button>
           </children>
       </HBox>
   </children>

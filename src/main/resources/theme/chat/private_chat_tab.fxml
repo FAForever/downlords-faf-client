@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXTextField?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
@@ -26,7 +26,7 @@
                     </ScrollPane>
                 </items>
             </SplitPane>
-            <JFXTextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage"
+            <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage"
                           promptText="%chat.messagePrompt"/>
         </children>
     </VBox>

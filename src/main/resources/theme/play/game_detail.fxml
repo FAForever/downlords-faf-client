@@ -1,52 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXButton?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="gameDetailRoot" maxWidth="-Infinity" minWidth="50.0" vgap="10.0"
-          xmlns="http://javafx.com/javafx/11.0.1" fx:controller="com.faforever.client.game.GameDetailController">
+
+<GridPane fx:id="gameDetailRoot" maxHeight="1.7976931348623157E308" maxWidth="-Infinity" minWidth="50.0" styleClass="game-detail" vgap="10.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GameDetailController">
     <columnConstraints>
-        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
-        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
     </columnConstraints>
     <rowConstraints>
-        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+        <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
         <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
         <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
         <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
     </rowConstraints>
     <children>
         <ImageView fx:id="mapImageView" fitWidth="256.0" pickOnBounds="true" preserveRatio="true" styleClass="map-preview" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" />
-        <Label fx:id="gameTitleLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="h2" text="&lt;Game title&gt;" wrapText="true" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
+        <Label fx:id="gameTitleLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="game-title" text="&lt;A pretty long game title&gt;" wrapText="true" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
         <Label fx:id="gameTypeLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" text="&lt;Game type&gt;" wrapText="true" GridPane.rowIndex="2" />
         <Label fx:id="mapLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" text="&lt;Map&gt;" wrapText="true" GridPane.rowIndex="3">
             <graphic>
-                <Label styleClass="icon" text="" />
+                <Region styleClass="icon,map-icon" />
             </graphic>
         </Label>
         <Label fx:id="numberOfPlayersLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" text="&lt;Number of players&gt;" wrapText="true" GridPane.rowIndex="5">
             <graphic>
-                <Label styleClass="icon" text="" />
+                <Region styleClass="icon,players-icon" />
             </graphic>
         </Label>
         <Label fx:id="hostLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" text="&lt;Host&gt;" wrapText="true" GridPane.rowIndex="4">
             <graphic>
-                <Label styleClass="icon" text="" />
+                <Region styleClass="icon,host-icon" />
             </graphic>
         </Label>
         <VBox alignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="6">
             <children>
                 <fx:include fx:id="watchButton" source="../vault/replay/watch_button.fxml" />
-                <JFXButton fx:id="joinButton" mnemonicParsing="false" onAction="#onJoinButtonClicked" text="%game.join" />
+                <Button fx:id="joinButton" mnemonicParsing="false" onAction="#onJoinButtonClicked" text="%game.join" />
             </children>
         </VBox>
         <VBox fx:id="teamListPane" maxWidth="1.7976931348623157E308" spacing="10.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="7" />

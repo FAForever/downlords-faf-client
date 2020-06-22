@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXButton?>
+<?import javafx.scene.control.Button?>
 <?import com.jfoenix.controls.JFXProgressBar?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
@@ -41,8 +41,8 @@
                                                 <JFXProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308" progress="0.0" />
                                             </children>
                                         </VBox>
-                                        <JFXButton fx:id="uninstallButton" mnemonicParsing="false" onAction="#onUninstallButtonClicked" text="%modVault.uninstall" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
-                                        <JFXButton fx:id="installButton" mnemonicParsing="false" onAction="#onInstallButtonClicked" styleClass="highlighted-button" text="%modVault.install" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
+                                        <Button fx:id="uninstallButton" mnemonicParsing="false" onAction="#onUninstallButtonClicked" text="%modVault.uninstall" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
+                                        <Button fx:id="installButton" mnemonicParsing="false" onAction="#onInstallButtonClicked" styleClass="highlighted-button" text="%modVault.install" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
                               <VBox GridPane.columnIndex="1" GridPane.rowIndex="1">
                                  <children>
                                     <Label fx:id="authorLabel" text="&lt;Author&gt;" />
@@ -88,12 +88,12 @@
                         </VBox>
                     </content>
                 </ScrollPane>
-                <JFXButton cancelButton="true" focusTraversable="false" onAction="#onCloseButtonClicked" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <Button cancelButton="true" focusTraversable="false" onAction="#onCloseButtonClicked" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                     <styleClass>
                         <String fx:value="window-button" />
                         <String fx:value="close-button" />
                     </styleClass>
-                </JFXButton>
+                </Button>
             </children>
         </AnchorPane>
     </children>

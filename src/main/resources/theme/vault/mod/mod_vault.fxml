@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXButton?>
+<?import javafx.scene.control.Button?>
 <?import com.jfoenix.controls.JFXSpinner?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
@@ -10,6 +10,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Region?>
 <StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="modVaultRoot" xmlns="http://javafx.com/javafx/8.0.111"
            fx:controller="com.faforever.client.mod.ModVaultController">
     <children>
@@ -22,23 +23,23 @@
                         <Separator maxWidth="1.7976931348623157E308"/>
                         <HBox spacing="10.0">
                             <children>
-                                <JFXButton fx:id="backButton" mnemonicParsing="false" onAction="#onBackButtonClicked"
+                                <Button fx:id="backButton" mnemonicParsing="false" onAction="#onBackButtonClicked"
                                            text="%back">
                                     <graphic>
-                                        <Label styleClass="icon" text=""/>
+                                        <Region styleClass="icon,back-icon" />
                                     </graphic>
-                                </JFXButton>
-                                <JFXButton mnemonicParsing="false" onAction="#onRefreshButtonClicked" text="%refresh">
+                                </Button>
+                                <Button mnemonicParsing="false" onAction="#onRefreshButtonClicked" text="%refresh">
                                     <graphic>
-                                        <Label styleClass="icon" text=""/>
+                                        <Region styleClass="icon,refresh-icon" />
                                     </graphic>
-                                </JFXButton>
-                                <JFXButton mnemonicParsing="false" onAction="#onUploadModButtonClicked"
+                                </Button>
+                                <Button mnemonicParsing="false" onAction="#onUploadModButtonClicked"
                                         text="%modVault.upload">
                                     <graphic>
-                                        <Label styleClass="icon" text=""/>
+                                        <Region styleClass="icon,upload-icon" />
                                     </graphic>
-                                </JFXButton>
+                                </Button>
                             </children>
                         </HBox>
                         <VBox fx:id="showroomGroup" spacing="10.0">
@@ -46,23 +47,32 @@
                                 <Label styleClass="h2" text="%modVault.highestRatedUiMods"/>
                                 <FlowPane fx:id="highestRatedUiPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                           prefWrapLength="1500.0" vgap="10.0" >
-                                    <JFXButton mnemonicParsing="false" onAction="#showMoreHighestRatedUiMods"
-                                               fx:id="moreHighestRatedUiButton" styleClass="card, more-button" text="">
-                                    </JFXButton>
+                                    <Button mnemonicParsing="false" onAction="#showMoreHighestRatedUiMods"
+                                               fx:id="moreHighestRatedUiButton" styleClass="card, more-button">
+                                        <graphic>
+                                            <Region styleClass="icon,forward-icon"/>
+                                        </graphic>
+                                    </Button>
                                 </FlowPane>
                                 <Label styleClass="h2" text="%modVault.newestMods" />
                                 <FlowPane fx:id="newestPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                           prefWrapLength="1500.0" vgap="10.0" >
-                                    <JFXButton mnemonicParsing="false" onAction="#showMoreNewestMods"
-                                               fx:id="moreNewestButton" styleClass="card, more-button" text="">
-                                    </JFXButton>
+                                    <Button mnemonicParsing="false" onAction="#showMoreNewestMods"
+                                               fx:id="moreNewestButton" styleClass="card, more-button">
+                                        <graphic>
+                                            <Region styleClass="icon,forward-icon"/>
+                                        </graphic>
+                                    </Button>
                                 </FlowPane>
                                 <Label styleClass="h2" text="%modVault.highestRated" />
                                 <FlowPane fx:id="highestRatedPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                           prefWrapLength="1500.0" vgap="10.0" >
-                                    <JFXButton mnemonicParsing="false" onAction="#showMoreHighestRatedMods"
-                                               fx:id="moreHighestRatedButton" styleClass="card, more-button" text="">
-                                    </JFXButton>
+                                    <Button mnemonicParsing="false" onAction="#showMoreHighestRatedMods"
+                                               fx:id="moreHighestRatedButton" styleClass="card, more-button">
+                                        <graphic>
+                                            <Region styleClass="icon,forward-icon"/>
+                                        </graphic>
+                                    </Button>
                                 </FlowPane>
                             </children>
                         </VBox>
@@ -70,7 +80,7 @@
                             <children>
                                 <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%searchResult"/>
                                 <FlowPane fx:id="searchResultPane" hgap="10.0" vgap="10.0"/>
-                                <JFXButton fx:id="moreButton" mnemonicParsing="false"
+                                <Button fx:id="moreButton" mnemonicParsing="false"
                                            onAction="#onLoadMoreButtonClicked"
                                            text="%vault.more"/>
                             </children>
@@ -84,7 +94,7 @@
                         </Label>
                     </children>
                     <padding>
-                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
                     </padding>
                 </VBox>
             </content>

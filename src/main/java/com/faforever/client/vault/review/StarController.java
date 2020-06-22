@@ -4,10 +4,10 @@ import com.faforever.client.fx.Controller;
 import javafx.beans.property.FloatProperty;
 import javafx.beans.property.ReadOnlyFloatProperty;
 import javafx.beans.property.SimpleFloatProperty;
+import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Text;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -20,10 +20,10 @@ import java.util.function.Consumer;
 public class StarController implements Controller<Pane> {
 
   public StackPane starRoot;
-  public Text starBackground;
-  public Text starFill;
+  public Node starBackground;
+  public Node starFill;
 
-  private FloatProperty fill;
+  private final FloatProperty fill;
   private Consumer<StarController> clickedListener;
 
   public StarController() {
@@ -38,9 +38,7 @@ public class StarController implements Controller<Pane> {
   public void initialize() {
     starRoot.widthProperty().addListener((observable, oldValue, newValue) -> {
       Rectangle fillClip = new Rectangle();
-      fillClip.setX(0);
-      fillClip.yProperty().bind(fillClip.heightProperty().negate());
-      fillClip.widthProperty().bind(fill.multiply(starFill.getLayoutBounds().getWidth()));
+      fillClip.widthProperty().bind(fill.multiply(starRoot.getLayoutBounds().getWidth()));
       fillClip.heightProperty().bind(starRoot.heightProperty());
 
       starFill.setClip(fillClip);

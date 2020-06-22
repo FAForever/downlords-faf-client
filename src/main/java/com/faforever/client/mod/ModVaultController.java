@@ -11,14 +11,13 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.jfoenix.controls.JFXButton;
-import com.jfoenix.controls.JFXDialog;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -76,9 +75,9 @@ public class ModVaultController extends AbstractViewController<Node> {
   public Pane highestRatedUiPane;
   public Pane newestPane;
   public Pane highestRatedPane;
-  public JFXButton moreHighestRatedUiButton;
-  public JFXButton moreNewestButton;
-  public JFXButton moreHighestRatedButton;
+  public Button moreHighestRatedUiButton;
+  public Button moreNewestButton;
+  public Button moreHighestRatedButton;
   public StackPane modVaultRoot;
   public ScrollPane scrollPane;
   public Button backButton;
@@ -225,7 +224,7 @@ public class ModVaultController extends AbstractViewController<Node> {
     modUploadController.setModPath(path);
 
     Node root = modUploadController.getRoot();
-    JFXDialog dialog = uiService.showInDialog(modVaultRoot, root, i18n.get("modVault.upload.title"));
+    Dialog dialog = uiService.showInDialog(modVaultRoot, root, i18n.get("modVault.upload.title"));
     modUploadController.setOnCancelButtonClickedListener(dialog::close);
   }
 

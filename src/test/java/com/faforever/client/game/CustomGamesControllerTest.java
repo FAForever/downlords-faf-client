@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -7,6 +8,8 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -17,15 +20,21 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.testfx.util.WaitForAsyncUtils;
 
+import static javafx.beans.binding.Bindings.createBooleanBinding;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -53,7 +62,6 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
   private GamesTilesContainerController gamesTilesContainerController;
 
   private ObservableList<Game> games;
-  private SimpleObjectProperty<Game> gameShownInGameDetailView = new SimpleObjectProperty<>();
   private Preferences preferences;
 
   @Before
@@ -75,14 +83,6 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
     when(gamesTableController.getRoot()).thenReturn(new Pane());
     when(gamesTableController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
     when(gamesTilesContainerController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
-    gameShownInGameDetailView = new SimpleObjectProperty<>(null);
-    when(gameDetailController.gameProperty()).thenReturn(gameShownInGameDetailView);
-    doAnswer(invocation -> gameShownInGameDetailView.get()).when(gameDetailController).getGame();
-    doAnswer(invocation -> {
-      gameShownInGameDetailView.set((Game) invocation.getArguments()[0]);
-      return null;
-    }).when(gameDetailController).setGame(any());
-
 
     loadFxml("theme/play/custom_games.fxml", clazz -> {
       if (clazz == GameDetailController.class) {
@@ -93,28 +93,21 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
       }
       return instance;
     });
+    verify(gameDetailController).setGame(null);
   }
 
   @Test
   public void testSetSelectedGameShowsDetailPane() {
-    assertFalse(instance.gameDetailPane.isVisible());
+    instance.toggleGameDetailPaneButton.setSelected(true);
     instance.setSelectedGame(GameBuilder.create().defaultValues().get());
     assertTrue(instance.gameDetailPane.isVisible());
   }
 
   @Test
   public void testSetSelectedGameDoesNotShowDetailPaneIfDisabled() {
-    assertFalse(instance.gameDetailPane.isVisible());
+    instance.toggleGameDetailPaneButton.setSelected(false);
     preferences.setShowGameDetailsSidePane(false);
     instance.setSelectedGame(GameBuilder.create().defaultValues().get());
-    assertFalse(instance.gameDetailPane.isVisible());
-  }
-
-  @Test
-  public void testSetSelectedGameNullHidesDetailPane() {
-    instance.setSelectedGame(GameBuilder.create().defaultValues().get());
-    assertTrue(instance.gameDetailPane.isVisible());
-    instance.setSelectedGame(null);
     assertFalse(instance.gameDetailPane.isVisible());
   }
 
@@ -162,13 +155,13 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testHideSidePane() {
-    instance.toggleSidePaneButton.fire();
+    instance.toggleGameDetailPaneButton.fire();
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(preferencesService.getPreferences().isShowGameDetailsSidePane());
     verify(preferencesService, atLeast(2)).storeInBackground();
 
-    assertEquals(instance.toggleSidePaneButton.getText(), "");
+    assertThat(instance.toggleGameDetailPaneButton.getPseudoClassStates(), hasItem(CustomGamesController.PSEUDO_CLASS_CLOSED));
     assertFalse(instance.gameDetailPane.isManaged());
     assertFalse(instance.gameDetailPane.isVisible());
   }

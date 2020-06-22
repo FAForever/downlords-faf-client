@@ -68,10 +68,10 @@ public class ModCardControllerTest extends AbstractPlainJavaFxTest {
         .name("ModVersion name")
         .modType(ModType.UI)
         .author("ModVersion author")
-        .thumbnailUrl(getClass().getResource("/theme/images/close.png").toExternalForm())
+        .thumbnailUrl(getClass().getResource("/theme/images/default_achievement.png").toExternalForm())
         .get();
 
-    when(modService.loadThumbnail(modVersion)).thenReturn(new Image("/theme/images/close.png"));
+    when(modService.loadThumbnail(modVersion)).thenReturn(new Image("/theme/images/default_achievement.png"));
     instance.setModVersion(modVersion);
 
     assertThat(instance.nameLabel.getText(), is("ModVersion name"));

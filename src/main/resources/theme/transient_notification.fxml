@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXButton?>
+<?import javafx.scene.control.Button?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
@@ -35,12 +35,12 @@
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
       </padding>
     </GridPane>
-      <JFXButton focusTraversable="false" onAction="#onCloseButtonClicked" StackPane.alignment="TOP_RIGHT">
+      <Button focusTraversable="false" onAction="#onCloseButtonClicked" StackPane.alignment="TOP_RIGHT">
       <styleClass>
         <String fx:value="window-button"/>
         <String fx:value="close-button"/>
       </styleClass>
-      </JFXButton>
+      </Button>
   </children>
   <styleClass>
     <String fx:value="transient-notification"/>

@@ -9,15 +9,17 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
-import com.jfoenix.controls.JFXDialog;
 import javafx.application.Platform;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -26,7 +28,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -61,6 +62,13 @@ public class CustomGamesController extends AbstractViewController<Node> {
   private static final Predicate<Game> OPEN_CUSTOM_GAMES_PREDICATE = gameInfoBean ->
       gameInfoBean.getStatus() == GameStatus.OPEN
           && !HIDDEN_FEATURED_MODS.contains(gameInfoBean.getFeaturedMod());
+  @VisibleForTesting
+  static final PseudoClass PSEUDO_CLASS_RIGHT = PseudoClass.getPseudoClass("right");
+  @VisibleForTesting
+  static final PseudoClass PSEUDO_CLASS_OPENED = PseudoClass.getPseudoClass("opened");
+  @VisibleForTesting
+  static final PseudoClass PSEUDO_CLASS_CLOSED = PseudoClass.getPseudoClass("closed");
+
   private final UiService uiService;
   private final GameService gameService;
   private final PreferencesService preferencesService;
@@ -69,13 +77,12 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   @SuppressWarnings("WeakerAccess")
   public GameDetailController gameDetailController;
-  public ColumnConstraints sidePaneColumn;
   private GamesTableController gamesTableController;
 
   public GridPane gamesGridPane;
   public ToggleButton tableButton;
   public ToggleButton tilesButton;
-  public Button toggleSidePaneButton;
+  public ToggleButton toggleGameDetailPaneButton;
   public ToggleGroup viewToggleGroup;
   public Button createGameButton;
   public Pane gameViewContainer;
@@ -154,20 +161,27 @@ public class CustomGamesController extends AbstractViewController<Node> {
       preferencesService.storeInBackground();
     });
 
-    JavaFxUtil.bind(gameDetailPane.visibleProperty(),
-        createBooleanBinding(
-            () -> gameDetailController.getGame() != null && preferencesService.getPreferences().isShowGameDetailsSidePane(),
-            gameDetailController.gameProperty(),
-            preferencesService.getPreferences().showGameDetailsSidePaneProperty()
-        )
-    );
+    JavaFxUtil.bind(gameDetailPane.visibleProperty(), toggleGameDetailPaneButton.selectedProperty());
+    JavaFxUtil.bind(gameDetailPane.managedProperty(), gameDetailPane.visibleProperty());
 
-    JavaFxUtil.bind(gameDetailPane.managedProperty(), preferencesService.getPreferences().showGameDetailsSidePaneProperty());
-
-    setSidePane(preferencesService.getPreferences().isShowGameDetailsSidePane());
     setSelectedGame(null);
 
+    toggleGameDetailPaneButton.pseudoClassStateChanged(PSEUDO_CLASS_RIGHT, true);
+    toggleGameDetailPaneButton.selectedProperty().addListener(observable -> {
+      updateGameDetailPaneButton();
+      preferencesService.getPreferences().setShowGameDetailsSidePane(toggleGameDetailPaneButton.isSelected());
+      preferencesService.storeInBackground();
+    });
+    toggleGameDetailPaneButton.setSelected(preferencesService.getPreferences().isShowGameDetailsSidePane());
+    updateGameDetailPaneButton();
+
     eventBus.register(this);
+  }
+
+  private void updateGameDetailPaneButton() {
+    boolean selected = toggleGameDetailPaneButton.isSelected();
+    toggleGameDetailPaneButton.pseudoClassStateChanged(PSEUDO_CLASS_CLOSED, !selected);
+    toggleGameDetailPaneButton.pseudoClassStateChanged(PSEUDO_CLASS_OPENED, selected);
   }
 
   @Override
@@ -208,7 +222,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
     }
 
     Pane root = createGameController.getRoot();
-    JFXDialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("games.create"));
+    Dialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("games.create"));
     createGameController.setOnCloseButtonClickedListener(dialog::close);
 
     root.requestFocus();
@@ -227,10 +241,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
       Node root = gamesTableController.getRoot();
       populateContainer(root);
     });
-
-    if (!preferencesService.getPreferences().isShowGameDetailsSidePane()) {
-      toggleSidePane();
-    }
   }
 
   private void populateContainer(Node root) {
@@ -268,23 +278,5 @@ public class CustomGamesController extends AbstractViewController<Node> {
   public void onHide() {
     // Hide all games to free up memory
     filteredItems.setPredicate(game -> false);
-  }
-
-  public void toggleSidePane() {
-    boolean currentlyShowingSidePane = preferencesService.getPreferences().isShowGameDetailsSidePane();
-    preferencesService.getPreferences().setShowGameDetailsSidePane(!currentlyShowingSidePane);
-    preferencesService.storeInBackground();
-
-    setSidePane(!currentlyShowingSidePane);
-  }
-
-  private void setSidePane(boolean displayed) {
-    if (displayed) {
-      toggleSidePaneButton.setText("");
-      sidePaneColumn.setMinWidth(sidePaneColumn.getPrefWidth());
-    } else {
-      toggleSidePaneButton.setText("");
-      sidePaneColumn.setMinWidth(0);
-    }
   }
 }

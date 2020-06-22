@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXButton?>
+<?import javafx.scene.control.Button?>
 <?import com.jfoenix.controls.JFXProgressBar?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
@@ -14,6 +14,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
+<?import javafx.scene.layout.Region?>
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mapDetailRoot" maxHeight="1.7976931348623157E308"
             maxWidth="1.7976931348623157E308" onMouseClicked="#onDimmerClicked" styleClass="dimmer"
             xmlns="http://javafx.com/javafx/10.0.2" fx:controller="com.faforever.client.map.MapDetailController">
@@ -59,32 +60,32 @@
                                   <Label fx:id="dimensionsLabel" text="Label" GridPane.columnIndex="1"
                                          GridPane.rowIndex="2">
                                       <graphic>
-                                          <Label styleClass="icon" text=""/>
+                                          <Region styleClass="icon,map-size-icon"/>
                                       </graphic>
                                   </Label>
                                   <Label fx:id="maxPlayersLabel" graphicTextGap="10.0" text="&lt;Max Players&gt;"
                                          GridPane.columnIndex="2" GridPane.rowIndex="2">
                                       <graphic>
-                                          <Label styleClass="icon" text=""/>
+                                          <Region styleClass="icon,players-icon"/>
                                       </graphic>
                                   </Label>
                                   <Label fx:id="dateLabel" graphicTextGap="10.0" text="&lt;Date&gt;"
                                          GridPane.columnIndex="3" GridPane.rowIndex="2">
                                       <graphic>
-                                          <Label styleClass="icon" text=""/>
+                                          <Region styleClass="icon,date-icon"/>
                                       </graphic>
                                   </Label>
                                   <VBox alignment="TOP_RIGHT" spacing="10.0" GridPane.columnIndex="1"
                                         GridPane.columnSpan="2147483647">
                                       <HBox alignment="TOP_RIGHT" spacing="10.0">
                                           <children>
-                                              <JFXButton fx:id="createGameButton" defaultButton="true"
+                                              <Button fx:id="createGameButton" defaultButton="true"
                                                          mnemonicParsing="false" onAction="#onCreateGameButtonClicked"
                                                          text="%games.create"/>
-                                              <JFXButton fx:id="installButton" defaultButton="true"
+                                              <Button fx:id="installButton" defaultButton="true"
                                                          mnemonicParsing="false" onAction="#onInstallButtonClicked"
                                                          text="%mapVault.installButtonFormat"/>
-                                              <JFXButton fx:id="uninstallButton" mnemonicParsing="false"
+                                              <Button fx:id="uninstallButton" mnemonicParsing="false"
                                                          onAction="#onUninstallButtonClicked"
                                                          text="%mapVault.uninstall"/>
                                           </children>
@@ -112,7 +113,7 @@
                                       <children>
                                           <Label maxHeight="1.7976931348623157E308" text="%map.ranked"/>
                                           <Label fx:id="isRankedLabel" maxHeight="1.7976931348623157E308"/>
-                                          <JFXButton fx:id="unrankButton" mnemonicParsing="false" onAction="#unrankMap"
+                                          <Button fx:id="unrankButton" mnemonicParsing="false" onAction="#unrankMap"
                                                      text="%map.unrank"/>
                                       </children>
                                   </HBox>
@@ -122,7 +123,7 @@
                                           <Label maxHeight="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
                                                  text="%map.hidden"/>
                                           <Label fx:id="isHiddenLabel" maxHeight="1.7976931348623157E308"/>
-                                          <JFXButton fx:id="hideButton" minHeight="0.0" minWidth="0.0"
+                                          <Button fx:id="hideButton" minHeight="0.0" minWidth="0.0"
                                                      mnemonicParsing="false" onAction="#hideMap" text="%map.hide"/>
                                       </children>
                                   </HBox>
@@ -144,13 +145,13 @@
                   </VBox>
               </content>
           </ScrollPane>
-          <JFXButton cancelButton="true" focusTraversable="false" onAction="#onCloseButtonClicked"
+          <Button cancelButton="true" focusTraversable="false" onAction="#onCloseButtonClicked"
                      AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
               <styleClass>
                   <String fx:value="window-button"/>
                   <String fx:value="close-button"/>
               </styleClass>
-          </JFXButton>
+          </Button>
       </children>
     </AnchorPane>
   </children>

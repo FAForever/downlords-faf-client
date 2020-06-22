@@ -1,327 +1,62 @@
-/*******************************************************************************
- *                                                                             *
- * Root					 				                       			   			   			   	  	   *
- *                                                                             *
- ******************************************************************************/
-.root {
-  /* Dark theme */
-  -fx-base: -grey-900;
-  -fx-background: -grey-900;
-
-  /* make controls (buttons, thumb, etc.) slightly lighter */
-  -fx-color: derive(-fx-base, 10%);
-
-  /* make controls (buttons, thumb, etc.) even more lighter when selected*/
-  -fx-color-select: derive(-fx-base, 30%);
-
-  /* text fields and table rows background */
-  -fx-control-inner-background: rgb(20, 20, 20);
-  /* version of -fx-control-inner-background for alternative rows */
-  -fx-control-inner-background-alt: derive(-fx-control-inner-background, 2.5%);
-
-  /* text colors depending on background's brightness */
-  -fx-light-text-color: #DCDCDC;
-  -fx-mid-text-color: #646464;
-  -fx-dark-text-color: #141414;
-
-  /* A bright color for highlighting/accenting objects.  For example: selected
-   * text; selected items in menus, lists, trees, and tables; progress bars */
-  -fx-accent: #2b71d9;
-  -dimmed-accent: #1f519d;
-  -fx-box-border: -grey-600;
-
-  /* color of non-focused yet selected elements */
-  -fx-selection-bar-non-focused: #204277;
-
-  /* Meaningful Colors */
-  -good: -green-500;
-  -warn: -orange-500;
-  -bad: -red-500;
-
-  -fx-disabled-opacity: 0.7;
-
-  SHADOW_COLOR: #00000099;
-
-  /* Review score color palette */
-  REVIEW_SCORE_5: #117D3C;
-  REVIEW_SCORE_4: #9BD454;
-  REVIEW_SCORE_3: #d4bb5a;
-  REVIEW_SCORE_2: #e9985d;
-  REVIEW_SCORE_1: #ae453b;
-
-  /* Review score color palette */
-  REVIEW_SCORE_5: #117D3C;
-  REVIEW_SCORE_4: #9BD454;
-  REVIEW_SCORE_3: #d4bb5a;
-  REVIEW_SCORE_2: #e9985d;
-  REVIEW_SCORE_1: #ae453b;
-
-  /* Chart Color Palette */
-  CHART_COLOR_1: #2B71D9;
-  CHART_COLOR_2: #5998F9;
-  CHART_COLOR_3: #3888FF;
-  CHART_COLOR_4: #6398E8;
-  CHART_COLOR_5: #AE3417;
-  CHART_COLOR_6: #E9775C;
-  CHART_COLOR_7: #951448;
-  CHART_COLOR_8: #C84F80;
-  /* Chart Color Palette Semi-Transparent
-   * These are used by charts that need semi transparent versions of the above colors, such as BubbleChart. They
-     * are exactly the same colors as above just with alpha
-     *
-     * 20% opacity
-     */
-  CHART_COLOR_1_TRANS_20: #2B71D933;
-  CHART_COLOR_2_TRANS_20: #5998F933;
-  CHART_COLOR_3_TRANS_20: #3888FF33;
-  CHART_COLOR_4_TRANS_20: #6398E833;
-  CHART_COLOR_5_TRANS_20: #AE341733;
-  CHART_COLOR_6_TRANS_20: #E9775C33;
-  CHART_COLOR_7_TRANS_20: #95144833;
-  CHART_COLOR_8_TRANS_20: #C84F8033;
-  /* 70% opacity */
-  CHART_COLOR_1_TRANS_70: #2B71D9b3;
-  CHART_COLOR_2_TRANS_70: #5998F9b3;
-  CHART_COLOR_3_TRANS_70: #3888FFb3;
-  CHART_COLOR_4_TRANS_70: #6398E8b3;
-  CHART_COLOR_5_TRANS_70: #AE3417b3;
-  CHART_COLOR_6_TRANS_70: #E9775Cb3;
-  CHART_COLOR_7_TRANS_70: #951448b3;
-  CHART_COLOR_8_TRANS_70: #C84F80b3;
-
-  -divider-color: -grey-800;
-  /* -grey-800 plus transparency */
-  -card-color: #42424299;
-  /* -grey-700 plus transparency */
-  -card-color-hover: #61616199;
-  /* -grey-900 plus transparency */
-  -dimmer-color: #21212199;
-  -card-map-subtitle-color: #c7c7c7
+.secondary {
+  -fx-text-fill: derive(-fx-text-background-color, -30%);
 }
 
-/***************** Remove ugly borders and default background introduced by modena *****************/
+/***************** Buttons *****************/
 
-.scroll-pane,
-.split-pane,
-.tree-view,
-.list-view,
-.table-view,
-.tree-table-view,
-.tree-table-row-cell,
-.titled-pane,
-.html-editor {
-  -fx-background-color: transparent;
-  -fx-background-insets: 0;
-  -fx-padding: 0;
-}
-
-.tree-table-view.invisible-selection .tree-table-row-cell {
-  -fx-background-color: transparent;
-}
-
-.tree-table-view.invisible-selection .tree-table-row-cell:hover {
-  -fx-background-color: -grey-700;
-}
-
-.split-pane > .split-pane-divider {
-  -fx-padding: 0 1 0 0;
-  -fx-background-color: -divider-color;
-}
-
-.game-detail-pane {
-  -fx-border-color: -divider-color;
-  -fx-border-width: 0 0 0 2;
-}
-
-/*******************************************************************************
- *                                                                             *
- * Tables	                                                                     *
- *                                                                             *
- ******************************************************************************/
-.table-view, .tree-table-view {
-  -fx-table-header-border-color: transparent;
-  -fx-table-cell-border-color: -divider-color;
-  -fx-background-color: transparent;
-}
-
-/* The column header row is made up of a number of column-header, one for each
-   TableColumn, and a 'filler' area that extends from the right-most column
-   to the edge of the tableview, or up to the 'column control' button. */
-.table-view .filler, .tree-table-view .filler, .table-view .column-header,
-.tree-table-view .column-header {
-  -fx-size: 4em;
-  -fx-border-style: null;
-  -fx-border-color: -divider-color; /* Horizontal Lines*/
-  -fx-border-width: 0 0 2 0;
-  -fx-background-color: transparent;
-}
-
-.table-view .column-header .label, .table-view .filler .label,
-.table-view .column-drag-header .label, .tree-table-view .column-header .label,
-.tree-table-view .filler .label, .tree-table-view .column-drag-header .label {
-  -fx-alignment: CENTER_LEFT;
-}
-
-.table-view .column-header-background, .tree-table-view .column-header-background {
-  -fx-background-color: transparent;
-}
-
-.table-row-cell {
-  -fx-background-color: transparent;
-  -fx-background-insets: 0, 0 0 1 0;
-  -fx-padding: 0;
-}
-
-.table-row-cell, .tree-table-row-cell {
-  -fx-cell-size: 3em;
-}
-
-.table-row-cell:selected, .tree-table-row-cell:selected {
-  -fx-background-color: -fx-selection-bar-non-focused;
-}
-
-/*******************************************************************************
- *                                                                             *
- * Button, ToggleButton & MenuButton                                           *
- *                                                                             *
- ******************************************************************************/
-
-.button {
-
-  -fx-background-color: #FFFFFF11;
-}
-
-.button:hover {
-  -fx-background-color: #FFFFFF33;
-}
-
-.button:default,
-.button-raised {
-  -fx-padding: 0.7em 1em;
-  -jfx-button-type: RAISED;
-  -fx-background-color: #e19e3b;
-  -fx-text-fill: -fx-dark-text-color;
-}
-.button-raised .icon {
-  -fx-text-fill: -fx-dark-text-color;
-}
-
-.button-raised:disabled {
-  -fx-opacity: -fx-disabled-opacity;
-}
-
-.button:default:hover,
-.button-raised:hover {
-  -fx-background-color: #ffb343;
-}
-
+.button,
 .toggle-button {
-  -fx-color: transparent;
-  -fx-background-color: -fx-color;
-  -fx-border-width: 0 0 2 0;
-  -fx-border-color: transparent;
-}
-
-.toggle-button.game-list-type {
-  -fx-background-color: #FFFFFF11;
-}
-
-.toggle-button.game-list-type:selected {
-  -fx-background-color: #FFFFFF33;
-}
-
-.toggle-button.game-list-type:hover {
-  -fx-background-color: #FFFFFF33;
-}
-
-.toggle-button, .button {
-  -fx-padding: 0.5em 1em;
-}
-
-.icon-button {
-  -fx-text-overrun: clip;
-  -fx-background-color: transparent;
-  -fx-background-radius: 3em;
-  -fx-pref-width: 3em;
-  -fx-pref-height: 3em;
-  -fx-cursor: hand;
-}
-
-.icon-button > .text {
-  -fx-font-family: 'dfc-icons';
-  -fx-padding: 4;
-  -fx-font-size: 2em;
-}
-
-.icon-button:hover {
-  -fx-background-color: transparent;
-}
-
-.layout-button {
-  -fx-text-overrun: clip;
-  -fx-cursor: hand;
-  -fx-padding: 5 0 2 0;
-  -fx-background-radius: 10 0 0 10;
-}
-
-.layout-button > .text {
-  -fx-font-family: 'dfc-icons';
-  -fx-font-size: 2em;
+  -fx-graphic-text-gap: 0.666667em;
 }
 
 .more-button {
-  -fx-pref-height: 296px;
+  -fx-pref-height: 24em;
 }
 
-.more-button > .text {
-  -fx-font-family: 'dfc-icons';
-  -fx-padding: 10;
-  -fx-font-size: 4.5em;
+/***************** Split Pane *****************/
+
+.split-pane > .split-pane-divider {
+  -fx-padding: 0;
 }
 
-/*******************************************************************************
- *                                                                             *
- * WebView                  			  				                                   *
- *                                                                             *
- ******************************************************************************/
+/***************** Tab Pane *****************/
+
+.tab-pane > .tab-header-area {
+  -fx-background-color: -fx-background;
+  -fx-background: #FFFFFF12;
+  -fx-padding: 0;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab {
+  -fx-background-insets: 0 1 0 1;
+  -fx-border-insets: 0 1 0 1;
+}
 
 .close-search-text-button {
-  -fx-background-image: url('images/close.png');
-  -fx-background-size: contain;
-  -fx-min-width: 48px;
-  -fx-max-width: 48px;
+  -fx-min-height: 2em;
+  -fx-max-height: 2em;
+  -fx-min-width: 2em;
+  -fx-max-width: 2em;
+  -fx-margin: 0;
+  -fx-padding: 0;
+  -fx-background-radius: 0;
 }
 
-.html-editor .web-view {
-  -fx-border-width: 0;
+.close-search-text-button .icon {
+  -fx-shape: "M 0 3 L 3 0 L 30 27 L 57 0 L 60 3 L 33 30 L 60 57 L 57 60 L 30 33 L 3 60 L 0 57 L 27 30 Z";
+  -fx-max-width: 10;
+  -fx-max-height: 10;
 }
 
-/*******************************************************************************
- *                                                                             *
- * Label                                                                       *
- *                                                                             *
- ******************************************************************************/
-.label {
-  -fx-text-fill: -fx-text-base-color;
+.close-search-text-button:hover {
+  -fx-background-color: #FFFFFF33;
+  -icon-paint: white;
 }
 
-.label:disabled {
-  -fx-opacity: -fx-disabled-opacity;
+.close-search-text-button:pressed {
+  -fx-background-color: #FFFFFF66;
+  -icon-paint: white;
 }
-
-.label:show-mnemonics > .mnemonic-underline {
-  -fx-stroke: -fx-text-base-color;
-}
-
-.label.bold {
-  -fx-font-weight: bold;
-}
-
-/*******************************************************************************
- *                                                                             *
- * Bad Highlighting                                                            *
- *                                                                             *
- ******************************************************************************/
 
 .bad {
   -fx-text-fill: -bad;
@@ -329,157 +64,10 @@
 
 .bad > .jfx-check-box {
   -jfx-unchecked-color: -bad;
-
-}
-
-/*******************************************************************************
- *                                                                             *
- * ScrollPane       		                                                       *
- *                                                                             *
- ******************************************************************************/
-
-.scroll-pane > .viewport {
-  -fx-background: transparent;
-}
-
-/*******************************************************************************
- *                                                                             *
- * Scroll Bar			                                                       *
- *                                                                             *
- ******************************************************************************/
-.scroll-bar {
-  -fx-padding: 0;
-}
-
-.big-scroll-bar .scroll-bar {
-  -fx-pref-width: 0.4cm;
-  -fx-pref-height: 0.4cm;
-}
-
-.scroll-bar:vertical > .track-background, .scroll-bar:horizontal > .track-background {
-  -fx-background-color: -grey-800;
-  -fx-background-insets: 0;
-}
-
-.scroll-bar:vertical > .thumb, .scroll-bar:horizontal > .thumb {
-  -fx-background-color: -grey-700;
-  -fx-background-insets: 0;
-  -fx-background-radius: 3;
-}
-
-.scroll-bar:vertical > .thumb:hover, .scroll-bar:horizontal > .thumb:hover {
-  -fx-background-color: -grey-600;
-}
-
-.scroll-bar:vertical > .thumb:pressed, .scroll-bar:horizontal > .thumb:pressed {
-  -fx-background-color: -grey-500;
-}
-
-.scroll-bar > .increment-button, .scroll-bar > .decrement-button,
-.scroll-bar:hover > .increment-button, .scroll-bar:hover > .decrement-button {
-  -fx-background-color: transparent;
-}
-
-.scroll-bar > .increment-button > .increment-arrow,
-.scroll-bar > .decrement-button > .decrement-arrow {
-  -fx-background-color: -grey-500;
-}
-
-.scroll-bar:vertical > .increment-button > .increment-arrow,
-.scroll-bar:vertical > .decrement-button > .decrement-arrow,
-.scroll-bar:horizontal > .increment-button > .increment-arrow,
-.scroll-bar:horizontal > .decrement-button > .decrement-arrow {
-  -fx-padding: 0;
-}
-
-/*******************************************************************************
- *                                                                             *
- * Slider                                                                      *
- *                                                                             *
- ******************************************************************************/
-.slider {
-  -fx-padding: 10 0 10 0;
-}
-
-.slider:vertical {
-  -fx-padding: 0 10 0 10;
-}
-
-.slider > .track {
-  -fx-background-color: -grey-500;
-  -fx-background-insets: 1.5;
-}
-
-/*******************************************************************************
- *                                                                             *
- * Pagination                                                                  *
- *                                                                             *
- ******************************************************************************/
-
-.pagination * {
-  -fx-font-size: 1.5em;
-}
-
-.number-button:selected {
-  -fx-text-fill: -fx-accent;
-  -fx-underline: true;
-}
-
-/***************** Icon *****************/
-
-.icon, .icon .text {
-  -fx-font-family: 'dfc-icons';
-  -fx-font-size: 20;
-  -fx-fill: -fx-light-text-color;
-  -fx-padding: 0;
-}
-
-.icon.small {
-  -fx-font-size: 1em;
-}
-
-.icon.large {
-  -fx-font-size: 5em;
-}
-
-.button.icon {
-  -fx-text-overrun: clip;
-  -fx-background-color: transparent;
-  -fx-background-radius: 3em;
-  -fx-pref-width: 3em;
-  -fx-pref-height: 3em;
-  -fx-cursor: hand;
-}
-
-.button.icon.medium {
-  -fx-padding: 0.2em 0.6em 0.2em 0.6em;
 }
 
 .checked-icon {
   -fx-text-fill: -fx-accent;
-}
-
-/***************** Popup *****************/
-
-.popup {
-  -fx-effect: null;
-  -fx-background: -fx-base;
-  -fx-background-color: -fx-background;
-  -fx-border-color: -fx-box-border;
-}
-
-.context-menu {
-  -fx-min-width: 160;
-}
-
-/***************** Tooltip *****************/
-
-.tooltip {
-  -fx-background-color: transparent;
-  -fx-background-radius: 0;
-  -fx-padding: 1em;
-  -fx-effect: null;
-  -fx-font-size: 1em;
 }
 
 /***************** Dimmer *****************/
@@ -497,79 +85,20 @@
   -fx-border-color: -fx-box-border;
 }
 
-/***************** Window decoration *****************/
-
-.borderless-window {
-  -fx-background-color: -grey-900;
-  -fx-border-width: 1;
-  -fx-border-color: -fx-box-border;
-}
-
-.borderless-window:maximized {
-  -fx-border-width: 0;
-}
-
-.window-button {
-  -fx-background-color: transparent;
-  -fx-min-height: 20;
-  -fx-max-height: 20;
-  -fx-margin: 0;
-  -fx-padding: 0;
-}
-
-.window-button:hover {
-  -fx-background-color: -grey-800;
-}
-
-.minimize-button {
-  -fx-background-image: url('images/minimize.png');
-  -fx-min-width: 28px;
-  -fx-max-width: 28px;
-}
-
-.maximize-button {
-  -fx-background-image: url('images/maximize.png');
-  -fx-min-width: 27px;
-  -fx-max-width: 27px;
-}
-
-.restore-button {
-  -fx-background-image: url('images/restore.png');
-  -fx-min-width: 27px;
-  -fx-max-width: 27px;
-}
-
-.close-button {
-  -fx-background-image: url('images/close.png');
-  -fx-min-width: 48px;
-  -fx-max-width: 48px;
-}
-
-.close-button:hover {
-  -fx-background-color: #D32F2F;
-}
-
-.close-button:pressed {
-  -fx-background-color: derive(#D32F2F, -40%);
-}
-
 /***************** Status bar *****************/
 
-.status-bar .progress-indicator {
+.status-bar .prgress-indicator {
   -fx-pref-height: 1em;
   -fx-pref-width: 1em;
 }
 
+.status-bar .jfx-spinner {
+
+}
+
 .status-bar {
   -fx-spacing: 10;
-}
-
-.status-bar .text {
-  -fx-font-size: 1em;
-}
-
-.status-bar .tooltip {
-  -fx-font-size: 1em;
+  -fx-background-color: #FFFFFF12;
 }
 
 .status-bar-menu-button {
@@ -578,72 +107,38 @@
 }
 
 .status-bar-menu-button > .label {
-  -fx-padding: 0 0 0 0;
+  -fx-padding: 0.166667em 0.5em;
 }
 
 .status-bar-menu-button:openvertically > .arrow-button > .arrow {
   -fx-shape: "M0 1 L1 1 L.5 0 Z";
 }
 
+.connection-status .circle-icon {
+  -fx-background-color: -fx-light-text-color;
+  -fx-min-width: 0.833333em;
+  -fx-max-width: 0.833333em;
+  -fx-min-height: 0.833333em;
+  -fx-max-height: 0.833333em;
+  -fx-scale-shape: true;
+}
+
 .connection-status .text {
   -fx-font-size: 0.7em;
 }
 
-.connection-status:connected .text {
-  -fx-fill: -good;
+.connection-status:connected .circle-icon {
+  -fx-background-color: -good;
 }
 
-.connection-status:disconnected .text {
-  -fx-fill: -bad;
+.connection-status:disconnected .circle-icon {
+  -fx-background-color: -bad;
 }
 
 /***************** Tabs *****************/
 
-.tab-header-area {
-  -fx-border-color: black;
-  -fx-border-width: 0 0 1 0;
-  -fx-padding: 0 0 0 20;
-}
-
-.tab-header-background {
-  -fx-background-color: transparent;
-}
-
 .tab:unread {
   -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-accent;
-}
-
-.tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
-  -fx-border-width: 0;
-}
-
-.tab {
-  -fx-font-size: 1.1em;
-  -fx-background-color: transparent;
-  -fx-border-color: transparent;
-}
-
-.tab:hover {
-  -fx-border-color: -dimmed-accent;
-}
-
-.tab:selected {
-  -fx-background-color: -card-color;
-  -fx-border-color: -fx-accent;
-}
-
-.tab:top {
-  -fx-padding: 5 20;
-  -fx-border-width: 0 0 4 0;
-}
-
-.tab:left {
-  /* Since the text is rotated 90°, these values are as well (right is top, width is height) */
-  -fx-border-width: 4 0 0 0;
-}
-
-.tab:left .label {
-  -fx-padding: 0 0 0 1em;
 }
 
 /***************** Headers *****************/
@@ -657,9 +152,9 @@
 
 .view-content {
   -fx-padding: 0 1.5em;
-  -fx-spacing: 10px;
-  -fx-hgap: 10px;
-  -fx-vgap: 10px;
+  -fx-spacing: 0.833333em;
+  -fx-hgap: 0.833333em;
+  -fx-vgap: 0.833333em;
 }
 
 /***************** Headings *****************/
@@ -705,6 +200,11 @@
 }
 
 /***************** Chat User List *****************/
+
+.chat-channel-users-pane {
+  -fx-background-color: -fx-background;
+  -fx-background: #FFFFFF08;
+}
 
 .chat-user-item {
   -fx-padding: 0;
@@ -753,7 +253,7 @@
 
 .chat-user-control-clan.self,
 .chat-user-control-username.self {
-  -fx-fill: #FFA500;
+  -fx-fill: HIGHLIGHT_COLOR;
 }
 
 .chat-user-control-clan {
@@ -783,26 +283,63 @@
   -fx-font-size: 14px;
 }
 
+/***************** Chat User Filter *****************/
+
+.filter-user {
+  -fx-background-color: -fx-background;
+  -fx-background: -fx-base;
+}
+
+/***************** User Info Window *****************/
+
+.user-info-header-area {
+  -fx-background-color: -fx-background;
+  -fx-background: #FFFFFF12;
+}
+
+.user-info-header-area .label {
+  /** Shouldn't be overridden but color ladder doesn't work well with transparency */
+  -fx-text-fill: -fx-light-text-color;
+}
+
+.user-info-window .tab .icon {
+  /** Shouldn't be overridden but color ladder doesn't work well with transparency */
+  -fx-background-color: -fx-light-text-color;
+}
+
 /***************** Main window header *****************/
 
 .main-navigation-top {
-  -fx-padding: 0 100 0 15;
-  -fx-border-color: -divider-color;
-  -fx-border-width: 0 0 2 0;
+  -fx-padding: 9 0 0 0;
+  -fx-background-color: #FFFFFF12;
 }
 
-.main-navigation-top:restored {
-  /* Same as height of close button */
-  -fx-padding: 20 100 0 15;
+.main-navigation-top .navigation-dropdown {
+  -fx-padding: 0;
+  -fx-min-width: 0;
 }
 
-.main-navigation-button {;
-  -fx-color: transparent;
+.main-navigation-top .navigation-dropdown > .list-cell:selected {
+  visibility: hidden;
+  -fx-padding: 0;
+}
+
+.root:maximized .main-navigation-top {
+  -fx-padding: 0 0 0 0;
+}
+
+.toggle-button {
+  -fx-background: -fx-control-inner-background;
+}
+
+.main-navigation-button {
+  -fx-background: transparent;
+  -fx-background-color: -fx-background;
   -fx-font-size: 1.2em;
-  -fx-padding: 10 20;
+  -fx-padding: 0.5em 1.5em;
   -fx-border-width: 0 0 4 0;
   -fx-border-color: transparent;
-  -fx-max-height: 60;
+  -fx-border-radius: 0;
 }
 
 .main-navigation-button:highlighted {
@@ -810,12 +347,12 @@
 }
 
 .main-navigation-button:hover {
-  -fx-color: transparent;
-  -fx-border-color: -dimmed-accent;
+  -fx-border-color: -fx-selection-bar-non-focused;
+  -fx-background: #FFFFFF12;
 }
 
 .main-navigation-button:armed, .main-navigation-button:selected, .main-navigation-button:focused:selected {
-  -fx-background-color: -card-color;
+  -fx-background-color: #FFFFFF33;
   -fx-border-color: -fx-accent;
 }
 
@@ -824,27 +361,36 @@
 }
 
 .main-menu-button:hover {
-  -fx-color: -grey-800;
+  -fx-color: -fx-hover-base;
 }
 
-.main-menu-button > .label > .text {
-  -fx-font-family: 'dfc-icons';
-  -fx-font-size: 20px;
-}
-
-.main-menu-button > .arrow-button > .arrow {
+.main-menu-button > .label {
   visibility: hidden;
+  -fx-padding: 0;
 }
 
 .main-menu-button > .arrow-button {
-  visibility: hidden;
-  -fx-padding: 0;
+  -fx-padding: 1em;
+  -fx-background: transparent;
 }
 
-.username-button {
-  -fx-padding: 0;
+.main-menu-button > .arrow-button > .arrow {
+  -fx-padding: 0.416667em;
+}
+
+.user-button {
+  -fx-background-color: -fx-background;
+  -fx-background: transparent;
   -fx-focus-color: transparent;
-  -fx-background-color: transparent;
+  -fx-translate-y: -8;
+}
+
+.root:maximized .user-button {
+  -fx-translate-y: 0;
+}
+
+.user-button:hover {
+  -fx-background-color: -fx-hover-base;
 }
 
 /***************** News & Tournaments *****************/
@@ -860,7 +406,7 @@
 .news-item:hover, .tournament-item:hover {
   -fx-border-width: 0 0 1 4;
   -fx-padding: 20 10 20 6;
-  -fx-border-color: transparent transparent -divider-color -dimmed-accent;
+  -fx-border-color: transparent transparent -divider-color -fx-selection-bar-non-focused;
 }
 
 .news-list .list-cell:filled:selected .news-item, .tournament-list .list-cell:filled:selected .tournament-item {
@@ -893,7 +439,7 @@
 .tutorial-item:hover {
   -fx-border-width: 0 0 1 4;
   -fx-padding: 20 10 20 6;
-  -fx-border-color: transparent transparent -divider-color -dimmed-accent;
+  -fx-border-color: transparent transparent -divider-color -fx-selection-bar-non-focused;
 }
 
 .tutorial-item:selected {
@@ -924,60 +470,88 @@
   -fx-font-size: 1.2em;
 }
 
-/***************** Notification Badge *****************/
+/***************** Top right Menu *****************/
 
-.notification-badge {
-  -fx-padding: 0 2;
-  -fx-background-radius: 1.5em;
-  -fx-pref-width: 1.5em;
-  -fx-pref-height: 1.5em;
-  -fx-background-color: -fx-accent;
-}
-
-.notification-badge:info {
-  -fx-background-color: -good;
-}
-
-.notification-badge:warn {
-  -fx-background-color: -warn;
-}
-
-.notification-badge:error {
-  -fx-background-color: -bad;
-}
-
-.notification-badge > .text {
-  -fx-font-size: 0.8em;
+.main-navigation-top .right-menu {
+  -fx-spacing: 0.416667em;
 }
 
 /***************** Notification Button *****************/
 
-.notification-button {
+.inbox-button {
+  -fx-padding: 0;
+  -fx-background-color: null;
+}
+
+.inbox-icon {
+  -fx-background-color: -fx-light-text-color;
+  -fx-min-width: 2em;
+  -fx-max-width: 2em;
+  -fx-min-height: 2em;
+  -fx-max-height: 2em;
+  -fx-scale-shape: true;
+}
+
+.inbox-button .badge {
+  -fx-border-radius: 10em;
+  -fx-background-radius: 10em;
+  -fx-background-color: HIGHLIGHT_COLOR;
+  -fx-max-width: 0.833333em;
+  -fx-max-height: 0.833333em;
+  -fx-translate-y: -0.25em;
+  -fx-border-color: -fx-base;
+  -fx-border-width: 1;
+}
+
+.inbox-button .badge.info {
+  -fx-background-color: -fx-accent;
+}
+
+.inbox-button .badge.warn {
+  -fx-background-color: -warn;
+}
+
+.inbox-button .badge.error {
+  -fx-background-color: -bad;
+}
+
+/***************** Transient Notification *****************/
+
+.transient-notification {
+  -fx-background-color: -fx-base;
+}
+
+
+/***************** Persistent Notification *****************/
+
+.persistent-notifications {
+  -fx-background-color: -fx-base;
+  -fx-border-width: 1;
+  -fx-border-radius: 1;
+  -fx-border-color: -fx-box-border;
 }
 
 /***************** Create game *****************/
 
 .game-title-input {
-  -fx-font-size: 0.8cm;
+  -fx-font-size: 2em;
 }
+
 .game-generate-map {
-  -fx-background-color: -dimmed-accent;
-  -fx-graphic-text-gap: 0.7em;
+  -fx-background: -fx-selection-bar-non-focused;
+  -fx-graphic-text-gap: 0.75em;
 }
+
 .game-generate-map:hover {
-  -fx-background-color: -fx-accent;
-}
-.button.more-button-padding {
-  -fx-padding: 0.7em 5em;
+  -fx-background: -fx-accent;
 }
 
 .button-mini-label {
-  -fx-font-size: 0.7em;
+  -fx-font-size: 0.75em;
   -fx-background-radius: 3;
-  -fx-padding: 0.16em 0.4em;
-
-  -fx-text-fill: -fx-dark-text-color;
-  -fx-background-color: -orange-500;
+  -fx-padding: 0.166667em 0.416667em;
+  -fx-background-color: -fx-background;
+  -fx-background: HIGHLIGHT_COLOR;
 }
 
 .create-game-dual-list-cell > .right-label {
@@ -991,9 +565,64 @@
 }
 
 .settings .tab-header-area {
-  -fx-border-color: black;
+  -fx-background-color: -fx-background;
+  -fx-background: #FFFFFF12;
+  -fx-padding: 0;
+}
+
+.settings .tab-header-area .headers-region .tab {
+  -fx-background: transparent;
+  -fx-border-width: 0 0 4 0;
+  -fx-border-color: transparent;
+  -fx-padding: 1em;
+}
+
+.settings > .tab-header-area .headers-region .tab:hover {
+  -fx-background-color: -fx-background;
+  -fx-background: #FFFFFF12;
+}
+
+
+.settings .tab-header-area .headers-region .tab:selected {
+  -fx-background: #FFFFFF33;
+  -fx-border-width: 0 0 4 0;
+}
+
+.settings .tab-header-area .headers-region .tab:selected .tab-label,
+.settings .tab-header-area .headers-region .tab:hover .tab-label {
+  /* TODO this should be -fx-text-background-color but it was always too dark. Figure out why. */
+  -fx-text-fill: -fx-light-text-color;
+}
+
+.setting-container {
+  -fx-border-color: -fx-box-border;
   -fx-border-width: 0 0 1 0;
-  -fx-padding: 0 0 0 0;
+  -fx-padding: 1em 0;
+}
+
+.settings .setting-container .setting-title {
+  -fx-font-size: 1.25em;
+  -fx-padding: 0 0 0.5em 0;
+  -fx-font-weight: bold;
+}
+
+.settings .setting-container .setting-description {
+  -fx-text-fill: derive(-fx-text-background-color, -30%);
+  -fx-padding: 0 0 0.5em 0;
+}
+
+.remove-item-button {
+  -fx-min-height: 2em;
+  -fx-max-height: 2em;
+  -fx-min-width: 2em;
+  -fx-max-width: 2em;
+  -fx-margin: 0;
+  -fx-padding: 0;
+}
+
+.remove-item-button .icon {
+  -fx-max-width: 10;
+  -fx-max-height: 10;
 }
 
 /***************** Hand cursor *****************/
@@ -1005,14 +634,15 @@
 /***************** Login *****************/
 
 .login-root {
-  -fx-background-image: url('images/login-background.jpg');
-  -fx-background-repeat: no-repeat;
-  -fx-background-position: center;
-  -fx-background-size: cover, auto;
 }
 
 .login-logo {
-  -fx-font-size: 12em;
+  -fx-background-color: -fx-light-text-color;
+  -fx-min-width: 16em;
+  -fx-max-width: 16em;
+  -fx-min-height: 16em;
+  -fx-max-height: 16em;
+  -fx-scale-shape: true;
 }
 
 /***************** Chart*****************/
@@ -1022,7 +652,7 @@
 }
 
 .default-color0.chart-bar:highlighted-bar {
-  -fx-bar-fill: #E19E3B;
+  -fx-bar-fill: HIGHLIGHT_COLOR;
 }
 
 /***************** Hint *****************/
@@ -1035,43 +665,95 @@
 
 /***************** Faction buttons *****************/
 
-.toggle-button.aeon .text,
-.toggle-button.cybran .text,
-.toggle-button.uef .text,
-.toggle-button.seraphim .text {
-  -fx-font-size: 4em;
-  -fx-opacity: 0.1;
+.toggle-button.faction-button {
+  -fx-background-radius: 3;
+  -fx-border-radius: 3;
+  -fx-border-color: -fx-box-border;
   -fx-border-width: 1;
-  -fx-border-color: -divider-color;
+  -fx-padding: 1em;
+  -fx-min-width: 6em;
+  -fx-min-height: 6em;
+  -fx-max-width: 6em;
+  -fx-max-height: 6em;
+  -fx-background-color: -fx-background;
+  -fx-background: -fx-control-inner-background;
 }
 
-.aeon .text {
-  -fx-fill: -green-500;
+.toggle-button.faction-button .aeon-icon,
+.toggle-button.faction-button .seraphim-icon {
+  -fx-max-width: 3em;
+  -fx-max-height: 4em;
 }
 
-.cybran .text {
-  -fx-fill: -red-500;
+.toggle-button.faction-button * {
+  -fx-opacity: 0.2;
 }
 
-.uef .text {
-  -fx-fill: -blue-500;
-}
-
-.seraphim .text {
-  -fx-fill: -amber-500;
-}
-
-.toggle-button.aeon:selected .text,
-.toggle-button.cybran:selected .text,
-.toggle-button.uef:selected .text,
-.toggle-button.seraphim:selected .text {
+.toggle-button.faction-button:selected * {
   -fx-opacity: 1;
 }
 
-/***************** Faction label *****************/
+.toggle-button.faction-button:selected {
+  -fx-background: derive(-fx-control-inner-background, 10%);
+  -fx-color: -fx-accent;
+}
 
-.icon.faction-label .text, .icon.faction-label {
-  -fx-font-size: 2em;
+.toggle-button.pane-toggler {
+  -fx-border-color: -fx-box-border;
+  -fx-background: #FFFFFF09;
+  /* Should be derived by ladder function but it doesn't work well with transparency */
+  -fx-text-background-color: -fx-light-text-color;
+  -fx-padding: 0.833333em .25em;
+}
+
+.toggle-button.pane-toggler:left:closed .toggle-icon,
+.toggle-button.pane-toggler:right:opened .toggle-icon {
+  -fx-shape: "M11.611,10.049l-4.76-4.873c-0.303-0.31-0.297-0.804,0.012-1.105c0.309-0.304,0.803-0.293,1.105,0.012l5.306,5.433c0.304,0.31,0.296,0.805-0.012,1.105L7.83,15.928c-0.152,0.148-0.35,0.223-0.547,0.223c-0.203,0-0.406-0.08-0.559-0.236c-0.303-0.309-0.295-0.803,0.012-1.104L11.611,10.049z";
+}
+
+.toggle-button.pane-toggler:left:opened .toggle-icon,
+.toggle-button.pane-toggler:right:closed .toggle-icon {
+  -fx-shape: "M8.388,10.049l4.76-4.873c0.303-0.31,0.297-0.804-0.012-1.105c-0.309-0.304-0.803-0.293-1.105,0.012L6.726,9.516c-0.303,0.31-0.296,0.805,0.012,1.105l5.433,5.307c0.152,0.148,0.35,0.223,0.547,0.223c0.203,0,0.406-0.08,0.559-0.236c0.303-0.309,0.295-0.803-0.012-1.104L8.388,10.049z";
+}
+
+.toggle-button.pane-toggler:hover {
+  -fx-background: -fx-hover-base;
+}
+
+.pane-toggler .icon {
+  /* I would've preferred not to, but it was the only way to make it less high (width wasn't an issue) */
+  -fx-max-height: 0.833333em;
+  -fx-padding: 0 0.25em;
+}
+
+.pane-toggler:right {
+  -fx-border-width: 0;
+  -fx-background-radius: 3 0 0 3;
+}
+
+.faction-icon {
+  -fx-pref-width: 2em;
+  -fx-pref-height: 2em;
+}
+
+.faction-icon .aeon.icon,
+.aeon-icon {
+  -fx-background-color: AEON_COLOR;
+}
+
+.faction-icon .cybran.icon,
+.cybran-icon {
+  -fx-background-color: CYBRAN_COLOR;
+}
+
+.faction-icon .uef.icon,
+.uef-icon {
+  -fx-background-color: UEF_COLOR;
+}
+
+.faction-icon .seraphim.icon,
+.seraphim-icon {
+  -fx-background-color: SERAPHIM_COLOR;
 }
 
 /***************** Map preview *****************/
@@ -1087,11 +769,18 @@
   -fx-font-size: 0.8em;
 }
 
-/***************** Game Card *****************/
+/***************** Game Detail *****************/
 
-.game-card .lock-icon {
-  -fx-font-size: 2em;
-  -fx-effect: dropshadow(gaussian, black, 5, 0.5, 0, 0);
+.game-detail-pane {
+  -fx-background-color: -fx-background;
+  -fx-background: #FFFFFF09;
+  /* Should be derived by ladder function but it doesn't work well with transparency */
+  -fx-text-background-color: -fx-light-text-color;
+  -fx-background-insets: 0 0 0 0;
+}
+
+.game-detail .game-title {
+  -fx-font-size: 1.5em;
 }
 
 /***************** Rating change*****************/
@@ -1119,11 +808,11 @@
 }
 
 .review-star-background {
-  -fx-fill: -fx-mid-text-color;
+  -fx-background-color: -fx-mid-text-color;
 }
 
 .review-star-fill {
-  -fx-fill: -fx-light-text-color;
+  -fx-background-color: -fx-light-text-color;
 }
 
 .large-stars .review-stars {
@@ -1131,8 +820,6 @@
 }
 
 .review-star-background, .review-star-fill {
-  -fx-stroke-width: 0;
-  -fx-stroke: transparent;
   -fx-font-size: 2em;
 }
 
@@ -1195,65 +882,59 @@
 /***************** Cards *****************/
 
 .card {
-  -fx-background: -card-color;
   -fx-background-color: -fx-background;
-  -fx-background-radius: 2;
-  -fx-effect: dropshadow(gaussian, SHADOW_COLOR, 6, 0.3, 1, 1);
+  -fx-background: -card-color;
+  -fx-background-radius: 3;
+  -fx-border-radius: 3;
+  -fx-border-width: 1;
+  -fx-border-color: -fx-box-border;
 }
 
-.card-dimmer {
-  -fx-min-height: 112;
+.image-dimmer {
+  -fx-min-height: 6em;
   -fx-padding: 0 10 10 10;
   -fx-background-color: linear-gradient(#00000000, #000000ff);
 }
 
 .card-title {
-  -fx-font-size: 16px;
+  -fx-font-size: 1.2em;
   -fx-font-weight: bold;
 }
 
-.card-featured-mod {
-  -fx-font-size: 11px;
-  -fx-text-fill: -fx-light-text-color;
+.card:hover {
+  -fx-background: derive(-card-color, 10%);
 }
 
-.card-info {
-  -fx-font-size: 14px;
-}
-
-.card-mod-list {
-  -fx-font-size: 14px;
-}
-
-.card-subtitle {
-  -fx-font-size: 12px;
-  -fx-text-fill: -card-map-subtitle-color;
-}
-
-.control-label {
-  -fx-font-size: 12px;
-  -fx-padding: 16 0 0 0;
-}
-
-.card-button {
-  -fx-effect: null;
-}
-
-.card.hoverable:hover,
-.card.pointable:hover {
-  -fx-background: -grey-700;
-}
-
-.card.hoverable:hover:pressed,
-.card.pointable:hover:pressed {
+.card.hoverable:hover:pressed {
   -fx-background: -card-color;
 }
 
-.card.hoverable:hover .card-dimmer,
-.card.pointable:hover .card-dimmer {
+.card.hoverable:hover .image-dimmer {
   -fx-background-color: linear-gradient(#33333300, #333333ff);
 }
 
 .card:selected {
+  -fx-background: -fx-accent;
+}
 
+/***************** Replay Card *****************/
+
+.replay-card {
+  -fx-cursor: hand;
+}
+
+/***************** Game Card *****************/
+
+.game-card .lock-icon {
+  -fx-font-size: 2em;
+  -fx-effect: dropshadow(gaussian, black, 5, 0.5, 0, 0);
+}
+
+.game-card .card-title {
+  -fx-font-size: 1.2em;
+}
+
+.table-row-cell {
+  -fx-border-color: null;
+  -fx-border-width: 0;
 }

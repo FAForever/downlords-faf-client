@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 
-<?import com.jfoenix.controls.JFXComboBox?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.HBox?>
@@ -10,7 +10,7 @@
       fx:controller="com.faforever.client.main.StartTabChooseController">
    <children>
       <Label maxWidth="200.0" text="%startTab.selectTab" wrapText="true"/>
-      <JFXComboBox fx:id="tabItemChoiceBox" prefWidth="150.0"/>
+      <ComboBox fx:id="tabItemChoiceBox" prefWidth="150.0"/>
    </children>
    <padding>
       <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>

@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
@@ -38,7 +39,7 @@ public class PlayerCardTooltipControllerTest extends AbstractPlainJavaFxTest {
     Player player = playerBuilder.get();
     instance.setPlayer(player, 1000, Faction.CYBRAN);
 
-    assertThat(instance.factionIcon.getText(), is("\uE902"));
+    assertThat(instance.factionIcon.getStyleClass(), hasItem("cybran"));
     assertThat(instance.factionIcon.isVisible(), is(true));
     assertThat(instance.factionImage.isVisible(), is(false));
     assertThat(instance.foeIconText.isVisible(), is(true));
@@ -56,7 +57,7 @@ public class PlayerCardTooltipControllerTest extends AbstractPlainJavaFxTest {
     Player player = playerBuilder.get();
     instance.setPlayer(player, 1000, Faction.SERAPHIM);
 
-    assertThat(instance.factionIcon.getText(), is("\uE903"));
+    assertThat(instance.factionIcon.getStyleClass(), hasItem("seraphim"));
     assertThat(instance.factionIcon.isVisible(), is(true));
     assertThat(instance.factionImage.isVisible(), is(false));
     assertThat(instance.foeIconText.isVisible(), is(false));

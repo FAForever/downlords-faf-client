@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import com.jfoenix.controls.JFXSpinner?>
-<?import com.jfoenix.controls.JFXTextField?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
@@ -37,7 +37,7 @@
                 <Insets top="10.0"/>
               </padding>
             </Label>
-              <JFXTextField fx:id="channelNameTextField" onAction="#onJoinChannelButtonClicked"
+              <TextField fx:id="channelNameTextField" onAction="#onJoinChannelButtonClicked"
                             promptText="%chat.channelNamePrompt"/>
           </children>
         </VBox>

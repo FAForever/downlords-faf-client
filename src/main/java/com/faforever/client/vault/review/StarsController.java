@@ -34,11 +34,11 @@ public class StarsController implements Controller<Pane> {
     starControllers = Arrays.asList(star1Controller, star2Controller, star3Controller, star4Controller, star5Controller);
     value.addListener((observable, oldValue, newValue) -> {
       int value = newValue.intValue();
-      star1Controller.setFill(value > 0 ? 1 : 0);
-      star2Controller.setFill(value > 1 ? 1 : 0);
-      star3Controller.setFill(value > 2 ? 1 : 0);
-      star4Controller.setFill(value > 3 ? 1 : 0);
-      star5Controller.setFill(value > 4 ? 1 : 0);
+      star1Controller.setFill(Math.max(0, Math.min(1f, newValue.floatValue())));
+      star2Controller.setFill(Math.max(0, Math.min(1f, newValue.floatValue() - 1)));
+      star3Controller.setFill(Math.max(0, Math.min(1f, newValue.floatValue() - 2)));
+      star4Controller.setFill(Math.max(0, Math.min(1f, newValue.floatValue() - 3)));
+      star5Controller.setFill(Math.max(0, Math.min(1f, newValue.floatValue() - 4)));
     });
   }
 

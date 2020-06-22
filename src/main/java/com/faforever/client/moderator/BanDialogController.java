@@ -5,7 +5,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.remote.domain.PeriodType;
-import com.jfoenix.controls.JFXDialogLayout;
+import com.faforever.client.ui.dialog.DialogLayout;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -37,7 +37,7 @@ public class BanDialogController implements Controller<Node> {
   public ChoiceBox<PeriodType> periodTypeChoiceBox;
   public Button banButton;
   public Label successsLabel;
-  private JFXDialogLayout dialogLayout;
+  private DialogLayout dialogLayout;
   private ObjectProperty<Player> player;
 
   private Runnable closeListener;
@@ -46,7 +46,7 @@ public class BanDialogController implements Controller<Node> {
     this.moderatorService = moderatorService;
     this.i18n = i18n;
 
-    dialogLayout = new JFXDialogLayout();
+    dialogLayout = new DialogLayout();
     player = new SimpleObjectProperty<>();
   }
 
@@ -101,7 +101,7 @@ public class BanDialogController implements Controller<Node> {
     actionEvent.consume();
   }
 
-  public JFXDialogLayout getDialogLayout() {
+  public DialogLayout getDialogLayout() {
     return dialogLayout;
   }
 }

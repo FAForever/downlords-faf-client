@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXButton?>
-<?import com.jfoenix.controls.JFXTextField?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
@@ -16,6 +16,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
+<?import javafx.scene.layout.Region?>
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="replayDetailRoot" onMouseClicked="#onDimmerClicked"
             styleClass="dimmer" xmlns="http://javafx.com/javafx/8.0.121"
             fx:controller="com.faforever.client.replay.ReplayDetailController">
@@ -56,68 +57,68 @@
                                <Label fx:id="dateLabel" graphicTextGap="10.0" text="&lt;Date&gt;"
                                       GridPane.columnIndex="1" GridPane.rowIndex="2">
                                  <graphic>
-                                     <Label styleClass="icon" text=""/>
+                                     <Region styleClass="icon,date-icon"/>
                                  </graphic>
                               </Label>
                                <Label fx:id="timeLabel" graphicTextGap="10.0" text="&lt;Time&gt;"
                                       GridPane.columnIndex="2" GridPane.rowIndex="2">
                                  <graphic>
-                                     <Label styleClass="icon" text=""/>
+                                     <Region styleClass="icon,time-icon"/>
                                  </graphic>
                               </Label>
                                <Label fx:id="modLabel" graphicTextGap="10.0" text="&lt;Mods&gt;"
                                       GridPane.columnIndex="1" GridPane.rowIndex="3">
                                  <graphic>
-                                     <Label styleClass="icon" text=""/>
+                                     <Region styleClass="icon,mods-icon"/>
                                  </graphic>
                               </Label>
                                <Label fx:id="durationLabel" graphicTextGap="10.0" text="&lt;Duration&gt;"
                                       GridPane.columnIndex="3" GridPane.rowIndex="2">
                                  <graphic>
-                                     <Label styleClass="icon" text=""/>
+                                     <Region styleClass="icon,duration-icon"/>
                                  </graphic>
                               </Label>
                                <Label fx:id="replayDurationLabel" graphicTextGap="10.0" text="&lt;Duration&gt;"
                                       GridPane.columnIndex="3" GridPane.rowIndex="3">
                                  <graphic>
-                                     <Label styleClass="icon" text=""/>
+                                     <Region styleClass="icon,duration-icon"/>
                                  </graphic>
                               </Label>
                                <Label fx:id="playerCountLabel" graphicTextGap="10.0" text="&lt;PlayerCount&gt;"
                                       GridPane.columnIndex="2" GridPane.rowIndex="3">
                                  <graphic>
-                                     <Label styleClass="icon" text=""/>
+                                     <Region styleClass="icon,players-icon"/>
                                  </graphic>
                               </Label>
                                <Label fx:id="ratingLabel" graphicTextGap="10.0" text="&lt;AvgRating&gt;"
                                       GridPane.columnIndex="4" GridPane.rowIndex="3">
                                  <graphic>
-                                     <Label styleClass="icon" text=""/>
+                                     <Region styleClass="icon,statistics-icon"/>
                                  </graphic>
                               </Label>
                                <Label fx:id="qualityLabel" graphicTextGap="10.0" text="&lt;Quality&gt;"
                                       GridPane.columnIndex="4" GridPane.rowIndex="2">
                                  <graphic>
-                                     <Label styleClass="icon" text=""/>
+                                     <Region styleClass="icon,balance-icon"/>
                                  </graphic>
                               </Label>
-                               <JFXButton fx:id="watchButton" defaultButton="true" mnemonicParsing="false"
+                               <Button fx:id="watchButton" defaultButton="true" mnemonicParsing="false"
                                           onAction="#onWatchButtonClicked" text="%game.watchButtonFormat"
                                           GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT"
                                           GridPane.rowIndex="4">
                                  <graphic>
-                                     <Label styleClass="icon" text=""/>
+                                     <Region styleClass="icon,play-icon"/>
                                  </graphic>
-                               </JFXButton>
+                               </Button>
                                <Label fx:id="onMapLabel" styleClass="secondary" text="&lt;OnMap&gt;"
                                       GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="1"
                                       GridPane.valignment="TOP"/>
                                <VBox alignment="TOP_RIGHT" prefWidth="100.0" GridPane.columnIndex="1"
                                      GridPane.columnSpan="2147483647">
                                    <children>
-                                       <JFXTextField fx:id="replayIdField" alignment="CENTER_RIGHT" editable="false"
+                                       <TextField fx:id="replayIdField" alignment="CENTER_RIGHT" editable="false"
                                                      maxWidth="100.0" promptText="&lt;ReplayID&gt;" text="#123456789"/>
-                                       <JFXButton fx:id="copyButton" onAction="#copyLink"
+                                       <Button fx:id="copyButton" onAction="#copyLink"
                                                prefHeight="25.0" text="Copy link for chat"/>
                                    </children>
                                </VBox>
@@ -131,7 +132,7 @@
                              <children>
                                  <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%game.lineUp"
                                         HBox.hgrow="ALWAYS"/>
-                                 <JFXButton fx:id="showRatingChangeButton" alignment="CENTER" mnemonicParsing="false"
+                                 <Button fx:id="showRatingChangeButton" alignment="CENTER" mnemonicParsing="false"
                                             onAction="#showRatingChange" text="%game.showRatingChange"/>
                              </children>
                          </HBox>
@@ -144,7 +145,7 @@
                              </children>
                          </VBox>
                          <Separator layoutX="10.0" layoutY="254.0" maxWidth="1.7976931348623157E308"/>
-                         <JFXButton fx:id="downloadMoreInfoButton" mnemonicParsing="false"
+                         <Button fx:id="downloadMoreInfoButton" mnemonicParsing="false"
                                     onAction="#onDownloadMoreInfoClicked" text="%game.downloadMoreInfo"/>
                          <VBox fx:id="moreInformationPane" maxWidth="1.7976931348623157E308">
                              <children>
@@ -202,13 +203,13 @@
                   </VBox>
                </content>
             </ScrollPane>
-             <JFXButton cancelButton="true" focusTraversable="false" onAction="#onCloseButtonClicked"
+             <Button cancelButton="true" focusTraversable="false" onAction="#onCloseButtonClicked"
                         AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                <styleClass>
                    <String fx:value="window-button"/>
                    <String fx:value="close-button"/>
                </styleClass>
-             </JFXButton>
+             </Button>
          </children>
       </AnchorPane>
    </children>

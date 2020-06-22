@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding" defaultCharsetForPropertiesFiles="UTF-8">
+    <file url="file://$PROJECT_DIR$/../FX-BorderlessScene/gradle.properties" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/../faf-java-api/gradle.properties" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../fxstage/gradle.properties" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../javafx-gradle-example/gradle/wrapper/gradle-wrapper.properties" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../jfx-waimoto-theme/gradle.properties" charset="UTF-8" />
     <file url="PROJECT" charset="UTF-8" />
   </component>
 </project>

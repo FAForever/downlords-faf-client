@@ -95,7 +95,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     when(mapService.getInstalledMaps()).thenReturn(mapList);
     when(modService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(emptyList()));
     when(modService.getInstalledModVersions()).thenReturn(FXCollections.observableList(emptyList()));
-    when(mapService.loadPreview(anyString(), any())).thenReturn(new Image("/theme/images/close.png"));
+    when(mapService.loadPreview(anyString(), any())).thenReturn(new Image("/theme/images/default_achievement.png"));
     when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
     when(i18n.number(anyInt())).then(invocation -> invocation.getArgument(0).toString());
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
