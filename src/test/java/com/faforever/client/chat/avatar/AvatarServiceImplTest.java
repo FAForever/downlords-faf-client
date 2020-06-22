@@ -34,7 +34,7 @@ public class AvatarServiceImplTest {
 
   @Test
   public void testLoadAvatar() throws Exception {
-    URL url = getClass().getResource("/theme/images/close.png").toURI().toURL();
+    URL url = getClass().getResource("/theme/images/default_achievement.png").toURI().toURL();
     instance.loadAvatar(url.toString());
     verify(assetService).loadAndCacheImage(url, Paths.get("avatars"), null);
   }

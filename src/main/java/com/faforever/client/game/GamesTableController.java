@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.DecimalCell;
+import com.faforever.client.fx.IconCell;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
@@ -237,9 +238,9 @@ public class GamesTableController implements Controller<Node> {
   }
 
   private TableCell<Game, Boolean> passwordIndicatorColumn() {
-    return new StringCell<>(
-        isPasswordProtected -> isPasswordProtected ? "\uD83D\uDD12" : "",
-        Pos.CENTER, UiService.CSS_CLASS_ICON);
+    return new IconCell<>(
+        isPasswordProtected -> isPasswordProtected ? "lock-icon" : "",
+        Pos.CENTER);
   }
 
   private TableCell<Game, PlayerFill> playersCell() {

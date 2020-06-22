@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="replayTileRoot" hgap="20.0" prefWidth="512" prefHeight="300"
-          onMouseClicked="#onShowReplayDetail" styleClass="card,pointable" vgap="10.0"
+          onMouseClicked="#onShowReplayDetail" styleClass="card,pointable, replay-card" vgap="10.0"
           xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.replay.ReplayCardController">
     <columnConstraints>
         <ColumnConstraints hgrow="NEVER" minWidth="96.0"/>

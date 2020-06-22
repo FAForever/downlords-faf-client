@@ -1,0 +1,29 @@
+.root {
+  -fx-base: #212121;
+  -fx-accent: #2b71d9;
+
+  -good: #4caf50;
+  -warn: #ff9800;
+  -bad: #f44336;
+
+  AEON_COLOR: #4caf50;
+  CYBRAN_COLOR: #f44336;
+  UEF_COLOR: #2196f3;
+  SERAPHIM_COLOR: #ffc107;
+
+  HIGHLIGHT_COLOR: #ff9800;
+
+  SHADOW_COLOR: #00000099;
+  SCROLLBAR_TRACK_COLOR: transparent;
+  SCROLL_BAR_THUMB_COLOR: derive(-fx-base, 20%);
+
+  REVIEW_SCORE_5: #117D3C;
+  REVIEW_SCORE_4: #9BD454;
+  REVIEW_SCORE_3: #d4bb5a;
+  REVIEW_SCORE_2: #e9985d;
+  REVIEW_SCORE_1: #ae453b;
+
+  -divider-color: #424242;
+  -card-color: #424242CC;
+  -dimmer-color: #21212199;
+}

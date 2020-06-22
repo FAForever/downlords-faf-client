@@ -4,19 +4,18 @@
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="playRoot" maxHeight="1.7976931348623157E308"
-      xmlns="http://javafx.com/javafx/8.0.60" fx:controller="com.faforever.client.play.PlayController">
+<VBox fx:id="playRoot" maxHeight="1.7976931348623157E308" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.play.PlayController">
     <children>
-        <TabPane fx:id="playRootTabPane" tabClosingPolicy="UNAVAILABLE">
+        <TabPane fx:id="playRootTabPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
             <tabs>
                 <Tab fx:id="customGamesTab" text="%play.custom">
-                    <fx:include source="custom_games.fxml" fx:id="customGames"/>
+                    <fx:include fx:id="customGames" source="custom_games.fxml" />
                 </Tab>
                 <Tab fx:id="ladderTab" text="%play.ranked1v1">
-                    <fx:include source="ranked_1v1.fxml" fx:id="ladder"/>
+                    <fx:include fx:id="ladder" source="ranked_1v1.fxml" />
                 </Tab>
                 <Tab fx:id="coopTab" text="%play.coop">
-                    <fx:include source="coop/coop.fxml" fx:id="coop"/>
+                    <fx:include fx:id="coop" source="coop/coop.fxml" />
                 </Tab>
             </tabs>
         </TabPane>

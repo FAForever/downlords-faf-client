@@ -1,6 +1,7 @@
 package com.faforever.client.notification;
 
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -37,7 +38,7 @@ public class PersistentNotificationControllerTest extends AbstractPlainJavaFxTes
     instance.setNotification(notification);
 
     assertEquals("foo", instance.messageLabel.getText());
-    assertEquals("\uE88F", instance.iconLabel.getText());
+    assertThat(instance.icon.getStyleClass(), CoreMatchers.hasItem("info-icon"));
     assertThat(instance.actionButtonsContainer.getChildren(), hasSize(0));
   }
 
@@ -53,7 +54,7 @@ public class PersistentNotificationControllerTest extends AbstractPlainJavaFxTes
     instance.setNotification(notification);
 
     assertEquals("foo", instance.messageLabel.getText());
-    assertEquals("\uE002", instance.iconLabel.getText());
+    assertThat(instance.icon.getStyleClass(), CoreMatchers.hasItem("warn-icon"));
     assertThat(instance.actionButtonsContainer.getChildren(), hasSize(1));
   }
 
@@ -65,7 +66,7 @@ public class PersistentNotificationControllerTest extends AbstractPlainJavaFxTes
     instance.setNotification(notification);
 
     assertEquals("foo", instance.messageLabel.getText());
-    assertEquals("\uE001", instance.iconLabel.getText());
+    assertThat(instance.icon.getStyleClass(), CoreMatchers.hasItem("error-icon"));
     assertThat(instance.actionButtonsContainer.getChildren(), hasSize(0));
   }
 

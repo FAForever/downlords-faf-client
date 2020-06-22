@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 
-<?import com.jfoenix.controls.JFXButton?>
+<?import javafx.scene.control.Button?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.Image?>
@@ -16,7 +16,7 @@
       </HBox.margin>
     </Label>
     <HBox fx:id="buttonsPane" alignment="CENTER_RIGHT" HBox.hgrow="SOMETIMES"/>
-      <JFXButton fx:id="closeButton" focusTraversable="false" mnemonicParsing="false">
+      <Button fx:id="closeButton" focusTraversable="false" mnemonicParsing="false">
       <graphic>
         <ImageView pickOnBounds="true" preserveRatio="true">
           <image>
@@ -24,6 +24,6 @@
           </image>
         </ImageView>
       </graphic>
-      </JFXButton>
+      </Button>
   </children>
 </HBox>

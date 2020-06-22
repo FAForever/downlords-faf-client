@@ -26,8 +26,7 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import com.jfoenix.controls.JFXButton;
-import com.jfoenix.controls.JFXDialog;
+import javafx.scene.control.Button;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -100,7 +99,7 @@ public class CreateGameController implements Controller<Pane> {
   public Pane mapPreviewPane;
   public Label versionLabel;
   public CheckBox onlyForFriendsCheckBox;
-  public JFXButton generateMapButton;
+  public Button generateMapButton;
   @VisibleForTesting
   FilteredList<MapBean> filteredMapBeans;
   private Runnable onCloseButtonClickedListener;

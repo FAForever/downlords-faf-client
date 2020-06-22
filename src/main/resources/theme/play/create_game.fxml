@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXButton?>
-<?import com.jfoenix.controls.JFXCheckBox?>
-<?import com.jfoenix.controls.JFXPasswordField?>
-<?import com.jfoenix.controls.JFXTextField?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
@@ -16,9 +16,8 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="createGameRoot" hgap="10.0" styleClass="create-game-root"
-          vgap="10.0" xmlns="http://javafx.com/javafx/11.0.1"
-          fx:controller="com.faforever.client.game.CreateGameController">
+<?import javafx.scene.layout.Region?>
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="createGameRoot" hgap="10.0" styleClass="create-game-root" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.game.CreateGameController">
     <columnConstraints>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="256.0"/>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="256.0"/>
@@ -38,17 +37,17 @@
     <children>
     
     	<!-- Title, Password, Rating -->
-        <JFXTextField fx:id="titleTextField" promptText="%game.create.title" styleClass="game-title-input" GridPane.columnSpan="2147483647" />
-        <JFXPasswordField fx:id="passwordTextField" promptText="%game.create.password" GridPane.rowIndex="1" />
-        <JFXCheckBox fx:id="onlyForFriendsCheckBox" mnemonicParsing="false" text="%game.create.onlyFriends" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+        <TextField fx:id="titleTextField" promptText="%game.create.title" styleClass="game-title-input" GridPane.columnSpan="2147483647" />
+        <PasswordField fx:id="passwordTextField" promptText="%game.create.password" GridPane.rowIndex="1" />
+        <CheckBox fx:id="onlyForFriendsCheckBox" mnemonicParsing="false" text="%game.create.onlyFriends" GridPane.columnIndex="1" GridPane.rowIndex="1" />
         <Label alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308" text="%game.create.rating" textAlignment="JUSTIFY" GridPane.columnIndex="2" GridPane.rowIndex="1" />
         <HBox alignment="CENTER" maxWidth="1.7976931348623157E308" spacing="10.0" GridPane.columnIndex="3" GridPane.columnSpan="2147483647" GridPane.rowIndex="1">
             <children>
-                <JFXTextField fx:id="minRankingTextField" minWidth="30.0" prefWidth="60.0" promptText="%games.create.minRating" HBox.hgrow="NEVER" />
+                <TextField fx:id="minRankingTextField" minWidth="30.0" prefWidth="60.0" promptText="%games.create.minRating" HBox.hgrow="NEVER" />
                 <Label text="%games.create.minRating" />
                 <Pane minHeight="0.0" minWidth="0.0" HBox.hgrow="ALWAYS" />
                 <Label text="%games.create.maxRating" />
-                <JFXTextField fx:id="maxRankingTextField" minWidth="30.0" prefWidth="60.0" promptText="%games.create.maxRating" HBox.hgrow="NEVER" />
+                <TextField fx:id="maxRankingTextField" minWidth="30.0" prefWidth="60.0" promptText="%games.create.maxRating" HBox.hgrow="NEVER" />
             </children>
             <padding>
                 <Insets left="2.0" right="2.0" top="2.0" />
@@ -66,7 +65,6 @@
 
         <!-- Mods -->
         <Label styleClass="h2" text="%game.create.mods" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-        <!-- Should be stretching about 4 rows but for magic reasons that fucks with the  layout -->
         <fx:include fx:id="modManager" source="../mod_manager.fxml" GridPane.columnIndex="1" GridPane.rowIndex="4"
                     GridPane.rowSpan="2"/>
 
@@ -88,7 +86,7 @@
             <StackPane>
                 <Pane fx:id="mapPreviewPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                       styleClass="map-preview"/>
-                <VBox alignment="BOTTOM_LEFT" styleClass="card-dimmer">
+                <VBox alignment="BOTTOM_LEFT" styleClass="image-dimmer">
                     <children>
                         <Label fx:id="mapNameLabel" maxWidth="1.7976931348623157E308" minWidth="0.0"
                                styleClass="card-title" text="&lt;Very long map title to see if wrapping works&gt;"
@@ -97,14 +95,14 @@
                 </VBox>
             </StackPane>
             <HBox alignment="CENTER" spacing="10.0">
-                <Label fx:id="mapSizeLabel" text="&lt;Size&gt;">
+                <Label fx:id="mapSizeLabel" text="&lt;Size&gt;" GridPane.columnIndex="1" GridPane.rowIndex="1">
                     <graphic>
-                        <Label styleClass="icon" text=""/>
+                        <Region styleClass="icon,map-size-icon" />
                     </graphic>
                 </Label>
-                <Label fx:id="mapPlayersLabel" text="&lt;MaxPlayers&gt;">
+                <Label fx:id="mapPlayersLabel" text="&lt;MaxPlayers&gt;" GridPane.rowIndex="1">
                     <graphic>
-                        <Label styleClass="icon" text=""/>
+                        <Region styleClass="icon,players-icon" />
                     </graphic>
                 </Label>
                 <Label fx:id="versionLabel" text="&lt;Version&gt;"/>
@@ -116,26 +114,26 @@
             </ScrollPane>
 
             <!-- text="%game.create.generatedMap" -->
-            <JFXButton fx:id="generateMapButton" contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
+            <Button fx:id="generateMapButton" contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
                        mnemonicParsing="false" onAction="#onGenerateMapButtonClicked" styleClass="game-generate-map"
                        text="%game.generate">
                 <graphic>
-                    <Label styleClass="button-mini-label" text="%game.generate.generatedMapNew">
+                    <Label styleClass="button-mini-label" text="%game.create.generatedMapNew">
                         <Insets left="250"/>
                     </Label>
                 </graphic>
-            </JFXButton>
+            </Button>
         </VBox>
 
         <!-- Cancel, Ok -->
-        <JFXButton maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onCloseButtonClicked"
+        <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onCloseButtonClicked"
                    styleClass="more-button-padding" text="%cancel" GridPane.columnIndex="0" GridPane.halignment="LEFT"
                    GridPane.rowIndex="6">
             <GridPane.margin>
                 <Insets/>
             </GridPane.margin>
-        </JFXButton>
-        <JFXButton fx:id="createGameButton" defaultButton="true" minWidth="-Infinity" mnemonicParsing="false"
+        </Button>
+        <Button fx:id="createGameButton" defaultButton="true" minWidth="-Infinity" mnemonicParsing="false"
                    onAction="#onCreateButtonClicked" styleClass="more-button-padding" text="%game.create.create"
                    GridPane.columnIndex="3" GridPane.columnSpan="2" GridPane.halignment="RIGHT" GridPane.rowIndex="6">
             <GridPane.margin>
@@ -144,7 +142,7 @@
             <padding>
                 <Insets left="30.0" right="30.0"/>
             </padding>
-        </JFXButton>
+        </Button>
 
     </children>
     <padding>

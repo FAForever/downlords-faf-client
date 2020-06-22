@@ -9,43 +9,51 @@
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
-<HBox xmlns:fx="http://javafx.com/fxml/1" alignment="CENTER_LEFT" maxHeight="-Infinity"
-      maxWidth="1.7976931348623157E308" styleClass="status-bar" xmlns="http://javafx.com/javafx/8.0.141"
-      fx:controller="com.faforever.client.ui.statusbar.StatusBarController">
+<?import javafx.scene.layout.Region?>
+
+<HBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" styleClass="status-bar" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.ui.statusbar.StatusBarController">
 
     <children>
-        <Label fx:id="versionLabel" text="&lt;Version&gt;"/>
+        <Label fx:id="versionLabel" minWidth="-Infinity" text="&lt;Version&gt;" />
         <HBox fx:id="taskPane" alignment="CENTER_LEFT" spacing="20.0" HBox.hgrow="ALWAYS">
             <children>
-                <Pane HBox.hgrow="SOMETIMES"/>
+                <Pane HBox.hgrow="SOMETIMES" />
                 <Label fx:id="taskProgressLabel" prefWidth="480.0" text="Label">
                     <graphic>
-                        <JFXSpinner maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"/>
+                        <JFXSpinner maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="20.0" />
                     </graphic>
                 </Label>
-                <JFXProgressBar fx:id="taskProgressBar" minWidth="80.0" prefWidth="160.0"/>
+                <JFXProgressBar fx:id="taskProgressBar" minWidth="80.0" prefWidth="160.0" />
             </children>
         </HBox>
         <Separator orientation="VERTICAL" />
-        <MenuButton fx:id="fafConnectionButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP" styleClass="status-bar-menu-button" text="%statusBar.fafConnected">
+        <MenuButton fx:id="fafConnectionButton" focusTraversable="false" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" popupSide="TOP" styleClass="status-bar-menu-button" text="%statusBar.fafConnected">
             <items>
                 <MenuItem mnemonicParsing="false" onAction="#onFafReconnectClicked" text="%statusBar.reconnect" />
             </items>
             <graphic>
-                <Label fx:id="fafConnectionStatusIcon" styleClass="icon,connection-status" text="" />
+                <Label fx:id="fafConnectionStatusIcon" styleClass="connection-status">
+                    <graphic>
+                        <Region styleClass="circle-icon" />
+                    </graphic>
+                </Label>
             </graphic>
         </MenuButton>
         <Separator orientation="VERTICAL" />
-        <MenuButton fx:id="chatConnectionButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP" styleClass="status-bar-menu-button" text="%statusBar.chatConnected">
+        <MenuButton fx:id="chatConnectionButton" focusTraversable="false" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" popupSide="TOP" styleClass="status-bar-menu-button" text="%statusBar.chatConnected">
             <items>
                 <MenuItem mnemonicParsing="false" onAction="#onChatReconnectClicked" text="%statusBar.reconnect" />
             </items>
             <graphic>
-                <Label fx:id="chatConnectionStatusIcon" styleClass="icon,connection-status" text="" />
+                <Label fx:id="chatConnectionStatusIcon" styleClass="connection-status">
+                    <graphic>
+                        <Region styleClass="circle-icon" />
+                    </graphic>
+                </Label>
             </graphic>
         </MenuButton>
     </children>
     <padding>
-        <Insets left="10.0" right="10.0"/>
+        <Insets left="10.0" right="10.0" />
     </padding>
 </HBox>

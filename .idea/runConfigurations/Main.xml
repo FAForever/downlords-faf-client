@@ -1,11 +1,14 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Main" type="Application" factoryName="Application" nameIsGenerated="true">
     <envs>
-      <env name="spring.profiles.active" value="prod" />
+      <env name="SPRING_PROFILES_ACTIVE" value="prod" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="com.faforever.client.Main" />
     <module name="downlords-faf-client.main" />
     <option name="VM_PARAMETERS" value="-DnativeDir=build/resources/native -Dprism.dirtyopts=false -Xms128m -Xmx712m -XX:MinHeapFreeRatio=15 -XX:MaxHeapFreeRatio=33 -XX:+HeapDumpOnOutOfMemoryError -XX:+UseStringDeduplication -javaagent:webview-patch/build/libs/webview-patch.jar -Djava.net.preferIPv4Stack=true -XX:TieredStopAtLevel=1 -noverify" />
+    <RunnerSettings RunnerId="Profile ">
+      <option name="myExternalizedOptions" value="additional-options2=onexit\=snapshot,_no_java_version_check" />
+    </RunnerSettings>
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

@@ -4,13 +4,20 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+
 <HBox fx:id="root" alignment="CENTER_LEFT" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.PlayerCardTooltipController">
-   <ImageView fx:id="factionImage" fitHeight="22.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true" visible="false">
-      <HBox.margin>
-         <Insets right="4.0" />
-      </HBox.margin>
-   </ImageView>
-   <Label fx:id="factionIcon" styleClass="faction-label, icon" visible="false"/>
+   <StackPane prefHeight="24.0" prefWidth="24.0" styleClass="faction-icon">
+      <children>
+         <Region fx:id="factionIcon" styleClass="icon" visible="false" />
+         <ImageView fx:id="factionImage" fitHeight="22.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true" visible="false">
+            <HBox.margin>
+               <Insets right="4.0" />
+            </HBox.margin>
+         </ImageView>
+      </children>
+   </StackPane>
    <Label fx:id="playerInfo" styleClass="player-card-tooltip" text="&lt;PlayerInfo&gt;" wrapText="true">
       <graphic>
          <ImageView fx:id="countryImageView" pickOnBounds="true" preserveRatio="true" />
@@ -18,7 +25,7 @@
    </Label>
    <Label fx:id="foeIconText" minWidth="-Infinity">
       <graphic>
-         <Label styleClass="icon" text="" />
+         <Region styleClass="icon,foe-icon" />
       </graphic>
       <HBox.margin>
          <Insets left="5.0" />
@@ -26,7 +33,7 @@
    </Label>
    <Label fx:id="friendIconText" minWidth="-Infinity">
       <graphic>
-         <Label styleClass="icon" text="" />
+         <Region styleClass="icon,friend-icon" />
       </graphic>
          <HBox.margin>
            <Insets left="5.0" />

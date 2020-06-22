@@ -1,6 +1,6 @@
 package com.faforever.client.main;
 
-import ch.micheljung.fxborderlessscene.borderless.BorderlessScene;
+import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
@@ -32,12 +32,15 @@ import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.collections.FXCollections;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -58,6 +61,7 @@ import java.util.function.Consumer;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
@@ -65,6 +69,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -109,6 +114,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private MainController instance;
   private BooleanProperty gameRunningProperty;
   private final Preferences preferences = new Preferences();
+  @Mock
+  private FxStage fxStage;
 
   @Override
   protected boolean showStage() {
@@ -130,11 +137,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(loginController.getRoot()).thenReturn(new Pane());
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(uiService.createScene(any(), any())).thenAnswer(invocation -> {
-      Stage stage = invocation.getArgument(0);
-      Parent root = invocation.getArgument(1);
-      return new BorderlessScene(stage, root, 0, 0);
-    });
 
     gameRunningProperty = new SimpleBooleanProperty();
     BooleanProperty searching1v1Property = new SimpleBooleanProperty();
@@ -146,6 +148,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(uiService.loadFxml("theme/settings/settings.fxml")).thenReturn(settingsController);
     when(uiService.loadFxml("theme/login.fxml")).thenReturn(loginController);
     when(uiService.loadFxml("theme/chat/chat.fxml")).thenReturn(chatController);
+    when(uiService.createScene(any())).thenAnswer(invocation -> new Scene(invocation.getArgument(0)));
 
     loadFxml("theme/main.fxml", clazz -> {
       if (clazz == instance.getClass()) {
@@ -153,6 +156,14 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
       }
       return mock(clazz);
     });
+    when(fxStage.getStage()).thenReturn(getStage());
+    when(fxStage.getNonCaptionNodes()).thenReturn(FXCollections.observableArrayList());
+    doAnswer(invocation -> {
+      Region root = invocation.getArgument(0);
+      getScene().setRoot(root);
+      return fxStage;
+    }).when(fxStage).setContent(any());
+    instance.setFxStage(fxStage);
     WaitForAsyncUtils.asyncFx(() -> instance.display());
     WaitForAsyncUtils.waitForFxEvents();
   }
@@ -179,7 +190,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
    * are attached to a window.
    */
   private void attachToRoot() {
-    WaitForAsyncUtils.asyncFx(() -> getRoot().getChildren().add(instance.mainRootContent));
+    WaitForAsyncUtils.asyncFx(() -> getRoot().getChildren().add(instance.getRoot()));
     WaitForAsyncUtils.waitForFxEvents();
   }
 
@@ -204,8 +215,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     Pane root = new Pane();
     when(settingsController.getRoot()).thenReturn(root);
     WaitForAsyncUtils.waitForAsyncFx(1000, instance::onSettingsSelected);
-
-    verify(uiService).createScene(any(), eq(root));
+    verify(settingsController).getRoot();
+    verify(uiService).createScene(any());
   }
 
   @Test
@@ -298,26 +309,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testExtraBarIfMinimized() {
-    Platform.runLater(() -> {
-      instance.initialize();
-      preferences.getMainWindow().setMaximized(false);
-    });
-    WaitForAsyncUtils.waitForFxEvents();
-    assertThat(instance.mainHeaderPane.getPseudoClassStates(), hasItem(MainController.MAIN_WINDOW_RESTORED));
-  }
-
-  @Test
-  public void testNoExtraBarIfMaximized() {
-    Platform.runLater(() -> {
-      instance.initialize();
-      preferences.getMainWindow().setMaximized(true);
-    });
-    WaitForAsyncUtils.waitForFxEvents();
-    assertThat(instance.mainHeaderPane.getPseudoClassStates(), not(hasItem(MainController.MAIN_WINDOW_RESTORED)));
-  }
-
-  @Test
   public void testOnMatchMakerMessageDisplaysNotificationWithQueuesButDisabled() {
     @SuppressWarnings("unchecked")
     ArgumentCaptor<Consumer<MatchmakerInfoMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
@@ -346,18 +337,15 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForFxEvents();
     fakeLogin();
 
-    // Twice; once from setUp(), once from above
-    verify(uiService, times(2)).createScene(any(), any());
-
     Window window = instance.getRoot().getScene().getWindow();
     Rectangle2D bounds = new Rectangle2D(window.getX(), window.getY(), window.getWidth(), window.getHeight());
     assertTrue(Screen.getPrimary().getBounds().contains(bounds));
 
     // Test if maximize/restore also centers
     WaitForAsyncUtils.asyncFx(() -> {
-      BorderlessScene scene = (BorderlessScene) StageHolder.getStage().getScene();
-      scene.maximizeStage();
-      scene.maximizeStage();
+      Stage stage = StageHolder.getStage();
+      stage.setMaximized(true);
+      stage.setMaximized(false);
     });
     WaitForAsyncUtils.waitForFxEvents();
 

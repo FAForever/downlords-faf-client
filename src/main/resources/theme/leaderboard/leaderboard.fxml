@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import com.jfoenix.controls.JFXSpinner?>
-<?import com.jfoenix.controls.JFXTextField?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Region?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="leaderboardRoot" alignment="CENTER" maxHeight="1.7976931348623157E308"
       maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" xmlns="http://javafx.com/javafx/8.0.60"
       fx:controller="com.faforever.client.leaderboard.LeaderboardController">
@@ -16,13 +17,17 @@
       <children>
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                <children>
-                  <Label contentDisplay="RIGHT" graphicTextGap="10.0" maxWidth="1.7976931348623157E308" styleClass="icon" text="" />
-                   <JFXTextField fx:id="searchTextField" maxWidth="1.7976931348623157E308"
+                  <Label contentDisplay="RIGHT" graphicTextGap="10.0" maxWidth="1.7976931348623157E308">
+                    <graphic>
+                      <Region styleClass="icon,search-icon" />
+                    </graphic>
+                  </Label>
+                   <TextField fx:id="searchTextField" maxWidth="1.7976931348623157E308"
                                  promptText="%ladder.searchPrompt" HBox.hgrow="ALWAYS"/>
                </children>
             </HBox>
         <TableView fx:id="ratingTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-                   minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS" styleClass="big-scroll-bar">
+                   minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS" >
           <columns>
             <TableColumn fx:id="rankColumn" text="Rank"/>
             <TableColumn fx:id="nameColumn" text="Name"/>

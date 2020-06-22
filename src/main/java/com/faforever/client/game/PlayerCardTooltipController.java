@@ -13,6 +13,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -37,7 +38,7 @@ public class PlayerCardTooltipController implements Controller<Node> {
   public Label foeIconText;
   public HBox root;
   public Label friendIconText;
-  public Label factionIcon;
+  public Region factionIcon;
   public ImageView factionImage;
 
   public void setPlayer(Player player, int rating, Faction faction) {
@@ -75,19 +76,15 @@ public class PlayerCardTooltipController implements Controller<Node> {
     factionIcon.setVisible(true);
     switch (faction) {
       case AEON:
-        factionIcon.setText("\uE900");
         factionIcon.getStyleClass().add(AEON);
         break;
       case CYBRAN:
-        factionIcon.setText("\uE902");
         factionIcon.getStyleClass().add(CYBRAN);
         break;
       case SERAPHIM:
-        factionIcon.setText("\uE903");
         factionIcon.getStyleClass().add(SERAPHIM);
         break;
       case UEF:
-        factionIcon.setText("\uE904");
         factionIcon.getStyleClass().add(UEF);
         break;
       default:
