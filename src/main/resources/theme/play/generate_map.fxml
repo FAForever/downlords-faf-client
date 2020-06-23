@@ -33,8 +33,6 @@
                 <Tooltip text="%game.create.spawnCount"/>
             </tooltip>
         </Spinner>
-        <Label text="%game.generate.waterOption" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-        <JFXCheckBox fx:id="generateWaterCheckBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
 
 
         <JFXButton fx:id="generateMapButton" mnemonicParsing="false"

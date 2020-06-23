@@ -115,13 +115,12 @@ public class MapGeneratorService implements InitializingBean {
   }
 
 
-  public CompletableFuture<String> generateMap(byte spawnCount, byte landDensity) {
+  public CompletableFuture<String> generateMap(byte spawnCount) {
     ByteBuffer seedBuffer = ByteBuffer.allocate(8);
     seedBuffer.putLong(seedGenerator.nextLong());
     String seedString = Base64.getEncoder().encodeToString(seedBuffer.array());
     if (spawnCount<2 || spawnCount>16){spawnCount = DEFAULT_SPAWN_COUNT;}
-    if (landDensity<=26){landDensity = DEFAULT_LAND_DENSITY;}
-    byte[] optionArray = {spawnCount, landDensity};
+    byte[] optionArray = {spawnCount};
     String optionString = Base64.getEncoder().encodeToString(optionArray);
     return generateMap(queryMaxSupportedVersion(),seedString+'_'+optionString);
   }
