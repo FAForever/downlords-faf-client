@@ -210,15 +210,17 @@ public class MapGeneratorService implements InitializingBean {
 
     String[] seedParts = seedAndOptions.split("_");
     String seedString = seedParts[0];
-    byte[] seedBytes = Base64.getDecoder().decode(seedString);
-    ByteBuffer seedWrapper = ByteBuffer.wrap(seedBytes);
-    String seed = Long.toString(seedWrapper.getLong());
 
     String mapFilename;
+    String seed;
     if (majorVersion.equals("0")){
+      seed = Long.toString(Long.parseLong(seedString));
       mapFilename = String.format(GENERATED_MAP_NAME, version, seed);
     } else {
       mapFilename = String.format(GENERATED_MAP_NAME, version, seedAndOptions);
+      byte[] seedBytes = Base64.getDecoder().decode(seedString);
+      ByteBuffer seedWrapper = ByteBuffer.wrap(seedBytes);
+      seed = Long.toString(seedWrapper.getLong());
     }
     GenerateMapTask generateMapTask = applicationContext.getBean(GenerateMapTask.class);
     generateMapTask.setVersion(version);
