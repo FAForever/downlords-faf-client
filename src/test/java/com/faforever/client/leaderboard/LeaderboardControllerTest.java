@@ -60,7 +60,7 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testFilterByNamePlayerExactMatch() throws Exception {
+  public void testFilterByNamePlayerExactMatch() {
     LeaderboardEntry entry1 = new LeaderboardEntry();
     entry1.setUsername("Aa");
     LeaderboardEntry entry2 = new LeaderboardEntry();
@@ -80,7 +80,7 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testFilterByNamePlayerPartialMatch() throws Exception {
+  public void testFilterByNamePlayerPartialMatch() {
     LeaderboardEntry entry1 = new LeaderboardEntry();
     entry1.setUsername("Aa");
     LeaderboardEntry entry2 = new LeaderboardEntry();

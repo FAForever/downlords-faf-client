@@ -1,6 +1,8 @@
 package com.faforever.client.leaderboard;
 
 import com.faforever.client.FafClientApplication;
+import com.faforever.client.api.dto.GlobalRating;
+import com.faforever.client.api.dto.Rating;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.remote.FafService;
@@ -70,7 +72,7 @@ public class LeaderboardService {
       case FAF:
         return fafService.findGlobalLeaderboardEntryByQuery(nameToSearch, page, count);
       case LADDER_1V1:
-        return null; //TODO add second method
+        return fafService.findLadder1v1LeaderboardEntryByQuery(nameToSearch, page, count);
       default:
         throw new IllegalArgumentException("Not supported: " + ratingType);
     }

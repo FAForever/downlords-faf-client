@@ -139,11 +139,5 @@ public class LeaderboardController extends AbstractViewController<Node> {
       });
       return null;
     });
-
-
-
-    //if the user is searching for a particular entry in the table...
-
-
   }
 }

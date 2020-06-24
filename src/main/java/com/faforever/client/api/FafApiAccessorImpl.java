@@ -23,6 +23,7 @@ import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
+import com.faforever.client.api.dto.Rating;
 import com.faforever.client.api.dto.Tournament;
 import com.faforever.client.api.dto.TutorialCategory;
 import com.faforever.client.config.CacheNames;
@@ -480,11 +481,14 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public List<GlobalLeaderboardEntry> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
-    MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
-    parameterMap.add("filter", "player.login==" + nameToSearch + "*");
-    parameterMap.add("include", "player");
-    parameterMap.add("sort", "-rating");
-    return getPage(GLOBAL_RATING_ENDPOINT, count, page, parameterMap);
+    return getPage("/leaderboards/global", count, page,
+        ImmutableMap.of("playerNameMatchesRegex", nameToSearch + "%", "page[number]", page, "page[size]", count));
+  }
+
+  @Override
+  public List<Ladder1v1LeaderboardEntry> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count) {
+    return getPage("/leaderboards/ladder1v1", count, page,
+        ImmutableMap.of("playerNameMatchesRegex", nameToSearch + "%", "page[number]", page, "page[size]", count));
   }
 
   @Override

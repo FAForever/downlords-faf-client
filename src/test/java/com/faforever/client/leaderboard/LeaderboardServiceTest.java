@@ -4,12 +4,19 @@ package com.faforever.client.leaderboard;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.remote.FafService;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.MockitoRule;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -22,18 +29,41 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
-public class LeaderboardServiceImplTest {
+@RunWith(Parameterized.class)  //one can't have 2 @RunWith, so it got replaced with the @Rule below
+public class LeaderboardServiceTest {
+
+  @Rule
+  public MockitoRule mockitoRule = MockitoJUnit.rule();
 
   private static final int PLAYER_ID = 123;
   @Mock
   private FafService fafService;
 
-  private LeaderboardServiceImpl instance;
+  private LeaderboardService instance;
+
+  //the parameters for the last 2 methods
+  private String nameToSearch;
+  private int page;
+  private int count;
 
   @Before
   public void setUp() throws Exception {
-    instance = new LeaderboardServiceImpl(fafService);
+    instance = new LeaderboardService(fafService);
+  }
+
+  public LeaderboardServiceTest(String nameToSearch, int page, int count) {
+    this.nameToSearch = nameToSearch;
+    this.page = page;
+    this.count = count;
+  }
+
+  @Parameters  //there will be as many tests, as parameters included here
+  public static Collection testSamples() {
+    return Arrays.asList(new Object[][] {
+        {"krristi", 1, 11},
+        {"test", 2, 100},
+        {"test9000", 3, 4}
+    });
   }
 
   @Test
@@ -119,5 +149,33 @@ public class LeaderboardServiceImplTest {
     LeaderboardEntry result = instance.getEntryForPlayer(PLAYER_ID).toCompletableFuture().get(2, TimeUnit.SECONDS);
     verify(fafService).getLadder1v1EntryForPlayer(PLAYER_ID);
     assertThat(result, is(entry));
+  }
+
+  @Test
+  public void testFindGlobalLeaderboardEntryByQuery() throws Exception { //test-methods don't have parameters
+
+    List<LeaderboardEntry> globalEntries= Collections.emptyList();
+    when(fafService.findGlobalLeaderboardEntryByQuery(nameToSearch, page, count))
+        .thenReturn(CompletableFuture.completedFuture(globalEntries));
+
+    List<LeaderboardEntry> resultList = instance.getSearchResults(KnownFeaturedMod.FAF, nameToSearch, page, count).toCompletableFuture()
+        .get(2, TimeUnit.SECONDS);
+
+    verify(fafService).findGlobalLeaderboardEntryByQuery(nameToSearch, page, count);
+    assertThat(resultList, is(globalEntries));
+  }
+
+  @Test
+  public void testFindLadder1v1LeaderboardEntryByQuery() throws Exception {
+
+    List<LeaderboardEntry> globalEntries= Collections.emptyList();
+    when(fafService.findLadder1v1LeaderboardEntryByQuery(nameToSearch, page, count))
+        .thenReturn(CompletableFuture.completedFuture(globalEntries));
+
+    List<LeaderboardEntry> resultList = instance.getSearchResults(KnownFeaturedMod.LADDER_1V1, nameToSearch, page, count).toCompletableFuture()
+        .get(2, TimeUnit.SECONDS);
+
+    verify(fafService).findLadder1v1LeaderboardEntryByQuery(nameToSearch, page, count);
+    assertThat(resultList, is(globalEntries));
   }
 }
