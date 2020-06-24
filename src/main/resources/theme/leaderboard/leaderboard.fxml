@@ -52,6 +52,6 @@
         </Label>
       </children>
     </VBox>
-      <Pagination maxPageIndicatorCount="3" minHeight="-Infinity" minWidth="-Infinity" pageCount="11" />
+      <Pagination fx:id="paginationControl" maxPageIndicatorCount="10" minHeight="-Infinity" minWidth="-Infinity" />
   </children>
 </VBox>
