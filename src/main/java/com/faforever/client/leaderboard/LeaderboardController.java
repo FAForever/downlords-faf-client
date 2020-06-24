@@ -19,6 +19,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
+import javafx.scene.control.Pagination;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -58,8 +59,10 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public Pane connectionProgressPane;
   public Pane contentPane;
   public JFXButton searchButton;
+  public Pagination paginationControl;
   private KnownFeaturedMod ratingType;
-  private final int NUMBER_OF_PLAYERS_PER_PAGE = 10;
+  private final static int NUMBER_OF_PLAYERS_PER_PAGE = 15;
+
 
 
   @Override
@@ -71,7 +74,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
     nameColumn.setCellValueFactory(param -> param.getValue().usernameProperty());
     nameColumn.setCellFactory(param -> new StringCell<>(name -> name));
 
-    winLossColumn.setCellValueFactory(param -> new SimpleFloatProperty(param.getValue().getWinLossRatio()));
+    winLossColumn.setCellValueFactory(param -> param.getValue().winLossRatioProperty());
     winLossColumn.setCellFactory(param -> new StringCell<>(number -> i18n.get("percentage", number.floatValue() * 100)));
 
     gamesPlayedColumn.setCellValueFactory(param -> param.getValue().gamesPlayedProperty());
@@ -83,30 +86,22 @@ public class LeaderboardController extends AbstractViewController<Node> {
     contentPane.managedProperty().bind(contentPane.visibleProperty());
     connectionProgressPane.managedProperty().bind(connectionProgressPane.visibleProperty());
     connectionProgressPane.visibleProperty().bind(contentPane.visibleProperty().not());
+
+
   }
 
 
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
-    Assert.checkNullIllegalState(ratingType, "ratingType must not be null");
+    paginationControl.currentPageIndexProperty().setValue(0);//initialize table
+    updateTable(0);
 
-    contentPane.setVisible(false);
-    leaderboardService.getEntries(ratingType).thenAccept(leaderboardEntryBeans -> {
-      Platform.runLater(() -> {
-        ratingTable.setItems(observableList(leaderboardEntryBeans));
-        contentPane.setVisible(true);
+      paginationControl.currentPageIndexProperty().addListener(new ChangeListener<Number>() {
+        @Override
+        public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+          updateTable(newValue.intValue());
+        }
       });
-    }).exceptionally(throwable -> {
-      Platform.runLater(() -> {
-        contentPane.setVisible(false);
-        logger.warn("Error while loading leaderboard entries", throwable);
-        notificationService.addNotification(new ImmediateErrorNotification(
-            i18n.get("errorTitle"), i18n.get("leaderboard.failedToLoad"),
-            throwable, i18n, reportingService
-        ));
-      });
-      return null;
-    });
   }
 
   public Node getRoot() {
@@ -118,12 +113,17 @@ public class LeaderboardController extends AbstractViewController<Node> {
   }
 
   public void handleSearchButtonClicked(ActionEvent event) {
+    paginationControl.currentPageIndexProperty().setValue(0);
+    updateTable(0);
+  }
 
+  private void  updateTable(int currentPage)
+  {
     String searchTextFieldText = searchTextField.getText();
-
     Assert.checkNullIllegalState(ratingType, "ratingType must not be null");
+
     contentPane.setVisible(false);
-    leaderboardService.getSearchResults(ratingType, searchTextFieldText, 1 /*get page of pagination*/,NUMBER_OF_PLAYERS_PER_PAGE).thenAccept(leaderboardEntryBeans -> {
+    leaderboardService.getSearchResults(ratingType, searchTextFieldText,currentPage+1, NUMBER_OF_PLAYERS_PER_PAGE).thenAccept(leaderboardEntryBeans -> {
       Platform.runLater(() -> {
         ratingTable.setItems(observableList(leaderboardEntryBeans));
         contentPane.setVisible(true);
@@ -138,6 +138,10 @@ public class LeaderboardController extends AbstractViewController<Node> {
         ));
       });
       return null;
+
     });
   }
+
+
+
 }
