@@ -28,10 +28,10 @@
                 <Tooltip text="%game.generate.nameCaution"/>
             </tooltip>
         </JFXTextField>
-        <Label text="%game.create.spawnCount" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <Label text="%game.generate.spawnCount" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
         <Spinner fx:id="spawnCountSpinner" style="-fx-pref-width: 5em" maxHeight="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1">
             <tooltip>
-                <Tooltip text="%game.create.spawnCount"/>
+                <Tooltip text="%game.generate.spawnCount"/>
             </tooltip>
         </Spinner>
         <Label text="%game.generate.waterSlider" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
