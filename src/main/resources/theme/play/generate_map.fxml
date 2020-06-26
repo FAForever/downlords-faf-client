@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import com.jfoenix.controls.JFXButton?>
-<?import com.jfoenix.controls.JFXCheckBox?>
 <?import com.jfoenix.controls.JFXTextField?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.*?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="generateMapRoot" hgap="10.0" styleClass="create-game-root" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.game.GenerateMapController">
@@ -33,18 +34,46 @@
                 <Tooltip text="%game.create.spawnCount"/>
             </tooltip>
         </Spinner>
+        <Label text="%game.generate.waterSlider" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+        <HBox GridPane.columnIndex="1" GridPane.rowIndex="2" alignment="CENTER_LEFT" spacing="10">
+            <Label text="%game.generate.random"/>
+            <CheckBox fx:id="waterRandom"/>
+            <Slider fx:id="waterSlider" style="-fx-pref-width: 5em" maxHeight="Infinity"
+                    majorTickUnit="127" showTickLabels="true" HBox.hgrow="ALWAYS" max="127"/>
+        </HBox>
+        <Label text="%game.generate.plateauSlider" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+        <HBox GridPane.columnIndex="1" GridPane.rowIndex="3" alignment="CENTER_LEFT" spacing="10">
+            <Label text="%game.generate.random"/>
+            <CheckBox fx:id="plateauRandom"/>
+            <Slider fx:id="plateauSlider" style="-fx-pref-width: 5em" maxHeight="Infinity"
+                    majorTickUnit="127" showTickLabels="true" HBox.hgrow="ALWAYS" max="127"/>
+        </HBox>
+        <Label text="%game.generate.mountainSlider" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+        <HBox  GridPane.columnIndex="1" GridPane.rowIndex="4"  alignment="CENTER_LEFT" spacing="10">
+            <Label text="%game.generate.random"/>
+            <CheckBox fx:id="mountainRandom"/>
+            <Slider fx:id="mountainSlider" style="-fx-pref-width: 5em" maxHeight="Infinity"
+                    majorTickUnit="127" showTickLabels="true" HBox.hgrow="ALWAYS" max="127"/>
+        </HBox>
+        <Label text="%game.generate.rampSlider" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+        <HBox GridPane.columnIndex="1" GridPane.rowIndex="5" alignment="CENTER_LEFT" spacing="10">
+            <Label text="%game.generate.random"/>
+            <CheckBox fx:id="rampRandom"/>
+            <Slider fx:id="rampSlider" style="-fx-pref-width: 5em" maxHeight="Infinity"
+                    majorTickUnit="127" showTickLabels="true" HBox.hgrow="ALWAYS" max="127"/>
+        </HBox>
 
 
         <JFXButton fx:id="generateMapButton" mnemonicParsing="false"
                    onAction="#onGenerateMapButtonClicked"
                    styleClass="game-generate-map" text="%game.generate" contentDisplay="RIGHT"
-                   GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.halignment="LEFT">
+                   GridPane.columnIndex="0" GridPane.rowIndex="6" GridPane.halignment="LEFT">
         </JFXButton>
 
         <!-- Cancel, Ok -->
         <JFXButton mnemonicParsing="false" onAction="#onCloseButtonClicked" text="%cancel"
                    styleClass="more-button-padding"
-                   GridPane.halignment="RIGHT" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                   GridPane.halignment="RIGHT" GridPane.columnIndex="1" GridPane.rowIndex="6">
             <GridPane.margin>
                 <Insets top="15"/>
             </GridPane.margin>

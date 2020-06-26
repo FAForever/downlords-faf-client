@@ -397,7 +397,7 @@ public class CreateGameController implements Controller<Pane> {
 
         root.requestFocus();
       } else {
-        mapGeneratorService.generateMap((byte) -1).thenAccept(mapName -> {
+        mapGeneratorService.generateMap().thenAccept(mapName -> {
           Platform.runLater(() -> {
             initMapSelection();
             mapListView.getItems().stream()

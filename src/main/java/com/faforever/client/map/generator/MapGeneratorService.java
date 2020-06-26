@@ -114,13 +114,17 @@ public class MapGeneratorService implements InitializingBean {
     }
   }
 
-
-  public CompletableFuture<String> generateMap(byte spawnCount) {
+  public CompletableFuture<String> generateMap() {
     ByteBuffer seedBuffer = ByteBuffer.allocate(8);
     seedBuffer.putLong(seedGenerator.nextLong());
     String seedString = Base64.getEncoder().encodeToString(seedBuffer.array());
-    if (spawnCount<2 || spawnCount>16){spawnCount = DEFAULT_SPAWN_COUNT;}
-    byte[] optionArray = {spawnCount};
+    return generateMap(queryMaxSupportedVersion(),seedString);
+  }
+
+  public CompletableFuture<String> generateMap(byte[] optionArray) {
+    ByteBuffer seedBuffer = ByteBuffer.allocate(8);
+    seedBuffer.putLong(seedGenerator.nextLong());
+    String seedString = Base64.getEncoder().encodeToString(seedBuffer.array());
     String optionString = Base64.getEncoder().encodeToString(optionArray);
     return generateMap(queryMaxSupportedVersion(),seedString+'_'+optionString);
   }

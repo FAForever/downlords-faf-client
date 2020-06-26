@@ -7,11 +7,25 @@ import javafx.beans.property.SimpleIntegerProperty;
 
 public class GeneratorPrefs {
   private final IntegerProperty spawnCountProperty;
-  private final BooleanProperty generateWaterProperty;
+  private final IntegerProperty waterDensityProperty;
+  private final BooleanProperty waterRandomProperty;
+  private final IntegerProperty plateauDensityProperty;
+  private final BooleanProperty plateauRandomProperty;
+  private final IntegerProperty mountainDensityProperty;
+  private final BooleanProperty mountainRandomProperty;
+  private final IntegerProperty rampDensityProperty;
+  private final BooleanProperty rampRandomProperty;
 
   public GeneratorPrefs() {
     spawnCountProperty = new SimpleIntegerProperty(6);
-    generateWaterProperty = new SimpleBooleanProperty(false);
+    waterDensityProperty = new SimpleIntegerProperty(0);
+    waterRandomProperty = new SimpleBooleanProperty(true);
+    plateauDensityProperty = new SimpleIntegerProperty(0);
+    plateauRandomProperty = new SimpleBooleanProperty(true);
+    mountainDensityProperty = new SimpleIntegerProperty(0);
+    mountainRandomProperty = new SimpleBooleanProperty(true);
+    rampDensityProperty = new SimpleIntegerProperty(0);
+    rampRandomProperty = new SimpleBooleanProperty(true);
   }
 
   public int getSpawnCountProperty() {
@@ -26,15 +40,99 @@ public class GeneratorPrefs {
     return spawnCountProperty;
   }
 
-  public boolean getGenerateWaterProperty() {
-    return generateWaterProperty.get();
+  public int getWaterDensityProperty() {
+    return waterDensityProperty.get();
   }
 
-  public void setGenerateWaterProperty(boolean generateWaterProperty) {
-    this.generateWaterProperty.set(generateWaterProperty);
+  public void setWaterDensityProperty(int waterDensityProperty) {
+    this.waterDensityProperty.set(waterDensityProperty);
   }
 
-  public BooleanProperty generateWaterPropertyProperty() {
-    return generateWaterProperty;
+  public IntegerProperty waterDensityPropertyProperty() {
+    return waterDensityProperty;
+  }
+
+  public int getPlateauDensityProperty() {
+    return plateauDensityProperty.get();
+  }
+
+  public void setPlateauDensityProperty(int plateauDensityProperty) {
+    this.plateauDensityProperty.set(plateauDensityProperty);
+  }
+
+  public IntegerProperty plateauDensityPropertyProperty() {
+    return plateauDensityProperty;
+  }
+
+  public int getMountainDensityProperty() {
+    return mountainDensityProperty.get();
+  }
+
+  public void setMountainDensityProperty(int mountainDensityProperty) {
+    this.mountainDensityProperty.set(mountainDensityProperty);
+  }
+
+  public IntegerProperty mountainDensityPropertyProperty() {
+    return mountainDensityProperty;
+  }
+
+  public int getRampDensityProperty() {
+    return rampDensityProperty.get();
+  }
+
+  public void setRampDensityProperty(int rampDensityProperty) {
+    this.rampDensityProperty.set(rampDensityProperty);
+  }
+
+  public IntegerProperty rampDensityPropertyProperty() {
+    return rampDensityProperty;
+  }
+
+  public boolean getWaterRandomProperty() {
+    return waterRandomProperty.get();
+  }
+
+  public void setWaterRandomProperty(boolean waterRandomProperty) {
+    this.waterRandomProperty.set(waterRandomProperty);
+  }
+
+  public BooleanProperty waterRandomPropertyProperty() {
+    return waterRandomProperty;
+  }
+
+  public boolean getMountainRandomProperty() {
+    return mountainRandomProperty.get();
+  }
+
+  public void setMountainRandomProperty(boolean mountainRandomProperty) {
+    this.mountainRandomProperty.set(mountainRandomProperty);
+  }
+
+  public BooleanProperty mountainRandomPropertyProperty() {
+    return mountainRandomProperty;
+  }
+
+  public boolean getPlateauRandomProperty() {
+    return plateauRandomProperty.get();
+  }
+
+  public void setPlateauRandomProperty(boolean plateauRandomProperty) {
+    this.plateauRandomProperty.set(plateauRandomProperty);
+  }
+
+  public BooleanProperty plateauRandomPropertyProperty() {
+    return plateauRandomProperty;
+  }
+
+  public boolean getRampRandomProperty() {
+    return rampRandomProperty.get();
+  }
+
+  public void setRampRandomProperty(boolean rampRandomProperty) {
+    this.rampRandomProperty.set(rampRandomProperty);
+  }
+
+  public BooleanProperty rampRandomPropertyProperty() {
+    return rampRandomProperty;
   }
 }
