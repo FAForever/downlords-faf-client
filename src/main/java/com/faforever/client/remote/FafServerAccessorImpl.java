@@ -39,6 +39,7 @@ import com.faforever.client.remote.domain.ClosePlayersLobbyMessage;
 import com.faforever.client.remote.domain.FafServerMessageType;
 import com.faforever.client.remote.domain.GameAccess;
 import com.faforever.client.remote.domain.GameLaunchMessage;
+import com.faforever.client.remote.domain.GameMatchmakingMessage;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.HostGameMessage;
 import com.faforever.client.remote.domain.IceServersServerMessage;
@@ -53,6 +54,7 @@ import com.faforever.client.remote.domain.ListPersonalAvatarsMessage;
 import com.faforever.client.remote.domain.LoginClientMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.MakeBroadcastMessage;
+import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.remote.domain.MessageTarget;
 import com.faforever.client.remote.domain.NoticeMessage;
 import com.faforever.client.remote.domain.PeriodType;
@@ -76,12 +78,14 @@ import com.faforever.client.remote.gson.GameAccessTypeAdapter;
 import com.faforever.client.remote.gson.GameStateTypeAdapter;
 import com.faforever.client.remote.gson.GpgServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.gson.LobbyModeTypeAdapter;
+import com.faforever.client.remote.gson.MatchmakingStateTypeAdapter;
 import com.faforever.client.remote.gson.MessageTargetTypeAdapter;
 import com.faforever.client.remote.gson.RatingRangeTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.update.Version;
 import com.github.nocatch.NoCatch;
 import com.google.common.annotations.VisibleForTesting;
@@ -149,6 +153,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
       .registerTypeAdapter(RatingRange.class, RatingRangeTypeAdapter.INSTANCE)
       .registerTypeAdapter(Faction.class, FactionTypeAdapter.INSTANCE)
       .registerTypeAdapter(LobbyMode.class, LobbyModeTypeAdapter.INSTANCE)
+      .registerTypeAdapter(MatchmakingState.class, MatchmakingStateTypeAdapter.INSTANCE)
       .create();
   private final HashMap<Class<? extends ServerMessage>, Collection<Consumer<ServerMessage>>> messageListeners = new HashMap<>();
 
@@ -573,6 +578,11 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     addOnMessageListener(IceServersServerMessage.class, this::onIceServersMessage);
   }
 
+
+  @Override
+  public void gameMatchmaking(MatchmakingQueue queue, MatchmakingState state, Faction faction) {
+    writeToServer(new GameMatchmakingMessage(queue.getQueueName(), state, faction));
+  }
 
   @Override
   public void inviteToParty(Player recipient) {

@@ -20,7 +20,7 @@
             </HBox>
 
             <HBox spacing="20" alignment="TOP_LEFT" HBox.hgrow="ALWAYS">
-                <Label fx:id="teamSizeLabel" text="%teammatchmaking.teamSize"/> <!-- TODO: i18n -->
+                <Label fx:id="teamSizeLabel" text="%teammatchmaking.teamSize"/>
                 <padding>
                     <Insets bottom="10"/>
                 </padding>
@@ -41,9 +41,13 @@
         <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
             <VBox spacing="10" alignment="CENTER_RIGHT">
                 <Label fx:id="queuePopTimeLabel" style="-fx-font-size: 20px;" text="-:--" visible="false"/>
-                <Label fx:id="partiesInQueueLabel" text="%teammatchmaking.partiesInQueue"/>
-                <JFXButton fx:id="joinQueueButton" text="%teammatchmaking.joinQueue" onAction="#onJoinQueueClicked"
-                           defaultButton="true"/>
+                <Label fx:id="playersInQueueLabel" text="%teammatchmaking.playersInQueue"/>
+                <HBox spacing="10" alignment="TOP_RIGHT">
+                    <Label fx:id="refreshingLabel" styleClass="icon" text="" visible="false"/>
+                    <JFXButton fx:id="joinLeaveQueueButton" text="%teammatchmaking.joinQueue"
+                               onAction="#onJoinLeaveQueueClicked"
+                               defaultButton="true"/>
+                </HBox>
             </VBox>
             <padding>
                 <Insets right="10"/>

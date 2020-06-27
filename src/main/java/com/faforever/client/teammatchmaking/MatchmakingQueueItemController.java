@@ -7,9 +7,11 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
+import com.jfoenix.controls.JFXButton;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.beans.binding.Bindings;
+import javafx.beans.Observable;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -21,6 +23,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.Instant;
+
+import static javafx.beans.binding.Bindings.createStringBinding;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -39,13 +43,17 @@ public class MatchmakingQueueItemController implements Controller<Node> {
   @FXML
   public Label queuenameLabel;
   @FXML
-  public Label partiesInQueueLabel;
+  public Label playersInQueueLabel;
   @FXML
   public Label teamSizeLabel;
   @FXML
   public ImageView leagueImageView;
   @FXML
   public Label queuePopTimeLabel;
+  @FXML
+  public JFXButton joinLeaveQueueButton;
+  @FXML
+  public Label refreshingLabel;
 
   private Timeline queuePopTimeUpdater;
 
@@ -74,19 +82,26 @@ public class MatchmakingQueueItemController implements Controller<Node> {
   void setQueue(MatchmakingQueue queue) {
     this.queue = queue;
 
+    // TODO: localize
     queuenameLabel.textProperty().bind(queue.queueNameProperty());
 
-    teamSizeLabel.textProperty().bind(Bindings.createStringBinding(
+    teamSizeLabel.textProperty().bind(createStringBinding(
         () -> i18n.get("teammatchmaking.teamSize", queue.getTeamSize()),
         queue.teamSizeProperty()));
-    partiesInQueueLabel.textProperty().bind(Bindings.createStringBinding(
-        () -> i18n.get("teammatchmaking.partiesInQueue", queue.getPartiesInQueue()),
-        queue.partiesInQueueProperty()));
-
+    playersInQueueLabel.textProperty().bind(createStringBinding(
+        () -> i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue()),
+        queue.playersInQueueProperty()));
 
 //    leagueImageView.imageProperty().bind(createObjectBinding(() -> avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));
     leagueImageView.setImage(avatarService.loadAvatar("https://content.faforever.com/faf/avatars/ICE_Test.png"));
 
+    joinLeaveQueueButton.textProperty().bind(createStringBinding(
+        () -> queue.isJoined() ? i18n.get("teammatchmaking.leaveQueue") : i18n.get("teammatchmaking.joinQueue"),
+        queue.joinedProperty()
+    ));
+    joinLeaveQueueButton.defaultButtonProperty().bind(queue.joinedProperty().not());
+
+    queue.joinedProperty().addListener(observable -> refreshingLabel.setVisible(false));
 
     queuePopTimeLabel.visibleProperty().bind(queue.queuePopTimeProperty().isNotNull());
     queuePopTimeUpdater = new Timeline(1, new KeyFrame(javafx.util.Duration.seconds(0), (ActionEvent event) -> {
@@ -104,9 +119,24 @@ public class MatchmakingQueueItemController implements Controller<Node> {
     }), new KeyFrame(javafx.util.Duration.seconds(1)));
     queuePopTimeUpdater.setCycleCount(Timeline.INDEFINITE);
     queuePopTimeUpdater.play();
+
+    queue.joinedProperty().addListener((Observable o) -> {
+      ObservableList<String> classes = queueItemRoot.getStyleClass();
+      if (queue.isJoined() && !classes.contains("card-queueJoined")) {
+        classes.add("card-queueJoined");
+      }
+      if (!queue.isJoined()) {
+        classes.remove("card-queueJoined");
+      }
+    });
   }
 
-  public void onJoinQueueClicked(ActionEvent actionEvent) {
-    //TODO
+  public void onJoinLeaveQueueClicked(ActionEvent actionEvent) {
+    if (queue.isJoined()) {
+      teamMatchmakingService.leaveQueue(queue);
+    } else {
+      teamMatchmakingService.joinQueue(queue);
+    }
+    refreshingLabel.setVisible(true);
   }
 }

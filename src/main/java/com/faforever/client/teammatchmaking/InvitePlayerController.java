@@ -10,6 +10,7 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.input.KeyCode;
@@ -21,6 +22,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.Comparator;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -31,6 +33,7 @@ public class InvitePlayerController implements Controller<Pane> {
   private final TeamMatchmakingService teamMatchmakingService;
   private final ObservableList<String> playerList = FXCollections.observableArrayList();
   private final FilteredList<String> filteredPlayerList = new FilteredList<>(playerList, p -> true);
+  private final SortedList<String> sortedPlayerList = new SortedList<>(filteredPlayerList, Comparator.naturalOrder());
   @FXML
   public Pane root;
   @FXML
@@ -45,6 +48,8 @@ public class InvitePlayerController implements Controller<Pane> {
       playersListView.getSelectionModel().selectFirst();
     });
 
+
+    //TODO: use longest common subsequence instead and sort list
     filteredPlayerList.predicateProperty().bind(Bindings.createObjectBinding(() -> p -> {
           if (playerService.getCurrentPlayer().map(Player::getUsername).map(n -> n.equals(p)).orElse(true)) {
             return false;
@@ -58,7 +63,14 @@ public class InvitePlayerController implements Controller<Pane> {
         }, playerTextField.textProperty()
     ));
 
-    playersListView.setItems(filteredPlayerList);
+    //TODO
+//    sortedPlayerList.comparatorProperty().bind(Bindings.createObjectBinding(() -> Comparator.comparingDouble(p -> {
+//      if(playerService.get) {
+//
+//      }
+//    })));
+
+    playersListView.setItems(sortedPlayerList);
     playerTextField.setText(""); // TODO doesn't show friends on first open
     playerTextField.requestFocus();
   }

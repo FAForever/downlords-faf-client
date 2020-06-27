@@ -20,6 +20,7 @@ import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
 import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.remote.domain.Player;
 import com.faforever.client.remote.domain.PlayersMessage;
@@ -27,6 +28,7 @@ import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ObjectProperty;
@@ -136,7 +138,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
           @Override
           public void run() {
             MatchmakerInfoMessage matchmakerServerMessage = new MatchmakerInfoMessage();
-            matchmakerServerMessage.setQueues(singletonList(new MatchmakerQueue("ladder1v1", null, singletonList(new RatingRange(100, 200)), singletonList(new RatingRange(100, 200)))));
+            matchmakerServerMessage.setQueues(singletonList(new MatchmakerQueue("ladder1v1", null, 1, 1, singletonList(new RatingRange(100, 200)), singletonList(new RatingRange(100, 200)))));
             messageListeners.getOrDefault(matchmakerServerMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(matchmakerServerMessage));
           }
         }, 7000);
@@ -314,6 +316,11 @@ public class MockFafServerAccessor implements FafServerAccessor {
 
   @Override
   public void ping() {
+
+  }
+
+  @Override
+  public void gameMatchmaking(MatchmakingQueue queue, MatchmakingState state, Faction faction) {
 
   }
 

@@ -17,6 +17,8 @@ public class MatchmakerInfoMessage extends FafServerMessage {
     private String queuePopTime;
     @SerializedName("team_size")
     private int teamSize;
+    @SerializedName("num_players")
+    private int numPlayers;
 
     // The boundaries indicate the ranges applicable for other searching players,
     // boundarys.size() therefore indicates the players currently in queue
@@ -25,9 +27,11 @@ public class MatchmakerInfoMessage extends FafServerMessage {
     @SerializedName("boundary_80s")
     private List<RatingRange> boundary80s;
 
-    public MatchmakerQueue(String queueName, String queuePopTime, List<RatingRange> boundary75s, List<RatingRange> boundary80s) {
+    public MatchmakerQueue(String queueName, String queuePopTime, int teamSize, int numPlayers, List<RatingRange> boundary75s, List<RatingRange> boundary80s) {
       this.queueName = queueName;
       this.queuePopTime = queuePopTime;
+      this.teamSize = teamSize;
+      this.numPlayers = numPlayers;
       this.boundary75s = boundary75s;
       this.boundary80s = boundary80s;
     }
@@ -70,6 +74,14 @@ public class MatchmakerInfoMessage extends FafServerMessage {
 
     public void setTeamSize(int team_size) {
       this.teamSize = team_size;
+    }
+
+    public int getNumPlayers() {
+      return numPlayers;
+    }
+
+    public void setNumPlayers(int numPlayers) {
+      this.numPlayers = numPlayers;
     }
   }
   private List<MatchmakerQueue> queues;

@@ -9,8 +9,10 @@ import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
 import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.remote.domain.ServerMessage;
+import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import javafx.beans.property.ReadOnlyObjectProperty;
 
 import java.net.URL;
@@ -74,6 +76,8 @@ public interface FafServerAccessor {
   void restoreGameSession(int id);
 
   void ping();
+
+  void gameMatchmaking(MatchmakingQueue queue, MatchmakingState state, Faction faction);
 
   void inviteToParty(Player recipient);
 

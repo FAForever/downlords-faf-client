@@ -1098,6 +1098,11 @@
   -fx-padding: 20 10 0 10;
 }
 
+.card-queueJoined {
+  -fx-background-color: #00400f !important;
+  -fx-effect: dropshadow(gaussian, #001f06, 6, 0.3, 1, 1) !important;
+}
+
 .party-ready-button-ready {
   -fx-background-color: #609E15; /* TODO: change color to card color*/
 }

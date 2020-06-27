@@ -21,7 +21,8 @@ public enum FafServerMessageType implements ServerMessageType {
   AVATAR("avatar", AvatarMessage.class),
   PARTY_UPDATE("update_party", PartyInfoMessage.class),
   PARTY_INVITE("party_invite", PartyInviteMessage.class),
-  PARTY_KICKED("kicked_from_party", PartyKickedMessage.class),;
+  PARTY_KICKED("kicked_from_party", PartyKickedMessage.class),
+  SEARCH_INFO("search_info", SearchInfoMessage.class);
 
 
   private static final Map<String, FafServerMessageType> fromString;
