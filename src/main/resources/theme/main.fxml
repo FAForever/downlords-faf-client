@@ -1,106 +1,74 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXButton?>
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.MenuButton?>
-<?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.SeparatorMenuItem?>
-<?import javafx.scene.control.ToggleButton?>
-<?import javafx.scene.control.ToggleGroup?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
-<?import java.lang.String?>
-<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mainRoot" minHeight="500.0" minWidth="600.0"
-           fx:controller="com.faforever.client.main.MainController">
-    <VBox styleClass="main-window" fx:id="mainRootContent"
-          xmlns="http://javafx.com/javafx/8.0.111">
+<?import com.jfoenix.controls.*?>
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane fx:id="mainRoot" minHeight="500.0" minWidth="600.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/10.0.2-internal" fx:controller="com.faforever.client.main.MainController">
+    <VBox fx:id="mainRootContent" styleClass="main-window" xmlns="http://javafx.com/javafx/8.0.111">
         <children>
-            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
-                  VBox.vgrow="ALWAYS">
+            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS">
                 <children>
-                    <HBox fx:id="mainHeaderPane" alignment="CENTER_LEFT" maxHeight="-Infinity"
-                          maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity"
-                          styleClass="main-navigation-top">
+                    <HBox fx:id="mainHeaderPane" alignment="BOTTOM_LEFT" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" styleClass="main-navigation-top">
                         <children>
                             <MenuButton focusTraversable="false" mnemonicParsing="false" text="">
                                 <items>
-                                    <MenuItem onAction="#onRevealLogFolder" text="%menu.revealLogFolder"/>
-                                    <MenuItem onAction="#onRevealMapFolder" text="%menu.revealMapFolder"/>
-                                    <MenuItem onAction="#onRevealModFolder" text="%menu.revealModFolder"/>
-                                    <MenuItem onAction="#onRevealReplayFolder" text="%menu.revealReplayFolder"/>
-                                    <MenuItem onAction="#onRevealGamePrefsFolder" text="%menu.revealGamePrefsFile"/>
-                                    <SeparatorMenuItem mnemonicParsing="false"/>
-                                    <MenuItem disable="true" text="%menu.feedback"/>
-                                    <MenuItem onAction="#onLinksAndHelp" text="%help.title"/>
-                                    <SeparatorMenuItem mnemonicParsing="false"/>
-                                    <MenuItem onAction="#onSettingsSelected" text="%menu.settings"/>
-                                    <SeparatorMenuItem mnemonicParsing="false"/>
-                                    <MenuItem onAction="#onExitItemSelected" text="%menu.exit"/>
+                                    <MenuItem onAction="#onRevealLogFolder" text="%menu.revealLogFolder" />
+                                    <MenuItem onAction="#onRevealMapFolder" text="%menu.revealMapFolder" />
+                                    <MenuItem onAction="#onRevealModFolder" text="%menu.revealModFolder" />
+                                    <MenuItem onAction="#onRevealReplayFolder" text="%menu.revealReplayFolder" />
+                                    <MenuItem onAction="#onRevealGamePrefsFolder" text="%menu.revealGamePrefsFile" />
+                                    <SeparatorMenuItem mnemonicParsing="false" />
+                                    <MenuItem disable="true" text="%menu.feedback" />
+                                    <MenuItem onAction="#onLinksAndHelp" text="%help.title" />
+                                    <SeparatorMenuItem mnemonicParsing="false" />
+                                    <MenuItem onAction="#onSettingsSelected" text="%menu.settings" />
+                                    <SeparatorMenuItem mnemonicParsing="false" />
+                                    <MenuItem onAction="#onExitItemSelected" text="%menu.exit" />
                                 </items>
                                 <styleClass>
-                                    <String fx:value="icon-button"/>
-                                    <String fx:value="main-menu-button"/>
+                                    <String fx:value="icon-button" />
+                                    <String fx:value="main-menu-button" />
                                 </styleClass>
                             </MenuButton>
-                            <ToggleButton fx:id="newsButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked"
-                                          styleClass="main-navigation-button" text="%main.news">
-                                <toggleGroup>
-                                    <ToggleGroup fx:id="mainNavigation"/>
-                                </toggleGroup>
-                            </ToggleButton>
-                            <ToggleButton fx:id="chatButton" mnemonicParsing="false" onAction="#onChat"
-                                          styleClass="main-navigation-button" text="%main.chat"
-                                          toggleGroup="$mainNavigation"/>
-                            <ToggleButton fx:id="playButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked"
-                                          styleClass="main-navigation-button" text="%main.play"
-                                          toggleGroup="$mainNavigation"/>
-                            <ToggleButton fx:id="vaultButton" mnemonicParsing="false"
-                                          onAction="#onNavigateButtonClicked"
-                                          styleClass="main-navigation-button" text="%main.vault"
-                                          toggleGroup="$mainNavigation"/>
-                            <ToggleButton fx:id="leaderboardsButton" mnemonicParsing="false"
-                                          onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
-                                          text="%main.leaderboards" toggleGroup="$mainNavigation"/>
-                            <ToggleButton fx:id="tournamentsButton" mnemonicParsing="false"
-                                          onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
-                                          text="%main.tournaments" toggleGroup="$mainNavigation"/>
-                            <ToggleButton fx:id="unitsButton" mnemonicParsing="false"
-                                          onAction="#onNavigateButtonClicked"
-                                          styleClass="main-navigation-button" text="%main.units"
-                                          toggleGroup="$mainNavigation"/>
-                            <ToggleButton fx:id="tutorialsButton" mnemonicParsing="false"
-                                          onAction="#onNavigateButtonClicked"
-                                          styleClass="main-navigation-button" text="%main.tutorials"
-                                          toggleGroup="$mainNavigation"/>
-                            <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-                                  HBox.hgrow="ALWAYS"/>
-                            <StackPane>
+                            <FlowPane minWidth="460.0" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
                                 <children>
-                                    <JFXButton contentDisplay="CENTER" onAction="#onNotificationsButtonClicked"
-                                               styleClass="icon-button" text=""/>
-                                    <Label fx:id="notificationsBadge" alignment="CENTER" mouseTransparent="true"
-                                           styleClass="notification-badge" text="3" StackPane.alignment="TOP_RIGHT">
+                                    <ToggleButton fx:id="newsButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked" styleClass="main-navigation-button" text="%main.news" >
+                                        <toggleGroup>
+                                            <ToggleGroup fx:id="mainNavigation"/>
+                                        </toggleGroup>
+                                    </ToggleButton>
+                                    <ToggleButton fx:id="chatButton" mnemonicParsing="false" onAction="#onChat" styleClass="main-navigation-button" text="%main.chat" toggleGroup="$mainNavigation" />
+                                    <ToggleButton fx:id="playButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked" styleClass="main-navigation-button" text="%main.play" toggleGroup="$mainNavigation" />
+                                    <ToggleButton fx:id="vaultButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked" styleClass="main-navigation-button" text="%main.vault" toggleGroup="$mainNavigation" />
+                                    <ToggleButton fx:id="leaderboardsButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked" styleClass="main-navigation-button" text="%main.leaderboards" toggleGroup="$mainNavigation" />
+                                    <ToggleButton fx:id="tournamentsButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked" styleClass="main-navigation-button" text="%main.tournaments" toggleGroup="$mainNavigation" />
+                                    <ToggleButton fx:id="unitsButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked" styleClass="main-navigation-button" text="%main.units" toggleGroup="$mainNavigation" />
+                                    <ToggleButton fx:id="tutorialsButton" mnemonicParsing="false" onAction="#onNavigateButtonClicked" styleClass="main-navigation-button" text="%main.tutorials" toggleGroup="$mainNavigation" />
+                                </children>
+                            </FlowPane>
+                            <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="SOMETIMES" />
+                            <StackPane maxHeight="${notificationsBell.height}">
+                                <children>
+                                    <JFXButton fx:id="notificationsBell" contentDisplay="CENTER" onAction="#onNotificationsButtonClicked" styleClass="icon-button" text="" />
+                                    <Label fx:id="notificationsBadge" alignment="CENTER" mouseTransparent="true" styleClass="notification-badge" text="3" StackPane.alignment="TOP_RIGHT">
                                         <StackPane.margin>
-                                            <Insets right="5.0" top="5.0"/>
+                                            <Insets right="5.0" top="5.0" />
                                         </StackPane.margin>
                                     </Label>
                                 </children>
                             </StackPane>
-                            <fx:include source="user_button.fxml"/>
+                            <fx:include source="user_button.fxml" />
                         </children>
                     </HBox>
                     <StackPane fx:id="contentWrapperPane" VBox.vgrow="ALWAYS">
-                        <AnchorPane fx:id="contentPane" maxHeight="1.7976931348623157E308"
-                                    maxWidth="1.7976931348623157E308"
-                                    VBox.vgrow="ALWAYS"/>
+                        <AnchorPane fx:id="contentPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS" />
                     </StackPane>
                 </children>
             </VBox>
-            <fx:include source="statusbar/status_bar.fxml"/>
+            <fx:include source="statusbar/status_bar.fxml" />
         </children>
     </VBox>
 </StackPane>
