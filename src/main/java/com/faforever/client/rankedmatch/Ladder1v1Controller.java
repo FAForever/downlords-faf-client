@@ -52,7 +52,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import javax.management.Notification;
 import java.lang.invoke.MethodHandles;
 import java.lang.ref.WeakReference;
 import java.time.Duration;
