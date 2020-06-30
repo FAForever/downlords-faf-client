@@ -129,6 +129,18 @@ public class ReplayServiceTest {
   };
   private static final String BAD_FOLDER_NAME = "scca_coop<>_r02.v0015";
 
+  private static final byte[] REPLAY_FIRST_BYTES_GENERATED_MAP = new byte[]{
+      0x53, 0x75, 0x70, 0x72, 0x65, 0x6d, 0x65, 0x20, 0x43, 0x6f, 0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x65,
+      0x72, 0x20, 0x76, 0x31, 0x2e, 0x35, 0x30, 0x2e, 0x33, 0x35, 0x39, 0x39, 0x00, 0x0a, 0x00, 0x52,
+      0x65, 0x70, 0x6c, 0x61, 0x79, 0x20, 0x76, 0x31, 0x2e, 0x39, 0x0a, 0x2f, 0x6d, 0x61, 0x70, 0x73,
+      0x2f, 0x6e, 0x65, 0x72, 0x6f, 0x78, 0x69, 0x73, 0x5f, 0x6d, 0x61, 0x70, 0x5f, 0x67, 0x65, 0x6e,
+      0x65, 0x72, 0x61, 0x74, 0x6f, 0x72, 0x5f, 0x31, 0x2e, 0x30, 0x2e, 0x30, 0x5f, 0x31, 0x32, 0x33,
+      0x34, 0x2f, 0x6e, 0x65, 0x72, 0x6f, 0x78, 0x69, 0x73, 0x5f, 0x6d, 0x61, 0x70, 0x5f, 0x67, 0x65,
+      0x6e, 0x65, 0x72, 0x61, 0x74, 0x6f, 0x72, 0x5f, 0x31, 0x2e, 0x30, 0x2e, 0x30, 0x5f, 0x31, 0x32,
+      0x33, 0x34, 0x2e, 0x73, 0x63, 0x6d, 0x61, 0x70, 0x00, 0x0D, 0x0a, 0x1a
+  };
+  private static final String TEST_MAP_NAME_GENERATED = "neroxis_map_generator_1.0.0_1234";
+
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
   @Rule
@@ -346,9 +358,35 @@ public class ReplayServiceTest {
     when(replayFileReader.parseMetaData(replayFile)).thenReturn(replayInfo);
     when(replayFileReader.readRawReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
 
+
     instance.runReplay(replay);
 
     verify(gameService).runWithReplay(any(), eq(123), eq("faf"), eq(3599), eq(emptyMap()), eq(emptySet()), eq(TEST_MAP_NAME));
+    verifyZeroInteractions(notificationService);
+  }
+
+  @Test
+  public void testRunFafReplayFileGeneratedMap() throws Exception {
+    Path replayFile = replayDirectory.newFile("replay.fafreplay").toPath();
+
+    Replay replay = new Replay();
+    replay.setReplayFile(replayFile);
+
+    LocalReplayInfo replayInfo = new LocalReplayInfo();
+    replayInfo.setUid(123);
+    replayInfo.setSimMods(Collections.emptyMap());
+    replayInfo.setFeaturedModVersions(emptyMap());
+    replayInfo.setFeaturedMod("faf");
+    replayInfo.setMapname("None");
+
+    when(replayFileReader.parseMetaData(replayFile)).thenReturn(replayInfo);
+    when(replayFileReader.readRawReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES_GENERATED_MAP);
+    when(mapGeneratorService.isGeneratedMap(TEST_MAP_NAME_GENERATED)).thenReturn(true);
+
+
+    instance.runReplay(replay);
+
+    verify(gameService).runWithReplay(any(), eq(123), eq("faf"), eq(3599), eq(emptyMap()), eq(emptySet()), eq(TEST_MAP_NAME_GENERATED));
     verifyZeroInteractions(notificationService);
   }
 
