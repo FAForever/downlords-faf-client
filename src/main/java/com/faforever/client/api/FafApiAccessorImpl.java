@@ -647,7 +647,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         .queryParams(params)
         .replaceQueryParam("page[size]", pageSize)
         .replaceQueryParam("page[number]", page)
-        .replaceQueryParam("page[totals]", page)
+        .replaceQueryParam("page[totals]")
         .build();
 
     authorizedLatch.await();
