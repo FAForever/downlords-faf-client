@@ -639,7 +639,6 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     return restOperations.getForObject(uriComponents.toUriString(), List.class);
   }
 
-
   @SuppressWarnings("unchecked")
   @SneakyThrows
   private <T> JSONAPIDocument<List<T>> getPageWithMeta(String endpointPath, int pageSize, int page, MultiValueMap<String, String> params) {
