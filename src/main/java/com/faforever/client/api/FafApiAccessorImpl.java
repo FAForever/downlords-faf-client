@@ -36,6 +36,7 @@ import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.io.ByteCountListener;
+import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
@@ -618,6 +619,13 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     return getPage(endpointPath, pageSize, page, CollectionUtils.toMultiValueMap(multiValues));
   }
 
+  private <T> JSONAPIDocument<List<T>> getPageWithMeta(String endpointPath, int pageSize, int page, java.util.Map<String, Serializable> params) {
+    java.util.Map<String, List<String>> multiValues = params.entrySet().stream()
+        .collect(Collectors.toMap(Entry::getKey, entry -> Collections.singletonList(String.valueOf(entry.getValue()))));
+
+    return getPageWithMeta(endpointPath, pageSize, page, CollectionUtils.toMultiValueMap(multiValues));
+  }
+
   @SuppressWarnings("unchecked")
   @SneakyThrows
   private <T> List<T> getPage(String endpointPath, int pageSize, int page, MultiValueMap<String, String> params) {
@@ -628,6 +636,22 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         .build();
 
     authorizedLatch.await();
-    return (List<T>) restOperations.getForObject(uriComponents.toUriString(), List.class);
+    JSONAPIDocument<List<T>> forObject = restOperations.getForObject(uriComponents.toUriString(), JSONAPIDocument.class);
+    return forObject.get();
+  }
+
+
+  @SuppressWarnings("unchecked")
+  @SneakyThrows
+  private <T> JSONAPIDocument<List<T>> getPageWithMeta(String endpointPath, int pageSize, int page, MultiValueMap<String, String> params) {
+    UriComponents uriComponents = UriComponentsBuilder.fromPath(endpointPath)
+        .queryParams(params)
+        .replaceQueryParam("page[size]", pageSize)
+        .replaceQueryParam("page[number]", page)
+        .replaceQueryParam("page[totals]", page)
+        .build();
+
+    authorizedLatch.await();
+    return restOperations.getForObject(uriComponents.toUriString(), JSONAPIDocument.class);
   }
 }
