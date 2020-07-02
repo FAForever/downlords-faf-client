@@ -636,8 +636,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         .build();
 
     authorizedLatch.await();
-    JSONAPIDocument<List<T>> forObject = restOperations.getForObject(uriComponents.toUriString(), JSONAPIDocument.class);
-    return forObject.get();
+    return restOperations.getForObject(uriComponents.toUriString(), List.class);
   }
 
 
