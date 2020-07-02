@@ -519,7 +519,7 @@ public class ReplayService {
     // For map generator games the map name is "None" because replay server gets map name by from DB based on filename
     // from replay data, and DB does not contain generated maps.
     if (StringUtils.equalsIgnoreCase(mapName, "None")) {
-      String maybeMapGen = parseMapFolderName(rawReplayBytes);
+      String maybeMapGen = parseMapName(rawReplayBytes).replaceAll(".scmap","");
       if (mapGeneratorService.isGeneratedMap(maybeMapGen)) {
         mapName = maybeMapGen;
       }
