@@ -20,6 +20,7 @@ import com.faforever.client.api.dto.MeResult;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersion;
 import com.faforever.client.api.dto.ModVersionReview;
+import com.faforever.client.api.dto.ModerationReport;
 import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
@@ -298,6 +299,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public MeResult getOwnPlayer() {
+    return null;
+  }
+
+  @Override
+  public ModerationReport createReport(ModerationReport report) {
     return null;
   }
 

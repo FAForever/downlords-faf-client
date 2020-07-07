@@ -20,6 +20,7 @@ import com.faforever.client.api.dto.MeResult;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersion;
 import com.faforever.client.api.dto.ModVersionReview;
+import com.faforever.client.api.dto.ModerationReport;
 import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
@@ -370,6 +371,11 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   public GameReview createGameReview(GameReview review) {
     return post("/data/game/" + review.getGame().getId() + "/reviews", review, GameReview.class);
+  }
+
+  @Override
+  public ModerationReport createReport(ModerationReport report) {
+    return post("/data/moderationReport", report, ModerationReport.class);
   }
 
   @Override

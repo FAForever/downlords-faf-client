@@ -13,6 +13,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
 import com.faforever.client.moderator.BanDialogController;
 import com.faforever.client.moderator.ModeratorService;
+import com.faforever.client.moderator.ReportDialogController;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
@@ -294,6 +295,18 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public void onRemoveFoeSelected() {
     Player player = getPlayer();
     playerService.removeFoe(player);
+  }
+
+  public void onReport() {
+    JFXAlert<?> dialog = new JFXAlert<>((Stage) getRoot().getOwnerWindow());
+
+    ReportDialogController controller = ((ReportDialogController) uiService.loadFxml("theme/moderator/report_dialog.fxml"))
+        .setPlayer(getPlayer())
+        .setCloseListener(dialog::close);
+
+    dialog.setContent(controller.getDialogLayout());
+    dialog.setAnimation(JFXAlertAnimation.TOP_ANIMATION);
+    dialog.show();
   }
 
   public void onWatchGameSelected() {

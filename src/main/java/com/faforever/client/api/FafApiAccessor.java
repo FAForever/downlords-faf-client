@@ -18,6 +18,7 @@ import com.faforever.client.api.dto.MeResult;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersion;
 import com.faforever.client.api.dto.ModVersionReview;
+import com.faforever.client.api.dto.ModerationReport;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.api.dto.Tournament;
@@ -136,4 +137,6 @@ public interface FafApiAccessor {
   void updateMapVersion(String id, MapVersion mapVersion);
 
   MeResult getOwnPlayer();
+
+  ModerationReport createReport(ModerationReport report);
 }

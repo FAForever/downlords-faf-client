@@ -94,6 +94,7 @@ public class FafClientApplication extends Application {
     applicationContext = new SpringApplicationBuilder(FafClientApplication.class)
         .profiles(getAdditionalProfiles())
         .bannerMode(Mode.OFF)
+        .headless(false)
         .run(getParameters().getRaw().toArray(new String[0]));
   }
 
