@@ -239,7 +239,7 @@ public class PlayerService implements InitializingBean {
     return new HashSet<>(playersByName.keySet());
   }
 
-  public void addFriend(Player player) {
+  public void addFriend(@NotNull Player player) {
     playersByName.get(player.getUsername()).setSocialStatus(FRIEND);
     friendList.add(player.getId());
     foeList.remove((Integer) player.getId());
