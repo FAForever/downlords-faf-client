@@ -15,6 +15,7 @@ import com.jfoenix.controls.JFXButton;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.SimpleFloatProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -34,7 +35,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.lang.invoke.MethodHandles;
+import java.util.concurrent.CompletableFuture;
 
+import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableList;
 
 
@@ -49,12 +52,12 @@ public class LeaderboardController extends AbstractViewController<Node> {
   private final I18n i18n;
   private final ReportingService reportingService;
   public Pane leaderboardRoot;
-  public TableColumn<LeaderboardEntry, Number> rankColumn;
-  public TableColumn<LeaderboardEntry, String> nameColumn;
-  public TableColumn<LeaderboardEntry, Number> winLossColumn;
-  public TableColumn<LeaderboardEntry, Number> gamesPlayedColumn;
-  public TableColumn<LeaderboardEntry, Number> ratingColumn;
-  public TableView<LeaderboardEntry> ratingTable;
+  public TableColumn<RatingWithRank, Number> rankColumn;
+  public TableColumn<RatingWithRank, String> nameColumn;
+  public TableColumn<RatingWithRank, Number> meanColumn;
+  public TableColumn<RatingWithRank, Number> deviationColumn;
+  public TableColumn<RatingWithRank, Number> ratingColumn;
+  public TableView<RatingWithRank> ratingTable;
   public TextField searchTextField;
   public Pane connectionProgressPane;
   public Pane contentPane;
@@ -71,14 +74,14 @@ public class LeaderboardController extends AbstractViewController<Node> {
     rankColumn.setCellValueFactory(param -> param.getValue().rankProperty());
     rankColumn.setCellFactory(param -> new StringCell<>(rank -> i18n.number(rank.intValue())));
 
-    nameColumn.setCellValueFactory(param -> param.getValue().usernameProperty());
+    nameColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getPlayer().getLogin())) ;
     nameColumn.setCellFactory(param -> new StringCell<>(name -> name));
 
-    winLossColumn.setCellValueFactory(param -> param.getValue().winLossRatioProperty());
-    winLossColumn.setCellFactory(param -> new StringCell<>(number -> i18n.get("percentage", number.floatValue() * 100)));
+    meanColumn.setCellValueFactory(param -> param.getValue().meanProperty());
+    meanColumn.setCellFactory(param -> new StringCell<>(number -> i18n.rounded(number.doubleValue(), 2)));
 
-    gamesPlayedColumn.setCellValueFactory(param -> param.getValue().gamesPlayedProperty());
-    gamesPlayedColumn.setCellFactory(param -> new StringCell<>(count -> i18n.number(count.intValue())));
+    deviationColumn.setCellValueFactory(param -> param.getValue().deviationProperty());
+    deviationColumn.setCellFactory(param -> new StringCell<>(number -> i18n.rounded(number.doubleValue(), 2)));
 
     ratingColumn.setCellValueFactory(param -> param.getValue().ratingProperty());
     ratingColumn.setCellFactory(param -> new StringCell<>(rating -> i18n.number(rating.intValue())));
@@ -123,9 +126,15 @@ public class LeaderboardController extends AbstractViewController<Node> {
     Assert.checkNullIllegalState(ratingType, "ratingType must not be null");
 
     contentPane.setVisible(false);
-    leaderboardService.getSearchResults(ratingType, searchTextFieldText,currentPage+1, NUMBER_OF_PLAYERS_PER_PAGE).thenAccept(leaderboardEntryBeans -> {
+    leaderboardService.getSearchResultsWithMeta(ratingType, searchTextFieldText,currentPage+1, NUMBER_OF_PLAYERS_PER_PAGE).thenAccept(ratingWithRankBeans -> {
       Platform.runLater(() -> {
-        ratingTable.setItems(observableList(leaderboardEntryBeans));
+        ratingTable.setItems(observableList(
+
+            ratingWithRankBeans.get()
+                .parallelStream()
+                .map(RatingWithRank::fromGlobal)
+                .collect(toList()))
+        );
         contentPane.setVisible(true);
       });
     }).exceptionally(throwable -> {
