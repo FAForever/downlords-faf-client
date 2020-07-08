@@ -10,6 +10,7 @@ import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.GlobalLeaderboardEntry;
 import com.faforever.client.api.dto.GlobalRating;
+import com.faforever.client.api.dto.GlobalRatingWithRank;
 import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
 import com.faforever.client.api.dto.Ladder1v1Map;
 import com.faforever.client.api.dto.Map;
@@ -30,6 +31,7 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.io.ByteCountListener;
+import com.github.jasminb.jsonapi.JSONAPIDocument;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -120,7 +122,7 @@ public interface FafApiAccessor {
 
   List<Map> findMapsByQuery(SearchConfig searchConfig, int page, int count);
 
-  List<GlobalLeaderboardEntry> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count);
+  JSONAPIDocument<List<GlobalRatingWithRank>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count);
 
   List<Ladder1v1LeaderboardEntry> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count);
 

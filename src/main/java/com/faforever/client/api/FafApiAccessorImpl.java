@@ -11,6 +11,7 @@ import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.GameReviewsSummary;
 import com.faforever.client.api.dto.GlobalLeaderboardEntry;
 import com.faforever.client.api.dto.GlobalRating;
+import com.faforever.client.api.dto.GlobalRatingWithRank;
 import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
 import com.faforever.client.api.dto.Ladder1v1Map;
 import com.faforever.client.api.dto.Map;
@@ -482,9 +483,9 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  public List<GlobalLeaderboardEntry> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
-    return getPage("/leaderboards/global", count, page,
-        ImmutableMap.of("playerNameMatchesRegex", nameToSearch + "%", "page[number]", page, "page[size]", count));
+  public JSONAPIDocument<List<GlobalRatingWithRank>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
+    return getPageWithMeta("/data/globalRatingWithRank", count, page,
+        ImmutableMap.of("filter", "player.login==" + nameToSearch + "*", "page[number]", page, "page[size]", count, "page[totals]", ""));
   }
 
   @Override
