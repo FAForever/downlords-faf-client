@@ -27,6 +27,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Pagination;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
@@ -84,12 +85,14 @@ public class ModVaultController extends AbstractViewController<Node> {
   public Button backButton;
   public SearchController searchController;
   public Button moreButton;
+  public Pagination paginationControl;
 
   private boolean initialized;
   private ModDetailController modDetailController;
   private final ObjectProperty<ModVaultController.State> state;
   private int currentPage;
   private Supplier<CompletableFuture<List<ModVersion>>> currentSupplier;
+  public String requestedModType;
 
   public ModVaultController(ModService modService, I18n i18n, EventBus eventBus, PreferencesService preferencesService,
                             UiService uiService, NotificationService notificationService, ReportingService reportingService) {
@@ -132,6 +135,9 @@ public class ModVaultController extends AbstractViewController<Node> {
 
     BooleanBinding inSearchableState = Bindings.createBooleanBinding(() -> state.get() != State.LOADING, state);
     searchController.setSearchButtonDisabledCondition(inSearchableState);
+
+    paginationControl.setVisible(false);
+    paginationControl.currentPageIndexProperty().addListener((observable, oldValue, newValue) -> onNewPageRequested(newValue.intValue()));
   }
 
   private void searchByQuery(SearchConfig searchConfig) {
@@ -263,18 +269,24 @@ public class ModVaultController extends AbstractViewController<Node> {
   }
 
   public void showMoreHighestRatedUiMods() {
+    requestedModType = "highestRatedUIMods";
     enterLoadingState();
     displayModsFromSupplier(() -> modService.getHighestRatedUiMods(LOAD_MORE_COUNT, ++currentPage));
+    paginationControl.setVisible(true);
   }
 
   public void showMoreHighestRatedMods() {
+    requestedModType = "highestRatedMods";
     enterLoadingState();
     displayModsFromSupplier(() -> modService.getHighestRatedMods(LOAD_MORE_COUNT, ++currentPage));
+    paginationControl.setVisible(true);
   }
 
   public void showMoreNewestMods() {
+    requestedModType = "newestMods";
     enterLoadingState();
     displayModsFromSupplier(() -> modService.getNewestMods(LOAD_MORE_COUNT, ++currentPage));
+    paginationControl.setVisible(true);
   }
 
   private void appendSearchResult(List<ModVersion> modVersions, Pane pane) {
@@ -350,6 +362,22 @@ public class ModVaultController extends AbstractViewController<Node> {
           enterShowroomState();
           return null;
         });
+  }
+
+  public void onNewPageRequested(int page) {
+
+    currentPage = page;
+
+    switch (requestedModType) {
+      case "highestRatedUIMods":
+        displayModsFromSupplier(() -> modService.getHighestRatedUiMods(LOAD_MORE_COUNT, ++currentPage));
+      case "highestRatedMods":
+        displayModsFromSupplier(() -> modService.getHighestRatedMods(LOAD_MORE_COUNT, ++currentPage));
+      case "newestMods":
+        displayModsFromSupplier(() -> modService.getNewestMods(LOAD_MORE_COUNT, ++currentPage));
+      default:
+        //do nothing
+    }
   }
 
   private enum State {
