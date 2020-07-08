@@ -8,6 +8,7 @@ import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.GlobalRating;
+import com.faforever.client.api.dto.GlobalRatingWithRank;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
 import com.faforever.client.api.dto.ModVersionReview;
@@ -43,6 +44,7 @@ import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.io.ByteCountListener;
+import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import lombok.RequiredArgsConstructor;
@@ -263,11 +265,8 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<List<LeaderboardEntry>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
-    return CompletableFuture.completedFuture(fafApiAccessor.findGlobalLeaderboardEntryByQuery(nameToSearch, page, count)
-        .parallelStream()
-        .map(LeaderboardEntry::fromGlobalRating)
-        .collect(toList()));
+  public CompletableFuture<JSONAPIDocument<List<GlobalRatingWithRank>>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
+    return CompletableFuture.completedFuture(fafApiAccessor.findGlobalLeaderboardEntryByQuery(nameToSearch, page, count));
   }
 
   @Async

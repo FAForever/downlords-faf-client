@@ -7,6 +7,7 @@ faf-client:
 
   vault:
     base-url: https://content.faforever.com
+    replay-download-url-format: https://replay.faforever.com/%s
 
   news:
     feed-url: https://direct.faforever.com/news/feed

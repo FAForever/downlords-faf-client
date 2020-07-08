@@ -29,8 +29,8 @@
           <columns>
             <TableColumn fx:id="rankColumn" text="Rank" />
             <TableColumn fx:id="nameColumn" text="Name" />
-            <TableColumn fx:id="winLossColumn" text="Win/Loss Ratio" visible="false" />
-            <TableColumn fx:id="gamesPlayedColumn" text="Games Played" />
+            <TableColumn fx:id="meanColumn" text="Mean" visible="false" />
+            <TableColumn fx:id="deviationColumn" text="Deviation" />
             <TableColumn fx:id="ratingColumn" text="Rating" />
           </columns>
           <columnResizePolicy>
