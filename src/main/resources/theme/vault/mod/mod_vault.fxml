@@ -4,87 +4,76 @@
 <?import com.jfoenix.controls.JFXSpinner?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Pagination?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="modVaultRoot" xmlns="http://javafx.com/javafx/8.0.111"
-           fx:controller="com.faforever.client.mod.ModVaultController">
+
+<StackPane fx:id="modVaultRoot" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.mod.ModVaultController">
     <children>
-        <ScrollPane fx:id="scrollPane" fitToWidth="true" maxHeight="1.7976931348623157E308"
-                    maxWidth="1.7976931348623157E308">
+        <ScrollPane fx:id="scrollPane" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
             <content>
                 <VBox spacing="10.0">
                     <children>
-                        <fx:include fx:id="search" source="../search/search.fxml"/>
-                        <Separator maxWidth="1.7976931348623157E308"/>
+                        <fx:include fx:id="search" source="../search/search.fxml" />
+                        <Separator maxWidth="1.7976931348623157E308" />
                         <HBox spacing="10.0">
                             <children>
-                                <JFXButton fx:id="backButton" mnemonicParsing="false" onAction="#onBackButtonClicked"
-                                           text="%back">
+                                <JFXButton fx:id="backButton" mnemonicParsing="false" onAction="#onBackButtonClicked" text="%back">
                                     <graphic>
-                                        <Label styleClass="icon" text=""/>
+                                        <Label styleClass="icon" text="" />
                                     </graphic>
                                 </JFXButton>
                                 <JFXButton mnemonicParsing="false" onAction="#onRefreshButtonClicked" text="%refresh">
                                     <graphic>
-                                        <Label styleClass="icon" text=""/>
+                                        <Label styleClass="icon" text="" />
                                     </graphic>
                                 </JFXButton>
-                                <JFXButton mnemonicParsing="false" onAction="#onUploadModButtonClicked"
-                                        text="%modVault.upload">
+                                <JFXButton mnemonicParsing="false" onAction="#onUploadModButtonClicked" text="%modVault.upload">
                                     <graphic>
-                                        <Label styleClass="icon" text=""/>
+                                        <Label styleClass="icon" text="" />
                                     </graphic>
                                 </JFXButton>
                             </children>
                         </HBox>
                         <VBox fx:id="showroomGroup" spacing="10.0">
                             <children>
-                                <Label styleClass="h2" text="%modVault.highestRatedUiMods"/>
-                                <FlowPane fx:id="highestRatedUiPane" hgap="10.0" maxWidth="1.7976931348623157E308"
-                                          prefWrapLength="1500.0" vgap="10.0" >
-                                    <JFXButton mnemonicParsing="false" onAction="#showMoreHighestRatedUiMods"
-                                               fx:id="moreHighestRatedUiButton" styleClass="card, more-button" text="">
+                                <Label styleClass="h2" text="%modVault.highestRatedUiMods" />
+                                <FlowPane fx:id="highestRatedUiPane" hgap="10.0" maxWidth="1.7976931348623157E308" prefWrapLength="1500.0" vgap="10.0">
+                                    <JFXButton fx:id="moreHighestRatedUiButton" mnemonicParsing="false" onAction="#showMoreHighestRatedUiMods" styleClass="card, more-button" text="">
                                     </JFXButton>
                                 </FlowPane>
                                 <Label styleClass="h2" text="%modVault.newestMods" />
-                                <FlowPane fx:id="newestPane" hgap="10.0" maxWidth="1.7976931348623157E308"
-                                          prefWrapLength="1500.0" vgap="10.0" >
-                                    <JFXButton mnemonicParsing="false" onAction="#showMoreNewestMods"
-                                               fx:id="moreNewestButton" styleClass="card, more-button" text="">
+                                <FlowPane fx:id="newestPane" hgap="10.0" maxWidth="1.7976931348623157E308" prefWrapLength="1500.0" vgap="10.0">
+                                    <JFXButton fx:id="moreNewestButton" mnemonicParsing="false" onAction="#showMoreNewestMods" styleClass="card, more-button" text="">
                                     </JFXButton>
                                 </FlowPane>
                                 <Label styleClass="h2" text="%modVault.highestRated" />
-                                <FlowPane fx:id="highestRatedPane" hgap="10.0" maxWidth="1.7976931348623157E308"
-                                          prefWrapLength="1500.0" vgap="10.0" >
-                                    <JFXButton mnemonicParsing="false" onAction="#showMoreHighestRatedMods"
-                                               fx:id="moreHighestRatedButton" styleClass="card, more-button" text="">
+                                <FlowPane fx:id="highestRatedPane" hgap="10.0" maxWidth="1.7976931348623157E308" prefWrapLength="1500.0" vgap="10.0">
+                                    <JFXButton fx:id="moreHighestRatedButton" mnemonicParsing="false" onAction="#showMoreHighestRatedMods" styleClass="card, more-button" text="">
                                     </JFXButton>
                                 </FlowPane>
                             </children>
                         </VBox>
                         <VBox fx:id="searchResultGroup" alignment="TOP_CENTER" spacing="10.0">
                             <children>
-                                <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%searchResult"/>
-                                <FlowPane fx:id="searchResultPane" hgap="10.0" vgap="10.0"/>
-                                <JFXButton fx:id="moreButton" mnemonicParsing="false"
-                                           onAction="#onLoadMoreButtonClicked"
-                                           text="%vault.more"/>
+                                <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%searchResult" />
+                                <FlowPane fx:id="searchResultPane" hgap="10.0" vgap="10.0" />
+                                <JFXButton fx:id="moreButton" mnemonicParsing="false" onAction="#onLoadMoreButtonClicked" text="%vault.more" />
                             </children>
                         </VBox>
-                        <Label fx:id="loadingLabel" alignment="CENTER" contentDisplay="TOP"
-                               maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-                               text="%modVault.loadingMods" VBox.vgrow="ALWAYS">
+                        <Label fx:id="loadingLabel" alignment="CENTER" contentDisplay="TOP" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="%modVault.loadingMods" VBox.vgrow="ALWAYS">
                             <graphic>
-                                <JFXSpinner/>
+                                <JFXSpinner />
                             </graphic>
                         </Label>
+                  <Pagination fx:id="paginationControl" prefHeight="101.0" prefWidth="1500.0" />
                     </children>
                     <padding>
-                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
                     </padding>
                 </VBox>
             </content>
