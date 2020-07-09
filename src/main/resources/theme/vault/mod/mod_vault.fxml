@@ -62,7 +62,6 @@
                             <children>
                                 <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%searchResult" />
                                 <FlowPane fx:id="searchResultPane" hgap="10.0" vgap="10.0" />
-                                <JFXButton fx:id="moreButton" mnemonicParsing="false" onAction="#onLoadMoreButtonClicked" text="%vault.more" />
                             </children>
                         </VBox>
                         <Label fx:id="loadingLabel" alignment="CENTER" contentDisplay="TOP" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="%modVault.loadingMods" VBox.vgrow="ALWAYS">
