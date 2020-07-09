@@ -101,12 +101,12 @@ public class LeaderboardController extends AbstractViewController<Node> {
     }
     initialized = true;
     paginationControl.currentPageIndexProperty().setValue(0);//initialize table
-    updateTable(0);
+    updateTable();
 
       paginationControl.currentPageIndexProperty().addListener(new ChangeListener<Number>() {
         @Override
         public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-          updateTable(newValue.intValue());
+          updateTable();
         }
       });
   }
@@ -121,16 +121,16 @@ public class LeaderboardController extends AbstractViewController<Node> {
 
   public void handleSearchButtonClicked(ActionEvent event) {
     paginationControl.currentPageIndexProperty().setValue(0);
-    updateTable(0);
+    updateTable();
   }
 
-  private void  updateTable(int currentPage)
+  private void  updateTable()
   {
     String searchTextFieldText = searchTextField.getText();
     Assert.checkNullIllegalState(ratingType, "ratingType must not be null");
 
     contentPane.setVisible(false);
-    leaderboardService.getSearchResultsWithMeta(ratingType, searchTextFieldText,currentPage+1, NUMBER_OF_PLAYERS_PER_PAGE).thenAccept(ratingWithRankBeans -> {
+    leaderboardService.getSearchResultsWithMeta(ratingType, searchTextFieldText,paginationControl.getCurrentPageIndex()+1, NUMBER_OF_PLAYERS_PER_PAGE).thenAccept(ratingWithRankBeans -> {
       Platform.runLater(() -> {
         ratingTable.setItems(observableList(
 
