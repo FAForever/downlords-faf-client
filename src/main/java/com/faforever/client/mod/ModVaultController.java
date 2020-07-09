@@ -6,6 +6,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.mod.event.ModUploadedEvent;
 import com.faforever.client.notification.ImmediateErrorNotification;
+import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.SearchablePropertyMappings;
@@ -24,6 +25,8 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -55,8 +58,8 @@ public class ModVaultController extends AbstractViewController<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int TOP_ELEMENT_COUNT = 7;
-  private static final int LOAD_MORE_COUNT = 100;
-  private static final int MAX_SEARCH_RESULTS = 100;
+  private static final int LOAD_MORE_COUNT = 30;
+  private static final int MAX_SEARCH_RESULTS = 30;
   /**
    * How many mod cards should be badged into one UI thread runnable.
    */
@@ -89,7 +92,6 @@ public class ModVaultController extends AbstractViewController<Node> {
   private boolean initialized;
   private ModDetailController modDetailController;
   private final ObjectProperty<ModVaultController.State> state;
-  private int currentPage;
   private Supplier<CompletableFuture<List<ModVersion>>> currentSupplier;
   public String requestedModType;
 
@@ -136,14 +138,38 @@ public class ModVaultController extends AbstractViewController<Node> {
     searchController.setSearchButtonDisabledCondition(inSearchableState);
 
     paginationControl.setVisible(false);
-    paginationControl.currentPageIndexProperty().addListener((observable, oldValue, newValue) -> onNewPageRequested(newValue.intValue()));
+    paginationControl.currentPageIndexProperty().addListener(new ChangeListener<Number>() {
+      @Override
+      public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+        updateModPage();
+      }
+    });
+  }
+
+  private void updateModPage(){
+    loadingLabel.setVisible(true);
+
+    currentSupplier.get()
+        .thenAccept(mods -> {
+          appendSearchResult(mods, searchResultPane);
+          enterSearchResultState();
+        })
+    .exceptionally(throwable -> {
+      notificationService.addNotification(new ImmediateErrorNotification(
+          i18n.get("errorTitle"), i18n.get("vault.mods.searchError"),
+          throwable, i18n, reportingService
+      ));
+      enterShowroomState();
+      return null;
+    });
+
   }
 
   private void searchByQuery(SearchConfig searchConfig) {
     SearchConfig newSearchConfig = new SearchConfig(searchConfig.getSortConfig(), searchConfig.getSearchQuery() + ";latestVersion.hidden==\"false\"");
-    currentPage = 0;
+    paginationControl.setCurrentPageIndex(0);
     enterLoadingState();
-    displayModsFromSupplier(() -> modService.findByQuery(newSearchConfig, ++currentPage, MAX_SEARCH_RESULTS));
+    displayModsFromSupplier(() -> modService.findByQuery(newSearchConfig, paginationControl.getCurrentPageIndex()+1, MAX_SEARCH_RESULTS));
   }
 
   @Override
@@ -242,7 +268,6 @@ public class ModVaultController extends AbstractViewController<Node> {
         displayShowroomMods();
         break;
       case SEARCH_RESULT:
-        currentPage--;
         currentSupplier.get()
             .thenAccept(this::displayMods)
             .exceptionally(throwable -> {
@@ -271,26 +296,26 @@ public class ModVaultController extends AbstractViewController<Node> {
   public void showMoreHighestRatedUiMods() {
     requestedModType = "highestRatedUIMods";
     enterLoadingState();
-    displayModsFromSupplier(() -> modService.getHighestRatedUiMods(LOAD_MORE_COUNT, ++currentPage));
+    displayModsFromSupplier(() -> modService.getHighestRatedUiMods(LOAD_MORE_COUNT, paginationControl.getCurrentPageIndex()+1));
     paginationControl.setVisible(true);
   }
 
   public void showMoreHighestRatedMods() {
     requestedModType = "highestRatedMods";
     enterLoadingState();
-    displayModsFromSupplier(() -> modService.getHighestRatedMods(LOAD_MORE_COUNT, ++currentPage));
+    displayModsFromSupplier(() -> modService.getHighestRatedMods(LOAD_MORE_COUNT, paginationControl.getCurrentPageIndex()+1));
     paginationControl.setVisible(true);
   }
 
   public void showMoreNewestMods() {
     requestedModType = "newestMods";
     enterLoadingState();
-    displayModsFromSupplier(() -> modService.getNewestMods(LOAD_MORE_COUNT, ++currentPage));
+    displayModsFromSupplier(() -> modService.getNewestMods(LOAD_MORE_COUNT, paginationControl.getCurrentPageIndex()+1));
     paginationControl.setVisible(true);
   }
 
   private void appendSearchResult(List<ModVersion> modVersions, Pane pane) {
-    JavaFxUtil.assertBackgroundThread();
+
 
     ObservableList<Node> children = pane.getChildren();
     List<ModCardController> controllers = modVersions.parallelStream()
@@ -300,6 +325,12 @@ public class ModVaultController extends AbstractViewController<Node> {
           controller.setOnOpenDetailListener(this::onShowModDetail);
           return controller;
         }).collect(Collectors.toList());
+
+    Platform.runLater(() -> {
+      pane.getChildren().clear();
+    });
+
+    JavaFxUtil.assertBackgroundThread();
 
     Iterators.partition(controllers.iterator(), BATCH_SIZE).forEachRemaining(modCardControllers -> Platform.runLater(() -> {
       for (ModCardController modCardController : modCardControllers) {
@@ -322,7 +353,7 @@ public class ModVaultController extends AbstractViewController<Node> {
   }
 
   private void displayModsFromSupplier(Supplier<CompletableFuture<List<ModVersion>>> modsSupplier) {
-    currentPage = 0;
+    paginationControl.setCurrentPageIndex(0);
     this.currentSupplier = modsSupplier;
     modsSupplier.get()
         .thenAccept(this::displayMods)
@@ -343,22 +374,6 @@ public class ModVaultController extends AbstractViewController<Node> {
     Platform.runLater(() -> searchResultPane.getChildren().clear());
     appendSearchResult(modVersions, searchResultPane);
     Platform.runLater(this::enterSearchResultState);
-  }
-
-  public void onNewPageRequested(int page) {
-
-    currentPage = page;
-
-    switch (requestedModType) {
-      case "highestRatedUIMods":
-        displayModsFromSupplier(() -> modService.getHighestRatedUiMods(LOAD_MORE_COUNT, ++currentPage));
-      case "highestRatedMods":
-        displayModsFromSupplier(() -> modService.getHighestRatedMods(LOAD_MORE_COUNT, ++currentPage));
-      case "newestMods":
-        displayModsFromSupplier(() -> modService.getNewestMods(LOAD_MORE_COUNT, ++currentPage));
-      default:
-        //do nothing
-    }
   }
 
   private enum State {
