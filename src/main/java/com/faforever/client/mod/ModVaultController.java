@@ -84,7 +84,6 @@ public class ModVaultController extends AbstractViewController<Node> {
   public ScrollPane scrollPane;
   public Button backButton;
   public SearchController searchController;
-  public Button moreButton;
   public Pagination paginationControl;
 
   private boolean initialized;
@@ -115,7 +114,7 @@ public class ModVaultController extends AbstractViewController<Node> {
     showroomGroup.managedProperty().bind(showroomGroup.visibleProperty());
     searchResultGroup.managedProperty().bind(searchResultGroup.visibleProperty());
     backButton.managedProperty().bind(backButton.visibleProperty());
-    moreButton.managedProperty().bind(moreButton.visibleProperty());
+    paginationControl.managedProperty().bind(paginationControl.visibleProperty());
 
     modDetailController = uiService.loadFxml("theme/vault/mod/mod_detail.fxml");
     Node modDetailRoot = modDetailController.getRoot();
@@ -180,7 +179,7 @@ public class ModVaultController extends AbstractViewController<Node> {
     searchResultGroup.setVisible(false);
     loadingLabel.setVisible(true);
     backButton.setVisible(true);
-    moreButton.setVisible(false);
+    paginationControl.setVisible(false);
   }
 
   private void enterSearchResultState() {
@@ -189,7 +188,7 @@ public class ModVaultController extends AbstractViewController<Node> {
     searchResultGroup.setVisible(true);
     loadingLabel.setVisible(false);
     backButton.setVisible(true);
-    moreButton.setVisible(searchResultPane.getChildren().size() % MAX_SEARCH_RESULTS == 0);
+    paginationControl.setVisible(true);
   }
 
   private void enterShowroomState() {
@@ -198,7 +197,7 @@ public class ModVaultController extends AbstractViewController<Node> {
     searchResultGroup.setVisible(false);
     loadingLabel.setVisible(false);
     backButton.setVisible(false);
-    moreButton.setVisible(false);
+    paginationControl.setVisible(false);
   }
 
   @VisibleForTesting
@@ -206,6 +205,7 @@ public class ModVaultController extends AbstractViewController<Node> {
     modDetailController.setModVersion(modVersion);
     modDetailController.getRoot().setVisible(true);
     modDetailController.getRoot().requestFocus();
+    paginationControl.setVisible(false);
   }
 
   public void onUploadModButtonClicked() {
@@ -343,25 +343,6 @@ public class ModVaultController extends AbstractViewController<Node> {
     Platform.runLater(() -> searchResultPane.getChildren().clear());
     appendSearchResult(modVersions, searchResultPane);
     Platform.runLater(this::enterSearchResultState);
-  }
-
-  public void onLoadMoreButtonClicked() {
-    moreButton.setVisible(false);
-    loadingLabel.setVisible(true);
-
-    currentSupplier.get()
-        .thenAccept(mods -> {
-          appendSearchResult(mods, searchResultPane);
-          enterSearchResultState();
-        })
-        .exceptionally(throwable -> {
-          notificationService.addNotification(new ImmediateErrorNotification(
-              i18n.get("errorTitle"), i18n.get("vault.mods.searchError"),
-              throwable, i18n, reportingService
-          ));
-          enterShowroomState();
-          return null;
-        });
   }
 
   public void onNewPageRequested(int page) {
