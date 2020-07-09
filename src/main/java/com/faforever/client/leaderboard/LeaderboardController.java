@@ -65,7 +65,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public Pagination paginationControl;
   private KnownFeaturedMod ratingType;
   private final static int NUMBER_OF_PLAYERS_PER_PAGE = 15;
-
+  private boolean initialized;
 
 
   @Override
@@ -96,6 +96,10 @@ public class LeaderboardController extends AbstractViewController<Node> {
 
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
+    if (initialized) {
+      return;
+    }
+    initialized = true;
     paginationControl.currentPageIndexProperty().setValue(0);//initialize table
     updateTable(0);
 
