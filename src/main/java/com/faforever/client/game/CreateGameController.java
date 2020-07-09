@@ -195,7 +195,9 @@ public class CreateGameController implements Controller<Pane> {
     titleTextField.textProperty().addListener((observable, oldValue, newValue) -> {
       preferencesService.getPreferences().getLastGamePrefs().setLastGameTitle(newValue);
       preferencesService.storeInBackground();
+      adjustCreateGameButtonBackgroundColor(newValue);
     });
+    adjustCreateGameButtonBackgroundColor(titleTextField.getText());
 
     createGameButton.textProperty().bind(Bindings.createStringBinding(() -> {
       switch (fafService.connectionStateProperty().get()) {
@@ -218,6 +220,15 @@ public class CreateGameController implements Controller<Pane> {
         titleTextField.textProperty().isEmpty()
             .or(featuredModListView.getSelectionModel().selectedItemProperty().isNull().or(fafService.connectionStateProperty().isNotEqualTo(CONNECTED)))
     );
+  }
+
+  private void adjustCreateGameButtonBackgroundColor(String newValue) {
+    if (Strings.isNullOrEmpty(newValue)) {
+      // titleTextField.setBackground(new Background(new BackgroundFill(Paint.valueOf("FF0000"), CornerRadii.EMPTY, Insets.EMPTY)));
+      titleTextField.setStyle("-fx-background-color: -bad;");
+    } else {
+      titleTextField.setStyle("-fx-background-color: transparent;");
+    }
   }
 
   private void initPassword() {

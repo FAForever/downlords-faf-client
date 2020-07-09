@@ -959,6 +959,7 @@
 
 .game-title-input {
   -fx-font-size: 0.8cm;
+  -fx-prompt-text-fill: -fx-light-text-color;
 }
 .game-generate-map {
   -fx-background-color: -dimmed-accent;
