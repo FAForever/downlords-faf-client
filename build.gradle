@@ -1,4 +1,3 @@
-import com.install4j.gradle.Install4jTask
 import de.undercouch.gradle.tasks.download.Download
 import org.gradle.internal.os.OperatingSystem
 
@@ -10,35 +9,35 @@ buildscript {
   }
 
   dependencies {
-    classpath("gradle.plugin.install4j.install4j:gradle_plugin:7.0.7")
     classpath("org.springframework.build.gradle:propdeps-plugin:${propdepsVersion}")
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
   }
 }
 
 plugins {
-  id "com.install4j.gradle" version "7.0.7"
   id "co.riiid.gradle" version "0.4.2"
   id "de.undercouch.download" version "3.4.3"
-  id "io.franzbecker.gradle-lombok" version "1.14"
-  id 'net.ltgt.apt' version '0.19'
+  id "io.freefair.lombok" version "5.1.0"
   id 'jacoco'
   id 'com.github.kt3k.coveralls' version "${coverallsGradlePluginVersion}"
   id "org.jetbrains.gradle.plugin.idea-ext" version "0.7"
+  id 'org.beryx.runtime' version '1.11.0'
 }
 
 apply from: "${rootProject.rootDir}/gradle/update4j.gradle"
 apply plugin: 'java'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
-apply plugin: 'propdeps'
-apply plugin: 'distribution'
 
 sourceCompatibility = JavaVersion.VERSION_14
 targetCompatibility = JavaVersion.VERSION_14
 
+mainClassName = "com.faforever.client.Main"
+group 'com.faforever'
+
 // These are read from gradle.properties
 version "${version}"
+println "Version is ${version}"
 project.ext.javafxPlatform = "${javafxPlatform}"
 
 bootJar.enabled = false
@@ -72,11 +71,6 @@ configurations {
   compile.exclude module: "assertj-core"
 }
 
-lombok {
-  version = "${lombokVersion}"
-  sha256 = ""
-}
-
 jacocoTestReport {
   reports {
     xml.enabled = true
@@ -94,70 +88,89 @@ configurations {
   webViewPatch
 }
 
-
-bootRun {
-  main = "com.faforever.client.Main"
+jar {
+  doFirst {
+    manifest {
+      attributes "Main-Class": project.mainClassName,
+          "Implementation-Title": "FAF Client",
+          "Implementation-Version": version,
+          "Implementation-Vendor": "Downlord",
+          "Class-Path": (configurations.runtimeClasspath.collect { it.name }.join(' '))
+    }
+  }
 }
 
-jar {
-  manifest {
-    attributes "Main-Class": "com.faforever.client.Main",
-        "Implementation-Title": "Downlord's FAF Client",
-        "Implementation-Version": version,
-        "Implementation-Vendor": "Downlord"
+runtime {
+  options = ['--compress', '2', '--no-header-files', '--no-man-pages', '--vm=client']
+  modules = [
+      'java.desktop',
+      'jdk.jsobject',
+      'java.xml',
+      'java.logging',
+      'jdk.unsupported',
+      'java.datatransfer',
+      'java.scripting',
+      // We don't actually need this, but at least Gson's type factories depend on it
+      'java.sql',
+      'java.naming',
+      'java.net.http',
+      'jdk.xml.dom',
+      'jdk.crypto.ec',
+      'java.instrument'
+  ]
+  jpackage {
+    // Can't rename these yet: https://github.com/beryx/badass-runtime-plugin/issues/62
+    installerName = project.name
+    imageName = project.name
+    applicationName = "FAF Client"
+    installerType = 'msi'
+    imageOptions = [
+        '--icon', "${rootDir}/src/media/appicon/faf.ico"
+    ]
+    installerOptions = [
+        '--win-per-user-install',
+        '--win-shortcut',
+        '--win-menu-group', 'Forged Alliance Forever',
+        '--win-menu',
+        '--file-associations', "${rootDir}/src/jpackage/fafreplay.properties",
+        '--license-file', "${rootDir}/LICENSE"
+    ]
+    jvmArgs = [
+        '-splash:app/splash.png',
+        '-DnativeDir=app',
+        '-Dprism.dirtyopts=false',
+        '-Xms128m',
+        '-Xmx712m',
+        '-XX:MinHeapFreeRatio=15',
+        '-XX:MaxHeapFreeRatio=33',
+        '-XX:+HeapDumpOnOutOfMemoryError',
+        '-XX:+UseStringDeduplication',
+        '-javaagent:app/webview-patch.jar',
+        '-Djava.net.preferIPv4Stack=true'
+    ]
   }
+}
+
+task jpackageImageZip(type: Zip, dependsOn: jpackageImage) {
+  group 'build'
+  from jpackageImage.outputs.files.singleFile.toString() + "/" + project.name
+  into project.version
+  destinationDirectory = file("$buildDir/dist")
 }
 
 distributions {
   main {
     contents {
-      from {
-        [
-            configurations.runtime,
-            jar,
-            downloadIceAdapter.outputs.files,
-            downloadUnixUid.outputs.files,
-            downloadWindowsUid.outputs.files
-        ]
+      into('lib') {
+        from { [downloadIceAdapter.outputs.files, downloadUnixUid.outputs.files, downloadWindowsUid.outputs.files] }
+        from "${rootDir}/src/media/splash/splash.png"
+
+        from(configurations.webViewPatch) {
+          include "*webview-patch*.jar"
+          rename '.*webview-patch.*\\.jar', 'webview-patch.jar'
+        }
       }
       exclude('**/i4jruntime*.jar')
-    }
-  }
-}
-
-install4j {
-  if (project.hasProperty('install4jHomeDir')) {
-    installDir = file(install4jHomeDir)
-  }
-  if (project.hasProperty('install4jLicense')) {
-    license = install4jLicense
-  }
-}
-
-task buildInstall4jMediaFiles(type: Install4jTask) {
-  group "distribution"
-  description 'Creates install4j media files'
-  dependsOn 'installDist'
-
-  projectFile = file('downlords-faf-client.install4j')
-  release = version
-
-  switch (project.ext.javafxPlatform) {
-    case "linux":
-      mediaTypes = ['unixInstaller', 'unixArchive']
-      break
-    case "mac":
-      mediaTypes = ['macos', 'macosFolder', 'macosArchive', 'macosFolderArchive']
-      break
-    case "win":
-      mediaTypes = ['windows', 'windowsArchive']
-      break
-  }
-
-  doFirst {
-    println "Building version ${version}"
-    if (!project.hasProperty('install4jHomeDir')) {
-      throw new RuntimeException('Specify install4jHomeDir in gradle.properties and set it to an install4j installation directory')
     }
   }
 }
@@ -200,7 +213,7 @@ task downloadNativeDependencies(dependsOn: [downloadUnixUid, downloadWindowsUid,
 }
 
 assemble.dependsOn 'downloadNativeDependencies'
-createUpdate4jConfig.dependsOn assemble
+createUpdate4jConfig.dependsOn jpackageImage
 
 task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
   main = "com.codacy.CodacyCoverageReporter"
@@ -209,7 +222,7 @@ task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
 }
 
 idea.project.settings.taskTriggers {
-  beforeSync tasks.getByName("downloadNativeDependencies"), tasks.getByName("downloadWebViewPatch")
+  beforeSync tasks.getByName("downloadNativeDependencies")
 }
 
 repositories {
@@ -222,6 +235,8 @@ repositories {
 }
 
 dependencies {
+  compile project(":updater")
+
   compile("org.springframework.boot:spring-boot-starter")
   compile("org.springframework.boot:spring-boot-starter-cache")
   compile("org.springframework.boot:spring-boot-starter-logging")
@@ -278,8 +293,6 @@ dependencies {
   compile('com.github.micheljung:javafx-transparent-webview-patch:0468c80')
   compile("org.javassist:javassist:${project.ext['javassist.version']}")
 
-  provided("com.install4j:install4j-runtime:${install4jRuntimeVersion}")
-
   testCompile 'junit:junit:4.13'
   testCompile("org.testfx:testfx-core:4.0.8-alpha") {
     exclude module: 'guava'
@@ -288,7 +301,7 @@ dependencies {
   testCompile("com.natpryce.hamcrest:hamcrest-reflection:0.1-2")
   testCompile("org.springframework.boot:spring-boot-starter-test")
 
-  optional("org.springframework.boot:spring-boot-configuration-processor")
+  annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
   codacy("com.github.codacy:codacy-coverage-reporter:-SNAPSHOT")
 }

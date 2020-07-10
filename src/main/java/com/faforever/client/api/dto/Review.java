@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.sql.Timestamp;
+import java.time.OffsetDateTime;
 
 @Getter
 @Setter
@@ -16,8 +16,8 @@ public class Review {
   private String id;
   private String text;
   private Byte score;
-  private Timestamp createTime;
-  private Timestamp updateTime;
+  private OffsetDateTime createTime;
+  private OffsetDateTime updateTime;
 
   @Relationship("player")
   private Player player;

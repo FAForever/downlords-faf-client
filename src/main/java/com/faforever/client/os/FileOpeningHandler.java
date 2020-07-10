@@ -1,15 +1,16 @@
 package com.faforever.client.os;
 
 import com.faforever.client.replay.ReplayService;
-import com.install4j.api.launcher.StartupNotification;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+// FIXME implement/test this with jpackager
 
 /**
  * When a file type is associated with the client and the user opens such a file, this class will handle the opening
@@ -28,7 +29,6 @@ public class FileOpeningHandler implements ApplicationRunner, InitializingBean {
   @Override
   public void afterPropertiesSet() {
     log.debug("Registering file opening handler: {}", this.getClass().getName());
-    StartupNotification.registerStartupListener(this::onStartup);
   }
 
   private void onStartup(String parameters) {

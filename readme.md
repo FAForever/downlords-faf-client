@@ -33,7 +33,6 @@ Learn how to install the client on Linux [here](https://github.com/FAForever/dow
 ## Open Source licenses 
 |                |                               |
 |----------------|-------------------------------|
-|<img src="https://www.ej-technologies.com/images/product_banners/install4j_large.png" width="128">|Thanks to [ej-technologies](https://www.ej-technologies.com) for their [open source license](https://www.ej-technologies.com/buy/install4j/openSource). We use Install4j to build installers.|
 |<img src="https://slack-files2.s3-us-west-2.amazonaws.com/avatars/2017-12-13/286651735269_a5ab3167acef52b0111e_512.png" width="128">| Thanks to [bugsnag](https://www.bugsnag.com) for their [open source license](https://www.bugsnag.com/open-source/). We use bugsnag for our error reporting.|
 |<img src="https://faforever.github.io/downlords-faf-client/images/yklogo.png" width="128">| Thanks to [YourKit](https://www.yourkit.com) for their open source license|
 
