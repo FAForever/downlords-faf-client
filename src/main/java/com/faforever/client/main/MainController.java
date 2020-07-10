@@ -82,6 +82,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.awt.SplashScreen;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
@@ -303,22 +304,10 @@ public class MainController implements Controller<Node> {
     notificationButton.pseudoClassStateChanged(NOTIFICATION_ERROR_PSEUDO_CLASS, highestSeverity == Severity.ERROR);
   }
 
-  /**
-   * Hides the install4j splash screen. The hide method is invoked via reflection to accommodate starting the client
-   * without install4j (e.g. on linux).
-   */
   private static void hideSplashScreen() {
-    try {
-      final Class splashScreenClass = Class.forName("com.install4j.api.launcher.SplashScreen");
-      final Method hideMethod = splashScreenClass.getDeclaredMethod("hide");
-      hideMethod.invoke(null);
-    } catch (ClassNotFoundException e) {
-      log.debug("No install4j splash screen found to close.");
-    } catch (NoSuchMethodException | IllegalAccessException e) {
-      log.error("Couldn't close install4j splash screen.", e);
-    } catch (InvocationTargetException e) {
-      log.error("Couldn't close install4j splash screen.", e.getCause());
-    }
+    System.setProperty("java.awt.headless", "false");
+    Optional.ofNullable(SplashScreen.getSplashScreen()).ifPresent(SplashScreen::close);
+    System.setProperty("java.awt.headless", "true");
   }
 
   private void onMatchmakerMessage(MatchmakerInfoMessage message) {

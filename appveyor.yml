@@ -1,0 +1,53 @@
+version: '1.0.{build}'
+clone_depth: 1
+platform: x64
+
+environment:
+  JAVA_HOME: build\jdk-14.0.1+7
+  GRADLE_USER_HOME: .gradle\
+
+install:
+  - ps: '& .\ci\installjdk.ps1'
+
+build: false
+build_script:
+  - gradlew -Pversion=%APPVEYOR_BUILD_VERSION% jpackage jpackageImageZip
+
+artifacts:
+  - path: build\dist\*.zip
+    name: faf-client
+  - path: build\jpackage\*.msi
+    name: faf-client-msi
+  - path: build\update4j\update4j.xml
+    name: update4j-config
+
+hosts:
+  # Using this hostname doesn't work in the deploy section -.-
+  client.faforever.com: 95.216.189.109
+
+deploy:
+  - provider: FTP
+    protocol: sftp
+    host: 95.216.189.109
+    username:
+      secure: /jIbzY/vXQM609lqG9NJoQ==
+    password:
+      secure: J71CbjMVl94YjcV8NoUYOtfuqvoRn7+1bPK6LbP7HoU=
+    folder: clients
+    application: faf-client
+    active_mode: false
+    beta: true      # enable alternative FTP library for 'ftp' and 'ftps' modes
+    debug: true     # show complete FTP log
+  - provider: GitHub
+    release: faf-client-$(appveyor_build_version)
+    auth_token:
+      secure: 1ahtkv6ReGoBWQzJt5cIhTKjwzxBrDCJGLgFnqvH5OaxVZbmU5YZKWW6TEF6i6Rp
+    artifact: faf-client-msi, update4j-config
+    draft: true
+    prerelease: false
+    on:
+      APPVEYOR_REPO_TAG: true
+
+cache:
+  - 'build\jdk*'
+  - '.gradle'

@@ -43,11 +43,6 @@ deploy:
   api_key: ${gitHubToken}
   file_glob: true
   file:
-  - build/install4j/*.exe
-  - build/install4j/*.zip
-  - build/install4j/*.gz
-  - build/install4j/*.deb
-  - build/install4j/*.rpm
   - build/libs/*.jar
   - build/resources/main/update4j/update4j.xml
   skip_cleanup: true
@@ -82,7 +77,6 @@ before_cache:
 
 cache:
   directories:
-  - $HOME/install4j/
   - $HOME/.gradle/caches/
   - $HOME/.gradle/wrapper/
   - /home/travis/build/FAForever/downlords-faf-client/build/cache/
