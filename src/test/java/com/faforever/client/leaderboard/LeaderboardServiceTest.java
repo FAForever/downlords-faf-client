@@ -23,7 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class LeaderboardServiceImplTest {
+public class LeaderboardServiceTest {
 
   private static final int PLAYER_ID = 123;
   @Mock
