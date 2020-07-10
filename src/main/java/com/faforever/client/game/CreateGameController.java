@@ -31,6 +31,7 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.css.PseudoClass;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -223,11 +224,11 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   private void adjustCreateGameButtonBackgroundColor(String newValue) {
+    PseudoClass invalidClass = PseudoClass.getPseudoClass("invalid");
     if (Strings.isNullOrEmpty(newValue)) {
-      // titleTextField.setBackground(new Background(new BackgroundFill(Paint.valueOf("FF0000"), CornerRadii.EMPTY, Insets.EMPTY)));
-      titleTextField.setStyle("-fx-background-color: -bad;");
+      titleTextField.pseudoClassStateChanged(invalidClass, true);
     } else {
-      titleTextField.setStyle("-fx-background-color: transparent;");
+      titleTextField.pseudoClassStateChanged(invalidClass, false);
     }
   }
 
