@@ -8,13 +8,22 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.Validator;
+import com.jfoenix.controls.JFXButton;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleFloatProperty;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.scene.Node;
+import javafx.scene.control.Pagination;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.TextField;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.layout.Pane;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -24,6 +33,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.lang.invoke.MethodHandles;
+import java.lang.ref.WeakReference;
 
 import static javafx.collections.FXCollections.observableList;
 
@@ -38,6 +48,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
   private final NotificationService notificationService;
   private final I18n i18n;
   private final ReportingService reportingService;
+  private final UiService uiService;
   public Pane leaderboardRoot;
   public TableColumn<LeaderboardEntry, Number> rankColumn;
   public TableColumn<LeaderboardEntry, String> nameColumn;
@@ -49,6 +60,10 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public Pane connectionProgressPane;
   public Pane contentPane;
   private KnownFeaturedMod ratingType;
+  private WeakReference<LeaderboardUserContextMenuController> contextMenuController;
+
+  public LeaderboardEntry selectedEntry;
+
 
   @Override
   public void initialize() {
@@ -120,6 +135,30 @@ public class LeaderboardController extends AbstractViewController<Node> {
     });
   }
 
+
+  public void onContextMenuRequested(ContextMenuEvent contextMenuEvent) {
+
+    if (contextMenuController != null) {
+      LeaderboardUserContextMenuController controller = contextMenuController.get();
+      if (controller != null) {
+        controller.getContextMenu().show(leaderboardRoot.getScene().getWindow(), contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());
+        return;
+      }
+    }
+
+    TableViewSelectionModel<LeaderboardEntry> leaderboardEntryTableViewSelectionModel = ratingTable.getSelectionModel();
+    ObservableList<LeaderboardEntry> selectedEntryList = leaderboardEntryTableViewSelectionModel.getSelectedItems();
+    System.out.println(selectedEntryList);
+
+    LeaderboardUserContextMenuController controller = uiService.loadFxml("theme\\leaderboard\\leaderboard_user_context_menu.fxml");
+
+    leaderboardService.getPlayerObjectsById(selectedEntryList.get(0).getId()).thenAccept(players -> Platform.runLater(() -> {
+      controller.setPlayer(players.get(0));
+      controller.getContextMenu().show(leaderboardRoot.getScene().getWindow(), contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());
+      contextMenuController = new WeakReference<>(controller);
+    }));
+
+  }
   public Node getRoot() {
     return leaderboardRoot;
   }

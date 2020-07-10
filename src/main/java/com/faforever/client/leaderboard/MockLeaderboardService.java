@@ -3,6 +3,7 @@ package com.faforever.client.leaderboard;
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.player.Player;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import lombok.RequiredArgsConstructor;
@@ -58,6 +59,11 @@ public class MockLeaderboardService implements LeaderboardService {
         return list;
       }
     }).getFuture();
+  }
+
+  @Override
+  public CompletableFuture<List<Player>> getPlayerObjectsById(String id) {
+    return CompletableFuture.completedFuture(Collections.emptyList());
   }
 
   private LeaderboardEntry createLadderInfoBean(String name, int rank, int rating, int gamesPlayed, float winLossRatio) {

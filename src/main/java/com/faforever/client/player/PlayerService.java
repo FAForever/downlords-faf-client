@@ -243,7 +243,6 @@ public class PlayerService implements InitializingBean {
     playersByName.get(player.getUsername()).setSocialStatus(FRIEND);
     friendList.add(player.getId());
     foeList.remove((Integer) player.getId());
-
     fafService.addFriend(player);
   }
 

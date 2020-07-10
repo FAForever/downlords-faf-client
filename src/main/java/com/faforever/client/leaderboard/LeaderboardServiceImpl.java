@@ -2,13 +2,16 @@ package com.faforever.client.leaderboard;
 
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.game.KnownFeaturedMod;
+import com.faforever.client.player.Player;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.util.RatingUtil;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -61,5 +64,11 @@ public class LeaderboardServiceImpl implements LeaderboardService {
       default:
         throw new IllegalArgumentException("Not supported: " + ratingType);
     }
+  }
+
+  public CompletableFuture<List<Player>> getPlayerObjectsById(@NotNull String id)
+  {
+    System.out.println(id);
+    return fafService.getPlayersByIds(Collections.singletonList(Integer.parseInt(id)));
   }
 }
