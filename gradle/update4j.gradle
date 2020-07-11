@@ -14,8 +14,11 @@ task createUpdate4jConfig {
   group 'update4j'
   doLast {
     def ignoreBootConflicts = ["jul-to-slf4j"]
+    def projectFileUrls = [
+        "project :updater": "https://FIXME"
+    ]
 
-    def dir = file("${rootProject.buildDir}/resources/main/update4j")
+    def dir = file("${rootProject.buildDir}/update4j")
     mkdir(dir)
 
     def builder = org.update4j.Configuration.builder()
@@ -23,70 +26,86 @@ task createUpdate4jConfig {
         .updateHandler('com.faforever.client.updater.${update.handler.class}')
         .property('default.launcher.main.class', 'com.faforever.client.Main')
         .property('default.launcher.system.nativeDir', '${app.dir}')
-        .property('app.name', 'Downlord\'s FAF Client')
+        .property('app.name', 'downlords-faf-client')
         .property('app.dir', '${LOCALAPPDATA}/${app.name}', OS.WINDOWS)
         .property('app.dir', '${user.dir}/${app.name}')
-        .property('app.lib', '${app.dir}/lib')
+//        .property('app.lib', '${app.dir}/lib')
         .property('update.handler.class', 'DefaultUpdateHandler')
 
-    configurations.runtime.resolvedConfiguration.resolvedArtifacts.each { dep ->
-      String path
-      if (dep.classifier != null) {
-        path = String.format('${app.lib}/%s-%s-%s.%s', dep.moduleVersion.id.name, dep.moduleVersion.id.version, dep.classifier, dep.extension)
-      } else {
-        path = String.format('${app.lib}/%s-%s.%s', dep.moduleVersion.id.name, dep.moduleVersion.id.version, dep.extension)
-      }
-
-      String url = rootProject.repositories
-          .collect {
-            def baseUrl = it.url.toString().replaceFirst('/$', '');
-            dep.classifier != null
-                ? String.format('%1$s/%2$s/%3$s/%4$s/%3$s-%4$s-%5$s.%6$s', baseUrl, dep.moduleVersion.id.group.replace('.', '/'), dep.moduleVersion.id.name, dep.moduleVersion.id.version, dep.classifier, dep.extension)
-                : String.format('%1$s/%2$s/%3$s/%4$s/%3$s-%4$s.%5$s', baseUrl, dep.moduleVersion.id.group.replace('.', '/'), dep.moduleVersion.id.name, dep.moduleVersion.id.version, dep.extension)
-          }
-          .find { url ->
-            logger.debug("Testing ${url}")
-            new URL(url).openConnection().with {
-              requestMethod = 'HEAD'
-              connect()
-              responseCode
-            } == HttpURLConnection.HTTP_OK
-          }
-
-      if (url == null) {
-        throw new GradleException("Could not find a valid URL for: ${dep}")
-      }
-
-      def file = FileMetadata.readFrom(dep.file.toPath())
-          .uri(url)
-          .path(path)
-          .ignoreBootConflict(ignoreBootConflicts.contains(dep.name))
-          .classpath()
-
-      builder.file(file)
+    def source = file(jpackageImage.outputs.files.singleFile.toString() + "/" + project.name)
+    fileTree(source).forEach {
+      def targetPath = source.toPath().relativize(it.toPath())
+      println targetPath
+      builder.file(FileMetadata.readFrom(it.toPath())
+          .uri("${update4jBaseUrl}/${version}/" + targetPath)
+          .path('${app.dir}/' + targetPath)
+      )
     }
 
-    builder.file(FileMetadata.readFrom(downloadUnixUid.outputs.files.first().toPath())
-        .os(OS.LINUX)
-        .uri(downloadUnixUid.src.toString())
-        .path('${app.dir}/' + downloadUnixUid.dest.toPath().fileName)
-    )
-    builder.file(FileMetadata.readFrom(downloadWindowsUid.outputs.files.first().toPath())
-        .os(OS.WINDOWS)
-        .uri(downloadWindowsUid.src.toString())
-        .path('${app.dir}/' + downloadWindowsUid.dest.toPath().fileName)
-    )
-    builder.file(FileMetadata.readFrom(downloadIceAdapter.outputs.files.first().toPath())
-        .uri(downloadIceAdapter.src.toString())
-        .path('${app.dir}/' + downloadIceAdapter.dest.toPath().fileName)
-    )
-    builder.file(FileMetadata.readFrom(jar.outputs.files.first().toPath())
-        .uri("file:///C:/Users/Downlord/git/downlords-faf-client/build/libs/downlords-faf-client-unspecified.jar")
-    // FIXME use this URL
-//        .uri("https://github.com/FAForever/downlords-faf-client/releases/download/v${project.version}/downlords-faf-client-${project.version}.jar")
-        .path(jar.outputs.files.first().toPath().fileName)
-        .classpath()
-    )
+
+//    configurations.runtime.resolvedConfiguration.resolvedArtifacts.each { dep ->
+//      String path
+//      if (dep.classifier != null) {
+//        path = String.format('${app.lib}/%s-%s-%s.%s', dep.moduleVersion.id.name, dep.moduleVersion.id.version, dep.classifier, dep.extension)
+//      } else {
+//        path = String.format('${app.lib}/%s-%s.%s', dep.moduleVersion.id.name, dep.moduleVersion.id.version, dep.extension)
+//      }
+//
+//      String url
+//      if (projectFileUrls.containsKey(dep.id.componentIdentifier.toString())) {
+//        url = projectFileUrls[dep.id.componentIdentifier.toString()]
+//      } else {
+//        url = rootProject.repositories
+//            .collect {
+//              def baseUrl = it.url.toString().replaceFirst('/$', '');
+//              dep.classifier != null
+//                  ? String.format('%1$s/%2$s/%3$s/%4$s/%3$s-%4$s-%5$s.%6$s', baseUrl, dep.moduleVersion.id.group.replace('.', '/'), dep.moduleVersion.id.name, dep.moduleVersion.id.version, dep.classifier, dep.extension)
+//                  : String.format('%1$s/%2$s/%3$s/%4$s/%3$s-%4$s.%5$s', baseUrl, dep.moduleVersion.id.group.replace('.', '/'), dep.moduleVersion.id.name, dep.moduleVersion.id.version, dep.extension)
+//            }
+//            .find { testUrl ->
+//              logger.debug("Testing ${testUrl}")
+//              new URL(testUrl).openConnection().with {
+//                requestMethod = 'HEAD'
+//                connect()
+//                responseCode
+//              } == HttpURLConnection.HTTP_OK
+//            }
+//      }
+//
+//      if (url == null) {
+//        throw new GradleException("Could not find a valid URL for (${dep.class}[file=${dep.file}, moduleVersion=${dep.moduleVersion}, name=${dep.name}, type=${dep.type}, extension=${dep.extension}, classifier=${dep.classifier}, id=${dep.id}])")
+//      }
+//
+//      def file = FileMetadata.readFrom(dep.file.toPath())
+//          .uri(url)
+//          .path(path)
+//          .ignoreBootConflict(ignoreBootConflicts.contains(dep.name))
+//          .classpath()
+//
+//      builder.file(file)
+//    }
+//
+//    builder.file(FileMetadata.readFrom(downloadUnixUid.outputs.files.first().toPath())
+//        .os(OS.LINUX)
+//        .uri(downloadUnixUid.src.toString())
+//        .path('${app.dir}/' + downloadUnixUid.dest.toPath().fileName)
+//    )
+//    builder.file(FileMetadata.readFrom(downloadWindowsUid.outputs.files.first().toPath())
+//        .os(OS.WINDOWS)
+//        .uri(downloadWindowsUid.src.toString())
+//        .path('${app.dir}/' + downloadWindowsUid.dest.toPath().fileName)
+//    )
+//    builder.file(FileMetadata.readFrom(downloadIceAdapter.outputs.files.first().toPath())
+//        .uri(downloadIceAdapter.src.toString())
+//        .path('${app.dir}/' + downloadIceAdapter.dest.toPath().fileName)
+//    )
+//    builder.file(FileMetadata.readFrom(jar.outputs.files.first().toPath())
+//        .uri("file:///C:/Users/Downlord/git/downlords-faf-client/build/libs/downlords-faf-client-unspecified.jar")
+//    // FIXME use this URL
+////        .uri("https://github.com/FAForever/downlords-faf-client/releases/download/v${project.version}/downlords-faf-client-${project.version}.jar")
+//        .path(jar.outputs.files.first().toPath().fileName)
+//        .classpath()
+//    )
 
     def configuration = builder.build()
     file("${dir}/update4j.xml").withWriter { writer ->

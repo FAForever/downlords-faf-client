@@ -1,17 +1,18 @@
-version: '1.0.{build}'
+version: '{build}'
 clone_depth: 1
 platform: x64
+skip_non_tags: true
 
 environment:
   JAVA_HOME: build\jdk-14.0.1+7
-  GRADLE_USER_HOME: .gradle\
+  GRADLE_USER_HOME: .gradle
 
 install:
   - ps: '& .\ci\installjdk.ps1'
 
 build: false
 build_script:
-  - gradlew -Pversion=%APPVEYOR_BUILD_VERSION% jpackage jpackageImageZip
+  - gradlew -Pversion=%APPVEYOR_REPO_TAG_NAME% -Pupdate4jBaseUrl=http://95.216.189.109 jpackage jpackageImageZip createUpdate4jConfig
 
 artifacts:
   - path: build\dist\*.zip
@@ -38,8 +39,11 @@ deploy:
     active_mode: false
     beta: true      # enable alternative FTP library for 'ftp' and 'ftps' modes
     debug: true     # show complete FTP log
+    on:
+      APPVEYOR_REPO_TAG: true
   - provider: GitHub
-    release: faf-client-$(appveyor_build_version)
+    tag: $(APPVEYOR_REPO_TAG_NAME)
+    release: $(APPVEYOR_REPO_TAG_NAME)
     auth_token:
       secure: 1ahtkv6ReGoBWQzJt5cIhTKjwzxBrDCJGLgFnqvH5OaxVZbmU5YZKWW6TEF6i6Rp
     artifact: faf-client-msi, update4j-config
@@ -49,5 +53,5 @@ deploy:
       APPVEYOR_REPO_TAG: true
 
 cache:
-  - 'build\jdk*'
+  - 'build\jdk-14.0.1+7'
   - '.gradle'
