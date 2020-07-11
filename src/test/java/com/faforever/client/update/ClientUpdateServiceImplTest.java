@@ -8,6 +8,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.commons.io.Bytes;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -20,13 +21,15 @@ import org.springframework.context.ApplicationContext;
 import org.update4j.Configuration;
 
 import java.net.URL;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.notification.Severity.INFO;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ClientUpdateServiceImplTest {
@@ -56,11 +59,11 @@ public class ClientUpdateServiceImplTest {
   @Before
   public void setUp() throws Exception {
     Configuration configuration = Configuration.builder().build();
-    UpdateInfo normalUpdateInfo = new UpdateInfo("v0.4.9.1-alpha", configuration, 56098816, new URL("http://www.example.com"), false);
-    UpdateInfo betaUpdateInfo = new UpdateInfo("v0.4.9.0-RC1", configuration, 56098816, new URL("http://www.example.com"), true);
+    UpdateInfo normalUpdateInfo = new UpdateInfo("v0.4.9.1-alpha", new ComparableVersion("0.4.9.1-alpha"), Optional.empty(), configuration, 56098816, new URL("http://www.example.com"), false);
+    UpdateInfo betaUpdateInfo = new UpdateInfo("v0.4.9.0-RC1", new ComparableVersion("0.4.9.0-RC1"), Optional.empty(), configuration, 56098816, new URL("http://www.example.com"), true);
     ClientConfiguration clientConfiguration = new ClientConfiguration();
     clientConfiguration.setLatestRelease(new ClientConfiguration.ReleaseInfo());
-    clientConfiguration.getLatestRelease().setVersion("v0.4.9.1-alpha");
+    clientConfiguration.getLatestRelease().setVersion(new ComparableVersion("0.4.9.1-alpha"));
 
     doReturn(checkForReleaseUpdateTask).when(applicationContext).getBean(CheckForReleaseUpdateTask.class);
     doReturn(checkForBetaUpdateTask).when(applicationContext).getBean(CheckForBetaUpdateTask.class);
@@ -78,20 +81,16 @@ public class ClientUpdateServiceImplTest {
    */
   @Test
   public void testCheckForUpdateInBackgroundUpdateAvailable() {
-    instance.currentVersion = "v0.4.8.0-alpha";
+    instance.currentVersion = new ComparableVersion("v0.4.8.0-alpha");
 
+    preferences.setAutoUpdate(false);
     preferences.setPrereleaseCheckEnabled(false);
     instance.checkForUpdateInBackground();
 
     verify(taskService).submitTask(checkForReleaseUpdateTask);
 
-    ArgumentCaptor<PersistentNotification> captor = ArgumentCaptor.forClass(PersistentNotification.class);
-
-    verify(notificationService).addNotification(captor.capture());
-    PersistentNotification persistentNotification = captor.getValue();
-
-    verify(i18n).get("clientUpdateAvailable.notification", "v0.4.9.0-RC1", Bytes.formatSize(56079360L, i18n.getUserSpecificLocale()));
-    assertThat(persistentNotification.getSeverity(), is(INFO));
+    // The method used to trigger a notification but it should no longer
+    verifyNoInteractions(notificationService);
   }
 
   /**
@@ -99,19 +98,15 @@ public class ClientUpdateServiceImplTest {
    */
   @Test
   public void testCheckForBetaUpdateInBackgroundUpdateAvailable() {
-    instance.currentVersion = "v0.4.8.0-alpha";
+    instance.currentVersion = new ComparableVersion("v0.4.8.0-alpha");
 
+    preferences.setAutoUpdate(false);
     preferences.setPrereleaseCheckEnabled(true);
     instance.checkForUpdateInBackground();
 
-    verify(taskService).submitTask(checkForReleaseUpdateTask);
+    verify(taskService).submitTask(checkForBetaUpdateTask);
 
-    ArgumentCaptor<PersistentNotification> captor = ArgumentCaptor.forClass(PersistentNotification.class);
-
-    verify(notificationService).addNotification(captor.capture());
-    PersistentNotification persistentNotification = captor.getValue();
-
-    verify(i18n).get("clientUpdateAvailable.prereleaseNotification", "v0.4.9.1-alpha", Bytes.formatSize(56079360L, i18n.getUserSpecificLocale()));
-    assertThat(persistentNotification.getSeverity(), is(INFO));
+    // The method used to trigger a notification but it should no longer
+    verifyNoInteractions(notificationService);
   }
 }

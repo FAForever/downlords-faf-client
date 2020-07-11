@@ -1,15 +1,18 @@
 package com.faforever.client.update;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 
 import java.net.URL;
 import java.util.List;
 
-@Data
 // TODO since this class contains both, update info and configuration, the package 'update' doesn't really fit.
 /**
  * A representation of a config file read from the faf server on start up. The file on the server allows to dynamically change settings in the client remotely.
  */
+@Data
 public class ClientConfiguration {
   ReleaseInfo latestRelease;
   List<Integer> recommendedMaps;
@@ -45,9 +48,11 @@ public class ClientConfiguration {
   }
 
   @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
   public static class ReleaseInfo {
-    String version;
-    String minimumVersion;
+    ComparableVersion version;
+    ComparableVersion minimumVersion;
     URL update4jConfigUrl;
     URL windowsUrl;
     URL linuxUrl;

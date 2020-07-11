@@ -1,68 +1,111 @@
 package com.faforever.client.update;
 
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.Test;
 
-import java.lang.reflect.Field;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class VersionTest {
 
   @Test(expected = NullPointerException.class)
-  public void shouldFailOnNullFromVersion() {
-    Version.shouldUpdate(null, "v1.0.0");
-  }
-
-  @Test(expected = NullPointerException.class)
   public void shouldFailOnNullToVersion() {
-    Version.shouldUpdate("v1.0.0", null);
+    Version.shouldUpdate(null);
   }
 
   @Test
-  public void shouldUpdateIfRemoteIsNewer() {
-    assertFalse(Version.shouldUpdate("1.1.0", "1.1.0"));
-    assertFalse(Version.shouldUpdate("1.1.0", "v1.1.0"));
-    assertTrue(Version.shouldUpdate("1.0.0-alpha", "v1.0.0-beta"));
-    assertTrue(Version.shouldUpdate("1.0.0-alpha", "v1.0.0-RC1"));
-    assertTrue(Version.shouldUpdate("1.0.0-RC1", "v1.0.0-RC2"));
-    assertFalse(Version.shouldUpdate("1.0.0-beta", "v1.0.0-alpha"));
-    assertTrue(Version.shouldUpdate("1.0.9", "v1.1.0"));
-    assertFalse(Version.shouldUpdate("1.1.0", "v1.0.9"));
-    assertTrue(Version.shouldUpdate("v1.0.9", "1.1.0"));
-    assertFalse(Version.shouldUpdate("1.1.0", "1.0.9"));
-    assertTrue(Version.shouldUpdate("1.1.0", "v1.1.1"));
-    assertTrue(Version.shouldUpdate("1.9.9", "v2.0.0"));
+  public void shouldUpdate_same() {
+    Version.currentVersion = new ComparableVersion("1.0.0");
+    assertThat(Version.shouldUpdate(new ComparableVersion("1.0.0")), is(false));
   }
 
   @Test
-  public void shouldNotUpdateIfSnapshot() {
-    assertFalse(Version.shouldUpdate("snapshot", "v9.9.99"));
+  public void shouldUpdate_isNewerPatch() {
+    Version.currentVersion = new ComparableVersion("1.0.0");
+    assertThat(Version.shouldUpdate(new ComparableVersion("1.0.1")), is(true));
   }
 
   @Test
-  public void shouldNotUpdateIfToVersionIsNotSemver() {
-    assertFalse(Version.shouldUpdate("1.1.7", "xyz"));
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void shouldFailIfToVersionIsNotSemver() {
-    assertFalse(Version.shouldUpdate("xyz", "1.1.5"));
+  public void shouldUpdate_isNewerPatch_9_10() {
+    Version.currentVersion = new ComparableVersion("1.0.9");
+    assertThat(Version.shouldUpdate(new ComparableVersion("1.0.10")), is(true));
   }
 
   @Test
-  public void shouldNotUpdateIfRemoteIsSame() {
-    assertFalse(Version.shouldUpdate("1.1.5", "v1.1.5"));
+  public void shouldUpdate_isNewerMinor() {
+    Version.currentVersion = new ComparableVersion("1.0.0");
+    assertThat(Version.shouldUpdate(new ComparableVersion("1.1.0")), is(true));
   }
 
   @Test
-  public void shouldNotUpdateIfRemoteIsOlder() {
-    assertFalse(Version.shouldUpdate("1.1.9", "v1.1.5"));
+  public void shouldUpdate_isNewerMajor() {
+    Version.currentVersion = new ComparableVersion("1.0.0");
+    assertThat(Version.shouldUpdate(new ComparableVersion("2.0.0")), is(true));
   }
 
-  public static void setCurrentVersion(String version) throws NoSuchFieldException, IllegalAccessException {
-    Field field = Version.class.getDeclaredField("currentVersion");
-    field.setAccessible(true);
-    field.set(null, version);
+  @Test
+  public void shouldUpdate_alpha() {
+    Version.currentVersion = new ComparableVersion("1.0.0-alpha");
+    assertThat(Version.shouldUpdate(new ComparableVersion("1.0.0")), is(true));
+  }
+
+  @Test
+  public void shouldUpdate_beta() {
+    Version.currentVersion = new ComparableVersion("1.0.0-beta");
+    assertThat(Version.shouldUpdate(new ComparableVersion("1.0.0")), is(true));
+  }
+
+  @Test
+  public void shouldUpdate_isOlder_alpha_beta() {
+    Version.currentVersion = new ComparableVersion("1.0.0-alpha");
+    assertThat(Version.shouldUpdate(new ComparableVersion("1.0.0-beta")), is(true));
+  }
+
+  @Test
+  public void shouldUpdate_rc1() {
+    Version.currentVersion = new ComparableVersion("1.0.0-RC1");
+    assertThat(Version.shouldUpdate(new ComparableVersion("1.0.0")), is(true));
+  }
+
+  @Test
+  public void shouldUpdate_isNewerRc9_rc10() {
+    Version.currentVersion = new ComparableVersion("1.0.0-RC9");
+    assertThat(Version.shouldUpdate(new ComparableVersion("1.0.0-RC10")), is(true));
+  }
+
+  @Test
+  public void shouldUpdate_gibberish() {
+    Version.currentVersion = new ComparableVersion("1.0.0");
+    assertThat(Version.shouldUpdate(new ComparableVersion("xyz")), is(false));
+  }
+
+  @Test
+  public void shouldUpdate_isOlderPatch_10_9() {
+    Version.currentVersion = new ComparableVersion("1.0.10");
+    assertThat(Version.shouldUpdate(new ComparableVersion("1.0.9")), is(false));
+  }
+
+  @Test
+  public void shouldUpdate_isOlder_beta_alpha() {
+    Version.currentVersion = new ComparableVersion("1.0.0-beta");
+    assertThat(Version.shouldUpdate(new ComparableVersion("1.0.0-alpha")), is(false));
+  }
+
+  @Test
+  public void shouldUpdate_isOlder_minor() {
+    Version.currentVersion = new ComparableVersion("1.1.0");
+    assertThat(Version.shouldUpdate(new ComparableVersion("1.0.0")), is(false));
+  }
+
+  @Test
+  public void shouldUpdate_isOlder_major() {
+    Version.currentVersion = new ComparableVersion("2.0.0");
+    assertThat(Version.shouldUpdate(new ComparableVersion("1.0.0")), is(false));
+  }
+
+  @Test
+  public void shouldUpdate_unspecifiedVersion() {
+    Version.currentVersion = Version.UNSPECIFIED_VERSION;
+    assertThat(Version.shouldUpdate(new ComparableVersion("9.9.99")), is(false));
   }
 }

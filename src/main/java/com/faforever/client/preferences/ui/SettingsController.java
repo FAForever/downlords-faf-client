@@ -145,6 +145,7 @@ public class SettingsController implements Controller<Node> {
   public TextField channelTextField;
   public Button addChannelButton;
   public ListView<String> autoChannelListView;
+  public CheckBox autoUpdateCheckbox;
 
   private final InvalidationListener availableLanguagesListener;
 
@@ -306,6 +307,8 @@ public class SettingsController implements Controller<Node> {
     autoChannelListView.managedProperty().bind(autoChannelListView.visibleProperty());
     autoChannelListView.visibleProperty().bind(Bindings.createBooleanBinding(() -> !autoChannelListView.getItems().isEmpty(), autoChannelListView.getItems()));
 
+    autoUpdateCheckbox.selectedProperty().bindBidirectional(preferences.autoUpdateProperty());
+
     secondaryVaultLocationToggle.setSelected(preferences.getForgedAlliance().getVaultBaseDirectory().equals(preferencesService.getSecondaryVaultLocation()));
     secondaryVaultLocationToggle.selectedProperty().addListener(observable -> {
       Path vaultBaseDirectory = secondaryVaultLocationToggle.isSelected() ? preferencesService.getSecondaryVaultLocation() : preferencesService.getPrimaryVaultLocation();
@@ -315,11 +318,8 @@ public class SettingsController implements Controller<Node> {
     advancedIceLogToggle.selectedProperty().bindBidirectional(preferences.advancedIceLogEnabledProperty());
 
     prereleaseToggle.selectedProperty().bindBidirectional(preferences.prereleaseCheckEnabledProperty());
-    prereleaseToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue != null && newValue && (oldValue == null || !oldValue)) {
-        clientUpdateService.checkForUpdateInBackground();
-      }
-    });
+    // TODO just like in LoginController, this should trigger a notification. However, don't just copy-paste it. Instead, publish an UpdateAvailableEvent and implement a notifier component that listens to it. Or so.
+    prereleaseToggle.selectedProperty().addListener((observable, oldValue, newValue) -> clientUpdateService.checkForUpdateInBackground());
 
     initUnitDatabaseSelection(preferences);
 

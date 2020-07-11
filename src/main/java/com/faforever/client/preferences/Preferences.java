@@ -52,6 +52,7 @@ public class Preferences {
   private final BooleanProperty disallowJoinsViaDiscord;
   private final BooleanProperty showGameDetailsSidePane;
   private final BooleanProperty advancedIceLogEnabled;
+  private final BooleanProperty autoUpdate;
 
   public Preferences() {
     gameTileSortingOrder = new SimpleObjectProperty<>(TilesSortingOrder.PLAYER_DES);
@@ -78,6 +79,7 @@ public class Preferences {
     disallowJoinsViaDiscord = new SimpleBooleanProperty();
     showGameDetailsSidePane = new SimpleBooleanProperty(false);
     advancedIceLogEnabled = new SimpleBooleanProperty(false);
+    autoUpdate = new SimpleBooleanProperty(true);
     prereleaseCheckEnabled = new SimpleBooleanProperty(false);
   }
 
@@ -228,6 +230,18 @@ public class Preferences {
 
   public BooleanProperty advancedIceLogEnabledProperty() {
     return advancedIceLogEnabled;
+  }
+
+  public boolean isAutoUpdate() {
+    return autoUpdate.get();
+  }
+
+  public BooleanProperty autoUpdateProperty() {
+    return autoUpdate;
+  }
+
+  public void setAutoUpdate(boolean autoUpdate) {
+    this.autoUpdate.set(autoUpdate);
   }
 
   public BooleanProperty showGameDetailsSidePaneProperty() {

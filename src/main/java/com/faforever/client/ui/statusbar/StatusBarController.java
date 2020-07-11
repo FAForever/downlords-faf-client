@@ -55,7 +55,7 @@ public class StatusBarController implements Controller<Node> {
   @Override
   public void initialize() {
     setCurrentWorkerInStatusBar(null);
-    versionLabel.setText(Version.getCurrentVersion());
+    versionLabel.setText(Version.getCurrentVersion().toString());
 
     JavaFxUtil.addListener(fafService.connectionStateProperty(), (observable, oldValue, newValue) -> runLater(() -> {
       switch (newValue) {

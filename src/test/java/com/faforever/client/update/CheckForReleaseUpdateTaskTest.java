@@ -12,6 +12,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.web.client.RestTemplate;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.InputStreamReader;
@@ -25,6 +27,7 @@ import java.util.concurrent.CountDownLatch;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.when;
 
 @Slf4j
 public class CheckForReleaseUpdateTaskTest extends AbstractPlainJavaFxTest {
@@ -38,14 +41,19 @@ public class CheckForReleaseUpdateTaskTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
   @Mock
   private PreferencesService preferencesService;
+  @Mock
+  private RestTemplateBuilder restTemplateBuilder;
+  @Mock
+  private RestTemplate restTemplate;
 
   private CountDownLatch terminateLatch;
   private ClientProperties clientProperties;
 
   @Before
   public void setUp() throws Exception {
+    when(restTemplateBuilder.build()).thenReturn(restTemplate);
     clientProperties = new ClientProperties();
-    instance = new CheckForReleaseUpdateTask(i18n, preferencesService);
+    instance = new CheckForReleaseUpdateTask(i18n, preferencesService, restTemplateBuilder);
 
     terminateLatch = new CountDownLatch(1);
   }

@@ -247,7 +247,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
             serverWriter = createServerWriter(outputStream);
 
-            writeToServer(new InitSessionMessage(Version.getCurrentVersion()));
+            writeToServer(new InitSessionMessage(Version.getCurrentVersion().toString()));
 
             log.info("FAF server connection established");
             Platform.runLater(() -> connectionState.set(ConnectionState.CONNECTED));
