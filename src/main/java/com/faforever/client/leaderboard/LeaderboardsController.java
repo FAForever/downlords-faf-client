@@ -27,6 +27,8 @@ public class LeaderboardsController extends AbstractViewController<Node> {
   public Tab globalLeaderboardTab;
 
   private boolean isHandlingEvent;
+  private AbstractViewController<?> lastTabController;
+  private Tab lastTab;
 
   public LeaderboardsController(EventBus eventBus) {
     this.eventBus = eventBus;
@@ -39,7 +41,8 @@ public class LeaderboardsController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
-    eventBus.post(new OpenLadder1v1LeaderboardEvent());
+    lastTab = ladder1v1LeaderboardTab;
+    lastTabController = ladder1v1LeaderboardController;
     ladder1v1LeaderboardController.setRatingType(KnownFeaturedMod.LADDER_1V1);
     globalLeaderboardController.setRatingType(KnownFeaturedMod.FAF);
 
@@ -63,13 +66,15 @@ public class LeaderboardsController extends AbstractViewController<Node> {
 
     try {
       if (navigateEvent instanceof OpenLadder1v1LeaderboardEvent) {
-        leaderboardRoot.getSelectionModel().select(ladder1v1LeaderboardTab);
-        ladder1v1LeaderboardController.display(navigateEvent);
+        lastTab = ladder1v1LeaderboardTab;
+        lastTabController = ladder1v1LeaderboardController;
       }
-      if (navigateEvent instanceof OpenGlobalLeaderboardEvent) {
-        leaderboardRoot.getSelectionModel().select(globalLeaderboardTab);
-        globalLeaderboardController.display(navigateEvent);
+      else if (navigateEvent instanceof OpenGlobalLeaderboardEvent) {
+        lastTab = globalLeaderboardTab;
+        lastTabController = globalLeaderboardController;
       }
+      leaderboardRoot.getSelectionModel().select(lastTab);
+      lastTabController.display(navigateEvent);
     } finally {
       isHandlingEvent = false;
     }

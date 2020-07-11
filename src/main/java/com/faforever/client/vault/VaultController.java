@@ -35,6 +35,8 @@ public class VaultController extends AbstractViewController<Node> {
   public Tab onlineReplayVaultTab;
   public Tab localReplayVaultTab;
   private boolean isHandlingEvent;
+  private AbstractViewController<?> lastTabController;
+  private Tab lastTab;
 
   public VaultController(EventBus eventBus) {
     this.eventBus = eventBus;
@@ -47,7 +49,8 @@ public class VaultController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
-    eventBus.post(new OpenMapVaultEvent());
+    lastTab = onlineReplayVaultTab;
+    lastTabController = onlineReplayVaultController;
     vaultRoot.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
       if (isHandlingEvent) {
         return;
@@ -72,21 +75,23 @@ public class VaultController extends AbstractViewController<Node> {
 
     try {
       if (navigateEvent instanceof OpenMapVaultEvent) {
-        vaultRoot.getSelectionModel().select(mapVaultTab);
-        mapVaultController.display(navigateEvent);
+        lastTab = mapVaultTab;
+        lastTabController = mapVaultController;
       }
-      if (navigateEvent instanceof OpenModVaultEvent) {
-        vaultRoot.getSelectionModel().select(modVaultTab);
-        modVaultController.display(navigateEvent);
+      else if (navigateEvent instanceof OpenModVaultEvent) {
+        lastTab = modVaultTab;
+            lastTabController = modVaultController;
       }
-      if (navigateEvent instanceof OpenOnlineReplayVaultEvent) {
-        vaultRoot.getSelectionModel().select(onlineReplayVaultTab);
-        onlineReplayVaultController.display(navigateEvent);
+      else if (navigateEvent instanceof OpenOnlineReplayVaultEvent) {
+        lastTab = onlineReplayVaultTab;
+        lastTabController = onlineReplayVaultController;
       }
-      if (navigateEvent instanceof OpenReplayVaultEvent) {
-        vaultRoot.getSelectionModel().select(localReplayVaultTab);
-        localReplayVaultController.display(navigateEvent);
+      else if (navigateEvent instanceof OpenReplayVaultEvent) {
+        lastTab = localReplayVaultTab;
+        lastTabController = localReplayVaultController;
       }
+      vaultRoot.getSelectionModel().select(lastTab);
+      lastTabController.display(navigateEvent);
     } finally {
       isHandlingEvent = false;
     }
