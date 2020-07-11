@@ -11,6 +11,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.user.event.LoggedInEvent;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
@@ -24,7 +25,6 @@ import static com.faforever.client.notification.Severity.WARN;
 import static com.faforever.commons.io.Bytes.formatSize;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.apache.commons.lang3.StringUtils.defaultString;
 
 
 @Lazy
@@ -33,19 +33,15 @@ import static org.apache.commons.lang3.StringUtils.defaultString;
 @Profile("!" + FafClientApplication.PROFILE_OFFLINE)
 public class ClientUpdateServiceImpl implements ClientUpdateService {
 
-  private static final String DEVELOPMENT_VERSION_STRING = "dev";
-
   private final TaskService taskService;
   private final NotificationService notificationService;
   private final I18n i18n;
   private final PlatformService platformService;
   private final ApplicationContext applicationContext;
   private final PreferencesService preferencesService;
-  private final CompletableFuture<UpdateInfo> updateInfoFuture;
-  private final CompletableFuture<UpdateInfo> updateInfoBetaFuture;
 
   @VisibleForTesting
-  String currentVersion;
+  ComparableVersion currentVersion;
 
   public ClientUpdateServiceImpl(
       TaskService taskService,
@@ -61,78 +57,59 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
     this.applicationContext = applicationContext;
     this.preferencesService = preferencesService;
 
-    currentVersion = defaultString(Version.getCurrentVersion(), DEVELOPMENT_VERSION_STRING);
+    currentVersion = Version.getCurrentVersion();
     log.info("Current version: {}", currentVersion);
-
-    CheckForReleaseUpdateTask task = applicationContext.getBean(CheckForReleaseUpdateTask.class);
-    updateInfoFuture = taskService.submitTask(task).getFuture();
-
-    CheckForBetaUpdateTask betaTask = applicationContext.getBean(CheckForBetaUpdateTask.class);
-    updateInfoBetaFuture = taskService.submitTask(betaTask).getFuture();
-  }
-
-  /**
-   * Returns information about the newest update. Returns {@code null} if no update is available.
-   */
-  @Override
-  public CompletableFuture<UpdateInfo> getNewestUpdate() {
-    return updateInfoFuture;
   }
 
   @Override
-  public void checkForUpdateInBackground() {
+  public CompletableFuture<UpdateInfo> checkForUpdateInBackground() {
+    CompletableFuture<UpdateInfo> task;
     if (preferencesService.getPreferences().isPrereleaseCheckEnabled()) {
-      checkForBetaUpdateInBackground();
+      task = taskService.submitTask(applicationContext.getBean(CheckForBetaUpdateTask.class)).getFuture();
     } else {
-      checkForRegularUpdateInBackground();
+      task = taskService.submitTask(applicationContext.getBean(CheckForReleaseUpdateTask.class)).getFuture();
     }
-  }
 
-  @EventListener
-  public void onLoggedInEvent(LoggedInEvent loggedInEvent) {
-    checkForUpdateInBackground();
-  }
-
-  /**
-   * Creates an update notification with actions to download and install latest release
-   */
-  private void checkForRegularUpdateInBackground() {
-    notificationOnUpdate(updateInfoFuture);
-  }
-
-  /**
-   * Creates an update notification with actions to download and install latest beta release
-   */
-  private void checkForBetaUpdateInBackground() {
-    notificationOnUpdate(updateInfoBetaFuture);
-  }
-
-  private void notificationOnUpdate(CompletableFuture<UpdateInfo> updateInfoSupplier) {
-    updateInfoSupplier.thenAccept(updateInfo -> {
-      if (updateInfo == null) {
-        return;
-      }
-
-      if (!Version.shouldUpdate(getCurrentVersion(), updateInfo.getName())) {
-        return;
-      }
-
-      notificationService.addNotification(new PersistentNotification(
-          i18n.get(updateInfo.isPrerelease() ? "clientUpdateAvailable.prereleaseNotification" : "clientUpdateAvailable.notification", updateInfo.getName(), formatSize(updateInfo.getSize(), i18n.getUserSpecificLocale())),
-          INFO, asList(
-          new Action(i18n.get("clientUpdateAvailable.downloadAndInstall"), event -> updateInBackground(updateInfo)),
-          new Action(i18n.get("clientUpdateAvailable.releaseNotes"), Action.Type.OK_STAY,
-              event -> platformService.showDocument(updateInfo.getReleaseNotesUrl().toExternalForm())
-          )))
-      );
-    }).exceptionally(throwable -> {
+    return task.exceptionally(throwable -> {
       log.warn("Client update check failed", throwable);
       return null;
     });
   }
 
+  @EventListener(classes = LoggedInEvent.class)
+  public void onLoggedInEvent() {
+    checkForUpdateInBackground().thenAccept(updateInfo -> {
+      if (preferencesService.getPreferences().isAutoUpdate()) {
+        updateIfNecessary(updateInfo);
+      } else {
+        notificationService.addNotification(new PersistentNotification(
+            i18n.get(updateInfo.isPrerelease() ? "clientUpdateAvailable.prereleaseNotification" : "clientUpdateAvailable.notification", updateInfo.getName(), formatSize(updateInfo.getSize(), i18n.getUserSpecificLocale())),
+            INFO, asList(
+            new Action(i18n.get("clientUpdateAvailable.downloadAndInstall"), event -> updateInBackground(updateInfo)),
+            new Action(i18n.get("clientUpdateAvailable.releaseNotes"), Action.Type.OK_STAY,
+                event -> platformService.showDocument(updateInfo.getReleaseNotesUrl().toExternalForm())
+            ))));
+      }
+    });
+  }
+
+  private void updateIfNecessary(UpdateInfo updateInfo) {
+    if (updateInfo == null) {
+      return;
+    }
+
+    if (!Version.shouldUpdate(getCurrentVersion(), updateInfo.getVersion())) {
+      return;
+    }
+
+    if (preferencesService.getPreferences().isAutoUpdate()) {
+      updateInBackground(updateInfo);
+      return;
+    }
+  }
+
   @Override
-  public String getCurrentVersion() {
+  public ComparableVersion getCurrentVersion() {
     return currentVersion;
   }
 

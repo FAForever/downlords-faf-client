@@ -33,6 +33,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -100,7 +101,7 @@ public class LoginController implements Controller<Pane> {
   }
 
   public void initialize() {
-    updateInfoFuture = clientUpdateService.getNewestUpdate();
+    updateInfoFuture = clientUpdateService.checkForUpdateInBackground();
 
     downloadUpdateButton.managedProperty().bind(downloadUpdateButton.visibleProperty());
     downloadUpdateButton.setVisible(false);
@@ -167,7 +168,7 @@ public class LoginController implements Controller<Pane> {
     if (clientProperties.isUseRemotePreferences()) {
       initializeFuture = preferencesService.getRemotePreferencesAsync()
           .thenApply(clientConfiguration -> {
-            String minimumVersion = clientConfiguration.getLatestRelease().getMinimumVersion();
+            ComparableVersion minimumVersion = clientConfiguration.getLatestRelease().getMinimumVersion();
             boolean shouldUpdate = false;
             try {
               shouldUpdate = Version.shouldUpdate(Version.getCurrentVersion(), minimumVersion);
@@ -197,7 +198,7 @@ public class LoginController implements Controller<Pane> {
     }
   }
 
-  private void showClientOutdatedPane(String minimumVersion) {
+  private void showClientOutdatedPane(ComparableVersion minimumVersion) {
     Platform.runLater(() -> {
       loginErrorLabel.setText(i18n.get("login.clientTooOldError", Version.getCurrentVersion(), minimumVersion));
       loginErrorLabel.setVisible(true);
@@ -333,16 +334,15 @@ public class LoginController implements Controller<Pane> {
     downloadUpdateButton.setOnAction(event -> {
     });
     log.info("Downloading update");
-    updateInfoFuture
-        .thenAccept(updateInfo -> {
-          ClientUpdateTask clientUpdateTask = clientUpdateService.updateInBackground(updateInfo);
+    updateInfoFuture.thenAccept(updateInfo -> {
+      ClientUpdateTask clientUpdateTask = clientUpdateService.updateInBackground(updateInfo);
 
-          downloadUpdateButton.textProperty().bind(
-              Bindings.createStringBinding(() -> clientUpdateTask.getProgress() == -1 ?
-                      i18n.get("login.button.downloadPreparing") :
-                      i18n.get("login.button.downloadProgress", clientUpdateTask.getProgress()),
-                  clientUpdateTask.progressProperty()));
-        });
+      downloadUpdateButton.textProperty().bind(
+          Bindings.createStringBinding(() -> clientUpdateTask.getProgress() == -1 ?
+                  i18n.get("login.button.downloadPreparing") :
+                  i18n.get("login.button.downloadProgress", clientUpdateTask.getProgress()),
+              clientUpdateTask.progressProperty()));
+    });
   }
 
   public Pane getRoot() {

@@ -145,6 +145,7 @@ public class SettingsController implements Controller<Node> {
   public TextField channelTextField;
   public Button addChannelButton;
   public ListView<String> autoChannelListView;
+  public CheckBox autoUpdateCheckbox;
 
   private final InvalidationListener availableLanguagesListener;
 
@@ -305,6 +306,8 @@ public class SettingsController implements Controller<Node> {
     autoChannelListView.getItems().addListener((ListChangeListener<String>) c -> preferencesService.storeInBackground());
     autoChannelListView.managedProperty().bind(autoChannelListView.visibleProperty());
     autoChannelListView.visibleProperty().bind(Bindings.createBooleanBinding(() -> !autoChannelListView.getItems().isEmpty(), autoChannelListView.getItems()));
+
+    autoUpdateCheckbox.selectedProperty().bindBidirectional(preferences.getForgedAlliance().autoDownloadMapsProperty());
 
     secondaryVaultLocationToggle.setSelected(preferences.getForgedAlliance().getVaultBaseDirectory().equals(preferencesService.getSecondaryVaultLocation()));
     secondaryVaultLocationToggle.selectedProperty().addListener(observable -> {

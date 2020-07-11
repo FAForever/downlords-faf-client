@@ -3,7 +3,7 @@ package com.faforever.client.update;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.Nullable;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.update4j.Configuration;
 
 import java.net.URL;
 import java.util.List;
@@ -34,19 +35,14 @@ public class CheckForBetaUpdateTask extends AbstractCheckForUpdateTask {
   }
 
   @Override
-  @Nullable
-  protected URL getUpdate4jConfigUrl(ClientConfiguration clientConfiguration) {
+  protected UpdateInfo getUpdateInfo(ClientConfiguration clientConfiguration) {
     LinkedMultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
     headers.add("Accept", "application/vnd.github.v3+json");
     HttpEntity<String> entity = new HttpEntity<>(null, headers);
 
     String url = clientConfiguration.getGitHubRepo().getApiUrl() + PATH_FOR_RELEASE;
     ResponseEntity<List<GitHubRelease>> response = restTemplate.exchange(
-        url,
-        HttpMethod.GET,
-        entity,
-        // Explicit List<GitHubRelease> because of an openjdk compiler bug
-        new ParameterizedTypeReference<List<GitHubRelease>>() {
+        url, HttpMethod.GET, entity, new ParameterizedTypeReference<>() {
         });
 
     List<GitHubRelease> responseBody = response.getBody();
@@ -54,14 +50,34 @@ public class CheckForBetaUpdateTask extends AbstractCheckForUpdateTask {
       log.warn("No response body from {} ({})", url, response.getStatusCode());
       return null;
     }
+
     GitHubRelease latestRelease = responseBody.get(0);
     if (!latestRelease.isPrerelease()) {
       return null;
     }
 
-    return getUpdate4jAsset(latestRelease)
+    URL update4jConfigUrl = getUpdate4jAsset(latestRelease)
         .map(GitHubAssets::getBrowserDownloadUrl)
         .orElse(null);
+
+    Configuration newConfig = readConfiguration(update4jConfigUrl);
+    if (newConfig == null) {
+      return null;
+    }
+
+    URL currentVersionConfigUrl = getClass().getResource("/update4j/update4j.xml");
+    Configuration oldConfig = currentVersionConfigUrl != null ? readConfiguration(currentVersionConfigUrl) : null;
+
+    long size = calculateUpdateSize(oldConfig, newConfig);
+
+    return new UpdateInfo(
+        latestRelease.getName(),
+        new ComparableVersion(latestRelease.getTagName()),
+        newConfig,
+        size,
+        latestRelease.getReleaseNotes(),
+        true
+    );
   }
 
   @Override

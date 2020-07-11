@@ -290,7 +290,6 @@ dependencies {
   compile("com.github.axel1200:discord-rpc:${discordRpcVersion}")
 
   webViewPatch('com.github.micheljung:javafx-transparent-webview-patch:0468c80')
-  compile('com.github.micheljung:javafx-transparent-webview-patch:0468c80')
   compile("org.javassist:javassist:${project.ext['javassist.version']}")
 
   testCompile 'junit:junit:4.13'

@@ -4,6 +4,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.update.ClientConfiguration.ReleaseInfo;
+import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -40,42 +42,19 @@ public abstract class AbstractCheckForUpdateTask extends CompletableTask<UpdateI
 
     ClientConfiguration clientConfiguration = preferencesService.getRemotePreferences();
 
-    URL update4jConfigUrl = getUpdate4jConfigUrl(clientConfiguration);
-    if (update4jConfigUrl == null) {
-      log().warn("No update4jConfigUrl provided");
-      return null;
-    }
-
-    Configuration newConfig = readConfiguration(update4jConfigUrl);
-    if (newConfig == null) {
-      return null;
-    }
-
-    URL currentVersionConfigUrl = getClass().getResource("/update4j/update4j.xml");
-    Configuration oldConfig = readConfiguration(currentVersionConfigUrl);
-
-    long size = calculateUpdateSize(oldConfig, newConfig);
-
-    ReleaseInfo latestRelease = clientConfiguration.getLatestRelease();
-    String version = latestRelease.getVersion();
-    URL releaseNotesUrl = latestRelease.getReleaseNotesUrl();
-
-    return new UpdateInfo(version, newConfig, size, releaseNotesUrl, false);
+    return getUpdateInfo(clientConfiguration);
   }
 
-  @Nullable
-  protected URL getUpdate4jConfigUrl(ClientConfiguration clientConfiguration) {
-    return clientConfiguration.getLatestRelease().getUpdate4jConfigUrl();
-  }
+  abstract protected UpdateInfo getUpdateInfo(ClientConfiguration clientConfiguration);
 
-  private long calculateUpdateSize(@Nullable Configuration oldConfig, Configuration newConfig) {
-    Map<Long, FileMetadata> filesToDownload = newConfig.getFiles().stream()
-        .collect(Collectors.toMap(FileMetadata::getChecksum, Function.identity()));
+  protected long calculateUpdateSize(@Nullable Configuration oldConfig, Configuration newConfig) {
+    Map<String, FileMetadata> filesToDownload = newConfig.getFiles().stream()
+        .collect(Collectors.toMap(this::key, Function.identity()));
 
     if (oldConfig != null) {
       oldConfig.getFiles().stream()
           .collect(Collectors.toMap(FileMetadata::getChecksum, Function.identity()))
-          .forEach((checksum, fileMetadata) -> filesToDownload.remove(checksum));
+          .forEach((checksum, fileMetadata) -> filesToDownload.remove(key(fileMetadata)));
     }
 
     return filesToDownload.values().stream()
@@ -84,8 +63,12 @@ public abstract class AbstractCheckForUpdateTask extends CompletableTask<UpdateI
         .sum();
   }
 
-  @Nullable
-  private Configuration readConfiguration(URL update4jConfigUrl) {
+  @NotNull
+  private String key(FileMetadata metadata) {
+    return metadata.getPath().toString() + metadata.getChecksum();
+  }
+
+  protected Configuration readConfiguration(URL update4jConfigUrl) {
     Configuration newConfig;
     try (Reader reader = new InputStreamReader(update4jConfigUrl.openStream())) {
       newConfig = Configuration.read(reader);

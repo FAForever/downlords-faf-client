@@ -1,6 +1,9 @@
 package com.faforever.client.update;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 
 import java.net.URL;
 import java.util.List;
@@ -45,9 +48,11 @@ public class ClientConfiguration {
   }
 
   @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
   public static class ReleaseInfo {
-    String version;
-    String minimumVersion;
+    ComparableVersion version;
+    ComparableVersion minimumVersion;
     URL update4jConfigUrl;
     URL windowsUrl;
     URL linuxUrl;

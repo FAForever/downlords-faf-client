@@ -54,4 +54,5 @@ deploy:
 
 cache:
   - 'build\jdk-14.0.1+7'
-  - '.gradle'
+  - '.gradle\wrapper'
+  - '.gradle\caches'
