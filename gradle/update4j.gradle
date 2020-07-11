@@ -37,6 +37,7 @@ task createUpdate4jConfig {
       def targetPath = source.toPath().relativize(it.toPath())
       println targetPath
       builder.file(FileMetadata.readFrom(it.toPath())
+          .ignoreBootConflict(true)
           .uri("${update4jBaseUrl}/${version}/" + targetPath)
           .path('${app.dir}/' + targetPath)
       )

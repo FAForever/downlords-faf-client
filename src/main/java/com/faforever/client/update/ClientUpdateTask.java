@@ -60,7 +60,7 @@ public class ClientUpdateTask extends CompletableTask<Void> {
     Path jreDir = copyJre(updateDirectory);
     Path updaterJar = copyUpdaterJar(updateDirectory);
 
-    String command = String.format("%s -jar %s", jreDir.resolve("bin/java").toAbsolutePath(), updaterJar.toAbsolutePath());
+    String command = String.format("%s -jar %s %s", jreDir.resolve("bin/java").toAbsolutePath(), updaterJar.toAbsolutePath(), updateDirectory);
     log.info("Starting updater using command: {}", command);
     Process exec = Runtime.getRuntime().exec(command);
     log.info("Updater pid is {}", exec.pid());
