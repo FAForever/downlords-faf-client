@@ -4,8 +4,8 @@
       <env name="SPRING_PROFILES_ACTIVE" value="prod" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="com.faforever.client.Main" />
-    <module name="downlords-faf-client_main" />
-    <option name="VM_PARAMETERS" value="-DnativeDir=build/resources/native -Dprism.dirtyopts=false -Xms128m -Xmx712m -XX:MinHeapFreeRatio=15 -XX:MaxHeapFreeRatio=33 -XX:+HeapDumpOnOutOfMemoryError -XX:+UseStringDeduplication -javaagent:build/webview-patch/webview-patch.jar -Djava.net.preferIPv4Stack=true -XX:TieredStopAtLevel=1 -noverify" />
+    <module name="downlords-faf-client.main" />
+    <option name="VM_PARAMETERS" value="-DexternalToolsDir=build/resources/tools -Dprism.dirtyopts=false -Xms128m -Xmx712m -XX:MinHeapFreeRatio=15 -XX:MaxHeapFreeRatio=33 -XX:+HeapDumpOnOutOfMemoryError -XX:+UseStringDeduplication -javaagent:build/webview-patch/webview-patch.jar -Djava.net.preferIPv4Stack=true -XX:TieredStopAtLevel=1 -noverify -splash:src/media/splash/splash.png" />
     <RunnerSettings RunnerId="Profile ">
       <option name="myExternalizedOptions" value="additional-options2=onexit\=snapshot,_no_java_version_check" />
     </RunnerSettings>

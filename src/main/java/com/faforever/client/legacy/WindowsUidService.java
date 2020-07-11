@@ -16,7 +16,7 @@ public class WindowsUidService implements UidService {
 
   @Override
   public String generate(String sessionId, Path logFile) throws IOException {
-    String uidDir = System.getProperty("nativeDir", "lib");
+    String uidDir = System.getProperty("externalToolsDir", "lib");
     return OsUtils.execAndGetOutput(String.format("%s/faf-uid.exe", uidDir), sessionId);
   }
 }

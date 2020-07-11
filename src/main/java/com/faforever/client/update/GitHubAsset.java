@@ -6,7 +6,7 @@ import lombok.Data;
 import java.net.URL;
 
 @Data
-public class GitHubAssets {
+public class GitHubAsset {
   private String name;
   @JsonProperty("browser_download_url")
   private URL browserDownloadUrl;

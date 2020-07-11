@@ -17,7 +17,7 @@ public class PosixUidService implements UidService {
 
   @Override
   public String generate(String sessionId, Path logFile) throws IOException {
-    String uidDir = System.getProperty("nativeDir", "lib");
+    String uidDir = System.getProperty("externalToolsDir", "lib");
     Path uidPath = Paths.get(uidDir).resolve("faf-uid");
     return OsUtils.execAndGetOutput(uidPath.toAbsolutePath().toString(), sessionId);
   }

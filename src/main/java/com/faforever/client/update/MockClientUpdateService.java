@@ -2,10 +2,12 @@ package com.faforever.client.update;
 
 import com.faforever.client.FafClientApplication;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -16,18 +18,13 @@ import java.util.concurrent.CompletableFuture;
 public class MockClientUpdateService implements ClientUpdateService {
 
   @Override
-  public CompletableFuture<UpdateInfo> getNewestUpdate() {
-    return CompletableFuture.completedFuture(null);
+  public CompletableFuture<Optional<UpdateInfo>> checkForUpdateInBackground() {
+    return CompletableFuture.completedFuture(Optional.empty());
   }
 
   @Override
-  public void checkForUpdateInBackground() {
-
-  }
-
-  @Override
-  public String getCurrentVersion() {
-    return "0.10.1";
+  public ComparableVersion getCurrentVersion() {
+    return new ComparableVersion("0.10.1");
   }
 
   @Override

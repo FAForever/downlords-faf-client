@@ -6,6 +6,7 @@ import com.faforever.client.preferences.gson.ColorTypeAdapter;
 import com.faforever.client.preferences.gson.ExcludeFieldsWithExcludeAnnotationStrategy;
 import com.faforever.client.preferences.gson.PathTypeAdapter;
 import com.faforever.client.preferences.gson.PropertyTypeAdapter;
+import com.faforever.client.remote.gson.ComparableVersionTypeAdapter;
 import com.faforever.client.remote.gson.FactionTypeAdapter;
 import com.faforever.client.update.ClientConfiguration;
 import com.github.nocatch.NoCatch.NoCatchRunnable;
@@ -21,10 +22,13 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.paint.Color;
 import lombok.SneakyThrows;
+import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.apache.maven.artifact.versioning.ComparableVersionDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.logging.LogFile;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -89,7 +93,7 @@ public class PreferencesService implements InitializingBean {
     }
     CACHE_DIRECTORY = FAF_DATA_DIRECTORY.resolve(CACHE_SUB_FOLDER);
 
-    System.setProperty("logging.file", PreferencesService.FAF_DATA_DIRECTORY
+    System.setProperty(LogFile.FILE_NAME_PROPERTY, PreferencesService.FAF_DATA_DIRECTORY
         .resolve("logs")
         .resolve("downlords-faf-client.log")
         .toString());
@@ -135,6 +139,7 @@ public class PreferencesService implements InitializingBean {
         .registerTypeAdapter(Color.class, new ColorTypeAdapter())
         .registerTypeAdapter(Faction.class, FactionTypeAdapter.INSTANCE)
         .registerTypeAdapter(ObservableMap.class, FactionTypeAdapter.INSTANCE)
+        .registerTypeAdapter(ComparableVersion.class, ComparableVersionTypeAdapter.INSTANCE)
         .create();
   }
 
