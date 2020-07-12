@@ -25,6 +25,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -131,7 +132,7 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testInitializeWithNoMandatoryUpdate() throws Exception {
-    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
+    UpdateInfo updateInfo = new UpdateInfo(null, null, Optional.empty(), null, 5, null, false);
     ClientConfiguration clientConfiguration = new ClientConfiguration();
     ClientConfiguration.ReleaseInfo releaseInfo = new ReleaseInfo();
     ClientConfiguration.Endpoints endpoints = mock(Endpoints.class, Answers.RETURNS_DEEP_STUBS);
@@ -141,7 +142,7 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     releaseInfo.setMinimumVersion(new ComparableVersion("2.1.2"));
     Version.currentVersion = new ComparableVersion("2.2.0");
 
-    when(clientUpdateService.checkForUpdateInBackground()).thenReturn(CompletableFuture.completedFuture(updateInfo));
+    when(clientUpdateService.checkForUpdateInBackground()).thenReturn(CompletableFuture.completedFuture(Optional.of(updateInfo)));
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
 
     clientProperties.setUseRemotePreferences(true);
@@ -156,13 +157,11 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.loginErrorLabel.isVisible(), is(false));
     assertThat(instance.downloadUpdateButton.isVisible(), is(false));
     assertThat(instance.loginFormPane.isDisable(), is(false));
-
-    verify(clientUpdateService, atLeastOnce()).checkForUpdateInBackground();
   }
 
   @Test
   public void testInitializeWithMandatoryUpdate() throws Exception {
-    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
+    UpdateInfo updateInfo = new UpdateInfo(null, null, Optional.empty(), null, 5, null, false);
     ClientConfiguration clientConfiguration = new ClientConfiguration();
     ClientConfiguration.ReleaseInfo releaseInfo = new ReleaseInfo();
     ClientConfiguration.Endpoints endpoints = mock(Endpoints.class, Answers.RETURNS_DEEP_STUBS);
@@ -172,7 +171,7 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     releaseInfo.setMinimumVersion(new ComparableVersion("2.1.2"));
     Version.currentVersion = new ComparableVersion("1.2.0");
 
-    when(clientUpdateService.checkForUpdateInBackground()).thenReturn(CompletableFuture.completedFuture(updateInfo));
+    when(clientUpdateService.checkForUpdateInBackground()).thenReturn(CompletableFuture.completedFuture(Optional.of(updateInfo)));
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
 
     clientProperties.setUseRemotePreferences(true);
@@ -188,17 +187,15 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.downloadUpdateButton.isVisible(), is(true));
     assertThat(instance.loginFormPane.isDisable(), is(true));
 
-    verify(clientUpdateService, atLeastOnce()).checkForUpdateInBackground();
     verify(i18n).get("login.clientTooOldError", new ComparableVersion("1.2.0"), new ComparableVersion("2.1.2"));
   }
 
   @Test
   public void testOnDownloadUpdateButtonClicked() throws Exception {
-    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
+    UpdateInfo updateInfo = new UpdateInfo(null, null, Optional.empty(), null, 5, null, false);
     ClientUpdateTask clientUpdateTask = new ClientUpdateTask(i18n, preferencesService);
     when(clientUpdateService.updateInBackground(updateInfo)).thenReturn(clientUpdateTask);
-
-    ReflectionTestUtils.setField(instance, "updateInfoFuture", CompletableFuture.completedFuture(updateInfo));
+    when(clientUpdateService.checkForUpdateInBackground()).thenReturn(CompletableFuture.completedFuture(Optional.of(updateInfo)));
 
     instance.onDownloadUpdateButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();

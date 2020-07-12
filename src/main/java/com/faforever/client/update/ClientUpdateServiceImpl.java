@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.notification.Severity.INFO;
@@ -62,8 +63,8 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
   }
 
   @Override
-  public CompletableFuture<UpdateInfo> checkForUpdateInBackground() {
-    CompletableFuture<UpdateInfo> task;
+  public CompletableFuture<Optional<UpdateInfo>> checkForUpdateInBackground() {
+    CompletableFuture<Optional<UpdateInfo>> task;
     if (preferencesService.getPreferences().isPrereleaseCheckEnabled()) {
       task = taskService.submitTask(applicationContext.getBean(CheckForBetaUpdateTask.class)).getFuture();
     } else {
@@ -72,13 +73,17 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
 
     return task.exceptionally(throwable -> {
       log.warn("Client update check failed", throwable);
-      return null;
+      return Optional.empty();
     });
   }
 
   @EventListener(classes = LoggedInEvent.class)
   public void onLoggedInEvent() {
-    checkForUpdateInBackground().thenAccept(updateInfo -> {
+    checkForUpdateInBackground().thenAccept(updateInfoOptional -> {
+      if (updateInfoOptional.isEmpty()) {
+        return;
+      }
+      UpdateInfo updateInfo = updateInfoOptional.get();
       if (preferencesService.getPreferences().isAutoUpdate()) {
         updateIfNecessary(updateInfo);
       } else {
@@ -102,10 +107,10 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
       return;
     }
 
-    if (preferencesService.getPreferences().isAutoUpdate()) {
-      updateInBackground(updateInfo);
+    if (!preferencesService.getPreferences().isAutoUpdate()) {
       return;
     }
+    updateInBackground(updateInfo);
   }
 
   @Override
