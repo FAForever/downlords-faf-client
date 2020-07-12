@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -17,8 +18,8 @@ import java.util.concurrent.CompletableFuture;
 public class MockClientUpdateService implements ClientUpdateService {
 
   @Override
-  public CompletableFuture<UpdateInfo> checkForUpdateInBackground() {
-    return CompletableFuture.completedFuture(null);
+  public CompletableFuture<Optional<UpdateInfo>> checkForUpdateInBackground() {
+    return CompletableFuture.completedFuture(Optional.empty());
   }
 
   @Override

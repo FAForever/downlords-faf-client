@@ -32,21 +32,19 @@ public final class Version {
    *
    * @return true if the remote version is higher than the current version
    */
-  public static boolean shouldUpdate(ComparableVersion fromVersion, ComparableVersion toVersion) {
-    log.debug("Comparing version '{}' to remote version '{}'", fromVersion, toVersion);
+  public static boolean isNewer(ComparableVersion version) {
+    log.debug("Comparing version '{}' to remote version '{}'", currentVersion, version);
 
-    if (fromVersion.equals(UNSPECIFIED_VERSION)) {
+    if (currentVersion.equals(UNSPECIFIED_VERSION)) {
       log.info("Snapshot versions are not to be updated");
       return false;
     }
 
-    if (toVersion.compareTo(fromVersion) < 1) {
-      log.info("fromVersion '{}' is not newer than toVersion '{}'. No update is required.",
-          toVersion.getCanonical(), fromVersion.getCanonical());
+    if (version.compareTo(currentVersion) < 1) {
+      log.info("currentVersion '{}' is not newer than '{}'", version.getCanonical(), currentVersion.getCanonical());
       return false;
     }
-    log.info("fromVersion version '{}' is newer than toVersion '{}'. Client should be updated.",
-        toVersion.getCanonical(), fromVersion.getCanonical());
+    log.info("currentVersion version '{}' is newer than '{}'", version.getCanonical(), currentVersion.getCanonical());
     return true;
   }
 }

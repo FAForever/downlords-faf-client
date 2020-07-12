@@ -1,19 +1,21 @@
 package com.faforever.client.updater;
 
+import org.update4j.Configuration;
 import org.update4j.Update;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class Updater {
+public class UpdateFinalizer {
   public static void main(String[] args) throws Exception {
     Path updateDir = Paths.get(args[0]);
     if (!Update.containsUpdate(updateDir)) {
       System.out.println(updateDir + " doesn't contain an update");
-      // FIXMEremove
-      Thread.sleep(5000);
       return;
     }
 
@@ -22,6 +24,20 @@ public class Updater {
 
     System.out.println("Finalizing update");
     Update.finalizeUpdate(updateDir);
+
+    Configuration newConfig = readConfiguration(updateDir.resolve("update4j-new.xml"));
+
+    Path oldConfigFile = updateDir.resolve("update4j-old.xml");
+    if (Files.exists(oldConfigFile)) {
+      Configuration oldConfig = readConfiguration(oldConfigFile);
+      newConfig.deleteOldFiles(oldConfig);
+    }
+  }
+
+  private static Configuration readConfiguration(Path file) throws IOException {
+    try (Reader reader = Files.newBufferedReader(file)) {
+      return Configuration.read(reader);
+    }
   }
 
   private static void waitFor(String pid) throws Exception {

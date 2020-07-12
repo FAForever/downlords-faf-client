@@ -14,10 +14,8 @@ import com.faforever.client.update.ClientConfiguration;
 import com.faforever.client.update.ClientConfiguration.Endpoints;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.update.ClientUpdateTask;
-import com.faforever.client.update.UpdateInfo;
 import com.faforever.client.update.Version;
 import com.faforever.client.user.UserService;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -83,9 +81,6 @@ public class LoginController implements Controller<Pane> {
   public TextField apiBaseUrlField;
   public Button serverStatusButton;
 
-  @VisibleForTesting
-  CompletableFuture<UpdateInfo> updateInfoFuture;
-
   public LoginController(
       UserService userService,
       PreferencesService preferencesService,
@@ -101,8 +96,6 @@ public class LoginController implements Controller<Pane> {
   }
 
   public void initialize() {
-    updateInfoFuture = clientUpdateService.checkForUpdateInBackground();
-
     downloadUpdateButton.managedProperty().bind(downloadUpdateButton.visibleProperty());
     downloadUpdateButton.setVisible(false);
 
@@ -171,7 +164,7 @@ public class LoginController implements Controller<Pane> {
             ComparableVersion minimumVersion = clientConfiguration.getLatestRelease().getMinimumVersion();
             boolean shouldUpdate = false;
             try {
-              shouldUpdate = Version.shouldUpdate(Version.getCurrentVersion(), minimumVersion);
+              shouldUpdate = Version.isNewer(minimumVersion);
             } catch (Exception e) {
               log.error("Something went wrong checking for update", e);
             }
@@ -331,17 +324,25 @@ public class LoginController implements Controller<Pane> {
   }
 
   public void onDownloadUpdateButtonClicked() {
-    downloadUpdateButton.setOnAction(event -> {
-    });
-    log.info("Downloading update");
-    updateInfoFuture.thenAccept(updateInfo -> {
-      ClientUpdateTask clientUpdateTask = clientUpdateService.updateInBackground(updateInfo);
+    String downloadButtonText = downloadUpdateButton.getText();
+    downloadUpdateButton.setDisable(true);
+    clientUpdateService.checkForUpdateInBackground().thenAccept(updateInfo -> {
+      if (updateInfo.isEmpty()) {
+        return;
+      }
+      log.info("Downloading update: {}", updateInfo);
+      ClientUpdateTask clientUpdateTask = clientUpdateService.updateInBackground(updateInfo.get());
 
       downloadUpdateButton.textProperty().bind(
           Bindings.createStringBinding(() -> clientUpdateTask.getProgress() == -1 ?
                   i18n.get("login.button.downloadPreparing") :
-                  i18n.get("login.button.downloadProgress", clientUpdateTask.getProgress()),
+                  i18n.get("login.button.downloadProgress", clientUpdateTask.getProgress() * 100),
               clientUpdateTask.progressProperty()));
+    }).handle((aVoid, throwable) -> {
+      downloadUpdateButton.textProperty().unbind();
+      downloadUpdateButton.setText(downloadButtonText);
+      downloadUpdateButton.setDisable(false);
+      return null;
     });
   }
 
