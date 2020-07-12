@@ -25,7 +25,7 @@ task createUpdate4jConfig {
         .basePath('${app.dir}')
         .updateHandler('com.faforever.client.updater.${update.handler.class}')
         .property('default.launcher.main.class', 'com.faforever.client.Main')
-        .property('default.launcher.system.nativeDir', '${app.dir}')
+        .property('default.launcher.system.externalToolsDir', '${app.dir}')
         .property('app.name', 'downlords-faf-client')
         .property('app.dir', '${LOCALAPPDATA}/${app.name}', OS.WINDOWS)
         .property('app.dir', '${user.dir}/${app.name}')

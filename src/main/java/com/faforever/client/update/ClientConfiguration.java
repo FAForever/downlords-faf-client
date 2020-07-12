@@ -8,11 +8,11 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import java.net.URL;
 import java.util.List;
 
-@Data
 // TODO since this class contains both, update info and configuration, the package 'update' doesn't really fit.
 /**
  * A representation of a config file read from the faf server on start up. The file on the server allows to dynamically change settings in the client remotely.
  */
+@Data
 public class ClientConfiguration {
   ReleaseInfo latestRelease;
   List<Integer> recommendedMaps;

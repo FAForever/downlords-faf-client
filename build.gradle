@@ -86,6 +86,7 @@ test {
 configurations {
   codacy
   webViewPatch
+  updater
 }
 
 jar {
@@ -115,8 +116,13 @@ runtime {
       'java.naming',
       'java.net.http',
       'jdk.xml.dom',
+      // Required for TLS
       'jdk.crypto.ec',
-      'java.instrument'
+      'java.instrument',
+      // Remote debugging
+      'jdk.jdwp.agent',
+      // JMX, allows us to get the PID
+      'java.management'
   ]
   jpackage {
     // Can't rename these yet: https://github.com/beryx/badass-runtime-plugin/issues/62
@@ -137,7 +143,7 @@ runtime {
     ]
     jvmArgs = [
         '-splash:app/splash.png',
-        '-DnativeDir=app',
+        '-DexternalToolsDir=app',
         '-Dprism.dirtyopts=false',
         '-Xms128m',
         '-Xmx712m',
@@ -169,8 +175,12 @@ distributions {
           include "*webview-patch*.jar"
           rename '.*webview-patch.*\\.jar', 'webview-patch.jar'
         }
+        from(configurations.updater) {
+          include "updater-*.jar"
+          rename 'updater-.*\\.jar', 'updater.jar'
+        }
       }
-      exclude('**/i4jruntime*.jar')
+      into('')
     }
   }
 }
@@ -184,32 +194,42 @@ task downloadWebViewPatch(type: Copy) {
 }
 assemble.dependsOn downloadWebViewPatch
 
+/* Makes updater.jar available as a resource to the application. */
+task copyUpdaterToResources(type: Copy) {
+  from(configurations.updater) {
+    include "updater-*.jar"
+  }
+  into "${buildDir}/resources/updater"
+  rename 'updater-.*\\.jar', 'updater.jar'
+}
+assemble.dependsOn copyUpdaterToResources
+
 task downloadIceAdapter(type: Download) {
-  group "native dependencies"
+  group "external tools"
   src "https://github.com/FAForever/java-ice-adapter/releases/download/v${faf_ice_adapter_version}/faf-ice-adapter.jar"
-  dest file("${buildDir}/resources/native/faf-ice-adapter.jar")
+  dest file("${buildDir}/resources/tools/faf-ice-adapter.jar")
   onlyIfNewer true
 }
 
 task downloadUnixUid(type: Download) {
-  group "native dependencies"
+  group "external tools"
   src "https://github.com/FAForever/uid/releases/download/v${faf_uid_version}/faf-uid"
-  dest file("${buildDir}/resources/native/faf-uid")
+  dest file("${buildDir}/resources/tools/faf-uid")
   onlyIfNewer true
   doLast {
-    file("${buildDir}/resources/native/faf-uid").setExecutable(true, false)
+    file("${buildDir}/resources/tools/faf-uid").setExecutable(true, false)
   }
 }
 
 task downloadWindowsUid(type: Download) {
-  group "native dependencies"
+  group "external tools"
   src "https://github.com/FAForever/uid/releases/download/v${faf_uid_version}/faf-uid.exe"
-  dest file("${buildDir}/resources/native/faf-uid.exe")
+  dest file("${buildDir}/resources/tools/faf-uid.exe")
   onlyIfNewer true
 }
 
 task downloadNativeDependencies(dependsOn: [downloadUnixUid, downloadWindowsUid, downloadIceAdapter]) {
-  group "native dependencies"
+  group "external tools"
 }
 
 assemble.dependsOn 'downloadNativeDependencies'
@@ -222,7 +242,7 @@ task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
 }
 
 idea.project.settings.taskTriggers {
-  beforeSync tasks.getByName("downloadNativeDependencies")
+  beforeSync tasks.getByName("downloadNativeDependencies"), tasks.getByName("copyUpdaterToResources")
 }
 
 repositories {
@@ -235,8 +255,6 @@ repositories {
 }
 
 dependencies {
-  compile project(":updater")
-
   compile("org.springframework.boot:spring-boot-starter")
   compile("org.springframework.boot:spring-boot-starter-cache")
   compile("org.springframework.boot:spring-boot-starter-logging")
@@ -290,6 +308,7 @@ dependencies {
   compile("com.github.axel1200:discord-rpc:${discordRpcVersion}")
 
   webViewPatch('com.github.micheljung:javafx-transparent-webview-patch:0468c80')
+  updater project(':updater')
   compile("org.javassist:javassist:${project.ext['javassist.version']}")
 
   testCompile 'junit:junit:4.13'

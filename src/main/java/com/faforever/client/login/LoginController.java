@@ -83,9 +83,6 @@ public class LoginController implements Controller<Pane> {
   public TextField apiBaseUrlField;
   public Button serverStatusButton;
 
-  @VisibleForTesting
-  CompletableFuture<UpdateInfo> updateInfoFuture;
-
   public LoginController(
       UserService userService,
       PreferencesService preferencesService,
@@ -101,8 +98,6 @@ public class LoginController implements Controller<Pane> {
   }
 
   public void initialize() {
-    updateInfoFuture = clientUpdateService.checkForUpdateInBackground();
-
     downloadUpdateButton.managedProperty().bind(downloadUpdateButton.visibleProperty());
     downloadUpdateButton.setVisible(false);
 
@@ -331,17 +326,25 @@ public class LoginController implements Controller<Pane> {
   }
 
   public void onDownloadUpdateButtonClicked() {
-    downloadUpdateButton.setOnAction(event -> {
-    });
-    log.info("Downloading update");
-    updateInfoFuture.thenAccept(updateInfo -> {
-      ClientUpdateTask clientUpdateTask = clientUpdateService.updateInBackground(updateInfo);
+    String downloadButtonText = downloadUpdateButton.getText();
+    downloadUpdateButton.setDisable(true);
+    clientUpdateService.checkForUpdateInBackground().thenAccept(updateInfo -> {
+      if (updateInfo.isEmpty()) {
+        return;
+      }
+      log.info("Downloading update: {}", updateInfo);
+      ClientUpdateTask clientUpdateTask = clientUpdateService.updateInBackground(updateInfo.get());
 
       downloadUpdateButton.textProperty().bind(
           Bindings.createStringBinding(() -> clientUpdateTask.getProgress() == -1 ?
                   i18n.get("login.button.downloadPreparing") :
-                  i18n.get("login.button.downloadProgress", clientUpdateTask.getProgress()),
+                  i18n.get("login.button.downloadProgress", clientUpdateTask.getProgress() * 100),
               clientUpdateTask.progressProperty()));
+    }).handle((aVoid, throwable) -> {
+      downloadUpdateButton.textProperty().unbind();
+      downloadUpdateButton.setText(downloadButtonText);
+      downloadUpdateButton.setDisable(false);
+      return null;
     });
   }
 

@@ -14,5 +14,5 @@ public class GitHubRelease {
   private String tagName;
   @JsonProperty("html_url")
   private URL releaseNotes;
-  private List<GitHubAssets> assets;
+  private List<GitHubAsset> assets;
 }
