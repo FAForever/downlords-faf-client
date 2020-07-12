@@ -102,10 +102,10 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
       return;
     }
 
-    if (preferencesService.getPreferences().isAutoUpdate()) {
-      updateInBackground(updateInfo);
+    if (!preferencesService.getPreferences().isAutoUpdate()) {
       return;
     }
+    updateInBackground(updateInfo);
   }
 
   @Override

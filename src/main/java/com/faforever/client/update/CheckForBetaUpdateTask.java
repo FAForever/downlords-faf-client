@@ -26,38 +26,24 @@ import java.util.Optional;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class CheckForBetaUpdateTask extends AbstractCheckForUpdateTask {
 
-  private static final String PATH_FOR_RELEASE = "/releases";
-  private final RestTemplate restTemplate;
-
   public CheckForBetaUpdateTask(I18n i18n, PreferencesService preferencesService, RestTemplateBuilder restTemplateBuilder) {
-    super(i18n, preferencesService);
-    restTemplate = restTemplateBuilder.build();
+    super(i18n, preferencesService, restTemplateBuilder);
   }
 
   @Override
   protected UpdateInfo getUpdateInfo(ClientConfiguration clientConfiguration) {
-    LinkedMultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-    headers.add("Accept", "application/vnd.github.v3+json");
-    HttpEntity<String> entity = new HttpEntity<>(null, headers);
-
-    String url = clientConfiguration.getGitHubRepo().getApiUrl() + PATH_FOR_RELEASE;
-    ResponseEntity<List<GitHubRelease>> response = restTemplate.exchange(
-        url, HttpMethod.GET, entity, new ParameterizedTypeReference<>() {
-        });
-
-    List<GitHubRelease> responseBody = response.getBody();
-    if (responseBody == null || responseBody.isEmpty()) {
-      log.warn("No response body from {} ({})", url, response.getStatusCode());
+    Optional<List<GitHubRelease>> gitHubReleases = getGitHubReleases(clientConfiguration);
+    if (gitHubReleases.isEmpty() || gitHubReleases.get().isEmpty()) {
       return null;
     }
 
-    GitHubRelease latestRelease = responseBody.get(0);
+    GitHubRelease latestRelease = gitHubReleases.get().get(0);
     if (!latestRelease.isPrerelease()) {
       return null;
     }
 
-    URL update4jConfigUrl = getUpdate4jAsset(latestRelease)
-        .map(GitHubAssets::getBrowserDownloadUrl)
+    URL update4jConfigUrl = getUpdate4jConfigAsset(latestRelease)
+        .map(GitHubAsset::getBrowserDownloadUrl)
         .orElse(null);
 
     Configuration newConfig = readConfiguration(update4jConfigUrl);
@@ -65,29 +51,18 @@ public class CheckForBetaUpdateTask extends AbstractCheckForUpdateTask {
       return null;
     }
 
-    URL currentVersionConfigUrl = getClass().getResource("/update4j/update4j.xml");
-    Configuration oldConfig = currentVersionConfigUrl != null ? readConfiguration(currentVersionConfigUrl) : null;
+    Optional<Configuration> oldConfiguration = getCurrentConfiguration(gitHubReleases.get());
 
-    long size = calculateUpdateSize(oldConfig, newConfig);
+    long size = calculateUpdateSize(oldConfiguration, newConfig);
 
     return new UpdateInfo(
         latestRelease.getName(),
         new ComparableVersion(latestRelease.getTagName()),
+        oldConfiguration,
         newConfig,
         size,
         latestRelease.getReleaseNotes(),
         true
     );
-  }
-
-  @Override
-  protected Logger log() {
-    return log;
-  }
-
-  private Optional<GitHubAssets> getUpdate4jAsset(GitHubRelease latestRelease) {
-    return latestRelease.getAssets().stream()
-        .filter(asset -> asset.getName().equals("update4j.xml"))
-        .findFirst();
   }
 }

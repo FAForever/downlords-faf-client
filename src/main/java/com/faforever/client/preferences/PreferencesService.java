@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.logging.LogFile;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -92,7 +93,7 @@ public class PreferencesService implements InitializingBean {
     }
     CACHE_DIRECTORY = FAF_DATA_DIRECTORY.resolve(CACHE_SUB_FOLDER);
 
-    System.setProperty("logging.file", PreferencesService.FAF_DATA_DIRECTORY
+    System.setProperty(LogFile.FILE_NAME_PROPERTY, PreferencesService.FAF_DATA_DIRECTORY
         .resolve("logs")
         .resolve("downlords-faf-client.log")
         .toString());

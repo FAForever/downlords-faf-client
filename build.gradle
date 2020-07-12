@@ -86,6 +86,7 @@ test {
 configurations {
   codacy
   webViewPatch
+  updater
 }
 
 jar {
@@ -169,8 +170,12 @@ distributions {
           include "*webview-patch*.jar"
           rename '.*webview-patch.*\\.jar', 'webview-patch.jar'
         }
+        from(configurations.updater) {
+          include "updater-*.jar"
+          rename 'updater-.*\\.jar', 'updater.jar'
+        }
       }
-      exclude('**/i4jruntime*.jar')
+      into('')
     }
   }
 }
@@ -183,6 +188,16 @@ task downloadWebViewPatch(type: Copy) {
   rename '.*webview-patch.*\\.jar', 'webview-patch.jar'
 }
 assemble.dependsOn downloadWebViewPatch
+
+/* Makes updater.jar available as a resource to the application. */
+task copyUpdaterToResources(type: Copy) {
+  from(configurations.updater) {
+    include "updater-*.jar"
+  }
+  into "${buildDir}/resources/updater"
+  rename 'updater-.*\\.jar', 'updater.jar'
+}
+assemble.dependsOn copyUpdaterToResources
 
 task downloadIceAdapter(type: Download) {
   group "native dependencies"
@@ -222,7 +237,7 @@ task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
 }
 
 idea.project.settings.taskTriggers {
-  beforeSync tasks.getByName("downloadNativeDependencies")
+  beforeSync tasks.getByName("downloadNativeDependencies"), tasks.getByName("copyUpdaterToResources")
 }
 
 repositories {
@@ -235,8 +250,6 @@ repositories {
 }
 
 dependencies {
-  compile project(":updater")
-
   compile("org.springframework.boot:spring-boot-starter")
   compile("org.springframework.boot:spring-boot-starter-cache")
   compile("org.springframework.boot:spring-boot-starter-logging")
@@ -290,6 +303,7 @@ dependencies {
   compile("com.github.axel1200:discord-rpc:${discordRpcVersion}")
 
   webViewPatch('com.github.micheljung:javafx-transparent-webview-patch:0468c80')
+  updater project(':updater')
   compile("org.javassist:javassist:${project.ext['javassist.version']}")
 
   testCompile 'junit:junit:4.13'

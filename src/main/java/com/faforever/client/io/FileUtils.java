@@ -21,6 +21,9 @@ public final class FileUtils {
   }
 
   public static void deleteRecursively(Path path) throws IOException {
+    if (Files.notExists(path)) {
+      return;
+    }
     walkFileTree(path, new SimpleFileVisitor<>() {
       @Override
       public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {

@@ -4,19 +4,22 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.FileUtils;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
-import com.faforever.client.updater.Updater;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.update4j.Configuration;
 import org.update4j.service.UpdateHandler;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.io.Writer;
+import java.lang.management.ManagementFactory;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -47,8 +50,14 @@ public class ClientUpdateTask extends CompletableTask<Void> {
 
     // update4j will check for an .update file
     Path updateDirectory = preferencesService.getCacheDirectory().resolve("update");
+    FileUtils.deleteRecursively(updateDirectory);
 
-    updateInfo.getConfiguration().updateTemp(updateDirectory, updateHandler());
+    Configuration newConfiguration = updateInfo.getNewConfiguration();
+    newConfiguration.updateTemp(updateDirectory, updateHandler());
+
+    writeConfiguration(newConfiguration, updateDirectory.resolve("update4j-new.xml"));
+    updateInfo.getCurrentConfiguration()
+        .ifPresent(configuration -> writeConfiguration(configuration, updateDirectory.resolve("update4j-old.xml")));
 
     startUpdateFinalizer(updateDirectory);
 
@@ -56,12 +65,23 @@ public class ClientUpdateTask extends CompletableTask<Void> {
   }
 
   @SneakyThrows
+  private void writeConfiguration(Configuration configuration, Path file) {
+    try (Writer writer = Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
+      configuration.write(writer);
+    }
+  }
+
+  @SneakyThrows
   private void startUpdateFinalizer(Path updateDirectory) {
     Path jreDir = copyJre(updateDirectory);
     Path updaterJar = copyUpdaterJar(updateDirectory);
 
-    String command = String.format("%s -jar %s %s", jreDir.resolve("bin/java").toAbsolutePath(), updaterJar.toAbsolutePath(), updateDirectory);
-    log.info("Starting updater using command: {}", command);
+    String command = String.format("%s -Xmx5m -jar %s %s %d",
+        jreDir.resolve("bin/java").toAbsolutePath(),
+        updaterJar.toAbsolutePath(),
+        updateDirectory,
+        ManagementFactory.getRuntimeMXBean().getPid());
+    log.info("Starting update finalizer using command: {}", command);
     Process exec = Runtime.getRuntime().exec(command);
     log.info("Updater pid is {}", exec.pid());
   }
@@ -88,13 +108,13 @@ public class ClientUpdateTask extends CompletableTask<Void> {
 
   @SneakyThrows
   private URL getUpdaterJar() {
-    URL location = Updater.class.getProtectionDomain().getCodeSource().getLocation();
-    if (location.toExternalForm().endsWith(".jar")) {
-      return location;
+    URL resource = getClass().getResource("/updater/updater.jar");
+    if (resource != null) {
+      return resource;
     }
 
-    // For development only, where there is no JAR
-    Path path = Paths.get("updater/build/libs/updater-unspecified.jar");
+    // For development environments
+    Path path = Paths.get("build/resources/updater/updater.jar");
     if (Files.notExists(path)) {
       throw new IllegalStateException("In order to use the updater during development, you need to build the updater.jar");
     }
