@@ -77,16 +77,13 @@ public class VaultController extends AbstractViewController<Node> {
       if (navigateEvent instanceof OpenMapVaultEvent) {
         lastTab = mapVaultTab;
         lastTabController = mapVaultController;
-      }
-      else if (navigateEvent instanceof OpenModVaultEvent) {
+      } else if (navigateEvent instanceof OpenModVaultEvent) {
         lastTab = modVaultTab;
             lastTabController = modVaultController;
-      }
-      else if (navigateEvent instanceof OpenOnlineReplayVaultEvent) {
+      } else if (navigateEvent instanceof OpenOnlineReplayVaultEvent) {
         lastTab = onlineReplayVaultTab;
         lastTabController = onlineReplayVaultController;
-      }
-      else if (navigateEvent instanceof OpenReplayVaultEvent) {
+      } else if (navigateEvent instanceof OpenReplayVaultEvent) {
         lastTab = localReplayVaultTab;
         lastTabController = localReplayVaultController;
       }

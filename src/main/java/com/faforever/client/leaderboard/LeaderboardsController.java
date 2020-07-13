@@ -68,8 +68,7 @@ public class LeaderboardsController extends AbstractViewController<Node> {
       if (navigateEvent instanceof OpenLadder1v1LeaderboardEvent) {
         lastTab = ladder1v1LeaderboardTab;
         lastTabController = ladder1v1LeaderboardController;
-      }
-      else if (navigateEvent instanceof OpenGlobalLeaderboardEvent) {
+      } else if (navigateEvent instanceof OpenGlobalLeaderboardEvent) {
         lastTab = globalLeaderboardTab;
         lastTabController = globalLeaderboardController;
       }

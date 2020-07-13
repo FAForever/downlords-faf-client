@@ -65,12 +65,10 @@ public class PlayController extends AbstractViewController<Node> {
       if (navigateEvent instanceof OpenCustomGamesEvent) {
         lastTab = customGamesTab;
         lastTabController = customGamesController;
-      }
-      else if (navigateEvent instanceof Open1v1Event) {
+      } else if (navigateEvent instanceof Open1v1Event) {
         lastTab = ladderTab;
         lastTabController = ladderController;
-      }
-      else if (navigateEvent instanceof OpenCoopEvent) {
+      } else if (navigateEvent instanceof OpenCoopEvent) {
         lastTab = coopTab;
         lastTabController = coopController;
       }
