@@ -11,15 +11,12 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.Validator;
-import com.jfoenix.controls.JFXButton;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleFloatProperty;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.scene.Node;
-import javafx.scene.control.Pagination;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.TextField;
@@ -56,13 +53,12 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public TableColumn<LeaderboardEntry, Number> gamesPlayedColumn;
   public TableColumn<LeaderboardEntry, Number> ratingColumn;
   public TableView<LeaderboardEntry> ratingTable;
+  public TableRow<LeaderboardEntry> leaderboardEntryTableRow;
   public TextField searchTextField;
   public Pane connectionProgressPane;
   public Pane contentPane;
   private KnownFeaturedMod ratingType;
   private WeakReference<LeaderboardUserContextMenuController> contextMenuController;
-
-  public LeaderboardEntry selectedEntry;
 
 
   @Override
@@ -114,6 +110,12 @@ public class LeaderboardController extends AbstractViewController<Node> {
         }
       }
     });
+
+    ratingTable.setRowFactory(param -> {
+      leaderboardEntryTableRow = new TableRow<>();
+      leaderboardEntryTableRow.setOnContextMenuRequested(event -> onContextMenuRequested(event, leaderboardEntryTableRow));
+      return leaderboardEntryTableRow;
+    });
   }
 
   @Override
@@ -136,25 +138,23 @@ public class LeaderboardController extends AbstractViewController<Node> {
   }
 
 
-  public void onContextMenuRequested(ContextMenuEvent contextMenuEvent) {
+  public void onContextMenuRequested(ContextMenuEvent contextMenuEvent, TableRow<LeaderboardEntry> leaderboardEntryTableRow) {
 
     if (contextMenuController != null) {
       LeaderboardUserContextMenuController controller = contextMenuController.get();
       if (controller != null) {
-        controller.getContextMenu().show(leaderboardRoot.getScene().getWindow(), contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());
+        controller.getContextMenu().show(leaderboardEntryTableRow, contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());
         return;
       }
     }
 
-    TableViewSelectionModel<LeaderboardEntry> leaderboardEntryTableViewSelectionModel = ratingTable.getSelectionModel();
-    ObservableList<LeaderboardEntry> selectedEntryList = leaderboardEntryTableViewSelectionModel.getSelectedItems();
-    System.out.println(selectedEntryList);
+    String playerId = leaderboardEntryTableRow.getItem().getId();
 
-    LeaderboardUserContextMenuController controller = uiService.loadFxml("theme\\leaderboard\\leaderboard_user_context_menu.fxml");
+    LeaderboardUserContextMenuController controller = uiService.loadFxml("theme/leaderboard/leaderboard_user_context_menu.fxml");
 
-    leaderboardService.getPlayerObjectsById(selectedEntryList.get(0).getId()).thenAccept(players -> Platform.runLater(() -> {
+    leaderboardService.getPlayerObjectsById(playerId).thenAccept(players -> Platform.runLater(() -> {
       controller.setPlayer(players.get(0));
-      controller.getContextMenu().show(leaderboardRoot.getScene().getWindow(), contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());
+      controller.getContextMenu().show(leaderboardEntryTableRow, contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());
       contextMenuController = new WeakReference<>(controller);
     }));
 

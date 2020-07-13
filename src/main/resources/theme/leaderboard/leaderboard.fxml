@@ -21,7 +21,7 @@
                                  promptText="%ladder.searchPrompt" HBox.hgrow="ALWAYS"/>
                </children>
             </HBox>
-        <TableView fx:id="ratingTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" onContextMenuRequested="#onContextMenuRequested" styleClass="big-scroll-bar" VBox.vgrow="ALWAYS">
+        <TableView fx:id="ratingTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" styleClass="big-scroll-bar" VBox.vgrow="ALWAYS">
           <columns>
             <TableColumn fx:id="rankColumn" text="Rank"/>
             <TableColumn fx:id="nameColumn" text="Name"/>

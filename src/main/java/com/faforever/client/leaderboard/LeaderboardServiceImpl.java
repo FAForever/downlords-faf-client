@@ -66,9 +66,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     }
   }
 
-  public CompletableFuture<List<Player>> getPlayerObjectsById(@NotNull String id)
-  {
-    System.out.println(id);
+  public CompletableFuture<List<Player>> getPlayerObjectsById(@NotNull String id) {
     return fafService.getPlayersByIds(Collections.singletonList(Integer.parseInt(id)));
   }
 }
