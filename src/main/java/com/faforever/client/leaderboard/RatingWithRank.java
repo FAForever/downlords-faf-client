@@ -31,25 +31,14 @@ public class RatingWithRank {
     player = new SimpleObjectProperty<Player>();
   }
 
-  public static RatingWithRank fromGlobal(GlobalRatingWithRank globalRatingWithRank) {
+  public static RatingWithRank fromDTORatingWithRank(com.faforever.client.api.dto.RatingWithRank RatingWithRank) {
     RatingWithRank ratingWithRank = new RatingWithRank();
-    ratingWithRank.setId(globalRatingWithRank.getId());
-    ratingWithRank.setMean(globalRatingWithRank.getMean());
-    ratingWithRank.setDeviation(globalRatingWithRank.getDeviation());
-    ratingWithRank.setRating(globalRatingWithRank.getRating());
-    ratingWithRank.setRank(globalRatingWithRank.getRank());
-    ratingWithRank.setPlayer(globalRatingWithRank.getPlayer());
-    return ratingWithRank;
-  }
-
-  public static RatingWithRank fromLadder1v1(Ladder1v1RatingWithRank ladder1v1RatingWithRank) {
-    RatingWithRank ratingWithRank = new RatingWithRank();
-    ratingWithRank.setId(ladder1v1RatingWithRank.getId());
-    ratingWithRank.setMean(ladder1v1RatingWithRank.getMean());
-    ratingWithRank.setDeviation(ladder1v1RatingWithRank.getDeviation());
-    ratingWithRank.setRating(ladder1v1RatingWithRank.getRating());
-    ratingWithRank.setRank(ladder1v1RatingWithRank.getRank());
-    ratingWithRank.setPlayer(ladder1v1RatingWithRank.getPlayer());
+    ratingWithRank.setId(RatingWithRank.getId());
+    ratingWithRank.setMean(RatingWithRank.getMean());
+    ratingWithRank.setDeviation(RatingWithRank.getDeviation());
+    ratingWithRank.setRating(RatingWithRank.getRating());
+    ratingWithRank.setRank(RatingWithRank.getRank());
+    ratingWithRank.setPlayer(RatingWithRank.getPlayer());
     return ratingWithRank;
   }
 

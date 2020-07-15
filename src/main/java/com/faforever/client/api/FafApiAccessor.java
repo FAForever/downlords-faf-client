@@ -23,6 +23,7 @@ import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.api.dto.Rating;
+import com.faforever.client.api.dto.RatingWithRank;
 import com.faforever.client.api.dto.Tournament;
 import com.faforever.client.api.dto.TutorialCategory;
 import com.faforever.client.game.KnownFeaturedMod;
@@ -127,9 +128,9 @@ public interface FafApiAccessor {
 
   List<Ladder1v1LeaderboardEntry> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count);
 
-  JSONAPIDocument<List<GlobalRatingWithRank>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count);
+  JSONAPIDocument<List<RatingWithRank>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count);
 
-  List<Ladder1v1LeaderboardEntry> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count);
+  JSONAPIDocument<List<RatingWithRank>> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count);
 
   Optional<MapVersion> findMapVersionById(String id);
 

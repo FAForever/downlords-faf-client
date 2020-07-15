@@ -136,7 +136,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
 
             ratingWithRankBeans.get()
                 .parallelStream()
-                .map(RatingWithRank::fromGlobal)
+                .map(RatingWithRank::fromDTORatingWithRank)
                 .collect(toList()))
         );
         contentPane.setVisible(true);

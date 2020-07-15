@@ -26,6 +26,7 @@ import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.api.dto.Rating;
+import com.faforever.client.api.dto.RatingWithRank;
 import com.faforever.client.api.dto.Tournament;
 import com.faforever.client.api.dto.TutorialCategory;
 import com.faforever.client.config.CacheNames;
@@ -499,15 +500,15 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  public JSONAPIDocument<List<GlobalRatingWithRank>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
+  public JSONAPIDocument<List<RatingWithRank>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
     return getPageWithMeta("/data/globalRatingWithRank", count, page,
         ImmutableMap.of("filter", "player.login==" + nameToSearch + "*", "page[number]", page, "page[size]", count, "page[totals]", ""));
   }
 
   @Override
-  public List<Ladder1v1LeaderboardEntry> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count) {
-    return getPage("/leaderboards/ladder1v1", count, page,
-        ImmutableMap.of("playerNameMatchesRegex", nameToSearch + "%", "page[number]", page, "page[size]", count));
+  public  JSONAPIDocument<List<RatingWithRank>> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count) {
+    return getPageWithMeta("/data/ladder1v1RatingWithRank", count, page,
+        ImmutableMap.of("filter", "player.login==" + nameToSearch + "*", "page[number]", page, "page[size]", count, "page[totals]", ""));
   }
 
   @Override
