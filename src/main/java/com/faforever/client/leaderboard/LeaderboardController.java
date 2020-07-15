@@ -124,16 +124,15 @@ public class LeaderboardController extends AbstractViewController<Node> {
     updateTable();
   }
 
-  private void  updateTable()
-  {
+  private void updateTable() {
     String searchTextFieldText = searchTextField.getText();
     Assert.checkNullIllegalState(ratingType, "ratingType must not be null");
 
     contentPane.setVisible(false);
-    leaderboardService.getSearchResultsWithMeta(ratingType, searchTextFieldText,paginationControl.getCurrentPageIndex()+1, NUMBER_OF_PLAYERS_PER_PAGE).thenAccept(ratingWithRankBeans -> {
+    leaderboardService.getSearchResultsWithMeta(ratingType, searchTextFieldText,paginationControl.getCurrentPageIndex()+1, NUMBER_OF_PLAYERS_PER_PAGE)
+        .thenAccept(ratingWithRankBeans -> {
       Platform.runLater(() -> {
         ratingTable.setItems(observableList(
-
             ratingWithRankBeans.get()
                 .parallelStream()
                 .map(RatingWithRank::fromDTORatingWithRank)
@@ -154,7 +153,4 @@ public class LeaderboardController extends AbstractViewController<Node> {
 
     });
   }
-
-
-
 }
