@@ -12,7 +12,10 @@ import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.github.jasminb.jsonapi.JSONAPIDocument;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -79,16 +82,4 @@ public class LeaderboardService {
         throw new IllegalArgumentException("Not supported: " + ratingType);
     }
   }
-
-  /*public CompletableFuture<List<LeaderboardEntry>> getSearchResults(KnownFeaturedMod ratingType, String nameToSearch, int page, int count) {
-    switch (ratingType) {
-      case FAF:
-        return fafService.findGlobalLeaderboardEntryByQuery(nameToSearch, page, count);
-      case LADDER_1V1:
-        return fafService.findLadder1v1LeaderboardEntryByQuery(nameToSearch, page, count);
-      default:
-        throw new IllegalArgumentException("Not supported: " + ratingType);
-    }
-
-  }*/
 }

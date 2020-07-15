@@ -1,8 +1,10 @@
 package com.faforever.client.leaderboard;
 
 
+import com.faforever.client.api.dto.RatingWithRank;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.remote.FafService;
+import com.github.jasminb.jsonapi.JSONAPIDocument;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -10,9 +12,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.MockitoRule;
 
 import java.util.Arrays;
@@ -152,30 +152,16 @@ public class LeaderboardServiceTest {
   }
 
   @Test
-  public void testFindGlobalLeaderboardEntryByQuery() throws Exception { //test-methods don't have parameters
+  public void testFindLeaderboardEntryByQuery() throws Exception { //test-methods don't have parameters
 
-    List<LeaderboardEntry> globalEntries= Collections.emptyList();
+    JSONAPIDocument<List<RatingWithRank>> globalEntries = new JSONAPIDocument<>(Collections.emptyList());
     when(fafService.findGlobalLeaderboardEntryByQuery(nameToSearch, page, count))
         .thenReturn(CompletableFuture.completedFuture(globalEntries));
 
-    List<LeaderboardEntry> resultList = instance.getSearchResults(KnownFeaturedMod.FAF, nameToSearch, page, count).toCompletableFuture()
+    JSONAPIDocument<List<RatingWithRank>> resultList = instance.getSearchResultsWithMeta(KnownFeaturedMod.FAF, nameToSearch, page, count).toCompletableFuture()
         .get(2, TimeUnit.SECONDS);
 
     verify(fafService).findGlobalLeaderboardEntryByQuery(nameToSearch, page, count);
-    assertThat(resultList, is(globalEntries));
-  }
-
-  @Test
-  public void testFindLadder1v1LeaderboardEntryByQuery() throws Exception {
-
-    List<LeaderboardEntry> globalEntries= Collections.emptyList();
-    when(fafService.findLadder1v1LeaderboardEntryByQuery(nameToSearch, page, count))
-        .thenReturn(CompletableFuture.completedFuture(globalEntries));
-
-    List<LeaderboardEntry> resultList = instance.getSearchResults(KnownFeaturedMod.LADDER_1V1, nameToSearch, page, count).toCompletableFuture()
-        .get(2, TimeUnit.SECONDS);
-
-    verify(fafService).findLadder1v1LeaderboardEntryByQuery(nameToSearch, page, count);
     assertThat(resultList, is(globalEntries));
   }
 }
