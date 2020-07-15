@@ -69,12 +69,12 @@ public class LeaderboardService {
     }
   }
 
-  public CompletableFuture<JSONAPIDocument<List<GlobalRatingWithRank>>> getSearchResultsWithMeta(KnownFeaturedMod ratingType, String nameToSearch, int page, int count) {
+  public CompletableFuture<JSONAPIDocument<List<com.faforever.client.api.dto.RatingWithRank>>> getSearchResultsWithMeta(KnownFeaturedMod ratingType, String nameToSearch, int page, int count) {
     switch (ratingType) {
       case FAF:
         return fafService.findGlobalLeaderboardEntryByQuery(nameToSearch, page, count);
       case LADDER_1V1:
-        return null;
+        return fafService.findLadder1v1LeaderboardEntryByQuery(nameToSearch, page, count);
       default:
         throw new IllegalArgumentException("Not supported: " + ratingType);
     }

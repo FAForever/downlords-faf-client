@@ -14,6 +14,7 @@ import com.faforever.client.api.dto.MapVersionReview;
 import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.Rating;
+import com.faforever.client.api.dto.RatingWithRank;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.clan.Clan;
@@ -265,16 +266,13 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<JSONAPIDocument<List<GlobalRatingWithRank>>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
+  public CompletableFuture<JSONAPIDocument<List<RatingWithRank>>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
     return CompletableFuture.completedFuture(fafApiAccessor.findGlobalLeaderboardEntryByQuery(nameToSearch, page, count));
   }
 
   @Async
-  public CompletableFuture<List<LeaderboardEntry>> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count) {
-    return CompletableFuture.completedFuture(fafApiAccessor.findLadder1v1LeaderboardEntryByQuery(nameToSearch, page, count)
-        .parallelStream()
-        .map(LeaderboardEntry::fromLadder1v1)
-        .collect(toList()));
+  public CompletableFuture<JSONAPIDocument<List<RatingWithRank>>> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count) {
+    return CompletableFuture.completedFuture(fafApiAccessor.findGlobalLeaderboardEntryByQuery(nameToSearch, page, count));
   }
 
   @Async
