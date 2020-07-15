@@ -20,6 +20,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
@@ -36,15 +37,16 @@ import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
+import com.google.common.eventbus.EventBus;
 import com.google.common.net.UrlEscapers;
 import com.google.common.primitives.Bytes;
+import javafx.application.Platform;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -61,7 +63,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
@@ -73,10 +74,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.faforever.client.notification.Severity.WARN;
@@ -115,7 +116,7 @@ public class ReplayService {
   private static final String FAF_LIFE_PROTOCOL = "faflive";
   private static final String GPGNET_SCHEME = "gpgnet";
   private static final String TEMP_SCFA_REPLAY_FILE_NAME = "temp.scfareplay";
-  private static final long MAX_REPLAYS = 300;
+  private static final int REPLAYS_PER_PAGE = 100;
   private static final Pattern invalidCharacters = Pattern.compile("[?@*%{}<>|\"]");
 
   private final ClientProperties clientProperties;
@@ -133,12 +134,12 @@ public class ReplayService {
   private final FafService fafService;
   private final ModService modService;
   private final MapService mapService;
-  private final ApplicationEventPublisher publisher;
+  private final EventBus eventBus;
   private final MapGeneratorService mapGeneratorService;
-  private final ExecutorService executorService;
   private Thread directoryWatcherThread;
-  private WatchService watchService;
-  protected List<Replay> localReplays = new ArrayList<Replay>();
+  protected List<Replay> localReplays = new ArrayList<>();
+  private double localReplaysItemsSize;
+  private int pageCountLocalReplays;
 
   public void startLoadingAndWatchingLocalReplays() {
     Path replaysDirectory = preferencesService.getReplaysDirectory();
@@ -146,23 +147,34 @@ public class ReplayService {
       noCatch(() -> createDirectories(replaysDirectory));
     }
 
-    LoadLocalReplaysTask loadLocalReplaysTask = applicationContext.getBean(LoadLocalReplaysTask.class);
-    taskService.submitTask(loadLocalReplaysTask).getFuture().thenAccept(replays -> {
-      localReplays.clear();
-      localReplays.addAll(replays);
-      publisher.publishEvent(new LocalReplaysChangedEvent(this, replays, new ArrayList<Replay>()));
-    });
-
     try {
       Optional.ofNullable(directoryWatcherThread).ifPresent(Thread::interrupt);
       directoryWatcherThread = startDirectoryWatcher(replaysDirectory);
     } catch (IOException e) {
       logger.warn("Failed to start watching the local replays directory");
     }
+
+    reloadLocalReplays();
   }
 
-  public Collection<Replay> getLocalReplays() {
-    return localReplays;
+  private void reloadLocalReplays() {
+    Path replaysDirectory = preferencesService.getReplaysDirectory();
+    pageCountLocalReplays = 1;
+    String replayFileGlob = clientProperties.getReplay().getReplayFileGlob();
+    try {
+      int localReplaysItemsSize = (int) Files.list(replaysDirectory).filter(path -> path.getFileName().toString().endsWith(replayFileGlob)).count();
+      pageCountLocalReplays = Math.max(1, (int) Math.ceil(localReplaysItemsSize / (double) REPLAYS_PER_PAGE));
+    } catch (IOException e) {
+      logger.warn("Failed loading total amount of replays", e);
+    }
+
+    loadPage(1);
+  }
+
+  public void loadPage(int page) {
+    LoadLocalReplaysTask loadLocalReplaysTask = applicationContext.getBean(LoadLocalReplaysTask.class).setPageNum(page);
+    taskService.submitTask(loadLocalReplaysTask).getFuture()
+        .thenAccept(replays -> eventBus.post(new LocalReplaysChangedEvent(page, pageCountLocalReplays, replays)));
   }
 
   protected Thread startDirectoryWatcher(Path replaysDirectory) throws IOException {
@@ -171,7 +183,8 @@ public class ReplayService {
         replaysDirectory.register(watcher, ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE);
         while (!Thread.interrupted()) {
           WatchKey key = watcher.take();
-          onLocalReplaysWatchEvent(key);
+          Platform.runLater(this::reloadLocalReplays);
+          key.pollEvents();
           key.reset();
         }
       } catch (InterruptedException e) {
@@ -181,48 +194,6 @@ public class ReplayService {
     thread.setDaemon(true);
     thread.start();
     return thread;
-  }
-
-  @VisibleForTesting
-  protected void onLocalReplaysWatchEvent(WatchKey key) {
-    List<CompletableFuture<Replay>> newReplaysFutures = new ArrayList<CompletableFuture<Replay>>();
-    Collection<Replay> deletedReplays = new ArrayList<Replay>();
-    for (WatchEvent<?> watchEvent : key.pollEvents()) {
-      Path path = (Path) watchEvent.context();
-      Path fullPathToReplay = preferencesService.getReplaysDirectory().resolve(path);
-
-      if (watchEvent.kind() == ENTRY_CREATE) {
-        newReplaysFutures.add(tryLoadingLocalReplay(fullPathToReplay));
-      } else if (watchEvent.kind() == ENTRY_DELETE) {
-        Optional<Replay> existingReplay = localReplays
-            .stream()
-            .filter(replay -> replay.getReplayFile().compareTo(fullPathToReplay) == 0)
-            .findFirst();
-
-        if (existingReplay.isPresent()) {
-          Replay deletedReplay = existingReplay.get();
-          deletedReplays.add(deletedReplay);
-          localReplays.remove(deletedReplay);
-        }
-      }
-    }
-
-    CompletableFuture[] replayFuturesArray = newReplaysFutures.toArray(new CompletableFuture[newReplaysFutures.size()]);
-    CompletableFuture<List<Replay>> newReplaysFuture = CompletableFuture.allOf(replayFuturesArray)
-        .thenApply(ignoredVoid ->
-            newReplaysFutures.stream()
-                .map(CompletableFuture::join)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList())
-        );
-
-    try {
-      List<Replay> newReplays = newReplaysFuture.get();
-      localReplays.addAll(newReplays);
-      publisher.publishEvent(new LocalReplaysChangedEvent(this, newReplays, deletedReplays));
-    } catch (Exception e) {
-      logger.warn("Failed to load new local replays ({})", e.getMessage());
-    }
   }
 
   @VisibleForTesting
@@ -277,7 +248,7 @@ public class ReplayService {
    * Loads some, but not all, local replays. Loading all local replays could result in OOME.
    */
   @Async
-  public CompletableFuture<Collection<Replay>> loadLocalReplays() throws IOException {
+  public CompletableFuture<Collection<Replay>> loadLocalReplays(int page) throws IOException {
     String replayFileGlob = clientProperties.getReplay().getReplayFileGlob();
 
     Path replaysDirectory = preferencesService.getReplaysDirectory();
@@ -285,25 +256,29 @@ public class ReplayService {
       noCatch(() -> createDirectories(replaysDirectory));
     }
 
+    int skippedReplays = REPLAYS_PER_PAGE * page - REPLAYS_PER_PAGE;
 
     try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(replaysDirectory, replayFileGlob)) {
-      List<CompletableFuture<Replay>> replayFutures = StreamSupport.stream(directoryStream.spliterator(), false)
-          .sorted(Comparator.comparing(path -> noCatch(() -> Files.getLastModifiedTime((Path) path))).reversed())
-          .limit(MAX_REPLAYS)
+      Stream<Path> stream = StreamSupport.stream(directoryStream.spliterator(), false)
+          .sorted(Comparator.comparing(path -> noCatch(() -> Files.getLastModifiedTime((Path) path))).reversed());
+
+      List<CompletableFuture<Replay>> replayFutures = stream
+          .skip(skippedReplays)
+          .limit(REPLAYS_PER_PAGE)
           .map(this::tryLoadingLocalReplay)
           .filter(e -> !e.isCompletedExceptionally())
           .collect(Collectors.toList());
 
-      CompletableFuture[] replayFuturesArray = replayFutures.toArray(new CompletableFuture[replayFutures.size()]);
+      CompletableFuture[] replayFuturesArray = replayFutures.toArray(new CompletableFuture[0]);
       return CompletableFuture.allOf(replayFuturesArray)
           .thenApply(ignoredVoid ->
               replayFutures.stream()
                   .map(CompletableFuture::join)
                   .filter(Objects::nonNull)
                   .collect(Collectors.toList()));
-
     }
   }
+
 
   private CompletableFuture<Replay> tryLoadingLocalReplay(Path replayFile) {
     try {
@@ -364,7 +339,7 @@ public class ReplayService {
       throw new RuntimeException("There's no game with ID: " + gameId);
     }
     /* A courtesy towards the replay server so we can see in logs who we're dealing with. */
-    String playerName = playerService.getCurrentPlayer().map(p -> p.getUsername()).orElse("Unknown");
+    String playerName = playerService.getCurrentPlayer().map(Player::getUsername).orElse("Unknown");
 
     URI uri = UriComponentsBuilder.newInstance()
         .scheme(FAF_LIFE_PROTOCOL)

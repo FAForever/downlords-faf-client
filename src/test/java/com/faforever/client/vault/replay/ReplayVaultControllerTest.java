@@ -14,7 +14,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
-import javafx.scene.control.TableView;
+import javafx.scene.layout.BorderPane;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -27,10 +27,13 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
@@ -55,12 +58,14 @@ public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private UiService uiService;
   @Mock
+  private EventBus eventBus;
+  @Mock
   private ExecutorService executorService;
 
   @Before
   public void setUp() throws Exception {
-    instance = new ReplayVaultController(notificationService, replayService, mapService, taskService, i18n, timeService,
-        reportingService, applicationContext, uiService);
+   instance = new ReplayVaultController(replayService, mapService, i18n, timeService,
+        uiService, eventBus);
 
     loadFxml("theme/vault/replay/replay_vault.fxml", clazz -> instance);
   }
@@ -68,12 +73,12 @@ public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGetRoot() throws Exception {
     assertThat(instance.getRoot(), is(instance.replayVaultRoot));
-    assertThat(instance.getRoot().getParent(), is(nullValue()));
+    assertThat(instance.getRoot().getParent(), instanceOf(BorderPane.class));
+    assertThat(instance.getRoot().getParent().getParent(), is(nullValue()));
   }
 
   @Test
   public void testLoadLocalReplaysInBackground() throws Exception {
-
     List<Replay> replays = Arrays.asList(
         ReplayInfoBeanBuilder.create().get(),
         ReplayInfoBeanBuilder.create().get(),
@@ -84,11 +89,19 @@ public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     instance.replayTableView.getItems().addListener((InvalidationListener) observable -> loadedLatch.countDown());
 
     instance.loadLocalReplaysInBackground();
-    instance.onLocalReplaysChanged(new LocalReplaysChangedEvent(this, replays, new ArrayList<Replay>()));
+    instance.onLocalReplaysChanged(new LocalReplaysChangedEvent(this, replays, new ArrayList<>(), false));
 
     assertTrue(loadedLatch.await(5000, TimeUnit.MILLISECONDS));
     assertThat(instance.replayTableView.getItems().size(), is(3));
 
     verifyZeroInteractions(notificationService);
+  }
+
+  @Test
+  public void testPagination() throws Exception {
+    assertThat(instance.pagination.getCurrentPageIndex(), is(0));
+    instance.pagination.setCurrentPageIndex(1);
+    assertThat(instance.pagination.getCurrentPageIndex(), is(1));
+    verify(replayService).loadPage(eq(2));
   }
 }

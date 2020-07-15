@@ -23,6 +23,7 @@ import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.replay.ReplayData;
+import com.google.common.eventbus.EventBus;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -175,7 +176,7 @@ public class ReplayServiceTest {
   @Mock
   private MapService mapService;
   @Mock
-  private ApplicationEventPublisher publisher;
+  private EventBus publisher;
   @Mock
   private MapGeneratorService mapGeneratorService;
   @Mock
@@ -188,7 +189,7 @@ public class ReplayServiceTest {
     MockitoAnnotations.initMocks(this);
 
     instance = new ReplayService(new ClientProperties(), preferencesService, userService, replayFileReader, notificationService, gameService, playerService,
-        taskService, i18n, reportingService, applicationContext, platformService, fafService, modService, mapService, publisher, mapGeneratorService, executorService);
+        taskService, i18n, reportingService, applicationContext, platformService, fafService, modService, mapService, publisher, mapGeneratorService);
 
     when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath());
     when(preferencesService.getCorruptedReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath().resolve("corrupt"));
@@ -253,7 +254,7 @@ public class ReplayServiceTest {
 
     Collection<Replay> localReplays = new ArrayList<>();
     try {
-      localReplays.addAll(instance.loadLocalReplays().get());
+      localReplays.addAll(instance.loadLocalReplays(1).get());
     } catch (FakeTestException exception) {
       // expected
     }
@@ -295,7 +296,7 @@ public class ReplayServiceTest {
     when(modService.getFeaturedMod(any())).thenReturn(CompletableFuture.completedFuture(null));
     when(mapService.findByMapFolderName(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(MapBeanBuilder.create().defaultValues().get())));
 
-    Collection<Replay> localReplays = instance.loadLocalReplays().get();
+    Collection<Replay> localReplays = instance.loadLocalReplays(1).get();
 
     assertThat(localReplays, hasSize(1));
     assertThat(localReplays.iterator().next().getId(), is(123));
