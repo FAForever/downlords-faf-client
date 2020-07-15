@@ -27,6 +27,7 @@ import com.faforever.client.api.dto.Tournament;
 import com.faforever.client.api.dto.TutorialCategory;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.mod.FeaturedMod;
+import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.io.ByteCountListener;
@@ -178,18 +179,18 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<Game> getNewestReplays(int count, int page) {
-    return Collections.emptyList();
+  public Tuple<List<Game>, java.util.Map<String, ?>> getNewestReplaysWithMeta(int count, int page) {
+    return new Tuple(Collections.emptyList(), Collections.emptyMap());
   }
 
   @Override
-  public List<Game> getHighestRatedReplays(int count, int page) {
-    return Collections.emptyList();
+  public Tuple<List<Game>, java.util.Map<String, ?>> getHighestRatedReplaysWithMeta(int count, int page) {
+    return new Tuple(Collections.emptyList(), Collections.emptyMap());
   }
 
   @Override
-  public List<Game> findReplaysByQuery(String query, int maxResults, int page, SortConfig sortConfig) {
-    return Collections.emptyList();
+  public Tuple<List<Game>, java.util.Map<String, ?>> findReplaysByQueryWithMeta(String query, int maxResults, int page, SortConfig sortConfig) {
+    return new Tuple(Collections.emptyList(), Collections.emptyMap());
   }
 
   @Override

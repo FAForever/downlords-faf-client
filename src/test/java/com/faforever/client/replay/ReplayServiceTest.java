@@ -20,6 +20,7 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.replay.ReplayData;
@@ -45,6 +46,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -96,7 +98,7 @@ public class ReplayServiceTest {
   };
   private static final String TEST_MAP_NAME = "forbidden pass.v0001";
 
-  private static  final  byte[] REPLAY_MAP_FOLDER_BYTES = new byte[]{
+  private static final byte[] REPLAY_MAP_FOLDER_BYTES = new byte[]{
       0x75, 0x74, 0x6F, 0x54, 0x65, 0x61, 0x6D, 0x73, 0x00, 0x01, 0x6E, 0x6F, 0x6E, 0x65, 0x00, 0x01,
       0x53, 0x63, 0x65, 0x6E, 0x61, 0x72, 0x69, 0x6F, 0x46, 0x69, 0x6C, 0x65, 0x00, 0x01, 0x2F, 0x6D,
       0x61, 0x70, 0x73, 0x2F, 0x73, 0x63, 0x63, 0x61, 0x5F, 0x63, 0x6F, 0x6F, 0x70, 0x5F, 0x72, 0x30,
@@ -251,7 +253,7 @@ public class ReplayServiceTest {
     doThrow(new FakeTestException()).when(replayFileReader).parseMetaData(file1);
     doThrow(new FakeTestException()).when(replayFileReader).parseMetaData(file2);
 
-    Collection<Replay> localReplays = new ArrayList<Replay>();
+    Collection<Replay> localReplays = new ArrayList<>();
     try {
       localReplays.addAll(instance.loadLocalReplays().get());
     } catch (FakeTestException exception) {
@@ -328,7 +330,7 @@ public class ReplayServiceTest {
     when(watchEventForDeletedReplay.kind()).thenReturn(ENTRY_DELETE);
     when(watchEventForDeletedReplay.context()).thenReturn(deletedReplayFile);
 
-    List<WatchEvent<?>> eventsList = new ArrayList<WatchEvent<?>>();
+    List<WatchEvent<?>> eventsList = new ArrayList<>();
     eventsList.add(watchEventForNewReplay);
     eventsList.add(watchEventForDeletedReplay);
     when(watchKey.pollEvents()).thenReturn(eventsList);
@@ -439,8 +441,8 @@ public class ReplayServiceTest {
     ArgumentCaptor<Integer> pageCatcher = ArgumentCaptor.forClass(Integer.class);
     ArgumentCaptor<SortConfig> sortCatcher = ArgumentCaptor.forClass(SortConfig.class);
     when(userService.getUserId()).thenReturn(47);
-    when(fafService.findReplaysByQuery(queryCatcher.capture(), pageSizeCatcher.capture(), pageCatcher.capture(), sortCatcher.capture())).thenReturn(CompletableFuture.completedFuture(null));
-    CompletableFuture<List<Replay>> ownReplays = instance.getOwnReplays(100, 1);
+    when(fafService.findReplaysByQueryWithMeta(queryCatcher.capture(), pageSizeCatcher.capture(), pageCatcher.capture(), sortCatcher.capture())).thenReturn(CompletableFuture.completedFuture(null));
+    CompletableFuture<Tuple<List<Replay>, Map<String, ?>>> ownReplays = instance.getOwnReplaysWithMeta(100, 1);
     ownReplays.get();
     assertEquals("playerStats.player.id==\"47\"", queryCatcher.getValue());
     assertEquals(100, (int) pageSizeCatcher.getValue());
