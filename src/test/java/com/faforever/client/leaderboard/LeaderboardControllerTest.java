@@ -53,22 +53,6 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnDisplay() throws Exception {
-    when(leaderboardService.getEntries(KnownFeaturedMod.LADDER_1V1)).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
-        new LeaderboardEntry(), new LeaderboardEntry()
-    )));
-
-    CountDownLatch loadedLatch = new CountDownLatch(1);
-    instance.ratingTable.itemsProperty().addListener(observable -> loadedLatch.countDown());
-    instance.setRatingType(KnownFeaturedMod.LADDER_1V1);
-
-    instance.display(new OpenLadder1v1LeaderboardEvent());
-
-    assertTrue(loadedLatch.await(3, TimeUnit.SECONDS));
-    verifyZeroInteractions(notificationService);
-  }
-
-  @Test
   public void testGetRoot() throws Exception {
     assertThat(instance.getRoot(), is(instance.leaderboardRoot));
     assertThat(instance.getRoot().getParent(), is(nullValue()));
