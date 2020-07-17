@@ -31,6 +31,7 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.css.PseudoClass;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -195,7 +196,9 @@ public class CreateGameController implements Controller<Pane> {
     titleTextField.textProperty().addListener((observable, oldValue, newValue) -> {
       preferencesService.getPreferences().getLastGamePrefs().setLastGameTitle(newValue);
       preferencesService.storeInBackground();
+      adjustCreateGameButtonBackgroundColor(newValue);
     });
+    adjustCreateGameButtonBackgroundColor(titleTextField.getText());
 
     createGameButton.textProperty().bind(Bindings.createStringBinding(() -> {
       switch (fafService.connectionStateProperty().get()) {
@@ -218,6 +221,15 @@ public class CreateGameController implements Controller<Pane> {
         titleTextField.textProperty().isEmpty()
             .or(featuredModListView.getSelectionModel().selectedItemProperty().isNull().or(fafService.connectionStateProperty().isNotEqualTo(CONNECTED)))
     );
+  }
+
+  private void adjustCreateGameButtonBackgroundColor(String newValue) {
+    PseudoClass invalidClass = PseudoClass.getPseudoClass("invalid");
+    if (Strings.isNullOrEmpty(newValue)) {
+      titleTextField.pseudoClassStateChanged(invalidClass, true);
+    } else {
+      titleTextField.pseudoClassStateChanged(invalidClass, false);
+    }
   }
 
   private void initPassword() {

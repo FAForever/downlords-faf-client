@@ -960,6 +960,11 @@
 .game-title-input {
   -fx-font-size: 0.8cm;
 }
+
+.game-title-input:invalid {
+  -fx-border-color: -bad;
+}
+
 .game-generate-map {
   -fx-background-color: -dimmed-accent;
   -fx-graphic-text-gap: 0.7em;
