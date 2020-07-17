@@ -5,6 +5,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="languageItemRoot" hgap="10.0" onMouseClicked="#onSelected"
           styleClass="pointable,card" xmlns="http://javafx.com/javafx/8.0.141"
@@ -19,7 +20,7 @@
     <children>
         <Label fx:id="localLanguageLabel" styleClass="h3" text="&lt;Native Language&gt;">
             <graphic>
-                <Label fx:id="checkedLabel" styleClass="icon,checked-icon" text=""/>
+                <Region fx:id="checkedRegion" styleClass="icon,circle-checked"/>
             </graphic>
         </Label>
         <Label fx:id="translatedLanguageLabel" contentDisplay="RIGHT" text="&lt;Translated Language&gt;"

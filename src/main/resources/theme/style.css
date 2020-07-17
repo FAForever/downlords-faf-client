@@ -9,10 +9,6 @@
   -fx-graphic-text-gap: 0.666667em;
 }
 
-.more-button {
-  -fx-pref-height: 24em;
-}
-
 /***************** Split Pane *****************/
 
 .split-pane > .split-pane-divider {
@@ -30,6 +26,10 @@
 .tab-pane > .tab-header-area > .headers-region > .tab {
   -fx-background-insets: 0 1 0 1;
   -fx-border-insets: 0 1 0 1;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab:unread {
+  -fx-border-color: -unread;
 }
 
 .close-search-text-button {
@@ -66,10 +66,6 @@
   -jfx-unchecked-color: -bad;
 }
 
-.checked-icon {
-  -fx-text-fill: -fx-accent;
-}
-
 /***************** Dimmer *****************/
 
 /* Dims the background of a modal popup */
@@ -84,6 +80,7 @@
   -fx-background-color: -fx-base;
   -fx-border-color: -fx-box-border;
 }
+
 /*******************************************************************************
  *                                                                             *
  * Pagination                                                                  *
@@ -94,6 +91,10 @@
   -fx-font-size: 1.5em;
 }
 
+.pagination {
+  -fx-page-information-visible: true;
+}
+
 .number-button:selected {
   -fx-background-color: -card-color;
   -fx-border-color: -fx-accent;
@@ -102,6 +103,7 @@
 .number-button:hover {
   -fx-border-color: -dimmed-accent;
 }
+
 
 /***************** Status bar *****************/
 
@@ -153,11 +155,6 @@
   -fx-background-color: -bad;
 }
 
-/***************** Tabs *****************/
-
-.tab:unread {
-  -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-accent;
-}
 
 /***************** Headers *****************/
 

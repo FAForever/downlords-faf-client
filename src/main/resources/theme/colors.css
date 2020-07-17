@@ -2,6 +2,8 @@
   -fx-base: #212121;
   -fx-accent: #2b71d9;
 
+  -unread: derive(#00ff00, 80%);
+
   -good: #4caf50;
   -warn: #ff9800;
   -bad: #f44336;

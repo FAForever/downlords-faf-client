@@ -14,7 +14,6 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-
 <StackPane fx:id="gamesRoot" alignment="TOP_CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.CustomGamesController">
     <children>
       <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
@@ -64,7 +63,7 @@
             </VBox>
                 <ScrollPane fx:id="gameDetailPane" fitToWidth="true" minWidth="200.0" prefWidth="300.0" styleClass="game-detail-pane">
                     <content>
-                        <fx:include fx:id="gameDetail" source="game_detail.fxml" />
+                        <fx:include fx:id="gameDetail" source="game_detail.fxml" visible="false"/>
                     </content>
                 </ScrollPane>
          </children>

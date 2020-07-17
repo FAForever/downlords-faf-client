@@ -24,9 +24,9 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.dialog.Dialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import javafx.scene.control.Button;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -370,7 +370,7 @@ public class CreateGameController implements Controller<Pane> {
 
         Pane root = generateMapController.getRoot();
         generateMapController.setCreateGameController(this);
-        JFXDialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("game.generate.dialog"));
+        Dialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("game.generate.dialog"));
         generateMapController.setOnCloseButtonClickedListener(dialog::close);
 
         root.requestFocus();

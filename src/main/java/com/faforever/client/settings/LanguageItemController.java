@@ -9,6 +9,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -27,7 +28,7 @@ public class LanguageItemController implements Controller<Node> {
   public Label localLanguageLabel;
   public Label translatedLanguageLabel;
   public ImageView localeImageView;
-  public Label checkedLabel;
+  public Region checkedRegion;
   private Consumer<Locale> listener;
   private Locale locale;
   private JFXRippler jfxRippler;
@@ -39,7 +40,7 @@ public class LanguageItemController implements Controller<Node> {
 
   @Override
   public void initialize() {
-    checkedLabel.managedProperty().bind(checkedLabel.visibleProperty());
+    checkedRegion.managedProperty().bind(checkedRegion.visibleProperty());
 
     localeImageView.managedProperty().bind(localeImageView.visibleProperty());
     localeImageView.setVisible(false);
@@ -69,7 +70,7 @@ public class LanguageItemController implements Controller<Node> {
   }
 
   public void setSelected(boolean selected) {
-    checkedLabel.setVisible(selected);
+    checkedRegion.setVisible(selected);
   }
 
   public void onSelected() {

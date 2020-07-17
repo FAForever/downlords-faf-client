@@ -1,6 +1,5 @@
 package com.faforever.client.game;
 
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -8,8 +7,6 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.google.common.eventbus.EventBus;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -20,21 +17,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.testfx.util.WaitForAsyncUtils;
 
-import static javafx.beans.binding.Bindings.createBooleanBinding;
 import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -83,6 +74,8 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
     when(gamesTableController.getRoot()).thenReturn(new Pane());
     when(gamesTableController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
     when(gamesTilesContainerController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
+
+    when(gameDetailController.getRoot()).thenReturn(new Pane());
 
     loadFxml("theme/play/custom_games.fxml", clazz -> {
       if (clazz == GameDetailController.class) {

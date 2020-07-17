@@ -10,11 +10,11 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.vault.VaultEntityController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.jfoenix.controls.JFXDialog;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.stage.DirectoryChooser;
@@ -137,14 +137,14 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
     modUploadController.setModPath(path);
 
     Node root = modUploadController.getRoot();
-    JFXDialog dialog = uiService.showInDialog(vaultRoot, root, i18n.get("modVault.upload.title"));
+    Dialog dialog = uiService.showInDialog(vaultRoot, root, i18n.get("modVault.upload.title"));
     modUploadController.setOnCancelButtonClickedListener(dialog::close);
   }
 
   public void manageMods() {
     ModManagerController modManagerController = uiService.loadFxml("theme/mod_manager.fxml");
-    JFXDialog jfxDialog = uiService.showInDialog(vaultRoot, modManagerController.getRoot(), i18n.get("modVault.modManager"));
-    jfxDialog.setOnDialogClosed(event -> modManagerController.apply());
+    Dialog dialog = uiService.showInDialog(vaultRoot, modManagerController.getRoot(), i18n.get("modVault.modManager"));
+    dialog.setOnDialogClosed(event -> modManagerController.apply());
   }
 
   @Subscribe

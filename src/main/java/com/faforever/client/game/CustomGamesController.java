@@ -14,7 +14,6 @@ import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
-import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
@@ -44,8 +43,6 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
-
-import static javafx.beans.binding.Bindings.createBooleanBinding;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -267,6 +264,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   @VisibleForTesting
   void setSelectedGame(Game game) {
+    gameDetailController.getRoot().setVisible(true);
     gameDetailController.setGame(game);
   }
 
