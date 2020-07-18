@@ -31,8 +31,8 @@ public class PlayController extends AbstractViewController<Node> {
   public Ladder1v1Controller ladderController;
   public CoopController coopController;
   private boolean isHandlingEvent;
-  private AbstractViewController<?> lastTab;
-
+  private AbstractViewController<?> lastTabController;
+  private Tab lastTab;
 
   public PlayController(EventBus eventBus) {
     this.eventBus = eventBus;
@@ -40,8 +40,8 @@ public class PlayController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
-    eventBus.post(new OpenCustomGamesEvent());
-    lastTab = customGamesController;
+    lastTab = customGamesTab;
+    lastTabController = customGamesController;
     playRootTabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
       if (isHandlingEvent) {
         return;
@@ -63,22 +63,17 @@ public class PlayController extends AbstractViewController<Node> {
 
     try {
       if (navigateEvent instanceof OpenCustomGamesEvent) {
-        playRootTabPane.getSelectionModel().select(customGamesTab);
-        customGamesController.display(navigateEvent);
-        lastTab = customGamesController;
+        lastTab = customGamesTab;
+        lastTabController = customGamesController;
+      } else if (navigateEvent instanceof Open1v1Event) {
+        lastTab = ladderTab;
+        lastTabController = ladderController;
+      } else if (navigateEvent instanceof OpenCoopEvent) {
+        lastTab = coopTab;
+        lastTabController = coopController;
       }
-      else if (navigateEvent instanceof Open1v1Event) {
-        playRootTabPane.getSelectionModel().select(ladderTab);
-        ladderController.display(navigateEvent);
-        lastTab = ladderController;
-      }
-      else if (navigateEvent instanceof OpenCoopEvent) {
-        playRootTabPane.getSelectionModel().select(coopTab);
-        coopController.display(navigateEvent);
-        lastTab = coopController;
-      } else if (Objects.equals(navigateEvent.getClass(), NavigateEvent.class)) {
-        lastTab.display(navigateEvent);
-      }
+      playRootTabPane.getSelectionModel().select(lastTab);
+      lastTabController.display(navigateEvent);
     } finally {
       isHandlingEvent = false;
     }

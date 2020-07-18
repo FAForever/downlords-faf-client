@@ -40,7 +40,6 @@ import static com.faforever.client.config.CacheNames.URL_PREVIEW;
 import static com.github.benmanes.caffeine.cache.Caffeine.newBuilder;
 import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Configuration
 @EnableCaching

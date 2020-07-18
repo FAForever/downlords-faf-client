@@ -21,7 +21,6 @@ faf-client:
     map_validation_url: ${faf-client.api.base-url}/maps/validate
     mapDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/maps/%s.zip
     mapPreviewUrlFormat: ${faf-client.vault.base-url}/faf/vault/map_previews/%s/%s.png
-    replayDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/replay_vault/replay.php?id=%s
     modDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/maps/%s.zip
 
   website:

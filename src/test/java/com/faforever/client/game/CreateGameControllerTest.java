@@ -19,6 +19,7 @@ import com.faforever.client.theme.UiService;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.css.PseudoClass;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -323,4 +324,14 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     assertEquals(preferences.getLastGamePrefs().getLastGamePassword(), "1234");
     verify(preferencesService).storeInBackground();
   }
+
+  @Test
+  public void testCreateGameTitleTextBorderColor() {
+    PseudoClass invalidClass = PseudoClass.getPseudoClass("invalid");
+    instance.titleTextField.setText("Test");
+    assertThat(instance.titleTextField.getPseudoClassStates().contains(invalidClass), is(false));
+    instance.titleTextField.setText("");
+    assertThat(instance.titleTextField.getPseudoClassStates().contains(invalidClass), is(true));
+  }
+
 }

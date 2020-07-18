@@ -1,11 +1,13 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.api.dto.GroupPermission;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.game.JoinGameHelper;
+import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
@@ -26,8 +28,6 @@ import com.jfoenix.controls.JFXAlert;
 import com.jfoenix.controls.JFXButton;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
@@ -53,6 +53,7 @@ import org.springframework.stereotype.Component;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.util.Objects;
+import java.util.Set;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static com.faforever.client.player.SocialStatus.FOE;
@@ -75,7 +76,6 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   private final AvatarService avatarService;
   private final UiService uiService;
   private final ModeratorService moderatorService;
-  private final BooleanProperty isModeratorProperty = new SimpleBooleanProperty(false);
   public ComboBox<AvatarBean> avatarComboBox;
   public CustomMenuItem avatarPickerMenuItem;
   public MenuItem sendPrivateMessageItem;
@@ -128,10 +128,6 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     // Workaround for the issue that the popup gets closed when the "custom color" button is clicked, causing an NPE
     // in the custom color popup window.
     colorPicker.focusedProperty().addListener((observable, oldValue, newValue) -> chatUserContextMenuRoot.setAutoHide(!newValue));
-  }
-
-  private void initModerator() {
-    moderatorService.isModerator().thenAccept(isModeratorProperty::set);
   }
 
   @NotNull
@@ -187,11 +183,8 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
         loadAvailableAvatars(newValue);
       }
 
-      initModerator();
-      kickGameItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF).and(isModeratorProperty));
-      kickLobbyItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF).and(isModeratorProperty));
-      banItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF).and(isModeratorProperty));
-      moderatorActionSeparator.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF).and(isModeratorProperty));
+      moderatorService.getPermissions()
+          .thenAccept(permissions -> setModeratorOptions(permissions, newValue));
 
       sendPrivateMessageItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF));
       addFriendItem.visibleProperty().bind(
@@ -201,12 +194,21 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
       addFoeItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(FOE).and(newValue.socialStatusProperty().isNotEqualTo(SELF)));
       removeFoeItem.visibleProperty().bind(newValue.socialStatusProperty().isEqualTo(FOE));
 
+      // TODO: Make this ignore TMM games too and not just ladder
+      // https://github.com/FAForever/downlords-faf-client/issues/1770
       joinGameItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF)
           .and(newValue.statusProperty().isEqualTo(PlayerStatus.LOBBYING)
-              .or(newValue.statusProperty().isEqualTo(PlayerStatus.HOSTING))));
+              .or(newValue.statusProperty().isEqualTo(PlayerStatus.HOSTING)))
+          .and(Bindings.createBooleanBinding(() -> {
+                return newValue.getGame() != null
+                    && newValue.getGame().getFeaturedMod() != null
+                    && !newValue.getGame().getFeaturedMod().equals(KnownFeaturedMod.LADDER_1V1.getTechnicalName());
+              }, newValue.gameProperty())
+          ));
       watchGameItem.visibleProperty().bind(newValue.statusProperty().isEqualTo(PlayerStatus.PLAYING));
       inviteItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF)
           .and(newValue.statusProperty().isNotEqualTo(PlayerStatus.PLAYING)));
+
     };
     JavaFxUtil.addListener(chatUser.playerProperty(), new WeakChangeListener<>(playerChangeListener));
     playerChangeListener.changed(chatUser.playerProperty(), null, chatUser.getPlayer().orElse(null));
@@ -215,6 +217,16 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
         removeFriendItem.visibleProperty().or(
             addFoeItem.visibleProperty().or(
                 removeFoeItem.visibleProperty()))));
+  }
+
+  private void setModeratorOptions(Set<String> permissions, Player newValue) {
+    boolean notSelf = !newValue.getSocialStatus().equals(SELF);
+
+    kickGameItem.setVisible(notSelf & permissions.contains(GroupPermission.ADMIN_KICK_SERVER));
+    kickLobbyItem.setVisible(notSelf & permissions.contains(GroupPermission.ADMIN_KICK_SERVER));
+    banItem.setVisible(notSelf & permissions.contains(GroupPermission.ROLE_ADMIN_ACCOUNT_BAN));
+    moderatorActionSeparator.setVisible(kickGameItem.isVisible() || kickLobbyItem.isVisible() || banItem.isVisible());
+
   }
 
   private void loadAvailableAvatars(Player player) {

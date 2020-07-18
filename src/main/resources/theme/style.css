@@ -128,6 +128,11 @@
   -fx-background-color: -divider-color;
 }
 
+.game-detail-pane {
+  -fx-border-color: -divider-color;
+  -fx-border-width: 0 0 0 2;
+}
+
 /*******************************************************************************
  *                                                                             *
  * Tables	                                                                     *
@@ -182,7 +187,7 @@
  ******************************************************************************/
 
 .button {
-  -fx-pref-height: 36px;
+
   -fx-background-color: #FFFFFF11;
 }
 
@@ -217,8 +222,16 @@
   -fx-border-color: transparent;
 }
 
+.toggle-button.game-list-type {
+  -fx-background-color: #FFFFFF11;
+}
+
 .toggle-button.game-list-type:selected {
-  -fx-background-color: -fx-color-select;
+  -fx-background-color: #FFFFFF33;
+}
+
+.toggle-button.game-list-type:hover {
+  -fx-background-color: #FFFFFF33;
 }
 
 .toggle-button, .button {
@@ -242,6 +255,18 @@
 
 .icon-button:hover {
   -fx-background-color: transparent;
+}
+
+.layout-button {
+  -fx-text-overrun: clip;
+  -fx-cursor: hand;
+  -fx-padding: 5 0 2 0;
+  -fx-background-radius: 10 0 0 10;
+}
+
+.layout-button > .text {
+  -fx-font-family: 'dfc-icons';
+  -fx-font-size: 2em;
 }
 
 .more-button {
@@ -935,6 +960,11 @@
 .game-title-input {
   -fx-font-size: 0.8cm;
 }
+
+.game-title-input:invalid {
+  -fx-border-color: -bad;
+}
+
 .game-generate-map {
   -fx-background-color: -dimmed-accent;
   -fx-graphic-text-gap: 0.7em;

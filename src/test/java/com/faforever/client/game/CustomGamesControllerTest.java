@@ -168,7 +168,7 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
     assertFalse(preferencesService.getPreferences().isShowGameDetailsSidePane());
     verify(preferencesService, atLeast(2)).storeInBackground();
 
-    assertEquals(instance.toggleSidePaneButton.getText(), i18n.get("view.showSidePane"));
+    assertEquals(instance.toggleSidePaneButton.getText(), "");
     assertFalse(instance.gameDetailPane.isManaged());
     assertFalse(instance.gameDetailPane.isVisible());
   }

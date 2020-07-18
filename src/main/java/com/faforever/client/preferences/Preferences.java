@@ -73,7 +73,7 @@ public class Preferences {
     developer = new DeveloperPrefs();
     gameListSorting = new SimpleListProperty<>(observableArrayList());
     vaultPrefs = new VaultPrefs();
-    unitDataBaseType = new SimpleObjectProperty<>(UnitDataBaseType.RACKOVER);
+    unitDataBaseType = new SimpleObjectProperty<>(UnitDataBaseType.SPOOKY);
     storedCookies = new SimpleMapProperty<>(FXCollections.observableHashMap());
     showPasswordProtectedGames = new SimpleBooleanProperty(true);
     showModdedGames = new SimpleBooleanProperty(true);
