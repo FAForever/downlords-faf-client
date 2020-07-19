@@ -13,6 +13,7 @@ public final class CacheNames {
   public static final String LADDER_1V1_LEADERBOARD = "ladder1v1Leaderboard";
   public static final String GLOBAL_LEADERBOARD = "globalLeaderboard";
   public static final String MAPS = "maps";
+  public static final String MAP_GENERATOR = "mapGenerator";
   public static final String THEME_IMAGES = "themeImages";
   public static final String MOD_THUMBNAIL = "modThumbnail";
   public static final String COOP_MAPS = "coopMaps";

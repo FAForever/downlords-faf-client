@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="generateMapRoot" hgap="10.0" styleClass="create-game-root"
+          vgap="10.0" xmlns="http://javafx.com/javafx/11.0.1"
+          fx:controller="com.faforever.client.game.GenerateMapController">
+    <columnConstraints>
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+        <RowConstraints/>
+        <RowConstraints/>
+    </rowConstraints>
+    <children>
+        <Label styleClass="h2" text="%game.generate.recreate" GridPane.columnIndex="0" GridPane.rowIndex="0"
+               GridPane.columnSpan="2147483647"/>
+        <Label text="%game.generate.generatedName" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <TextField fx:id="previousMapName" maxHeight="Infinity"
+                   promptText="nerxois_map_generator_(version)_(seed)_(options)" style="-fx-pref-width: 5em"
+                   GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="1">
+            <tooltip>
+                <Tooltip text="%game.generate.nameCaution"/>
+            </tooltip>
+        </TextField>
+        <Separator GridPane.columnSpan="2147483647" GridPane.rowIndex="2"/>
+        <Label styleClass="h2" text="%game.generate.generateNew" GridPane.columnIndex="0" GridPane.rowIndex="3"
+               GridPane.columnSpan="2147483647"/>
+        <Label text="%game.create.spawnCount" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+        <Spinner fx:id="spawnCountSpinner" maxHeight="Infinity" style="-fx-pref-width: 6.5em" GridPane.columnIndex="1"
+                 GridPane.rowIndex="4">
+            <tooltip>
+                <Tooltip text="%game.create.spawnCount"/>
+            </tooltip>
+        </Spinner>
+        <Label text="%game.create.mapSize" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+        <Spinner fx:id="mapSizeSpinner" maxHeight="Infinity" style="-fx-pref-width: 6.5em" GridPane.columnIndex="1"
+                 GridPane.rowIndex="5">
+            <tooltip>
+                <Tooltip text="%game.create.mapSize"/>
+            </tooltip>
+        </Spinner>
+        <Label text="%game.generate.waterSlider" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+        <HBox fx:id="waterRandomBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="6">
+            <Label text="%game.generate.random"/>
+            <CheckBox fx:id="waterRandom"/>
+        </HBox>
+        <HBox fx:id="waterSliderBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="2" GridPane.rowIndex="6">
+            <Label text="%game.generate.none"/>
+            <Slider fx:id="waterSlider" max="127" maxHeight="Infinity" HBox.hgrow="ALWAYS"/>
+            <Label text="%game.generate.lots"/>
+        </HBox>
+        <Label text="%game.generate.plateauSlider" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+        <HBox fx:id="plateauRandomBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="7">
+            <Label text="%game.generate.random"/>
+            <CheckBox fx:id="plateauRandom"/>
+        </HBox>
+        <HBox fx:id="plateauSliderBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="2" GridPane.rowIndex="7">
+            <Label text="%game.generate.none"/>
+            <Slider fx:id="plateauSlider" max="127" maxHeight="Infinity" HBox.hgrow="ALWAYS"/>
+            <Label text="%game.generate.lots"/>
+        </HBox>
+        <Label text="%game.generate.mountainSlider" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
+        <HBox fx:id="mountainRandomBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="8">
+            <Label text="%game.generate.random"/>
+            <CheckBox fx:id="mountainRandom"/>
+        </HBox>
+        <HBox fx:id="mountainSliderBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="2" GridPane.rowIndex="8">
+            <Label text="%game.generate.none"/>
+            <Slider fx:id="mountainSlider" max="127" maxHeight="Infinity" HBox.hgrow="ALWAYS"/>
+            <Label text="%game.generate.lots"/>
+        </HBox>
+        <Label text="%game.generate.rampSlider" GridPane.columnIndex="0" GridPane.rowIndex="9"/>
+        <HBox fx:id="rampRandomBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="9">
+            <Label text="%game.generate.random"/>
+            <CheckBox fx:id="rampRandom"/>
+        </HBox>
+        <HBox fx:id="rampSliderBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="2" GridPane.rowIndex="9">
+            <Label text="%game.generate.none"/>
+            <Slider fx:id="rampSlider" max="127" maxHeight="Infinity" HBox.hgrow="ALWAYS"/>
+            <Label text="%game.generate.lots"/>
+        </HBox>
+
+
+        <Button fx:id="generateMapButton" alignment="CENTER_LEFT" contentDisplay="RIGHT" defaultButton="true"
+                mnemonicParsing="false" onAction="#onGenerateMapButtonClicked" styleClass="game-generate-map"
+                text="%game.generate" GridPane.columnIndex="0" GridPane.rowIndex="10">
+        </Button>
+
+        <!-- Cancel, Ok -->
+        <Button alignment="CENTER_RIGHT" mnemonicParsing="false" onAction="#onCloseButtonClicked"
+                styleClass="more-button-padding" text="%cancel" GridPane.columnIndex="2" GridPane.halignment="RIGHT"
+                GridPane.rowIndex="10">
+        </Button>
+    </children>
+    <padding>
+        <Insets left="20.0" right="20.0"/>
+    </padding>
+</GridPane>

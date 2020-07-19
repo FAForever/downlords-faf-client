@@ -202,6 +202,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
     }
 
     CreateGameController createGameController = uiService.loadFxml("theme/play/create_game.fxml");
+    createGameController.setGamesRoot(gamesRoot);
 
     if (mapFolderName != null && !createGameController.selectMap(mapFolderName)) {
       log.warn("Map with folder name '{}' could not be found in map list", mapFolderName);
