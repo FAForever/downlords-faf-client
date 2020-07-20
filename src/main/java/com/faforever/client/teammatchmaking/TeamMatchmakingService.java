@@ -194,8 +194,7 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   private void acceptPartyInvite(Player player) {
-    if (!preferencesService.isGamePathValid()) {
-      eventBus.post(new MissingGamePathEvent(true));
+    if (!ensureValidGamePath()) {
       return;
     }
 
@@ -207,6 +206,10 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   public void invitePlayer(String player) {
+    if (!ensureValidGamePath()) {
+      return;
+    }
+
     playerService.getPlayerForUsername(player).ifPresent(fafServerAccessor::inviteToParty);
   }
 
@@ -234,5 +237,13 @@ public class TeamMatchmakingService implements InitializingBean {
 
   public void setPartyFactions(boolean[] factions) {
     fafServerAccessor.setPartyFactions(factions);
+  }
+
+  private boolean ensureValidGamePath() {
+    if (!preferencesService.isGamePathValid()) {
+      eventBus.post(new MissingGamePathEvent(true));
+      return false;
+    }
+    return true;
   }
 }
