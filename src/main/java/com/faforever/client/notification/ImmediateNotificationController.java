@@ -44,6 +44,7 @@ public class ImmediateNotificationController implements Controller<Node> {
     exceptionAreaTitleLabel.visibleProperty().bind(exceptionTextArea.visibleProperty());
     exceptionTextArea.managedProperty().bind(exceptionTextArea.visibleProperty());
     webViewConfigurer.configureWebView(errorMessageView);
+    errorMessageView.managedProperty().bind(errorMessageView.visibleProperty());
 
     dialogLayout.setBody(immediateNotificationRoot);
   }
@@ -64,7 +65,7 @@ public class ImmediateNotificationController implements Controller<Node> {
 
     Optional.ofNullable(notification.getActions())
         .map(actions -> actions.stream().map(this::createButton).collect(Collectors.toList()))
-        .ifPresent(buttons -> dialogLayout.setActions(buttons));
+        .ifPresent(dialogLayout::setActions);
     if (notification.getCustomUI() != null) {
       immediateNotificationRoot.getChildren().add(notification.getCustomUI());
     }
