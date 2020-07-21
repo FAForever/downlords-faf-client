@@ -6,6 +6,7 @@ import com.faforever.client.io.FileUtils;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.io.BaseEncoding;
 import javafx.scene.image.Image;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,7 +30,6 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.InvalidParameterException;
-import java.util.Base64;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
@@ -49,6 +49,7 @@ public class MapGeneratorService implements InitializingBean {
    */
   public static final String GENERATED_MAP_NAME = "neroxis_map_generator_%s_%s";
   public static final String GENERATOR_EXECUTABLE_FILENAME = "MapGenerator_%s.jar";
+  public static final BaseEncoding NAME_ENCODER = BaseEncoding.base32().omitPadding().lowerCase();
   @VisibleForTesting
   public static final String GENERATOR_EXECUTABLE_SUB_DIRECTORY = "map_generator";
   public static final int GENERATION_TIMEOUT_SECONDS = 60;
@@ -119,7 +120,7 @@ public class MapGeneratorService implements InitializingBean {
   public CompletableFuture<String> generateMap() {
     ByteBuffer seedBuffer = ByteBuffer.allocate(8);
     seedBuffer.putLong(seedGenerator.nextLong());
-    String seedString = Base64.getEncoder().encodeToString(seedBuffer.array());
+    String seedString = NAME_ENCODER.encode(seedBuffer.array());
     return generateMap(generatorVersion, seedString);
   }
 
@@ -134,8 +135,8 @@ public class MapGeneratorService implements InitializingBean {
   public CompletableFuture<String> generateMap(ComparableVersion version, byte[] optionArray) {
     ByteBuffer seedBuffer = ByteBuffer.allocate(8);
     seedBuffer.putLong(seedGenerator.nextLong());
-    String seedString = Base64.getEncoder().encodeToString(seedBuffer.array());
-    String optionString = Base64.getEncoder().encodeToString(optionArray);
+    String seedString = NAME_ENCODER.encode(seedBuffer.array());
+    String optionString = NAME_ENCODER.encode(optionArray);
     return generateMap(version, seedString + '_' + optionString);
   }
 
@@ -214,7 +215,7 @@ public class MapGeneratorService implements InitializingBean {
     try {
       seed = Long.toString(Long.parseLong(seedString));
     } catch (NumberFormatException nfe) {
-      byte[] seedBytes = Base64.getDecoder().decode(seedString);
+      byte[] seedBytes = NAME_ENCODER.decode(seedString);
       ByteBuffer seedWrapper = ByteBuffer.wrap(seedBytes);
       seed = Long.toString(seedWrapper.getLong());
     }
