@@ -21,6 +21,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.InvalidParameterException;
@@ -47,12 +48,12 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
   private final String versionNoGeneratorTooNew = "3.0.0";
   private final String unsupportedVersion = "3.0";
   private final byte[] optionArray = {6,0,0,0,0};
-  private final String optionString = "BgAAAAA=";
+  private final long numericalSeed = -123456789;
+  private final String optionString = MapGeneratorService.NAME_ENCODER.encode(optionArray);
   private final int minVersion = 1;
   private final int maxVersion = 2;
-  private final String seedAndOptions = "AAAAAAAABNI=_BgAAAAA=";
-  private final String optionsSeed = "1234";
-  private final String seed = "-123456789";
+  private final String seedAndOptions = MapGeneratorService.NAME_ENCODER.encode(ByteBuffer.allocate(8).putLong(numericalSeed).array());
+  private final String seed = Long.toString(numericalSeed);
   private final String testMapNameNoGenerator = String.format(MapGeneratorService.GENERATED_MAP_NAME, versionNoGeneratorPresent, seed);
   private final String testMapNameGenerator = String.format(MapGeneratorService.GENERATED_MAP_NAME, versionGeneratorPresent, seed);
   private final String testMapNameUnsupportedVersion = String.format(MapGeneratorService.GENERATED_MAP_NAME, unsupportedVersion, seed);
@@ -253,8 +254,8 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
     CompletableFuture<String> future = instance.generateMap(versionGeneratorTooOld, seedAndOptions);
     future.join();
 
-    verify(generateMapTask).setSeed(optionsSeed);
-    verify(generateMapTask).setMapFilename(String.format(generatedMapFormat,versionGeneratorTooOld,optionsSeed));
+    verify(generateMapTask).setSeed(seed);
+    verify(generateMapTask).setMapFilename(String.format(generatedMapFormat,versionGeneratorTooOld,seed));
   }
 
 }
