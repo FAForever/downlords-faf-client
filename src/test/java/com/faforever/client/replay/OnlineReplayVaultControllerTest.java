@@ -90,10 +90,10 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     });
     when(uiService.loadFxml("theme/vault/replay/replay_detail.fxml")).thenAnswer(invocation -> replayDetailController);
 
-    when(replayService.getNewestReplaysWithMeta(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), Collections.emptyMap())));
-    when(replayService.getHighestRatedReplaysWithMeta(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), Collections.emptyMap())));
+    when(replayService.getNewestReplaysWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
+    when(replayService.getHighestRatedReplaysWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
     when(replayService.findById(anyInt())).thenReturn(CompletableFuture.completedFuture(Optional.of(testReplay)));
-    when(replayService.getOwnReplays(anyInt(),anyInt())).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
+    when(replayService.getOwnReplaysWithPageCount(anyInt(),anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
     sortOrder = preferencesService.getPreferences().getVaultPrefs().getOnlineReplaySortConfig();
     standardSearchConfig = new SearchConfig(sortOrder, "query");
@@ -126,89 +126,68 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnDisplayPopulatesReplays() {
     List<Replay> replays = Arrays.asList(new Replay(), new Replay());
-    HashMap<String, Integer> innerHashMap = new HashMap<>();
-    innerHashMap.put("totalPages", 1);
-    HashMap<String, HashMap<String, Integer>> hashMap = new HashMap<>();
-    hashMap.put("page", innerHashMap);
 
-    when(replayService.getNewestReplaysWithMeta(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(replays, hashMap)));
-    when(replayService.getHighestRatedReplaysWithMeta(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(replays, hashMap)));
-    when(replayService.getOwnReplaysWithMeta(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(replays, hashMap)));
+    when(replayService.getNewestReplaysWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(replays, 0)));
+    when(replayService.getHighestRatedReplaysWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(replays, 0)));
+    when(replayService.getOwnReplaysWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(replays, 0)));
 
     instance.display(new OpenOnlineReplayVaultEvent());
 
-    verify(replayService).getNewestReplaysWithMeta(anyInt(), eq(1));
-    verify(replayService).getHighestRatedReplaysWithMeta(anyInt(), eq(1));
+    verify(replayService).getNewestReplaysWithPageCount(anyInt(), eq(1));
+    verify(replayService).getHighestRatedReplaysWithPageCount(anyInt(), eq(1));
     assertThat(instance.pagination.isVisible(), is(false));
   }
 
   @Test
   public void testOnSearchButtonClicked() {
     Consumer<SearchConfig> searchListener = searchListenerCaptor.getValue();
-    HashMap<String, Integer> innerHashMap = new HashMap<>();
-    innerHashMap.put("totalPages", 1);
-    HashMap<String, HashMap<String, Integer>> hashMap = new HashMap<>();
-    hashMap.put("page", innerHashMap);
 
-    when(replayService.findByQueryWithMeta(eq("query"), eq(MAX_RESULTS), eq(1), eq(sortOrder)))
-        .thenReturn(CompletableFuture.completedFuture(new Tuple<>(Arrays.asList(new Replay(), new Replay()), hashMap)));
+    when(replayService.findByQueryWithPageCount(eq("query"), eq(MAX_RESULTS), eq(1), eq(sortOrder)))
+        .thenReturn(CompletableFuture.completedFuture(new Tuple<>(Arrays.asList(new Replay(), new Replay()), 0)));
 
     searchListener.accept(standardSearchConfig);
 
     assertThat(instance.showroomGroup.isVisible(), is(false));
     assertThat(instance.searchResultGroup.isVisible(), is(true));
-    verify(replayService).findByQueryWithMeta(eq("query"), eq(MAX_RESULTS), eq(1), eq(sortOrder));
+    verify(replayService).findByQueryWithPageCount(eq("query"), eq(MAX_RESULTS), eq(1), eq(sortOrder));
   }
 
   @Test
   public void testOnMoreOwnButtonClicked() {
     HashMap<String, Integer> innerHashMap = new HashMap<>();
-    innerHashMap.put("totalPages", 1);
-    HashMap<String, HashMap<String, Integer>> hashMap = new HashMap<>();
-    hashMap.put("page", innerHashMap);
 
-    when(replayService.getOwnReplaysWithMeta(eq(MAX_RESULTS), eq(1)))
-        .thenReturn(CompletableFuture.completedFuture(new Tuple<>(Arrays.asList(new Replay(), new Replay()), hashMap)));
+    when(replayService.getOwnReplaysWithPageCount(eq(MAX_RESULTS), eq(1)))
+        .thenReturn(CompletableFuture.completedFuture(new Tuple<>(Arrays.asList(new Replay(), new Replay()), 0)));
 
     instance.onMoreOwnButtonClicked();
 
     assertThat(instance.showroomGroup.isVisible(), is(false));
     assertThat(instance.searchResultGroup.isVisible(), is(true));
-    verify(replayService).getOwnReplaysWithMeta(eq(MAX_RESULTS), eq(1));
+    verify(replayService).getOwnReplaysWithPageCount(eq(MAX_RESULTS), eq(1));
   }
 
   @Test
   public void testOnNewestButtonClicked() {
-    HashMap<String, Integer> innerHashMap = new HashMap<>();
-    innerHashMap.put("totalPages", 1);
-    HashMap<String, HashMap<String, Integer>> hashMap = new HashMap<>();
-    hashMap.put("page", innerHashMap);
-
-    when(replayService.getNewestReplaysWithMeta(eq(MAX_RESULTS), eq(1)))
-        .thenReturn(CompletableFuture.completedFuture(new Tuple<>(Arrays.asList(new Replay(), new Replay()), hashMap)));
+    when(replayService.getNewestReplaysWithPageCount(eq(MAX_RESULTS), eq(1)))
+        .thenReturn(CompletableFuture.completedFuture(new Tuple<>(Arrays.asList(new Replay(), new Replay()), 0)));
 
     instance.onMoreNewestButtonClicked();
 
     assertThat(instance.showroomGroup.isVisible(), is(false));
     assertThat(instance.searchResultGroup.isVisible(), is(true));
-    verify(replayService).getNewestReplaysWithMeta(eq(MAX_RESULTS), eq(1));
+    verify(replayService).getNewestReplaysWithPageCount(eq(MAX_RESULTS), eq(1));
   }
 
   @Test
   public void testOnHighestButtonClicked() {
-    HashMap<String, Integer> innerHashMap = new HashMap<>();
-    innerHashMap.put("totalPages", 1);
-    HashMap<String, HashMap<String, Integer>> hashMap = new HashMap<>();
-    hashMap.put("page", innerHashMap);
-
-    when(replayService.getHighestRatedReplaysWithMeta(eq(MAX_RESULTS), eq(1)))
-        .thenReturn(CompletableFuture.completedFuture(new Tuple<>(Arrays.asList(new Replay(), new Replay()), hashMap)));
+    when(replayService.getHighestRatedReplaysWithPageCount(eq(MAX_RESULTS), eq(1)))
+        .thenReturn(CompletableFuture.completedFuture(new Tuple<>(Arrays.asList(new Replay(), new Replay()), 0)));
 
     instance.onMoreHighestRatedButtonClicked();
 
     assertThat(instance.showroomGroup.isVisible(), is(false));
     assertThat(instance.searchResultGroup.isVisible(), is(true));
-    verify(replayService).getHighestRatedReplaysWithMeta(eq(MAX_RESULTS), eq(1));
+    verify(replayService).getHighestRatedReplaysWithPageCount(eq(MAX_RESULTS), eq(1));
   }
 
   @Test
@@ -229,9 +208,9 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnSearchButtonClickedHandlesException() {
     Consumer<SearchConfig> searchListener = searchListenerCaptor.getValue();
-    CompletableFuture<Tuple<List<Replay>, Map<String, ?>>> completableFuture = new CompletableFuture<>();
+    CompletableFuture<Tuple<List<Replay>, Integer>> completableFuture = new CompletableFuture<>();
     completableFuture.completeExceptionally(new RuntimeException("JUnit test exception"));
-    when(replayService.findByQueryWithMeta("query", MAX_RESULTS, 1, sortOrder)).thenReturn(completableFuture);
+    when(replayService.findByQueryWithPageCount("query", MAX_RESULTS, 1, sortOrder)).thenReturn(completableFuture);
 
     searchListener.accept(standardSearchConfig);
 
@@ -240,16 +219,11 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPagination() {
-    HashMap<String, Integer> innerHashMap = new HashMap<>();
-    innerHashMap.put("totalPages", 4);
-    HashMap<String, HashMap<String, Integer>> hashMap = new HashMap<>();
-    hashMap.put("page", innerHashMap);
-
     Consumer<SearchConfig> searchListener = searchListenerCaptor.getValue();
-    CompletableFuture<Tuple<List<Replay>, Map<String, ?>>> completableFuture = new CompletableFuture<>();
-    completableFuture.complete(new Tuple<>(Collections.emptyList(), hashMap));
+    CompletableFuture<Tuple<List<Replay>, Integer>> completableFuture = new CompletableFuture<>();
+    completableFuture.complete(new Tuple<>(Collections.emptyList(), 4));
 
-    when(replayService.findByQueryWithMeta(eq("query"), eq(MAX_RESULTS), anyInt(), eq(sortOrder))).thenReturn(completableFuture);
+    when(replayService.findByQueryWithPageCount(eq("query"), eq(MAX_RESULTS), anyInt(), eq(sortOrder))).thenReturn(completableFuture);
     when(instance.searchController.getLastSearchConfig()).thenReturn(standardSearchConfig);
 
     searchListener.accept(standardSearchConfig);
@@ -263,20 +237,15 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testFirstPageButton() {
-    HashMap<String, Integer> innerHashMap = new HashMap<>();
-    innerHashMap.put("totalPages", 4);
-    HashMap<String, HashMap<String, Integer>> hashMap = new HashMap<>();
-    hashMap.put("page", innerHashMap);
-
     Consumer<SearchConfig> searchListener = searchListenerCaptor.getValue();
     List<Replay> list = new ArrayList<>();
     for (int i = 0; i != 100; i++) {
       list.add(new Replay());
     }
 
-    CompletableFuture<Tuple<List<Replay>, Map<String, ?>>> completableFuture = new CompletableFuture<>();
-    completableFuture.complete(new Tuple<>(list, hashMap));
-    when(replayService.findByQueryWithMeta(eq("query"), eq(MAX_RESULTS), anyInt(), eq(sortOrder))).thenReturn(completableFuture);
+    CompletableFuture<Tuple<List<Replay>, Integer>> completableFuture = new CompletableFuture<>();
+    completableFuture.complete(new Tuple<>(list, 4));
+    when(replayService.findByQueryWithPageCount(eq("query"), eq(MAX_RESULTS), anyInt(), eq(sortOrder))).thenReturn(completableFuture);
     when(instance.searchController.getLastSearchConfig()).thenReturn(standardSearchConfig);
 
     searchListener.accept(standardSearchConfig);
@@ -288,27 +257,22 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
 
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(replayService, times(2)).findByQueryWithMeta("query", MAX_RESULTS, 1, sortOrder);
-    verify(replayService).findByQueryWithMeta("query", MAX_RESULTS, 4, sortOrder);
+    verify(replayService, times(2)).findByQueryWithPageCount("query", MAX_RESULTS, 1, sortOrder);
+    verify(replayService).findByQueryWithPageCount("query", MAX_RESULTS, 4, sortOrder);
     assertThat(instance.pagination.getCurrentPageIndex(), is(0));
   }
 
   @Test
   public void testLastPageButton() {
-    HashMap<String, Integer> innerHashMap = new HashMap<>();
-    innerHashMap.put("totalPages", 4);
-    HashMap<String, HashMap<String, Integer>> hashMap = new HashMap<>();
-    hashMap.put("page", innerHashMap);
-
     Consumer<SearchConfig> searchListener = searchListenerCaptor.getValue();
     List<Replay> list = new ArrayList<>();
     for (int i = 0; i != 100; i++) {
       list.add(new Replay());
     }
 
-    CompletableFuture<Tuple<List<Replay>, Map<String, ?>>> completableFuture = new CompletableFuture<>();
-    completableFuture.complete(new Tuple<>(list, hashMap));
-    when(replayService.findByQueryWithMeta(eq("query"), eq(MAX_RESULTS), anyInt(), eq(sortOrder))).thenReturn(completableFuture);
+    CompletableFuture<Tuple<List<Replay>, Integer>> completableFuture = new CompletableFuture<>();
+    completableFuture.complete(new Tuple<>(list, 4));
+    when(replayService.findByQueryWithPageCount(eq("query"), eq(MAX_RESULTS), anyInt(), eq(sortOrder))).thenReturn(completableFuture);
     when(instance.searchController.getLastSearchConfig()).thenReturn(standardSearchConfig);
 
     searchListener.accept(standardSearchConfig);
@@ -319,8 +283,8 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
 
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(replayService).findByQueryWithMeta("query", MAX_RESULTS, 1, sortOrder);
-    verify(replayService).findByQueryWithMeta("query", MAX_RESULTS, 4, sortOrder);
+    verify(replayService).findByQueryWithPageCount("query", MAX_RESULTS, 1, sortOrder);
+    verify(replayService).findByQueryWithPageCount("query", MAX_RESULTS, 4, sortOrder);
     assertThat(instance.pagination.getCurrentPageIndex(), is(3));
   }
 

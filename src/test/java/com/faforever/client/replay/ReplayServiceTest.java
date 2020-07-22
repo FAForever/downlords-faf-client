@@ -441,8 +441,8 @@ public class ReplayServiceTest {
     ArgumentCaptor<Integer> pageCatcher = ArgumentCaptor.forClass(Integer.class);
     ArgumentCaptor<SortConfig> sortCatcher = ArgumentCaptor.forClass(SortConfig.class);
     when(userService.getUserId()).thenReturn(47);
-    when(fafService.findReplaysByQueryWithMeta(queryCatcher.capture(), pageSizeCatcher.capture(), pageCatcher.capture(), sortCatcher.capture())).thenReturn(CompletableFuture.completedFuture(null));
-    CompletableFuture<Tuple<List<Replay>, Map<String, ?>>> ownReplays = instance.getOwnReplaysWithMeta(100, 1);
+    when(fafService.findReplaysByQueryWithPageCount(queryCatcher.capture(), pageSizeCatcher.capture(), pageCatcher.capture(), sortCatcher.capture())).thenReturn(CompletableFuture.completedFuture(null));
+    CompletableFuture<Tuple<List<Replay>, Integer>> ownReplays = instance.getOwnReplaysWithPageCount(100, 1);
     ownReplays.get();
     assertEquals("playerStats.player.id==\"47\"", queryCatcher.getValue());
     assertEquals(100, (int) pageSizeCatcher.getValue());

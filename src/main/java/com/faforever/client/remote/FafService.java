@@ -54,6 +54,7 @@ import org.springframework.util.Assert;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -261,23 +262,23 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<Tuple<List<Replay>, java.util.Map<String, ?>>> getNewestReplaysMeta(int topElementCount, int page) {
+  public CompletableFuture<Tuple<List<Replay>, Integer>> getNewestReplaysWithPageCount(int topElementCount, int page) {
     Tuple<List<Game>, java.util.Map<String, ?>> tuple = fafApiAccessor.getNewestReplaysWithMeta(topElementCount, page);
     return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
         .parallelStream()
         .map(Replay::fromDto)
         .collect(toList()),
-        tuple.getSecond()));
+        ((HashMap<String,Integer>) tuple.getSecond().get("page")).get("totalPages")));
   }
 
   @Async
-  public CompletableFuture<Tuple<List<Replay>, java.util.Map<String, ?>>> getHighestRatedReplaysWithMeta(int topElementCount, int page) {
+  public CompletableFuture<Tuple<List<Replay>, Integer>> getHighestRatedReplaysWithPageCount(int topElementCount, int page) {
     Tuple<List<Game>, java.util.Map<String, ?>> tuple = fafApiAccessor.getHighestRatedReplaysWithMeta(topElementCount, page);
     return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
         .parallelStream()
         .map(Replay::fromDto)
         .collect(toList()),
-        tuple.getSecond()));
+        ((HashMap<String,Integer>) tuple.getSecond().get("page")).get("totalPages")));
   }
 
   public void uploadMod(Path modFile, ByteCountListener byteListener) {
@@ -300,13 +301,13 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<Tuple<List<Replay>, java.util.Map<String, ?>>> findReplaysByQueryWithMeta(String query, int maxResults, int page, SortConfig sortConfig) {
+  public CompletableFuture<Tuple<List<Replay>, Integer>> findReplaysByQueryWithPageCount(String query, int maxResults, int page, SortConfig sortConfig) {
     Tuple<List<Game>, java.util.Map<String, ?>> tuple = fafApiAccessor.findReplaysByQueryWithMeta(query, maxResults, page, sortConfig);
     return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
         .parallelStream()
         .map(Replay::fromDto)
         .collect(toList()),
-        tuple.getSecond()));
+        ((HashMap<String,Integer>) tuple.getSecond().get("page")).get("totalPages")));
   }
 
   @Async

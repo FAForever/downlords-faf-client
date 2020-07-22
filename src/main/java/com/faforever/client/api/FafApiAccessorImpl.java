@@ -319,16 +319,16 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public Tuple<List<Game>, java.util.Map<String, ?>> getHighestRatedReplaysWithMeta(int count, int page) {
-    JSONAPIDocument<List<GameReviewsSummary>> pageWithMeta = getPageWithMeta("/data/gameReviewsSummary", count, page, ImmutableMap.of(
+    JSONAPIDocument<List<GameReviewsSummary>> pageWithPageCount = getPageWithMeta("/data/gameReviewsSummary", count, page, ImmutableMap.of(
         "sort", "-lowerBound",
         // TODO this was done in a rush, check what is actually needed
         "include", "game,game.featuredMod,game.playerStats,game.playerStats.player,game.reviews,game.reviews.player,game.mapVersion,game.mapVersion.map,game.mapVersion.reviews",
         "filter", "game.endTime=isnull=false"
     ));
-    return new Tuple<>(pageWithMeta.get().stream()
+    return new Tuple<>(pageWithPageCount.get().stream()
         .map(GameReviewsSummary::getGame)
         .collect(Collectors.toList()),
-        pageWithMeta.getMeta());
+        pageWithPageCount.getMeta());
   }
 
   @Override
@@ -641,7 +641,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         .queryParams(params)
         .replaceQueryParam("page[size]", pageSize)
         .replaceQueryParam("page[number]", page)
-        .replaceQueryParam("page[totals]")
+        .queryParam("page[totals]")
         .build();
 
     authorizedLatch.await();

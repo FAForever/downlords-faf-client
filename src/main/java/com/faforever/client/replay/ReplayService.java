@@ -416,22 +416,22 @@ public class ReplayService {
   }
 
 
-  public CompletableFuture<Tuple<List<Replay>, Map<String, ?>>> getNewestReplaysWithMeta(int topElementCount, int page) {
-    return fafService.getNewestReplaysMeta(topElementCount, page);
+  public CompletableFuture<Tuple<List<Replay>, Integer>> getNewestReplaysWithPageCount(int topElementCount, int page) {
+    return fafService.getNewestReplaysWithPageCount(topElementCount, page);
   }
 
-  public CompletableFuture<Tuple<List<Replay>, Map<String, ?>>> getReplaysForPlayerWithMeta(int playerId, int maxResults, int page, SortConfig sortConfig) {
+  public CompletableFuture<Tuple<List<Replay>, Integer>> getReplaysForPlayerWithPageCount(int playerId, int maxResults, int page, SortConfig sortConfig) {
     Condition<?> filterCondition = qBuilder().intNum("playerStats.player.id").eq(playerId);
     String query = filterCondition.query(new RSQLVisitor());
-    return fafService.findReplaysByQueryWithMeta(query, maxResults, page, sortConfig);
+    return fafService.findReplaysByQueryWithPageCount(query, maxResults, page, sortConfig);
   }
 
-  public CompletableFuture<Tuple<List<Replay>, java.util.Map<String, ?>>> getHighestRatedReplaysWithMeta(int topElementCount, int page) {
-    return fafService.getHighestRatedReplaysWithMeta(topElementCount, page);
+  public CompletableFuture<Tuple<List<Replay>, Integer>> getHighestRatedReplaysWithPageCount(int topElementCount, int page) {
+    return fafService.getHighestRatedReplaysWithPageCount(topElementCount, page);
   }
 
-  public CompletableFuture<Tuple<List<Replay>, java.util.Map<String, ?>>> findByQueryWithMeta(String query, int maxResults, int page, SortConfig sortConfig) {
-    return fafService.findReplaysByQueryWithMeta(query, maxResults, page, sortConfig);
+  public CompletableFuture<Tuple<List<Replay>, Integer>> findByQueryWithPageCount(String query, int maxResults, int page, SortConfig sortConfig) {
+    return fafService.findReplaysByQueryWithPageCount(query, maxResults, page, sortConfig);
   }
 
   public CompletableFuture<Optional<Replay>> findById(int id) {
@@ -550,8 +550,8 @@ public class ReplayService {
     runLiveReplay(replayId);
   }
 
-  public CompletableFuture<Tuple<List<Replay>, java.util.Map<String, ?>>> getOwnReplaysWithMeta(int maxResults, int page) {
+  public CompletableFuture<Tuple<List<Replay>, Integer>> getOwnReplaysWithPageCount(int maxResults, int page) {
     SortConfig sortConfig = new SortConfig("startTime", SortOrder.DESC);
-    return getReplaysForPlayerWithMeta(userService.getUserId(), maxResults, page, sortConfig);
+    return getReplaysForPlayerWithPageCount(userService.getUserId(), maxResults, page, sortConfig);
   }
 }

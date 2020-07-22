@@ -217,7 +217,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     replaySearchType = ReplaySearchType.PLAYER;
     playerId = event.getPlayerId();
     SortConfig sortConfig = new SortConfig("startTime", SortOrder.DESC);
-    displayReplaysFromSupplier(() -> replayService.getReplaysForPlayerWithMeta(playerId, PAGE_SIZE, 1, sortConfig), true);
+    displayReplaysFromSupplier(() -> replayService.getReplaysForPlayerWithPageCount(playerId, PAGE_SIZE, 1, sortConfig), true);
   }
 
 
@@ -259,19 +259,19 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     enterSearchingState();
     switch (replaySearchType) {
       case SEARCH:
-        displayReplaysFromSupplier(() -> replayService.findByQueryWithMeta(searchConfig.getSearchQuery(), PAGE_SIZE, page, searchConfig.getSortConfig()), firstLoad);
+        displayReplaysFromSupplier(() -> replayService.findByQueryWithPageCount(searchConfig.getSearchQuery(), PAGE_SIZE, page, searchConfig.getSortConfig()), firstLoad);
         break;
       case OWN:
-        displayReplaysFromSupplier(() -> replayService.getOwnReplaysWithMeta(PAGE_SIZE, page), firstLoad);
+        displayReplaysFromSupplier(() -> replayService.getOwnReplaysWithPageCount(PAGE_SIZE, page), firstLoad);
         break;
       case NEWEST:
-        displayReplaysFromSupplier(() -> replayService.getNewestReplaysWithMeta(PAGE_SIZE, page), firstLoad);
+        displayReplaysFromSupplier(() -> replayService.getNewestReplaysWithPageCount(PAGE_SIZE, page), firstLoad);
         break;
       case HIGHEST_RATED:
-        displayReplaysFromSupplier(() -> replayService.getHighestRatedReplaysWithMeta(PAGE_SIZE, page), firstLoad);
+        displayReplaysFromSupplier(() -> replayService.getHighestRatedReplaysWithPageCount(PAGE_SIZE, page), firstLoad);
         break;
       case PLAYER:
-        displayReplaysFromSupplier(() -> replayService.getReplaysForPlayerWithMeta(playerId, PAGE_SIZE, page, new SortConfig("startTime", SortOrder.DESC)), firstLoad);
+        displayReplaysFromSupplier(() -> replayService.getReplaysForPlayerWithPageCount(playerId, PAGE_SIZE, page, new SortConfig("startTime", SortOrder.DESC)), firstLoad);
         break;
     }
   }
@@ -301,10 +301,10 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
 
   private void loadPreselectedReplays() {
     enterSearchingState();
-    replayService.getNewestReplaysWithMeta(TOP_ELEMENT_COUNT, 1)
+    replayService.getNewestReplaysWithPageCount(TOP_ELEMENT_COUNT, 1)
         .thenAccept(replays -> populateReplays(replays.getFirst(), newestPane))
-        .thenCompose(aVoid -> replayService.getHighestRatedReplaysWithMeta(TOP_ELEMENT_COUNT, 1).thenAccept(highestRatedReplays -> populateReplays(highestRatedReplays.getFirst(), highestRatedPane)))
-        .thenCompose(aVoid -> replayService.getOwnReplaysWithMeta(TOP_ELEMENT_COUNT, 1).thenAccept(highestRatedReplays -> populateReplays(highestRatedReplays.getFirst(), ownReplaysPane)))
+        .thenCompose(aVoid -> replayService.getHighestRatedReplaysWithPageCount(TOP_ELEMENT_COUNT, 1).thenAccept(highestRatedReplays -> populateReplays(highestRatedReplays.getFirst(), highestRatedPane)))
+        .thenCompose(aVoid -> replayService.getOwnReplaysWithPageCount(TOP_ELEMENT_COUNT, 1).thenAccept(highestRatedReplays -> populateReplays(highestRatedReplays.getFirst(), ownReplaysPane)))
         .thenRun(this::enterResultState)
         .exceptionally(throwable -> {
           logger.warn("Could not populate replays", throwable);
@@ -322,13 +322,13 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     onFirstPageOpened(null);
   }
 
-  private void displayReplaysFromSupplier(Supplier<CompletableFuture<Tuple<List<Replay>, Map<String, ?>>>> mapsSupplier, boolean firstLoad) {
+  private void displayReplaysFromSupplier(Supplier<CompletableFuture<Tuple<List<Replay>, Integer>>> mapsSupplier, boolean firstLoad) {
     mapsSupplier.get()
         .thenAccept(tuple -> {
           displaySearchResult(tuple.getFirst());
           if (firstLoad) {
             //when theres no search results the page count should be 1, 0 (which is returned) results in infinite pages
-            Platform.runLater(() -> pagination.setPageCount(Math.max(1, (Integer) ((Map<String, ?>) tuple.getSecond().get("page")).get("totalPages"))));
+            Platform.runLater(() -> pagination.setPageCount(Math.max(1, tuple.getSecond())));
           }
         })
         .exceptionally(throwable -> {
