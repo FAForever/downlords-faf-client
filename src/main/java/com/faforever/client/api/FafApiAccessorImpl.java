@@ -232,6 +232,14 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
+  @Cacheable(CacheNames.MAPS)
+  public int getCountMostPlayedMaps() {
+    return this.<MapStatistics>getAll("/data/mapStatistics", ImmutableMap.of(
+        "include", "map,map.statistics,map.latestVersion,map.author,map.versions.reviews,map.versions.reviews.player",
+        "sort", "-plays")).size();
+  }
+
+  @Override
   public List<Map> getHighestRatedMaps(int count, int page) {
     return this.<MapStatistics>getPage("/data/mapStatistics", count, page, ImmutableMap.of(
         "include", "map.statistics,map,map.latestVersion,map.author,map.versions.reviews,map.versions.reviews.player,map.latestVersion.reviewsSummary",
@@ -241,12 +249,28 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
+  public int getCountHighestRatedMaps() {
+    return this.<MapStatistics>getAll("/data/mapStatistics", ImmutableMap.of(
+        "include", "map.statistics,map,map.latestVersion,map.author,map.versions.reviews,map.versions.reviews.player,map.latestVersion.reviewsSummary",
+        "sort", "-map.latestVersion.reviewsSummary.lowerBound")).size();
+  }
+
+  @Override
   public List<Map> getNewestMaps(int count, int page) {
     return getPage(MAP_ENDPOINT, count, page, ImmutableMap.of(
         "include", "statistics,latestVersion,author,versions.reviews,versions.reviews.player",
         "sort", "-updateTime",
         "filter", "latestVersion.hidden==\"false\""
     ));
+  }
+
+  @Override
+  public int getCountNewestMaps() {
+    return getAll(MAP_ENDPOINT, ImmutableMap.of(
+        "include", "statistics,latestVersion,author,versions.reviews,versions.reviews.player",
+        "sort", "-updateTime",
+        "filter", "latestVersion.hidden==\"false\""
+    )).size();
   }
 
   @Override
@@ -435,6 +459,12 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
+  public int getCountLadder1v1Maps() {
+    return getAll("/data/ladder1v1Map", ImmutableMap.of(
+        "include", "mapVersion,mapVersion.map,mapVersion.map.latestVersion,mapVersion.map.latestVersion.reviews,mapVersion.map.author,mapVersion.map.statistics")).size();
+  }
+
+  @Override
   public List<TutorialCategory> getTutorialCategories() {
     return getAll("/data/tutorialCategory",
         ImmutableMap.of("include", "tutorials,tutorials.mapVersion.map,tutorials.mapVersion.map.latestVersion,tutorials.mapVersion.map.author,tutorials.mapVersion.map.statistics"));
@@ -446,6 +476,14 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         "include", "map,map.latestVersion,map.latestVersion.reviews,map.author,map.statistics",
         "filter", rsql(qBuilder().string("map.author.id").eq(String.valueOf(playerId)))
     ));
+  }
+
+  @Override
+  public int getCountOwnedMaps(int playerId) {
+    return getAll("/data/mapVersion", ImmutableMap.of(
+        "include", "map,map.latestVersion,map.latestVersion.reviews,map.author,map.statistics",
+        "filter", rsql(qBuilder().string("map.author.id").eq(String.valueOf(playerId)))
+    )).size();
   }
 
   @Override
@@ -475,6 +513,17 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     parameterMap.add("include", "latestVersion,latestVersion.reviews,latestVersion.reviews.player,author,statistics,latestVersion.reviewsSummary");
     parameterMap.add("sort", searchConfig.getSortConfig().toQuery());
     return getPage(MAP_ENDPOINT, count, page, parameterMap);
+  }
+
+  @Override
+  public int getCountMapsByQuery(SearchConfig searchConfig) {
+    MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
+    if (searchConfig.hasQuery()) {
+      parameterMap.add("filter", searchConfig.getSearchQuery() + ";latestVersion.hidden==\"false\"");
+    }
+    parameterMap.add("include", "latestVersion,latestVersion.reviews,latestVersion.reviews.player,author,statistics,latestVersion.reviewsSummary");
+    parameterMap.add("sort", searchConfig.getSortConfig().toQuery());
+    return getPage(MAP_ENDPOINT, clientProperties.getApi().getMaxPageSize(), 1, parameterMap).size();
   }
 
   @Override

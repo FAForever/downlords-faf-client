@@ -166,6 +166,11 @@ public class FafService {
   }
 
   @Async
+  public CompletableFuture<Integer> getCountMostPlayedMaps() {
+    return CompletableFuture.completedFuture(fafApiAccessor.getCountMostPlayedMaps());
+  }
+
+  @Async
   public CompletableFuture<List<MapBean>> getMapsById(List<Integer> mapIdList, int count, int page) {
     return CompletableFuture.completedFuture(fafApiAccessor.getMapsById(mapIdList, count, page).stream()
         .map(MapBean::fromMapDto)
@@ -180,10 +185,20 @@ public class FafService {
   }
 
   @Async
+  public CompletableFuture<Integer> getCountHighestRatedMaps() {
+    return CompletableFuture.completedFuture(fafApiAccessor.getCountHighestRatedMaps());
+  }
+
+  @Async
   public CompletableFuture<List<MapBean>> getNewestMaps(int count, int page) {
     return CompletableFuture.completedFuture(fafApiAccessor.getNewestMaps(count, page).stream()
         .map(MapBean::fromMapDto)
         .collect(toList()));
+  }
+
+  @Async
+  public CompletableFuture<Integer> getCountNewestMaps() {
+    return CompletableFuture.completedFuture(fafApiAccessor.getCountNewestMaps());
   }
 
   @Async
@@ -309,6 +324,11 @@ public class FafService {
         .parallelStream()
         .map(MapBean::fromMapDto)
         .collect(toList()));
+  }
+
+  @Async
+  public CompletableFuture<Integer> getCountMapsByQuery(SearchConfig query) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getCountMapsByQuery(query));
   }
 
   public CompletableFuture<Optional<MapBean>> findMapByFolderName(String folderName) {
@@ -440,6 +460,11 @@ public class FafService {
   }
 
   @Async
+  public CompletableFuture<Integer> getCountLadder1v1Maps() {
+    return CompletableFuture.completedFuture(fafApiAccessor.getCountLadder1v1Maps());
+  }
+
+  @Async
   public CompletableFuture<Optional<Clan>> getClanByTag(String tag) {
     return CompletableFuture.completedFuture(fafApiAccessor.getClanByTag(tag)
         .map(Clan::fromDto));
@@ -467,6 +492,11 @@ public class FafService {
   public CompletableFuture<List<MapBean>> getOwnedMaps(int playerId, int loadMoreCount, int page) {
     List<MapVersion> maps = fafApiAccessor.getOwnedMaps(playerId, loadMoreCount, page);
     return CompletableFuture.completedFuture(maps.stream().map(MapBean::fromMapVersionDto).collect(toList()));
+  }
+
+  @Async
+  public CompletableFuture<Integer> getCountOwnedMaps(int playerId) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getCountOwnedMaps(playerId));
   }
 
   @Async

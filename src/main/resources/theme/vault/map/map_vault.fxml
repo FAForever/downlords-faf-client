@@ -56,7 +56,7 @@
                                 </FlowPane>
                                 <Label styleClass="h2" text="%mapVault.ladder" />
                                 <FlowPane fx:id="ladderPane" hgap="10.0" maxWidth="1.7976931348623157E308" prefWrapLength="1500.0" vgap="10.0">
-                                    <JFXButton fx:id="moreLadderButton" mnemonicParsing="false" onAction="#showMoreLadderdMaps" styleClass="card, more-button" text="">
+                                    <JFXButton fx:id="moreLadderButton" mnemonicParsing="false" onAction="#showMoreLadderMaps" styleClass="card, more-button" text="">
                                     </JFXButton>
                                 </FlowPane>
                                 <Label fx:id="ownedMoreLabel" styleClass="h2" text="%mapVault.owned" />
@@ -70,12 +70,7 @@
                             <children>
                                 <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%searchResult" />
                                 <FlowPane fx:id="searchResultPane" hgap="10.0" vgap="10.0" />
-                                <HBox fx:id="paginationHBox" alignment="TOP_CENTER" spacing="10.0" VBox.vgrow="ALWAYS">
-                                    <JFXButton fx:id="previousButton" layoutX="719.0" layoutY="10.0" mnemonicParsing="false" onAction="#onLoadPreviousButtonClicked" text="%vault.previous" />
-                                    <Label fx:id="currentPageLabel" maxHeight="1.7976931348623157E308" text="&lt;current page&gt;" />
-                                    <JFXButton fx:id="nextButton" mnemonicParsing="false" onAction="#onLoadNextButtonClicked" text="%vault.next" />
-                                </HBox>
-
+                                <Pagination fx:id="pagination"/>
                             </children>
                         </VBox>
                         <Label fx:id="loadingLabel" alignment="CENTER" contentDisplay="TOP" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="%mapVault.loadingMaps" VBox.vgrow="ALWAYS">

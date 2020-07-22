@@ -138,13 +138,28 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
+  public int getCountMostPlayedMaps() {
+    return 0;
+  }
+
+  @Override
   public List<Map> getHighestRatedMaps(int count, int page) {
     return Collections.emptyList();
   }
 
   @Override
+  public int getCountHighestRatedMaps() {
+    return 0;
+  }
+
+  @Override
   public List<Map> getNewestMaps(int count, int page) {
     return Collections.emptyList();
+  }
+
+  @Override
+  public int getCountNewestMaps() {
+    return 0;
   }
 
   @Override
@@ -253,6 +268,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
+  public int getCountMapsByQuery(SearchConfig searchConfig) {
+    return 0;
+  }
+
+  @Override
   public Optional<MapVersion> findMapVersionById(String id) {
     return Optional.empty();
   }
@@ -283,6 +303,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
+  public int getCountLadder1v1Maps() {
+    return 0;
+  }
+
+  @Override
   public List<Tournament> getAllTournaments() {
     return Collections.emptyList();
   }
@@ -290,6 +315,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
   @Override
   public List<MapVersion> getOwnedMaps(int playerId, int loadMoreCount, int page) {
     return Collections.emptyList();
+  }
+
+  @Override
+  public int getCountOwnedMaps(int playerId) {
+    return 0;
   }
 
   @Override

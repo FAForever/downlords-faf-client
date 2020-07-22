@@ -67,9 +67,15 @@ public interface FafApiAccessor {
 
   List<Map> getMostPlayedMaps(int count, int page);
 
+  int getCountMostPlayedMaps();
+
   List<Map> getHighestRatedMaps(int count, int page);
 
+  int getCountHighestRatedMaps();
+
   List<Map> getNewestMaps(int count, int page);
+
+  int getCountNewestMaps();
 
   List<Game> getLastGamesOnMap(int playerId, String mapVersionId, int count);
 
@@ -117,6 +123,8 @@ public interface FafApiAccessor {
 
   List<Map> findMapsByQuery(SearchConfig searchConfig, int page, int count);
 
+  int getCountMapsByQuery(SearchConfig searchConfig);
+
   Optional<MapVersion> findMapVersionById(String id);
 
   void deleteMapVersionReview(String id);
@@ -129,9 +137,13 @@ public interface FafApiAccessor {
 
   List<Ladder1v1Map> getLadder1v1Maps(int count, int page);
 
+  int getCountLadder1v1Maps();
+
   List<Tournament> getAllTournaments();
 
   List<MapVersion> getOwnedMaps(int playerId, int loadMoreCount, int page);
+
+  int getCountOwnedMaps(int playerID);
 
   void updateMapVersion(String id, MapVersion mapVersion);
 

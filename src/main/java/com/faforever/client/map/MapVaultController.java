@@ -30,10 +30,10 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Pagination;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
@@ -58,11 +58,11 @@ import java.util.stream.Collectors;
 // (see https://github.com/yahoo/elide/issues/353), this can be refactored.
 public class MapVaultController extends AbstractViewController<Node> {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @VisibleForTesting
   static final int TOP_ELEMENT_COUNT = 7;
   @VisibleForTesting
-  static final int LOAD_PER_PAGE = 50;
+  static final int LOAD_PER_PAGE = 16;
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   /**
    * How many mod cards should be badged into one UI thread runnable.
    */
@@ -92,6 +92,7 @@ public class MapVaultController extends AbstractViewController<Node> {
   public JFXButton moreLadderButton;
   public StackPane mapVaultRoot;
   public ScrollPane scrollPane;
+  public Pagination pagination;
   public Button backButton;
   public SearchController searchController;
   public FlowPane ladderPane;
@@ -100,8 +101,6 @@ public class MapVaultController extends AbstractViewController<Node> {
   public Button moreOwnedButton;
   public JFXButton previousButton;
   public JFXButton nextButton;
-  public Label currentPageLabel;
-  public HBox paginationHBox;
   private MapDetailController mapDetailController;
   private int currentPage;
   private Supplier<CompletableFuture<List<MapBean>>> currentSupplier;
@@ -130,7 +129,11 @@ public class MapVaultController extends AbstractViewController<Node> {
     showroomGroup.managedProperty().bind(showroomGroup.visibleProperty());
     searchResultGroup.managedProperty().bind(searchResultGroup.visibleProperty());
     backButton.managedProperty().bind(backButton.visibleProperty());
-    paginationHBox.managedProperty().bind(paginationHBox.visibleProperty());
+    pagination.managedProperty().bind(pagination.visibleProperty());
+    pagination.currentPageIndexProperty().addListener((observable, oldValue, newValue) -> {
+      currentPage = newValue.intValue() + 1;
+      loadCurrentSupplier();
+    });
 
     mapDetailController = uiService.loadFxml("theme/vault/map/map_detail.fxml");
     Node mapDetailRoot = mapDetailController.getRoot();
@@ -155,13 +158,15 @@ public class MapVaultController extends AbstractViewController<Node> {
   private void searchByQuery(SearchConfig searchConfig) {
     SearchConfig newSearchConfig = new SearchConfig(searchConfig.getSortConfig(), searchConfig.getSearchQuery() + ";latestVersion.hidden==\"false\"");
     enterLoadingState();
+    pagination.setCurrentPageIndex(0);
+    pagination.setPageCount((int) Math.ceil(mapService.getCountByQuery(newSearchConfig).join() / LOAD_PER_PAGE));
     displayMapsFromSupplier(() -> mapService.findByQuery(newSearchConfig, currentPage, LOAD_PER_PAGE));
   }
 
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
     if (navigateEvent instanceof ShowLadderMapsEvent) {
-      showMoreLadderdMaps();
+      showMoreLadderMaps();
     } else if (state.get() == State.UNINITIALIZED) {
       displayShowroomMaps();
     }
@@ -182,7 +187,7 @@ public class MapVaultController extends AbstractViewController<Node> {
         .thenAccept(mapBeans -> {
           if (mapBeans.isEmpty()) {
             hideOwned();
-      	  }
+          }
           replaceSearchResult(mapBeans, ownedPane);
         })
         .thenRun(this::enterShowroomState)
@@ -207,7 +212,6 @@ public class MapVaultController extends AbstractViewController<Node> {
       searchResultGroup.setVisible(false);
       loadingLabel.setVisible(true);
       backButton.setVisible(true);
-      paginationHBox.setVisible(false);
     });
   }
 
@@ -215,13 +219,9 @@ public class MapVaultController extends AbstractViewController<Node> {
     Platform.runLater(() -> {
       state.set(State.SEARCH_RESULT);
       showroomGroup.setVisible(false);
-      searchResultGroup.setVisible(true);
       loadingLabel.setVisible(false);
       backButton.setVisible(true);
-      paginationHBox.setVisible(true);
-      nextButton.setDisable(searchResultPane.getChildren().size() < LOAD_PER_PAGE);
-      previousButton.setDisable(currentPage <= 1);
-      currentPageLabel.setText(i18n.get("vault.currentPage", currentPage));
+      searchResultGroup.setVisible(true);
     });
   }
 
@@ -232,7 +232,6 @@ public class MapVaultController extends AbstractViewController<Node> {
       searchResultGroup.setVisible(false);
       loadingLabel.setVisible(false);
       backButton.setVisible(false);
-      paginationHBox.setVisible(false);
     });
   }
 
@@ -304,31 +303,36 @@ public class MapVaultController extends AbstractViewController<Node> {
 
   public void showMoreRecommendedMaps() {
     enterLoadingState();
-    currentPage++;
+    pagination.setCurrentPageIndex(0);
+    pagination.setPageCount((int) Math.ceil(mapService.getCountRecommendedMaps().join() / LOAD_PER_PAGE));
     displayMapsFromSupplier(() -> mapService.getRecommendedMaps(LOAD_PER_PAGE, currentPage));
   }
 
   public void showMoreHighestRatedMaps() {
     enterLoadingState();
-    currentPage++;
+    pagination.setCurrentPageIndex(0);
+    pagination.setPageCount((int) Math.ceil(mapService.getCountHighestRatedMaps().join() / LOAD_PER_PAGE));
     displayMapsFromSupplier(() -> mapService.getHighestRatedMaps(LOAD_PER_PAGE, currentPage));
   }
 
   public void showMoreMostRecentMaps() {
     enterLoadingState();
-    currentPage++;
+    pagination.setCurrentPageIndex(0);
+    pagination.setPageCount((int) Math.ceil(mapService.getCountNewestMaps().join() / LOAD_PER_PAGE));
     displayMapsFromSupplier(() -> mapService.getNewestMaps(LOAD_PER_PAGE, currentPage));
   }
 
   public void showMoreMostPlayedMaps() {
     enterLoadingState();
-    currentPage++;
+    pagination.setCurrentPageIndex(0);
+    pagination.setPageCount((int) Math.ceil(mapService.getCountMostPlayedMaps().join() / LOAD_PER_PAGE));
     displayMapsFromSupplier(() -> mapService.getMostPlayedMaps(LOAD_PER_PAGE, currentPage));
   }
 
-  public void showMoreLadderdMaps() {
+  public void showMoreLadderMaps() {
     enterLoadingState();
-    currentPage++;
+    pagination.setCurrentPageIndex(0);
+    pagination.setPageCount((int) Math.ceil(mapService.getCountLadderMaps().join() / LOAD_PER_PAGE));
     displayMapsFromSupplier(() -> mapService.getLadderMaps(LOAD_PER_PAGE, currentPage));
   }
 
@@ -336,7 +340,8 @@ public class MapVaultController extends AbstractViewController<Node> {
     enterLoadingState();
     Player currentPlayer = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("Current player was null"));
-    currentPage++;
+    pagination.setCurrentPageIndex(0);
+    pagination.setPageCount((int) Math.ceil(mapService.getCountOwnedMaps(currentPlayer.getId()).join() / LOAD_PER_PAGE));
     displayMapsFromSupplier(() -> mapService.getOwnedMaps(currentPlayer.getId(), LOAD_PER_PAGE, currentPage));
   }
 
@@ -426,16 +431,6 @@ public class MapVaultController extends AbstractViewController<Node> {
           enterShowroomState();
           return null;
         });
-  }
-
-  public void onLoadPreviousButtonClicked() {
-    currentPage--;
-    loadCurrentSupplier();
-  }
-
-  public void onLoadNextButtonClicked() {
-    currentPage++;
-    loadCurrentSupplier();
   }
 
   private enum State {
