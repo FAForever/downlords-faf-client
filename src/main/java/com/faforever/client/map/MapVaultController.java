@@ -99,8 +99,6 @@ public class MapVaultController extends AbstractViewController<Node> {
   public FlowPane ownedPane;
   public Label ownedMoreLabel;
   public Button moreOwnedButton;
-  public JFXButton previousButton;
-  public JFXButton nextButton;
   private MapDetailController mapDetailController;
   private int currentPage;
   private Supplier<CompletableFuture<List<MapBean>>> currentSupplier;
@@ -158,9 +156,9 @@ public class MapVaultController extends AbstractViewController<Node> {
   private void searchByQuery(SearchConfig searchConfig) {
     SearchConfig newSearchConfig = new SearchConfig(searchConfig.getSortConfig(), searchConfig.getSearchQuery() + ";latestVersion.hidden==\"false\"");
     enterLoadingState();
-    pagination.setCurrentPageIndex(0);
-    pagination.setPageCount((int) Math.ceil(mapService.getCountByQuery(newSearchConfig).join() / LOAD_PER_PAGE));
     displayMapsFromSupplier(() -> mapService.findByQuery(newSearchConfig, currentPage, LOAD_PER_PAGE));
+    pagination.setCurrentPageIndex(0);
+    pagination.setPageCount((int) Math.ceil(mapService.getCountByQuery(newSearchConfig).join() / (float) LOAD_PER_PAGE));
   }
 
   @Override
@@ -303,46 +301,46 @@ public class MapVaultController extends AbstractViewController<Node> {
 
   public void showMoreRecommendedMaps() {
     enterLoadingState();
-    pagination.setCurrentPageIndex(0);
-    pagination.setPageCount((int) Math.ceil(mapService.getCountRecommendedMaps().join() / LOAD_PER_PAGE));
     displayMapsFromSupplier(() -> mapService.getRecommendedMaps(LOAD_PER_PAGE, currentPage));
+    pagination.setCurrentPageIndex(0);
+    pagination.setPageCount((int) Math.ceil(mapService.getCountRecommendedMaps().join() / (float) LOAD_PER_PAGE));
   }
 
   public void showMoreHighestRatedMaps() {
     enterLoadingState();
-    pagination.setCurrentPageIndex(0);
-    pagination.setPageCount((int) Math.ceil(mapService.getCountHighestRatedMaps().join() / LOAD_PER_PAGE));
     displayMapsFromSupplier(() -> mapService.getHighestRatedMaps(LOAD_PER_PAGE, currentPage));
+    pagination.setCurrentPageIndex(0);
+    pagination.setPageCount((int) Math.ceil(mapService.getCountHighestRatedMaps().join() / (float) LOAD_PER_PAGE));
   }
 
   public void showMoreMostRecentMaps() {
     enterLoadingState();
-    pagination.setCurrentPageIndex(0);
-    pagination.setPageCount((int) Math.ceil(mapService.getCountNewestMaps().join() / LOAD_PER_PAGE));
     displayMapsFromSupplier(() -> mapService.getNewestMaps(LOAD_PER_PAGE, currentPage));
+    pagination.setCurrentPageIndex(0);
+    pagination.setPageCount((int) Math.ceil(mapService.getCountNewestMaps().join() / (float) LOAD_PER_PAGE));
   }
 
   public void showMoreMostPlayedMaps() {
     enterLoadingState();
-    pagination.setCurrentPageIndex(0);
-    pagination.setPageCount((int) Math.ceil(mapService.getCountMostPlayedMaps().join() / LOAD_PER_PAGE));
     displayMapsFromSupplier(() -> mapService.getMostPlayedMaps(LOAD_PER_PAGE, currentPage));
+    pagination.setCurrentPageIndex(0);
+    pagination.setPageCount((int) Math.ceil(mapService.getCountMostPlayedMaps().join() / (float) LOAD_PER_PAGE));
   }
 
   public void showMoreLadderMaps() {
     enterLoadingState();
-    pagination.setCurrentPageIndex(0);
-    pagination.setPageCount((int) Math.ceil(mapService.getCountLadderMaps().join() / LOAD_PER_PAGE));
     displayMapsFromSupplier(() -> mapService.getLadderMaps(LOAD_PER_PAGE, currentPage));
+    pagination.setCurrentPageIndex(0);
+    pagination.setPageCount((int) Math.ceil(mapService.getCountLadderMaps().join() / (float) LOAD_PER_PAGE));
   }
 
   public void showMoreOwnedMaps() {
     enterLoadingState();
     Player currentPlayer = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("Current player was null"));
-    pagination.setCurrentPageIndex(0);
-    pagination.setPageCount((int) Math.ceil(mapService.getCountOwnedMaps(currentPlayer.getId()).join() / LOAD_PER_PAGE));
     displayMapsFromSupplier(() -> mapService.getOwnedMaps(currentPlayer.getId(), LOAD_PER_PAGE, currentPage));
+    pagination.setCurrentPageIndex(0);
+    pagination.setPageCount((int) Math.ceil(mapService.getCountOwnedMaps(currentPlayer.getId()).join() / (float) LOAD_PER_PAGE));
   }
 
   private void replaceSearchResult(List<MapBean> maps, Pane pane) {

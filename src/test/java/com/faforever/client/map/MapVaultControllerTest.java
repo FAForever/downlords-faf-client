@@ -179,6 +179,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testNotifyPropertyShowLadderInitialized() {
     when(mapService.getLadderMaps(eq(LOAD_PER_PAGE), eq(1))).thenReturn(mocksAsFuture(5));
+    when(mapService.getCountLadderMaps()).thenReturn(CompletableFuture.completedFuture(5));
     instance.display(new ShowLadderMapsEvent());
 
     WaitForAsyncUtils.waitForFxEvents();
@@ -187,7 +188,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPagination() {
-    final int lastPageCount = 20;
+    final int lastPageCount = 8;
     List<MapBean> mapsPage1 = createMockMaps(LOAD_PER_PAGE);
     List<MapBean> mapsPage2 = mapsPage1.subList(0, LOAD_PER_PAGE);
     List<MapBean> mapsPage3 = mapsPage1.subList(0, lastPageCount);
@@ -198,6 +199,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     when(mapService.getRecommendedMaps(eq(LOAD_PER_PAGE), eq(1))).thenReturn(asFuture(mapsPage1));
     when(mapService.getRecommendedMaps(eq(LOAD_PER_PAGE), eq(2))).thenReturn(asFuture(mapsPage2));
     when(mapService.getRecommendedMaps(eq(LOAD_PER_PAGE), eq(3))).thenReturn(asFuture(mapsPage3));
+    when(mapService.getCountRecommendedMaps()).thenReturn(CompletableFuture.completedFuture(LOAD_PER_PAGE * 2 + lastPageCount));
 
     // showroom
     instance.display(new OpenMapVaultEvent());
@@ -216,29 +218,23 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.showroomGroup.isVisible(), is(false));
     assertThat(instance.searchResultGroup.isVisible(), is(true));
     assertThat(instance.searchResultPane.isVisible(), is(true));
-    assertThat(instance.paginationHBox.isVisible(), is(true));
-    assertButtonAvailability(instance.nextButton, true);
-    assertButtonAvailability(instance.previousButton, false);
+    assertThat(instance.pagination.isVisible(), is(true));
     assertThat(instance.searchResultPane.getChildren().size(), is(LOAD_PER_PAGE));
 
     // second page
-    instance.nextButton.fire();
+    instance.pagination.setCurrentPageIndex(1);
     WaitForAsyncUtils.waitForFxEvents();
     verify(mapService).getRecommendedMaps(LOAD_PER_PAGE, 2);
-    assertButtonAvailability(instance.nextButton, true);
-    assertButtonAvailability(instance.previousButton, true);
     assertThat(instance.searchResultPane.getChildren().size(), is(LOAD_PER_PAGE));
 
     // third / last page
-    instance.nextButton.fire();
+    instance.pagination.setCurrentPageIndex(2);
     WaitForAsyncUtils.waitForFxEvents();
     verify(mapService).getRecommendedMaps(LOAD_PER_PAGE, 3);
-    assertButtonAvailability(instance.nextButton, false);
-    assertButtonAvailability(instance.previousButton, true);
     assertThat(instance.searchResultPane.getChildren().size(), is(lastPageCount));
 
     // back button -> second page
-    instance.previousButton.fire();
+    instance.pagination.setCurrentPageIndex(1);
     WaitForAsyncUtils.waitForFxEvents();
     verify(mapService, times(2)).getRecommendedMaps(LOAD_PER_PAGE, 2);
   }

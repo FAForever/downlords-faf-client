@@ -234,7 +234,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   @Cacheable(CacheNames.MAPS)
   public int getCountMostPlayedMaps() {
-    return this.<MapStatistics>getAll("/data/mapStatistics", ImmutableMap.of(
+    return this.<MapStatistics>getPage("/data/mapStatistics", clientProperties.getApi().getMaxPageSize(), 1, ImmutableMap.of(
         "include", "map,map.statistics,map.latestVersion,map.author,map.versions.reviews,map.versions.reviews.player",
         "sort", "-plays")).size();
   }
@@ -250,7 +250,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public int getCountHighestRatedMaps() {
-    return this.<MapStatistics>getAll("/data/mapStatistics", ImmutableMap.of(
+    return this.<MapStatistics>getPage("/data/mapStatistics", clientProperties.getApi().getMaxPageSize(), 1, ImmutableMap.of(
         "include", "map.statistics,map,map.latestVersion,map.author,map.versions.reviews,map.versions.reviews.player,map.latestVersion.reviewsSummary",
         "sort", "-map.latestVersion.reviewsSummary.lowerBound")).size();
   }
@@ -266,7 +266,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public int getCountNewestMaps() {
-    return getAll(MAP_ENDPOINT, ImmutableMap.of(
+    return getPage(MAP_ENDPOINT, clientProperties.getApi().getMaxPageSize(), 1, ImmutableMap.of(
         "include", "statistics,latestVersion,author,versions.reviews,versions.reviews.player",
         "sort", "-updateTime",
         "filter", "latestVersion.hidden==\"false\""
