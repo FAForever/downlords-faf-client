@@ -24,6 +24,7 @@ import com.faforever.client.api.dto.Tournament;
 import com.faforever.client.api.dto.TutorialCategory;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.mod.FeaturedMod;
+import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.io.ByteCountListener;
@@ -87,11 +88,11 @@ public interface FafApiAccessor {
 
   List<FeaturedModFile> getFeaturedModFiles(FeaturedMod featuredMod, Integer version);
 
-  List<Game> getNewestReplays(int count, int page);
+  Tuple<List<Game>, java.util.Map<String, ?>> getNewestReplaysWithMeta(int count, int page);
 
-  List<Game> getHighestRatedReplays(int count, int page);
+  Tuple<List<Game>, java.util.Map<String, ?>> getHighestRatedReplaysWithMeta(int count, int page);
 
-  List<Game> findReplaysByQuery(String condition, int maxResults, int page, SortConfig sortConfig);
+  Tuple<List<Game>, java.util.Map<String, ?>> findReplaysByQueryWithMeta(String query, int maxResults, int page, SortConfig sortConfig);
 
   Optional<MapVersion> findMapByFolderName(String folderName);
 

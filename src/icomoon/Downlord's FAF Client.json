@@ -2,7 +2,7 @@
   "metadata": {
     "name": "Downlord's FAF Client",
     "lastOpened": 0,
-    "created": 1557159215404
+    "created": 1593976286920
   },
   "iconSets": [
     {
@@ -1417,12 +1417,20 @@
         {
           "ligatures": "fast_forward",
           "id": 267,
-          "order": 0
+          "order": 114,
+          "prevSize": 24,
+          "code": 57375,
+          "name": "fast_forward",
+          "tempChar": ""
         },
         {
           "ligatures": "fast_rewind",
           "id": 268,
-          "order": 0
+          "order": 113,
+          "prevSize": 24,
+          "code": 57376,
+          "name": "fast_rewind",
+          "tempChar": ""
         },
         {
           "ligatures": "favorite",
@@ -1896,7 +1904,7 @@
           "prevSize": 24,
           "code": 59448,
           "name": "star",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "ligatures": "gradient",
@@ -2275,7 +2283,7 @@
           "prevSize": 24,
           "code": 59663,
           "name": "lightbulb_outline",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "ligatures": "line_style",
@@ -3674,7 +3682,7 @@
           "prevSize": 24,
           "code": 59450,
           "name": "star_border",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "ligatures": "star_half",
@@ -4097,7 +4105,7 @@
           "prevSize": 24,
           "code": 58168,
           "name": "videogame_asset",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "ligatures": "view_agenda",
@@ -16865,7 +16873,10 @@
           "ligatures": "users, group",
           "name": "users",
           "id": 114,
-          "order": 112
+          "order": 112,
+          "prevSize": 32,
+          "code": 59762,
+          "tempChar": ""
         },
         {
           "ligatures": "user-plus, user2",
@@ -17603,7 +17614,10 @@
           "ligatures": "angry, emoticon15",
           "name": "angry",
           "id": 237,
-          "order": 111
+          "order": 111,
+          "prevSize": 32,
+          "code": 59885,
+          "tempChar": ""
         },
         {
           "ligatures": "angry2, emoticon16",
@@ -28451,7 +28465,7 @@
           "order": 90,
           "prevSize": 32,
           "code": 59726,
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "ligatures": "stopwatch, time5",
@@ -28460,7 +28474,7 @@
           "order": 86,
           "prevSize": 32,
           "code": 59730,
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "ligatures": "wrench, tool",
@@ -28469,7 +28483,7 @@
           "order": 87,
           "prevSize": 32,
           "code": 59497,
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "ligatures": "plus, add",
@@ -28478,7 +28492,7 @@
           "order": 81,
           "prevSize": 32,
           "code": 59914,
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "ligatures": "arrow-left2, left4",
@@ -28487,7 +28501,7 @@
           "order": 85,
           "prevSize": 32,
           "code": 59968,
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 80,
@@ -28496,7 +28510,7 @@
           "prevSize": 32,
           "code": 58825,
           "name": "cancel",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 55,
@@ -28505,7 +28519,7 @@
           "prevSize": 32,
           "code": 57546,
           "name": "chat_bubble",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 65,
@@ -28514,7 +28528,7 @@
           "prevSize": 32,
           "code": 58826,
           "name": "check",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 79,
@@ -28523,7 +28537,7 @@
           "prevSize": 32,
           "code": 58829,
           "name": "close",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 26,
@@ -28532,7 +28546,7 @@
           "prevSize": 32,
           "code": 57345,
           "name": "error_outline",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 19,
@@ -28541,7 +28555,7 @@
           "prevSize": 32,
           "code": 58054,
           "name": "file_upload",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 0,
@@ -28559,7 +28573,7 @@
           "prevSize": 32,
           "code": 59387,
           "name": "people",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 24,
@@ -28568,7 +28582,7 @@
           "prevSize": 32,
           "code": 59535,
           "name": "info_outline",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 32,
@@ -28577,7 +28591,7 @@
           "prevSize": 32,
           "code": 58702,
           "name": "local_offer",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 46,
@@ -28586,7 +28600,7 @@
           "prevSize": 32,
           "code": 58919,
           "name": "sync",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 61,
@@ -28595,7 +28609,7 @@
           "prevSize": 32,
           "code": 58715,
           "name": "map",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 21,
@@ -28604,7 +28618,7 @@
           "prevSize": 32,
           "code": 58834,
           "name": "menu",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 30,
@@ -28613,7 +28627,7 @@
           "prevSize": 32,
           "code": 59381,
           "name": "notifications_none",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 64,
@@ -28622,7 +28636,7 @@
           "prevSize": 32,
           "code": 59389,
           "name": "person",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 58,
@@ -28631,7 +28645,7 @@
           "prevSize": 32,
           "code": 57399,
           "name": "play_arrow",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 51,
@@ -28640,7 +28654,7 @@
           "prevSize": 32,
           "code": 57401,
           "name": "play_circle_outline",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 38,
@@ -28649,7 +28663,7 @@
           "prevSize": 32,
           "code": 59564,
           "name": "power_settings_new",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 25,
@@ -28658,7 +28672,7 @@
           "prevSize": 32,
           "code": 57346,
           "name": "warning",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 18,
@@ -28667,7 +28681,7 @@
           "prevSize": 32,
           "code": 59574,
           "name": "search",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 31,
@@ -28676,7 +28690,7 @@
           "prevSize": 32,
           "code": 59576,
           "name": "settings",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 23,
@@ -28685,7 +28699,7 @@
           "prevSize": 32,
           "code": 59612,
           "name": "thumb_up",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 43,
@@ -28694,7 +28708,7 @@
           "prevSize": 32,
           "code": 59619,
           "name": "trending_down",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 44,
@@ -28703,7 +28717,7 @@
           "prevSize": 32,
           "code": 59621,
           "name": "trending_up",
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "ligatures": "enlarge2, expand2",
@@ -28712,7 +28726,7 @@
           "order": 77,
           "prevSize": 32,
           "code": 59787,
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 92,
@@ -28720,7 +28734,7 @@
           "name": "SCAeonLogo_Recreated",
           "prevSize": 32,
           "code": 59648,
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 72,
@@ -28728,7 +28742,7 @@
           "name": "SCCybranLogo_Recreated",
           "prevSize": 32,
           "code": 59650,
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 73,
@@ -28736,7 +28750,7 @@
           "name": "SCSeraphimLogo_Recreated",
           "prevSize": 32,
           "code": 59651,
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 74,
@@ -28744,7 +28758,7 @@
           "name": "SCUEFLogo_Recreated",
           "prevSize": 32,
           "code": 59652,
-          "tempChar": ""
+          "tempChar": ""
         },
         {
           "order": 91,
@@ -28752,7 +28766,7 @@
           "name": "FAF-Logo",
           "prevSize": 32,
           "code": 59649,
-          "tempChar": ""
+          "tempChar": ""
         }
       ],
       "prevSize": 28,
@@ -28764,7 +28778,7 @@
     "showCodes": true,
     "showQuickUse": true,
     "showQuickUse2": true,
-    "showSVGs": true,
+    "showSVGs": false,
     "fontPref": {
       "prefix": "icon-",
       "metadata": {
@@ -28783,18 +28797,24 @@
       "noie8": true,
       "ie7": false,
       "showSelector": true,
-      "showVersion": false
+      "showVersion": false,
+      "autoHost": false
     },
     "imagePref": {
       "prefix": "icon-",
       "png": true,
       "useClassSelector": true,
       "color": 0,
-      "bgColor": 16777215
+      "bgColor": 16777215,
+      "name": "icomoon",
+      "classSelector": ".icon"
     },
     "historySize": 100,
     "showLiga": true,
-    "gridSize": 16
+    "gridSize": 16,
+    "quickUsageToken": {
+      "DownlordsFAFClient": "YWY0ZDNmYzYyZWFiMmE4ZDU3ZTMzM2E1YTNlZmY4NWEjMSMxNTkzOTc2Mzc5IyMj"
+    }
   },
   "uid": -1
 }

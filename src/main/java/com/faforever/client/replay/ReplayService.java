@@ -29,6 +29,7 @@ import com.faforever.client.replay.Replay.GameOption;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.replay.ReplayData;
@@ -415,22 +416,22 @@ public class ReplayService {
   }
 
 
-  public CompletableFuture<List<Replay>> getNewestReplays(int topElementCount, int page) {
-    return fafService.getNewestReplays(topElementCount, page);
+  public CompletableFuture<Tuple<List<Replay>, Integer>> getNewestReplaysWithPageCount(int topElementCount, int page) {
+    return fafService.getNewestReplaysWithPageCount(topElementCount, page);
   }
 
-  public CompletableFuture<List<Replay>> getReplaysForPlayer(int playerId, int maxResults, int page, SortConfig sortConfig) {
+  public CompletableFuture<Tuple<List<Replay>, Integer>> getReplaysForPlayerWithPageCount(int playerId, int maxResults, int page, SortConfig sortConfig) {
     Condition<?> filterCondition = qBuilder().intNum("playerStats.player.id").eq(playerId);
     String query = filterCondition.query(new RSQLVisitor());
-    return fafService.findReplaysByQuery(query, maxResults, page, sortConfig);
+    return fafService.findReplaysByQueryWithPageCount(query, maxResults, page, sortConfig);
   }
 
-  public CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount, int page) {
-    return fafService.getHighestRatedReplays(topElementCount, page);
+  public CompletableFuture<Tuple<List<Replay>, Integer>> getHighestRatedReplaysWithPageCount(int topElementCount, int page) {
+    return fafService.getHighestRatedReplaysWithPageCount(topElementCount, page);
   }
 
-  public CompletableFuture<List<Replay>> findByQuery(String query, int maxResults, int page, SortConfig sortConfig) {
-    return fafService.findReplaysByQuery(query, maxResults, page, sortConfig);
+  public CompletableFuture<Tuple<List<Replay>, Integer>> findByQueryWithPageCount(String query, int maxResults, int page, SortConfig sortConfig) {
+    return fafService.findReplaysByQueryWithPageCount(query, maxResults, page, sortConfig);
   }
 
   public CompletableFuture<Optional<Replay>> findById(int id) {
@@ -549,8 +550,8 @@ public class ReplayService {
     runLiveReplay(replayId);
   }
 
-  public CompletableFuture<List<Replay>> getOwnReplays(int maxResults, int page) {
+  public CompletableFuture<Tuple<List<Replay>, Integer>> getOwnReplaysWithPageCount(int maxResults, int page) {
     SortConfig sortConfig = new SortConfig("startTime", SortOrder.DESC);
-    return getReplaysForPlayer(userService.getUserId(), maxResults, page, sortConfig);
+    return getReplaysForPlayerWithPageCount(userService.getUserId(), maxResults, page, sortConfig);
   }
 }

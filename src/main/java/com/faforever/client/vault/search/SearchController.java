@@ -68,6 +68,7 @@ public class SearchController implements Controller<Pane> {
    * Type of the searchable entity.
    */
   private Class<?> rootType;
+  private SearchConfig lastSearchConfig;
 
   public SearchController(UiService uiService, I18n i18n, PreferencesService preferencesService) {
     this.uiService = uiService;
@@ -174,7 +175,12 @@ public class SearchController implements Controller<Pane> {
 
   public void onSearchButtonClicked() {
     String sortPropertyKey = getCurrentEntityKey();
-    searchListener.accept(new SearchConfig(new SortConfig(sortPropertyKey, sortOrderChoiceBox.getValue()), queryTextField.getText()));
+    lastSearchConfig = new SearchConfig(new SortConfig(sortPropertyKey, sortOrderChoiceBox.getValue()), queryTextField.getText());
+    searchListener.accept(lastSearchConfig);
+  }
+
+  public SearchConfig getLastSearchConfig() {
+    return lastSearchConfig;
   }
 
   private String getCurrentEntityKey() {
