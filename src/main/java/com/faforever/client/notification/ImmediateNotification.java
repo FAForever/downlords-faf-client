@@ -34,4 +34,8 @@ public class ImmediateNotification {
   public ImmediateNotification(String title, String text, Severity severity, Throwable throwable, List<Action> actions) {
     this(title, text, severity, throwable, actions, null);
   }
+
+  public ImmediateNotification(String title, String text, Severity severity, List<Action> actions, Parent customUI) {
+    this(title, text, severity, null, actions, customUI);
+  }
 }

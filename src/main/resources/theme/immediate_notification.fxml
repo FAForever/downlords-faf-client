@@ -11,7 +11,7 @@
       xmlns="http://javafx.com/javafx/8.0.141"
       fx:controller="com.faforever.client.notification.ImmediateNotificationController">
     <children>
-        <WebView fx:id="errorMessageView" minHeight="20.0" minWidth="100.0" prefHeight="100.0"
+        <WebView fx:id="errorMessageView" minHeight="20.0" minWidth="100.0" prefHeight="50.0"
                  prefWidth="-1.0"/>
         <Label fx:id="exceptionAreaTitleLabel" styleClass="h2" text="%errorDetails"/>
         <TextArea fx:id="exceptionTextArea" editable="false" maxHeight="1.7976931348623157E308"

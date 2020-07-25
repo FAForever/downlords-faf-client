@@ -62,11 +62,11 @@ public class ModVaultController extends AbstractViewController<Node> {
   private static final int BATCH_SIZE = 10;
 
   private final ModService modService;
+  private final NotificationService notificationService;
   private final I18n i18n;
   private final EventBus eventBus;
   private final PreferencesService preferencesService;
   private final UiService uiService;
-  private final NotificationService notificationService;
   private final ReportingService reportingService;
 
   public Pane searchResultGroup;
@@ -350,6 +350,12 @@ public class ModVaultController extends AbstractViewController<Node> {
           enterShowroomState();
           return null;
         });
+  }
+
+  public void manageMods() {
+    ModManagerController modManagerController = uiService.loadFxml("theme/mod_manager.fxml");
+    JFXDialog jfxDialog = uiService.showInDialog(modVaultRoot, modManagerController.getRoot(), i18n.get("modVault.modManager"));
+    jfxDialog.setOnDialogClosed(event -> modManagerController.apply());
   }
 
   private enum State {
