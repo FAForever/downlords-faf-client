@@ -43,9 +43,9 @@ import org.springframework.stereotype.Component;
 
 import java.lang.invoke.MethodHandles;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -105,6 +105,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
     backButton.managedProperty().bind(backButton.visibleProperty());
     pagination.managedProperty().bind(pagination.visibleProperty());
     firstPageButton.managedProperty().bind(firstPageButton.visibleProperty());
+    firstPageButton.disableProperty().bind(pagination.currentPageIndexProperty().isEqualTo(0));
     lastPageButton.managedProperty().bind(lastPageButton.visibleProperty());
 
     searchController.setRootType(Game.class);
@@ -128,33 +129,32 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   }
 
   private void displaySearchResult(List<Replay> replays, boolean append) {
-    state.set(State.RESULT);
-    showroomGroup.setVisible(false);
-    searchResultGroup.setVisible(true);
-    loadingPane.setVisible(false);
-    backButton.setVisible(true);
+    enterSearchingState();
     populateReplays(replays, searchResultPane, append);
-    pagination.setVisible(true);
-    firstPageButton.setVisible(true);
-    lastPageButton.setVisible(true);
+    enterResultState();
   }
 
   private void populateReplays(List<Replay> replays, Pane pane, boolean append) {
+    JavaFxUtil.assertBackgroundThread();
     ObservableList<Node> children = pane.getChildren();
+
+    List<Node> childrenToAdd = replays.stream()
+        .map(replay -> {
+          ReplayCardController controller = uiService.loadFxml("theme/vault/replay/replay_card.fxml");
+          controller.setReplay(replay);
+          controller.setOnOpenDetailListener(this::onShowReplayDetail);
+          if (replays.size() == 1 && !append) {
+            Platform.runLater(() -> onShowReplayDetail(replay));
+          }
+          return controller.getRoot();
+        })
+        .collect(Collectors.toList());
+
     Platform.runLater(() -> {
       if (!append) {
         children.clear();
       }
-      replays.forEach(replay -> {
-        ReplayCardController controller = uiService.loadFxml("theme/vault/replay/replay_card.fxml");
-        controller.setReplay(replay);
-        controller.setOnOpenDetailListener(this::onShowReplayDetail);
-        children.add(controller.getRoot());
-
-        if (replays.size() == 1 && !append) {
-          onShowReplayDetail(replay);
-        }
-      });
+      children.addAll(childrenToAdd);
     });
   }
 
@@ -241,6 +241,18 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   private void enterResultState() {
     state.set(State.RESULT);
 
+    showroomGroup.setVisible(false);
+    searchResultGroup.setVisible(true);
+    loadingPane.setVisible(false);
+    backButton.setVisible(true);
+    pagination.setVisible(true);
+    firstPageButton.setVisible(true);
+    lastPageButton.setVisible(true);
+  }
+
+  private void enterShowRoomState() {
+    state.set(State.SHOWROOM);
+
     showroomGroup.setVisible(true);
     searchResultGroup.setVisible(false);
     loadingPane.setVisible(false);
@@ -305,7 +317,7 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
         .thenAccept(replays -> populateReplays(replays.getFirst(), newestPane))
         .thenCompose(aVoid -> replayService.getHighestRatedReplaysWithPageCount(TOP_ELEMENT_COUNT, 1).thenAccept(highestRatedReplays -> populateReplays(highestRatedReplays.getFirst(), highestRatedPane)))
         .thenCompose(aVoid -> replayService.getOwnReplaysWithPageCount(TOP_ELEMENT_COUNT, 1).thenAccept(highestRatedReplays -> populateReplays(highestRatedReplays.getFirst(), ownReplaysPane)))
-        .thenRun(this::enterResultState)
+        .thenRun(this::enterShowRoomState)
         .exceptionally(throwable -> {
           logger.warn("Could not populate replays", throwable);
           return null;
@@ -350,6 +362,6 @@ public class OnlineReplayVaultController extends AbstractViewController<Node> {
   }
 
   private enum State {
-    SEARCHING, RESULT, UNINITIALIZED
+    SEARCHING, RESULT, UNINITIALIZED, SHOWROOM
   }
 }
