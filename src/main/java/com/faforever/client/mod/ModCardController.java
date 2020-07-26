@@ -42,7 +42,7 @@ public class ModCardController implements Controller<Node> {
   private Consumer<ModVersion> onOpenDetailListener;
   private ListChangeListener<ModVersion> installStatusChangeListener;
   public StarsController starsController;
-  private InvalidationListener reviewsChangedListener = observable -> populateReviews();
+  private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
   private JFXRippler jfxRippler;
 
   private void populateReviews() {

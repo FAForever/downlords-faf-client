@@ -149,7 +149,7 @@ public class ReplayService {
     }
 
     LoadLocalReplaysTask loadLocalReplaysTask = applicationContext.getBean(LoadLocalReplaysTask.class);
-    taskService.submitTask(loadLocalReplaysTask).getFuture().thenAccept( replays -> {
+    taskService.submitTask(loadLocalReplaysTask).getFuture().thenAccept(replays -> {
       localReplays.clear();
       localReplays.addAll(replays);
       publisher.publishEvent(new LocalReplaysChangedEvent(this, replays, new ArrayList<Replay>()));
@@ -216,7 +216,7 @@ public class ReplayService {
                 .map(CompletableFuture::join)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList())
-    );
+        );
 
     try {
       List<Replay> newReplays = newReplaysFuture.get();
@@ -252,7 +252,7 @@ public class ReplayService {
 
     for (mapEndIndex = mapStartIndex; mapEndIndex < rawReplayBytes.length - 1; mapEndIndex++) {
       //0x00 0x01 is the field delimiter
-      if (rawReplayBytes[mapEndIndex] == 0x00 && rawReplayBytes[mapEndIndex+1] == 0x01) {
+      if (rawReplayBytes[mapEndIndex] == 0x00 && rawReplayBytes[mapEndIndex + 1] == 0x01) {
         break;
       }
     }
@@ -307,14 +307,14 @@ public class ReplayService {
     }
   }
 
-  private CompletableFuture<Replay> tryLoadingLocalReplay(Path replayFile)  {
+  private CompletableFuture<Replay> tryLoadingLocalReplay(Path replayFile) {
     try {
       LocalReplayInfo replayInfo = replayFileReader.parseMetaData(replayFile);
 
       CompletableFuture<FeaturedMod> featuredModFuture = modService.getFeaturedMod(replayInfo.getFeaturedMod());
       CompletableFuture<Optional<MapBean>> mapBeanFuture = mapService.findByMapFolderName(replayInfo.getMapname());
 
-      return CompletableFuture.allOf(featuredModFuture, mapBeanFuture).thenApply(ignoredVoid  -> {
+      return CompletableFuture.allOf(featuredModFuture, mapBeanFuture).thenApply(ignoredVoid -> {
         Optional<MapBean> mapBean = mapBeanFuture.join();
         if (!mapBean.isPresent()) {
           logger.warn("Could not find map for replay file '{}'", replayFile);
@@ -520,7 +520,7 @@ public class ReplayService {
     // For map generator games the map name is "None" because replay server gets map name by from DB based on filename
     // from replay data, and DB does not contain generated maps.
     if (StringUtils.equalsIgnoreCase(mapName, "None")) {
-      String maybeMapGen = parseMapName(rawReplayBytes).replaceAll(".scmap","");
+      String maybeMapGen = parseMapName(rawReplayBytes).replaceAll(".scmap", "");
       if (mapGeneratorService.isGeneratedMap(maybeMapGen)) {
         mapName = maybeMapGen;
       }

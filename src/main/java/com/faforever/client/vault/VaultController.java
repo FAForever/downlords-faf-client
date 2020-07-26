@@ -9,6 +9,7 @@ import com.faforever.client.main.event.OpenReplayVaultEvent;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.replay.OnlineReplayVaultController;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.replay.ReplayVaultController;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.Node;
@@ -18,18 +19,18 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
-
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class VaultController extends AbstractViewController<Node> {
-  public TabPane vaultRoot;
   // TODO change to spring event bus
   private final EventBus eventBus;
+  private final UiService uiService;
+  public TabPane vaultRoot;
   public Tab mapVaultTab;
   public Tab modVaultTab;
   public MapVaultController mapVaultController;
   public ModVaultController modVaultController;
+
   public OnlineReplayVaultController onlineReplayVaultController;
   public ReplayVaultController localReplayVaultController;
   public Tab onlineReplayVaultTab;
@@ -38,8 +39,9 @@ public class VaultController extends AbstractViewController<Node> {
   private AbstractViewController<?> lastTabController;
   private Tab lastTab;
 
-  public VaultController(EventBus eventBus) {
+  public VaultController(EventBus eventBus, UiService uiService) {
     this.eventBus = eventBus;
+    this.uiService = uiService;
   }
 
   @Override
@@ -49,6 +51,12 @@ public class VaultController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
+    onlineReplayVaultController = uiService.loadFxml("theme/vault/vault_entity.fxml", OnlineReplayVaultController.class);
+    onlineReplayVaultTab.setContent(onlineReplayVaultController.getRoot());
+    mapVaultController = uiService.loadFxml("theme/vault/vault_entity.fxml", MapVaultController.class);
+    mapVaultTab.setContent(mapVaultController.getRoot());
+    modVaultController = uiService.loadFxml("theme/vault/vault_entity.fxml", ModVaultController.class);
+    modVaultTab.setContent(modVaultController.getRoot());
     lastTab = onlineReplayVaultTab;
     lastTabController = onlineReplayVaultController;
     vaultRoot.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -79,7 +87,7 @@ public class VaultController extends AbstractViewController<Node> {
         lastTabController = mapVaultController;
       } else if (navigateEvent instanceof OpenModVaultEvent) {
         lastTab = modVaultTab;
-            lastTabController = modVaultController;
+        lastTabController = modVaultController;
       } else if (navigateEvent instanceof OpenOnlineReplayVaultEvent) {
         lastTab = onlineReplayVaultTab;
         lastTabController = onlineReplayVaultController;

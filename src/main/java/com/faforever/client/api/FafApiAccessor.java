@@ -64,13 +64,13 @@ public interface FafApiAccessor {
 
   List<GamePlayerStats> getGamePlayerStats(int playerId, KnownFeaturedMod knownFeaturedMod);
 
-  List<Map> getMapsById(List<Integer> mapIdList, int count, int page);
+  Tuple<List<Map>, java.util.Map<String, ?>> getMapsByIdWithMeta(List<Integer> mapIdList, int count, int page);
 
-  List<Map> getMostPlayedMaps(int count, int page);
+  Tuple<List<Map>, java.util.Map<String, ?>> getMostPlayedMapsWithMeta(int count, int page);
 
-  List<Map> getHighestRatedMaps(int count, int page);
+  Tuple<List<Map>, java.util.Map<String, ?>> getHighestRatedMapsWithMeta(int count, int page);
 
-  List<Map> getNewestMaps(int count, int page);
+  Tuple<List<Map>, java.util.Map<String, ?>> getNewestMapsWithMeta(int count, int page);
 
   List<Game> getLastGamesOnMap(int playerId, String mapVersionId, int count);
 
@@ -116,7 +116,7 @@ public interface FafApiAccessor {
 
   Optional<Clan> getClanByTag(String tag);
 
-  List<Map> findMapsByQuery(SearchConfig searchConfig, int page, int count);
+  Tuple<List<Map>, java.util.Map<String, ?>> findMapsByQueryWithMeta(SearchConfig searchConfig, int count, int page);
 
   Optional<MapVersion> findMapVersionById(String id);
 
@@ -126,13 +126,13 @@ public interface FafApiAccessor {
 
   Optional<Game> findReplayById(int id);
 
-  List<Mod> findModsByQuery(SearchConfig query, int page, int maxResults);
+  Tuple<List<Mod>, java.util.Map<String, ?>> findModsByQueryWithMeta(SearchConfig query, int maxResults, int page);
 
-  List<Ladder1v1Map> getLadder1v1Maps(int count, int page);
+  Tuple<List<Ladder1v1Map>, java.util.Map<String, ?>> getLadder1v1MapsWithMeta(int count, int page);
 
   List<Tournament> getAllTournaments();
 
-  List<MapVersion> getOwnedMaps(int playerId, int loadMoreCount, int page);
+  Tuple<List<MapVersion>, java.util.Map<String, ?>> getOwnedMapsWithMeta(int playerId, int loadMoreCount, int page);
 
   void updateMapVersion(String id, MapVersion mapVersion);
 

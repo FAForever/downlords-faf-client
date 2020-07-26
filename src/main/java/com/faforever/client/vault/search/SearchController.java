@@ -57,7 +57,7 @@ public class SearchController implements Controller<Pane> {
   public HBox sortBox;
   public CheckBox onlyShowLastYearCheckBox;
 
-  private List<LogicalNodeController> queryNodes;
+  private final List<LogicalNodeController> queryNodes;
   private InvalidationListener queryInvalidationListener;
   /**
    * Called with the query string when the user hits "search".

@@ -413,6 +413,16 @@ public class UiService implements InitializingBean, DisposableBean {
     return loader.getController();
   }
 
+  public <T extends Controller<?>> T loadFxml(String relativePath, Class<?> controllerClass) {
+    FXMLLoader loader = new FXMLLoader();
+    loader.setControllerFactory(applicationContext::getBean);
+    loader.setController(applicationContext.getBean(controllerClass));
+    loader.setLocation(getThemeFileUrl(relativePath));
+    loader.setResources(resources);
+    noCatch((NoCatchRunnable) loader::load);
+    return loader.getController();
+  }
+
   private Path getThemeDirectory(Theme theme) {
     return preferencesService.getThemesDirectory().resolve(folderNamesByTheme.get(theme));
   }
