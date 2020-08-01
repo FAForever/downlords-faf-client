@@ -20,7 +20,6 @@ public class AutoJoinChannelsController implements Controller<Node> {
   public Button addChannelButton;
   public ListView<String> channelListView;
   public GridPane autoJoinChannelsSettingsRoot;
-  public ListView<String> removeListView;
   public Button removeButton;
 
   public AutoJoinChannelsController(PreferencesService preferencesService) {
