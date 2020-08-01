@@ -4,6 +4,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -91,6 +92,8 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   private FafService fafService;
   @Mock
   private MapGeneratorService mapGeneratorService;
+  @Mock
+  private PlayerService playerService;
   @Mock
   private EventBus eventBus;
 
@@ -204,31 +207,31 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     List<Integer> recommendedMapIds = Lists.newArrayList(1, 2, 3);
     when(clientConfiguration.getRecommendedMaps()).thenReturn(recommendedMapIds);
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
-    when(fafService.getMapsById(recommendedMapIds, 10, 0)).thenReturn(CompletableFuture.completedFuture(null));
+    when(fafService.getMapsByIdWithPageCount(recommendedMapIds, 10, 0)).thenReturn(CompletableFuture.completedFuture(null));
 
-    instance.getRecommendedMaps(10, 0);
+    instance.getRecommendedMapsWithPageCount(10, 0);
 
-    verify(fafService).getMapsById(recommendedMapIds, 10, 0);
+    verify(fafService).getMapsByIdWithPageCount(recommendedMapIds, 10, 0);
   }
 
   @Test
   public void testGetHighestRatedMaps() {
-    when(fafService.getHighestRatedMaps(10, 0)).thenReturn(CompletableFuture.completedFuture(null));
-    instance.getHighestRatedMaps(10, 0);
-    verify(fafService).getHighestRatedMaps(10, 0);
+    when(fafService.getHighestRatedMapsWithPageCount(10, 0)).thenReturn(CompletableFuture.completedFuture(null));
+    instance.getHighestRatedMapsWithPageCount(10, 0);
+    verify(fafService).getHighestRatedMapsWithPageCount(10, 0);
   }
 
   @Test
   public void testGetNewestMaps() {
-    when(fafService.getNewestMaps(10, 0)).thenReturn(CompletableFuture.completedFuture(null));
-    instance.getNewestMaps(10, 0);
-    verify(fafService).getNewestMaps(10, 0);
+    when(fafService.getNewestMapsWithPageCount(10, 0)).thenReturn(CompletableFuture.completedFuture(null));
+    instance.getNewestMapsWithPageCount(10, 0);
+    verify(fafService).getNewestMapsWithPageCount(10, 0);
   }
 
   @Test
   public void testGetMostPlayedMaps() {
-    when(fafService.getMostPlayedMaps(10, 0)).thenReturn(CompletableFuture.completedFuture(null));
-    instance.getMostPlayedMaps(10, 0);
-    verify(fafService).getMostPlayedMaps(10, 0);
+    when(fafService.getMostPlayedMapsWithPageCount(10, 0)).thenReturn(CompletableFuture.completedFuture(null));
+    instance.getMostPlayedMapsWithPageCount(10, 0);
+    verify(fafService).getMostPlayedMapsWithPageCount(10, 0);
   }
 }

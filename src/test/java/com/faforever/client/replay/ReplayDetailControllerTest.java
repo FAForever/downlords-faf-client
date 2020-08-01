@@ -75,7 +75,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ReplayDetailController(timeService, i18n, uiService, replayService, ratingService, mapService, playerService, reviewService, clientProperties);
+    instance = new ReplayDetailController(timeService, i18n, uiService, replayService, ratingService, mapService, playerService, clientProperties, reviewService);
 
     when(reviewsController.getRoot()).thenReturn(new Pane());
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(new Player("junit")));

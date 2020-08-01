@@ -69,28 +69,28 @@ public class MapVaultController extends VaultEntityController<MapBean> {
     mapDetailController.getRoot().requestFocus();
   }
 
-  protected void setSupplier(SearchConfig searchConfig, int page) {
+  protected void setSupplier(SearchConfig searchConfig) {
     switch (searchType) {
       case SEARCH:
-        currentSupplier = mapService.findByQueryWithPageCount(searchConfig, pageSize, page);
+        currentSupplier = mapService.findByQueryWithPageCount(searchConfig, pageSize, pagination.getCurrentPageIndex() + 1);
         break;
       case RECOMMENDED:
-        currentSupplier = mapService.getRecommendedMapsWithPageCount(pageSize, page);
+        currentSupplier = mapService.getRecommendedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
         break;
       case NEWEST:
-        currentSupplier = mapService.getNewestMapsWithPageCount(pageSize, page);
+        currentSupplier = mapService.getNewestMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
         break;
       case HIGHEST_RATED:
-        currentSupplier = mapService.getHighestRatedMapsWithPageCount(pageSize, page);
+        currentSupplier = mapService.getHighestRatedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
         break;
       case PLAYED:
-        currentSupplier = mapService.getMostPlayedMapsWithPageCount(pageSize, page);
+        currentSupplier = mapService.getMostPlayedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
         break;
       case LADDER:
-        currentSupplier = mapService.getLadderMapsWithPageCount(pageSize, page);
+        currentSupplier = mapService.getLadderMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
         break;
       case OWN:
-        currentSupplier = mapService.getOwnedMapsWithPageCount(pageSize, page);
+        currentSupplier = mapService.getOwnedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
         break;
     }
   }
@@ -141,7 +141,7 @@ public class MapVaultController extends VaultEntityController<MapBean> {
   protected void handleSpecialNavigateEvent(NavigateEvent navigateEvent) {
     if (navigateEvent instanceof ShowLadderMapsEvent) {
       searchType = SearchType.LADDER;
-      onPageChange(null, 1, true);
+      onPageChange(null, true);
     } else {
       log.warn("No such NavigateEvent for this Controller: {}", navigateEvent.getClass());
     }

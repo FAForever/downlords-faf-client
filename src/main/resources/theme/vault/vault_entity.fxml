@@ -24,9 +24,9 @@
                         <Insets bottom="20.0" left="20.0" right="20.0" top="30.0"/>
                     </padding>
                     <HBox fx:id="searchBox" VBox.vgrow="NEVER">
-                        <fx:include fx:id="search" maxWidth="1.7976931348623157E308" source="search/search.fxml"
+                        <fx:include fx:id="search" source="search/search.fxml"
                                     HBox.hgrow="ALWAYS"/>
-                        <JFXButton fx:id="manageModsButton" styleClass="button-raised" text="%modVault.manageMods"
+                        <Button fx:id="manageModsButton" styleClass="button-raised" text="%modVault.manageMods"
                                    visible="false"/>
                     </HBox>
                     <Separator maxWidth="1.7976931348623157E308"/>

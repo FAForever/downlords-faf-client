@@ -64,22 +64,22 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
     replayDetailController.getRoot().requestFocus();
   }
 
-  protected void setSupplier(SearchConfig searchConfig, int page) {
+  protected void setSupplier(SearchConfig searchConfig) {
     switch (searchType) {
       case SEARCH:
-        currentSupplier = replayService.findByQueryWithPageCount(searchConfig.getSearchQuery(), pageSize, page, searchConfig.getSortConfig());
+        currentSupplier = replayService.findByQueryWithPageCount(searchConfig.getSearchQuery(), pageSize, pagination.getCurrentPageIndex() + 1, searchConfig.getSortConfig());
         break;
       case OWN:
-        currentSupplier = replayService.getOwnReplaysWithPageCount(pageSize, page);
+        currentSupplier = replayService.getOwnReplaysWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
         break;
       case NEWEST:
-        currentSupplier = replayService.getNewestReplaysWithPageCount(pageSize, page);
+        currentSupplier = replayService.getNewestReplaysWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
         break;
       case HIGHEST_RATED:
-        currentSupplier = replayService.getHighestRatedReplaysWithPageCount(pageSize, page);
+        currentSupplier = replayService.getHighestRatedReplaysWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
         break;
       case PLAYER:
-        currentSupplier = replayService.getReplaysForPlayerWithPageCount(playerId, pageSize, page, new SortConfig("startTime", SortOrder.DESC));
+        currentSupplier = replayService.getReplaysForPlayerWithPageCount(playerId, pageSize, pagination.getCurrentPageIndex() + 1, new SortConfig("startTime", SortOrder.DESC));
         break;
     }
   }
@@ -94,8 +94,8 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
   @Override
   protected List<ShowRoomCategory> getShowRoomCategories() {
     return Arrays.asList(
-        new ShowRoomCategory(() -> replayService.getNewestReplaysWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.NEWEST, "vault.replays.newest"),
         new ShowRoomCategory(() -> replayService.getOwnReplaysWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.OWN, "vault.replays.ownReplays"),
+        new ShowRoomCategory(() -> replayService.getNewestReplaysWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.NEWEST, "vault.replays.newest"),
         new ShowRoomCategory(() -> replayService.getHighestRatedReplaysWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.HIGHEST_RATED, "vault.replays.highestRated")
     );
   }

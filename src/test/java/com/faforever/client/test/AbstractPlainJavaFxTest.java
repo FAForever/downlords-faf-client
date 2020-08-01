@@ -1,6 +1,7 @@
 package com.faforever.client.test;
 
 import com.faforever.client.ui.StageHolder;
+import com.faforever.client.vault.VaultEntityController;
 import com.github.nocatch.NoCatch.NoCatchRunnable;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -91,6 +92,37 @@ public abstract class AbstractPlainJavaFxTest extends ApplicationTest {
     loader.setLocation(getThemeFileUrl(fileName));
     loader.setResources(new MessageSourceResourceBundle(messageSource, Locale.US));
     loader.setControllerFactory(controllerFactory);
+    CountDownLatch latch = new CountDownLatch(1);
+    Platform.runLater(() -> {
+      try {
+        noCatch((Callable<Object>) loader::load);
+      } catch (Exception e) {
+        loadExceptionWrapper.setLoadException(e);
+      }
+      latch.countDown();
+    });
+    noCatch((NoCatchRunnable) latch::await);
+    if (loadExceptionWrapper.getLoadException() != null) {
+      throw new RuntimeException("Loading fxm failed", loadExceptionWrapper.getLoadException());
+    }
+  }
+
+  protected void loadFxml(String fileName, Callback<Class<?>, Object> controllerFactory, VaultEntityController<?> controller) throws IOException {
+    ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+    messageSource.setBasename("i18n.messages");
+
+    @Data
+    class ExceptionWrapper {
+      private Exception loadException;
+    }
+
+    ExceptionWrapper loadExceptionWrapper = new ExceptionWrapper();
+
+    FXMLLoader loader = new FXMLLoader();
+    loader.setLocation(getThemeFileUrl(fileName));
+    loader.setResources(new MessageSourceResourceBundle(messageSource, Locale.US));
+    loader.setControllerFactory(controllerFactory);
+    loader.setController(controller);
     CountDownLatch latch = new CountDownLatch(1);
     Platform.runLater(() -> {
       try {

@@ -69,19 +69,19 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
     modDetailController.getRoot().requestFocus();
   }
 
-  protected void setSupplier(SearchConfig searchConfig, int page) {
+  protected void setSupplier(SearchConfig searchConfig) {
     switch (searchType) {
       case SEARCH:
-        currentSupplier = modService.findByQueryWithPageCount(searchConfig, pageSize, page);
+        currentSupplier = modService.findByQueryWithPageCount(searchConfig, pageSize, pagination.getCurrentPageIndex() + 1);
         break;
       case NEWEST:
-        currentSupplier = modService.getNewestModsWithPageCount(pageSize, page);
+        currentSupplier = modService.getNewestModsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
         break;
       case HIGHEST_RATED:
-        currentSupplier = modService.getHighestRatedModsWithPageCount(pageSize, page);
+        currentSupplier = modService.getHighestRatedModsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
         break;
       case HIGHEST_RATED_UI:
-        currentSupplier = modService.getHighestRatedUiModsWithPageCount(pageSize, page);
+        currentSupplier = modService.getHighestRatedUiModsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
         break;
     }
   }

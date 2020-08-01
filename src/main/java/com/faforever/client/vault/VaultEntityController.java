@@ -65,7 +65,6 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   public Pane searchResultPane;
   public VBox showRoomGroup;
   public VBox loadingPane;
-  public VBox contentPane;
   public Button backButton;
   public Button refreshButton;
   public Button uploadButton;
@@ -76,10 +75,10 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   public Button lastPageButton;
   public Button manageModsButton;
   public Button firstPageButton;
-  protected SearchType searchType;
+  public SearchType searchType;
   protected ObjectProperty<State> state;
   protected CompletableFuture<Tuple<List<T>, Integer>> currentSupplier;
-  protected int pageSize;
+  public int pageSize;
   public ComboBox<Integer> perPageComboBox;
 
   public VaultEntityController(UiService uiService, NotificationService notificationService, I18n i18n, PreferencesService preferencesService, ReportingService reportingService) {
@@ -96,7 +95,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
 
   protected abstract List<ShowRoomCategory> getShowRoomCategories();
 
-  protected abstract void setSupplier(SearchConfig searchConfig, int page);
+  protected abstract void setSupplier(SearchConfig searchConfig);
 
   protected abstract void onUploadButtonClicked();
 
@@ -135,7 +134,6 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
     searchController.setSearchListener(this::onSearch);
     perPageComboBox.getItems().addAll(5, 10, 20, 50, 100, 200);
     perPageComboBox.setValue(20);
-    perPageComboBox.getEditor().setOnAction(event -> changePerPageCount());
     perPageComboBox.setOnAction((event -> changePerPageCount()));
     pageSize = perPageComboBox.getValue();
 
@@ -145,7 +143,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
     pagination.currentPageIndexProperty().addListener((observable, oldValue, newValue) -> {
           if (!oldValue.equals(newValue)) {
             SearchConfig searchConfig = searchController.getLastSearchConfig();
-            onPageChange(searchConfig, newValue.intValue() + 1, false);
+            onPageChange(searchConfig, false);
             pagination.setMaxPageIndicatorCount(10);
           }
         }
@@ -172,14 +170,15 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
     showRoomGroup.getChildren().clear();
     Object monitorForAddingFutures = new Object();
     List<ShowRoomCategory> showRoomCategories = getShowRoomCategories();
-    AtomicReference<CompletableFuture<?>> loadingReplaysFutureReference = new AtomicReference<>(CompletableFuture.completedFuture(null));
+    AtomicReference<CompletableFuture<?>> loadingEntitiesFutureReference = new AtomicReference<>(CompletableFuture.completedFuture(null));
 
     List<VBox> childrenToAdd = showRoomCategories.parallelStream()
         .map(showRoomCategory -> {
           VaultEntityShowRoomController vaultEntityShowRoomController = loadShowRoom(showRoomCategory);
           synchronized (monitorForAddingFutures) {
-            loadingReplaysFutureReference.set(loadingReplaysFutureReference.get().thenCompose(ignored -> showRoomCategory.getEntitySupplier().get())
+            loadingEntitiesFutureReference.set(loadingEntitiesFutureReference.get().thenCompose(ignored -> showRoomCategory.getEntitySupplier().get())
                 .thenAccept(result -> {
+                  vaultEntityShowRoomController.getRoot().managedProperty().bind(vaultEntityShowRoomController.getRoot().visibleProperty());
                   if (result.getFirst().isEmpty()) {
                     vaultEntityShowRoomController.getRoot().setVisible(false);
                   }
@@ -190,13 +189,13 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
         })
         .collect(Collectors.toList());
 
-    loadingReplaysFutureReference.get()
+    loadingEntitiesFutureReference.get()
         .thenRun(() -> Platform.runLater(() -> {
           showRoomGroup.getChildren().addAll(childrenToAdd);
           enterShowRoomState();
         }))
         .exceptionally(throwable -> {
-          log.warn("Could not populate replays", throwable);
+          log.warn("Could not populate show room", throwable);
           return null;
         });
   }
@@ -216,7 +215,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
     pageSize = perPageComboBox.getValue();
     if (state.get() == State.RESULT) {
       SearchConfig searchConfig = searchController.getLastSearchConfig();
-      onPageChange(searchConfig, pagination.getCurrentPageIndex() + 1, true);
+      onPageChange(searchConfig, true);
     }
   }
 
@@ -250,9 +249,9 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
     paginationGroup.setVisible(false);
   }
 
-  protected void onPageChange(SearchConfig searchConfig, int page, boolean firstLoad) {
+  protected void onPageChange(SearchConfig searchConfig, boolean firstLoad) {
     enterSearchingState();
-    setSupplier(searchConfig, page);
+    setSupplier(searchConfig);
     displayFromSupplier(() -> currentSupplier, firstLoad);
   }
 
@@ -301,10 +300,10 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   }
 
   protected void onFirstPageOpened(SearchConfig searchConfig) {
-    onPageChange(searchConfig, 1, true);
     if (pagination.getCurrentPageIndex() != 0) {
       pagination.setCurrentPageIndex(0);
     }
+    onPageChange(searchConfig, true);
   }
 
   protected void onSearch(SearchConfig searchConfig) {
@@ -314,7 +313,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
 
   protected void onRefreshButtonClicked() {
     if (state.get() == State.RESULT) {
-      onPageChange(searchController.getLastSearchConfig(), pagination.currentPageIndexProperty().getValue() + 1, false);
+      onPageChange(searchController.getLastSearchConfig(), false);
     } else {
       loadShowRoom();
     }
@@ -356,7 +355,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
     SEARCHING, RESULT, UNINITIALIZED, SHOWROOM
   }
 
-  protected enum SearchType {
+  public enum SearchType {
     SEARCH, OWN, NEWEST, HIGHEST_RATED, PLAYER, RECOMMENDED, LADDER, PLAYED, HIGHEST_RATED_UI
   }
 
