@@ -97,7 +97,6 @@ public class VaultEntityControllerTest extends AbstractPlainJavaFxTest {
     showRoomPane.setUserData(moreButton);
 
     when(i18n.get("mock")).thenReturn("mock");
-//    when(preferencesService.getPreferences()).thenReturn(new Preferences());
     when(uiService.loadFxml("theme/vault/vault_entity_show_room.fxml")).thenReturn(vaultEntityShowRoomController);
     when(vaultEntityShowRoomController.getRoot()).thenReturn(showRoomRoot);
     when(vaultEntityShowRoomController.getLabel()).thenReturn(showRoomLabel);
@@ -380,45 +379,5 @@ public class VaultEntityControllerTest extends AbstractPlainJavaFxTest {
     assertFalse(instance.showRoomGroup.isVisible());
     assertTrue(instance.searchResultGroup.isVisible());
   }
-
-//
-//  @Test
-//  public void testPageRefresh() {
-//    // first we have certain number of maps
-//    when(mapService.getMostPlayedMaps(anyInt(), eq(1))).thenReturn(mocksAsFuture(2));
-//    instance.display(new OpenMapVaultEvent());
-//    WaitForAsyncUtils.waitForFxEvents();
-//    // size is one more, because a button is also in there
-//    assertThat(instance.mostPlayedPane.getChildren().size(), is(3));
-//
-//    // more maps were added, refresh should update
-//    when(mapService.getMostPlayedMaps(anyInt(), eq(1))).thenReturn(mocksAsFuture(4));
-//    instance.onRefreshButtonClicked();
-//    WaitForAsyncUtils.waitForFxEvents();
-//    // size is one more, because a button is also in there
-//    assertThat(instance.mostPlayedPane.getChildren().size(), is(5));
-//  }
-//
-//  @Test
-//  public void testOwnedMapsHiddenWhenUserOwnsNoMaps() {
-//    when(mapService.getOwnedMaps(anyInt(), anyInt(), anyInt()))
-//        .thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
-//    instance.display(new OpenMapVaultEvent());
-//    WaitForAsyncUtils.waitForFxEvents();
-//    assertFalse(instance.ownedPane.isVisible()
-//        || instance.moreOwnedButton.isVisible()
-//        || instance.ownedMoreLabel.isVisible());
-//  }
-//
-//  @Test
-//  public void testOwnedMapsShownWhenUserOwnsMaps() {
-//    when(mapService.getOwnedMaps(anyInt(), anyInt(), anyInt()))
-//        .thenReturn(CompletableFuture.completedFuture(createMockElements(5)));
-//    instance.display(new OpenMapVaultEvent());
-//    WaitForAsyncUtils.waitForFxEvents();
-//    assertTrue(instance.ownedPane.isVisible()
-//        && instance.moreOwnedButton.isVisible()
-//        && instance.ownedMoreLabel.isVisible());
-//  }
 }
 

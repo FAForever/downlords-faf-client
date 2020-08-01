@@ -78,33 +78,7 @@ public abstract class AbstractPlainJavaFxTest extends ApplicationTest {
   }
 
   protected void loadFxml(String fileName, Callback<Class<?>, Object> controllerFactory) throws IOException {
-    ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-    messageSource.setBasename("i18n.messages");
-
-    @Data
-    class ExceptionWrapper {
-      private Exception loadException;
-    }
-
-    ExceptionWrapper loadExceptionWrapper = new ExceptionWrapper();
-
-    FXMLLoader loader = new FXMLLoader();
-    loader.setLocation(getThemeFileUrl(fileName));
-    loader.setResources(new MessageSourceResourceBundle(messageSource, Locale.US));
-    loader.setControllerFactory(controllerFactory);
-    CountDownLatch latch = new CountDownLatch(1);
-    Platform.runLater(() -> {
-      try {
-        noCatch((Callable<Object>) loader::load);
-      } catch (Exception e) {
-        loadExceptionWrapper.setLoadException(e);
-      }
-      latch.countDown();
-    });
-    noCatch((NoCatchRunnable) latch::await);
-    if (loadExceptionWrapper.getLoadException() != null) {
-      throw new RuntimeException("Loading fxm failed", loadExceptionWrapper.getLoadException());
-    }
+    loadFxml(fileName, controllerFactory, null);
   }
 
   protected void loadFxml(String fileName, Callback<Class<?>, Object> controllerFactory, VaultEntityController<?> controller) throws IOException {
@@ -122,7 +96,9 @@ public abstract class AbstractPlainJavaFxTest extends ApplicationTest {
     loader.setLocation(getThemeFileUrl(fileName));
     loader.setResources(new MessageSourceResourceBundle(messageSource, Locale.US));
     loader.setControllerFactory(controllerFactory);
-    loader.setController(controller);
+    if (controller != null) {
+      loader.setController(controller);
+    }
     CountDownLatch latch = new CountDownLatch(1);
     Platform.runLater(() -> {
       try {
