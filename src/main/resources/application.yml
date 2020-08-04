@@ -33,7 +33,7 @@ faf-client:
       clientId: 141ee8a7030f16d
 
   unit-database:
-    spookiesUrl: https://spooky.github.io/unitdb/#/
+    spookiesUrl: https://faforever.github.io/spooky-db/#/
     rackOversUrl: https://unitdb.faforever.com?settings64=eyJwcmV2aWV3Q29ybmVyIjoiTm9uZSJ9
 
   vanillaGameHashes:
