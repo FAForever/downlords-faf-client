@@ -331,7 +331,6 @@ public class MockFafServerAccessor implements FafServerAccessor {
     gameInfoMessage.setState(GameStatus.OPEN);
     gameInfoMessage.setSimMods(Collections.emptyMap());
     gameInfoMessage.setTeams(Collections.emptyMap());
-    gameInfoMessage.setFeaturedModVersions(Collections.emptyMap());
     gameInfoMessage.setPasswordProtected(access == GameAccess.PASSWORD);
 
     return gameInfoMessage;
