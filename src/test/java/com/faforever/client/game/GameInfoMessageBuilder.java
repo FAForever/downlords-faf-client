@@ -75,11 +75,6 @@ public class GameInfoMessageBuilder {
     return this;
   }
 
-  public GameInfoMessageBuilder gameType(VictoryCondition gameType) {
-    gameInfoMessage.setGameType(gameType);
-    return this;
-  }
-
   public GameInfoMessageBuilder state(GameStatus state) {
     gameInfoMessage.setState(state);
     return this;

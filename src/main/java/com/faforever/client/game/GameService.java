@@ -800,7 +800,6 @@ public class GameService implements InitializingBean {
     game.setFeaturedMod(gameInfoMessage.getFeaturedMod());
     game.setNumPlayers(gameInfoMessage.getNumPlayers());
     game.setMaxPlayers(gameInfoMessage.getMaxPlayers());
-    game.setVictoryCondition(gameInfoMessage.getGameType());
     Optional.ofNullable(gameInfoMessage.getLaunchedAt()).ifPresent(aDouble -> game.setStartTime(
         TimeUtil.fromPythonTime(aDouble.longValue()).toInstant()
     ));
@@ -820,13 +819,6 @@ public class GameService implements InitializingBean {
       game.getTeams().clear();
       if (gameInfoMessage.getTeams() != null) {
         game.getTeams().putAll(gameInfoMessage.getTeams());
-      }
-    }
-
-    synchronized (game.getFeaturedModVersions()) {
-      game.getFeaturedModVersions().clear();
-      if (gameInfoMessage.getFeaturedModVersions() != null) {
-        game.getFeaturedModVersions().putAll(gameInfoMessage.getFeaturedModVersions());
       }
     }
 
