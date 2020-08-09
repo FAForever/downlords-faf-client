@@ -11,6 +11,7 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Strings;
 import com.jfoenix.controls.JFXButton;
 import javafx.beans.Observable;
@@ -47,16 +48,10 @@ public class PartyMemberItemController implements Controller<Node> {
 
   @FXML
   public Node playerItemRoot;
-
-//  @FXML
-//  public ImageView userImageView;
-//  @FXML
-//  public ImageView avatarImageView;
-@FXML
-public ImageView leagueImageView;
+  @FXML
+  public ImageView avatarImageView;
   @FXML
   public ImageView countryImageView;
-
   @FXML
   public Label clanLabel;
   @FXML
@@ -67,16 +62,10 @@ public ImageView leagueImageView;
   public Label gameCountLabel;
   @FXML
   public JFXButton kickPlayerButton;
-  @FXML
-  public ToggleButton aeonButton;
-  @FXML
-  public ToggleButton cybranButton;
-  @FXML
-  public ToggleButton uefButton;
-  @FXML
-  public ToggleButton seraphimButton;
-  @FXML
-  public Label refreshingLabel;
+  public Label uefLabel;
+  public Label cybranLabel;
+  public Label aeonLabel;
+  public Label seraphimLabel;
 
   private Player player;
   //TODO: this is a bit hacky
@@ -103,24 +92,6 @@ public ImageView leagueImageView;
     teamMatchmakingService.kickPlayerFromParty(this.player);
   }
 
-  public void onFactionButtonClicked(ActionEvent actionEvent) {
-    if (!playerService.getCurrentPlayer().get().equals(this.player)) {
-      return;
-    }
-
-    boolean[] factions = {
-        aeonButton.isSelected(),
-        cybranButton.isSelected(),
-        uefButton.isSelected(),
-        seraphimButton.isSelected()
-    };
-
-    teamMatchmakingService.setPartyFactions(factions);
-
-    refreshingLabel.setVisible(true);
-  }
-
-
   public PartyMemberItemController(CountryFlagService countryFlagService, AvatarService avatarService, PlayerService playerService, TeamMatchmakingService teamMatchmakingService, UiService uiService, ChatService chatService, I18n i18n) {
     this.countryFlagService = countryFlagService;
     this.avatarService = avatarService;
@@ -145,7 +116,7 @@ public ImageView leagueImageView;
 
 //    leagueImageView.visibleProperty().bind(player.avatarUrlProperty().isNotNull().and(player.avatarUrlProperty().isNotEmpty()));
 //    leagueImageView.imageProperty().bind(createObjectBinding(() -> Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));
-    leagueImageView.setImage(avatarService.loadAvatar("https://content.faforever.com/faf/avatars/ICE_Test.png"));
+    avatarImageView.setImage(avatarService.loadAvatar("https://content.faforever.com/faf/avatars/ICE_Test.png"));
 
     clanLabel.visibleProperty().bind(player.clanProperty().isNotEmpty().and(player.clanProperty().isNotNull()));
     clanLabel.textProperty().bind(createStringBinding(() -> Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan()), player.clanProperty()));
@@ -153,29 +124,20 @@ public ImageView leagueImageView;
     usernameLabel.textProperty().bind(player.usernameProperty());
 //    usernameLabel.setText("GGGGGGGGGGGGGGGG"); // TODO: REMOVE
 
-//    ratingLabel.textProperty().bind(createStringBinding(() -> i18n.get("teammatchmaking.rating", RatingUtil.getRoundedGlobalRating(player)), player.globalRatingMeanProperty(), player.globalRatingDeviationProperty()));
+    ratingLabel.textProperty().bind(createStringBinding(() -> i18n.get("teammatchmaking.rating", RatingUtil.getRoundedGlobalRating(player)), player.globalRatingMeanProperty(), player.globalRatingDeviationProperty()));
     gameCountLabel.textProperty().bind(createStringBinding(() -> i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()), player.numberOfGamesProperty()));
 
 
     BooleanBinding isDifferentPlayerBinding = playerService.currentPlayerProperty().isNotEqualTo(player);
     kickPlayerButton.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(playerService.currentPlayerProperty()).and(isDifferentPlayerBinding));
+    kickPlayerButton.managedProperty().bind(kickPlayerButton.visibleProperty());
 //    kickPlayerButton.visibleProperty().set(true); // TODO: remove
 
-    aeonButton.disableProperty().bind(isDifferentPlayerBinding);
-    cybranButton.disableProperty().bind(isDifferentPlayerBinding);
-    uefButton.disableProperty().bind(isDifferentPlayerBinding);
-    seraphimButton.disableProperty().bind(isDifferentPlayerBinding);
+      aeonLabel.setDisable(!isFactionSelectedInParty(0));
+      cybranLabel.setDisable(!isFactionSelectedInParty(1));
+      uefLabel.setDisable(!isFactionSelectedInParty(2));
+      seraphimLabel.setDisable(!isFactionSelectedInParty(3));
 
-    // no binding as this would prevent the buttons from being pressed
-    teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> {
-      aeonButton.setSelected(isFactionSelectedInParty(0));
-      cybranButton.setSelected(isFactionSelectedInParty(1));
-      uefButton.setSelected(isFactionSelectedInParty(2));
-      seraphimButton.setSelected(isFactionSelectedInParty(3));
-      refreshingLabel.setVisible(false);
-    });
-
-    teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> {
       boolean ready = teamMatchmakingService.getParty().getMembers().stream()
           .anyMatch(m -> m.getPlayer().getId() == player.getId() && m.isReady());
       ObservableList<String> classes = playerItemRoot.getStyleClass();
@@ -185,7 +147,6 @@ public ImageView leagueImageView;
       if (!ready) {
         classes.remove("card-playerReady");
       }
-    });
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {

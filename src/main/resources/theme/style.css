@@ -1,3 +1,14 @@
+
+
+@font-face {
+    src: url("../font/SourceSansPro-Light.ttf"),
+}
+@font-face {
+    src: url("../font/SourceSansPro-Regular.ttf"),
+}
+@font-face {
+    src: url("../font/SourceSansPro-SemiBold.ttf"),
+}
 /*******************************************************************************
  *                                                                             *
  * Root					 				                       			   			   			   	  	   *
@@ -20,6 +31,7 @@
   -fx-control-inner-background-alt: derive(-fx-control-inner-background, 2.5%);
 
   /* text colors depending on background's brightness */
+  -fx-text-color: #FFFFFF;
   -fx-light-text-color: #DCDCDC;
   -fx-mid-text-color: #646464;
   -fx-dark-text-color: #141414;
@@ -1003,14 +1015,168 @@
   -fx-graphic-text-gap: 1em;
 }
 
+/***************** Match maker *****************/
+
+.tmm {
+  -fx-background-color: transparent;
+  -fx-background-radius: 10;
+  -fx-border-radius: 10;
+  -fx-border-width: 2;
+  -fx-border-color: #424242;
+}
+
+.player-card {
+  -fx-background-color: #1d1d1d99;
+  -fx-border-color: #636363;
+  -fx-background-radius: 9;
+  -fx-border-radius: 9;
+  -fx-border-width: 1;
+}
+
+.h1-tmm {
+  -fx-font-size: 24px;
+  -fx-padding: -9 0 -9 16;
+  -fx-text-fill: #4d4d4d;
+  -fx-font-family: 'Source Sans Pro Semibold';
+}
+
+.name {
+  -fx-font-size: 24px;
+  -fx-font-family: 'Source Sans Pro Semibold';
+  -fx-text-fill: #e19e3b;
+}
+
+.member-name {
+  -fx-font-size: 20px;
+  -fx-font-family: 'Source Sans Pro Semibold';
+  -fx-text-fill: -fx-text-color;
+}
+
+.clan {
+  -fx-font-size: 12px;
+  -fx-font-family: 'Source Sans Pro Light';
+  -fx-text-fill: -fx-text-color;
+}
+
+.player-card-text {
+  -fx-font-size: 14px;
+  -fx-font-family: 'Source Sans Pro';
+  -fx-text-fill: #8f8f8f;
+}
+
+.leader{
+  -fx-border-color: #dddddd;
+}
+
+.invite-button {
+  -fx-border-color: -fx-accent;
+  -fx-padding: 3 14;
+  -fx-pref-height: 29px;
+}
+
+.invite-button:hover {
+  -fx-background-color: #2b71d930;
+}
+
+.leave-button {
+  -fx-border-color: #cb0e0e;
+  -fx-padding: 3 14;
+  -fx-pref-height: 29px;
+}
+
+.leave-button:hover {
+  -fx-background-color: #cb0e0e30;
+}
+
+.invite-button .text,
+.leave-button .text {
+  -fx-font-family: 'Source Sans Pro';
+  -fx-text-fill: -fx-text-color;
+  -fx-font-size: 14px;
+}
+
+.toggle-button.queue {
+  -fx-border-color: -fx-accent;
+  -fx-min-height: 50px;
+}
+
+.toggle-button.queue:hover {
+  -fx-background-color: #2b71d930;
+}
+
+.toggle-button.queue:selected {
+  -fx-background-color: -fx-accent;
+}
+
+.play-button {
+  -fx-min-height: 80px;
+  -fx-border-color: #e19e3b;
+}
+
+.play-button:hover {
+  -fx-background-color: #e19e3b20;
+}
+
+.play-button .text,
+.toggle-button.queue .text {
+  -fx-font-family: 'Source Sans Pro Semibold';
+  -fx-text-fill: -fx-text-color;
+  -fx-font-size: 24px;
+}
+
+.card-playerReady {
+  -fx-background-color: #00400f !important;
+}
+
+.factionindicator .text {
+  -fx-font-size: 18;
+}
+
+.factionindicator:disabled .text {
+  -fx-opacity: 0.2;
+}
+
+
 /***************** Faction buttons *****************/
+.toggle-button.aeon,
+.toggle-button.cybran,
+.toggle-button.uef,
+.toggle-button.seraphim {
+  -fx-pref-width: 50;
+  -fx-pref-height: 50;
+  -fx-padding: 6;
+}
+
+.toggle-button.aeon:hover .text,
+.toggle-button.cybran:hover .text,
+.toggle-button.uef:hover .text,
+.toggle-button.seraphim:hover .text {
+  -fx-opacity: 1;
+  -fx-fill: -fx-text-color;
+}
+
+.toggle-button.aeon:selected {
+  -fx-border-color: -green-500;
+}
+
+.toggle-button.cybran:selected {
+  -fx-border-color: -red-500;
+}
+
+.toggle-button.uef:selected {
+  -fx-border-color: -blue-500;
+}
+
+.toggle-button.seraphim:selected {
+  -fx-border-color: -amber-500;
+}
 
 .toggle-button.aeon .text,
 .toggle-button.cybran .text,
 .toggle-button.uef .text,
 .toggle-button.seraphim .text {
-  -fx-font-size: 4em;
-  -fx-opacity: 0.1;
+  -fx-font-size: 2.4em;
+  -fx-opacity: 0.2;
   -fx-border-width: 1;
   -fx-border-color: -divider-color;
 }
@@ -1035,16 +1201,8 @@
 .toggle-button.cybran:selected .text,
 .toggle-button.uef:selected .text,
 .toggle-button.seraphim:selected .text {
-  -fx-opacity: 1 !important;
+  -fx-opacity: 1;
 }
-
-.toggle-button.aeon:disabled .text,
-.toggle-button.cybran:disabled .text,
-.toggle-button.uef:disabled .text,
-.toggle-button.seraphim:disabled .text {
-  -fx-opacity: 0;
-}
-
 
 /***************** Faction label *****************/
 
@@ -1070,60 +1228,6 @@
 .game-card .lock-icon {
   -fx-font-size: 2em;
   -fx-effect: dropshadow(gaussian, black, 5, 0.5, 0, 0);
-}
-
-/***************** Team matchmaking ****************/
-.party-player-list-view {
-  -fx-padding: 20 0 0 0;
-}
-
-.party-player-list-view .list-cell {
-  -fx-background-color: transparent;
-  -fx-padding: 20 10 0 10;
-}
-
-.party-player-invite-list-view .list-cell {
-  -fx-background-color: transparent;
-  -fx-padding: 10px 10px 10px 10px;
-  -fx-text-fill: -fx-light-text-color
-}
-
-/* TODO can the following be combined with party-player-list-view? */
-.matchmaking-queue-list-view {
-  -fx-padding: 0 0 0 0;
-}
-
-.matchmaking-queue-list-view .list-cell {
-  -fx-background-color: transparent;
-  -fx-padding: 20 10 0 10;
-}
-
-.card-queueJoined {
-  -fx-background-color: #00400f !important;
-  -fx-effect: dropshadow(gaussian, #001f06, 6, 0.3, 1, 1) !important;
-}
-
-.party-ready-button-ready {
-  -fx-background-color: #609E15; /* TODO: change color to card color*/
-}
-
-.party-ready-button-ready:hover,
-.party-ready-button-ready:default:hover {
-  -fx-background-color: #83be15; /* TODO: change color to card color*/
-}
-
-.party-ready-button-not-ready {
-  -fx-background-color: #9e1515;
-}
-
-.party-ready-button-not-ready:hover,
-.party-ready-button-not-ready:default:hover {
-  -fx-background-color: #cb1616;
-}
-
-.card-playerReady {
-  -fx-background-color: #00400f !important;
-  -fx-effect: dropshadow(gaussian, #001f06, 6, 0.3, 1, 1) !important;
 }
 
 /***************** Rating change*****************/

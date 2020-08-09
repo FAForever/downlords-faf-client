@@ -3,60 +3,24 @@
 <?import com.jfoenix.controls.JFXButton?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<HBox xmlns:fx="http://javafx.com/fxml/1" fx:id="queueItemRoot" alignment="CENTER_LEFT" spacing="10" styleClass="card"
-      xmlns="http://javafx.com/javafx/11.0.1"
-      fx:controller="com.faforever.client.teammatchmaking.MatchmakingQueueItemController">
-
-    <children>
-        <VBox alignment="CENTER_LEFT" spacing="10" minWidth="220" maxWidth="320">
-            <HBox spacing="20" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
-                <Label fx:id="queuenameLabel" style="-fx-font-size: 20px;-fx-font-weight: bold"
-                       maxWidth="120.0" minWidth="120.0"
-                       text="&lt;QueueName&gt;"/>
-
+<?import javafx.scene.control.ToggleButton?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="queueItemRoot" xmlns="http://javafx.com/javafx/11.0.1"
+      fx:controller="com.faforever.client.teammatchmaking.MatchmakingQueueItemController"
+      spacing="10.0" HBox.hgrow="ALWAYS" alignment="TOP_CENTER">
+        <ToggleButton fx:id="joinLeaveQueueButton" text="&lt;QueueName&gt;" styleClass="tmm, queue"
+                      maxWidth="1.7976931348623157E308" onAction="#onJoinLeaveQueueClicked"/>
+        <VBox alignment="TOP_CENTER">
+            <Label fx:id="playersInQueueLabel" styleClass="player-card-text" text="%teammatchmaking.playersInQueue"/>
+            <HBox alignment="TOP_CENTER">
+                <Label text="STARTING: " styleClass="player-card-text" />
+                <Label fx:id="queuePopTimeLabel" styleClass="player-card-text" text="-:--"/>
             </HBox>
-
-            <HBox spacing="20" alignment="TOP_LEFT" HBox.hgrow="ALWAYS">
-                <Label fx:id="teamSizeLabel" text="%teammatchmaking.teamSize"/>
-                <padding>
-                    <Insets bottom="10"/>
-                </padding>
-            </HBox>
-
-            <!-- RATING -->
-            <HBox spacing="20" alignment="TOP_LEFT" HBox.hgrow="ALWAYS">
-                <ImageView fx:id="leagueImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true"
-                           preserveRatio="true"/>
-                <Label fx:id="ratingLabel" text="In Placement (4/10 games)"/>
-            </HBox>
-
             <padding>
-                <Insets left="10"/>
+                <Insets bottom="10.0"/>
             </padding>
         </VBox>
-
-        <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
-            <VBox spacing="10" alignment="CENTER_RIGHT">
-                <Label fx:id="queuePopTimeLabel" style="-fx-font-size: 20px;" text="-:--" visible="false"/>
-                <Label fx:id="playersInQueueLabel" text="%teammatchmaking.playersInQueue"/>
-                <HBox spacing="10" alignment="TOP_RIGHT">
-                    <Label fx:id="refreshingLabel" styleClass="icon" text="" visible="false"/>
-                    <JFXButton fx:id="joinLeaveQueueButton" text="%teammatchmaking.joinQueue"
-                               onAction="#onJoinLeaveQueueClicked"
-                               defaultButton="true"/>
-                </HBox>
-            </VBox>
-            <padding>
-                <Insets right="10"/>
-            </padding>
-        </HBox>
-
-    </children>
-
-    <padding>
-        <Insets bottom="10.0" left="15.0" right="0.0" top="10.0"/>
-    </padding>
-</HBox>
+        <JFXButton text="MAPLIST" styleClass="tmm, player-card-text" maxWidth="1.7976931348623157E308" />
+        <Label fx:id="refreshingLabel" styleClass="icon" text="" visible="false"/>
+</VBox>

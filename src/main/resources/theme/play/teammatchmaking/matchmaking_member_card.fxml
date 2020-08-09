@@ -3,97 +3,45 @@
 <?import com.jfoenix.controls.JFXButton?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
-<?import java.lang.String?>
-<HBox xmlns:fx="http://javafx.com/fxml/1" fx:id="playerItemRoot" alignment="CENTER_LEFT" spacing="10" styleClass="card"
-      xmlns="http://javafx.com/javafx/11.0.1" onContextMenuRequested="#onContextMenuRequested"
-      fx:controller="com.faforever.client.teammatchmaking.PartyMemberItemController">
-
-    <children>
-        <!--        <ImageView fx:id="userImageView" fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true"-->
-        <!--                   AnchorPane.leftAnchor="0"/>-->
-        <ImageView fx:id="leagueImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true"
-                   preserveRatio="true"/>
-        <!--        <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true"-->
-        <!--                   preserveRatio="true"/>-->
-
-        <VBox alignment="CENTER_LEFT" spacing="10" minWidth="220" maxWidth="320">
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true"
-                           preserveRatio="true"/>
-                <HBox spacing="5">
-                    <Label fx:id="clanLabel" style="-fx-font-size: 20px" maxHeight="1.7976931348623157E308"
-                           maxWidth="1.7976931348623157E308"
-                           styleClass="chat-user-control-clan" text="[CLAN]"/>
-                    <Label fx:id="usernameLabel" style="-fx-font-size: 20px;-fx-font-weight: bold"
-                           maxWidth="1.7976931348623157E308" minWidth="0.0"
-                           text="&lt;Username&gt;"/>
-                </HBox>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="playerItemRoot" prefHeight="75.0" prefWidth="385.0" spacing="4.0"
+         xmlns="http://javafx.com/javafx/11.0.1" onContextMenuRequested="#onContextMenuRequested" styleClass="player-card"
+         fx:controller="com.faforever.client.teammatchmaking.PartyMemberItemController">
+        <HBox>
+            <HBox alignment="CENTER_LEFT" spacing="4.0" HBox.hgrow="ALWAYS" >
+                <children>
+                    <Label fx:id="clanLabel" styleClass="clan" text="[CLAN]:" />
+                    <Label fx:id="usernameLabel" styleClass="member-name" text="&lt;Username&gt;" />
+                    <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" preserveRatio="true">
+                        <HBox.margin>
+                            <Insets left="5.0"/>
+                        </HBox.margin>
+                    </ImageView>
+                </children>
+                <padding>
+                    <Insets top="2.0" />
+                </padding>
             </HBox>
-
-            <HBox spacing="20" alignment="CENTER_LEFT">
-
-                <Label fx:id="ratingLabel" text="%teammatchmaking.rating"/>
-                <Label fx:id="gameCountLabel" text="%teammatchmaking.gameCount"/>
-            </HBox>
-
-            <padding>
-                <Insets left="10"/>
-            </padding>
-        </VBox>
-
-        <!-- FACTION BUTTONS -->
-        <HBox alignment="CENTER" spacing="0.0">
+            <JFXButton fx:id="kickPlayerButton" onAction="#onKickPlayerButtonClicked" text=""
+                       styleClass="icon-button" />
+        </HBox>
+        <HBox spacing="5.0" alignment="CENTER_LEFT">
             <children>
-                <ToggleButton fx:id="aeonButton" mnemonicParsing="false" onAction="#onFactionButtonClicked"
-                              selected="true" text="">
-                    <styleClass>
-                        <String fx:value="icon-button"/>
-                        <String fx:value="aeon"/>
-                    </styleClass>
-                </ToggleButton>
-                <ToggleButton fx:id="cybranButton" mnemonicParsing="false" onAction="#onFactionButtonClicked"
-                              selected="true" text="">
-                    <styleClass>
-                        <String fx:value="icon-button"/>
-                        <String fx:value="cybran"/>
-                    </styleClass>
-                </ToggleButton>
-                <ToggleButton fx:id="uefButton" mnemonicParsing="false" onAction="#onFactionButtonClicked"
-                              selected="true" text="">
-                    <styleClass>
-                        <String fx:value="icon-button"/>
-                        <String fx:value="uef"/>
-                    </styleClass>
-                </ToggleButton>
-                <ToggleButton fx:id="seraphimButton" mnemonicParsing="false" onAction="#onFactionButtonClicked"
-                              selected="true" text="">
-                    <styleClass>
-                        <String fx:value="icon-button"/>
-                        <String fx:value="seraphim"/>
-                    </styleClass>
-                </ToggleButton>
-
-                <Label fx:id="refreshingLabel" styleClass="icon" text="" visible="false"/>
+                <Label fx:id="ratingLabel" text="%teammatchmaking.rating" styleClass="player-card-text" />
+                <Label fx:id="gameCountLabel" text="%teammatchmaking.gameCount" styleClass="player-card-text" />
+                <Pane HBox.hgrow="ALWAYS" />
+                <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="36.0" preserveRatio="true" />
+                <Pane prefWidth="15.0"/>
+                <Label fx:id="uefLabel" styleClass="icon, factionindicator, uef" text="" />
+                <Label fx:id="cybranLabel" styleClass="icon, factionindicator, cybran" text=""/>
+                <Label fx:id="aeonLabel" styleClass="icon, factionindicator, aeon" text=""/>
+                <Label fx:id="seraphimLabel" styleClass="icon, factionindicator, seraphim" text="" HBox.hgrow="ALWAYS"/>
             </children>
-            <padding>
-                <Insets left="0"/>
-            </padding>
         </HBox>
-
-        <HBox alignment="CENTER_RIGHT" HBox.hgrow="always">
-            <JFXButton fx:id="kickPlayerButton" onAction="#onKickPlayerButtonClicked" text="">
-                <styleClass>
-                    <String fx:value="icon-button"/>
-                </styleClass>
-            </JFXButton>
-        </HBox>
-    </children>
-
     <padding>
-        <Insets bottom="0.0" left="15.0" right="0.0" top="0.0"/>
+        <Insets bottom="8.0" left="12.0" right="14.0" top="12.0" />
     </padding>
-</HBox>
+</VBox>

@@ -16,6 +16,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -41,17 +42,11 @@ public class MatchmakingQueueItemController implements Controller<Node> {
   @FXML
   public Node queueItemRoot;
   @FXML
-  public Label queuenameLabel;
-  @FXML
   public Label playersInQueueLabel;
-  @FXML
-  public Label teamSizeLabel;
-  @FXML
-  public ImageView leagueImageView;
   @FXML
   public Label queuePopTimeLabel;
   @FXML
-  public JFXButton joinLeaveQueueButton;
+  public ToggleButton joinLeaveQueueButton;
   @FXML
   public Label refreshingLabel;
 
@@ -83,27 +78,14 @@ public class MatchmakingQueueItemController implements Controller<Node> {
     this.queue = queue;
 
     // TODO: localize
-    queuenameLabel.textProperty().bind(queue.queueNameProperty());
+    joinLeaveQueueButton.textProperty().bind(queue.queueNameProperty());
 
-    teamSizeLabel.textProperty().bind(createStringBinding(
-        () -> i18n.get("teammatchmaking.teamSize", queue.getTeamSize()),
-        queue.teamSizeProperty()));
     playersInQueueLabel.textProperty().bind(createStringBinding(
         () -> i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue()),
         queue.playersInQueueProperty()));
 
-//    leagueImageView.imageProperty().bind(createObjectBinding(() -> avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));
-    leagueImageView.setImage(avatarService.loadAvatar("https://content.faforever.com/faf/avatars/ICE_Test.png"));
-
-    joinLeaveQueueButton.textProperty().bind(createStringBinding(
-        () -> queue.isJoined() ? i18n.get("teammatchmaking.leaveQueue") : i18n.get("teammatchmaking.joinQueue"),
-        queue.joinedProperty()
-    ));
-    joinLeaveQueueButton.defaultButtonProperty().bind(queue.joinedProperty().not());
-
     queue.joinedProperty().addListener(observable -> refreshingLabel.setVisible(false));
 
-    queuePopTimeLabel.visibleProperty().bind(queue.queuePopTimeProperty().isNotNull());
     queuePopTimeUpdater = new Timeline(1, new KeyFrame(javafx.util.Duration.seconds(0), (ActionEvent event) -> {
       if (queue.getQueuePopTime() != null) {
         Instant now = Instant.now();
@@ -119,16 +101,6 @@ public class MatchmakingQueueItemController implements Controller<Node> {
     }), new KeyFrame(javafx.util.Duration.seconds(1)));
     queuePopTimeUpdater.setCycleCount(Timeline.INDEFINITE);
     queuePopTimeUpdater.play();
-
-    queue.joinedProperty().addListener((Observable o) -> {
-      ObservableList<String> classes = queueItemRoot.getStyleClass();
-      if (queue.isJoined() && !classes.contains("card-queueJoined")) {
-        classes.add("card-queueJoined");
-      }
-      if (!queue.isJoined()) {
-        classes.remove("card-queueJoined");
-      }
-    });
   }
 
   public void onJoinLeaveQueueClicked(ActionEvent actionEvent) {

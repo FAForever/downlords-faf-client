@@ -1,94 +1,95 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import com.jfoenix.controls.JFXButton?>
-<?import com.jfoenix.controls.JFXListView?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.control.ToggleButton?>
 <StackPane xmlns:fx="http://javafx.com/fxml/1" minHeight="-Infinity" minWidth="-Infinity"
-           xmlns="http://javafx.com/javafx/11.0.1"
-           fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingController"
-           fx:id="teamMatchmakingRoot">
-    <VBox>
-        <HBox spacing="10.0" VBox.vgrow="ALWAYS">
-            <children>
-
-                <!-- LEFT COLUMN -->
-                <VBox maxHeight="1.7976931348623157E308" minWidth="720" minHeight="-Infinity"
-                      HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS" spacing="10">
-                    <VBox styleClass="card" VBox.vgrow="ALWAYS">
+            xmlns="http://javafx.com/javafx/11.0.1"
+            fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingController"
+            fx:id="teamMatchmakingRoot">
+    <GridPane>
+        <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="500" />
+            <ColumnConstraints hgrow="ALWAYS" minWidth="200" />
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints minHeight="500" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="200" vgrow="SOMETIMES" />
+        </rowConstraints>
+        <children>
+            <VBox prefHeight="600.0" prefWidth="805.0" spacing="25.0">
+                <children>
+                    <Label styleClass="h1-tmm" text="PLAYING MATCHMAKING AS:" />
+                    <HBox spacing="10.0" styleClass="player-card">
                         <children>
-                            <Label styleClass="h2" text="Party"/>
-                            <HBox spacing="10.0" alignment="CENTER">
-                                <HBox spacing="10.0" HBox.hgrow="ALWAYS">
-                                    <JFXButton fx:id="invitePlayerButton" defaultButton="true"
-                                               text="%teammatchmaking.invitePlayer"
-                                               onAction="#onInvitePlayerButtonClicked"/>
-                                    <JFXButton fx:id="leavePartyButton" cancelButton="true" disable="true"
-                                               layoutX="10.0" layoutY="10.0"
-                                               text="%teammatchmaking.leaveParty"
-                                               onAction="#onLeavePartyButtonClicked"/>
-                                </HBox>
-
-                                <Label fx:id="refreshingLabel" styleClass="icon" text="" visible="false"/>
-
-                                <JFXButton fx:id="readyButton" text="%teammatchmaking.notReady"
-                                           onAction="#onReadyButtonClicked" styleClass="party-ready-button-not-ready"/>
-                            </HBox>
-                            <JFXListView fx:id="playerListView" focusTraversable="false"
-                                         styleClass="party-player-list-view"
-                                         VBox.vgrow="ALWAYS"/>
+                            <VBox HBox.hgrow="ALWAYS">
+                                <children>
+                                    <HBox alignment="CENTER_LEFT" spacing="4.0">
+                                        <children>
+                                            <Label fx:id="clanLabel" styleClass="clan" text="[CLAN]:" >
+                                                <padding>
+                                                    <Insets bottom="-4.0"/>
+                                                </padding>
+                                            </Label>
+                                            <Label fx:id="usernameLabel" styleClass="name" text="&lt;Username&gt;" />
+                                            <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" preserveRatio="true">
+                                                <HBox.margin>
+                                                    <Insets left="5.0"/>
+                                                </HBox.margin>
+                                            </ImageView>
+                                        </children>
+                                        <padding>
+                                            <Insets top="1.0" bottom="-1.0"/>
+                                        </padding>
+                                    </HBox>
+                                    <HBox spacing="15.0">
+                                        <Label fx:id="ladderRatingLabel" styleClass="player-card-text" text="%teammatchmaking.1v1Rating" />
+                                        <Label fx:id="teamRatingLabel" styleClass="player-card-text" text="%teammatchmaking.teamRating" />
+                                        <Label fx:id="gameCountLabel" styleClass="player-card-text" text="%teammatchmaking.gameCount" />
+                                        <Pane HBox.hgrow="ALWAYS" />
+                                        <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="36.0" preserveRatio="true" />
+                                        <Pane minWidth="15.0" />
+                                    </HBox>
+                                </children>
+                            </VBox>
+                            <ToggleButton fx:id="uefButton" mnemonicParsing="false" styleClass="uef, icon-button, tmm"
+                                          onAction="#onFactionButtonClicked" selected="true" text="" />
+                            <ToggleButton fx:id="cybranButton" mnemonicParsing="false" styleClass="cybran, icon-button, tmm"
+                                          onAction="#onFactionButtonClicked" selected="true" text="" />
+                            <ToggleButton fx:id="aeonButton" mnemonicParsing="false" styleClass="aeon, icon-button, tmm"
+                                          onAction="#onFactionButtonClicked" selected="true" text="" />
+                            <ToggleButton fx:id="seraphimButton" mnemonicParsing="false" styleClass="seraphim, icon-button, tmm"
+                                          onAction="#onFactionButtonClicked" selected="true" text="" />
                         </children>
                         <padding>
-                            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                            <Insets bottom="10.0" left="15.0" right="15.0" top="10.0" />
                         </padding>
-                    </VBox>
-
-                    <!-- BOTTOM LEFT CARD -->
-                    <VBox styleClass="card" minHeight="250" maxHeight="250" VBox.vgrow="NEVER">
+                    </HBox>
+                    <HBox alignment="CENTER_LEFT" spacing="10.0">
                         <children>
-                            <Label styleClass="h2" text="%teammatchmaking.statistics"/>
-
+                            <Label styleClass="h1-tmm" text="YOUR PARTY:" />
+                            <JFXButton fx:id="invitePlayerButton" mnemonicParsing="false" styleClass="tmm, invite-button"
+                                       text="%teammatchmaking.invitePlayer" onAction="#onInvitePlayerButtonClicked" />
+                            <JFXButton fx:id="leavePartyButton" mnemonicParsing="false" styleClass="tmm, leave-button"
+                                       text="%teammatchmaking.leaveParty" onAction="#onLeavePartyButtonClicked" />
+                            <Label fx:id="refreshingLabel" styleClass="icon" text="" visible="false"/>
                         </children>
-                        <padding>
-                            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-                        </padding>
-                    </VBox>
-                </VBox>
-
-                <!-- RIGHT COLUMN -->
-                <VBox maxHeight="1.7976931348623157E308" minWidth="350.0" prefWidth="350.0" spacing="10"
-                      HBox.hgrow="ALWAYS">
-
-                    <!-- QUEUE CARD -->
-                    <VBox minHeight="300.0" styleClass="card" VBox.vgrow="ALWAYS"> <!-- maxHeight="300.0"-->
-                        <children>
-                            <Label styleClass="h2" text="%teammatchmaking.availableQueues"/>
-                            <JFXListView fx:id="queueListView" focusTraversable="false"
-                                         styleClass="matchmaking-queue-list-view"
-                                         VBox.vgrow="ALWAYS"/>
-                        </children>
-                        <padding>
-                            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-                        </padding>
-                    </VBox>
-
-                    <!-- BOTTOM RIGHT CARD -->
-                    <!--<VBox maxHeight="1.7976931348623157E308" styleClass="card" VBox.vgrow="ALWAYS">
-                        <children>
-                            <Label styleClass="h2" text="%teammatchmaking.chat"/>
-                        </children>
-                        <padding>
-                            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-                        </padding>
-                    </VBox>-->
-                </VBox>
-            </children>
-            <padding>
-                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-            </padding>
-        </HBox>
-    </VBox>
+                    </HBox>
+                    <FlowPane fx:id="partyMemberPane" hgap="35" vgap="23" />
+                    <Separator />
+                    <JFXButton fx:id="readyButton" mnemonicParsing="false" styleClass="tmm, play-button"
+                               text="%teammatchmaking.notReady" onAction="#onReadyButtonClicked"
+                               GridPane.hgrow="ALWAYS" maxWidth="1.7976931348623157E308" prefHeight="80.0" />
+                    <HBox fx:id="queueBox" spacing="12.0" />
+                </children>
+            </VBox>
+        </children>
+        <padding>
+            <Insets bottom="5.0" left="20.0" right="5.0" top="23.0" />
+        </padding>
+    </GridPane>
 </StackPane>
