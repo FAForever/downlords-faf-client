@@ -81,7 +81,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public Label gameCountLabel;
   public Label ladderRatingLabel;
   public HBox queueBox;
-  public PartyMemberItemController controller;
   public FlowPane partyMemberPane;
   private Player player;
 
@@ -93,6 +92,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         countryFlagService.loadCountryFlag("").orElse(null) // loads earth flag
         : countryFlagService.loadCountryFlag(player.getCountry()).orElse(null), player.countryProperty()));
     avatarImageView.setImage(avatarService.loadAvatar("https://content.faforever.com/faf/avatars/ICE_Test.png"));
+    clanLabel.managedProperty().bind(clanLabel.visibleProperty());
     clanLabel.visibleProperty().bind(player.clanProperty().isNotEmpty().and(player.clanProperty().isNotNull()));
     clanLabel.textProperty().bind(createStringBinding(() ->
         Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan()), player.clanProperty()));
@@ -105,6 +105,9 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       List<PartyMember> members = teamMatchmakingService.getParty().getMembers();
       partyMemberPane.getChildren().clear();
       members.iterator().forEachRemaining(member -> {
+        if (member.getPlayer().equals(player)) {
+          return;
+        }
         PartyMemberItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_member_card.fxml");
         controller.setMember(member);
         partyMemberPane.getChildren().add(controller.getRoot());
