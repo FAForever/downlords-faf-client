@@ -13,7 +13,7 @@
         <HBox>
             <HBox alignment="CENTER_LEFT" spacing="4.0" HBox.hgrow="ALWAYS" >
                 <children>
-                    <Label fx:id="clanLabel" styleClass="clan" text="[CLAN]:" />
+                    <Label fx:id="clanLabel" styleClass="clan" text="%teammatchmaking.clan" />
                     <Label fx:id="usernameLabel" styleClass="member-name" text="&lt;Username&gt;" />
                     <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" preserveRatio="true">
                         <HBox.margin>

@@ -13,10 +13,7 @@
                       maxWidth="1.7976931348623157E308" onAction="#onJoinLeaveQueueClicked"/>
         <VBox alignment="TOP_CENTER">
             <Label fx:id="playersInQueueLabel" styleClass="player-card-text" text="%teammatchmaking.playersInQueue"/>
-            <HBox alignment="TOP_CENTER">
-                <Label text="STARTING: " styleClass="player-card-text" />
-                <Label fx:id="queuePopTimeLabel" styleClass="player-card-text" text="-:--"/>
-            </HBox>
+            <Label fx:id="queuePopTimeLabel" styleClass="player-card-text" text="%teammatchmaking.queuePopTimer"/>
             <padding>
                 <Insets bottom="10.0"/>
             </padding>

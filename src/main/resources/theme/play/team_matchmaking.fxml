@@ -23,7 +23,7 @@
         <children>
             <VBox prefHeight="600.0" prefWidth="805.0" spacing="25.0">
                 <children>
-                    <Label styleClass="h1-tmm" text="PLAYING MATCHMAKING AS:" />
+                    <Label styleClass="h1-tmm" text="%teammatchmaking.playerTitle" />
                     <HBox spacing="10.0" styleClass="player-card">
                         <children>
                             <VBox HBox.hgrow="ALWAYS">
@@ -71,7 +71,7 @@
                     </HBox>
                     <HBox alignment="CENTER_LEFT" spacing="10.0">
                         <children>
-                            <Label styleClass="h1-tmm" text="YOUR PARTY:" />
+                            <Label styleClass="h1-tmm" text="%teammatchmaking.partyTitle" />
                             <JFXButton fx:id="invitePlayerButton" mnemonicParsing="false" styleClass="tmm, invite-button"
                                        text="%teammatchmaking.invitePlayer" onAction="#onInvitePlayerButtonClicked" />
                             <JFXButton fx:id="leavePartyButton" mnemonicParsing="false" styleClass="tmm, leave-button"
