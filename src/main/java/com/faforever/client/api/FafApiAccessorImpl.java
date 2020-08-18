@@ -219,43 +219,43 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   @Cacheable(CacheNames.MAPS)
-  public List<Map> getMostPlayedMaps(int count, int page) {
-    return this.<MapStatistics>getPage("/data/mapStatistics", count, page, ImmutableMap.of(
+  public Tuple<List<Map>, java.util.Map<String, ?>> getMostPlayedMapsWithMeta(int count, int page) {
+    JSONAPIDocument<List<MapStatistics>> jsonApiDoc = getPageWithMeta("/data/mapStatistics", count, page, ImmutableMap.of(
         "include", "map,map.statistics,map.latestVersion,map.author,map.versions.reviews,map.versions.reviews.player",
-        "sort", "-plays")).stream()
-        .map(MapStatistics::getMap)
-        .collect(Collectors.toList());
+        "sort", "-plays"));
+    return new Tuple<>(jsonApiDoc.get().stream().map(MapStatistics::getMap).collect(Collectors.toList()), jsonApiDoc.getMeta());
   }
 
   @Override
-  public List<Map> getHighestRatedMaps(int count, int page) {
-    return this.<MapStatistics>getPage("/data/mapStatistics", count, page, ImmutableMap.of(
+  public Tuple<List<Map>, java.util.Map<String, ?>> getHighestRatedMapsWithMeta(int count, int page) {
+    JSONAPIDocument<List<MapStatistics>> jsonApiDoc = getPageWithMeta("/data/mapStatistics", count, page, ImmutableMap.of(
         "include", "map.statistics,map,map.latestVersion,map.author,map.versions.reviews,map.versions.reviews.player,map.latestVersion.reviewsSummary",
-        "sort", "-map.latestVersion.reviewsSummary.lowerBound")).stream()
-        .map(MapStatistics::getMap)
-        .collect(Collectors.toList());
+        "sort", "-map.latestVersion.reviewsSummary.lowerBound"));
+    return new Tuple<>(jsonApiDoc.get().stream().map(MapStatistics::getMap).collect(Collectors.toList()), jsonApiDoc.getMeta());
   }
 
   @Override
-  public List<Map> getNewestMaps(int count, int page) {
-    return getPage(MAP_ENDPOINT, count, page, ImmutableMap.of(
+  public Tuple<List<Map>, java.util.Map<String, ?>> getNewestMapsWithMeta(int count, int page) {
+    JSONAPIDocument<List<Map>> jsonApiDoc = getPageWithMeta(MAP_ENDPOINT, count, page, ImmutableMap.of(
         "include", "statistics,latestVersion,author,versions.reviews,versions.reviews.player",
         "sort", "-updateTime",
         "filter", "latestVersion.hidden==\"false\""
     ));
+    return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
   }
 
   @Override
-  public List<Map> getMapsById(List<Integer> mapIdList, int count, int page) {
+  public Tuple<List<Map>, java.util.Map<String, ?>> getMapsByIdWithMeta(List<Integer> mapIdList, int count, int page) {
     String filterCriteria = mapIdList.stream()
         .map(Object::toString)
         .collect(Collectors.joining(",", "latestVersion.map.id=in=(", ")"));
 
-    return getPage(MAP_ENDPOINT, count, page, ImmutableMap.of(
+    JSONAPIDocument<List<Map>> jsonApiDoc = getPageWithMeta(MAP_ENDPOINT, count, page, ImmutableMap.of(
         "include", "statistics,latestVersion,author,versions.reviews,versions.reviews.player",
         "sort", "-updateTime",
         "filter", filterCriteria
     ));
+    return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
   }
 
   @Override
@@ -408,14 +408,15 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  public List<Mod> findModsByQuery(SearchConfig searchConfig, int page, int count) {
+  public Tuple<List<Mod>, java.util.Map<String, ?>> findModsByQueryWithMeta(SearchConfig searchConfig, int count, int page) {
     MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
     if (searchConfig.hasQuery()) {
       parameterMap.add("filter", searchConfig.getSearchQuery() + ";latestVersion.hidden==\"false\"");
     }
     parameterMap.add("include", "latestVersion,latestVersion.reviews,latestVersion.reviews.player,latestVersion.reviewsSummary");
     parameterMap.add("sort", searchConfig.getSortConfig().toQuery());
-    return getPage(MOD_ENDPOINT, count, page, parameterMap);
+    JSONAPIDocument<List<Mod>> jsonApiDoc = getPageWithMeta(MOD_ENDPOINT, count, page, parameterMap);
+    return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
   }
 
   @Override
@@ -429,9 +430,10 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  public List<Ladder1v1Map> getLadder1v1Maps(int count, int page) {
-    return getPage("/data/ladder1v1Map", count, page, ImmutableMap.of(
+  public Tuple<List<Ladder1v1Map>, java.util.Map<String, ?>> getLadder1v1MapsWithMeta(int count, int page) {
+    JSONAPIDocument<List<Ladder1v1Map>> jsonApiDoc = getPageWithMeta("/data/ladder1v1Map", count, page, ImmutableMap.of(
         "include", "mapVersion,mapVersion.map,mapVersion.map.latestVersion,mapVersion.map.latestVersion.reviews,mapVersion.map.author,mapVersion.map.statistics"));
+    return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
   }
 
   @Override
@@ -441,11 +443,12 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  public List<MapVersion> getOwnedMaps(int playerId, int loadMoreCount, int page) {
-    return getPage("/data/mapVersion", loadMoreCount, page, ImmutableMap.of(
+  public Tuple<List<MapVersion>, java.util.Map<String, ?>> getOwnedMapsWithMeta(int playerId, int loadMoreCount, int page) {
+    JSONAPIDocument<List<MapVersion>> jsonApiDoc = getPageWithMeta("/data/mapVersion", loadMoreCount, page, ImmutableMap.of(
         "include", "map,map.latestVersion,map.latestVersion.reviews,map.author,map.statistics",
         "filter", rsql(qBuilder().string("map.author.id").eq(String.valueOf(playerId)))
     ));
+    return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
   }
 
   @Override
@@ -467,14 +470,15 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  public List<Map> findMapsByQuery(SearchConfig searchConfig, int page, int count) {
+  public Tuple<List<Map>, java.util.Map<String, ?>> findMapsByQueryWithMeta(SearchConfig searchConfig, int count, int page) {
     MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
     if (searchConfig.hasQuery()) {
       parameterMap.add("filter", searchConfig.getSearchQuery() + ";latestVersion.hidden==\"false\"");
     }
     parameterMap.add("include", "latestVersion,latestVersion.reviews,latestVersion.reviews.player,author,statistics,latestVersion.reviewsSummary");
     parameterMap.add("sort", searchConfig.getSortConfig().toQuery());
-    return getPage(MAP_ENDPOINT, count, page, parameterMap);
+    JSONAPIDocument<List<Map>> jsonApiDoc = getPageWithMeta(MAP_ENDPOINT, count, page, parameterMap);
+    return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
   }
 
   @Override

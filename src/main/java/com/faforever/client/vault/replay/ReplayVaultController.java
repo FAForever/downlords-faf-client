@@ -256,7 +256,7 @@ public class ReplayVaultController extends AbstractViewController<Node> {
     replayTableView.setVisible(true);
     loadingPane.setVisible(false);
   }
-  
+
   public Node getRoot() {
     return replayVaultRoot;
   }

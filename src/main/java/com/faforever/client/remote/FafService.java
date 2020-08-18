@@ -7,8 +7,11 @@ import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
+import com.faforever.client.api.dto.Ladder1v1Map;
+import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
+import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.chat.avatar.AvatarBean;
@@ -160,31 +163,43 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<List<MapBean>> getMostPlayedMaps(int count, int page) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getMostPlayedMaps(count, page).stream()
+  public CompletableFuture<Tuple<List<MapBean>, Integer>> getMostPlayedMapsWithPageCount(int count, int page) {
+    Tuple<List<Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.getMostPlayedMapsWithMeta(count, page);
+    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
+        .parallelStream()
         .map(MapBean::fromMapDto)
-        .collect(toList()));
+        .collect(toList()),
+        ((HashMap<String,Integer>) tuple.getSecond().get("page")).get("totalPages")));
   }
 
   @Async
-  public CompletableFuture<List<MapBean>> getMapsById(List<Integer> mapIdList, int count, int page) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getMapsById(mapIdList, count, page).stream()
+  public CompletableFuture<Tuple<List<MapBean>, Integer>> getMapsByIdWithPageCount(List<Integer> mapIdList, int count, int page) {
+    Tuple<List<Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.getMapsByIdWithMeta(mapIdList, count, page);
+    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
+        .parallelStream()
         .map(MapBean::fromMapDto)
-        .collect(toList()));
+        .collect(toList()),
+        ((HashMap<String,Integer>) tuple.getSecond().get("page")).get("totalPages")));
   }
 
   @Async
-  public CompletableFuture<List<MapBean>> getHighestRatedMaps(int count, int page) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getHighestRatedMaps(count, page).stream()
+  public CompletableFuture<Tuple<List<MapBean>, Integer>> getHighestRatedMapsWithPageCount(int count, int page) {
+    Tuple<List<Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.getHighestRatedMapsWithMeta(count, page);
+    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
+        .parallelStream()
         .map(MapBean::fromMapDto)
-        .collect(toList()));
+        .collect(toList()),
+        ((HashMap<String,Integer>) tuple.getSecond().get("page")).get("totalPages")));
   }
 
   @Async
-  public CompletableFuture<List<MapBean>> getNewestMaps(int count, int page) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getNewestMaps(count, page).stream()
+  public CompletableFuture<Tuple<List<MapBean>, Integer>> getNewestMapsWithPageCount(int count, int page) {
+    Tuple<List<Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.getNewestMapsWithMeta(count, page);
+    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
+        .parallelStream()
         .map(MapBean::fromMapDto)
-        .collect(toList()));
+        .collect(toList()),
+        ((HashMap<String,Integer>) tuple.getSecond().get("page")).get("totalPages")));
   }
 
   @Async
@@ -311,11 +326,13 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<List<MapBean>> findMapsByQuery(SearchConfig query, int page, int count) {
-    return CompletableFuture.completedFuture(fafApiAccessor.findMapsByQuery(query, page, count)
+  public CompletableFuture<Tuple<List<MapBean>, Integer>> findMapsByQueryWithPageCount(SearchConfig query, int count, int page) {
+    Tuple<List<Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.findMapsByQueryWithMeta(query, count, page);
+    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
         .parallelStream()
         .map(MapBean::fromMapDto)
-        .collect(toList()));
+        .collect(toList()),
+        ((HashMap<String,Integer>) tuple.getSecond().get("page")).get("totalPages")));
   }
 
   public CompletableFuture<Optional<MapBean>> findMapByFolderName(String folderName) {
@@ -431,19 +448,23 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<List<ModVersion>> findModsByQuery(SearchConfig query, int page, int count) {
-    return CompletableFuture.completedFuture(fafApiAccessor.findModsByQuery(query, page, count)
+  public CompletableFuture<Tuple<List<ModVersion>, Integer>> findModsByQueryWithPageCount(SearchConfig query, int count, int page) {
+    Tuple<List<Mod>, java.util.Map<String, ?>> tuple = fafApiAccessor.findModsByQueryWithMeta(query, count, page);
+    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
         .parallelStream()
         .map(ModVersion::fromModDto)
-        .collect(toList()));
+        .collect(toList()),
+        ((HashMap<String,Integer>) tuple.getSecond().get("page")).get("totalPages")));
   }
 
   @Async
-  public CompletableFuture<List<MapBean>> getLadder1v1Maps(int count, int page) {
-    List<MapBean> maps = fafApiAccessor.getLadder1v1Maps(count, page).stream()
+  public CompletableFuture<Tuple<List<MapBean>, Integer>> getLadder1v1MapsWithPageCount(int count, int page) {
+    Tuple<List<Ladder1v1Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.getLadder1v1MapsWithMeta(count, page);
+    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
+        .parallelStream()
         .map(ladder1v1Map -> MapBean.fromMapVersionDto(ladder1v1Map.getMapVersion()))
-        .collect(toList());
-    return CompletableFuture.completedFuture(maps);
+        .collect(toList()),
+        ((HashMap<String,Integer>) tuple.getSecond().get("page")).get("totalPages")));
   }
 
   @Async
@@ -471,9 +492,13 @@ public class FafService {
 
 
   @Async
-  public CompletableFuture<List<MapBean>> getOwnedMaps(int playerId, int loadMoreCount, int page) {
-    List<MapVersion> maps = fafApiAccessor.getOwnedMaps(playerId, loadMoreCount, page);
-    return CompletableFuture.completedFuture(maps.stream().map(MapBean::fromMapVersionDto).collect(toList()));
+  public CompletableFuture<Tuple<List<MapBean>, Integer>> getOwnedMapsWithPageCount(int playerId, int loadMoreCount, int page) {
+    Tuple<List<MapVersion>, java.util.Map<String, ?>> tuple = fafApiAccessor.getOwnedMapsWithMeta(playerId, loadMoreCount, page);
+    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
+        .parallelStream()
+        .map(MapBean::fromMapVersionDto)
+        .collect(toList()),
+        ((HashMap<String,Integer>) tuple.getSecond().get("page")).get("totalPages")));
   }
 
   @Async

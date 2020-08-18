@@ -47,7 +47,7 @@ public class MapCardController implements Controller<Node> {
   private MapBean map;
   private Consumer<MapBean> onOpenDetailListener;
   private ListChangeListener<MapBean> installedMapsChangeListener;
-  private InvalidationListener reviewsChangedListener = observable -> populateReviews();
+  private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
   private JFXRippler jfxRippler;
 
   public void initialize() {

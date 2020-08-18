@@ -11,16 +11,18 @@ import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.StarsController;
-import com.google.common.base.Joiner;
 import com.jfoenix.controls.JFXRippler;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -30,7 +32,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -40,7 +41,7 @@ public class ReplayCardController implements Controller<Node> {
   private final TimeService timeService;
   private final MapService mapService;
   private final RatingService ratingService;
-
+  private final I18n i18n;
   public Label dateLabel;
   public ImageView mapThumbnailImageView;
   public Label gameTitleLabel;
@@ -52,14 +53,12 @@ public class ReplayCardController implements Controller<Node> {
   public Label ratingLabel;
   public Label qualityLabel;
   public Label numberOfReviewsLabel;
-  public Label playerListLabel;
+  public HBox teamsContainer;
   public Label onMapLabel;
   public StarsController starsController;
-
   private Replay replay;
-  private Consumer<Replay> onOpenDetailListener;
-  private final I18n i18n;
   private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
+  private Consumer<Replay> onOpenDetailListener;
   private JFXRippler jfxRippler;
 
   @Override
@@ -108,10 +107,19 @@ public class ReplayCardController implements Controller<Node> {
           .orElse(i18n.get("notAvailable")));
     }
 
-    String players = replay.getTeams().values().stream()
-        .map(team -> Joiner.on(i18n.get("textSeparator")).join(team))
-        .collect(Collectors.joining(i18n.get("vsSeparator")));
-    playerListLabel.setText(players);
+    replay.getTeams()
+        .forEach((id, team) -> {
+          VBox teamBox = new VBox();
+
+          String teamLabelText = id.equals("1") ? i18n.get("replay.noTeam") : i18n.get("replay.team", Integer.parseInt(id) - 1);
+          Label teamLabel = new Label(teamLabelText);
+          teamLabel.getStyleClass().add("replay-card-team-label");
+          teamLabel.setPadding(new Insets(0, 0, 5, 0));
+          teamBox.getChildren().add(teamLabel);
+          team.forEach(player -> teamBox.getChildren().add(new Label(player)));
+
+          teamsContainer.getChildren().add(teamBox);
+        });
 
     ObservableList<Review> reviews = replay.getReviews();
     JavaFxUtil.addListener(reviews, new WeakInvalidationListener(reviewsChangedListener));

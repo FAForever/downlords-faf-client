@@ -421,10 +421,13 @@
 }
 
 .number-button:selected {
-  -fx-text-fill: -fx-accent;
-  -fx-underline: true;
+  -fx-background-color: -card-color;
+  -fx-border-color: -fx-accent;
 }
 
+.number-button:hover {
+  -fx-border-color: -dimmed-accent;
+}
 /***************** Icon *****************/
 
 .icon, .icon .text {

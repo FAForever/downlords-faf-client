@@ -42,6 +42,7 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -62,6 +63,7 @@ import java.util.stream.Collectors;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
+@RequiredArgsConstructor
 public class ReplayDetailController implements Controller<Node> {
 
   private final TimeService timeService;
@@ -106,20 +108,6 @@ public class ReplayDetailController implements Controller<Node> {
   private Replay replay;
   private ArrayList<TeamCardController> teamCardControllers = new ArrayList<>();
   private ObservableMap<String, List<PlayerStats>> teams;
-
-  public ReplayDetailController(TimeService timeService, I18n i18n, UiService uiService, ReplayService replayService,
-                                RatingService ratingService, MapService mapService, PlayerService playerService,
-                                ReviewService reviewService, ClientProperties clientProperties) {
-    this.timeService = timeService;
-    this.i18n = i18n;
-    this.uiService = uiService;
-    this.replayService = replayService;
-    this.ratingService = ratingService;
-    this.mapService = mapService;
-    this.playerService = playerService;
-    this.reviewService = reviewService;
-    this.clientProperties = clientProperties;
-  }
 
   public void initialize() {
     JavaFxUtil.fixScrollSpeed(scrollPane);
@@ -292,6 +280,8 @@ public class ReplayDetailController implements Controller<Node> {
   }
 
   private void populateTeamsContainer() {
+    teamsContainer.getChildren().clear();
+    teamCardControllers.clear();
     if (!replay.getValidity().equals(Validity.VALID)) {
       showRatingChangeButton.setDisable(true);
       showRatingChangeButton.setText(i18n.get("game.notValid"));
@@ -334,7 +324,7 @@ public class ReplayDetailController implements Controller<Node> {
   }
 
   public void onCloseButtonClicked() {
-    onClosure.run();
+    getRoot().setVisible(false);
   }
 
   public void onDimmerClicked() {

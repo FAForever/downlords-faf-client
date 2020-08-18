@@ -129,23 +129,23 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<Map> getMapsById(List<Integer> mapIdList, int count, int page) {
-    return Collections.emptyList();
+  public Tuple<List<Map>, java.util.Map<String, ?>> getMapsByIdWithMeta(List<Integer> mapIdList, int count, int page) {
+    return new Tuple(Collections.emptyList(), Collections.emptyMap());
   }
 
   @Override
-  public List<Map> getMostPlayedMaps(int count, int page) {
-    return Collections.emptyList();
+  public Tuple<List<Map>, java.util.Map<String, ?>> getMostPlayedMapsWithMeta(int count, int page) {
+    return new Tuple(Collections.emptyList(), Collections.emptyMap());
   }
 
   @Override
-  public List<Map> getHighestRatedMaps(int count, int page) {
-    return Collections.emptyList();
+  public Tuple<List<Map>, java.util.Map<String, ?>> getHighestRatedMapsWithMeta(int count, int page) {
+    return new Tuple(Collections.emptyList(), Collections.emptyMap());
   }
 
   @Override
-  public List<Map> getNewestMaps(int count, int page) {
-    return Collections.emptyList();
+  public Tuple<List<Map>, java.util.Map<String, ?>> getNewestMapsWithMeta(int count, int page) {
+    return new Tuple(Collections.emptyList(), Collections.emptyMap());
   }
 
   @Override
@@ -249,8 +249,8 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<Map> findMapsByQuery(SearchConfig searchConfig, int page, int count) {
-    return Collections.emptyList();
+  public Tuple<List<Map>, java.util.Map<String, ?>> findMapsByQueryWithMeta(SearchConfig searchConfig, int page, int count) {
+    return new Tuple(Collections.emptyList(), Collections.emptyMap());
   }
 
   @Override
@@ -274,13 +274,13 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<Mod> findModsByQuery(SearchConfig query, int page, int maxResults) {
-    return Collections.emptyList();
+  public Tuple<List<Mod>, java.util.Map<String, ?>> findModsByQueryWithMeta(SearchConfig query, int maxResults, int page) {
+    return new Tuple(Collections.emptyList(), Collections.emptyMap());
   }
 
   @Override
-  public List<Ladder1v1Map> getLadder1v1Maps(int count, int page) {
-    return Collections.emptyList();
+  public Tuple<List<Ladder1v1Map>, java.util.Map<String, ?>> getLadder1v1MapsWithMeta(int count, int page) {
+    return new Tuple(Collections.emptyList(), Collections.emptyMap());
   }
 
   @Override
@@ -289,8 +289,8 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<MapVersion> getOwnedMaps(int playerId, int loadMoreCount, int page) {
-    return Collections.emptyList();
+  public Tuple<List<MapVersion>, java.util.Map<String, ?>> getOwnedMapsWithMeta(int playerId, int loadMoreCount, int page) {
+    return new Tuple(Collections.emptyList(), Collections.emptyMap());
   }
 
   @Override
