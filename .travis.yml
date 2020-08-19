@@ -84,5 +84,6 @@ cache:
   - $HOME/install4j/
   - $HOME/.gradle/caches/
   - $HOME/.gradle/wrapper/
+  - ~/.install4j8
   - /home/travis/build/FAForever/downlords-faf-client/build/cache/
   - ~/openjdk14
