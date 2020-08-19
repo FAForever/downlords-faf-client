@@ -10,8 +10,6 @@ if [ ! -d "${INSTALL4J_DIR}" ] || [ ! -d "$HOME/.install4j8/jres/windows-amd64-1
   curl https://content.faforever.com/jre/windows-amd64-14.0.2.tar.gz -o "$HOME/.install4j8/jres/windows-amd64-14.0.2.tar.gz"
   tar xzf "$HOME/install4j/install4j8.tar.gz" -C "$HOME/install4j"
 fi
-echo "$HOME/.install4j8/jres/windows-amd64-14.0.2.tar.gz"
-ls "$HOME/.install4j8/jres/windows-amd64-14.0.2.tar.gz"
 
 ./gradlew -Pversion=${APP_VERSION} \
   -PjavafxPlatform=linux \
