@@ -8,7 +8,7 @@ faf-client:
 
   links:
     linksTecHelpDiscord: https://discord.gg/BMDMUKS
-    linksTecHelpForum: https://forums.faforever.com/viewforum.php?f=3&sid=d568e8a0f72f6a8df422f5b1317c5946
+    linksTecHelpForum: https://forum.faforever.com/category/4/i-need-help
     linksRules: ${faf-client.website.base-url}/rules
     linksModerationReport: ${faf-client.website.base-url}/account/report
     linksDiscord: https://discordapp.com/invite/hgvj6Af
