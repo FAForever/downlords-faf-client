@@ -109,10 +109,8 @@ public class PartyMemberItemController implements Controller<Node> {
 
 //    userImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
 
-//    countryImageView.visibleProperty().bind(player.countryProperty().isNotEmpty());
-    countryImageView.imageProperty().bind(createObjectBinding(() -> StringUtils.isEmpty(player.getCountry()) ?
-        countryFlagService.loadCountryFlag("").orElse(null) // loads earth flag
-        : countryFlagService.loadCountryFlag(player.getCountry()).orElse(null), player.countryProperty()));
+    countryImageView.imageProperty().bind(createObjectBinding(() -> countryFlagService.loadCountryFlag(
+        StringUtils.isEmpty(player.getCountry()) ? "" : player.getCountry()).orElse(null), player.countryProperty()));
 
 //    leagueImageView.visibleProperty().bind(player.avatarUrlProperty().isNotNull().and(player.avatarUrlProperty().isNotEmpty()));
 //    leagueImageView.imageProperty().bind(createObjectBinding(() -> Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));

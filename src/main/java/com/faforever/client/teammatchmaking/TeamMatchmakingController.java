@@ -88,9 +88,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public void initialize() {
 
     player = playerService.getCurrentPlayer().get();
-    countryImageView.imageProperty().bind(createObjectBinding(() -> StringUtils.isEmpty(player.getCountry()) ?
-        countryFlagService.loadCountryFlag("").orElse(null) // loads earth flag
-        : countryFlagService.loadCountryFlag(player.getCountry()).orElse(null), player.countryProperty()));
+    countryImageView.imageProperty().bind(createObjectBinding(() -> countryFlagService.loadCountryFlag(
+        StringUtils.isEmpty(player.getCountry()) ? "" : player.getCountry()).orElse(null), player.countryProperty()));
     avatarImageView.setImage(avatarService.loadAvatar("https://content.faforever.com/faf/avatars/ICE_Test.png"));
     clanLabel.managedProperty().bind(clanLabel.visibleProperty());
     clanLabel.visibleProperty().bind(player.clanProperty().isNotEmpty().and(player.clanProperty().isNotNull()));
