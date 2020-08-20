@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXComboBox?>
 <?import com.jfoenix.controls.JFXSpinner?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
@@ -14,6 +13,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.ComboBox?>
 <BorderPane fx:id="root" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <center>
         <StackPane fx:id="vaultRoot">
@@ -25,7 +25,7 @@
                     </padding>
                     <HBox fx:id="searchBox" VBox.vgrow="NEVER">
                         <fx:include fx:id="search" source="search/search.fxml"
-                                    HBox.hgrow="ALWAYS" maxWidth="1.7976931348623157E308"/>
+                                    HBox.hgrow="ALWAYS"/>
                         <Button fx:id="manageModsButton" text="%modVault.manageMods"
                                 visible="false"/>
                     </HBox>
@@ -73,13 +73,13 @@
         <HBox fx:id="paginationGroup" alignment="CENTER" BorderPane.alignment="CENTER">
             <VBox HBox.hgrow="ALWAYS">
                 <Label text="%search.perPage"/>
-                <JFXComboBox fx:id="perPageComboBox"/>
+                <ComboBox fx:id="perPageComboBox"/>
             </VBox>
             <VBox>
                 <HBox.margin>
                     <Insets top="5.0"/>
                 </HBox.margin>
-                <Button fx:id="firstPageButton">
+                <Button fx:id="firstPageButton" styleClass="page-button" prefHeight="36">
                     <graphic>
                         <Region styleClass="icon,fast-rewind-icon"/>
                     </graphic>
@@ -92,7 +92,7 @@
                 <HBox.margin>
                     <Insets top="5.0"/>
                 </HBox.margin>
-                <Button fx:id="lastPageButton">
+                <Button fx:id="lastPageButton" styleClass="page-button" prefHeight="36">
                     <graphic>
                         <Region styleClass="icon,fast-forward-icon"/>
                     </graphic>
