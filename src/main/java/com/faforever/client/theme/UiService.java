@@ -109,6 +109,10 @@ public class UiService implements InitializingBean, DisposableBean {
   public static final String CHAT_LIST_STATUS_HOSTING = "theme/images/player_status/host.png";
   public static final String CHAT_LIST_STATUS_LOBBYING = "theme/images/player_status/lobby.png";
   public static final String CHAT_LIST_STATUS_PLAYING = "theme/images/player_status/playing.png";
+  public static final String AEON_STYLE_CLASS = "aeon-icon";
+  public static final String CYBRAN_STYLE_CLASS = "cybran-icon";
+  public static final String SERAPHIM_STYLE_CLASS = "seraphim-icon";
+  public static final String UEF_STYLE_CLASS = "uef-icon";
 
   public static Theme DEFAULT_THEME = new Theme("Default", "Downlord", 1, "1");
 

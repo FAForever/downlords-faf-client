@@ -771,22 +771,18 @@
   -fx-pref-height: 2em;
 }
 
-.faction-icon .aeon.icon,
 .aeon-icon {
   -fx-background-color: AEON_COLOR;
 }
 
-.faction-icon .cybran.icon,
 .cybran-icon {
   -fx-background-color: CYBRAN_COLOR;
 }
 
-.faction-icon .uef.icon,
 .uef-icon {
   -fx-background-color: UEF_COLOR;
 }
 
-.faction-icon .seraphim.icon,
 .seraphim-icon {
   -fx-background-color: SERAPHIM_COLOR;
 }
