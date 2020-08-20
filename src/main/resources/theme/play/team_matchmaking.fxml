@@ -81,8 +81,8 @@
                     </HBox>
                     <FlowPane fx:id="partyMemberPane" hgap="35" vgap="23" />
                     <Separator />
-                    <JFXButton fx:id="readyButton" mnemonicParsing="false" styleClass="tmm, play-button"
-                               text="%teammatchmaking.notReady" onAction="#onReadyButtonClicked"
+                    <JFXButton fx:id="playButton" mnemonicParsing="false" styleClass="tmm, play-button"
+                               text="%teammatchmaking.play" onAction="#onReadyButtonClicked"
                                GridPane.hgrow="ALWAYS" maxWidth="1.7976931348623157E308" prefHeight="80.0" />
                     <HBox fx:id="queueBox" spacing="12.0" />
                 </children>

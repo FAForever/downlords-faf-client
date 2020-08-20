@@ -14,7 +14,6 @@ import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDialog;
-import com.jfoenix.controls.JFXListView;
 import javafx.beans.Observable;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -60,7 +59,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   @FXML
   public JFXButton leavePartyButton;
   @FXML
-  public JFXButton readyButton;
+  public JFXButton playButton;
   @FXML
   public Label refreshingLabel;
   public ToggleButton uefButton;
@@ -133,9 +132,9 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
     teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> {
       if (isSelfReady()) {
-        readyButton.setText(i18n.get("teammatchmaking.ready"));
+        playButton.setText(i18n.get("teammatchmaking.hint"));
       } else {
-        readyButton.setText(i18n.get("teammatchmaking.notReady"));
+        playButton.setText(i18n.get("teammatchmaking.play"));
       }
 
       refreshingLabel.setVisible(false);
