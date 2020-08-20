@@ -147,6 +147,9 @@
           </ScrollPane>
           <Button cancelButton="true" focusTraversable="false" onAction="#onCloseButtonClicked"
                      AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+              <graphic>
+                  <Region styleClass="icon,close-icon"/>
+              </graphic>
               <styleClass>
                   <String fx:value="window-button"/>
                   <String fx:value="close-button"/>

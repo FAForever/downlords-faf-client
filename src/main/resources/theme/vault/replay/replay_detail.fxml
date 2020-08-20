@@ -113,7 +113,7 @@
                                <Label fx:id="onMapLabel" styleClass="secondary" text="&lt;OnMap&gt;"
                                       GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="1"
                                       GridPane.valignment="TOP"/>
-                               <VBox alignment="TOP_RIGHT" prefWidth="100.0" GridPane.columnIndex="1"
+                               <HBox alignment="TOP_RIGHT" prefWidth="100.0" GridPane.columnIndex="1"
                                      GridPane.columnSpan="2147483647">
                                    <children>
                                        <TextField fx:id="replayIdField" alignment="CENTER_RIGHT" editable="false"
@@ -121,7 +121,7 @@
                                        <Button fx:id="copyButton" onAction="#copyLink"
                                                prefHeight="25.0" text="Copy link for chat"/>
                                    </children>
-                               </VBox>
+                               </HBox>
                            </children>
                            <VBox.margin>
                                <Insets/>
@@ -205,7 +205,10 @@
             </ScrollPane>
              <Button cancelButton="true" focusTraversable="false" onAction="#onCloseButtonClicked"
                         AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-               <styleClass>
+                <graphic>
+                    <Region styleClass="icon,close-icon"/>
+                </graphic>
+                <styleClass>
                    <String fx:value="window-button"/>
                    <String fx:value="close-button"/>
                </styleClass>
