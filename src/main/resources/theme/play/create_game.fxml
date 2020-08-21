@@ -114,8 +114,8 @@
             </ScrollPane>
 
             <Button fx:id="generateMapButton" contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
-                       mnemonicParsing="false" onAction="#onGenerateMapButtonClicked" styleClass="game-generate-map"
-                       text="%game.generate">
+                    mnemonicParsing="false" onAction="#onGenerateMapButtonClicked" styleClass="game-generate-map"
+                    text="%game.generateMap">
                 <graphic>
                     <Label styleClass="button-mini-label" text="%game.create.generatedMapNew">
                         <Insets left="250"/>
