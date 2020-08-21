@@ -134,6 +134,7 @@
                                         HBox.hgrow="ALWAYS"/>
                                  <Button fx:id="showRatingChangeButton" alignment="CENTER" mnemonicParsing="false"
                                             onAction="#showRatingChange" text="%game.showRatingChange"/>
+                                 <Label fx:id="notRatedReasonLabel" alignment="CENTER"/>
                              </children>
                          </HBox>
                          <HBox fx:id="teamsContainer" alignment="TOP_CENTER" spacing="20.0"/>
