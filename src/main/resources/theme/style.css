@@ -932,10 +932,6 @@
   -fx-font-weight: bold;
 }
 
-.card:hover {
-  -fx-background: derive(-card-color, 10%);
-}
-
 .card.hoverable:hover:pressed {
   -fx-background: -card-color;
 }
