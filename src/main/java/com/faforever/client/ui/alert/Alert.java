@@ -133,7 +133,7 @@ public class Alert<R> extends Dialog<R> {
         return null;
       }
     };
-    dialogPane.getStyleClass().add("dfc-alert-overlay");
+    dialogPane.getStyleClass().add("alert-overlay");
     dialogPane.setContent(materialNode);
     setDialogPane(dialogPane);
     dialogPane.getScene().setFill(Color.TRANSPARENT);
