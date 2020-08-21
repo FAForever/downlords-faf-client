@@ -413,9 +413,9 @@ public class MainController implements Controller<Node> {
     fxStage.getStage().setTitle(i18n.get("login.title"));
 
     LoginController loginController = uiService.loadFxml("theme/login.fxml");
+    fxStage.setContent(loginController.getRoot());
     loginController.display();
 
-    fxStage.setContent(loginController.getRoot());
     fxStage.getNonCaptionNodes().clear();
   }
 
