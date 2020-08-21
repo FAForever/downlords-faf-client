@@ -71,6 +71,7 @@ public class CreateGameController implements Controller<Pane> {
 
   private static final int MAX_RATING_LENGTH = 4;
   public static final String STYLE_CLASS_DUAL_LIST_CELL = "create-game-dual-list-cell";
+  public static final PseudoClass PSEUDO_CLASS_INVALID = PseudoClass.getPseudoClass("invalid");
   private final MapService mapService;
   private final ModService modService;
   private final GameService gameService;
@@ -189,9 +190,9 @@ public class CreateGameController implements Controller<Pane> {
     titleTextField.textProperty().addListener((observable, oldValue, newValue) -> {
       preferencesService.getPreferences().getLastGamePrefs().setLastGameTitle(newValue);
       preferencesService.storeInBackground();
-      adjustCreateGameButtonBackgroundColor(newValue);
+      validateTitle(newValue);
     });
-    adjustCreateGameButtonBackgroundColor(titleTextField.getText());
+    validateTitle(titleTextField.getText());
 
     createGameButton.textProperty().bind(Bindings.createStringBinding(() -> {
       switch (fafService.connectionStateProperty().get()) {
@@ -216,9 +217,8 @@ public class CreateGameController implements Controller<Pane> {
     );
   }
 
-  private void adjustCreateGameButtonBackgroundColor(String newValue) {
-    PseudoClass invalidClass = PseudoClass.getPseudoClass("invalid");
-    titleTextField.pseudoClassStateChanged(invalidClass, Strings.isNullOrEmpty(newValue));
+  private void validateTitle(String gameTitle) {
+    titleTextField.pseudoClassStateChanged(PSEUDO_CLASS_INVALID, Strings.isNullOrEmpty(gameTitle));
   }
 
   private void initPassword() {
