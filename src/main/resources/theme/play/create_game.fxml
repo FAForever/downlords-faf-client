@@ -113,7 +113,6 @@
                        maxWidth="1.7976931348623157E308" text="&lt;Description&gt;" wrapText="true"/>
             </ScrollPane>
 
-            <!-- text="%game.create.generatedMap" -->
             <Button fx:id="generateMapButton" contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
                        mnemonicParsing="false" onAction="#onGenerateMapButtonClicked" styleClass="game-generate-map"
                        text="%game.generate">
