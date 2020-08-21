@@ -6,13 +6,14 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.UiService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
 import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
 public class PlayerCardTooltipControllerTest extends AbstractPlainJavaFxTest {
@@ -39,7 +40,7 @@ public class PlayerCardTooltipControllerTest extends AbstractPlainJavaFxTest {
     Player player = playerBuilder.get();
     instance.setPlayer(player, 1000, Faction.CYBRAN);
 
-    assertThat(instance.factionIcon.getStyleClass(), hasItem("cybran"));
+    assertThat(instance.factionIcon.getStyleClass(), hasItem(UiService.CYBRAN_STYLE_CLASS));
     assertThat(instance.factionIcon.isVisible(), is(true));
     assertThat(instance.factionImage.isVisible(), is(false));
     assertThat(instance.foeIconText.isVisible(), is(true));
@@ -57,7 +58,7 @@ public class PlayerCardTooltipControllerTest extends AbstractPlainJavaFxTest {
     Player player = playerBuilder.get();
     instance.setPlayer(player, 1000, Faction.SERAPHIM);
 
-    assertThat(instance.factionIcon.getStyleClass(), hasItem("seraphim"));
+    assertThat(instance.factionIcon.getStyleClass(), hasItem(UiService.SERAPHIM_STYLE_CLASS));
     assertThat(instance.factionIcon.isVisible(), is(true));
     assertThat(instance.factionImage.isVisible(), is(false));
     assertThat(instance.foeIconText.isVisible(), is(false));
