@@ -513,14 +513,14 @@ public class ReplayService {
 
     // For some reason in the coop replay the map name is null in the metadata
     // So we just take it directly from the replay data.
-    if (StringUtils.isEmptyOrNull(mapName)) {
+    if (gameType.equals("coop")) {
       mapName = parseMapFolderName(rawReplayBytes);
     }
 
     // For map generator games the map name is "None" because replay server gets map name by from DB based on filename
     // from replay data, and DB does not contain generated maps.
     if (StringUtils.equalsIgnoreCase(mapName, "None")) {
-      String maybeMapGen = parseMapName(rawReplayBytes).replaceAll(".scmap", "");
+      String maybeMapGen = parseMapFolderName(rawReplayBytes);
       if (mapGeneratorService.isGeneratedMap(maybeMapGen)) {
         mapName = maybeMapGen;
       }
