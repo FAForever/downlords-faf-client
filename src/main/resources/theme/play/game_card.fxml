@@ -9,18 +9,19 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-
-<GridPane fx:id="gameCardRoot" hgap="10.0" onMouseClicked="#onClick" styleClass="game-card,card" vgap="5.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GameTileController">
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="gameCardRoot" hgap="10.0" onMouseClicked="#onClick"
+          styleClass="card, game-card, pointable, hoverable" vgap="5.0" xmlns="http://javafx.com/javafx/11.0.1"
+          fx:controller="com.faforever.client.game.GameTileController">
     <columnConstraints>
-        <ColumnConstraints hgrow="NEVER" prefWidth="140.0" />
-        <ColumnConstraints hgrow="ALWAYS" maxWidth="105.0" minWidth="105.0" prefWidth="105.0" />
-      <ColumnConstraints hgrow="ALWAYS" maxWidth="105.0" minWidth="105.0" prefWidth="105.0" />
+        <ColumnConstraints hgrow="NEVER" prefWidth="140.0"/>
+        <ColumnConstraints hgrow="ALWAYS" maxWidth="105.0" minWidth="105.0" prefWidth="105.0"/>
+        <ColumnConstraints hgrow="ALWAYS" maxWidth="105.0" minWidth="105.0" prefWidth="105.0"/>
     </columnConstraints>
     <rowConstraints>
-        <RowConstraints fillHeight="false" minHeight="10.0" vgrow="SOMETIMES" />
-        <RowConstraints minHeight="10.0" />
-        <RowConstraints minHeight="10.0" />
-        <RowConstraints minHeight="10.0" />
+        <RowConstraints fillHeight="false" minHeight="10.0" vgrow="SOMETIMES"/>
+        <RowConstraints minHeight="10.0"/>
+        <RowConstraints minHeight="10.0"/>
+        <RowConstraints minHeight="10.0"/>
         <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
     </rowConstraints>
     <children>

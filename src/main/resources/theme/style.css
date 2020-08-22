@@ -936,18 +936,16 @@
   -fx-background: -card-color;
 }
 
+.card.hoverable:hover {
+  -fx-background: derive(-card-color, 10%);
+}
+
 .card.hoverable:hover .image-dimmer {
   -fx-background-color: linear-gradient(#33333300, #333333ff);
 }
 
 .card:selected {
   -fx-background: -fx-accent;
-}
-
-/***************** Replay Card *****************/
-
-.replay-card {
-  -fx-cursor: hand;
 }
 
 /***************** Game Card *****************/

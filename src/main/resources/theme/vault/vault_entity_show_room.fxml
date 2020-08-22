@@ -12,7 +12,8 @@
            text="%vault.replays.ownReplays"/>
     <FlowPane fx:id="pane" hgap="10.0" maxWidth="1.7976931348623157E308"
               prefWrapLength="1500.0" vgap="10.0"/>
-    <Button fx:id="moreButton" mnemonicParsing="false" styleClass="card" maxHeight="1.7976931348623157E308">
+    <Button fx:id="moreButton" mnemonicParsing="false" styleClass="card, hoverable, pointable"
+            maxHeight="1.7976931348623157E308">
         <graphic>
             <Region styleClass="play-icon, icon"/>
         </graphic>
