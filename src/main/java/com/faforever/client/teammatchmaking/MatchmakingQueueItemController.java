@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.time.Instant;
 
+import static javafx.beans.binding.Bindings.createBooleanBinding;
 import static javafx.beans.binding.Bindings.createStringBinding;
 
 @Component
@@ -100,6 +101,11 @@ public class MatchmakingQueueItemController implements Controller<Node> {
         queue.joinedProperty()
     ));
     joinLeaveQueueButton.defaultButtonProperty().bind(queue.joinedProperty().not());
+    joinLeaveQueueButton.disableProperty().bind(createBooleanBinding(
+        () -> teamMatchmakingService.getParty().getMembers().size() > queue.getTeamSize()
+            || !teamMatchmakingService.getParty().getOwner().equals(playerService.getCurrentPlayer().orElse(null)),
+        teamMatchmakingService.getParty().getMembers()
+    ));
 
     queue.joinedProperty().addListener(observable -> refreshingLabel.setVisible(false));
 

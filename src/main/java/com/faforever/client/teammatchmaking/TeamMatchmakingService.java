@@ -2,6 +2,7 @@ package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.game.Faction;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.Action.ActionCallback;
@@ -199,6 +200,7 @@ public class TeamMatchmakingService implements InitializingBean {
     }
 
     fafServerAccessor.acceptPartyInvite(player);
+    eventBus.post(new OpenTeamMatchmakingEvent());
   }
 
   public void onPartyKicked(PartyKickedMessage message) {

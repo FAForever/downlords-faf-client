@@ -63,9 +63,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     queueListView.setCellFactory(listView -> new MatchmakingQueueItemListCell(uiService));
     queueListView.setItems(teamMatchmakingService.getMatchmakingQueues());
 
-    invitePlayerButton.managedProperty().bind(invitePlayerButton.visibleProperty());
-    invitePlayerButton.visibleProperty().bind(createBooleanBinding(
-        () -> teamMatchmakingService.getParty().getOwner().getId() == playerService.getCurrentPlayer().map(Player::getId).orElse(-1),
+    invitePlayerButton.disableProperty().bind(createBooleanBinding(
+        () -> teamMatchmakingService.getParty().getOwner().getId() != playerService.getCurrentPlayer().map(Player::getId).orElse(-1),
         teamMatchmakingService.getParty().ownerProperty(),
         playerService.currentPlayerProperty()
     ));

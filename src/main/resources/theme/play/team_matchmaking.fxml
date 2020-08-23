@@ -34,7 +34,7 @@
 
                                 <Label fx:id="refreshingLabel" styleClass="icon" text="" visible="false"/>
 
-                                <JFXButton fx:id="readyButton" text="%teammatchmaking.notReady"
+                                <JFXButton fx:id="readyButton" text="%teammatchmaking.notReady" visible="false"
                                            onAction="#onReadyButtonClicked" styleClass="party-ready-button-not-ready"/>
                             </HBox>
                             <JFXListView fx:id="playerListView" focusTraversable="false"
