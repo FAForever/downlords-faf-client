@@ -42,7 +42,6 @@ import com.google.common.primitives.Bytes;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.jgit.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -509,22 +508,7 @@ public class ReplayService {
     String gameType = replayInfo.getFeaturedMod();
     Integer replayId = replayInfo.getUid();
     Map<String, Integer> modVersions = replayInfo.getFeaturedModVersions();
-    String mapName = replayInfo.getMapname();
-
-    // For some reason in the coop replay the map name is null in the metadata
-    // So we just take it directly from the replay data.
-    if (gameType.equals("coop")) {
-      mapName = parseMapFolderName(rawReplayBytes);
-    }
-
-    // For map generator games the map name is "None" because replay server gets map name by from DB based on filename
-    // from replay data, and DB does not contain generated maps.
-    if (StringUtils.equalsIgnoreCase(mapName, "None")) {
-      String maybeMapGen = parseMapFolderName(rawReplayBytes);
-      if (mapGeneratorService.isGeneratedMap(maybeMapGen)) {
-        mapName = maybeMapGen;
-      }
-    }
+    String mapName = parseMapFolderName(rawReplayBytes);
 
     Set<String> simMods = replayInfo.getSimMods() != null ? replayInfo.getSimMods().keySet() : emptySet();
 
