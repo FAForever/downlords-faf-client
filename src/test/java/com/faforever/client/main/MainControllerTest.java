@@ -21,7 +21,6 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
-import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue.QueueName;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
@@ -52,6 +51,8 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -259,7 +260,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     verify(gameService).addOnMatchmakerQueueNotificationListener(matchmakerMessageCaptor.capture());
 
     MatchmakerInfoMessage matchmakerMessage = new MatchmakerInfoMessage();
-    matchmakerMessage.setQueues(singletonList(new MatchmakerInfoMessage.MatchmakerQueue(QueueName.LADDER_1V1, null,
+    String timeString = DateTimeFormatter.ISO_INSTANT.format(Instant.now().plusSeconds(65));
+    matchmakerMessage.setQueues(singletonList(new MatchmakerInfoMessage.MatchmakerQueue("ladder1v1", timeString, 1, 0,
         singletonList(new RatingRange(1500, 1510)), singletonList(new RatingRange(1500, 1510)))));
     matchmakerMessageCaptor.getValue().accept(matchmakerMessage);
   }
@@ -326,7 +328,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     verify(gameService).addOnMatchmakerQueueNotificationListener(matchmakerMessageCaptor.capture());
 
     MatchmakerInfoMessage matchmakerMessage = new MatchmakerInfoMessage();
-    matchmakerMessage.setQueues(singletonList(new MatchmakerInfoMessage.MatchmakerQueue(QueueName.LADDER_1V1, null,
+    String timeString = DateTimeFormatter.ISO_INSTANT.format(Instant.now().plusSeconds(65));
+    matchmakerMessage.setQueues(singletonList(new MatchmakerInfoMessage.MatchmakerQueue("ladder1v1", timeString, 1, 0,
         singletonList(new RatingRange(1500, 1510)), singletonList(new RatingRange(1500, 1510)))));
     matchmakerMessageCaptor.getValue().accept(matchmakerMessage);
 
