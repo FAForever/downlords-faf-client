@@ -48,6 +48,13 @@
         <!-- FACTION BUTTONS -->
         <HBox alignment="CENTER" spacing="0.0">
             <children>
+                <ToggleButton fx:id="uefButton" mnemonicParsing="false" onAction="#onFactionButtonClicked"
+                              selected="true" text="">
+                    <styleClass>
+                        <String fx:value="icon-button"/>
+                        <String fx:value="uef"/>
+                    </styleClass>
+                </ToggleButton>
                 <ToggleButton fx:id="aeonButton" mnemonicParsing="false" onAction="#onFactionButtonClicked"
                               selected="true" text="">
                     <styleClass>
@@ -60,13 +67,6 @@
                     <styleClass>
                         <String fx:value="icon-button"/>
                         <String fx:value="cybran"/>
-                    </styleClass>
-                </ToggleButton>
-                <ToggleButton fx:id="uefButton" mnemonicParsing="false" onAction="#onFactionButtonClicked"
-                              selected="true" text="">
-                    <styleClass>
-                        <String fx:value="icon-button"/>
-                        <String fx:value="uef"/>
                     </styleClass>
                 </ToggleButton>
                 <ToggleButton fx:id="seraphimButton" mnemonicParsing="false" onAction="#onFactionButtonClicked"

@@ -94,33 +94,6 @@ public ImageView leagueImageView;
 
   private ChatChannelUser chatUser;
 
-  private boolean isFactionSelectedInParty(int faction) {
-    return teamMatchmakingService.getParty().getMembers().stream()
-        .anyMatch(m -> m.getPlayer().getId() == player.getId() && m.getFactions().get(faction));
-  }
-
-  public void onKickPlayerButtonClicked(ActionEvent actionEvent) {
-    teamMatchmakingService.kickPlayerFromParty(this.player);
-  }
-
-  public void onFactionButtonClicked(ActionEvent actionEvent) {
-    if (!playerService.getCurrentPlayer().get().equals(this.player)) {
-      return;
-    }
-
-    boolean[] factions = {
-        uefButton.isSelected(),
-        aeonButton.isSelected(),
-        cybranButton.isSelected(),
-        seraphimButton.isSelected()
-    };
-
-    teamMatchmakingService.setPartyFactions(factions);
-
-    refreshingLabel.setVisible(true);
-  }
-
-
   public PartyMemberItemController(CountryFlagService countryFlagService, AvatarService avatarService, PlayerService playerService, TeamMatchmakingService teamMatchmakingService, UiService uiService, ChatService chatService, I18n i18n) {
     this.countryFlagService = countryFlagService;
     this.avatarService = avatarService;
@@ -136,30 +109,23 @@ public ImageView leagueImageView;
     //TODO: this is a bit hacky, a chat channel user is required to create a context menu as in the chat tab (for foeing/befriending/messaging people...)
     chatUser = new ChatChannelUser(player.getUsername(), chatService.getChatUserColor(player.getUsername()), false, player);
 
-//    userImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
-
 //    countryImageView.visibleProperty().bind(player.countryProperty().isNotEmpty());
     countryImageView.imageProperty().bind(createObjectBinding(() -> StringUtils.isEmpty(player.getCountry()) ?
         countryFlagService.loadCountryFlag("").orElse(null) // loads earth flag
         : countryFlagService.loadCountryFlag(player.getCountry()).orElse(null), player.countryProperty()));
 
-//    leagueImageView.visibleProperty().bind(player.avatarUrlProperty().isNotNull().and(player.avatarUrlProperty().isNotEmpty()));
-//    leagueImageView.imageProperty().bind(createObjectBinding(() -> Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));
     leagueImageView.setImage(avatarService.loadAvatar("https://content.faforever.com/faf/avatars/ICE_Test.png"));
 
     clanLabel.visibleProperty().bind(player.clanProperty().isNotEmpty().and(player.clanProperty().isNotNull()));
     clanLabel.textProperty().bind(createStringBinding(() -> Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan()), player.clanProperty()));
 
     usernameLabel.textProperty().bind(player.usernameProperty());
-//    usernameLabel.setText("GGGGGGGGGGGGGGGG"); // TODO: REMOVE
 
-//    ratingLabel.textProperty().bind(createStringBinding(() -> i18n.get("teammatchmaking.rating", RatingUtil.getRoundedGlobalRating(player)), player.globalRatingMeanProperty(), player.globalRatingDeviationProperty()));
     gameCountLabel.textProperty().bind(createStringBinding(() -> i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()), player.numberOfGamesProperty()));
 
 
     BooleanBinding isDifferentPlayerBinding = playerService.currentPlayerProperty().isNotEqualTo(player);
     kickPlayerButton.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(playerService.currentPlayerProperty()).and(isDifferentPlayerBinding));
-//    kickPlayerButton.visibleProperty().set(true); // TODO: remove
 
     aeonButton.disableProperty().bind(isDifferentPlayerBinding);
     cybranButton.disableProperty().bind(isDifferentPlayerBinding);
@@ -168,10 +134,7 @@ public ImageView leagueImageView;
 
     // no binding as this would prevent the buttons from being pressed
     teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> {
-      aeonButton.setSelected(isFactionSelectedInParty(1));
-      cybranButton.setSelected(isFactionSelectedInParty(2)); // TODO use Faction.STH,
-      uefButton.setSelected(isFactionSelectedInParty(0));
-      seraphimButton.setSelected(isFactionSelectedInParty(3));
+      selectFactionsBasedOnParty();
       refreshingLabel.setVisible(false);
     });
 
@@ -186,6 +149,44 @@ public ImageView leagueImageView;
         classes.remove("card-playerReady");
       }
     });
+  }
+
+  private void selectFactionsBasedOnParty() {
+    aeonButton.setSelected(isFactionSelectedInParty(1));
+    cybranButton.setSelected(isFactionSelectedInParty(2)); // TODO use Faction.STH, rework using new factions format
+    uefButton.setSelected(isFactionSelectedInParty(0));
+    seraphimButton.setSelected(isFactionSelectedInParty(3));
+  }
+
+  private boolean isFactionSelectedInParty(int faction) {
+    return teamMatchmakingService.getParty().getMembers().stream()
+        .anyMatch(m -> m.getPlayer().getId() == player.getId() && m.getFactions().get(faction));
+  }
+
+  public void onKickPlayerButtonClicked(ActionEvent actionEvent) {
+    teamMatchmakingService.kickPlayerFromParty(this.player);
+  }
+
+  public void onFactionButtonClicked(ActionEvent actionEvent) {
+    if (!playerService.getCurrentPlayer().get().equals(this.player)) {
+      return;
+    }
+
+    if (!uefButton.isSelected() && !aeonButton.isSelected() && !cybranButton.isSelected() && !seraphimButton.isSelected()) {
+      selectFactionsBasedOnParty();
+      return;
+    }
+
+    boolean[] factions = {
+        uefButton.isSelected(),
+        aeonButton.isSelected(),
+        cybranButton.isSelected(),
+        seraphimButton.isSelected()
+    };
+
+    teamMatchmakingService.setPartyFactions(factions);
+
+    refreshingLabel.setVisible(true);
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {
