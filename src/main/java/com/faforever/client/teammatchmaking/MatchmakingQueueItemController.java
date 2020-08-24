@@ -55,6 +55,13 @@ public class MatchmakingQueueItemController implements Controller<Node> {
   public JFXButton joinLeaveQueueButton;
   @FXML
   public Label refreshingLabel;
+  @FXML
+  public Label matchFoundLabel;
+  @FXML
+  public Label matchStartingLabel;
+  @FXML
+  public Label matchCancelledLabel;
+
 
   private Timeline queuePopTimeUpdater;
 
@@ -96,6 +103,27 @@ public class MatchmakingQueueItemController implements Controller<Node> {
 //    leagueImageView.imageProperty().bind(createObjectBinding(() -> avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));
     leagueImageView.setImage(avatarService.loadAvatar("https://content.faforever.com/faf/avatars/ICE_Test.png"));
 
+    matchFoundLabel.visibleProperty().bind(matchFoundLabel.managedProperty());
+    matchStartingLabel.visibleProperty().bind(matchStartingLabel.managedProperty());
+    matchCancelledLabel.visibleProperty().bind(matchCancelledLabel.managedProperty());
+    queue.matchingStatusProperty().addListener((observable, oldValue, newValue) -> {
+      disableMatchStatus();
+      if (newValue == null) {
+        return;
+      }
+      switch (newValue) {
+        case MATCH_FOUND:
+          matchFoundLabel.setManaged(true);
+          break;
+        case GAME_LAUNCHING:
+          matchStartingLabel.setManaged(true);
+          break;
+        case MATCH_CANCELLED:
+          matchCancelledLabel.setManaged(true);
+          break;
+      }
+    });
+
     joinLeaveQueueButton.textProperty().bind(createStringBinding(
         () -> queue.isJoined() ? i18n.get("teammatchmaking.leaveQueue") : i18n.get("teammatchmaking.joinQueue"),
         queue.joinedProperty()
@@ -135,6 +163,12 @@ public class MatchmakingQueueItemController implements Controller<Node> {
         classes.remove("card-queueJoined");
       }
     });
+  }
+
+  public void disableMatchStatus() {
+    matchFoundLabel.setManaged(false);
+    matchStartingLabel.setManaged(false);
+    matchCancelledLabel.setManaged(false);
   }
 
   public void onJoinLeaveQueueClicked(ActionEvent actionEvent) {

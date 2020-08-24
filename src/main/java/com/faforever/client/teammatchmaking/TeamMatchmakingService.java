@@ -1,5 +1,6 @@
 package com.faforever.client.teammatchmaking;
 
+import com.faforever.client.fa.relay.LobbyMode;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
@@ -17,11 +18,15 @@ import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.domain.GameLaunchMessage;
+import com.faforever.client.remote.domain.MatchCancelledMessage;
+import com.faforever.client.remote.domain.MatchFoundMessage;
 import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.remote.domain.PartyInfoMessage;
 import com.faforever.client.remote.domain.PartyInviteMessage;
 import com.faforever.client.remote.domain.PartyKickedMessage;
 import com.faforever.client.remote.domain.SearchInfoMessage;
+import com.faforever.client.teammatchmaking.MatchmakingQueue.MatchingStatus;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.util.IdenticonUtil;
 import com.google.common.eventbus.EventBus;
@@ -82,11 +87,14 @@ public class TeamMatchmakingService implements InitializingBean {
     this.taskScheduler = taskScheduler;
     this.gameService = gameService;
 
-    fafServerAccessor.addOnMessageListener(PartyInviteMessage.class, this::onPartyInvite);
-    fafServerAccessor.addOnMessageListener(PartyKickedMessage.class, this::onPartyKicked);
-    fafServerAccessor.addOnMessageListener(PartyInfoMessage.class, this::onPartyInfo);
-    fafServerAccessor.addOnMessageListener(SearchInfoMessage.class, this::onSearchInfoMessage);
-    fafServerAccessor.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
+    fafService.addOnMessageListener(PartyInviteMessage.class, this::onPartyInvite);
+    fafService.addOnMessageListener(PartyKickedMessage.class, this::onPartyKicked);
+    fafService.addOnMessageListener(PartyInfoMessage.class, this::onPartyInfo);
+    fafService.addOnMessageListener(SearchInfoMessage.class, this::onSearchInfoMessage);
+    fafService.addOnMessageListener(MatchFoundMessage.class, this::onMatchFoundMessage);
+    fafService.addOnMessageListener(MatchCancelledMessage.class, this::onMatchCancelledMessage);
+    fafService.addOnMessageListener(GameLaunchMessage.class, this::onGameLaunchMessage);
+    fafService.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == ConnectionState.DISCONNECTED) {
         Platform.runLater(() -> initParty(playerService.getCurrentPlayer().get()));
       }
@@ -139,7 +147,36 @@ public class TeamMatchmakingService implements InitializingBean {
     );
   }
 
+  private void onMatchFoundMessage(MatchFoundMessage message) {
+    notificationService.addNotification(new TransientNotification(
+        i18n.get("teammatchmaking.notification.matchFound.title"),
+        i18n.get("teammatchmaking.notification.matchFound.message")
+    ));
+    matchmakingQueues.stream().filter(q -> Objects.equals(q.getQueueName(), message.getQueue())).forEach(q -> {
+      q.setTimedOutMatchingStatus(MatchingStatus.MATCH_FOUND, Duration.ofSeconds(15), taskScheduler);
+    });
+  }
+
+  private void onMatchCancelledMessage(MatchCancelledMessage message) {
+    matchmakingQueues.stream().filter(q -> q.getMatchingStatus() != null).forEach(q -> {
+      q.setTimedOutMatchingStatus(MatchingStatus.MATCH_CANCELLED, Duration.ofSeconds(15), taskScheduler);
+    });
+  }
+
+  private void onGameLaunchMessage(GameLaunchMessage message) {
+    if (message.getInitMode() != LobbyMode.AUTO_LOBBY) {
+      return;
+    }
+
+    matchmakingQueues.stream().filter(q -> q.getMatchingStatus() != null).forEach(q -> {
+      q.setTimedOutMatchingStatus(MatchingStatus.GAME_LAUNCHING, Duration.ofSeconds(15), taskScheduler);
+    });
+  }
+
   public void joinQueue(MatchmakingQueue queue) {
+    if (!ensureValidGamePath()) {
+      return;
+    }
     fafServerAccessor.gameMatchmaking(queue, MatchmakingState.START);
   }
 
@@ -194,7 +231,7 @@ public class TeamMatchmakingService implements InitializingBean {
       return;
     }
 
-    fafServerAccessor.acceptPartyInvite(player);
+    fafServerAccessor.acceptPartyInvite(player); // TODO: SHOULD ALL OF THE fafServerAccessor calls be move to fafService????
     eventBus.post(new OpenTeamMatchmakingEvent());
   }
 

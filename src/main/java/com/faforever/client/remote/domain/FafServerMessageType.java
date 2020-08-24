@@ -13,6 +13,8 @@ public enum FafServerMessageType implements ServerMessageType {
   PLAYER_INFO("player_info", PlayersMessage.class),
   GAME_LAUNCH("game_launch", GameLaunchMessage.class),
   MATCHMAKER_INFO("matchmaker_info", MatchmakerInfoMessage.class),
+  MATCH_FOUND("match_found", MatchFoundMessage.class),
+  MATCH_CANCELLED("match_cancelled", MatchCancelledMessage.class),
   SOCIAL("social", SocialMessage.class),
   AUTHENTICATION_FAILED("authentication_failed", AuthenticationFailedMessage.class),
   UPDATED_ACHIEVEMENTS("updated_achievements", UpdatedAchievementsMessage.class),

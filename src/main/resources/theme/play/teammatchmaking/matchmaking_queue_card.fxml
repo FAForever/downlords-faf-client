@@ -12,10 +12,19 @@
 
     <children>
         <VBox alignment="CENTER_LEFT" spacing="10" minWidth="220" maxWidth="320">
-            <HBox spacing="20" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+            <HBox spacing="10" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
                 <Label fx:id="queuenameLabel" style="-fx-font-size: 20px;-fx-font-weight: bold"
                        maxWidth="120.0" minWidth="120.0"
                        text="&lt;QueueName&gt;"/>
+                <Label fx:id="matchFoundLabel" style="-fx-font-weight: bold;-fx-text-fill: #83be15"
+                       maxWidth="120.0" minWidth="120.0"
+                       text="%teammatchmaking.match.found" managed="false"/>
+                <Label fx:id="matchStartingLabel" style="-fx-font-weight: bold;-fx-text-fill: #83be15"
+                       maxWidth="120.0" minWidth="120.0"
+                       text="%teammatchmaking.match.starting" managed="false"/>
+                <Label fx:id="matchCancelledLabel" style="-fx-font-weight: bold;-fx-text-fill: #be6800"
+                       maxWidth="120.0" minWidth="120.0"
+                       text="%teammatchmaking.match.cancelled" managed="false"/>
 
             </HBox>
 
