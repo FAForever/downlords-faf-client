@@ -25,7 +25,8 @@ public class GameInfoMessage extends FafServerMessage {
   private Integer maxPlayers;
   private String title;
   // FAF calls this "game_type" but it's actually the victory condition.
-  private VictoryCondition gameType;
+//  private VictoryCondition gameType; TODO: remove
+  private String gameType;// TODO: interpret / use
   private Map<String, String> simMods;
   private String mapname;
   private Double launchedAt;

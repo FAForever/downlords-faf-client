@@ -128,6 +128,8 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -378,6 +380,12 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
+  public CompletableFuture<GameLaunchMessage> startSearchMatchmaker() {
+    gameLaunchFuture = new CompletableFuture<>();
+    return gameLaunchFuture;
+  }
+
+  @Override
   public void stopSearchingRanked() {
     writeToServer(new StopSearchLadder1v1ClientMessage());
     gameLaunchFuture = null;
@@ -494,6 +502,13 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
         return;
       }
 
+      if (serverMessage instanceof GameLaunchMessage) {//TODO: this is horrible!!!!!!!!!!!!!!!!!!!!!!
+        Matcher matcher = Pattern.compile("\"faction\":(\\d)").matcher(jsonString);
+        if (matcher.find()) {
+          ((GameLaunchMessage) serverMessage).setFaction(Faction.fromFaValue(Integer.parseInt(matcher.group(1))));
+        }
+      }
+
       Class<?> messageClass = serverMessage.getClass();
       while (messageClass != Object.class) {
         messageListeners.getOrDefault(messageClass, Collections.emptyList())
@@ -580,8 +595,8 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
 
   @Override
-  public void gameMatchmaking(MatchmakingQueue queue, MatchmakingState state, Faction faction) {
-    writeToServer(new GameMatchmakingMessage(queue.getQueueName(), state, faction));
+  public void gameMatchmaking(MatchmakingQueue queue, MatchmakingState state) {
+    writeToServer(new GameMatchmakingMessage(queue.getQueueName(), state));
   }
 
   @Override

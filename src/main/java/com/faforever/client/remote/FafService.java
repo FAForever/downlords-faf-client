@@ -95,6 +95,10 @@ public class FafService {
     return fafServerAccessor.startSearchLadder1v1(faction);
   }
 
+  public CompletableFuture<GameLaunchMessage> startSearchMatchmaker() {
+    return fafServerAccessor.startSearchMatchmaker();
+  }
+
   public void requestMatchmakerInfo() {
     fafServerAccessor.requestMatchmakerInfo();
   }

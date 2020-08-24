@@ -109,9 +109,9 @@ public ImageView leagueImageView;
     }
 
     boolean[] factions = {
+        uefButton.isSelected(),
         aeonButton.isSelected(),
         cybranButton.isSelected(),
-        uefButton.isSelected(),
         seraphimButton.isSelected()
     };
 
@@ -168,9 +168,9 @@ public ImageView leagueImageView;
 
     // no binding as this would prevent the buttons from being pressed
     teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> {
-      aeonButton.setSelected(isFactionSelectedInParty(0));
-      cybranButton.setSelected(isFactionSelectedInParty(1));
-      uefButton.setSelected(isFactionSelectedInParty(2));
+      aeonButton.setSelected(isFactionSelectedInParty(1));
+      cybranButton.setSelected(isFactionSelectedInParty(2)); // TODO use Faction.STH,
+      uefButton.setSelected(isFactionSelectedInParty(0));
       seraphimButton.setSelected(isFactionSelectedInParty(3));
       refreshingLabel.setVisible(false);
     });

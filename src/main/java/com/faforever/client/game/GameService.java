@@ -89,6 +89,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.faforever.client.fa.RatingMode.NONE;
+import static com.faforever.client.game.KnownFeaturedMod.FAF;
 import static com.faforever.client.game.KnownFeaturedMod.LADDER_1V1;
 import static com.faforever.client.game.KnownFeaturedMod.TUTORIALS;
 import static com.github.nocatch.NoCatch.noCatch;
@@ -520,6 +521,44 @@ public class GameService implements InitializingBean {
         });
   }
 
+  public CompletableFuture<Void> startSearchMatchmakerTodo() {
+    if (isRunning()) {
+      log.debug("Game is running, ignoring 1v1 search request"); // TODO
+      return completedFuture(null);
+    }
+
+    // TODO: move here from tmm service
+//    if (!preferencesService.isGamePathValid()) {
+//      CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
+//      return gameDirectoryFuture.thenCompose(path -> startSearchLadder1v1(faction));
+//    }
+
+//    searching1v1.set(true);
+
+    //TODO: WHEN IS THIS CANCELLED?
+    return modService.getFeaturedMod(FAF.getTechnicalName())
+        .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
+        .thenCompose(aVoid -> fafService.startSearchMatchmaker())
+        .thenAccept((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapname())
+            .thenRun(() -> {
+              gameLaunchMessage.setArgs(new ArrayList<>(gameLaunchMessage.getArgs()));
+
+              gameLaunchMessage.getArgs().add("/team " + gameLaunchMessage.getTeam());
+              gameLaunchMessage.getArgs().add("/players " + gameLaunchMessage.getExpectedPlayers());
+              gameLaunchMessage.getArgs().add("/startspot " + gameLaunchMessage.getMapPosition());
+
+              startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), NONE); // TODO: rating mode
+            }))
+        .exceptionally(throwable -> {
+          if (throwable instanceof CancellationException) {
+            log.info("Ranked1v1 search has been cancelled");
+          } else {
+            log.warn("Ranked1v1 could not be started", throwable);
+          }
+          return null;
+        });
+  }
+
   public void stopSearchLadder1v1() {
     if (searching1v1.get()) {
       fafService.stopSearchingRanked();
@@ -800,7 +839,8 @@ public class GameService implements InitializingBean {
     game.setFeaturedMod(gameInfoMessage.getFeaturedMod());
     game.setNumPlayers(gameInfoMessage.getNumPlayers());
     game.setMaxPlayers(gameInfoMessage.getMaxPlayers());
-    game.setVictoryCondition(gameInfoMessage.getGameType());
+//    game.setVictoryCondition(gameInfoMessage.getGameType()); // TODO: remove/update dependent code
+    // TODO: set game type to game and use
     Optional.ofNullable(gameInfoMessage.getLaunchedAt()).ifPresent(aDouble -> game.setStartTime(
         TimeUtil.fromPythonTime(aDouble.longValue()).toInstant()
     ));
