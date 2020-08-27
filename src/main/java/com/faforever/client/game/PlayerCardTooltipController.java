@@ -5,6 +5,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.SocialStatus;
+import com.faforever.client.theme.UiService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
@@ -13,6 +14,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -26,18 +28,14 @@ public class PlayerCardTooltipController implements Controller<Node> {
 
   @VisibleForTesting
   static final Image RANDOM_IMAGE = new Image("/images/factions/random.png");
-  private static final String AEON = "aeon";
-  private static final String CYBRAN = "cybran";
-  private static final String SERAPHIM = "seraphim";
   private final CountryFlagService countryFlagService;
   private final I18n i18n;
-  private static final String UEF = "uef";
   public Label playerInfo;
   public ImageView countryImageView;
   public Label foeIconText;
   public HBox root;
   public Label friendIconText;
-  public Label factionIcon;
+  public Region factionIcon;
   public ImageView factionImage;
 
   public void setPlayer(Player player, int rating, Faction faction) {
@@ -75,20 +73,16 @@ public class PlayerCardTooltipController implements Controller<Node> {
     factionIcon.setVisible(true);
     switch (faction) {
       case AEON:
-        factionIcon.setText("\uE900");
-        factionIcon.getStyleClass().add(AEON);
+        factionIcon.getStyleClass().add(UiService.AEON_STYLE_CLASS);
         break;
       case CYBRAN:
-        factionIcon.setText("\uE902");
-        factionIcon.getStyleClass().add(CYBRAN);
+        factionIcon.getStyleClass().add(UiService.CYBRAN_STYLE_CLASS);
         break;
       case SERAPHIM:
-        factionIcon.setText("\uE903");
-        factionIcon.getStyleClass().add(SERAPHIM);
+        factionIcon.getStyleClass().add(UiService.SERAPHIM_STYLE_CLASS);
         break;
       case UEF:
-        factionIcon.setText("\uE904");
-        factionIcon.getStyleClass().add(UEF);
+        factionIcon.getStyleClass().add(UiService.UEF_STYLE_CLASS);
         break;
       default:
         factionIcon.setVisible(false);

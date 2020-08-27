@@ -112,7 +112,7 @@ public class SpecificationController implements Controller<Node> {
     datePicker.setVisible(false);
 
     valueField.managedProperty().bind(valueField.visibleProperty());
-    // JFXComboBox throws an exception if the field is bound bidirectionally but editable (or so...)
+    // ComboBox throws an exception if the field is bound bidirectionally but editable (or so...)
     valueField.editableProperty().bind(valueField.visibleProperty());
 
     operationField.setItems(comparisonOperators);

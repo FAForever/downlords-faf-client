@@ -43,7 +43,7 @@ public class GameTileController implements Controller<Node> {
   private final JoinGameHelper joinGameHelper;
   private final ModService modService;
   private final PlayerService playerService;
-  public Label lockIconLabel;
+  public Node lockIconLabel;
   public Label gameTypeLabel;
   public Node gameCardRoot;
   public Label gameMapLabel;

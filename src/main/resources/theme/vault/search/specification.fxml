@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXComboBox?>
-<?import com.jfoenix.controls.JFXDatePicker?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.DatePicker?>
 <HBox xmlns:fx="http://javafx.com/fxml/1" fx:id="specificationRoot" maxHeight="-Infinity" maxWidth="-Infinity"
       minHeight="-Infinity" minWidth="-Infinity" spacing="10" xmlns="http://javafx.com/javafx/8.0.111"
       fx:controller="com.faforever.client.query.SpecificationController">
-    <JFXComboBox fx:id="propertyField" maxHeight="1.7976931348623157E308"/>
-    <JFXComboBox fx:id="operationField" maxHeight="1.7976931348623157E308" prefWidth="150.0"/>
-    <JFXComboBox fx:id="valueField" editable="true" maxHeight="1.7976931348623157E308" prefWidth="300.0"
+    <ComboBox fx:id="propertyField" maxHeight="1.7976931348623157E308"/>
+    <ComboBox fx:id="operationField" maxHeight="1.7976931348623157E308" prefWidth="150.0"/>
+    <ComboBox fx:id="valueField" editable="true" maxHeight="1.7976931348623157E308" prefWidth="300.0"
                  promptText="%query.valueHint"/>
-    <JFXDatePicker fx:id="datePicker" maxHeight="1.7976931348623157E308" prefWidth="300.0"/>
+    <DatePicker fx:id="datePicker" maxHeight="1.7976931348623157E308" prefWidth="300.0"/>
 </HBox>

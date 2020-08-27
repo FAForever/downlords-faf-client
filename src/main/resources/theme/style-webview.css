@@ -10,7 +10,7 @@ html, body {
   padding: 0;
   /* Use same as -fx-light-text-color */
   color: #DCDCDC;
-  font-family: 'Open Sans', 'sans-serif';
+  font-family: 'System', 'sans-serif';
   font-size: 14px;
 }
 

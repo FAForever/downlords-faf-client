@@ -21,6 +21,7 @@ import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
+import javafx.scene.image.Image;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.Before;
 import org.junit.Rule;
@@ -133,7 +134,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGetLocalMapsOfficialMap() throws Exception {
     instance.officialMaps = ImmutableSet.of("SCMP_001");
-    
+
     Path scmp001 = Files.createDirectory(mapsDirectory.resolve("SCMP_001"));
     Files.copy(getClass().getResourceAsStream("/maps/SCMP_001/SCMP_001_scenario.lua"), scmp001.resolve("SCMP_001_scenario.lua"));
 
@@ -183,7 +184,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testInstalledOfficialMapIgnoreCase() throws Exception {
     instance.officialMaps = ImmutableSet.of("SCMP_001");
-    
+
     Path scmp001 = Files.createDirectory(mapsDirectory.resolve("SCMP_001"));
     Files.copy(getClass().getResourceAsStream("/maps/SCMP_001/SCMP_001_scenario.lua"), scmp001.resolve("SCMP_001_scenario.lua"));
 
@@ -196,6 +197,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   public void testLoadPreview() {
     for (PreviewSize previewSize : PreviewSize.values()) {
       Path cacheSubDir = Paths.get("maps").resolve(previewSize.folderName);
+      when(assetService.loadAndCacheImage(any(URL.class), eq(cacheSubDir), any())).thenReturn(new Image("theme/images/unknown_map.png"));
       instance.loadPreview("preview", previewSize);
       verify(assetService).loadAndCacheImage(any(URL.class), eq(cacheSubDir), any());
     }

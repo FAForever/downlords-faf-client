@@ -6,11 +6,11 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import java.lang.String?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="replayTileRoot" hgap="20.0" prefWidth="512" prefHeight="300"
-          onMouseClicked="#onShowReplayDetail" styleClass="card,pointable" vgap="10.0"
+          onMouseClicked="#onShowReplayDetail" styleClass="card, pointable, hoverable" vgap="10.0"
           xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.replay.ReplayCardController">
     <columnConstraints>
         <ColumnConstraints hgrow="NEVER" minWidth="96.0"/>
@@ -45,77 +45,42 @@
     <Label fx:id="dateLabel" graphicTextGap="10.0" text="&lt;Date&gt;" GridPane.columnIndex="0"
            GridPane.rowIndex="5">
         <graphic>
-            <Label text="">
-                <styleClass>
-                    <String fx:value="icon"/>
-                    <String fx:value="small"/>
-                </styleClass>
-            </Label>
+            <Region styleClass="icon, date-icon"/>
         </graphic>
     </Label>
     <Label fx:id="timeLabel" graphicTextGap="10.0" text="&lt;time&gt;" GridPane.columnIndex="0"
            GridPane.rowIndex="6">
         <graphic>
-            <Label text="">
-                <styleClass>
-                    <String fx:value="icon"/>
-                    <String fx:value="small"/>
-                </styleClass>
-            </Label>
+            <Region styleClass="icon, time-icon"/>
         </graphic>
     </Label>
     <Label fx:id="modLabel" graphicTextGap="10.0" text="&lt;Mod&gt;" GridPane.columnIndex="0" GridPane.rowIndex="7">
         <graphic>
-            <Label text="">
-                <styleClass>
-                    <String fx:value="icon"/>
-                    <String fx:value="small"/>
-                </styleClass>
-            </Label>
+            <Region styleClass="icon, mods-icon"/>
         </graphic>
     </Label>
     <Label fx:id="durationLabel" graphicTextGap="10.0" text="&lt;Duration&gt;" GridPane.columnIndex="0"
            GridPane.rowIndex="8">
         <graphic>
-            <Label text="">
-                <styleClass>
-                    <String fx:value="icon"/>
-                    <String fx:value="small"/>
-                </styleClass>
-            </Label>
+            <Region styleClass="icon, duration-icon"/>
         </graphic>
     </Label>
     <Label fx:id="playerCountLabel" graphicTextGap="10.0" text="&lt;PlayerCount&gt;" GridPane.columnIndex="1"
            GridPane.rowIndex="5">
         <graphic>
-            <Label text="">
-                <styleClass>
-                    <String fx:value="icon"/>
-                    <String fx:value="small"/>
-                </styleClass>
-            </Label>
+            <Region styleClass="icon, players-icon"/>
         </graphic>
     </Label>
     <Label fx:id="ratingLabel" graphicTextGap="10.0" layoutX="134.0" layoutY="68.0" text="&lt;AvgRating&gt;"
            GridPane.columnIndex="1" GridPane.rowIndex="6">
         <graphic>
-            <Label text="">
-                <styleClass>
-                    <String fx:value="icon"/>
-                    <String fx:value="small"/>
-                </styleClass>
-            </Label>
+            <Region styleClass="icon, statistics-icon"/>
         </graphic>
     </Label>
     <Label fx:id="qualityLabel" graphicTextGap="10.0" text="&lt;Quality&gt;" GridPane.columnIndex="1"
            GridPane.rowIndex="7">
         <graphic>
-            <Label text="">
-                <styleClass>
-                    <String fx:value="icon"/>
-                    <String fx:value="small"/>
-                </styleClass>
-            </Label>
+            <Region styleClass="icon, balance-icon"/>
         </graphic>
     </Label>
 </GridPane>

@@ -77,7 +77,7 @@ public class EnterPasswordController implements Controller<Node> {
     userInfoWindow.initModality(Modality.NONE);
     userInfoWindow.initOwner(owner);
 
-    Scene scene = uiService.createScene(userInfoWindow, getRoot());
+    Scene scene = uiService.createScene(getRoot());
     userInfoWindow.setScene(scene);
     userInfoWindow.show();
   }

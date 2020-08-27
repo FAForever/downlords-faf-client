@@ -4,7 +4,7 @@ import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.google.common.base.Strings;
-import com.jfoenix.controls.JFXRippler;
+import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
@@ -21,16 +21,16 @@ import java.util.function.Consumer;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class LanguageItemController implements Controller<Node> {
 
+  private static final PseudoClass PSEUDO_CLASS_SELECTED = PseudoClass.getPseudoClass("selected");
+
   private final I18n i18n;
   private final CountryFlagService countryFlagService;
   public Pane languageItemRoot;
   public Label localLanguageLabel;
   public Label translatedLanguageLabel;
   public ImageView localeImageView;
-  public Label checkedLabel;
   private Consumer<Locale> listener;
   private Locale locale;
-  private JFXRippler jfxRippler;
 
   public LanguageItemController(I18n i18n, CountryFlagService countryFlagService) {
     this.i18n = i18n;
@@ -39,16 +39,13 @@ public class LanguageItemController implements Controller<Node> {
 
   @Override
   public void initialize() {
-    checkedLabel.managedProperty().bind(checkedLabel.visibleProperty());
-
     localeImageView.managedProperty().bind(localeImageView.visibleProperty());
     localeImageView.setVisible(false);
-    jfxRippler = new JFXRippler(languageItemRoot);
   }
 
   @Override
   public Node getRoot() {
-    return jfxRippler;
+    return languageItemRoot;
   }
 
   public void setLocale(Locale locale) {
@@ -69,7 +66,7 @@ public class LanguageItemController implements Controller<Node> {
   }
 
   public void setSelected(boolean selected) {
-    checkedLabel.setVisible(selected);
+    languageItemRoot.pseudoClassStateChanged(PSEUDO_CLASS_SELECTED, selected);
   }
 
   public void onSelected() {

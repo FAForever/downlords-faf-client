@@ -24,10 +24,9 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.dialog.Dialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import com.jfoenix.controls.JFXButton;
-import com.jfoenix.controls.JFXDialog;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -72,6 +71,7 @@ public class CreateGameController implements Controller<Pane> {
 
   private static final int MAX_RATING_LENGTH = 4;
   public static final String STYLE_CLASS_DUAL_LIST_CELL = "create-game-dual-list-cell";
+  public static final PseudoClass PSEUDO_CLASS_INVALID = PseudoClass.getPseudoClass("invalid");
   private final MapService mapService;
   private final ModService modService;
   private final GameService gameService;
@@ -100,7 +100,7 @@ public class CreateGameController implements Controller<Pane> {
   public Pane mapPreviewPane;
   public Label versionLabel;
   public CheckBox onlyForFriendsCheckBox;
-  public JFXButton generateMapButton;
+  public Button generateMapButton;
   @VisibleForTesting
   FilteredList<MapBean> filteredMapBeans;
   private Runnable onCloseButtonClickedListener;
@@ -190,9 +190,9 @@ public class CreateGameController implements Controller<Pane> {
     titleTextField.textProperty().addListener((observable, oldValue, newValue) -> {
       preferencesService.getPreferences().getLastGamePrefs().setLastGameTitle(newValue);
       preferencesService.storeInBackground();
-      adjustCreateGameButtonBackgroundColor(newValue);
+      validateTitle(newValue);
     });
-    adjustCreateGameButtonBackgroundColor(titleTextField.getText());
+    validateTitle(titleTextField.getText());
 
     createGameButton.textProperty().bind(Bindings.createStringBinding(() -> {
       switch (fafService.connectionStateProperty().get()) {
@@ -217,9 +217,8 @@ public class CreateGameController implements Controller<Pane> {
     );
   }
 
-  private void adjustCreateGameButtonBackgroundColor(String newValue) {
-    PseudoClass invalidClass = PseudoClass.getPseudoClass("invalid");
-    titleTextField.pseudoClassStateChanged(invalidClass, Strings.isNullOrEmpty(newValue));
+  private void validateTitle(String gameTitle) {
+    titleTextField.pseudoClassStateChanged(PSEUDO_CLASS_INVALID, Strings.isNullOrEmpty(gameTitle));
   }
 
   private void initPassword() {
@@ -371,7 +370,7 @@ public class CreateGameController implements Controller<Pane> {
 
         Pane root = generateMapController.getRoot();
         generateMapController.setCreateGameController(this);
-        JFXDialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("game.generate.dialog"));
+        Dialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("game.generateMap.dialog"));
         generateMapController.setOnCloseButtonClickedListener(dialog::close);
 
         root.requestFocus();

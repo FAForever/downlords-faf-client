@@ -11,11 +11,11 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.vault.VaultEntityController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.jfoenix.controls.JFXDialog;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.stage.DirectoryChooser;
@@ -152,7 +152,7 @@ public class MapVaultController extends VaultEntityController<MapBean> {
     mapUploadController.setMapPath(path);
 
     Node root = mapUploadController.getRoot();
-    JFXDialog dialog = uiService.showInDialog(vaultRoot, root, i18n.get("mapVault.upload.title"));
+    Dialog dialog = uiService.showInDialog(vaultRoot, root, i18n.get("mapVault.upload.title"));
     mapUploadController.setOnCancelButtonClickedListener(dialog::close);
   }
 

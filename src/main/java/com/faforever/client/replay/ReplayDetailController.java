@@ -288,6 +288,9 @@ public class ReplayDetailController implements Controller<Node> {
     } else if (!replayService.replayChangedRating(replay)) {
       showRatingChangeButton.setDisable(true);
       showRatingChangeButton.setText(i18n.get("game.notRatedYet"));
+    } else {
+      showRatingChangeButton.setDisable(false);
+      showRatingChangeButton.setText(i18n.get("game.showRatingChange"));
     }
     Map<Integer, PlayerStats> statsByPlayerId = teams.values().stream()
         .flatMap(Collection::stream)
@@ -349,6 +352,6 @@ public class ReplayDetailController implements Controller<Node> {
 
   public void showRatingChange() {
     teamCardControllers.forEach(teamCardController -> teamCardController.showRatingChange(teams));
-    showRatingChangeButton.setVisible(false);
+    showRatingChangeButton.setDisable(true);
   }
 }

@@ -39,7 +39,7 @@ public class TransientNotificationControllerTest extends AbstractPlainJavaFxTest
 
   @Test
   public void testSetNotificationWithoutActions() throws Exception {
-    Image image = new Image(getClass().getResource("/theme/images/close.png").toExternalForm());
+    Image image = new Image(getClass().getResource("/theme/images/default_achievement.png").toExternalForm());
 
     TransientNotification notification = new TransientNotification("title", "text", image);
     instance.setNotification(notification);

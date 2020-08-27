@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXButton?>
+<?import javafx.scene.control.Button?>
 <?import com.jfoenix.controls.JFXColorPicker?>
-<?import com.jfoenix.controls.JFXComboBox?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.CustomMenuItem?>
 <?import javafx.scene.control.MenuItem?>
@@ -23,7 +23,7 @@
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                 <children>
                     <JFXColorPicker fx:id="colorPicker" HBox.hgrow="ALWAYS"/>
-                    <JFXButton fx:id="removeCustomColorButton" onAction="#onRemoveCustomColor" styleClass="icon,small"
+                    <Button fx:id="removeCustomColorButton" onAction="#onRemoveCustomColor" styleClass="icon,small"
                                text="" HBox.hgrow="NEVER"/>
                 </children>
             </HBox>
@@ -57,7 +57,7 @@
       <content>
       </content>
       <content>
-          <JFXComboBox fx:id="avatarComboBox" maxWidth="1.7976931348623157E308"/>
+          <ComboBox fx:id="avatarComboBox" maxWidth="1.7976931348623157E308"/>
       </content>
     </CustomMenuItem>
   </items>

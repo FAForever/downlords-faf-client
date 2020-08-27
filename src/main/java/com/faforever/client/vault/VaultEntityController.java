@@ -326,7 +326,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
     Class<? extends NavigateEvent> defaultNavigateEvent = getDefaultNavigateEvent();
-    if (!(navigateEvent.getClass().equals(defaultNavigateEvent))) {
+    if (!(navigateEvent.getClass().equals(defaultNavigateEvent)) && !navigateEvent.getClass().equals(NavigateEvent.class)) {
       if (state.get() == State.UNINITIALIZED) {
         state.addListener(new ChangeListener<>() {
           @Override

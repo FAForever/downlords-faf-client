@@ -1,18 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.image.ImageView?>
-<MenuButton xmlns:fx="http://javafx.com/fxml/1" fx:id="userButtonRoot" focusTraversable="false" graphicTextGap="10.0"
-            mnemonicParsing="false" styleClass="username-button" text="&lt;Username&gt;"
-            xmlns="http://javafx.com/javafx/8.0.60"
-            fx:controller="com.faforever.client.main.UserButtonController">
-    <graphic>
-        <ImageView fx:id="userImageView" fitHeight="32.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true"/>
-    </graphic>
+
+<MenuButton fx:id="userMenuButtonRoot" alignment="CENTER_RIGHT" focusTraversable="false" graphicTextGap="10.0" mnemonicParsing="false" styleClass="user-button" text="&lt;Username&gt;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.UserButtonController">
     <items>
-        <MenuItem mnemonicParsing="false" text="%userMenu.showProfile" onAction="#onShowProfile"/>
-        <MenuItem mnemonicParsing="false" text="%userMenu.logOut" onAction="#onLogOut"/>
+        <MenuItem mnemonicParsing="false" onAction="#onShowProfile" text="%userMenu.showProfile" />
+        <MenuItem mnemonicParsing="false" onAction="#onLogOut" text="%userMenu.logOut" />
     </items>
 </MenuButton>

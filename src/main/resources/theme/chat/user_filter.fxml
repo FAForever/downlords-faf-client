@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXTextField?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.RadioMenuItem?>
@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
-<GridPane fx:id="filterUserRoot" hgap="10.0" styleClass="filter-user-root" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.UserFilterController">
+<GridPane fx:id="filterUserRoot" hgap="10.0" styleClass="filter-user" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.UserFilterController">
   <columnConstraints>
     <ColumnConstraints hgrow="SOMETIMES" />
   </columnConstraints>
@@ -20,10 +20,10 @@
     <RowConstraints maxHeight="25.0" minHeight="0.0" prefHeight="21.0" vgrow="SOMETIMES" />
   </rowConstraints>
   <children>
-      <JFXTextField fx:id="clanFilterField" promptText="%chat.filter.clan" GridPane.columnSpan="2147483647"/>
-      <JFXTextField fx:id="minRatingFilterField" promptText="%chat.filter.minRating" GridPane.columnSpan="2147483647"
+      <TextField fx:id="clanFilterField" promptText="%chat.filter.clan" GridPane.columnSpan="2147483647"/>
+      <TextField fx:id="minRatingFilterField" promptText="%chat.filter.minRating" GridPane.columnSpan="2147483647"
                     GridPane.rowIndex="2"/>
-      <JFXTextField fx:id="maxRatingFilterField" promptText="%chat.filter.maxRating" GridPane.columnSpan="2147483647"
+      <TextField fx:id="maxRatingFilterField" promptText="%chat.filter.maxRating" GridPane.columnSpan="2147483647"
                     GridPane.rowIndex="1"/>
   <MenuButton fx:id="gameStatusMenu" mnemonicParsing="false" text="%game.gameStatus" GridPane.rowIndex="3">
     <items>

@@ -3,6 +3,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/11.0.1" fx:id="root"
       alignment="CENTER" spacing="10.0"
@@ -11,7 +12,11 @@
            text="%vault.replays.ownReplays"/>
     <FlowPane fx:id="pane" hgap="10.0" maxWidth="1.7976931348623157E308"
               prefWrapLength="1500.0" vgap="10.0"/>
-    <Button fx:id="moreButton" mnemonicParsing="false" styleClass="card, more-button"
-            text=""/>
+    <Button fx:id="moreButton" mnemonicParsing="false" styleClass="card, hoverable, pointable"
+            maxHeight="1.7976931348623157E308">
+        <graphic>
+            <Region styleClass="play-icon, icon"/>
+        </graphic>
+    </Button>
 </VBox>
 

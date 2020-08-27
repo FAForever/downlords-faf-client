@@ -13,4 +13,4 @@ wget "$url" -P ~/bin/ || {
 }
 chmod +x ~/bin/install-jdk.sh
 export JAVA_HOME="~/$JDK"
-~/bin/install-jdk.sh --url "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.7%2B10/OpenJDK11U-jdk_x64_linux_hotspot_11.0.7_10.tar.gz" --target "$JAVA_HOME" --workspace "$TRAVIS_HOME/.cache/install-jdk" --cacerts
+~/bin/install-jdk.sh --url "https://github.com/AdoptOpenJDK/openjdk14-binaries/releases/download/jdk-14%2B36/OpenJDK14U-jdk_x64_linux_hotspot_14_36.tar.gz" --target "$JAVA_HOME" --workspace "$TRAVIS_HOME/.cache/install-jdk" --cacerts

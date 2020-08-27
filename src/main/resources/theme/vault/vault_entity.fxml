@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXButton?>
-<?import com.jfoenix.controls.JFXComboBox?>
 <?import com.jfoenix.controls.JFXSpinner?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
@@ -12,8 +10,10 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.ComboBox?>
 <BorderPane fx:id="root" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <center>
         <StackPane fx:id="vaultRoot">
@@ -26,24 +26,24 @@
                     <HBox fx:id="searchBox" VBox.vgrow="NEVER">
                         <fx:include fx:id="search" source="search/search.fxml"
                                     HBox.hgrow="ALWAYS"/>
-                        <Button fx:id="manageModsButton" styleClass="button-raised" text="%modVault.manageMods"
-                                   visible="false"/>
+                        <Button fx:id="manageModsButton" text="%modVault.manageMods"
+                                visible="false"/>
                     </HBox>
                     <Separator maxWidth="1.7976931348623157E308"/>
                     <HBox spacing="10.0">
                         <Button fx:id="backButton" mnemonicParsing="false" text="%back">
                             <graphic>
-                                <Label styleClass="icon" text=""/>
+                                <Region styleClass="icon,back-icon"/>
                             </graphic>
                         </Button>
                         <Button fx:id="refreshButton" mnemonicParsing="false" text="%refresh">
                             <graphic>
-                                <Label styleClass="icon" text=""/>
+                                <Region styleClass="icon,refresh-icon"/>
                             </graphic>
                         </Button>
                         <Button fx:id="uploadButton" mnemonicParsing="false" text="%vault.upload">
                             <graphic>
-                                <Label styleClass="icon" text=""/>
+                                <Region styleClass="icon,upload-icon"/>
                             </graphic>
                         </Button>
                     </HBox>
@@ -73,15 +73,15 @@
         <HBox fx:id="paginationGroup" alignment="CENTER" BorderPane.alignment="CENTER">
             <VBox HBox.hgrow="ALWAYS">
                 <Label text="%search.perPage"/>
-                <JFXComboBox fx:id="perPageComboBox"/>
+                <ComboBox fx:id="perPageComboBox"/>
             </VBox>
             <VBox>
                 <HBox.margin>
                     <Insets top="5.0"/>
                 </HBox.margin>
-                <Button fx:id="firstPageButton">
+                <Button fx:id="firstPageButton" styleClass="page-button" prefHeight="36">
                     <graphic>
-                        <Label prefHeight="30.0" styleClass="icon" text=""/>
+                        <Region styleClass="icon,fast-rewind-icon"/>
                     </graphic>
                 </Button>
             </VBox>
@@ -92,9 +92,9 @@
                 <HBox.margin>
                     <Insets top="5.0"/>
                 </HBox.margin>
-                <Button fx:id="lastPageButton">
+                <Button fx:id="lastPageButton" styleClass="page-button" prefHeight="36">
                     <graphic>
-                        <Label prefHeight="30.0" styleClass="icon" text=""/>
+                        <Region styleClass="icon,fast-forward-icon"/>
                     </graphic>
                 </Button>
             </VBox>
