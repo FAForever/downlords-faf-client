@@ -171,6 +171,24 @@ public class MainController implements Controller<Node> {
     this.ratingBeta = clientProperties.getTrueSkill().getBeta();
   }
 
+  /**
+   * Hides the install4j splash screen. The hide method is invoked via reflection to accommodate starting the client
+   * without install4j (e.g. on linux).
+   */
+  private static void hideSplashScreen() {
+    try {
+      final Class splashScreenClass = Class.forName("com.install4j.api.launcher.SplashScreen");
+      final Method hideMethod = splashScreenClass.getDeclaredMethod("hide");
+      hideMethod.invoke(null);
+    } catch (ClassNotFoundException e) {
+      log.debug("No install4j splash screen found to close.");
+    } catch (NoSuchMethodException | IllegalAccessException e) {
+      log.error("Couldn't close install4j splash screen.", e);
+    } catch (InvocationTargetException e) {
+      log.error("Couldn't close install4j splash screen.", e.getCause());
+    }
+  }
+
   public void initialize() {
     newsButton.setUserData(NavigationItem.NEWS);
     chatButton.setUserData(NavigationItem.CHAT);
@@ -303,24 +321,6 @@ public class MainController implements Controller<Node> {
     notificationButton.pseudoClassStateChanged(NOTIFICATION_ERROR_PSEUDO_CLASS, highestSeverity == Severity.ERROR);
   }
 
-  /**
-   * Hides the install4j splash screen. The hide method is invoked via reflection to accommodate starting the client
-   * without install4j (e.g. on linux).
-   */
-  private static void hideSplashScreen() {
-    try {
-      final Class splashScreenClass = Class.forName("com.install4j.api.launcher.SplashScreen");
-      final Method hideMethod = splashScreenClass.getDeclaredMethod("hide");
-      hideMethod.invoke(null);
-    } catch (ClassNotFoundException e) {
-      log.debug("No install4j splash screen found to close.");
-    } catch (NoSuchMethodException | IllegalAccessException e) {
-      log.error("Couldn't close install4j splash screen.", e);
-    } catch (InvocationTargetException e) {
-      log.error("Couldn't close install4j splash screen.", e.getCause());
-    }
-  }
-
   private void onMatchmakerMessage(MatchmakerInfoMessage message) {
     if (message.getQueues() == null
         || gameService.gameRunningProperty().get()
@@ -380,8 +380,6 @@ public class MainController implements Controller<Node> {
     setBackgroundImage(preferencesService.getPreferences().getMainWindow().getBackgroundImagePath());
 
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
-    double x = mainWindowPrefs.getX();
-    double y = mainWindowPrefs.getY();
     int width = mainWindowPrefs.getWidth();
     int height = mainWindowPrefs.getHeight();
 
@@ -394,12 +392,19 @@ public class MainController implements Controller<Node> {
     hideSplashScreen();
     enterLoggedOutState();
 
-    setWindowPosition(stage, x, y, width, height);
+    JavaFxUtil.assertApplicationThread();
     stage.setMaximized(mainWindowPrefs.getMaximized());
+    if (!stage.isMaximized()) {
+      setWindowPosition(stage, mainWindowPrefs);
+    }
     registerWindowListeners();
   }
 
-  private void setWindowPosition(Stage stage, double x, double y, int width, int height) {
+  private void setWindowPosition(Stage stage, WindowPrefs mainWindowPrefs) {
+    double x = mainWindowPrefs.getX();
+    double y = mainWindowPrefs.getY();
+    int width = mainWindowPrefs.getWidth();
+    int height = mainWindowPrefs.getHeight();
     ObservableList<Screen> screensForRectangle = Screen.getScreensForRectangle(x, y, width, height);
     if (screensForRectangle.isEmpty()) {
       JavaFxUtil.centerOnScreen(stage);
@@ -444,6 +449,13 @@ public class MainController implements Controller<Node> {
       if (!stage.isMaximized()) {
         mainWindowPrefs.setY(stage.getY());
         preferencesService.storeInBackground();
+      }
+    });
+    JavaFxUtil.addListener(stage.maximizedProperty(), observable -> {
+      mainWindowPrefs.setMaximized(stage.isMaximized());
+      preferencesService.storeInBackground();
+      if (!stage.isMaximized()) {
+        setWindowPosition(stage, mainWindowPrefs);
       }
     });
     JavaFxUtil.addListener(mainWindowPrefs.backgroundImagePathProperty(), observable -> {
