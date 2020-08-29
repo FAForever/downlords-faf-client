@@ -1,14 +1,12 @@
 package com.faforever.client.fx;
 
 import com.faforever.client.theme.UiService;
+import com.google.common.base.Strings;
 import javafx.scene.Node;
-import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import javafx.scene.web.WebView;
-import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -22,26 +20,19 @@ public class DualStringListCellController implements Controller<Node> {
   public HBox root;
   public Label left;
   public Label right;
+  public WebView webViewToolTip;
 
   public void setLeftText(String apply) {
     left.setText(apply);
   }
 
-  public void setLeftTextTooltip(String apply) {
-    final WebView web = new WebView();
-    uiService.registerWebView(web);
-    web.setPrefSize(web.getPrefWidth() / 2, web.getPrefHeight() / 2);
-    web.getEngine().loadContent(apply);
-    final Tooltip  tip = new Tooltip();
-    tip.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-    tip.setGraphic(web);
-    tip.setShowDelay(Duration.ZERO);
-    tip.setHideDelay(Duration.seconds(3));
-    left.setTooltip(tip);
-  }
+  public void setRightText(String apply) { right.setText(apply); }
 
-  public void setRightText(String apply) {
-    right.setText(apply);
+  public void setWebViewToolTip(String apply) {
+    if (!Strings.isNullOrEmpty(apply)) {
+      uiService.registerWebView(webViewToolTip);
+      webViewToolTip.getEngine().loadContent(apply);
+    }
   }
 
   public void applyFont(Font font) {

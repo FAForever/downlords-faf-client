@@ -151,8 +151,8 @@ public class CreateGameController implements Controller<Pane> {
     featuredModListView.setCellFactory(param ->
         new DualStringListCell<>(
             FeaturedMod::getDisplayName,
-            FeaturedMod::getDescription,
             isDefaultModString,
+            FeaturedMod::getDescription,
             STYLE_CLASS_DUAL_LIST_CELL, uiService
         )
     );
