@@ -75,6 +75,7 @@ public class ReplayDetailController implements Controller<Node> {
   private final PlayerService playerService;
   private final ClientProperties clientProperties;
   private final ReviewService reviewService;
+  private final ArrayList<TeamCardController> teamCardControllers = new ArrayList<>();
   public Pane replayDetailRoot;
   public Label titleLabel;
   public Button copyButton;
@@ -103,11 +104,10 @@ public class ReplayDetailController implements Controller<Node> {
   public TextField replayIdField;
   public ScrollPane scrollPane;
   public Button showRatingChangeButton;
-  private final ArrayList<TeamCardController> teamCardControllers = new ArrayList<>();
+  public Label notRatedReasonLabel;
   @Setter
   private Runnable onClosure;
   private Replay replay;
-  public Label notRatedReasonLabel;
   private ObservableMap<String, List<PlayerStats>> teams;
 
   public void initialize() {
@@ -184,9 +184,9 @@ public class ReplayDetailController implements Controller<Node> {
     }
 
     modLabel.setText(
-      Optional.ofNullable(replay.getFeaturedMod())
-        .map(mod -> mod.getDisplayName())
-        .orElseGet(() -> i18n.get("unknown"))
+        Optional.ofNullable(replay.getFeaturedMod())
+            .map(mod -> mod.getDisplayName())
+            .orElseGet(() -> i18n.get("unknown"))
     );
     playerCountLabel.setText(i18n.number(replay.getTeams().values().stream().mapToInt(List::size).sum()));
     double gameQuality = ratingService.calculateQuality(replay);
@@ -319,7 +319,7 @@ public class ReplayDetailController implements Controller<Node> {
     if (!replay.getValidity().equals(Validity.VALID)) {
       showRatingChangeButton.setVisible(false);
       notRatedReasonLabel.setVisible(true);
-      notRatedReasonLabel.setText(i18n.get("game.reasonNotValid", replay.getValidity()));
+      notRatedReasonLabel.setText(i18n.get("game.reasonNotValid", i18n.get(String.format("game.reasonNotValid.%d", replay.getValidity().ordinal()))));
     } else if (!replayService.replayChangedRating(replay)) {
       showRatingChangeButton.setVisible(false);
       notRatedReasonLabel.setVisible(true);
