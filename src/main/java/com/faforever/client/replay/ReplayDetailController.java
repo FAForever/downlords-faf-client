@@ -46,6 +46,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -65,6 +66,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class ReplayDetailController implements Controller<Node> {
+
+  public final String REASON_KEY_FORMAT = "game.reasonNotValid.%d";
 
   private final TimeService timeService;
   private final I18n i18n;
@@ -319,7 +322,13 @@ public class ReplayDetailController implements Controller<Node> {
     if (!replay.getValidity().equals(Validity.VALID)) {
       showRatingChangeButton.setVisible(false);
       notRatedReasonLabel.setVisible(true);
-      notRatedReasonLabel.setText(i18n.get("game.reasonNotValid", i18n.get(i18n.get("game.reasonNotValid.keyFormat", replay.getValidity().ordinal()))));
+      String reasonText;
+      try {
+        reasonText = i18n.get("game.reasonNotValid", i18n.get(String.format(REASON_KEY_FORMAT, replay.getValidity().ordinal())));
+      } catch (NoSuchMessageException e) {
+        reasonText = replay.getValidity().toString();
+      }
+      notRatedReasonLabel.setText(reasonText);
     } else if (!replayService.replayChangedRating(replay)) {
       showRatingChangeButton.setVisible(false);
       notRatedReasonLabel.setVisible(true);

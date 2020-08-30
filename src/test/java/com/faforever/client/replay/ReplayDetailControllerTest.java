@@ -123,12 +123,12 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     replay.getReviews().setAll(FXCollections.emptyObservableList());
     when(replayService.getSize(replay.getId())).thenReturn(CompletableFuture.completedFuture(1024));
     when(ratingService.calculateQuality(replay)).thenReturn(0.427);
-    when(i18n.get("game.reasonNotValid", Validity.HAS_AI)).thenReturn("Reason: HAS_AI");
+    when(i18n.get("game.reasonNotValid", i18n.get(String.format(instance.REASON_KEY_FORMAT, replay.getValidity().ordinal())))).thenReturn("Reason: HAS_AI");
 
     instance.setReplay(replay);
 
     assertTrue(instance.notRatedReasonLabel.isVisible());
-    assertEquals(instance.notRatedReasonLabel.getText(), "Reason: HAS_AI");
+    assertEquals("Reason: HAS_AI", instance.notRatedReasonLabel.getText());
   }
 
   @Test
