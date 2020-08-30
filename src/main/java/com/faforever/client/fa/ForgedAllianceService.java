@@ -39,7 +39,7 @@ public class ForgedAllianceService {
         .executableDecorator(preferencesService.getPreferences().getForgedAlliance().getExecutableDecorator())
         .executable(executable)
         .additionalArgs(args)
-        .logFile(preferencesService.getNewGameLogFile())
+        .logFile(preferencesService.getNewGameLogFile(0))
 
         .build();
 
@@ -73,7 +73,7 @@ public class ForgedAllianceService {
         .mean(mean)
         .username(currentPlayer.getUsername())
         .additionalArgs(additionalArgs)
-        .logFile(preferencesService.getNewGameLogFile())
+        .logFile(preferencesService.getNewGameLogFile(uid))
         .localGpgPort(gpgPort)
         .localReplayPort(localReplayPort)
         .rehost(rehost)
@@ -90,7 +90,7 @@ public class ForgedAllianceService {
         .executable(executable)
         .replayFile(path)
         .replayId(replayId)
-        .logFile(preferencesService.getNewGameLogFile())
+        .logFile(preferencesService.getNewGameLogFile(replayId))
         .build();
 
     return launch(executable, launchCommand);

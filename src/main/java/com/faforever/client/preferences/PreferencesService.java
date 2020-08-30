@@ -48,12 +48,10 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
@@ -87,7 +85,7 @@ public class PreferencesService implements InitializingBean {
   private static final String CACHE_SUB_FOLDER = "cache";
   private static final String CACHE_STYLESHEETS_SUB_FOLDER = Paths.get(CACHE_SUB_FOLDER, "stylesheets").toString();
   private static final Path CACHE_DIRECTORY;
-  private static final Pattern GAME_LOG_PATTERN = Pattern.compile("game(_\\d{4}-\\d{2}-\\d{2}_\\d{6})?.log");
+  private static final Pattern GAME_LOG_PATTERN = Pattern.compile("game(_\\d*)?.log");
   private static final int NUMBER_GAME_LOGS_STORED = 10;
 
   static {
@@ -355,7 +353,7 @@ public class PreferencesService implements InitializingBean {
     return getFafDataDirectory().resolve("themes");
   }
 
-  public Path getNewGameLogFile() {
+  public Path getNewGameLogFile(int gameUID) {
     try (Stream<Path> listOfLogFiles = Files.list(getFafLogDirectory())) {
       listOfLogFiles
           .filter(p -> GAME_LOG_PATTERN.matcher(p.getFileName().toString()).matches())
@@ -368,7 +366,7 @@ public class PreferencesService implements InitializingBean {
     } catch (NoCatchException e) {
       logger.error("Could not delete game log file");
     }
-    return getFafLogDirectory().resolve(new SimpleDateFormat("'game_'yyyy-MM-dd_HHmmss'.log'").format(new Date()));
+    return getFafLogDirectory().resolve(String.format("game_%d.log", gameUID));
   }
 
   @SneakyThrows
