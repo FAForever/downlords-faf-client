@@ -19,6 +19,7 @@ import com.faforever.client.replay.Replay.ChatMessage;
 import com.faforever.client.replay.Replay.GameOption;
 import com.faforever.client.replay.Replay.PlayerStats;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.ClipboardUtil;
 import com.faforever.client.util.Rating;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
@@ -38,8 +39,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import lombok.RequiredArgsConstructor;
@@ -344,10 +343,8 @@ public class ReplayDetailController implements Controller<Node> {
 
 
   public void copyLink() {
-    final Clipboard clipboard = Clipboard.getSystemClipboard();
-    final ClipboardContent content = new ClipboardContent();
-    content.putString(Replay.getReplayUrl(replay.getId(), clientProperties.getVault().getReplayDownloadUrlFormat()));
-    clipboard.setContent(content);
+    String replayUrl = Replay.getReplayUrl(replay.getId(), clientProperties.getVault().getReplayDownloadUrlFormat());
+    ClipboardUtil.copyToClipboard(replayUrl);
   }
 
   public void showRatingChange() {
