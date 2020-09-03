@@ -31,6 +31,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +49,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import javax.imageio.ImageIO;
 import javax.inject.Inject;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
@@ -303,7 +306,12 @@ public class MapService implements InitializingBean, DisposableBean {
   @Cacheable(value = CacheNames.MAP_PREVIEW, unless = "#result == null")
   public Image loadPreview(String mapName, PreviewSize previewSize) {
     if (mapGeneratorService.isGeneratedMap(mapName)) {
-      return mapGeneratorService.getGeneratedMapPreviewImage();
+      try {
+        BufferedImage image = ImageIO.read(forgedAlliancePreferences.getCustomMapsDirectory().resolve(mapName).resolve(mapName + "_preview.png").toFile());
+        return SwingFXUtils.toFXImage(image, null);
+      } catch (IOException e) {
+        return mapGeneratorService.getGeneratedMapPreviewImage();
+      }
     }
 
     return loadPreview(getPreviewUrl(mapName, mapPreviewUrlFormat, previewSize), previewSize);
