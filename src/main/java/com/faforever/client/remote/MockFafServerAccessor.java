@@ -76,7 +76,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   private final I18n i18n;
   private final EventBus eventBus;
 
-  private final ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>();
+  private final ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
 
   @Override
   @SuppressWarnings("unchecked")
@@ -331,7 +331,6 @@ public class MockFafServerAccessor implements FafServerAccessor {
     gameInfoMessage.setState(GameStatus.OPEN);
     gameInfoMessage.setSimMods(Collections.emptyMap());
     gameInfoMessage.setTeams(Collections.emptyMap());
-    gameInfoMessage.setFeaturedModVersions(Collections.emptyMap());
     gameInfoMessage.setPasswordProtected(access == GameAccess.PASSWORD);
 
     return gameInfoMessage;

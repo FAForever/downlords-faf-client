@@ -9,6 +9,7 @@ import com.faforever.client.main.event.OpenReplayVaultEvent;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.replay.OnlineReplayVaultController;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.replay.ReplayVaultController;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.Node;
@@ -18,26 +19,29 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
-
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class VaultController extends AbstractViewController<Node> {
-  public TabPane vaultRoot;
   // TODO change to spring event bus
   private final EventBus eventBus;
+  private final UiService uiService;
+  public TabPane vaultRoot;
   public Tab mapVaultTab;
   public Tab modVaultTab;
   public MapVaultController mapVaultController;
   public ModVaultController modVaultController;
+
   public OnlineReplayVaultController onlineReplayVaultController;
   public ReplayVaultController localReplayVaultController;
   public Tab onlineReplayVaultTab;
   public Tab localReplayVaultTab;
   private boolean isHandlingEvent;
+  private AbstractViewController<?> lastTabController;
+  private Tab lastTab;
 
-  public VaultController(EventBus eventBus) {
+  public VaultController(EventBus eventBus, UiService uiService) {
     this.eventBus = eventBus;
+    this.uiService = uiService;
   }
 
   @Override
@@ -47,7 +51,14 @@ public class VaultController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
-    eventBus.post(new OpenMapVaultEvent());
+    onlineReplayVaultController = uiService.loadFxml("theme/vault/vault_entity.fxml", OnlineReplayVaultController.class);
+    onlineReplayVaultTab.setContent(onlineReplayVaultController.getRoot());
+    mapVaultController = uiService.loadFxml("theme/vault/vault_entity.fxml", MapVaultController.class);
+    mapVaultTab.setContent(mapVaultController.getRoot());
+    modVaultController = uiService.loadFxml("theme/vault/vault_entity.fxml", ModVaultController.class);
+    modVaultTab.setContent(modVaultController.getRoot());
+    lastTab = onlineReplayVaultTab;
+    lastTabController = onlineReplayVaultController;
     vaultRoot.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
       if (isHandlingEvent) {
         return;
@@ -72,21 +83,20 @@ public class VaultController extends AbstractViewController<Node> {
 
     try {
       if (navigateEvent instanceof OpenMapVaultEvent) {
-        vaultRoot.getSelectionModel().select(mapVaultTab);
-        mapVaultController.display(navigateEvent);
+        lastTab = mapVaultTab;
+        lastTabController = mapVaultController;
+      } else if (navigateEvent instanceof OpenModVaultEvent) {
+        lastTab = modVaultTab;
+        lastTabController = modVaultController;
+      } else if (navigateEvent instanceof OpenOnlineReplayVaultEvent) {
+        lastTab = onlineReplayVaultTab;
+        lastTabController = onlineReplayVaultController;
+      } else if (navigateEvent instanceof OpenReplayVaultEvent) {
+        lastTab = localReplayVaultTab;
+        lastTabController = localReplayVaultController;
       }
-      if (navigateEvent instanceof OpenModVaultEvent) {
-        vaultRoot.getSelectionModel().select(modVaultTab);
-        modVaultController.display(navigateEvent);
-      }
-      if (navigateEvent instanceof OpenOnlineReplayVaultEvent) {
-        vaultRoot.getSelectionModel().select(onlineReplayVaultTab);
-        onlineReplayVaultController.display(navigateEvent);
-      }
-      if (navigateEvent instanceof OpenReplayVaultEvent) {
-        vaultRoot.getSelectionModel().select(localReplayVaultTab);
-        localReplayVaultController.display(navigateEvent);
-      }
+      vaultRoot.getSelectionModel().select(lastTab);
+      lastTabController.display(navigateEvent);
     } finally {
       isHandlingEvent = false;
     }

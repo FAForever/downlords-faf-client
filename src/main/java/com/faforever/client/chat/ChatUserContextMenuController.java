@@ -22,10 +22,9 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.alert.Alert;
+import com.faforever.client.ui.alert.animation.AlertAnimation;
 import com.google.common.eventbus.EventBus;
-import com.jfoenix.animation.alert.JFXAlertAnimation;
-import com.jfoenix.controls.JFXAlert;
-import com.jfoenix.controls.JFXButton;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
@@ -33,6 +32,7 @@ import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
@@ -42,7 +42,6 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,7 +93,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public MenuItem banItem;
   public ContextMenu chatUserContextMenuRoot;
   public MenuItem showUserInfo;
-  public JFXButton removeCustomColorButton;
+  public Button removeCustomColorButton;
   private ChatChannelUser chatUser;
   public MenuItem kickGameItem;
   public MenuItem kickLobbyItem;
@@ -319,14 +318,14 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
   public void onBan(ActionEvent actionEvent) {
     actionEvent.consume();
-    JFXAlert<?> dialog = new JFXAlert<>((Stage) getRoot().getOwnerWindow());
+    Alert<?> dialog = new Alert<>(getRoot().getOwnerWindow());
 
     BanDialogController controller = ((BanDialogController) uiService.loadFxml("theme/moderator/ban_dialog.fxml"))
         .setPlayer(getPlayer())
         .setCloseListener(dialog::close);
 
     dialog.setContent(controller.getDialogLayout());
-    dialog.setAnimation(JFXAlertAnimation.TOP_ANIMATION);
+    dialog.setAnimation(AlertAnimation.TOP_ANIMATION);
     dialog.show();
   }
 

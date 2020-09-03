@@ -6,6 +6,7 @@ import com.faforever.client.map.MapBuilder;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.FeaturedMod;
+import com.faforever.client.mod.ModManagerController;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.mod.ModVersion;
 import com.faforever.client.net.ConnectionState;
@@ -19,15 +20,18 @@ import com.faforever.client.theme.UiService;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.css.PseudoClass;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.Arrays.asList;
@@ -78,6 +82,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   private FafService fafService;
   @Mock
   private MapGeneratorService mapGeneratorService;
+  @Mock
+  private ModManagerController modManagerController;
 
   private Preferences preferences;
   private CreateGameController instance;
@@ -94,13 +100,17 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(mapService.getInstalledMaps()).thenReturn(mapList);
     when(modService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(emptyList()));
-    when(modService.getInstalledModVersions()).thenReturn(FXCollections.observableList(emptyList()));
-    when(mapService.loadPreview(anyString(), any())).thenReturn(new Image("/theme/images/close.png"));
+    when(mapService.loadPreview(anyString(), any())).thenReturn(new Image("/theme/images/default_achievement.png"));
     when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
     when(i18n.number(anyInt())).then(invocation -> invocation.getArgument(0).toString());
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
 
-    loadFxml("theme/play/create_game.fxml", clazz -> instance);
+    loadFxml("theme/play/create_game.fxml", clazz -> {
+      if (clazz.equals(ModManagerController.class)) {
+        return modManagerController;
+      }
+      return instance;
+    });
   }
 
   @Test
@@ -246,9 +256,41 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   public void testInitGameTypeComboBoxEmpty() throws Exception {
     instance = new CreateGameController(mapService, modService, gameService, preferencesService, i18n, notificationService,
         reportingService, fafService, mapGeneratorService, uiService);
-    loadFxml("theme/play/create_game.fxml", clazz -> instance);
+
+    loadFxml("theme/play/create_game.fxml", clazz -> {
+      if (clazz.equals(ModManagerController.class)) {
+        return modManagerController;
+      }
+      return instance;
+    });
 
     assertThat(instance.featuredModListView.getItems(), empty());
+  }
+
+  @Test
+  public void testCreateGame() {
+    ArgumentCaptor<NewGameInfo> newGameInfoArgumentCaptor = ArgumentCaptor.forClass(NewGameInfo.class);
+    ModVersion modVersion = new ModVersion();
+    String uidMod = "junit-mod";
+    modVersion.setUid(uidMod);
+    when(modManagerController.apply()).thenReturn(Collections.singletonList(modVersion));
+
+    Runnable closeRunnable = mock(Runnable.class);
+    instance.setOnCloseButtonClickedListener(closeRunnable);
+
+    when(gameService.hostGame(newGameInfoArgumentCaptor.capture())).thenReturn(CompletableFuture.completedFuture(null));
+
+    String mapFolderName = "junit-map-folder";
+    mapList.add(MapBuilder.create().defaultValues().displayName("Test1").folderName(mapFolderName).get());
+    instance.mapListView.getSelectionModel().select(0);
+
+    instance.onCreateButtonClicked();
+
+    verify(modManagerController).apply();
+    verify(closeRunnable).run();
+
+    assertThat(newGameInfoArgumentCaptor.getValue().getSimMods(), contains(uidMod));
+    assertThat(newGameInfoArgumentCaptor.getValue().getMap(), is(mapFolderName));
   }
 
   @Test
@@ -292,24 +334,6 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testInitModListPopulated() {
-    assertThat(instance.modListView.getItems(), empty());
-
-    ModVersion modVersion1 = mock(ModVersion.class);
-    ModVersion modVersion2 = mock(ModVersion.class);
-
-    when(modService.getInstalledModVersions()).thenReturn(FXCollections.observableArrayList(
-        modVersion1, modVersion2
-    ));
-
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
-
-    assertThat(instance.modListView.getItems(), hasSize(2));
-    assertThat(instance.modListView.getItems(), contains(modVersion1, modVersion2));
-  }
-
-  @Test
   public void testOnlyFriendsBinding() {
     instance.onlyForFriendsCheckBox.setSelected(true);
     assertThat(preferences.getLastGamePrefs().isLastGameOnlyFriends(), is(true));
@@ -323,4 +347,14 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     assertEquals(preferences.getLastGamePrefs().getLastGamePassword(), "1234");
     verify(preferencesService).storeInBackground();
   }
+
+  @Test
+  public void testCreateGameTitleTextBorderColor() {
+    PseudoClass invalidClass = PseudoClass.getPseudoClass("invalid");
+    instance.titleTextField.setText("Test");
+    assertThat(instance.titleTextField.getPseudoClassStates().contains(invalidClass), is(false));
+    instance.titleTextField.setText("");
+    assertThat(instance.titleTextField.getPseudoClassStates().contains(invalidClass), is(true));
+  }
+
 }

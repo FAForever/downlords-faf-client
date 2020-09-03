@@ -225,7 +225,7 @@ public class MapUploadController implements Controller<Node> {
     return mapUploadRoot;
   }
 
-  void setOnCancelButtonClickedListener(Runnable cancelButtonClickedListener) {
+  public void setOnCancelButtonClickedListener(Runnable cancelButtonClickedListener) {
     this.cancelButtonClickedListener = cancelButtonClickedListener;
   }
 

@@ -1,0 +1,13 @@
+.alert-overlay {
+  -fx-background-color: -dimmer-color;
+  -fx-padding: 0;
+}
+
+.alert-overlay > .depth-container > .alert-content-container,
+.alert-overlay > .alert-content-container {
+  -fx-background-color: -fx-background;
+  -fx-background: -fx-base;
+  -fx-background-radius: 3;
+  -fx-border-color: -fx-box-border;
+  -fx-border-radius: 3;
+}

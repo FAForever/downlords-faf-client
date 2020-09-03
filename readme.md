@@ -9,12 +9,12 @@ The official client for [Forged Alliance Forever (FAF)](https://www.faforever.co
 
 ## Support development
 
-Post a bounty on Issue Hunt. You can reward and financially help developers that solve the issue. 
+Post a bounty on Issue Hunt. You can reward and financially help developers that solve the issue. Concerning new features it can be helpful to first ask on whether other people also see your change as an improvement in order to not found feature that will not be accepted.
 
 [![Issue hunt](https://github.com/BoostIO/issuehunt-materials/raw/master/v1/issuehunt-button-v1.svg?sanitize=true)](https://issuehunt.io/r/FAForever/downlords-faf-client)
 
 ## How to run
-1. Use [AdoptOpenJDK](https://adoptopenjdk.net/) 11 or Oracle JDK 11 (others might not work)
+1. Use [AdoptOpenJDK](https://adoptopenjdk.net/) 14 or Oracle JDK 14 (others might not work)
 1. Clone the project with Git
     - using SSH: `git clone git@github.com:FAForever/downlords-faf-client.git`
     - using HTTPS: `https://github.com/FAForever/downlords-faf-client.git`

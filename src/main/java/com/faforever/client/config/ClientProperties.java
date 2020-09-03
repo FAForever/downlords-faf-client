@@ -150,6 +150,9 @@ public class ClientProperties {
     private String downloadUrlFormat;
     private String repoAndOwnerName;
     private String queryLatestVersionUrl;
+    private String queryVersionsUrl;
+    private int maxSupportedMajorVersion;
+    private int minSupportedMajorVersion;
   }
 
   @Data

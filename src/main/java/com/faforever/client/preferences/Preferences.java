@@ -29,6 +29,7 @@ public class Preferences {
   public static final String DEFAULT_THEME_NAME = "default";
 
   private final WindowPrefs mainWindow;
+  private final GeneratorPrefs generatorPrefs;
   private final ForgedAlliancePrefs forgedAlliance;
   private final LoginPrefs login;
   private final ChatPrefs chat;
@@ -57,6 +58,7 @@ public class Preferences {
     gameTileSortingOrder = new SimpleObjectProperty<>(TilesSortingOrder.PLAYER_DES);
     chat = new ChatPrefs();
     login = new LoginPrefs();
+    generatorPrefs = new GeneratorPrefs();
 
     localization = new LocalizationPrefs();
     lastGamePrefs = new LastGamePrefs();
@@ -71,7 +73,7 @@ public class Preferences {
     developer = new DeveloperPrefs();
     gameListSorting = new SimpleListProperty<>(observableArrayList());
     vaultPrefs = new VaultPrefs();
-    unitDataBaseType = new SimpleObjectProperty<>(UnitDataBaseType.RACKOVER);
+    unitDataBaseType = new SimpleObjectProperty<>(UnitDataBaseType.SPOOKY);
     storedCookies = new SimpleMapProperty<>(FXCollections.observableHashMap());
     showPasswordProtectedGames = new SimpleBooleanProperty(true);
     showModdedGames = new SimpleBooleanProperty(true);
@@ -264,6 +266,10 @@ public class Preferences {
 
   public void setShowModdedGames(boolean showModdedGames) {
     this.showModdedGames.set(showModdedGames);
+  }
+
+  public GeneratorPrefs getGeneratorPrefs() {
+    return generatorPrefs;
   }
 
   public enum UnitDataBaseType {

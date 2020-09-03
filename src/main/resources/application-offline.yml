@@ -1,0 +1,5 @@
+faf-client:
+
+  vault:
+    base-url: https://localhost
+    replay-download-url-format: https://localhost/%s

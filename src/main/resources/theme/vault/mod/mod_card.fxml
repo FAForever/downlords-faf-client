@@ -8,17 +8,17 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="modTileRoot" hgap="10.0" onMouseClicked="#onShowModDetail"
-          prefWidth="200.0" styleClass="card,pointable" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.141"
+          prefWidth="200.0" styleClass="card, pointable, hoverable" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.141"
           fx:controller="com.faforever.client.mod.ModCardController">
-  <columnConstraints>
-      <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-      <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
-  </columnConstraints>
-  <rowConstraints>
-      <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-      <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-      <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-      <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+    <columnConstraints>
+        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+        <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
       <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
   </rowConstraints>
   <children>

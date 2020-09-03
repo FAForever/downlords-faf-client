@@ -1,25 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.text.Text?>
-<?import java.lang.String?>
 <StackPane xmlns:fx="http://javafx.com/fxml/1" styleClass="review-star" fx:id="starRoot" maxHeight="-Infinity"
            maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onMouseClicked="#onMouseClicked"
            xmlns="http://javafx.com/javafx/8.0.111" fx:controller="com.faforever.client.vault.review.StarController">
     <children>
-        <Text fx:id="starBackground" boundsType="VISUAL" mouseTransparent="true" stroke="WHITE" strokeType="OUTSIDE"
-              strokeWidth="0.0" text="">
-            <styleClass>
-                <String fx:value="icon"/>
-                <String fx:value="review-star-background"/>
-            </styleClass>
-        </Text>
-        <Text fx:id="starFill" boundsType="VISUAL" mouseTransparent="true" stroke="WHITE" strokeType="OUTSIDE"
-              strokeWidth="0.0" text="">
-            <styleClass>
-                <String fx:value="icon"/>
-                <String fx:value="review-star-fill"/>
-            </styleClass>
-        </Text>
+        <Region fx:id="starBackground" mouseTransparent="true" styleClass="icon,star-icon,review-star-background"/>
+        <Region fx:id="starFill" mouseTransparent="true" styleClass="icon,star-icon,review-star-fill"/>
     </children>
 </StackPane>

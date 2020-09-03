@@ -19,13 +19,10 @@ public class GameInfoMessage extends FafServerMessage {
   private GameStatus state;
   private Integer numPlayers;
   private Map<String, List<String>> teams;
-  private Map<String, Integer> featuredModVersions;
   private String featuredMod;
   private Integer uid;
   private Integer maxPlayers;
   private String title;
-  // FAF calls this "game_type" but it's actually the victory condition.
-  private VictoryCondition gameType;
   private Map<String, String> simMods;
   private String mapname;
   private Double launchedAt;

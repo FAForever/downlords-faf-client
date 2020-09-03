@@ -14,14 +14,10 @@ public class Theme {
   private static final String COMPATIBILITY_VERSION = "compatibilityVersion";
   private static final String THEME_VERSION = "themeVersion";
 
-  private StringProperty displayName;
-  private StringProperty author;
-  private SimpleObjectProperty<Integer> compatibilityVersion;
-  private StringProperty themeVersion;
-
-  public Theme() {
-    this(null, null, null, null);
-  }
+  private final StringProperty displayName;
+  private final StringProperty author;
+  private final SimpleObjectProperty<Integer> compatibilityVersion;
+  private final StringProperty themeVersion;
 
   public Theme(String displayName, String author, Integer compatibilityVersion, String themeVersion) {
     this.displayName = new SimpleStringProperty(displayName);
@@ -78,6 +74,15 @@ public class Theme {
     return themeVersion;
   }
 
+  public static Theme fromProperties(Properties properties) {
+    return new Theme(
+        properties.getProperty(DISPLAY_NAME),
+        properties.getProperty(AUTHOR),
+        Integer.valueOf(properties.getProperty(COMPATIBILITY_VERSION)),
+        properties.getProperty(THEME_VERSION)
+    );
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(displayName, themeVersion);
@@ -105,12 +110,4 @@ public class Theme {
     return properties;
   }
 
-  public static Theme fromProperties(Properties properties) {
-    return new Theme(
-        properties.getProperty(DISPLAY_NAME),
-        properties.getProperty(AUTHOR),
-        Integer.valueOf(properties.getProperty(COMPATIBILITY_VERSION)),
-        properties.getProperty(THEME_VERSION)
-    );
-  }
 }

@@ -2,7 +2,7 @@ package com.faforever.client.notification;
 
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.jfoenix.controls.JFXDialogLayout;
+import com.faforever.client.ui.dialog.DialogLayout;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import org.junit.Before;
@@ -39,9 +39,9 @@ public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest
 
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertEquals("title", ((Label) instance.getJfxDialogLayout().getHeading().get(0)).getText());
+    assertEquals("title", ((Label) instance.getDialogLayout().getHeading().get(0)).getText());
     assertEquals("text", instance.errorMessageView.getEngine().getDocument().getDocumentElement().getTextContent());
-    assertThat(instance.getJfxDialogLayout().getActions(), empty());
+    assertThat(instance.getDialogLayout().getActions(), empty());
   }
 
   @Test
@@ -54,20 +54,20 @@ public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest
 
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertEquals("title", ((Label) instance.getJfxDialogLayout().getHeading().get(0)).getText());
+    assertEquals("title", ((Label) instance.getDialogLayout().getHeading().get(0)).getText());
     assertEquals("text", instance.errorMessageView.getEngine().getDocument().getDocumentElement().getTextContent());
-    assertThat(instance.getJfxDialogLayout().getActions(), hasSize(1));
-    assertEquals("actionTitle", ((Button) instance.getJfxDialogLayout().getActions().get(0)).getText());
+    assertThat(instance.getDialogLayout().getActions(), hasSize(1));
+    assertEquals("actionTitle", ((Button) instance.getDialogLayout().getActions().get(0)).getText());
   }
 
   @Test
   public void testGetRoot() throws Exception {
     assertThat(instance.getRoot(), is(instance.immediateNotificationRoot));
-    assertThat(instance.getRoot().getParent(), is(instance.getJfxDialogLayout().getBody().get(0).getParent()));
+    assertThat(instance.getRoot().getParent(), is(instance.getDialogLayout().getBody().get(0).getParent()));
   }
 
   @Test
-  public void getJfxDialogLayout() {
-    assertThat(instance.getJfxDialogLayout(), is(instanceOf(JFXDialogLayout.class)));
+  public void getDialogLayout() {
+    assertThat(instance.getDialogLayout(), is(instanceOf(DialogLayout.class)));
   }
 }

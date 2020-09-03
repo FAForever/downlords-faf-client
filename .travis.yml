@@ -12,11 +12,11 @@ env:
     - secure: "UVIbeoJpx9n0KSWHbpdWZuR4zeZfXw3JQBq2Zb1h0/j4uREfXWiGFuNVQBPjsdtYi2+LkecjJ/MgKWo+SS0SjsvTa/ZPkOXt4408H1qYgwVnvWoeL/g1QQ6T8ADNysl/4ZtJLnSp0WXYEBkfHYZJD++vgDwkpVhnCLVzSFVAHls="
 
 before_install:
-  - export JDK="openjdk11"
+  - export JDK="openjdk14"
   #Installs the normal openjdk as this is not supported by travis itself
-  - chmod +x ./ci/installjdk.sh && sudo ./ci/installjdk.sh
+  - chmod +x ./ci/installjdk.sh && ./ci/installjdk.sh
   - export JAVA_HOME="~/$JDK"
-  - export JAVA_TOOL_OPTIONS="-Dprism.verbose=true -Dprism.order=sw -Djava.library.path=$HOME/openjfx/javafx-sdk-11/lib"
+  - export JAVA_TOOL_OPTIONS="-Dprism.verbose=true -Dprism.order=sw"
   - export JAVA_TOOL_OPTIONS="-Dprism.verbose=true -Dprism.order=sw"
   - export APP_VERSION=$([ -n "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG#*v}" || echo "${TRAVIS_BRANCH##*/}")
   - export GITHUB_RELEASE_VERSION=$([ -n "${TRAVIS_TAG}" ] && echo "${TRAVIS_TAG}" || echo "${TRAVIS_BRANCH##*/}")
@@ -44,6 +44,7 @@ deploy:
   file_glob: true
   file:
   - build/install4j/*.exe
+  - build/install4j/*.msi
   - build/install4j/*.zip
   - build/install4j/*.gz
   - build/install4j/*.deb
@@ -83,5 +84,6 @@ cache:
   - $HOME/install4j/
   - $HOME/.gradle/caches/
   - $HOME/.gradle/wrapper/
+  - ~/.install4j8
   - /home/travis/build/FAForever/downlords-faf-client/build/cache/
-  - ~/openjdk11
+  - ~/openjdk14

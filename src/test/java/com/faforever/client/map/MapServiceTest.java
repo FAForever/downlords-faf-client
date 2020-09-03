@@ -4,6 +4,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -20,6 +21,7 @@ import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
+import javafx.scene.image.Image;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.Before;
 import org.junit.Rule;
@@ -92,6 +94,8 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private MapGeneratorService mapGeneratorService;
   @Mock
+  private PlayerService playerService;
+  @Mock
   private EventBus eventBus;
 
   @Before
@@ -107,7 +111,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     instance = new MapService(preferencesService, taskService, applicationContext,
-        fafService, assetService, i18n, uiService, mapGeneratorService, clientProperties, eventBus);
+        fafService, assetService, i18n, uiService, mapGeneratorService, clientProperties, eventBus, playerService);
     instance.afterPropertiesSet();
 
     doAnswer(invocation -> {
@@ -130,7 +134,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGetLocalMapsOfficialMap() throws Exception {
     instance.officialMaps = ImmutableSet.of("SCMP_001");
-    
+
     Path scmp001 = Files.createDirectory(mapsDirectory.resolve("SCMP_001"));
     Files.copy(getClass().getResourceAsStream("/maps/SCMP_001/SCMP_001_scenario.lua"), scmp001.resolve("SCMP_001_scenario.lua"));
 
@@ -180,7 +184,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testInstalledOfficialMapIgnoreCase() throws Exception {
     instance.officialMaps = ImmutableSet.of("SCMP_001");
-    
+
     Path scmp001 = Files.createDirectory(mapsDirectory.resolve("SCMP_001"));
     Files.copy(getClass().getResourceAsStream("/maps/SCMP_001/SCMP_001_scenario.lua"), scmp001.resolve("SCMP_001_scenario.lua"));
 
@@ -193,6 +197,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   public void testLoadPreview() {
     for (PreviewSize previewSize : PreviewSize.values()) {
       Path cacheSubDir = Paths.get("maps").resolve(previewSize.folderName);
+      when(assetService.loadAndCacheImage(any(URL.class), eq(cacheSubDir), any())).thenReturn(new Image("theme/images/unknown_map.png"));
       instance.loadPreview("preview", previewSize);
       verify(assetService).loadAndCacheImage(any(URL.class), eq(cacheSubDir), any());
     }
@@ -204,31 +209,31 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     List<Integer> recommendedMapIds = Lists.newArrayList(1, 2, 3);
     when(clientConfiguration.getRecommendedMaps()).thenReturn(recommendedMapIds);
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
-    when(fafService.getMapsById(recommendedMapIds, 10, 0)).thenReturn(CompletableFuture.completedFuture(null));
+    when(fafService.getMapsByIdWithPageCount(recommendedMapIds, 10, 0)).thenReturn(CompletableFuture.completedFuture(null));
 
-    instance.getRecommendedMaps(10, 0);
+    instance.getRecommendedMapsWithPageCount(10, 0);
 
-    verify(fafService).getMapsById(recommendedMapIds, 10, 0);
+    verify(fafService).getMapsByIdWithPageCount(recommendedMapIds, 10, 0);
   }
 
   @Test
   public void testGetHighestRatedMaps() {
-    when(fafService.getHighestRatedMaps(10, 0)).thenReturn(CompletableFuture.completedFuture(null));
-    instance.getHighestRatedMaps(10, 0);
-    verify(fafService).getHighestRatedMaps(10, 0);
+    when(fafService.getHighestRatedMapsWithPageCount(10, 0)).thenReturn(CompletableFuture.completedFuture(null));
+    instance.getHighestRatedMapsWithPageCount(10, 0);
+    verify(fafService).getHighestRatedMapsWithPageCount(10, 0);
   }
 
   @Test
   public void testGetNewestMaps() {
-    when(fafService.getNewestMaps(10, 0)).thenReturn(CompletableFuture.completedFuture(null));
-    instance.getNewestMaps(10, 0);
-    verify(fafService).getNewestMaps(10, 0);
+    when(fafService.getNewestMapsWithPageCount(10, 0)).thenReturn(CompletableFuture.completedFuture(null));
+    instance.getNewestMapsWithPageCount(10, 0);
+    verify(fafService).getNewestMapsWithPageCount(10, 0);
   }
 
   @Test
   public void testGetMostPlayedMaps() {
-    when(fafService.getMostPlayedMaps(10, 0)).thenReturn(CompletableFuture.completedFuture(null));
-    instance.getMostPlayedMaps(10, 0);
-    verify(fafService).getMostPlayedMaps(10, 0);
+    when(fafService.getMostPlayedMapsWithPageCount(10, 0)).thenReturn(CompletableFuture.completedFuture(null));
+    instance.getMostPlayedMapsWithPageCount(10, 0);
+    verify(fafService).getMostPlayedMapsWithPageCount(10, 0);
   }
 }

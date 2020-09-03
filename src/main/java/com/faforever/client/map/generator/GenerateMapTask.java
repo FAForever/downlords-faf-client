@@ -36,7 +36,7 @@ public class GenerateMapTask extends CompletableTask<Void> {
   @Setter
   private String version;
   @Setter
-  private long seed;
+  private String seed;
   @Setter
   private Path generatorExecutableFile;
   @Setter

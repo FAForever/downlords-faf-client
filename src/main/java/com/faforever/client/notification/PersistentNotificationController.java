@@ -1,12 +1,12 @@
 package com.faforever.client.notification;
 
 import com.faforever.client.fx.Controller;
-import com.jfoenix.controls.JFXButton;
+import javafx.scene.control.Button;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -29,7 +29,7 @@ public class PersistentNotificationController implements Controller<Node> {
   private final NotificationService notificationService;
   public Node notificationRoot;
   public Label messageLabel;
-  public Label iconLabel;
+  public Region icon;
   public HBox actionButtonsContainer;
   private PersistentNotification notification;
 
@@ -44,26 +44,24 @@ public class PersistentNotificationController implements Controller<Node> {
   }
 
   private void setImageBasedOnSeverity(Severity severity) {
-    ObservableList<String> styleClasses = iconLabel.getStyleClass();
+    ObservableList<String> styleClasses = icon.getStyleClass();
     styleClasses.removeAll(CSS_STYLE_INFO, CSS_STYLE_WARN, CSS_STYLE_ERROR);
 
     switch (severity) {
       case INFO:
-        iconLabel.setText("\uE88F");
-        styleClasses.add(CSS_STYLE_INFO);
+        styleClasses.addAll(CSS_STYLE_INFO, "info-icon");
         break;
       case WARN:
-        iconLabel.setText("\uE002");
+        styleClasses.addAll(CSS_STYLE_INFO, "warn-icon");
         styleClasses.add(CSS_STYLE_WARN);
         break;
       case ERROR:
-        iconLabel.setText("\uE001");
+        styleClasses.addAll(CSS_STYLE_INFO, "error-icon");
         styleClasses.add(CSS_STYLE_ERROR);
         break;
       default:
         throw new IllegalStateException("Unhandled severity: " + severity);
     }
-    iconLabel.setLabelFor(iconLabel);
   }
 
   private void setActions(List<Action> actions) {
@@ -73,7 +71,7 @@ public class PersistentNotificationController implements Controller<Node> {
 
     List<Button> actionButtons = new ArrayList<>();
     for (Action action : actions) {
-      Button button = new JFXButton(action.getTitle());
+      Button button = new Button(action.getTitle());
       button.setFocusTraversable(false);
       button.setOnAction(event -> {
         action.call(event);

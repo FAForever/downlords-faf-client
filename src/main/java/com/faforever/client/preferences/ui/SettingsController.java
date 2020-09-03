@@ -5,6 +5,7 @@ import com.faforever.client.chat.ChatFormat;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeListCell;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.i18n.I18n;
@@ -25,6 +26,7 @@ import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.settings.LanguageItemController;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.list.NoSelectionModel;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
@@ -37,13 +39,14 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
-import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
@@ -52,7 +55,6 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.stage.FileChooser;
-import javafx.stage.Popup;
 import javafx.stage.Screen;
 import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
@@ -93,14 +95,14 @@ public class SettingsController implements Controller<Node> {
   public Toggle customColorsToggle;
   public Toggle randomColorsToggle;
   public Toggle defaultColorsToggle;
-  public Toggle hideFoeToggle;
-  public Toggle forceRelayToggle;
+  public CheckBox hideFoeToggle;
+  public CheckBox forceRelayToggle;
   public TextField gameLocationTextField;
-  public Toggle autoDownloadMapsToggle;
+  public CheckBox autoDownloadMapsToggle;
   public TextField maxMessagesTextField;
-  public Toggle imagePreviewToggle;
-  public Toggle enableNotificationsToggle;
-  public Toggle enableSoundsToggle;
+  public CheckBox imagePreviewToggle;
+  public CheckBox enableNotificationsToggle;
+  public CheckBox enableSoundsToggle;
   public CheckBox displayFriendOnlineToastCheckBox;
   public CheckBox displayFriendOfflineToastCheckBox;
   public CheckBox playFriendOnlineSoundCheckBox;
@@ -117,9 +119,9 @@ public class SettingsController implements Controller<Node> {
   public ComboBox<Theme> themeComboBox;
   public ToggleGroup toastPositionToggleGroup;
   public ComboBox<Screen> toastScreenComboBox;
-  public ToggleButton bottomLeftToastButton;
-  public ToggleButton topRightToastButton;
-  public ToggleButton topLeftToastButton;
+  public Toggle bottomLeftToastButton;
+  public Toggle topRightToastButton;
+  public Toggle topLeftToastButton;
   public ToggleButton bottomRightToastButton;
   public PasswordField currentPasswordField;
   public PasswordField newPasswordField;
@@ -129,19 +131,25 @@ public class SettingsController implements Controller<Node> {
   public Label passwordChangeErrorLabel;
   public Label passwordChangeSuccessLabel;
   public ComboBox<UnitDataBaseType> unitDatabaseComboBox;
-  public Toggle notifyOnAtMentionOnlyToggle;
+  public CheckBox notifyOnAtMentionOnlyToggle;
   public Pane languagesContainer;
   public TextField backgroundImageLocation;
-  public ToggleButton disallowJoinsCheckBox;
-  public ToggleButton secondaryVaultLocationToggleButton;
-  public Button autoJoinChannelsButton;
-  public ToggleButton advancedIceLogToggleButton;
-  public ToggleButton prereleaseToggleButton;
+  public CheckBox disallowJoinsCheckBox;
+  public CheckBox secondaryVaultLocationToggle;
+  public CheckBox advancedIceLogToggle;
+  public CheckBox prereleaseToggle;
+  public Region settingsHeader;
+  public ComboBox<NavigationItem> startTabChoiceBox;
+  public Label notifyAtMentionTitle;
+  public Label notifyAtMentionDescription;
+  public TextField channelTextField;
+  public Button addChannelButton;
+  public ListView<String> autoChannelListView;
+
   private final InvalidationListener availableLanguagesListener;
-  private Popup autojoinChannelsPopUp;
+
   private ChangeListener<Theme> selectedThemeChangeListener;
   private ChangeListener<Theme> currentThemeChangeListener;
-  public ComboBox<NavigationItem> startTabChoiceBox;
 
   public SettingsController(UserService userService, PreferencesService preferencesService, UiService uiService,
                             I18n i18n, EventBus eventBus, NotificationService notificationService,
@@ -239,7 +247,14 @@ public class SettingsController implements Controller<Node> {
     });
 
     currentThemeChangeListener = (observable, oldValue, newValue) -> themeComboBox.getSelectionModel().select(newValue);
-    selectedThemeChangeListener = (observable, oldValue, newValue) -> uiService.setTheme(newValue);
+    selectedThemeChangeListener = (observable, oldValue, newValue) -> {
+      uiService.setTheme(newValue);
+      if (oldValue != null && uiService.doesThemeNeedRestart(newValue)) {
+        notificationService.addNotification(new PersistentNotification(i18n.get("theme.needsRestart.message", newValue.getDisplayName()), Severity.WARN,
+            Collections.singletonList(new Action(i18n.get("theme.needsRestart.quit"), event -> Platform.exit()))));
+        // FIXME reload application (stage & application context) https://github.com/FAForever/downlords-faf-client/issues/1794
+      }
+    };
 
     JavaFxUtil.addListener(preferences.getNotification().toastPositionProperty(), (observable, oldValue, newValue) -> setSelectedToastPosition(newValue));
     setSelectedToastPosition(preferences.getNotification().getToastPosition());
@@ -260,7 +275,7 @@ public class SettingsController implements Controller<Node> {
     configureTimeSetting(preferences);
     configureChatSetting(preferences);
     configureLanguageSelection();
-    configureThemeSelection(preferences);
+    configureThemeSelection();
     configureToastScreen(preferences);
     configureStartTab(preferences);
 
@@ -289,24 +304,35 @@ public class SettingsController implements Controller<Node> {
     backgroundImageLocation.textProperty().bindBidirectional(preferences.getMainWindow().backgroundImagePathProperty(), PATH_STRING_CONVERTER);
 
     passwordChangeErrorLabel.setVisible(false);
-    addAutoJoinChannelsPopup();
 
-    secondaryVaultLocationToggleButton.setSelected(preferences.getForgedAlliance().getVaultBaseDirectory().equals(preferencesService.getSecondaryVaultLocation()));
-    secondaryVaultLocationToggleButton.selectedProperty().addListener(observable -> {
-      Path vaultBaseDirectory = secondaryVaultLocationToggleButton.isSelected() ? preferencesService.getSecondaryVaultLocation() : preferencesService.getPrimaryVaultLocation();
+    autoChannelListView.setSelectionModel(new NoSelectionModel<>());
+    autoChannelListView.setFocusTraversable(false);
+    autoChannelListView.setItems(preferencesService.getPreferences().getChat().getAutoJoinChannels());
+    autoChannelListView.setCellFactory(param -> uiService.<RemovableListCellController>loadFxml("theme/settings/removable_cell.fxml"));
+    autoChannelListView.getItems().addListener((ListChangeListener<String>) c -> preferencesService.storeInBackground());
+    autoChannelListView.managedProperty().bind(autoChannelListView.visibleProperty());
+    autoChannelListView.visibleProperty().bind(Bindings.createBooleanBinding(() -> !autoChannelListView.getItems().isEmpty(), autoChannelListView.getItems()));
+
+    secondaryVaultLocationToggle.setSelected(preferences.getForgedAlliance().getVaultBaseDirectory().equals(preferencesService.getSecondaryVaultLocation()));
+    secondaryVaultLocationToggle.selectedProperty().addListener(observable -> {
+      Path vaultBaseDirectory = secondaryVaultLocationToggle.isSelected() ? preferencesService.getSecondaryVaultLocation() : preferencesService.getPrimaryVaultLocation();
       preferences.getForgedAlliance().setVaultBaseDirectory(vaultBaseDirectory);
     });
 
-    advancedIceLogToggleButton.selectedProperty().bindBidirectional(preferences.advancedIceLogEnabledProperty());
+    advancedIceLogToggle.selectedProperty().bindBidirectional(preferences.advancedIceLogEnabledProperty());
 
-    prereleaseToggleButton.selectedProperty().bindBidirectional(preferences.prereleaseCheckEnabledProperty());
-    prereleaseToggleButton.selectedProperty().addListener((observable, oldValue, newValue) -> {
+    prereleaseToggle.selectedProperty().bindBidirectional(preferences.prereleaseCheckEnabledProperty());
+    prereleaseToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue != null && newValue && (oldValue == null || !oldValue)) {
         clientUpdateService.checkForUpdateInBackground();
       }
     });
 
     initUnitDatabaseSelection(preferences);
+
+    String username = userService.getUsername();
+    notifyAtMentionTitle.setText(i18n.get("settings.chat.notifyOnAtMentionOnly", "@" + username));
+    notifyAtMentionDescription.setText(i18n.get("settings.chat.notifyOnAtMentionOnly.description", "@" + username));
   }
 
   private void configureStartTab(Preferences preferences) {
@@ -392,13 +418,10 @@ public class SettingsController implements Controller<Node> {
     }
   }
 
-  private void configureThemeSelection(Preferences preferences) {
+  private void configureThemeSelection() {
     themeComboBox.setItems(FXCollections.observableArrayList(uiService.getAvailableThemes()));
 
-    Theme currentTheme = themeComboBox.getItems().stream()
-        .filter(theme -> theme.getDisplayName().equals(preferences.getThemeName()))
-        .findFirst().orElse(UiService.DEFAULT_THEME);
-    themeComboBox.getSelectionModel().select(currentTheme);
+    themeComboBox.getSelectionModel().select(uiService.getCurrentTheme());
 
     themeComboBox.getSelectionModel().selectedItemProperty().addListener(selectedThemeChangeListener);
     JavaFxUtil.addListener(uiService.currentThemeProperty(), new WeakChangeListener<>(currentThemeChangeListener));
@@ -497,27 +520,6 @@ public class SettingsController implements Controller<Node> {
     platformService.showDocument(clientProperties.getTranslationProjectUrl());
   }
 
-  public void onAutoJoinChannelsButtonClicked(ActionEvent actionEvent) {
-    if (autojoinChannelsPopUp.isShowing()) {
-      autojoinChannelsPopUp.hide();
-      return;
-    }
-
-    Button button = (Button) actionEvent.getSource();
-
-    Bounds screenBounds = autoJoinChannelsButton.localToScreen(autoJoinChannelsButton.getBoundsInLocal());
-    autojoinChannelsPopUp.show(button.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMaxY());
-  }
-
-  private void addAutoJoinChannelsPopup() {
-    autojoinChannelsPopUp = new Popup();
-    autojoinChannelsPopUp.setAutoFix(false);
-    autojoinChannelsPopUp.setAutoHide(true);
-
-    AutoJoinChannelsController autoJoinChannelsController = uiService.loadFxml("theme/settings/auto_join_channels.fxml");
-    autojoinChannelsPopUp.getContent().setAll(autoJoinChannelsController.getRoot());
-  }
-
   public void onSelectBackgroundImage() {
     Platform.runLater(() -> {
       FileChooser directoryChooser = new FileChooser();
@@ -543,6 +545,18 @@ public class SettingsController implements Controller<Node> {
 
   public void openWebsite() {
     platformService.showDocument(clientProperties.getWebsite().getBaseUrl());
+  }
+
+  public void onAddAutoChannel() {
+    if (channelTextField.getText().isEmpty() || autoChannelListView.getItems().contains(channelTextField.getText())) {
+      return;
+    }
+    if (!channelTextField.getText().startsWith("#")) {
+      channelTextField.setText("#" + channelTextField.getText());
+    }
+    preferencesService.getPreferences().getChat().getAutoJoinChannels().add(channelTextField.getText());
+    preferencesService.storeInBackground();
+    channelTextField.clear();
   }
 }
 

@@ -1,7 +1,6 @@
 package com.faforever.client.test;
 
 import org.hamcrest.Description;
-import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 
@@ -44,7 +43,6 @@ public class IsUtilityClassMatcher extends TypeSafeMatcher<Class<?>> {
   /**
    * Matches if the class is not instantiable.
    */
-  @Factory
   public static Matcher<Class<?>> isUtilityClass() {
     return new IsUtilityClassMatcher();
   }

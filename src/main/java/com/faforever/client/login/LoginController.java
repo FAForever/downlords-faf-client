@@ -19,11 +19,9 @@ import com.faforever.client.update.Version;
 import com.faforever.client.user.UserService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import com.jfoenix.controls.JFXButton;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -51,7 +49,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class LoginController implements Controller<Node> {
+public class LoginController implements Controller<Pane> {
 
   private static final Pattern EMAIL_REGEX = Pattern.compile(".*[@].*[.].*");
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -82,7 +80,7 @@ public class LoginController implements Controller<Node> {
   public TextField ircServerHostField;
   public TextField ircServerPortField;
   public TextField apiBaseUrlField;
-  public JFXButton serverStatusButton;
+  public Button serverStatusButton;
 
   @VisibleForTesting
   CompletableFuture<UpdateInfo> updateInfoFuture;

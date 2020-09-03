@@ -1,0 +1,22 @@
+.dialog-layout > .layout-heading {
+  -fx-alignment: center-left;
+  -fx-font-weight: BOLD;
+  -fx-padding: 2em 2em 20 2em;
+}
+
+.dialog-layout > .layout-actions {
+  -fx-alignment: center-right;
+  -fx-hgap: 8;
+  -fx-padding: 8 8 8 8;
+}
+
+.dialog-layout > .layout-body {
+  -fx-max-width: infinity;
+  -fx-pref-width: -1;
+  -fx-alignment: center-left;
+  -fx-padding: 0 2em 2em 2em;
+}
+
+.dialog-layout > .layout-body .label {
+  -fx-wrap-text: true;
+}

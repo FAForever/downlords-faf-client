@@ -29,6 +29,7 @@ import com.faforever.client.replay.Replay.GameOption;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.replay.ReplayData;
@@ -148,7 +149,7 @@ public class ReplayService {
     }
 
     LoadLocalReplaysTask loadLocalReplaysTask = applicationContext.getBean(LoadLocalReplaysTask.class);
-    taskService.submitTask(loadLocalReplaysTask).getFuture().thenAccept( replays -> {
+    taskService.submitTask(loadLocalReplaysTask).getFuture().thenAccept(replays -> {
       localReplays.clear();
       localReplays.addAll(replays);
       publisher.publishEvent(new LocalReplaysChangedEvent(this, replays, new ArrayList<Replay>()));
@@ -215,7 +216,7 @@ public class ReplayService {
                 .map(CompletableFuture::join)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList())
-    );
+        );
 
     try {
       List<Replay> newReplays = newReplaysFuture.get();
@@ -251,7 +252,7 @@ public class ReplayService {
 
     for (mapEndIndex = mapStartIndex; mapEndIndex < rawReplayBytes.length - 1; mapEndIndex++) {
       //0x00 0x01 is the field delimiter
-      if (rawReplayBytes[mapEndIndex] == 0x00 && rawReplayBytes[mapEndIndex+1] == 0x01) {
+      if (rawReplayBytes[mapEndIndex] == 0x00 && rawReplayBytes[mapEndIndex + 1] == 0x01) {
         break;
       }
     }
@@ -306,14 +307,14 @@ public class ReplayService {
     }
   }
 
-  private CompletableFuture<Replay> tryLoadingLocalReplay(Path replayFile)  {
+  private CompletableFuture<Replay> tryLoadingLocalReplay(Path replayFile) {
     try {
       LocalReplayInfo replayInfo = replayFileReader.parseMetaData(replayFile);
 
       CompletableFuture<FeaturedMod> featuredModFuture = modService.getFeaturedMod(replayInfo.getFeaturedMod());
       CompletableFuture<Optional<MapBean>> mapBeanFuture = mapService.findByMapFolderName(replayInfo.getMapname());
 
-      return CompletableFuture.allOf(featuredModFuture, mapBeanFuture).thenApply(ignoredVoid  -> {
+      return CompletableFuture.allOf(featuredModFuture, mapBeanFuture).thenApply(ignoredVoid -> {
         Optional<MapBean> mapBean = mapBeanFuture.join();
         if (!mapBean.isPresent()) {
           logger.warn("Could not find map for replay file '{}'", replayFile);
@@ -415,22 +416,22 @@ public class ReplayService {
   }
 
 
-  public CompletableFuture<List<Replay>> getNewestReplays(int topElementCount, int page) {
-    return fafService.getNewestReplays(topElementCount, page);
+  public CompletableFuture<Tuple<List<Replay>, Integer>> getNewestReplaysWithPageCount(int topElementCount, int page) {
+    return fafService.getNewestReplaysWithPageCount(topElementCount, page);
   }
 
-  public CompletableFuture<List<Replay>> getReplaysForPlayer(int playerId, int maxResults, int page, SortConfig sortConfig) {
+  public CompletableFuture<Tuple<List<Replay>, Integer>> getReplaysForPlayerWithPageCount(int playerId, int maxResults, int page, SortConfig sortConfig) {
     Condition<?> filterCondition = qBuilder().intNum("playerStats.player.id").eq(playerId);
     String query = filterCondition.query(new RSQLVisitor());
-    return fafService.findReplaysByQuery(query, maxResults, page, sortConfig);
+    return fafService.findReplaysByQueryWithPageCount(query, maxResults, page, sortConfig);
   }
 
-  public CompletableFuture<List<Replay>> getHighestRatedReplays(int topElementCount, int page) {
-    return fafService.getHighestRatedReplays(topElementCount, page);
+  public CompletableFuture<Tuple<List<Replay>, Integer>> getHighestRatedReplaysWithPageCount(int topElementCount, int page) {
+    return fafService.getHighestRatedReplaysWithPageCount(topElementCount, page);
   }
 
-  public CompletableFuture<List<Replay>> findByQuery(String query, int maxResults, int page, SortConfig sortConfig) {
-    return fafService.findReplaysByQuery(query, maxResults, page, sortConfig);
+  public CompletableFuture<Tuple<List<Replay>, Integer>> findByQueryWithPageCount(String query, int maxResults, int page, SortConfig sortConfig) {
+    return fafService.findReplaysByQueryWithPageCount(query, maxResults, page, sortConfig);
   }
 
   public CompletableFuture<Optional<Replay>> findById(int id) {
@@ -519,7 +520,7 @@ public class ReplayService {
     // For map generator games the map name is "None" because replay server gets map name by from DB based on filename
     // from replay data, and DB does not contain generated maps.
     if (StringUtils.equalsIgnoreCase(mapName, "None")) {
-      String maybeMapGen = parseMapName(rawReplayBytes).replaceAll(".scmap","");
+      String maybeMapGen = parseMapName(rawReplayBytes).replaceAll(".scmap", "");
       if (mapGeneratorService.isGeneratedMap(maybeMapGen)) {
         mapName = maybeMapGen;
       }
@@ -549,8 +550,8 @@ public class ReplayService {
     runLiveReplay(replayId);
   }
 
-  public CompletableFuture<List<Replay>> getOwnReplays(int maxResults, int page) {
+  public CompletableFuture<Tuple<List<Replay>, Integer>> getOwnReplaysWithPageCount(int maxResults, int page) {
     SortConfig sortConfig = new SortConfig("startTime", SortOrder.DESC);
-    return getReplaysForPlayer(userService.getUserId(), maxResults, page, sortConfig);
+    return getReplaysForPlayerWithPageCount(userService.getUserId(), maxResults, page, sortConfig);
   }
 }

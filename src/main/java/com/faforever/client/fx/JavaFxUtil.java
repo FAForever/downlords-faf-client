@@ -391,22 +391,6 @@ public final class JavaFxUtil {
     Arrays.stream(nodes).forEach(node -> node.managedProperty().bind(node.visibleProperty()));
   }
 
-
-  /**
-   * Uniconifies stages when clicking on the icon in the task bar. Source: http://stackoverflow.com/questions/26972683/javafx-minimizing-undecorated-stage
-   * Bug report: https://bugs.openjdk.java.net/browse/JDK-8089296
-   */
-  public static void fixJDK8089296() {
-    if (!org.bridj.Platform.isWindows()) {
-      return;
-    }
-    Pointer lpVoid = getNativeWindow();
-    WinDef.HWND hwnd = new WinDef.HWND(lpVoid);
-    final User32 user32 = User32.INSTANCE;
-    int newStyle = user32.GetWindowLong(hwnd, GWL_STYLE) | 0x00020000; //WS_MINIMIZEBOX
-    user32.SetWindowLong(hwnd, GWL_STYLE, newStyle);
-  }
-
   public static void assureRunOnMainThread(Runnable runnable) {
     if (Platform.isFxApplicationThread()) {
       runnable.run();

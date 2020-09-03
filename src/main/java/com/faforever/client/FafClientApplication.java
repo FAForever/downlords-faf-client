@@ -1,5 +1,6 @@
 package com.faforever.client;
 
+import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
@@ -17,7 +18,6 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.Banner.Mode;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -100,9 +100,11 @@ public class FafClientApplication extends Application {
   @Override
   public void start(Stage stage) {
     StageHolder.setStage(stage);
-    stage.initStyle(StageStyle.UNDECORATED);
-    showMainWindow();
-    JavaFxUtil.fixJDK8089296();
+    FxStage fxStage = FxStage.configure(stage)
+        .withSceneFactory(parent -> applicationContext.getBean(UiService.class).createScene(parent))
+        .apply();
+
+    showMainWindow(fxStage);
 
     // TODO publish event instead
     if (!applicationContext.getBeansOfType(WindowsTaskbarProgressUpdater.class).isEmpty()) {
@@ -115,8 +117,11 @@ public class FafClientApplication extends Application {
     return new PlatformService(getHostServices());
   }
 
-  private void showMainWindow() {
-    MainController controller = applicationContext.getBean(UiService.class).loadFxml("theme/main.fxml");
+  private void showMainWindow(FxStage fxStage) {
+    UiService uiService = applicationContext.getBean(UiService.class);
+
+    MainController controller = uiService.loadFxml("theme/main.fxml");
+    controller.setFxStage(fxStage);
     controller.display();
   }
 
@@ -127,7 +132,7 @@ public class FafClientApplication extends Application {
 
     Thread timeoutThread = new Thread(() -> {
       try {
-        Thread.sleep(Duration.ofSeconds(30).toMillis());
+        Thread.sleep(Duration.ofSeconds(10).toMillis());
       } catch (InterruptedException e) {
       }
 

@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
 # Download install4j and the required JRE, only if it doesn't already exist (from Travis cache)
-INSTALL4J_DIR="$HOME/install4j/install4j7.0.12"
-if [ ! -d "${INSTALL4J_DIR}" ] || [ ! -d "${INSTALL4J_DIR}/jres/windows-amd64-11.0.7_packed.tar.gz" ]; then
+INSTALL4J_DIR="$HOME/install4j/install4j8.0.8"
+if [ ! -d "${INSTALL4J_DIR}" ] || [ ! -d "$HOME/.install4j8/jres/windows-amd64-14.0.2.tar.gz" ]; then
   rm -rf "$HOME/install4j"
   mkdir -p "$HOME/install4j"
-  curl https://download-gcdn.ej-technologies.com/install4j/install4j_unix_7_0_12.tar.gz -o "$HOME/install4j/install4j.tar.gz"
-  mkdir -p "${INSTALL4J_DIR}/jres/"
-  curl https://content.faforever.com/jre/windows-amd64-11.0.7.tar.gz -o "${INSTALL4J_DIR}/jres/windows-amd64-11.0.7_packed.tar.gz"
-  tar xzf "$HOME/install4j/install4j.tar.gz" -C "$HOME/install4j"
+  curl https://download-gcdn.ej-technologies.com/install4j/install4j_unix_8_0_8.tar.gz -o "$HOME/install4j/install4j8.tar.gz"
+  mkdir -p "$HOME/.install4j8/jres/"
+  curl https://content.faforever.com/jre/windows-amd64-14.0.2.tar.gz -o "$HOME/.install4j8/jres/windows-amd64-14.0.2.tar.gz"
+  tar xzf "$HOME/install4j/install4j8.tar.gz" -C "$HOME/install4j"
 fi
 
 ./gradlew -Pversion=${APP_VERSION} \
