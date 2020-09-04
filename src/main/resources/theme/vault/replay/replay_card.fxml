@@ -9,6 +9,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Button?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="replayTileRoot" hgap="20.0" prefWidth="512" prefHeight="300"
           onMouseClicked="#onShowReplayDetail" styleClass="card, pointable, hoverable" vgap="10.0"
           xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.replay.ReplayCardController">
@@ -41,7 +42,7 @@
         <Label fx:id="gameTitleLabel" styleClass="h2" text="&lt;Title&gt;"/>
         <Label fx:id="onMapLabel" styleClass="secondary" text="%game.onMapFormat"/>
     </VBox>
-    <HBox fx:id="teamsContainer" spacing="10.0" GridPane.columnIndex="2" GridPane.rowIndex="1" GridPane.rowSpan="7" GridPane.fillHeight="true"/>
+    <HBox fx:id="teamsContainer" spacing="10.0" GridPane.columnIndex="2" GridPane.rowIndex="1" GridPane.rowSpan="6" GridPane.fillHeight="true"/>
     <Label fx:id="dateLabel" graphicTextGap="10.0" text="&lt;Date&gt;" GridPane.columnIndex="0"
            GridPane.rowIndex="5">
         <graphic>
@@ -83,4 +84,11 @@
             <Region styleClass="icon, balance-icon"/>
         </graphic>
     </Label>
+    <Button fx:id="watchButton" defaultButton="true" mnemonicParsing="false"
+            onAction="#onWatchButtonClicked" GridPane.halignment="RIGHT" GridPane.valignment="BOTTOM"
+            GridPane.rowIndex="8" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS">
+        <graphic>
+            <Region styleClass="icon,play-icon"/>
+        </graphic>
+    </Button>
 </GridPane>
