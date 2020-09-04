@@ -150,8 +150,8 @@ public class ModVersion {
     modVersion.setDownloadUrl(modVersionVersion.getDownloadUrl());
     modVersion.setThumbnailUrl(modVersionVersion.getThumbnailUrl());
     modVersion.setReviewsSummary(ReviewsSummary.fromDto(modVersionVersion.getModVersionReviewsSummary()));
-    modVersion.setCreateTime(modVersionVersion.getCreateTime().toLocalDateTime());
-    Optional.ofNullable(dto.getUpdateTime()).map(OffsetDateTime::toLocalDateTime).ifPresent(modVersion::setUpdateTime);
+    modVersion.setCreateTime(dto.getCreateTime().toLocalDateTime());
+    Optional.ofNullable(modVersionVersion.getUpdateTime()).map(OffsetDateTime::toLocalDateTime).ifPresent(modVersion::setUpdateTime);
     modVersion.getReviews().setAll(
         dto.getVersions().stream()
             .filter(v -> v.getReviews() != null)
