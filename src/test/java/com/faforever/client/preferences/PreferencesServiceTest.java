@@ -20,7 +20,7 @@ import static org.junit.Assert.assertTrue;
 
 public class PreferencesServiceTest {
 
-  private static final Pattern GAME_LOG_PATTERN = Pattern.compile("game(_\\d{4}-\\d{2}-\\d{2}_\\d{6})?.log");
+  private static final Pattern GAME_LOG_PATTERN = Pattern.compile("game(_\\d*)?.log");
 
   @Mock
   private PreferencesService instance;
@@ -82,6 +82,6 @@ public class PreferencesServiceTest {
 
   @Test
   public void testGetNewLogFile() throws Exception {
-    assertTrue(GAME_LOG_PATTERN.matcher(instance.getNewGameLogFile().getFileName().toString()).matches());
+    assertTrue(GAME_LOG_PATTERN.matcher(instance.getNewGameLogFile(0).getFileName().toString()).matches());
   }
 }
