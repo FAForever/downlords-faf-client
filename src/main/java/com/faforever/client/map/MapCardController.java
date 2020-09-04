@@ -4,6 +4,9 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService.PreviewSize;
+import com.faforever.client.notification.ImmediateErrorNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.StarsController;
@@ -15,6 +18,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.WeakListChangeListener;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -32,7 +36,9 @@ import java.util.function.Consumer;
 public class MapCardController implements Controller<Node> {
 
   private final MapService mapService;
+  private final NotificationService notificationService;
   private final I18n i18n;
+  private final ReportingService reportingService;
 
   public ImageView thumbnailImageView;
   public Label nameLabel;
@@ -43,25 +49,29 @@ public class MapCardController implements Controller<Node> {
   public Label numberOfPlaysLabel;
   public Label sizeLabel;
   public Label maxPlayersLabel;
+  public Button installButton;
+  public Button uninstallButton;
 
   private MapBean map;
   private Consumer<MapBean> onOpenDetailListener;
-  private ListChangeListener<MapBean> installedMapsChangeListener;
+  private ListChangeListener<MapBean> installStatusChangeListener;
   private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
   private JFXRippler jfxRippler;
 
   public void initialize() {
     jfxRippler = new JFXRippler(mapTileRoot);
-    installedMapsChangeListener = change -> {
+    installButton.managedProperty().bind(installButton.visibleProperty());
+    uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
+    installStatusChangeListener = change -> {
       while (change.next()) {
         for (MapBean mapBean : change.getAddedSubList()) {
-          if (map.getId().equals(mapBean.getId())) {
+          if (map.getFolderName().equalsIgnoreCase(mapBean.getFolderName())) {
             setInstalled(true);
             return;
           }
         }
         for (MapBean mapBean : change.getRemoved()) {
-          if (map.getId().equals(mapBean.getId())) {
+          if (map.getFolderName().equals(mapBean.getFolderName())) {
             setInstalled(false);
             return;
           }
@@ -88,11 +98,14 @@ public class MapCardController implements Controller<Node> {
     maxPlayersLabel.setText(i18n.number(map.getPlayers()));
 
     ObservableList<MapBean> installedMaps = mapService.getInstalledMaps();
-    JavaFxUtil.addListener(installedMaps, new WeakListChangeListener<>(installedMapsChangeListener));
+    JavaFxUtil.addListener(installedMaps, new WeakListChangeListener<>(installStatusChangeListener));
 
     ObservableList<Review> reviews = map.getReviews();
     JavaFxUtil.addListener(reviews, new WeakInvalidationListener(reviewsChangedListener));
     reviewsChangedListener.invalidated(reviews);
+
+    boolean mapInstalled = mapService.isInstalled(map.getFolderName());
+    setInstalled(mapInstalled);
   }
 
   private void populateReviews() {
@@ -103,8 +116,37 @@ public class MapCardController implements Controller<Node> {
     });
   }
 
+  public void onInstallButtonClicked() {
+    mapService.downloadAndInstallMap(map, null, null)
+        .thenRun(() -> setInstalled(true))
+        .exceptionally(throwable -> {
+          notificationService.addNotification(new ImmediateErrorNotification(
+              i18n.get("errorTitle"),
+              i18n.get("mapVault.installationFailed", map.getDisplayName(), throwable.getLocalizedMessage()),
+              throwable, i18n, reportingService
+          ));
+          setInstalled(false);
+          return null;
+        });
+  }
+
+  public void onUninstallButtonClicked() {
+    mapService.uninstallMap(map)
+        .thenRun(() -> setInstalled(false))
+        .exceptionally(throwable -> {
+          notificationService.addNotification(new ImmediateErrorNotification(
+              i18n.get("errorTitle"),
+              i18n.get("mapVault.couldNotDeleteMap", map.getDisplayName(), throwable.getLocalizedMessage()),
+              throwable, i18n, reportingService
+          ));
+          setInstalled(true);
+          return null;
+        });
+  }
+
   private void setInstalled(boolean installed) {
-    // FIXME implement
+    installButton.setVisible(!installed);
+    uninstallButton.setVisible(installed);
   }
 
   public Node getRoot() {
