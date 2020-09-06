@@ -7,6 +7,7 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="modTileRoot" hgap="10.0" onMouseClicked="#onShowModDetail"
@@ -34,11 +35,17 @@
             GridPane.hgrow="NEVER">
           <children>
               <Button fx:id="installButton" defaultButton="true"
-                      mnemonicParsing="false" onAction="#onInstallButtonClicked"
-                      text="%mapVault.install"/>
+                      mnemonicParsing="false" onAction="#onInstallButtonClicked">
+                  <graphic>
+                      <Region styleClass="icon,install-icon"/>
+                  </graphic>
+              </Button>
               <Button fx:id="uninstallButton" mnemonicParsing="false"
-                      onAction="#onUninstallButtonClicked"
-                      text="%mapVault.uninstall"/>
+                      onAction="#onUninstallButtonClicked">
+                  <graphic>
+                      <Region styleClass="icon,uninstall-icon"/>
+                  </graphic>
+              </Button>
           </children>
           <GridPane.margin>
               <Insets top="10.0" right="10.0"/>
