@@ -8,6 +8,7 @@ import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.Action.ActionCallback;
+import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
@@ -228,6 +229,16 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   private void acceptPartyInvite(Player player) {
+    if (isCurrentlyInQueue()) {
+      notificationService.addNotification(new ImmediateNotification(
+          i18n.get("teammatchmaking.notification.joinAlreadyInQueue.title"),
+          i18n.get("teammatchmaking.notification.joinAlreadyInQueue.message"),
+          Severity.WARN,
+          Collections.singletonList(new Action(i18n.get("dismiss")))
+      ));
+      return;
+    }
+
     if (!ensureValidGamePath()) {
       return;
     }
@@ -241,6 +252,16 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   public void invitePlayer(String player) {
+    if (isCurrentlyInQueue()) {
+      notificationService.addNotification(new ImmediateNotification(
+          i18n.get("teammatchmaking.notification.inviteAlreadyInQueue.title"),
+          i18n.get("teammatchmaking.notification.inviteAlreadyInQueue.message"),
+          Severity.WARN,
+          Collections.singletonList(new Action(i18n.get("dismiss")))
+      ));
+      return;
+    }
+
     if (!ensureValidGamePath()) {
       return;
     }
@@ -280,5 +301,9 @@ public class TeamMatchmakingService implements InitializingBean {
       return false;
     }
     return true;
+  }
+
+  public boolean isCurrentlyInQueue() {
+    return matchmakingQueues.stream().anyMatch(MatchmakingQueue::isJoined);
   }
 }
