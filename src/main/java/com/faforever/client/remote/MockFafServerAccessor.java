@@ -264,6 +264,11 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
+  public void stopSearchMatchmaker() {
+
+  }
+
+  @Override
   public void stopSearchingRanked() {
     logger.debug("Stopping searching 1v1 match");
   }

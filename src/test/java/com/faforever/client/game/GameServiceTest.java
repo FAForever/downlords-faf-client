@@ -466,22 +466,22 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     instance.startSearchLadder1v1(AEON);
 
-    assertThat(instance.searching1v1Property().get(), is(false));
+    assertThat(instance.inMatchmakerQueueProperty().get(), is(false));
   }
 
   @Test
   public void testStopSearchLadder1v1() {
-    instance.searching1v1Property().set(true);
-    instance.stopSearchLadder1v1();
-    assertThat(instance.searching1v1Property().get(), is(false));
+    instance.inMatchmakerQueueProperty().set(true);
+    instance.onMatchmakerSearchStopped();
+    assertThat(instance.inMatchmakerQueueProperty().get(), is(false));
     verify(fafService).stopSearchingRanked();
   }
 
   @Test
   public void testStopSearchLadder1v1NotSearching() {
-    instance.searching1v1Property().set(false);
-    instance.stopSearchLadder1v1();
-    assertThat(instance.searching1v1Property().get(), is(false));
+    instance.inMatchmakerQueueProperty().set(false);
+    instance.onMatchmakerSearchStopped();
+    assertThat(instance.inMatchmakerQueueProperty().get(), is(false));
     verify(fafService, never()).stopSearchingRanked();
   }
 

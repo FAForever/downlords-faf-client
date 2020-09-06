@@ -53,6 +53,8 @@ public interface FafServerAccessor {
 
   CompletableFuture<GameLaunchMessage> startSearchMatchmaker();
 
+  void stopSearchMatchmaker();
+
   void stopSearchingRanked();
 
   void sendGpgMessage(GpgGameMessage message);

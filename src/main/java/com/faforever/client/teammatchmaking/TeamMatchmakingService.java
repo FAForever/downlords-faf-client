@@ -143,10 +143,14 @@ public class TeamMatchmakingService implements InitializingBean {
 
           //TODO: check current state / other queues
           if (message.getState() == MatchmakingState.START) {
-            gameService.startSearchMatchmakerTodo();
+            gameService.startSearchMatchmaker();
           }
         }
     );
+
+    if (matchmakingQueues.stream().noneMatch(MatchmakingQueue::isJoined)) {
+      gameService.onMatchmakerSearchStopped();
+    }
   }
 
   private void onMatchFoundMessage(MatchFoundMessage message) {
@@ -157,12 +161,16 @@ public class TeamMatchmakingService implements InitializingBean {
     matchmakingQueues.stream().filter(q -> Objects.equals(q.getQueueName(), message.getQueue())).forEach(q -> {
       q.setTimedOutMatchingStatus(MatchingStatus.MATCH_FOUND, Duration.ofSeconds(15), taskScheduler);
     });
+
+    matchmakingQueues.forEach(q -> q.setJoined(false));
   }
 
   private void onMatchCancelledMessage(MatchCancelledMessage message) {
     matchmakingQueues.stream().filter(q -> q.getMatchingStatus() != null).forEach(q -> {
       q.setTimedOutMatchingStatus(MatchingStatus.MATCH_CANCELLED, Duration.ofSeconds(15), taskScheduler);
     });
+
+    gameService.onMatchmakerSearchStopped(); // joining custom games is still blocked till match is cancelled or launched
   }
 
   private void onGameLaunchMessage(GameLaunchMessage message) {
@@ -173,12 +181,26 @@ public class TeamMatchmakingService implements InitializingBean {
     matchmakingQueues.stream().filter(q -> q.getMatchingStatus() != null).forEach(q -> {
       q.setTimedOutMatchingStatus(MatchingStatus.GAME_LAUNCHING, Duration.ofSeconds(15), taskScheduler);
     });
+
+    gameService.onMatchmakerSearchStopped(); // joining custom games is still blocked till match is cancelled or launched
   }
 
   public void joinQueue(MatchmakingQueue queue) {
     if (!ensureValidGamePath()) {
       return;
     }
+
+    if (gameService.isGameRunning()) {
+      log.debug("Game is running, ignoring tmm queue join request");
+      notificationService.addNotification(new ImmediateNotification(
+          i18n.get("teammatchmaking.notification.gameAlreadyRunning.title"),
+          i18n.get("teammatchmaking.notification.gameAlreadyRunning.message"),
+          Severity.WARN,
+          Collections.singletonList(new Action(i18n.get("dismiss")))
+      ));
+      return;
+    }
+
     fafServerAccessor.gameMatchmaking(queue, MatchmakingState.START);
   }
 

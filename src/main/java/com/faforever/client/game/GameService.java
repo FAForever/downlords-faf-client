@@ -90,7 +90,6 @@ import java.util.regex.Pattern;
 
 import static com.faforever.client.fa.RatingMode.NONE;
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
-import static com.faforever.client.game.KnownFeaturedMod.LADDER_1V1;
 import static com.faforever.client.game.KnownFeaturedMod.TUTORIALS;
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.util.Collections.emptyMap;
@@ -148,7 +147,7 @@ public class GameService implements InitializingBean {
 
   private final ObservableList<Game> games;
   private final String faWindowTitle;
-  private final BooleanProperty searching1v1;
+  private final BooleanProperty inMatchmakerQueue;
 
   private Process process;
   private boolean rehostRequested;
@@ -193,7 +192,7 @@ public class GameService implements InitializingBean {
 
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
     uidToGameInfoBean = FXCollections.observableMap(new ConcurrentHashMap<>());
-    searching1v1 = new SimpleBooleanProperty();
+    inMatchmakerQueue = new SimpleBooleanProperty();
     gameRunning = new SimpleBooleanProperty();
     currentGame = new SimpleObjectProperty<>();
     games = FXCollections.observableList(new ArrayList<>(),
@@ -305,7 +304,15 @@ public class GameService implements InitializingBean {
       return gameDirectoryFuture.thenCompose(path -> hostGame(newGameInfo));
     }
 
-    stopSearchLadder1v1();
+    if (inMatchmakerQueue.get()) {
+      notificationService.addNotification(new ImmediateNotification(
+          i18n.get("teammatchmaking.notification.customAlreadyInQueue.title"),
+          i18n.get("teammatchmaking.notification.customAlreadyInQueue.message"),
+          Severity.WARN,
+          Collections.singletonList(new Action(i18n.get("dismiss")))
+      ));
+      return completedFuture(null);
+    }
 
     return updateGameIfNecessary(newGameInfo.getFeaturedMod(), null, emptyMap(), newGameInfo.getSimMods())
         .thenCompose(aVoid -> downloadMapIfNecessary(newGameInfo.getMap()))
@@ -324,9 +331,17 @@ public class GameService implements InitializingBean {
       return gameDirectoryFuture.thenCompose(path -> joinGame(game, password));
     }
 
-    log.info("Joining game: '{}' ({})", game.getTitle(), game.getId());
+    if (inMatchmakerQueue.get()) {
+      notificationService.addNotification(new ImmediateNotification(
+          i18n.get("teammatchmaking.notification.customAlreadyInQueue.title"),
+          i18n.get("teammatchmaking.notification.customAlreadyInQueue.message"),
+          Severity.WARN,
+          Collections.singletonList(new Action(i18n.get("dismiss")))
+      ));
+      return completedFuture(null);
+    }
 
-    stopSearchLadder1v1();
+    log.info("Joining game: '{}' ({})", game.getTitle(), game.getId());
 
     Map<String, Integer> featuredModVersions = game.getFeaturedModVersions();
     Set<String> simModUIds = game.getSimMods().keySet();
@@ -485,58 +500,48 @@ public class GameService implements InitializingBean {
     fafService.addOnMessageListener(MatchmakerInfoMessage.class, listener);
   }
 
-  public CompletableFuture<Void> startSearchLadder1v1(Faction faction) {
-    if (isRunning()) {
-      log.debug("Game is running, ignoring 1v1 search request");
-      return completedFuture(null);
-    }
-
-    if (!preferencesService.isGamePathValid()) {
-      CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
-      return gameDirectoryFuture.thenCompose(path -> startSearchLadder1v1(faction));
-    }
-
-    searching1v1.set(true);
-
-    return modService.getFeaturedMod(LADDER_1V1.getTechnicalName())
-        .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
-        .thenCompose(aVoid -> fafService.startSearchLadder1v1(faction))
-        .thenAccept((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapname())
-            .thenRun(() -> {
-              gameLaunchMessage.setArgs(new ArrayList<>(gameLaunchMessage.getArgs()));
-
-              gameLaunchMessage.getArgs().add("/team " + gameLaunchMessage.getTeam());
-              gameLaunchMessage.getArgs().add("/players " + gameLaunchMessage.getExpectedPlayers());
-              gameLaunchMessage.getArgs().add("/startspot " + gameLaunchMessage.getMapPosition());
-
-              startGame(gameLaunchMessage, faction, RatingMode.LADDER_1V1);
-            }))
-        .exceptionally(throwable -> {
-          if (throwable instanceof CancellationException) {
-            log.info("Ranked1v1 search has been cancelled");
-          } else {
-            log.warn("Ranked1v1 could not be started", throwable);
-          }
-          return null;
-        });
-  }
-
-  public CompletableFuture<Void> startSearchMatchmakerTodo() {
-    if (isRunning()) {
-      log.debug("Game is running, ignoring 1v1 search request"); // TODO
-      return completedFuture(null);
-    }
-
-    // TODO: move here from tmm service
+  //TODO: remove
+//  public CompletableFuture<Void> startSearchLadder1v1(Faction faction) {
+//    if (isRunning()) {
+//      log.debug("Game is running, ignoring 1v1 search request");
+//      return completedFuture(null);
+//    }
+//
 //    if (!preferencesService.isGamePathValid()) {
 //      CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
 //      return gameDirectoryFuture.thenCompose(path -> startSearchLadder1v1(faction));
 //    }
-
+//
 //    searching1v1.set(true);
+//
+//    return modService.getFeaturedMod(LADDER_1V1.getTechnicalName())
+//        .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
+//        .thenCompose(aVoid -> fafService.startSearchLadder1v1(faction))
+//        .thenAccept((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapname())
+//            .thenRun(() -> {
+//              gameLaunchMessage.setArgs(new ArrayList<>(gameLaunchMessage.getArgs()));
+//
+//              gameLaunchMessage.getArgs().add("/team " + gameLaunchMessage.getTeam());
+//              gameLaunchMessage.getArgs().add("/players " + gameLaunchMessage.getExpectedPlayers());
+//              gameLaunchMessage.getArgs().add("/startspot " + gameLaunchMessage.getMapPosition());
+//
+//              startGame(gameLaunchMessage, faction, RatingMode.LADDER_1V1);
+//            }))
+//        .exceptionally(throwable -> {
+//          if (throwable instanceof CancellationException) {
+//            log.info("Ranked1v1 search has been cancelled");
+//          } else {
+//            log.warn("Ranked1v1 could not be started", throwable);
+//          }
+//          return null;
+//        });
+//  }
 
-    //TODO: WHEN IS THIS CANCELLED?
-    return modService.getFeaturedMod(FAF.getTechnicalName())
+  public CompletableFuture<Void> startSearchMatchmaker() {
+
+    inMatchmakerQueue.set(true);
+
+    return modService.getFeaturedMod(FAF.getTechnicalName())//TODO: use matchmaking featured mod
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
         .thenCompose(aVoid -> fafService.startSearchMatchmaker())
         .thenAccept((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapname())
@@ -551,23 +556,25 @@ public class GameService implements InitializingBean {
             }))
         .exceptionally(throwable -> {
           if (throwable instanceof CancellationException) {
-            log.info("Ranked1v1 search has been cancelled");
+            log.info("Matchmaking search has been cancelled");
           } else {
-            log.warn("Ranked1v1 could not be started", throwable);
+            log.warn("Matchmade game could not be started", throwable);
           }
           return null;
         });
   }
 
-  public void stopSearchLadder1v1() {
-    if (searching1v1.get()) {
+  //TODO: disable usages, rename to onMatchmakerSearchStopped
+  public void onMatchmakerSearchStopped() {
+    if (inMatchmakerQueue.get()) {
+      fafService.stopSearchMatchmaker();
       fafService.stopSearchingRanked();
-      searching1v1.set(false);
+      inMatchmakerQueue.set(false);
     }
   }
 
-  public BooleanProperty searching1v1Property() {
-    return searching1v1;
+  public BooleanProperty inMatchmakerQueueProperty() {
+    return inMatchmakerQueue;
   }
 
   /**
@@ -610,7 +617,6 @@ public class GameService implements InitializingBean {
       return;
     }
 
-    stopSearchLadder1v1();
     int uid = gameLaunchMessage.getUid();
     replayServer.start(uid, () -> getByUid(uid))
         .thenCompose(port -> {

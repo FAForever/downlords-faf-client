@@ -91,7 +91,7 @@ public class FafService {
     return fafServerAccessor.requestJoinGame(gameId, password);
   }
 
-  public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction) {
+  public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction) { // TODO: remove
     return fafServerAccessor.startSearchLadder1v1(faction);
   }
 
@@ -99,11 +99,15 @@ public class FafService {
     return fafServerAccessor.startSearchMatchmaker();
   }
 
+  public void stopSearchMatchmaker() {
+    fafServerAccessor.stopSearchMatchmaker();
+  }
+
   public void requestMatchmakerInfo() {
     fafServerAccessor.requestMatchmakerInfo();
   }
 
-  public void stopSearchingRanked() {
+  public void stopSearchingRanked() { // TODO: remove
     fafServerAccessor.stopSearchingRanked();
   }
 

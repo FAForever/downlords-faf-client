@@ -103,7 +103,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
 
     when(leaderboardService.getLadder1v1Stats()).thenReturn(CompletableFuture.completedFuture(new ArrayList<>()));
     when(leaderboardService.getEntryForPlayer(PLAYER_ID)).thenReturn(CompletableFuture.completedFuture(leaderboardEntry));
-    when(gameService.searching1v1Property()).thenReturn(searching1v1Property);
+    when(gameService.inMatchmakerQueueProperty()).thenReturn(searching1v1Property);
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getLadder1v1Prefs()).thenReturn(ladder1V1Prefs);
     when(ladder1V1Prefs.getFactions()).thenReturn(factionList);
@@ -146,7 +146,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
   public void testOnCancelButtonClicked() throws Exception {
     instance.onCancelButtonClicked();
 
-    verify(gameService).stopSearchLadder1v1();
+    verify(gameService).onMatchmakerSearchStopped();
     assertThat(instance.cancelButton.isVisible(), is(false));
     assertThat(instance.playButton.isVisible(), is(true));
     assertThat(instance.searchingForOpponentLabel.isVisible(), is(false));

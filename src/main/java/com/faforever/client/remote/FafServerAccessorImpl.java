@@ -386,6 +386,11 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
+  public void stopSearchMatchmaker() {
+    gameLaunchFuture.cancel(true);
+  }
+
+  @Override
   public void stopSearchingRanked() {
     writeToServer(new StopSearchLadder1v1ClientMessage());
     gameLaunchFuture = null;

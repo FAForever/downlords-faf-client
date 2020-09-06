@@ -140,7 +140,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     gameRunningProperty = new SimpleBooleanProperty();
     BooleanProperty searching1v1Property = new SimpleBooleanProperty();
     when(gameService.gameRunningProperty()).thenReturn(gameRunningProperty);
-    when(gameService.searching1v1Property()).thenReturn(searching1v1Property);
+    when(gameService.inMatchmakerQueueProperty()).thenReturn(searching1v1Property);
 
     when(uiService.loadFxml("theme/persistent_notifications.fxml")).thenReturn(persistentNotificationsController);
     when(uiService.loadFxml("theme/transient_notifications.fxml")).thenReturn(transientNotificationsController);
