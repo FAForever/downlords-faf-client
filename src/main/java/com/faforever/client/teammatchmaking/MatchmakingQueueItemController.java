@@ -11,6 +11,7 @@ import com.jfoenix.controls.JFXButton;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.Observable;
+import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -30,6 +31,8 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class MatchmakingQueueItemController implements Controller<Node> {
+
+  private final static String QUEUE_I18N_PATTERN = "teammatchmaking.queue.%s.name";
 
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
@@ -91,7 +94,9 @@ public class MatchmakingQueueItemController implements Controller<Node> {
     this.queue = queue;
 
     // TODO: localize
-    queuenameLabel.textProperty().bind(queue.queueNameProperty());
+    queuenameLabel.textProperty().bind(Bindings.createStringBinding(
+        () -> i18n.get(String.format(QUEUE_I18N_PATTERN, queue.getQueueName())),
+        queue.queueNameProperty()));
 
     teamSizeLabel.textProperty().bind(createStringBinding(
         () -> i18n.get("teammatchmaking.teamSize", queue.getTeamSize()),
