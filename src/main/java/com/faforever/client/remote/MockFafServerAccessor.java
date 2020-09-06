@@ -364,7 +364,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public void setPartyFactions(boolean[] factions) {
+  public void setPartyFactions(List<Faction> factions) {
 
   }
 

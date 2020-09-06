@@ -1,8 +1,10 @@
 package com.faforever.client.remote.domain;
 
+import com.faforever.client.game.Faction;
 import lombok.Data;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 public class PartyInfoMessage extends FafServerMessage {
@@ -18,6 +20,11 @@ public class PartyInfoMessage extends FafServerMessage {
   public static class PartyMember {
     private Integer player;
     private Boolean ready;
-    private List<Boolean> factions;
+    private List<Integer> factions;
+
+    // gson deserializes factions based on name, faction ids are used here
+    public List<Faction> getFactions() {
+      return factions.stream().map(Faction::fromFaValue).collect(Collectors.toList());
+    }
   }
 }

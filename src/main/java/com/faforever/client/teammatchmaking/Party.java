@@ -1,5 +1,6 @@
 package com.faforever.client.teammatchmaking;
 
+import com.faforever.client.game.Faction;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.domain.PartyInfoMessage;
@@ -12,8 +13,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -87,12 +86,12 @@ public class Party {
   public static class PartyMember {
     private final Player player;
     private boolean ready;  // no properties used as this object is recreated for each recevied party info message
-    private List<Boolean> factions;
+    private List<Faction> factions;
 
     public PartyMember(Player player) {
       this.player = player;
       this.ready = false;
-      this.factions = new ArrayList<>(Arrays.asList(false, false, false, false));
+      this.factions = Collections.emptyList();
     }
   }
 }

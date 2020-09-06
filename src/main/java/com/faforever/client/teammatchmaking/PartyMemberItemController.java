@@ -6,6 +6,7 @@ import com.faforever.client.chat.ChatUserContextMenuController;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.game.Faction;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
@@ -29,6 +30,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 
 import static javafx.beans.binding.Bindings.createObjectBinding;
 import static javafx.beans.binding.Bindings.createStringBinding;
@@ -152,15 +155,15 @@ public ImageView leagueImageView;
   }
 
   private void selectFactionsBasedOnParty() {
-    aeonButton.setSelected(isFactionSelectedInParty(1));
-    cybranButton.setSelected(isFactionSelectedInParty(2)); // TODO use Faction.STH, rework using new factions format
-    uefButton.setSelected(isFactionSelectedInParty(0));
-    seraphimButton.setSelected(isFactionSelectedInParty(3));
+    uefButton.setSelected(isFactionSelectedInParty(Faction.UEF));
+    aeonButton.setSelected(isFactionSelectedInParty(Faction.AEON));
+    cybranButton.setSelected(isFactionSelectedInParty(Faction.CYBRAN));
+    seraphimButton.setSelected(isFactionSelectedInParty(Faction.SERAPHIM));
   }
 
-  private boolean isFactionSelectedInParty(int faction) {
+  private boolean isFactionSelectedInParty(Faction faction) {
     return teamMatchmakingService.getParty().getMembers().stream()
-        .anyMatch(m -> m.getPlayer().getId() == player.getId() && m.getFactions().get(faction));
+        .anyMatch(m -> m.getPlayer().getId() == player.getId() && m.getFactions().contains(faction));
   }
 
   public void onKickPlayerButtonClicked(ActionEvent actionEvent) {
@@ -177,12 +180,19 @@ public ImageView leagueImageView;
       return;
     }
 
-    boolean[] factions = {
-        uefButton.isSelected(),
-        aeonButton.isSelected(),
-        cybranButton.isSelected(),
-        seraphimButton.isSelected()
-    };
+    List<Faction> factions = new ArrayList<>();
+    if (uefButton.isSelected()) {
+      factions.add(Faction.UEF);
+    }
+    if (aeonButton.isSelected()) {
+      factions.add(Faction.AEON);
+    }
+    if (cybranButton.isSelected()) {
+      factions.add(Faction.CYBRAN);
+    }
+    if (seraphimButton.isSelected()) {
+      factions.add(Faction.SERAPHIM);
+    }
 
     teamMatchmakingService.setPartyFactions(factions);
 

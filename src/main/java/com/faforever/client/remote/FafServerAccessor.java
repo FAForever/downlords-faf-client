@@ -93,5 +93,5 @@ public interface FafServerAccessor {
 
   void leaveParty();
 
-  void setPartyFactions(boolean[] factions);
+  void setPartyFactions(List<Faction> factions);
 }

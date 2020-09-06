@@ -630,7 +630,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public void setPartyFactions(boolean[] factions) {
+  public void setPartyFactions(List<Faction> factions) {
     writeToServer(new SetPartyFactionsMessage(factions));
   }
 }

@@ -1,6 +1,7 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.fa.relay.LobbyMode;
+import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
@@ -269,7 +270,7 @@ public class TeamMatchmakingService implements InitializingBean {
     fafServerAccessor.unreadyParty();
   }
 
-  public void setPartyFactions(boolean[] factions) {
+  public void setPartyFactions(List<Faction> factions) {
     fafServerAccessor.setPartyFactions(factions);
   }
 
