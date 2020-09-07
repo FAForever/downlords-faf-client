@@ -173,12 +173,12 @@ public class UserInfoWindowController implements Controller<Node> {
 
     timePeriodComboBox.setConverter(timePeriodStringConverter());
 
-    timePeriodComboBox.getItems().addAll(TimePeriod.ALL_TIME, TimePeriod.LAST_YEAR, TimePeriod.LAST_MONTH);
+    timePeriodComboBox.getItems().addAll(TimePeriod.values());
     timePeriodComboBox.setValue(TimePeriod.ALL_TIME);
 
     ratingTypeComboBox.setConverter(ratingModeStringConverter());
 
-    ratingTypeComboBox.getItems().addAll(RatingMode.GLOBAL, RatingMode.LADDER_1V1);
+    ratingTypeComboBox.getItems().addAll(RatingMode.values());
     ratingTypeComboBox.setValue(RatingMode.GLOBAL);
 
     ratingData = Collections.emptyList();
