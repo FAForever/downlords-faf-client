@@ -7,6 +7,7 @@ import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
+import com.faforever.client.api.dto.GlobalRatingWithRank;
 import com.faforever.client.api.dto.Ladder1v1Map;
 import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapVersion;
@@ -25,6 +26,7 @@ import com.faforever.client.game.Faction;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.LeaderboardEntry;
+import com.faforever.client.leaderboard.RatingWithRank;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModVersion;
@@ -547,5 +549,23 @@ public class FafService {
         .map(TutorialCategory::fromDto)
         .collect(Collectors.toList())
     );
+  }
+
+  @Async
+  public CompletableFuture<Tuple<List<com.faforever.client.leaderboard.RatingWithRank>, Integer>> getLadder1v1LeaderboardEntryWithPageCount(String nameToSearch, int page, int count) {
+    Tuple<List<com.faforever.client.api.dto.RatingWithRank>, java.util.Map<String, ?>> tuple = fafApiAccessor.findLadder1v1LeaderboardEntryByQuery(nameToSearch, page, count);
+    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
+        .parallelStream()
+        .map(RatingWithRank::fromDTORatingWithRank)
+        .collect(toList()), ((HashMap<String,Integer>) tuple.getSecond().get("page")).get("totalPages")));
+  }
+
+  @Async
+  public CompletableFuture<Tuple<List<RatingWithRank>, Integer>> getGlobalLeaderboardEntryWithPageCount(String nameToSearch, int page, int count) {
+    Tuple<List<GlobalRatingWithRank>, java.util.Map<String, ?>> tuple = fafApiAccessor.findGlobalLeaderboardEntryByQuery(nameToSearch, page, count);
+    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
+        .parallelStream()
+        .map(RatingWithRank::fromDTORatingWithRank)
+        .collect(toList()), ((HashMap<String,Integer>) tuple.getSecond().get("page")).get("totalPages")));
   }
 }

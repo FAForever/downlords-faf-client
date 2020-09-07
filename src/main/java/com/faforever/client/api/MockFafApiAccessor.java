@@ -24,18 +24,15 @@ import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
-import com.faforever.client.api.dto.Rating;
 import com.faforever.client.api.dto.RatingWithRank;
 import com.faforever.client.api.dto.Tournament;
 import com.faforever.client.api.dto.TutorialCategory;
 import com.faforever.client.game.KnownFeaturedMod;
-import com.faforever.client.leaderboard.LeaderboardEntry;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.io.ByteCountListener;
-import com.github.jasminb.jsonapi.JSONAPIDocument;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -259,22 +256,12 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<GlobalLeaderboardEntry> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public List<Ladder1v1LeaderboardEntry> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count) {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public JSONAPIDocument<List<RatingWithRank>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
+  public Tuple<List<GlobalRatingWithRank>, java.util.Map<String, ?>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
     return null;
   }
 
   @Override
-  public JSONAPIDocument<List<RatingWithRank>> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count) {
+  public Tuple<List<RatingWithRank>, java.util.Map<String, ?>> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count) {
     return null;
   }
 

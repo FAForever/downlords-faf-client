@@ -54,8 +54,8 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public Pane leaderboardRoot;
   public TableColumn<RatingWithRank, Number> rankColumn;
   public TableColumn<RatingWithRank, String> nameColumn;
-  public TableColumn<RatingWithRank, Number> meanColumn;
-  public TableColumn<RatingWithRank, Number> deviationColumn;
+  public TableColumn<RatingWithRank, Number> winLossColumn;
+  public TableColumn<RatingWithRank, Number> gamesPlayedColumn;
   public TableColumn<RatingWithRank, Number> ratingColumn;
   public TableView<RatingWithRank> ratingTable;
   public TextField searchTextField;
@@ -77,11 +77,11 @@ public class LeaderboardController extends AbstractViewController<Node> {
     nameColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getPlayer().getLogin())) ;
     nameColumn.setCellFactory(param -> new StringCell<>(name -> name));
 
-    meanColumn.setCellValueFactory(param -> param.getValue().meanProperty());
-    meanColumn.setCellFactory(param -> new StringCell<>(number -> i18n.rounded(number.doubleValue(), 2)));
+    winLossColumn.setCellValueFactory(param -> param.getValue().meanProperty());
+    winLossColumn.setCellFactory(param -> new StringCell<>(number -> i18n.rounded(number.doubleValue(), 2)));
 
-    deviationColumn.setCellValueFactory(param -> param.getValue().deviationProperty());
-    deviationColumn.setCellFactory(param -> new StringCell<>(number -> i18n.rounded(number.doubleValue(), 2)));
+    gamesPlayedColumn.setCellValueFactory(param -> param.getValue().deviationProperty());
+    gamesPlayedColumn.setCellFactory(param -> new StringCell<>(number -> i18n.rounded(number.doubleValue(), 2)));
 
     ratingColumn.setCellValueFactory(param -> param.getValue().ratingProperty());
     ratingColumn.setCellFactory(param -> new StringCell<>(rating -> i18n.number(rating.intValue())));
@@ -129,15 +129,9 @@ public class LeaderboardController extends AbstractViewController<Node> {
     Assert.checkNullIllegalState(ratingType, "ratingType must not be null");
 
     contentPane.setVisible(false);
-    leaderboardService.getSearchResultsWithMeta(ratingType, searchTextFieldText,paginationControl.getCurrentPageIndex()+1, NUMBER_OF_PLAYERS_PER_PAGE)
-        .thenAccept(ratingWithRankBeans -> {
+    leaderboardService.getSearchResultsWithMeta(ratingType, searchTextFieldText,paginationControl.getCurrentPageIndex() + 1, NUMBER_OF_PLAYERS_PER_PAGE).thenAccept(leaderboardEntryBeans -> {
       Platform.runLater(() -> {
-        ratingTable.setItems(observableList(
-            ratingWithRankBeans.get()
-                .parallelStream()
-                .map(RatingWithRank::fromDTORatingWithRank)
-                .collect(toList()))
-        );
+        ratingTable.setItems(observableList(leaderboardEntryBeans.getFirst()));
         contentPane.setVisible(true);
       });
     }).exceptionally(throwable -> {

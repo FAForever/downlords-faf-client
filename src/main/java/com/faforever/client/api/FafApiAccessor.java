@@ -124,13 +124,9 @@ public interface FafApiAccessor {
 
   Tuple<List<Map>, java.util.Map<String, ?>> findMapsByQueryWithMeta(SearchConfig searchConfig, int count, int page);
 
-  List<GlobalLeaderboardEntry> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count);
+  Tuple<List<GlobalRatingWithRank>, java.util.Map<String, ?>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count);
 
-  List<Ladder1v1LeaderboardEntry> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count);
-
-  JSONAPIDocument<List<RatingWithRank>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count);
-
-  JSONAPIDocument<List<RatingWithRank>> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count);
+  Tuple<List<RatingWithRank>, java.util.Map<String, ?>> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count);
 
   Optional<MapVersion> findMapVersionById(String id);
 

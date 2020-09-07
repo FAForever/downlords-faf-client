@@ -10,7 +10,6 @@ import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.GameReviewsSummary;
 import com.faforever.client.api.dto.GlobalLeaderboardEntry;
-import com.faforever.client.api.dto.GlobalRating;
 import com.faforever.client.api.dto.GlobalRatingWithRank;
 import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
 import com.faforever.client.api.dto.Ladder1v1Map;
@@ -25,7 +24,6 @@ import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
-import com.faforever.client.api.dto.Rating;
 import com.faforever.client.api.dto.RatingWithRank;
 import com.faforever.client.api.dto.Tournament;
 import com.faforever.client.api.dto.TutorialCategory;
@@ -34,7 +32,6 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Api;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.io.CountingFileSystemResource;
-import com.faforever.client.leaderboard.LeaderboardEntry;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
@@ -89,7 +86,8 @@ import java.util.stream.Collectors;
 public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   private static final String MAP_ENDPOINT = "/data/map";
-  private static final String GLOBAL_RATING_ENDPOINT = "/data/globalRating";
+  private static final String GLOBAL_RATING_ENDPOINT = "/data/globalRatingWithRank";
+  private static final String LADDER1V1_RATING_ENDPOINT = "/data/ladder1v1RatingWithRank";
   private static final String TOURNAMENT_LIST_ENDPOINT = "/challonge/v1/tournaments.json";
   private static final String REPLAY_INCLUDES = "featuredMod,playerStats,playerStats.player,reviews,reviews.player,mapVersion,mapVersion.map,mapVersion.reviews,reviewsSummary";
   private static final String COOP_RESULT_INCLUDES = "game.playerStats.player";
@@ -488,27 +486,29 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  public List<GlobalLeaderboardEntry> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
-    return getPage("/leaderboards/global", count, page,
-        ImmutableMap.of("playerNameMatchesRegex", nameToSearch + "%", "page[number]", page, "page[size]", count));
+  public Tuple<List<GlobalRatingWithRank>, java.util.Map<String, ?>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
+
+    MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
+    parameterMap.add("filter", "player.login==" + nameToSearch + "*");
+    parameterMap.add("page[number]", Integer.toString(page));
+    parameterMap.add("page[size]", Integer.toString(count));
+    parameterMap.add("page[totals]", "");
+
+    JSONAPIDocument<List<GlobalRatingWithRank>> jsonapiDocument = getPageWithMeta(GLOBAL_RATING_ENDPOINT, page, count, parameterMap);
+    return new Tuple<>(jsonapiDocument.get(), jsonapiDocument.getMeta());
   }
 
   @Override
-  public List<Ladder1v1LeaderboardEntry> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count) {
-    return getPage("/leaderboards/ladder1v1", count, page,
-        ImmutableMap.of("playerNameMatchesRegex", nameToSearch + "%", "page[number]", page, "page[size]", count));
-  }
+  public Tuple<List<RatingWithRank>, java.util.Map<String, ?>> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count) {
 
-  @Override
-  public JSONAPIDocument<List<RatingWithRank>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
-    return getPageWithMeta("/data/globalRatingWithRank", count, page,
-        ImmutableMap.of("filter", "player.login==" + nameToSearch + "*", "page[number]", page, "page[size]", count, "page[totals]", ""));
-  }
+    MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
+    parameterMap.add("filter", "player.login==" + nameToSearch + "*");
+    parameterMap.add("page[number]", Integer.toString(page));
+    parameterMap.add("page[size]", Integer.toString(count));
+    parameterMap.add("page[totals]", "");
 
-  @Override
-  public  JSONAPIDocument<List<RatingWithRank>> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count) {
-    return getPageWithMeta("/data/ladder1v1RatingWithRank", count, page,
-        ImmutableMap.of("filter", "player.login==" + nameToSearch + "*", "page[number]", page, "page[size]", count, "page[totals]", ""));
+    JSONAPIDocument<List<RatingWithRank>> jsonapiDocument = getPageWithMeta(GLOBAL_RATING_ENDPOINT, page, count, parameterMap);
+    return new Tuple<>(jsonapiDocument.get(), jsonapiDocument.getMeta());
   }
 
   @Override

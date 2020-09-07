@@ -1,21 +1,11 @@
 package com.faforever.client.leaderboard;
 
 import com.faforever.client.FafClientApplication;
-import com.faforever.client.api.dto.GlobalRating;
-import com.faforever.client.api.dto.GlobalRatingWithRank;
-import com.faforever.client.api.dto.Rating;
 import com.faforever.client.game.KnownFeaturedMod;
-import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.util.RatingUtil;
-import com.faforever.client.vault.search.SearchController.SearchConfig;
-import com.faforever.client.vault.search.SearchController.SortConfig;
-import com.faforever.client.vault.search.SearchController.SortOrder;
-import com.github.jasminb.jsonapi.JSONAPIDocument;
-import lombok.Data;
+import com.faforever.client.util.Tuple;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -72,12 +62,12 @@ public class LeaderboardService {
     }
   }
 
-  public CompletableFuture<JSONAPIDocument<List<com.faforever.client.api.dto.RatingWithRank>>> getSearchResultsWithMeta(KnownFeaturedMod ratingType, String nameToSearch, int page, int count) {
+  public CompletableFuture<Tuple<List<RatingWithRank>, Integer>> getSearchResultsWithMeta(KnownFeaturedMod ratingType, String nameToSearch, int page, int count) {
     switch (ratingType) {
       case FAF:
-        return fafService.findGlobalLeaderboardEntryByQuery(nameToSearch, page, count);
+        return fafService.getGlobalLeaderboardEntryWithPageCount(nameToSearch, page, count);
       case LADDER_1V1:
-        return fafService.findLadder1v1LeaderboardEntryByQuery(nameToSearch, page, count);
+        return fafService.getLadder1v1LeaderboardEntryWithPageCount(nameToSearch, page, count);
       default:
         throw new IllegalArgumentException("Not supported: " + ratingType);
     }
