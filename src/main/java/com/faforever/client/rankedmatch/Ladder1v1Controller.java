@@ -77,7 +77,6 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final PseudoClass NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("highlighted-bar");
-  public static final String IMAGES_LADDER_LOADING_GIF = "theme/images/ladder_loading.gif";
 
   private final Random random = new Random();
   private final GameService gameService;
@@ -126,7 +125,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
   public void initialize() {
     super.initialize();
 
-    searchProgressIndicator.setImage(new Image(uiService.getThemeFile(IMAGES_LADDER_LOADING_GIF)));
+    searchProgressIndicator.setImage(new Image(uiService.getThemeFile(UiService.LADDER_LOADING_GIF)));
     searchingForOpponentLabel.managedProperty().bind(searchingForOpponentLabel.visibleProperty());
 
     searchProgressIndicator.managedProperty().bind(searchProgressIndicator.visibleProperty());
