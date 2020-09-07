@@ -18,6 +18,7 @@ import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -38,6 +39,7 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public class ReplayCardController implements Controller<Node> {
 
+  private final ReplayService replayService;
   private final TimeService timeService;
   private final MapService mapService;
   private final RatingService ratingService;
@@ -55,6 +57,7 @@ public class ReplayCardController implements Controller<Node> {
   public Label numberOfReviewsLabel;
   public HBox teamsContainer;
   public Label onMapLabel;
+  public Button watchButton;
   public StarsController starsController;
   private Replay replay;
   private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
@@ -146,5 +149,9 @@ public class ReplayCardController implements Controller<Node> {
 
   public void onShowReplayDetail() {
     onOpenDetailListener.accept(replay);
+  }
+
+  public void onWatchButtonClicked() {
+    replayService.runReplay(replay);
   }
 }
