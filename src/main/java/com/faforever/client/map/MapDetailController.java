@@ -206,10 +206,17 @@ public class MapDetailController implements Controller<Node> {
         .map(FaStrings::removeLocalizationTag)
         .orElseGet(() -> i18n.get("map.noDescriptionAvailable")));
 
-    ObservableList<MapBean> installedMaps = mapService.getInstalledMaps();
-    JavaFxUtil.addListener(installedMaps, new WeakListChangeListener<>(installStatusChangeListener));
 
-    setInstalled(mapService.isInstalled(map.getFolderName()));
+    if (mapService.isOfficialMap(map.getFolderName())) {
+      installButton.setDisable(false);
+      uninstallButton.setDisable(false);
+      installButton.setVisible(false);
+      uninstallButton.setVisible(false);
+    } else {
+      ObservableList<MapBean> installedMaps = mapService.getInstalledMaps();
+      JavaFxUtil.addListener(installedMaps, new WeakListChangeListener<>(installStatusChangeListener));
+      setInstalled(mapService.isInstalled(map.getFolderName()));
+    }
   }
 
   private void onDeleteReview(Review review) {

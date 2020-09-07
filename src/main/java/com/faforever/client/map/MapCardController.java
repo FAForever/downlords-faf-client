@@ -97,15 +97,20 @@ public class MapCardController implements Controller<Node> {
     sizeLabel.setText(i18n.get("mapPreview.size", size.getWidthInKm(), size.getHeightInKm()));
     maxPlayersLabel.setText(i18n.number(map.getPlayers()));
 
-    ObservableList<MapBean> installedMaps = mapService.getInstalledMaps();
-    JavaFxUtil.addListener(installedMaps, new WeakListChangeListener<>(installStatusChangeListener));
+    if (mapService.isOfficialMap(map.getFolderName())) {
+      installButton.setDisable(false);
+      uninstallButton.setDisable(false);
+      installButton.setVisible(false);
+      uninstallButton.setVisible(false);
+    } else {
+      ObservableList<MapBean> installedMaps = mapService.getInstalledMaps();
+      JavaFxUtil.addListener(installedMaps, new WeakListChangeListener<>(installStatusChangeListener));
+      setInstalled(mapService.isInstalled(map.getFolderName()));
+    }
 
     ObservableList<Review> reviews = map.getReviews();
     JavaFxUtil.addListener(reviews, new WeakInvalidationListener(reviewsChangedListener));
     reviewsChangedListener.invalidated(reviews);
-
-    boolean mapInstalled = mapService.isInstalled(map.getFolderName());
-    setInstalled(mapInstalled);
   }
 
   private void populateReviews() {
