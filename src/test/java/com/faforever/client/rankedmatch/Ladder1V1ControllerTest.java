@@ -16,6 +16,7 @@ import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue.QueueName;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -28,6 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.springframework.core.io.ClassPathResource;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Paths;
@@ -41,6 +43,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
+import static com.faforever.client.theme.UiService.LADDER_LOADING_GIF;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -82,6 +85,8 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
 
   @Mock
   private EventBus eventBus;
+  @Mock
+  private UiService uiService;
 
   private ObjectProperty<Player> currentPlayerProperty;
   private ObservableList<Faction> factionList;
@@ -89,7 +94,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     instance = new Ladder1v1Controller(gameService, preferencesService, playerService, leaderboardService, i18n,
-        new ClientProperties(), fafService, eventBus);
+        new ClientProperties(), fafService, eventBus, uiService);
 
     Player player = new Player(USERNAME);
     player.setId(PLAYER_ID);
@@ -111,6 +116,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(playerService.getCurrentPlayer()).thenReturn(Optional.ofNullable(currentPlayerProperty.get()));
     when(playerService.currentPlayerProperty()).thenReturn(currentPlayerProperty);
+    when(uiService.getThemeFile(LADDER_LOADING_GIF)).thenReturn(new ClassPathResource(LADDER_LOADING_GIF).getURL().toString());
 
     loadFxml("theme/play/ranked_1v1.fxml", clazz -> instance);
   }

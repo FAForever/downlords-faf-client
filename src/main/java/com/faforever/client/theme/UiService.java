@@ -83,6 +83,7 @@ public class UiService implements InitializingBean, DisposableBean {
 
   public static final String UNKNOWN_MAP_IMAGE = "theme/images/unknown_map.png";
   //TODO: Create Images for News Categories
+  public static final String LADDER_LOADING_GIF = "theme/images/ladder_loading.gif";
   public static final String SERVER_UPDATE_NEWS_IMAGE = "theme/images/news_fallback.jpg";
   public static final String LADDER_NEWS_IMAGE = "theme/images/news_fallback.jpg";
   public static final String TOURNAMENT_NEWS_IMAGE = "theme/images/news_fallback.jpg";
