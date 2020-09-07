@@ -21,7 +21,8 @@ import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANC
 
 /**
  * Knows how to starts/stop Forged Alliance with proper parameters. Downloading maps, mods and updates as well as
- * notifying the server about whether the preferences is running or not is <strong>not</strong> this service's responsibility.
+ * notifying the server about whether the preferences is running or not is <strong>not</strong> this service's
+ * responsibility.
  */
 @Lazy
 @Service
@@ -38,7 +39,7 @@ public class ForgedAllianceService {
         .executableDecorator(preferencesService.getPreferences().getForgedAlliance().getExecutableDecorator())
         .executable(executable)
         .additionalArgs(args)
-        .logFile(preferencesService.getFafLogDirectory().resolve("game.log"))
+        .logFile(preferencesService.getNewGameLogFile(0))
 
         .build();
 
@@ -72,7 +73,7 @@ public class ForgedAllianceService {
         .mean(mean)
         .username(currentPlayer.getUsername())
         .additionalArgs(additionalArgs)
-        .logFile(preferencesService.getFafLogDirectory().resolve("game.log"))
+        .logFile(preferencesService.getNewGameLogFile(uid))
         .localGpgPort(gpgPort)
         .localReplayPort(localReplayPort)
         .rehost(rehost)
@@ -81,7 +82,7 @@ public class ForgedAllianceService {
     return launch(executable, launchCommand);
   }
 
-  
+
   public Process startReplay(Path path, @Nullable Integer replayId) throws IOException {
     Path executable = getExecutable();
 
@@ -89,13 +90,13 @@ public class ForgedAllianceService {
         .executable(executable)
         .replayFile(path)
         .replayId(replayId)
-        .logFile(preferencesService.getFafLogDirectory().resolve("game.log"))
+        .logFile(preferencesService.getNewGameLogFile(replayId))
         .build();
 
     return launch(executable, launchCommand);
   }
 
-  
+
   public Process startReplay(URI replayUri, Integer replayId, Player currentPlayer) throws IOException {
     Path executable = getExecutable();
 

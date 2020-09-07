@@ -11,12 +11,16 @@ import org.mockito.Mock;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.regex.Pattern;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class PreferencesServiceTest {
+
+  private static final Pattern GAME_LOG_PATTERN = Pattern.compile("game(_\\d*)?.log");
 
   @Mock
   private PreferencesService instance;
@@ -74,5 +78,10 @@ public class PreferencesServiceTest {
   @Test
   public void testGetFafLogDirectory() throws Exception {
     assertThat(instance.getFafLogDirectory(), is(instance.getFafDataDirectory().resolve("logs")));
+  }
+
+  @Test
+  public void testGetNewLogFile() throws Exception {
+    assertTrue(GAME_LOG_PATTERN.matcher(instance.getNewGameLogFile(0).getFileName().toString()).matches());
   }
 }
