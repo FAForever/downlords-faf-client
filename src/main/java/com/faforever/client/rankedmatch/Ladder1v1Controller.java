@@ -16,6 +16,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue.QueueName;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
@@ -76,6 +77,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final PseudoClass NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("highlighted-bar");
+  public static final String IMAGES_LADDER_LOADING_GIF = "theme/images/ladder_loading.gif";
 
   private final Random random = new Random();
   private final GameService gameService;
@@ -86,6 +88,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
   private final ClientProperties clientProperties;
   private final FafService fafService;
   private final EventBus eventBus;
+  private final UiService uiService;
 
   public CategoryAxis ratingDistributionXAxis;
   public NumberAxis ratingDistributionYAxis;
@@ -123,7 +126,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
   public void initialize() {
     super.initialize();
 
-    searchProgressIndicator.setImage(new Image(getClass().getResource("/images/loading-dancing-acu.gif").toExternalForm()));
+    searchProgressIndicator.setImage(new Image(uiService.getThemeFile(IMAGES_LADDER_LOADING_GIF)));
     searchingForOpponentLabel.managedProperty().bind(searchingForOpponentLabel.visibleProperty());
 
     searchProgressIndicator.managedProperty().bind(searchProgressIndicator.visibleProperty());
