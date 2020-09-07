@@ -98,8 +98,8 @@ public class MapCardController implements Controller<Node> {
     maxPlayersLabel.setText(i18n.number(map.getPlayers()));
 
     if (mapService.isOfficialMap(map.getFolderName())) {
-      installButton.setDisable(false);
-      uninstallButton.setDisable(false);
+      installButton.setDisable(true);
+      uninstallButton.setDisable(true);
       installButton.setVisible(false);
       uninstallButton.setVisible(false);
     } else {
