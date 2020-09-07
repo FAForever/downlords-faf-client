@@ -257,12 +257,12 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public Tuple<List<GlobalRatingWithRank>, java.util.Map<String, ?>> findGlobalLeaderboardEntryByQuery(String nameToSearch, int page, int count) {
-    return null;
+    return new Tuple(Collections.emptyList(), Collections.emptyMap());
   }
 
   @Override
   public Tuple<List<RatingWithRank>, java.util.Map<String, ?>> findLadder1v1LeaderboardEntryByQuery(String nameToSearch, int page, int count) {
-    return null;
+    return new Tuple(Collections.emptyList(), Collections.emptyMap());
   }
 
   @Override
