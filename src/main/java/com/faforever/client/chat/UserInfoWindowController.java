@@ -58,9 +58,10 @@ import org.springframework.stereotype.Component;
 
 import java.text.DateFormat;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -178,7 +179,9 @@ public class UserInfoWindowController implements Controller<Node> {
 
     ratingTypeComboBox.setConverter(ratingModeStringConverter());
 
-    ratingTypeComboBox.getItems().addAll(RatingMode.values());
+    ArrayList<RatingMode> modes = new ArrayList<>(Arrays.asList(RatingMode.values()));
+    modes.removeIf(mode -> mode == RatingMode.NONE);
+    ratingTypeComboBox.getItems().addAll(modes);
     ratingTypeComboBox.setValue(RatingMode.GLOBAL);
 
     ratingData = Collections.emptyList();
@@ -383,10 +386,7 @@ public class UserInfoWindowController implements Controller<Node> {
   }
 
   public void onRatingTypeChange() {
-    CompletableFuture<Void> statisticsFuture = switch (ratingTypeComboBox.getValue()) {
-      case LADDER_1V1 -> loadStatistics(KnownFeaturedMod.LADDER_1V1);
-      default -> loadStatistics(KnownFeaturedMod.FAF);
-    };
+    CompletableFuture<Void> statisticsFuture = loadStatistics(ratingTypeComboBox.getValue().getFeaturedMod());
     statisticsFuture.thenRun(() -> Platform.runLater(this::plotPlayerRatingGraph));
   }
 
@@ -401,11 +401,7 @@ public class UserInfoWindowController implements Controller<Node> {
   }
 
   public void plotPlayerRatingGraph() {
-    OffsetDateTime afterDate = switch (timePeriodComboBox.getValue()) {
-      case LAST_MONTH -> OffsetDateTime.of(LocalDateTime.now().minusMonths(1), ZoneOffset.UTC);
-      case LAST_YEAR -> OffsetDateTime.of(LocalDateTime.now().minusYears(1), ZoneOffset.UTC);
-      case ALL_TIME -> OffsetDateTime.of(LocalDateTime.MIN, ZoneOffset.UTC);
-    };
+    OffsetDateTime afterDate = OffsetDateTime.of(timePeriodComboBox.getValue().getDate(), ZoneOffset.UTC);
     List<XYChart.Data<Long, Integer>> values = ratingData.stream()
         .filter(dataPoint -> dataPoint.getInstant().isAfter(afterDate))
         .map(dataPoint -> new Data<>(dataPoint.getInstant().toEpochSecond(), RatingUtil.getRating(dataPoint)))
@@ -428,7 +424,7 @@ public class UserInfoWindowController implements Controller<Node> {
     return new StringConverter<>() {
       @Override
       public String toString(RatingMode mode) {
-        return i18n.get(mode.getI18NKey());
+        return i18n.get(mode.getI18nKey());
       }
 
       @Override
@@ -443,7 +439,7 @@ public class UserInfoWindowController implements Controller<Node> {
     return new StringConverter<>() {
       @Override
       public String toString(TimePeriod period) {
-        return i18n.get(period.getI18NKey());
+        return i18n.get(period.getI18nKey());
       }
 
       @Override

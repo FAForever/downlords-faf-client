@@ -80,12 +80,6 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
     when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
     when(achievementItemController.getRoot()).thenReturn(new HBox());
     when(playerService.getPlayersByIds(any())).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
-    when(i18n.get("userInfo.ratingHistory.allTime")).thenReturn("All Time");
-    when(i18n.get("userInfo.ratingHistory.lastYear")).thenReturn("Last Year");
-    when(i18n.get("userInfo.ratingHistory.lastMonth")).thenReturn("Last Month");
-    when(i18n.get("userInfo.ratingHistory.global")).thenReturn("Global");
-    when(i18n.get("userInfo.ratingHistory.1v1")).thenReturn("1v1");
-
     when(leaderboardService.getEntryForPlayer(eq(PLAYER_ID))).thenReturn(CompletableFuture.completedFuture(new LeaderboardEntry()));
     when(statisticsService.getRatingHistory(any(), eq(PLAYER_ID))).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
         new RatingHistoryDataPoint(OffsetDateTime.now(), 1500f, 50f),

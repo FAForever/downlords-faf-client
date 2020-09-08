@@ -1,16 +1,21 @@
 package com.faforever.client.chat;
 
-public enum TimePeriod {
-  ALL_TIME,
-  LAST_YEAR,
-  LAST_MONTH;
+import lombok.Getter;
 
-  public String getI18NKey() {
-    return switch (this) {
-      case ALL_TIME -> "userInfo.ratingHistory.allTime";
-      case LAST_YEAR -> "userInfo.ratingHistory.lastYear";
-      case LAST_MONTH -> "userInfo.ratingHistory.lastMonth";
-      default -> "";
-    };
+import java.time.LocalDateTime;
+
+public enum TimePeriod {
+  ALL_TIME("userInfo.ratingHistory.allTime", LocalDateTime.MIN),
+  LAST_YEAR("userInfo.ratingHistory.lastYear", LocalDateTime.now().minusYears(1)),
+  LAST_MONTH("userInfo.ratingHistory.lastMonth", LocalDateTime.now().minusMonths(1));
+
+  @Getter
+  private final String i18nKey;
+  @Getter
+  private final LocalDateTime date;
+
+  TimePeriod(String i18nKey, LocalDateTime date) {
+    this.i18nKey = i18nKey;
+    this.date = date;
   }
 }
