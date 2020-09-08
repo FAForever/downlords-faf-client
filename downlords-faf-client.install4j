@@ -1,20 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="8.0.8" transformSequenceNumber="8">
-  <directoryPresets config="./src/media/appicon" />
-  <application name="Downlord's FAF Client" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" lzmaCompression="true" pack200Compression="true" shortName="dfc" publisher="Downlord" publisherWeb="https://github.com/FAForever/downlords-faf-client" allPathsRelative="true" autoSave="true" macVolumeId="e230e730a6fc064c" javaMinVersion="14" javaMaxVersion="14" allowBetaVM="true">
-    <searchSequence empty="true" />
+<install4j version="8.0.7" transformSequenceNumber="8">
+  <directoryPresets config="./build/install/FAF Client" />
+  <application name="Downlord's FAF Client" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" lzmaCompression="true" pack200Compression="true" shortName="dfc" publisher="Downlord" publisherWeb="https://github.com/FAForever/downlords-faf-client" version="0.0.0" allPathsRelative="true" autoSave="true" macVolumeId="e230e730a6fc064c" javaMinVersion="14" javaMaxVersion="14">
+    <searchSequence>
+      <registry />
+    </searchSequence>
+    <jreBundles jdkProviderId="AdoptOpenJDK" release="openjdk14/jdk-14.0.2+12">
+      <modules>
+        <defaultModules set="minimum" />
+        <module name="java.datatransfer" />
+        <module name="java.instrument" />
+        <module name="java.logging" />
+        <module name="java.naming" />
+        <module name="java.net.http" />
+        <module name="java.scripting" />
+        <module name="java.sql" />
+        <module name="java.xml" />
+        <module name="jdk.crypto.ec" />
+        <module name="jdk.jdwp.agent" />
+        <module name="jdk.jsobject" />
+        <module name="jdk.management" />
+        <module name="jdk.unsupported" />
+        <module name="jdk.xml.dom" />
+      </modules>
+    </jreBundles>
   </application>
   <files>
-    <roots>
-      <root id="506" location="${installer:sys.programDataDir}" />
-    </roots>
     <mountPoints>
       <mountPoint id="23" />
-      <mountPoint id="507" root="506" location="FAForever" />
     </mountPoints>
     <entries>
-      <dirEntry mountPoint="23" file="./build/resources/native" fileMode="755" overrideFileMode="true" entryMode="subdir" subDirectory="natives" />
-      <dirEntry mountPoint="23" file="./build/install/downlords-faf-client" entryMode="subdir" subDirectory="lib">
+      <dirEntry mountPoint="23" file="./build/resources/tools" fileMode="755" overrideFileMode="true" entryMode="subdir" subDirectory="tools" />
+      <dirEntry mountPoint="23" file="./build/install/FAF Client/lib" entryMode="subdir" subDirectory="lib">
         <exclude>
           <entry location="faf-ice-adapter.jar" />
           <entry location="faf-uid" />
@@ -62,11 +79,6 @@
         <startup>
           <screen id="1" beanClass="com.install4j.runtime.beans.screens.StartupScreen" rollbackBarrierExitCode="0">
             <actions>
-              <action id="13" beanClass="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction" actionElevationType="none">
-                <serializedBean>
-                  <property name="obtainIfNormalWin" type="boolean" value="true" />
-                </serializedBean>
-              </action>
               <action id="695" beanClass="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" actionElevationType="none" rollbackBarrierExitCode="0" failureStrategy="askQuit">
                 <serializedBean>
                   <property name="additionalExecutables" type="array" class="java.io.File" length="3">
@@ -205,6 +217,9 @@ return console.askOkCancel(message, true);
                 </serializedBean>
               </formComponent>
               <formComponent id="165" beanClass="com.install4j.runtime.beans.formcomponents.FileAssociationsComponent" useExternalParametrization="true" externalParametrizationName="File Associations" externalParametrizationMode="include">
+                <serializedBean>
+                  <property name="showSelectionButtons" type="boolean" value="true" />
+                </serializedBean>
                 <externalParametrizationPropertyNames>
                   <propertyName>showSelectionButtons</propertyName>
                   <propertyName>selectionButtonPosition</propertyName>
@@ -635,32 +650,38 @@ return console.askYesNo(message, true);
         <entry location="lib/faf-uid" />
         <entry location="lib/uid" />
       </exclude>
-      <jreBundle usePack200="false" jreBundleSource="preCreated" includedJre="windows-amd64-14.0.2" directDownload="true" />
+      <jreBundle usePack200="false" jreBundleSource="generated" includedJre="windows-amd64-14" directDownload="true" />
     </windows>
     <windowsArchive name="Windows Archive" id="330" installDir="downlords-faf-client-${compiler:sys.version}">
       <exclude>
         <entry location="lib/faf-ice-adapter" />
         <entry location="lib/faf-uid" />
       </exclude>
-      <jreBundle jreBundleSource="preCreated" includedJre="windows-amd64-14.0.2" />
+      <jreBundle jreBundleSource="generated" />
     </windowsArchive>
     <unixArchive name="Unix Archive" id="331" installDir="downlords-faf-client-${compiler:sys.version}">
       <exclude>
         <entry location="lib/faf-ice-adapter.exe" />
         <entry location="lib/faf-uid.exe" />
       </exclude>
+      <jreBundle jreBundleSource="generated" />
     </unixArchive>
     <linuxRPM name="Linux RPM" id="332" installDir="/opt/downlords-faf-client-${compiler:sys.version}">
       <exclude>
         <entry location="lib/faf-ice-adapter.exe" />
         <entry location="lib/faf-uid.exe" />
       </exclude>
+      <jreBundle jreBundleSource="generated" />
     </linuxRPM>
     <linuxDeb name="Linux Deb Archive" id="333" installDir="/opt/downlords-faf-client-${compiler:sys.version}" dependencies="oracle-java8-installer" description="Downlord's FAF Client" maintainerEmail="michel.jung89@gmail.com">
       <exclude>
         <entry location="lib/faf-ice-adapter.exe" />
         <entry location="lib/faf-uid.exe" />
       </exclude>
+      <jreBundle jreBundleSource="generated" />
     </linuxDeb>
   </mediaSets>
+  <buildIds buildAll="false">
+    <mediaSet refId="330" />
+  </buildIds>
 </install4j>
