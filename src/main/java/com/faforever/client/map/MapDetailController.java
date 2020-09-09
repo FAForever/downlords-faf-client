@@ -208,8 +208,6 @@ public class MapDetailController implements Controller<Node> {
 
 
     if (mapService.isOfficialMap(map.getFolderName())) {
-      installButton.setDisable(true);
-      uninstallButton.setDisable(true);
       installButton.setVisible(false);
       uninstallButton.setVisible(false);
     } else {
