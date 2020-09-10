@@ -8,6 +8,7 @@ import com.faforever.client.preferences.gson.PathTypeAdapter;
 import com.faforever.client.preferences.gson.PropertyTypeAdapter;
 import com.faforever.client.remote.gson.FactionTypeAdapter;
 import com.faforever.client.update.ClientConfiguration;
+import com.faforever.client.util.Assert;
 import com.github.nocatch.NoCatch.NoCatchRunnable;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -94,7 +95,7 @@ public class PreferencesService implements InitializingBean {
         .resolve("downlords-faf-client.log")
         .toString());
     // duplicated, see getFafLogDirectory; make getFafLogDirectory or log dir static?
-    
+
     System.setProperty("ICE_ADVANCED_LOG", PreferencesService.FAF_DATA_DIRECTORY
         .resolve("logs/iceAdapterLogs")
         .resolve("advanced-ice-adapter.log")
@@ -225,9 +226,7 @@ public class PreferencesService implements InitializingBean {
   }
 
   private void readExistingFile(Path path) {
-    if (preferences != null) {
-      throw new IllegalStateException("Preferences have already been initialized");
-    }
+    Assert.checkNotNullIllegalState(preferences, "Preferences have already been initialized");
 
     try (Reader reader = Files.newBufferedReader(path, CHARSET)) {
       logger.debug("Reading preferences file {}", preferencesFilePath.toAbsolutePath());

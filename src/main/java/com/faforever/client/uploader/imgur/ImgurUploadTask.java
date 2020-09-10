@@ -11,10 +11,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
 
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
@@ -71,9 +72,10 @@ public class ImgurUploadTask extends CompletableTask<String> implements Initiali
     BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
     ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
 
-    if (byteArrayOutputStream.size() > maxUploadSize) {
-      throw new IllegalArgumentException("Image exceeds max upload size of " + formatSize(maxUploadSize, i18n.getUserSpecificLocale()));
-    }
+    Assert.state(
+        byteArrayOutputStream.size() <= maxUploadSize,
+        () -> "Image exceeds max upload size of " + formatSize(maxUploadSize, i18n.getUserSpecificLocale())
+    );
 
     String dataImage = BaseEncoding.base64().encode(byteArrayOutputStream.toByteArray());
     String data = URLEncoder.encode("image", "UTF-8") + "=" + URLEncoder.encode(dataImage, "UTF-8");

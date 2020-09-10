@@ -2,6 +2,7 @@ package com.faforever.client.remote;
 
 import com.faforever.client.remote.domain.SerializableMessage;
 import com.faforever.client.remote.io.QDataWriter;
+import com.faforever.client.util.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.serializer.Serializer;
@@ -19,8 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Sends data to the server. Classes should not use the server writer directly, but e.g. {@link com.faforever.client.remote.FafService} or
- * any other server accessor instead.
+ * Sends data to the server. Classes should not use the server writer directly, but e.g. {@link
+ * com.faforever.client.remote.FafService} or any other server accessor instead.
  */
 public class ServerWriter implements Closeable {
 
@@ -44,9 +45,7 @@ public class ServerWriter implements Closeable {
 
     Serializer<SerializableMessage> serializer = (Serializer<SerializableMessage>) findSerializerForClass(clazz);
 
-    if (serializer == null) {
-      throw new IllegalStateException("No object writer registered for type: " + clazz);
-    }
+    Assert.checkNullIllegalState(serializer, () -> "No object writer registered for type: " + clazz);
 
     try {
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
