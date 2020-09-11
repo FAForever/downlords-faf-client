@@ -288,7 +288,7 @@ public class ChannelTabController extends AbstractChatTabController {
   public void initialize() {
     super.initialize();
 
-    userSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> filterChatUsers(newValue));
+    userSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> userFilterController.filterUsers());
 
     channelTabScrollPaneVBox.setMinWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
     channelTabScrollPaneVBox.setPrefWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
@@ -418,20 +418,6 @@ public class ChannelTabController extends AbstractChatTabController {
 
   private void updateUserMessageDisplay(ChatChannelUser chatUser, String display) {
     Platform.runLater(() -> getJsObject().call("updateUserMessageDisplay", chatUser.getUsername(), display));
-  }
-
-  /** Filters by username "contains" case insensitive. */
-  @SuppressWarnings("unchecked")
-  private void filterChatUsers(String searchString) {
-    setUserFilter(listItem -> {
-      if (Strings.isNullOrEmpty(searchString)) {
-        return true;
-      }
-
-      ChatChannelUser user = listItem.getUser();
-
-      return listItem.getCategory() != null || user.getUsername().toLowerCase(US).contains(searchString.toLowerCase(US));
-    });
   }
 
   private void associateChatUserWithPlayer(Player player, ChatChannelUser chatUser) {
