@@ -49,7 +49,6 @@ import org.springframework.util.StringUtils;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -363,8 +362,7 @@ public class ChatUserItemController implements Controller<Node> {
     Optional.ofNullable(countryTooltip).ifPresent(imageView -> Tooltip.uninstall(countryImageView, countryTooltip));
 
     chatUser.getPlayer().ifPresent(player -> {
-      Locale country = new Locale("", player.getCountry());
-      countryTooltip = new Tooltip(country.getDisplayCountry(i18n.getUserSpecificLocale()));
+      countryTooltip = new Tooltip(i18n.getCountryNameLocalized(player.getCountry()));
       countryTooltip.showDelayProperty().set(Duration.millis(250));
       Tooltip.install(countryImageView, countryTooltip);
     });
