@@ -202,16 +202,15 @@ public class ModDetailController implements Controller<Node> {
   }
 
   public void onInstallButtonClicked() {
-    installButton.setVisible(false);
-
     modService.downloadAndInstallMod(modVersion, progressBar.progressProperty(), progressLabel.textProperty())
-        .thenRun(() -> uninstallButton.setVisible(true))
+        .thenRun(() -> setInstalled(true))
         .exceptionally(throwable -> {
           notificationService.addNotification(new ImmediateErrorNotification(
               i18n.get("errorTitle"),
               i18n.get("modVault.installationFailed", modVersion.getDisplayName(), throwable.getLocalizedMessage()),
               throwable, i18n, reportingService
           ));
+          setInstalled(false);
           return null;
         });
   }
@@ -219,14 +218,15 @@ public class ModDetailController implements Controller<Node> {
   public void onUninstallButtonClicked() {
     progressBar.progressProperty().unbind();
     progressBar.setProgress(-1);
-    uninstallButton.setVisible(false);
 
-    modService.uninstallMod(modVersion).exceptionally(throwable -> {
+    modService.uninstallMod(modVersion).thenRun(() -> setInstalled(false))
+        .exceptionally(throwable -> {
       notificationService.addNotification(new ImmediateErrorNotification(
           i18n.get("errorTitle"),
           i18n.get("modVault.couldNotDeleteMod", modVersion.getDisplayName(), throwable.getLocalizedMessage()),
           throwable, i18n, reportingService
       ));
+      setInstalled(true);
       return null;
     });
   }
