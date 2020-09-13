@@ -36,6 +36,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.PopupWindow;
+import javafx.util.Duration;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -48,6 +49,7 @@ import org.springframework.util.StringUtils;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -361,8 +363,9 @@ public class ChatUserItemController implements Controller<Node> {
     Optional.ofNullable(countryTooltip).ifPresent(imageView -> Tooltip.uninstall(countryImageView, countryTooltip));
 
     chatUser.getPlayer().ifPresent(player -> {
-      countryTooltip = new Tooltip(player.getCountry());
-      countryTooltip.setText(player.getCountry());
+      Locale country = new Locale("", player.getCountry());
+      countryTooltip = new Tooltip(country.getDisplayCountry(i18n.getUserSpecificLocale()));
+      countryTooltip.showDelayProperty().set(Duration.millis(250));
       Tooltip.install(countryImageView, countryTooltip);
     });
   }
