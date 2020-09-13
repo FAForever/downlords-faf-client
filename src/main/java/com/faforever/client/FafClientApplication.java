@@ -4,6 +4,8 @@ import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.game.GameService;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
@@ -18,6 +20,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.Banner.Mode;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -104,6 +107,8 @@ public class FafClientApplication extends Application {
         .withSceneFactory(parent -> applicationContext.getBean(UiService.class).createScene(parent))
         .apply();
 
+    fxStage.getStage().setOnHiding(this::closeMainWindow);
+
     showMainWindow(fxStage);
 
     // TODO publish event instead
@@ -123,6 +128,17 @@ public class FafClientApplication extends Application {
     MainController controller = uiService.loadFxml("theme/main.fxml");
     controller.setFxStage(fxStage);
     controller.display();
+  }
+
+  private void closeMainWindow(WindowEvent event) {
+    if (applicationContext.getBean(GameService.class).isGameRunning()) {
+      I18n i18n = applicationContext.getBean(I18n.class);
+      Alert alert = new Alert(AlertType.WARNING, i18n.get("exitWarning.message"), ButtonType.YES, ButtonType.NO);
+      Optional<ButtonType> buttonType = alert.showAndWait();
+      if (!buttonType.isPresent() || (buttonType.get() == ButtonType.NO)) {
+        event.consume();
+      }
+    }
   }
 
   @Override
