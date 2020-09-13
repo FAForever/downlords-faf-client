@@ -38,6 +38,8 @@
                 text="%chat.userContext.addFoe"/>
       <MenuItem fx:id="removeFoeItem" mnemonicParsing="false" onAction="#onRemoveFoeSelected"
                 text="%chat.userContext.removeFoe"/>
+      <MenuItem fx:id="reportItem" mnemonicParsing="false" onAction="#onReport" text="%chat.userContext.report"
+                visible="false"/>
     <SeparatorMenuItem mnemonicParsing="false" />
       <MenuItem fx:id="joinGameItem" mnemonicParsing="false" onAction="#onJoinGameSelected"
                 text="%chat.userContext.joinGame"/>

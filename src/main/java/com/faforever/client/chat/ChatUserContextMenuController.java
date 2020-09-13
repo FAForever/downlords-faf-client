@@ -3,8 +3,10 @@ package com.faforever.client.chat;
 import com.faforever.client.api.dto.GroupPermission;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.game.KnownFeaturedMod;
@@ -66,6 +68,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final PreferencesService preferencesService;
+  private final ClientProperties clientProperties;
   private final PlayerService playerService;
   private final ReplayService replayService;
   private final NotificationService notificationService;
@@ -74,6 +77,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   private final JoinGameHelper joinGameHelper;
   private final AvatarService avatarService;
   private final UiService uiService;
+  private final PlatformService platformService;
   private final ModeratorService moderatorService;
   public ComboBox<AvatarBean> avatarComboBox;
   public CustomMenuItem avatarPickerMenuItem;
@@ -89,6 +93,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public MenuItem watchGameItem;
   public MenuItem viewReplaysItem;
   public MenuItem inviteItem;
+  public MenuItem reportItem;
   public SeparatorMenuItem moderatorActionSeparator;
   public MenuItem banItem;
   public ContextMenu chatUserContextMenuRoot;
@@ -101,11 +106,13 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   @SuppressWarnings("FieldCanBeLocal")
   private ChangeListener<Player> playerChangeListener;
 
-  public ChatUserContextMenuController(PreferencesService preferencesService,
+  public ChatUserContextMenuController(PreferencesService preferencesService, ClientProperties clientProperties,
                                        PlayerService playerService, ReplayService replayService,
                                        NotificationService notificationService, I18n i18n, EventBus eventBus,
-                                       JoinGameHelper joinGameHelper, AvatarService avatarService, UiService uiService, ModeratorService moderatorService) {
+                                       JoinGameHelper joinGameHelper, AvatarService avatarService, UiService uiService,
+                                       PlatformService platformService, ModeratorService moderatorService) {
     this.preferencesService = preferencesService;
+    this.clientProperties = clientProperties;
     this.playerService = playerService;
     this.replayService = replayService;
     this.notificationService = notificationService;
@@ -114,6 +121,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     this.joinGameHelper = joinGameHelper;
     this.avatarService = avatarService;
     this.uiService = uiService;
+    this.platformService = platformService;
     this.moderatorService = moderatorService;
   }
 
@@ -192,6 +200,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
       removeFriendItem.visibleProperty().bind(newValue.socialStatusProperty().isEqualTo(FRIEND));
       addFoeItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(FOE).and(newValue.socialStatusProperty().isNotEqualTo(SELF)));
       removeFoeItem.visibleProperty().bind(newValue.socialStatusProperty().isEqualTo(FOE));
+      reportItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF));
 
       // TODO: Make this ignore TMM games too and not just ladder
       // https://github.com/FAForever/downlords-faf-client/issues/1770
@@ -280,6 +289,10 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public void onRemoveFriendSelected() {
     Player player = getPlayer();
     playerService.removeFriend(player);
+  }
+
+  public void onReport() {
+    platformService.showDocument(clientProperties.getLinks().get("linksModerationReport"));
   }
 
   public void onAddFoeSelected() {

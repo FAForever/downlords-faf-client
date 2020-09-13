@@ -3,6 +3,8 @@ package com.faforever.client.chat;
 import com.faforever.client.api.dto.GroupPermission;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
+import com.faforever.client.config.ClientProperties;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.game.KnownFeaturedMod;
@@ -62,6 +64,8 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
   @Mock
   private PreferencesService preferencesService;
   @Mock
+  private ClientProperties clientProperties;
+  @Mock
   private UiService uiService;
   @Mock
   private PlayerService playerService;
@@ -78,6 +82,8 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
   @Mock
   private AvatarService avatarService;
   @Mock
+  private PlatformService platformService;
+  @Mock
   private ModeratorService moderatorService;
 
   private ChatUserContextMenuController instance;
@@ -86,8 +92,9 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
 
   @Before
   public void setUp() throws Exception {
-    instance = new ChatUserContextMenuController(preferencesService, playerService,
-        replayService, notificationService, i18n, eventBus, joinGameHelper, avatarService, uiService, moderatorService);
+    instance = new ChatUserContextMenuController(preferencesService, clientProperties,playerService,
+        replayService, notificationService, i18n, eventBus, joinGameHelper,
+        avatarService, uiService, platformService, moderatorService);
 
     Preferences preferences = mock(Preferences.class);
     ChatPrefs chatPrefs = mock(ChatPrefs.class);
