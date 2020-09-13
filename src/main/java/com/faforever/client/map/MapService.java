@@ -32,6 +32,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
+import lombok.SneakyThrows;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -299,13 +300,18 @@ public class MapService implements InitializingBean, DisposableBean {
     }
   }
 
+  @SneakyThrows(IOException.class)
   @NotNull
   @Cacheable(value = CacheNames.MAP_PREVIEW, unless = "#result == null")
   public Image loadPreview(String mapName, PreviewSize previewSize) {
     if (mapGeneratorService.isGeneratedMap(mapName)) {
-      return mapGeneratorService.getGeneratedMapPreviewImage();
+      Path previewPath = forgedAlliancePreferences.getCustomMapsDirectory().resolve(mapName).resolve(mapName + "_preview.png");
+      if (Files.exists(previewPath)) {
+        return new Image(Files.newInputStream(previewPath));
+      } else {
+        return mapGeneratorService.getGeneratedMapPreviewImage();
+      }
     }
-
     return loadPreview(getPreviewUrl(mapName, mapPreviewUrlFormat, previewSize), previewSize);
   }
 
