@@ -36,6 +36,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.PopupWindow;
+import javafx.util.Duration;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -361,8 +362,8 @@ public class ChatUserItemController implements Controller<Node> {
     Optional.ofNullable(countryTooltip).ifPresent(imageView -> Tooltip.uninstall(countryImageView, countryTooltip));
 
     chatUser.getPlayer().ifPresent(player -> {
-      countryTooltip = new Tooltip(player.getCountry());
-      countryTooltip.setText(player.getCountry());
+      countryTooltip = new Tooltip(i18n.getCountryNameLocalized(player.getCountry()));
+      countryTooltip.showDelayProperty().set(Duration.millis(250));
       Tooltip.install(countryImageView, countryTooltip);
     });
   }
