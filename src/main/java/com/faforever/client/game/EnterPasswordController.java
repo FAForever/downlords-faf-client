@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.fx.Controller;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.Assert;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -42,16 +43,12 @@ public class EnterPasswordController implements Controller<Node> {
   }
 
   void setOnPasswordEnteredListener(OnPasswordEnteredListener listener) {
-    if (this.listener != null) {
-      throw new IllegalStateException("Listener has already been set");
-    }
+    Assert.checkNotNullIllegalState(this.listener, "Listener has already been set");
     this.listener = listener;
   }
 
   public void onJoinButtonClicked() {
-    if (listener == null) {
-      throw new IllegalStateException("No listener has been set");
-    }
+    Assert.checkNullIllegalState(listener, "No listener has been set");
     listener.onPasswordEntered(game, passwordField.getText(), ignoreRating);
     getRoot().getScene().getWindow().hide();
   }

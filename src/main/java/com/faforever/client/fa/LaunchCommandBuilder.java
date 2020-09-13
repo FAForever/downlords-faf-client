@@ -3,6 +3,7 @@ package com.faforever.client.fa;
 import com.faforever.client.game.Faction;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.google.common.base.Strings;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.net.Inet4Address;
@@ -13,6 +14,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.faforever.client.util.Assert.checkNullIllegalState;
 
 public class LaunchCommandBuilder {
 
@@ -131,19 +134,10 @@ public class LaunchCommandBuilder {
   }
 
   public List<String> build() {
-    if (executableDecorator == null) {
-      throw new IllegalStateException("executableDecorator has not been set");
-    }
-    if (executable == null) {
-      throw new IllegalStateException("executable has not been set");
-    }
-    if (replayUri != null && uid != null) {
-      throw new IllegalStateException("uid and replayUri cannot be set at the same time");
-    }
-    if (uid != null && username == null) {
-      throw new IllegalStateException("username has not been set");
-    }
-
+    checkNullIllegalState(executableDecorator, "executableDecorator has not been set");
+    checkNullIllegalState(executable, "executable has not been set");
+    Assert.state(!(replayUri != null && uid != null), "uid and replayUri cannot be set at the same time");
+    Assert.state(!(uid != null && username == null), "username has not been set");
 
     List<String> command = new ArrayList<>();
     command.addAll(split(String.format(executableDecorator, "\"" + executable.toAbsolutePath().toString() + "\"")));
