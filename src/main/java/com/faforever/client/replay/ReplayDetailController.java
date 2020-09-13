@@ -324,7 +324,7 @@ public class ReplayDetailController implements Controller<Node> {
       notRatedReasonLabel.setVisible(true);
       String reasonText;
       try {
-        reasonText = i18n.get("game.reasonNotValid", i18n.get(String.format(REASON_KEY_FORMAT, replay.getValidity().ordinal())));
+        reasonText = i18n.get("game.reasonNotValid", i18n.get(replay.getValidity().getI18nKey()));
       } catch (NoSuchMessageException e) {
         reasonText = replay.getValidity().toString();
       }
