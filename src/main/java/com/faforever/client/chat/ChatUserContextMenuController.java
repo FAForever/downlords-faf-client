@@ -292,7 +292,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   }
 
   public void onReport() {
-    platformService.showDocument(clientProperties.getLinks().get("linksModerationReport"));
+    platformService.showDocument(clientProperties.getWebsite().getReportUrl());
   }
 
   public void onAddFoeSelected() {
