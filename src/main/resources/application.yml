@@ -21,7 +21,6 @@ faf-client:
     map_validation_url: ${faf-client.api.base-url}/maps/validate
     mapDownloadUrlFormat: ${faf-client.vault.base-url}/maps/%s.zip
     mapPreviewUrlFormat: ${faf-client.vault.base-url}/map_previews/%s/%s.png
-    modDownloadUrlFormat: ${faf-client.vault.base-url}/maps/%s.zip
 
   website:
       forgot-password-url: ${faf-client.website.base-url}/account/password/reset
