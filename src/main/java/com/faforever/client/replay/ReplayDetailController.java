@@ -67,8 +67,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ReplayDetailController implements Controller<Node> {
 
-  protected static final String REASON_KEY_FORMAT = "game.reasonNotValid.%d";
-
   private final TimeService timeService;
   private final I18n i18n;
   private final UiService uiService;
