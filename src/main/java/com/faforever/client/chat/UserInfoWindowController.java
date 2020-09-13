@@ -21,17 +21,14 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
-import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
-import com.neovisionaries.i18n.CountryCode;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.PieChart;
@@ -196,14 +193,7 @@ public class UserInfoWindowController implements Controller<Node> {
     ratingLabel1v1.setText(i18n.number(RatingUtil.getLeaderboardRating(player)));
 
     updateNameHistory(player);
-
-    CountryCode countryCode = CountryCode.getByCode(player.getCountry());
-    if (countryCode != null) {
-      // Country code is unknown to CountryCode, like A1 or A2 (from GeoIP)
-      countryLabel.setText(countryCode.getName());
-    } else {
-      countryLabel.setText(player.getCountry());
-    }
+    countryLabel.setText(i18n.getCountryNameLocalized(player.getCountry()));
 
     globalButton.fire();
     globalButton.setSelected(true);
