@@ -30,7 +30,7 @@
       <VBox alignment="TOP_RIGHT" spacing="10.0" GridPane.columnSpan="2147483647" GridPane.valignment="TOP" GridPane.vgrow="NEVER"
             GridPane.hgrow="NEVER">
           <children>
-              <Button fx:id="installButton" defaultButton="true"
+              <Button fx:id="installButton"
                       mnemonicParsing="false" onAction="#onInstallButtonClicked">
                   <graphic>
                       <Region styleClass="icon,install-icon"/>
