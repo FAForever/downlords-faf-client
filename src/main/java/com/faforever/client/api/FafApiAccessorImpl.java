@@ -86,8 +86,8 @@ import java.util.stream.Collectors;
 public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   private static final String MAP_ENDPOINT = "/data/map";
-  private static final String GLOBAL_RATING_ENDPOINT = "/data/globalRatingWithRank";
-  private static final String LADDER1V1_RATING_ENDPOINT = "/data/ladder1v1RatingWithRank";
+  private static final String GLOBAL_RATING_ENDPOINT = "/data/globalRating";
+  private static final String LADDER1V1_RATING_ENDPOINT = "/data/ladder1v1Rating";
   private static final String TOURNAMENT_LIST_ENDPOINT = "/challonge/v1/tournaments.json";
   private static final String REPLAY_INCLUDES = "featuredMod,playerStats,playerStats.player,reviews,reviews.player,mapVersion,mapVersion.map,mapVersion.reviews,reviewsSummary";
   private static final String COOP_RESULT_INCLUDES = "game.playerStats.player";
@@ -507,7 +507,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     parameterMap.add("page[size]", Integer.toString(count));
     parameterMap.add("page[totals]", "");
 
-    JSONAPIDocument<List<RatingWithRank>> jsonapiDocument = getPageWithMeta(GLOBAL_RATING_ENDPOINT, page, count, parameterMap);
+    JSONAPIDocument<List<RatingWithRank>> jsonapiDocument = getPageWithMeta(LADDER1V1_RATING_ENDPOINT, page, count, parameterMap);
     return new Tuple<>(jsonapiDocument.get(), jsonapiDocument.getMeta());
   }
 

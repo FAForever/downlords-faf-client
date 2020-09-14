@@ -4,6 +4,7 @@ import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.github.jasminb.jsonapi.ReflectionUtils;
 import com.github.jasminb.jsonapi.ResourceConverter;
 import lombok.SneakyThrows;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -26,7 +27,7 @@ public class JsonApiMessageConverter extends AbstractHttpMessageConverter<Object
   }
 
   @Override
-  protected boolean supports(Class<?> clazz) {
+  protected boolean supports(@NotNull Class<?> clazz) {
     return Collection.class.isAssignableFrom(clazz)
         || ReflectionUtils.getTypeName(clazz) != null
         || clazz.equals(JSONAPIDocument.class);
@@ -34,7 +35,7 @@ public class JsonApiMessageConverter extends AbstractHttpMessageConverter<Object
 
   @Override
   @SneakyThrows
-  protected Object readInternal(Class<?> clazz, HttpInputMessage inputMessage) {
+  protected @NotNull Object readInternal(@NotNull Class<?> clazz, @NotNull HttpInputMessage inputMessage) {
     try (InputStream inputStream = inputMessage.getBody()) {
       JSONAPIDocument<?> document;
       if (Iterable.class.isAssignableFrom(clazz)) {
@@ -51,7 +52,7 @@ public class JsonApiMessageConverter extends AbstractHttpMessageConverter<Object
 
   @Override
   @SneakyThrows
-  protected void writeInternal(Object o, HttpOutputMessage outputMessage) {
+  protected void writeInternal(@NotNull Object o, @NotNull HttpOutputMessage outputMessage) {
     byte[] serializedObject;
     if (o instanceof Iterable) {
       serializedObject = resourceConverter.writeDocumentCollection(new JSONAPIDocument<Iterable<?>>((Iterable<?>) o));
