@@ -19,9 +19,8 @@ faf-client:
   vault:
     rules_url: https://forums.faforever.com/viewtopic.php?f=2&t=17873
     map_validation_url: ${faf-client.api.base-url}/maps/validate
-    mapDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/maps/%s.zip
-    mapPreviewUrlFormat: ${faf-client.vault.base-url}/faf/vault/map_previews/%s/%s.png
-    modDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/maps/%s.zip
+    mapDownloadUrlFormat: ${faf-client.vault.base-url}/maps/%s.zip
+    mapPreviewUrlFormat: ${faf-client.vault.base-url}/map_previews/%s/%s.png
 
   website:
       forgot-password-url: ${faf-client.website.base-url}/account/password/reset

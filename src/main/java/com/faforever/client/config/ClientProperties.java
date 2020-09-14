@@ -85,7 +85,6 @@ public class ClientProperties {
     private String mapDownloadUrlFormat;
     private String mapPreviewUrlFormat;
     private String replayDownloadUrlFormat;
-    private String modDownloadUrlFormat;
   }
 
   @Data
