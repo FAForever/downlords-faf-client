@@ -122,9 +122,16 @@ public class PartyMemberItemController implements Controller<Node> {
     usernameLabel.textProperty().bind(player.usernameProperty());
 //    usernameLabel.setText("GGGGGGGGGGGGGGGG"); // TODO: REMOVE
 
-    ratingLabel.textProperty().bind(createStringBinding(() -> i18n.get("teammatchmaking.rating", RatingUtil.getRoundedGlobalRating(player)), player.globalRatingMeanProperty(), player.globalRatingDeviationProperty()));
-    gameCountLabel.textProperty().bind(createStringBinding(() -> i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()), player.numberOfGamesProperty()));
-
+    ratingLabel.textProperty().bind(createStringBinding(
+        () -> ratingLabel.getStyleClass().contains("uppercase") ?
+            i18n.get("teammatchmaking.teamRating", RatingUtil.getRoundedGlobalRating(player)).toUpperCase() :
+            i18n.get("teammatchmaking.teamRating", RatingUtil.getRoundedGlobalRating(player)),
+        player.globalRatingMeanProperty(), player.globalRatingDeviationProperty()));
+    gameCountLabel.textProperty().bind(createStringBinding(
+        () -> gameCountLabel.getStyleClass().contains("uppercase") ?
+            i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase() :
+            i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()),
+        player.numberOfGamesProperty()));
 
     BooleanBinding isDifferentPlayerBinding = playerService.currentPlayerProperty().isNotEqualTo(player);
     kickPlayerButton.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(playerService.currentPlayerProperty()).and(isDifferentPlayerBinding));

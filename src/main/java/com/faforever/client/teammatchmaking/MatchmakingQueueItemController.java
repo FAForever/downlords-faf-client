@@ -81,7 +81,9 @@ public class MatchmakingQueueItemController implements Controller<Node> {
     joinLeaveQueueButton.textProperty().bind(queue.queueNameProperty());
 
     playersInQueueLabel.textProperty().bind(createStringBinding(
-        () -> i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue()),
+        () -> playersInQueueLabel.getStyleClass().contains("uppercase") ?
+            i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue()).toUpperCase() :
+            i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue()),
         queue.playersInQueueProperty()));
 
     queue.joinedProperty().addListener(observable -> refreshingLabel.setVisible(false));
@@ -94,7 +96,8 @@ public class MatchmakingQueueItemController implements Controller<Node> {
           String formatted = i18n.get("teammatchmaking.queuePopTimer",
               timeUntilPopQueue.toMinutes(),
               timeUntilPopQueue.toSecondsPart());
-          queuePopTimeLabel.setText(formatted);
+          queuePopTimeLabel.setText(
+              queuePopTimeLabel.getStyleClass().contains("uppercase") ? formatted.toUpperCase() : formatted);
           return;
         }
       }

@@ -13,7 +13,7 @@
         <HBox>
             <HBox alignment="CENTER_LEFT" spacing="4.0" HBox.hgrow="ALWAYS" >
                 <children>
-                    <Label fx:id="clanLabel" styleClass="clan" text="%teammatchmaking.clan" />
+                    <Label fx:id="clanLabel" styleClass="clan" text="[CLAN]" />
                     <Label fx:id="usernameLabel" styleClass="member-name" text="&lt;Username&gt;" />
                     <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" preserveRatio="true">
                         <HBox.margin>
@@ -30,8 +30,8 @@
         </HBox>
         <HBox spacing="5.0" alignment="CENTER_LEFT">
             <children>
-                <Label fx:id="ratingLabel" text="%teammatchmaking.rating" styleClass="player-card-text" />
-                <Label fx:id="gameCountLabel" text="%teammatchmaking.gameCount" styleClass="player-card-text" />
+                <Label fx:id="ratingLabel, uppercase" text="%teammatchmaking.rating" styleClass="player-card-text" />
+                <Label fx:id="gameCountLabel, uppercase" text="%teammatchmaking.gameCount" styleClass="player-card-text" />
                 <Pane HBox.hgrow="ALWAYS" />
                 <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="36.0" preserveRatio="true" />
                 <Pane prefWidth="15.0"/>

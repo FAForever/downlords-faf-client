@@ -23,7 +23,7 @@
         <children>
             <VBox prefHeight="600.0" prefWidth="805.0" spacing="25.0">
                 <children>
-                    <Label styleClass="h1-tmm" text="%teammatchmaking.playerTitle" />
+                    <Label styleClass="h1-tmm, uppercase" text="%teammatchmaking.playerTitle" />
                     <HBox spacing="10.0" styleClass="player-card">
                         <children>
                             <VBox HBox.hgrow="ALWAYS">
@@ -47,9 +47,9 @@
                                         </padding>
                                     </HBox>
                                     <HBox spacing="15.0">
-                                        <Label fx:id="ladderRatingLabel" styleClass="player-card-text" text="%teammatchmaking.1v1Rating" />
-                                        <Label fx:id="teamRatingLabel" styleClass="player-card-text" text="%teammatchmaking.teamRating" />
-                                        <Label fx:id="gameCountLabel" styleClass="player-card-text" text="%teammatchmaking.gameCount" />
+                                        <Label fx:id="ladderRatingLabel" styleClass="player-card-text, uppercase" text="%teammatchmaking.1v1Rating" />
+                                        <Label fx:id="teamRatingLabel" styleClass="player-card-text, uppercase" text="%teammatchmaking.teamRating" />
+                                        <Label fx:id="gameCountLabel" styleClass="player-card-text, uppercase" text="%teammatchmaking.gameCount" />
                                         <Pane HBox.hgrow="ALWAYS" />
                                         <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="36.0" preserveRatio="true" />
                                         <Pane minWidth="15.0" />
@@ -71,17 +71,17 @@
                     </HBox>
                     <HBox alignment="CENTER_LEFT" spacing="10.0">
                         <children>
-                            <Label styleClass="h1-tmm" text="%teammatchmaking.partyTitle" />
-                            <JFXButton fx:id="invitePlayerButton" mnemonicParsing="false" styleClass="tmm, invite-button"
+                            <Label styleClass="h1-tmm, uppercase" text="%teammatchmaking.partyTitle" />
+                            <JFXButton fx:id="invitePlayerButton" mnemonicParsing="false" styleClass="tmm, invite-button, uppercase"
                                        text="%teammatchmaking.invitePlayer" onAction="#onInvitePlayerButtonClicked" />
-                            <JFXButton fx:id="leavePartyButton" mnemonicParsing="false" styleClass="tmm, leave-button"
+                            <JFXButton fx:id="leavePartyButton" mnemonicParsing="false" styleClass="tmm, leave-button, uppercase"
                                        text="%teammatchmaking.leaveParty" onAction="#onLeavePartyButtonClicked" />
                             <Label fx:id="refreshingLabel" styleClass="icon" text="" visible="false"/>
                         </children>
                     </HBox>
                     <FlowPane fx:id="partyMemberPane" hgap="35" vgap="23" />
                     <Separator />
-                    <JFXButton fx:id="playButton" mnemonicParsing="false" styleClass="tmm, play-button"
+                    <JFXButton fx:id="playButton" mnemonicParsing="false" styleClass="tmm, play-button, uppercase"
                                text="%teammatchmaking.play" onAction="#onReadyButtonClicked"
                                GridPane.hgrow="ALWAYS" maxWidth="1.7976931348623157E308" prefHeight="80.0" />
                     <HBox fx:id="queueBox" spacing="12.0" />

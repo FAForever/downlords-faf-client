@@ -18,6 +18,7 @@ import javafx.beans.Observable;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
@@ -85,8 +86,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
-
     player = playerService.getCurrentPlayer().get();
+    initializeUppercaseText();
     countryImageView.imageProperty().bind(createObjectBinding(() -> countryFlagService.loadCountryFlag(
         StringUtils.isEmpty(player.getCountry()) ? "" : player.getCountry()).orElse(null), player.countryProperty()));
     avatarImageView.setImage(avatarService.loadAvatar("https://content.faforever.com/faf/avatars/ICE_Test.png"));
@@ -95,10 +96,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     clanLabel.textProperty().bind(createStringBinding(() ->
         Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan()), player.clanProperty()));
     usernameLabel.textProperty().bind(player.usernameProperty());
-    teamRatingLabel.textProperty().bind(createStringBinding(() -> i18n.get("teammatchmaking.teamRating", RatingUtil.getRoundedGlobalRating(player)), player.globalRatingMeanProperty(), player.globalRatingDeviationProperty()));
-    ladderRatingLabel.textProperty().bind(createStringBinding(() -> i18n.get("teammatchmaking.1v1Rating", RatingUtil.getLeaderboardRating(player)), player.leaderboardRatingMeanProperty(), player.leaderboardRatingDeviationProperty()));
-    gameCountLabel.textProperty().bind(createStringBinding(() -> i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()), player.numberOfGamesProperty()));
-
     teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> {
       List<PartyMember> members = teamMatchmakingService.getParty().getMembers();
       partyMemberPane.getChildren().clear();
@@ -132,13 +129,41 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
     teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> {
       if (isSelfReady()) {
-        playButton.setText(i18n.get("teammatchmaking.hint"));
+        playButton.setText(i18n.get("teammatchmaking.hint").toUpperCase());
       } else {
-        playButton.setText(i18n.get("teammatchmaking.play"));
+        playButton.setText(i18n.get("teammatchmaking.play").toUpperCase());
       }
 
       refreshingLabel.setVisible(false);
     });
+  }
+
+  private void initializeUppercaseText() {
+    for (Node node : teamMatchmakingRoot.lookupAll(".uppercase")) {
+      if (node instanceof Label) {
+          Label label = (Label) node;
+          label.setText(label.getText().toUpperCase());
+      }
+      if (node instanceof Button) {
+        Button button = (Button) node;
+        button.setText(button.getText().toUpperCase());
+      }
+    }
+    teamRatingLabel.textProperty().bind(createStringBinding(
+        () -> teamRatingLabel.getStyleClass().contains("uppercase") ?
+            i18n.get("teammatchmaking.teamRating", RatingUtil.getRoundedGlobalRating(player)).toUpperCase() :
+            i18n.get("teammatchmaking.teamRating", RatingUtil.getRoundedGlobalRating(player)),
+        player.globalRatingMeanProperty(), player.globalRatingDeviationProperty()));
+    ladderRatingLabel.textProperty().bind(createStringBinding(
+        () -> ladderRatingLabel.getStyleClass().contains("uppercase") ?
+            i18n.get("teammatchmaking.1v1Rating", RatingUtil.getLeaderboardRating(player)).toUpperCase() :
+            i18n.get("teammatchmaking.1v1Rating", RatingUtil.getLeaderboardRating(player)),
+        player.leaderboardRatingMeanProperty(), player.leaderboardRatingDeviationProperty()));
+    gameCountLabel.textProperty().bind(createStringBinding(
+        () -> gameCountLabel.getStyleClass().contains("uppercase") ?
+            i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase() :
+            i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()),
+        player.numberOfGamesProperty()));
   }
 
   @Override

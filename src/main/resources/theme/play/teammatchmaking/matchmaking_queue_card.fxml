@@ -12,8 +12,8 @@
         <ToggleButton fx:id="joinLeaveQueueButton" text="&lt;QueueName&gt;" styleClass="tmm, queue"
                       maxWidth="1.7976931348623157E308" onAction="#onJoinLeaveQueueClicked"/>
         <VBox alignment="TOP_CENTER">
-            <Label fx:id="playersInQueueLabel" styleClass="player-card-text" text="%teammatchmaking.playersInQueue"/>
-            <Label fx:id="queuePopTimeLabel" styleClass="player-card-text" text="%teammatchmaking.queuePopTimer"/>
+            <Label fx:id="playersInQueueLabel" styleClass="player-card-text, uppercase" text="%teammatchmaking.playersInQueue"/>
+            <Label fx:id="queuePopTimeLabel" styleClass="player-card-text, uppercase" text="%teammatchmaking.queuePopTimer"/>
             <padding>
                 <Insets bottom="10.0"/>
             </padding>
