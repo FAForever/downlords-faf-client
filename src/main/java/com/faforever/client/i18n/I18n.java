@@ -99,6 +99,9 @@ public class I18n implements InitializingBean {
   }
 
   public String getCountryNameLocalized(String isoCode) {
+    if (isoCode == null) {
+      return "";
+    }
     return new Locale("", isoCode).getDisplayCountry(this.userSpecificLocale);
   }
 
