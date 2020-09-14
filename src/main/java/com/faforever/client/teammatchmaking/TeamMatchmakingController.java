@@ -60,8 +60,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   @FXML
   public JFXButton leavePartyButton;
   @FXML
-  public JFXButton playButton;
-  @FXML
   public Label refreshingLabel;
   public ToggleButton uefButton;
   public ToggleButton cybranButton;
@@ -127,15 +125,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     ));
     leavePartyButton.disableProperty().bind(createBooleanBinding(() -> teamMatchmakingService.getParty().getMembers().size() <= 1, teamMatchmakingService.getParty().getMembers()));
 
-    teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> {
-      if (isSelfReady()) {
-        playButton.setText(i18n.get("teammatchmaking.hint").toUpperCase());
-      } else {
-        playButton.setText(i18n.get("teammatchmaking.play").toUpperCase());
-      }
-
-      refreshingLabel.setVisible(false);
-    });
   }
 
   private void initializeUppercaseText() {
@@ -192,16 +181,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
   public void onLeaveQueueButtonClicked(ActionEvent actionEvent) {
     //TODO
-  }
-
-  public void onReadyButtonClicked(ActionEvent actionEvent) {
-    if (!isSelfReady()) {
-      teamMatchmakingService.readyParty();
-    } else {
-      teamMatchmakingService.unreadyParty();
-    }
-
-    refreshingLabel.setVisible(true);
   }
 
   public boolean isSelfReady() {

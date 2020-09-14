@@ -1108,16 +1108,6 @@
   -fx-background-color: -fx-accent;
 }
 
-.play-button {
-  -fx-min-height: 80px;
-  -fx-border-color: #e19e3b;
-}
-
-.play-button:hover {
-  -fx-background-color: #e19e3b20;
-}
-
-.play-button .text,
 .toggle-button.queue .text {
   -fx-font-family: 'Source Sans Pro Semibold';
   -fx-text-fill: -fx-text-color;
