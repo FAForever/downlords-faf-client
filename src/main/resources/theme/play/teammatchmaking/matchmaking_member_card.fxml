@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="playerItemRoot" prefHeight="75.0" prefWidth="385.0" spacing="4.0"
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="playerItemRoot" prefHeight="75.0" spacing="4.0"
          xmlns="http://javafx.com/javafx/11.0.1" onContextMenuRequested="#onContextMenuRequested" styleClass="player-card"
          fx:controller="com.faforever.client.teammatchmaking.PartyMemberItemController">
         <HBox>

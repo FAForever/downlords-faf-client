@@ -13,7 +13,7 @@
             fx:id="teamMatchmakingRoot">
     <GridPane>
         <columnConstraints>
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="500" />
+            <ColumnConstraints hgrow="ALWAYS" minWidth="500" />
             <ColumnConstraints hgrow="ALWAYS" minWidth="200" />
         </columnConstraints>
         <rowConstraints>
@@ -21,7 +21,7 @@
             <RowConstraints minHeight="200" vgrow="SOMETIMES" />
         </rowConstraints>
         <children>
-            <VBox prefHeight="600.0" prefWidth="805.0" spacing="25.0">
+            <VBox spacing="25.0">
                 <children>
                     <Label styleClass="h1-tmm, uppercase" text="%teammatchmaking.playerTitle" />
                     <HBox spacing="10.0" styleClass="player-card">
