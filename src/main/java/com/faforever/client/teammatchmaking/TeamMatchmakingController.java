@@ -26,6 +26,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -80,6 +81,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public Label ladderRatingLabel;
   public HBox queueBox;
   public FlowPane partyMemberPane;
+  public VBox preparationArea;
   private Player player;
 
   @Override
@@ -128,7 +130,9 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   }
 
   private void initializeUppercaseText() {
-    for (Node node : teamMatchmakingRoot.lookupAll(".uppercase")) {
+    // TODO: it would be nice if we could start from the root node, however SplitPane uses items instead of children,
+    // so lookupAll ignores the contents of the SplitPane
+    for (Node node : preparationArea.lookupAll(".uppercase")) {
       if (node instanceof Label) {
           Label label = (Label) node;
           label.setText(label.getText().toUpperCase());

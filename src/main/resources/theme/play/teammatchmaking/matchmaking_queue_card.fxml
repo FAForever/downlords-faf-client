@@ -6,18 +6,19 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.FlowPane?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="queueItemRoot" xmlns="http://javafx.com/javafx/11.0.1"
       fx:controller="com.faforever.client.teammatchmaking.MatchmakingQueueItemController"
       spacing="10.0" HBox.hgrow="ALWAYS" alignment="TOP_CENTER">
-        <ToggleButton fx:id="joinLeaveQueueButton" text="&lt;QueueName&gt;" styleClass="tmm, queue"
-                      maxWidth="1.7976931348623157E308" onAction="#onJoinLeaveQueueClicked"/>
-        <VBox alignment="TOP_CENTER">
-            <Label fx:id="playersInQueueLabel" styleClass="player-card-text, uppercase" text="%teammatchmaking.playersInQueue"/>
-            <Label fx:id="queuePopTimeLabel" styleClass="player-card-text, uppercase" text="%teammatchmaking.queuePopTimer"/>
-            <padding>
-                <Insets bottom="10.0"/>
-            </padding>
-        </VBox>
-        <JFXButton text="MAPLIST" styleClass="tmm, player-card-text" maxWidth="1.7976931348623157E308" />
-        <Label fx:id="refreshingLabel" styleClass="icon" text="" visible="false"/>
+        <ToggleButton fx:id="joinLeaveQueueButton" styleClass="tmm, queue" alignment="TOP_LEFT" text="&lt;QueueName&gt;"
+                      maxWidth="1.7976931348623157E308" onAction="#onJoinLeaveQueueClicked" />
+        <JFXButton text="MAPLIST" styleClass="tmm, player-card-text" alignment="TOP_LEFT" maxWidth="1.7976931348623157E308" />
+    <FlowPane hgap="10">
+        <Label fx:id="queuePopTimeLabel" styleClass="player-card-text, uppercase" text="%teammatchmaking.queuePopTimer"/>
+        <Label fx:id="playersInQueueLabel" styleClass="player-card-text, uppercase" text="%teammatchmaking.playersInQueue"/>
+        <padding>
+            <Insets left="15.0"/>
+        </padding>
+    </FlowPane>
+    <Label fx:id="refreshingLabel" styleClass="icon" text="" visible="false"/>
 </VBox>
