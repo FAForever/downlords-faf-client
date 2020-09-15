@@ -124,8 +124,8 @@ public class PartyMemberItemController implements Controller<Node> {
 
     ratingLabel.textProperty().bind(createStringBinding(
         () -> ratingLabel.getStyleClass().contains("uppercase") ?
-            i18n.get("teammatchmaking.teamRating", RatingUtil.getRoundedGlobalRating(player)).toUpperCase() :
-            i18n.get("teammatchmaking.teamRating", RatingUtil.getRoundedGlobalRating(player)),
+            i18n.get("teammatchmaking.rating", RatingUtil.getRoundedGlobalRating(player)).toUpperCase() :
+            i18n.get("teammatchmaking.rating", RatingUtil.getRoundedGlobalRating(player)),
         player.globalRatingMeanProperty(), player.globalRatingDeviationProperty()));
     gameCountLabel.textProperty().bind(createStringBinding(
         () -> gameCountLabel.getStyleClass().contains("uppercase") ?
