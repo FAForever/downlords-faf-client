@@ -56,14 +56,12 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.text.DateFormat;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -455,8 +453,7 @@ public class UserInfoWindowController implements Controller<Node> {
       @Override
       public String toString(Number object) {
         long number = object.longValue();
-        DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.SHORT);
-        return dateFormat.format(Date.from(Instant.ofEpochSecond(number)));
+        return timeService.asDate(Instant.ofEpochSecond(number));
       }
 
       @Override
