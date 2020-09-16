@@ -11,6 +11,8 @@ import com.jfoenix.controls.JFXButton;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.Observable;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -18,6 +20,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -66,7 +69,18 @@ public class MatchmakingQueueItemController implements Controller<Node> {
 
   @Override
   public void initialize() {
-
+    joinLeaveQueueButton.widthProperty().addListener(new ChangeListener<Number>() {
+      @Override
+      public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+        if ((double) newValue > 150.0) {
+          joinLeaveQueueButton.setText(
+              i18n.get("teammatchmaking.queue." + queue.queueNameProperty().get() + ".fullName"));
+        } else {
+          joinLeaveQueueButton.setText(
+              i18n.get("teammatchmaking.queue." + queue.queueNameProperty().get() + ".shortName"));
+        }
+      }
+    });
   }
 
   @Override
@@ -76,9 +90,6 @@ public class MatchmakingQueueItemController implements Controller<Node> {
 
   void setQueue(MatchmakingQueue queue) {
     this.queue = queue;
-
-    // TODO: localize
-    joinLeaveQueueButton.textProperty().bind(queue.queueNameProperty());
 
     playersInQueueLabel.textProperty().bind(createStringBinding(
         () -> playersInQueueLabel.getStyleClass().contains("uppercase") ?
