@@ -90,6 +90,16 @@
                                                          text="%mapVault.uninstall"/>
                                           </children>
                                       </HBox>
+                                      <HBox alignment="TOP_RIGHT" spacing="10.0">
+                                          <children>
+                                              <Button fx:id="blacklistButton"
+                                                      mnemonicParsing="false" onAction="#onBlacklistButtonClicked"
+                                                      text="%mapVault.blacklist"/>
+                                              <Button fx:id="removeBlacklistButton"
+                                                      mnemonicParsing="false" onAction="#onRemoveBlacklistButtonClicked"
+                                                      text="%mapVault.removeBlacklist"/>
+                                          </children>
+                                      </HBox>
                                       <VBox fx:id="loadingContainer" alignment="TOP_RIGHT" maxWidth="300.0">
                                           <children>
                                               <Label fx:id="progressLabel"/>

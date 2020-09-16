@@ -29,6 +29,7 @@ public class Preferences {
   public static final String DEFAULT_THEME_NAME = "default";
 
   private final WindowPrefs mainWindow;
+  private final BlacklistPrefs blacklistPrefs;
   private final GeneratorPrefs generatorPrefs;
   private final ForgedAlliancePrefs forgedAlliance;
   private final LoginPrefs login;
@@ -40,6 +41,7 @@ public class Preferences {
   private final BooleanProperty prereleaseCheckEnabled;
   private final BooleanProperty showPasswordProtectedGames;
   private final BooleanProperty showModdedGames;
+  private final BooleanProperty showBlacklistedMaps;
   private final ListProperty<String> ignoredNotifications;
   private final StringProperty gamesViewMode;
   private final Ladder1v1Prefs ladder1v1;
@@ -58,8 +60,9 @@ public class Preferences {
     gameTileSortingOrder = new SimpleObjectProperty<>(TilesSortingOrder.PLAYER_DES);
     chat = new ChatPrefs();
     login = new LoginPrefs();
-    generatorPrefs = new GeneratorPrefs();
 
+    generatorPrefs = new GeneratorPrefs();
+    blacklistPrefs = new BlacklistPrefs();
     localization = new LocalizationPrefs();
     lastGamePrefs = new LastGamePrefs();
     mainWindow = new WindowPrefs();
@@ -77,6 +80,7 @@ public class Preferences {
     storedCookies = new SimpleMapProperty<>(FXCollections.observableHashMap());
     showPasswordProtectedGames = new SimpleBooleanProperty(true);
     showModdedGames = new SimpleBooleanProperty(true);
+    showBlacklistedMaps = new SimpleBooleanProperty(false);
     disallowJoinsViaDiscord = new SimpleBooleanProperty();
     showGameDetailsSidePane = new SimpleBooleanProperty(false);
     advancedIceLogEnabled = new SimpleBooleanProperty(false);
@@ -106,6 +110,10 @@ public class Preferences {
 
   public BooleanProperty showModdedGamesProperty() {
     return showModdedGames;
+  }
+
+  public BooleanProperty showBlacklistedMapsProperty() {
+    return showBlacklistedMaps;
   }
 
   public String getGamesViewMode() {
@@ -268,8 +276,20 @@ public class Preferences {
     this.showModdedGames.set(showModdedGames);
   }
 
+  public boolean isShowBlacklistedMaps() {
+    return showBlacklistedMaps.get();
+  }
+
+  public void setShowBlacklistedMaps(boolean showBlacklistedMaps) {
+    this.showBlacklistedMaps.set(showBlacklistedMaps);
+  }
+
   public GeneratorPrefs getGeneratorPrefs() {
     return generatorPrefs;
+  }
+
+  public BlacklistPrefs getBlacklistPrefs() {
+    return blacklistPrefs;
   }
 
   public enum UnitDataBaseType {

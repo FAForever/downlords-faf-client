@@ -10,6 +10,8 @@ import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.BlacklistPrefs;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.TimeService;
@@ -51,6 +53,7 @@ import java.util.Optional;
 public class MapDetailController implements Controller<Node> {
 
   private final MapService mapService;
+  private final PreferencesService preferencesService;
   private final NotificationService notificationService;
   private final I18n i18n;
   private final TimeService timeService;
@@ -62,6 +65,8 @@ public class MapDetailController implements Controller<Node> {
   public Label progressLabel;
   public Button uninstallButton;
   public Button installButton;
+  public Button blacklistButton;
+  public Button removeBlacklistButton;
   public ImageView thumbnailImageView;
   public Label nameLabel;
   public Label authorLabel;
@@ -89,6 +94,8 @@ public class MapDetailController implements Controller<Node> {
     JavaFxUtil.fixScrollSpeed(scrollPane);
     uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
     installButton.managedProperty().bind(installButton.visibleProperty());
+    blacklistButton.managedProperty().bind(blacklistButton.visibleProperty());
+    removeBlacklistButton.managedProperty().bind(removeBlacklistButton.visibleProperty());
     progressBar.managedProperty().bind(progressBar.visibleProperty());
     progressBar.visibleProperty().bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
     progressLabel.managedProperty().bind(progressLabel.visibleProperty());
@@ -215,6 +222,8 @@ public class MapDetailController implements Controller<Node> {
       JavaFxUtil.addListener(installedMaps, new WeakListChangeListener<>(installStatusChangeListener));
       setInstalled(mapService.isInstalled(map.getFolderName()));
     }
+
+    setFilterButtons();
   }
 
   private void onDeleteReview(Review review) {
@@ -278,6 +287,25 @@ public class MapDetailController implements Controller<Node> {
           setInstalled(true);
           return null;
         });
+  }
+
+  public void onBlacklistButtonClicked() {
+    BlacklistPrefs blacklistPrefs = preferencesService.getPreferences().getBlacklistPrefs();
+    blacklistPrefs.getMapBlacklistProperty().add(map.getFolderName());
+    setFilterButtons();
+  }
+
+  public void onRemoveBlacklistButtonClicked() {
+    BlacklistPrefs blacklistPrefs = preferencesService.getPreferences().getBlacklistPrefs();
+    blacklistPrefs.getMapBlacklistProperty().remove(map.getFolderName());
+    setFilterButtons();
+  }
+
+  public void setFilterButtons() {
+    BlacklistPrefs blacklistPrefs = preferencesService.getPreferences().getBlacklistPrefs();
+    boolean blacklisted = blacklistPrefs.getMapBlacklistProperty().contains(map.getFolderName());
+    blacklistButton.setVisible(!blacklisted);
+    removeBlacklistButton.setVisible(blacklisted);
   }
 
   public void onDimmerClicked() {

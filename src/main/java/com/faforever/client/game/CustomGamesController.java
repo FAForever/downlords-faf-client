@@ -6,6 +6,7 @@ import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
 import com.faforever.client.main.event.NavigateEvent;
+import com.faforever.client.preferences.BlacklistPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.theme.UiService;
@@ -17,6 +18,8 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.SetChangeListener;
+import javafx.collections.WeakSetChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
@@ -92,7 +95,9 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   public CheckBox showModdedGamesCheckBox;
   public CheckBox showPasswordProtectedGamesCheckBox;
+  public CheckBox showBlacklistedMapsCheckBox;
   private final ChangeListener<Boolean> filterConditionsChangedListener = (observable, oldValue, newValue) -> updateFilteredItems();
+  private final SetChangeListener<String> mapBlacklistChangedListener = change -> updateFilteredItems();
   private GamesTilesContainerController gamesTilesContainerController;
   private final ChangeListener<Game> gameChangeListener;
 
@@ -133,10 +138,13 @@ public class CustomGamesController extends AbstractViewController<Node> {
     filteredItems = new FilteredList<>(games);
     JavaFxUtil.bindBidirectional(showModdedGamesCheckBox.selectedProperty(), preferencesService.getPreferences().showModdedGamesProperty());
     JavaFxUtil.bindBidirectional(showPasswordProtectedGamesCheckBox.selectedProperty(), preferencesService.getPreferences().showPasswordProtectedGamesProperty());
+    JavaFxUtil.bindBidirectional(showBlacklistedMapsCheckBox.selectedProperty(), preferencesService.getPreferences().showBlacklistedMapsProperty());
 
     updateFilteredItems();
+    JavaFxUtil.addListener(preferencesService.getPreferences().getBlacklistPrefs().getMapBlacklistProperty(), new WeakSetChangeListener<>(mapBlacklistChangedListener));
     JavaFxUtil.addListener(preferencesService.getPreferences().showModdedGamesProperty(), new WeakChangeListener<>(filterConditionsChangedListener));
     JavaFxUtil.addListener(preferencesService.getPreferences().showPasswordProtectedGamesProperty(), new WeakChangeListener<>(filterConditionsChangedListener));
+    JavaFxUtil.addListener(preferencesService.getPreferences().showBlacklistedMapsProperty(), new WeakChangeListener<>(filterConditionsChangedListener));
 
     if (tilesButton.getId().equals(preferencesService.getPreferences().getGamesViewMode())) {
       viewToggleGroup.selectToggle(tilesButton);
@@ -191,13 +199,16 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   private void updateFilteredItems() {
     preferencesService.storeInBackground();
+    BlacklistPrefs blacklistPrefs = preferencesService.getPreferences().getBlacklistPrefs();
 
     boolean showPasswordProtectedGames = showPasswordProtectedGamesCheckBox.isSelected();
     boolean showModdedGames = showModdedGamesCheckBox.isSelected();
+    boolean showBlacklistedMaps = showBlacklistedMapsCheckBox.isSelected();
 
     filteredItems.setPredicate(OPEN_CUSTOM_GAMES_PREDICATE.and(gameInfoBean ->
         (showPasswordProtectedGames || !gameInfoBean.isPasswordProtected())
-            && (showModdedGames || gameInfoBean.getSimMods().isEmpty())));
+            && (showModdedGames || gameInfoBean.getSimMods().isEmpty())
+            && (showBlacklistedMaps || !blacklistPrefs.getMapBlacklistProperty().contains(gameInfoBean.getMapFolderName()))));
   }
 
   public void onCreateGameButtonClicked() {
