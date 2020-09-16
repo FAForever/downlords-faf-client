@@ -84,7 +84,7 @@
             <Region styleClass="icon, balance-icon"/>
         </graphic>
     </Label>
-    <Button fx:id="watchButton" defaultButton="true" mnemonicParsing="false"
+    <Button fx:id="watchButton" mnemonicParsing="false"
             onAction="#onWatchButtonClicked" GridPane.halignment="RIGHT" GridPane.valignment="BOTTOM"
             GridPane.rowIndex="8" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS">
         <graphic>
