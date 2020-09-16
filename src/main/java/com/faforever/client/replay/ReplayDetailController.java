@@ -206,6 +206,7 @@ public class ReplayDetailController implements Controller<Node> {
             String humanReadableSize = Bytes.formatSize(replaySize, i18n.getUserSpecificLocale());
             downloadMoreInfoButton.setText(i18n.get("game.downloadMoreInfo", humanReadableSize));
             watchButton.setText(i18n.get("game.watchButtonFormat", humanReadableSize));
+            downloadMoreInfoButton.setVisible(true);
           } else {
             downloadMoreInfoButton.setText(i18n.get("game.replayFileMissing"));
             downloadMoreInfoButton.setDisable(true);
@@ -225,6 +226,7 @@ public class ReplayDetailController implements Controller<Node> {
         .findFirst());
 
     // These items are initially empty but will be populated in #onDownloadMoreInfoClicked()
+    moreInformationPane.setVisible(false);
     optionsTable.setItems(replay.getGameOptions());
     chatTable.setItems(replay.getChatMessages());
     teams = replay.getTeamPlayerStats();
