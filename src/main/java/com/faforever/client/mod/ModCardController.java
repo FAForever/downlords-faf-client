@@ -42,6 +42,7 @@ public class ModCardController implements Controller<Node> {
   public Label authorLabel;
   public Node modTileRoot;
   public Label createdLabel;
+  public Label updatedLabel;
   public Label numberOfReviewsLabel;
   public Label typeLabel;
   public Button installButton;
@@ -123,6 +124,7 @@ public class ModCardController implements Controller<Node> {
       authorLabel.setText(modVersion.getMod().getAuthor());
     }
     createdLabel.setText(timeService.asDate(modVersion.getCreateTime()));
+    updatedLabel.setText(timeService.asDate(modVersion.getUpdateTime()));
     typeLabel.setText(modVersion.getModType() != null ? i18n.get(modVersion.getModType().getI18nKey()) : "");
     setInstalled(modService.isModInstalled(modVersion.getUid()));
 
