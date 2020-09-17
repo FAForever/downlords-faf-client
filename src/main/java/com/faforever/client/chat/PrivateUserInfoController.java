@@ -10,7 +10,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
-import com.neovisionaries.i18n.CountryCode;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -118,7 +117,6 @@ public class PrivateUserInfoController implements Controller<Node> {
 
   private void displayPlayerInfo(Player player) {
     setPlayerInfoVisible(true);
-    CountryCode countryCode = CountryCode.getByCode(player.getCountry());
 
     usernameLabel.textProperty().bind(player.usernameProperty());
 
@@ -126,7 +124,7 @@ public class PrivateUserInfoController implements Controller<Node> {
     userImageView.setVisible(true);
 
     countryFlagService.loadCountryFlag(player.getCountry()).ifPresent(image -> countryImageView.setImage(image));
-    countryLabel.setText(countryCode == null ? player.getCountry() : countryCode.getName());
+    countryLabel.setText(i18n.getCountryNameLocalized(player.getCountry()));
     countryLabel.setVisible(true);
 
     globalRatingInvalidationListener = (observable) -> loadReceiverGlobalRatingInformation(player);
