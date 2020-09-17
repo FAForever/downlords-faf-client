@@ -150,7 +150,6 @@ public class SettingsController implements Controller<Node> {
 
   private ChangeListener<Theme> selectedThemeChangeListener;
   private ChangeListener<Theme> currentThemeChangeListener;
-  public ComboBox<NavigationItem> startTabChoiceBox;
   public TextField cacheLifeTimeTextField;
 
   public SettingsController(UserService userService, PreferencesService preferencesService, UiService uiService,
