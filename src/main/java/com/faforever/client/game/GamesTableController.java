@@ -113,7 +113,7 @@ public class GamesTableController implements Controller<Node> {
     passwordProtectionColumn.setCellValueFactory(param -> param.getValue().passwordProtectedProperty());
     passwordProtectionColumn.setCellFactory(param -> passwordIndicatorColumn());
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(uiService));
-    passwordProtectionColumn.setVisible(preferencesService.getPreferences().isShowPasswordProtectedGames());
+    passwordProtectionColumn.setVisible(preferencesService.getPreferences().getGameFilterPrefs().isShowPasswordProtectedGames());
     mapPreviewColumn.setCellValueFactory(param -> Bindings.createObjectBinding(
         () -> mapService.loadPreview(param.getValue().getMapFolderName(), PreviewSize.SMALL),
         param.getValue().mapFolderNameProperty()
@@ -131,7 +131,7 @@ public class GamesTableController implements Controller<Node> {
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
     hostColumn.setCellFactory(param -> new StringCell<>(String::toString));
     modsColumn.setCellValueFactory(this::modCell);
-    modsColumn.setVisible(preferencesService.getPreferences().isShowModdedGames());
+    modsColumn.setVisible(preferencesService.getPreferences().getGameFilterPrefs().isShowModdedGames());
     modsColumn.setCellFactory(param -> new StringCell<>(String::toString));
     coopMissionName.setVisible(coopMissionNameProvider != null);
 
@@ -155,8 +155,8 @@ public class GamesTableController implements Controller<Node> {
 
     //bindings do not work as that interferes with some bidirectional bindings in the TableView itself
     if (listenToFilterPreferences) {
-      JavaFxUtil.addListener(preferencesService.getPreferences().showModdedGamesProperty(), new WeakChangeListener<>(showModdedGamesChangedListener));
-      JavaFxUtil.addListener(preferencesService.getPreferences().showPasswordProtectedGamesProperty(), new WeakChangeListener<>(showPasswordProtectedGamesChangedListener));
+      JavaFxUtil.addListener(preferencesService.getPreferences().getGameFilterPrefs().showModdedGamesProperty(), new WeakChangeListener<>(showModdedGamesChangedListener));
+      JavaFxUtil.addListener(preferencesService.getPreferences().getGameFilterPrefs().showPasswordProtectedGamesProperty(), new WeakChangeListener<>(showPasswordProtectedGamesChangedListener));
     }
   }
 

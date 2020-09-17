@@ -10,7 +10,7 @@ import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.BlacklistPrefs;
+import com.faforever.client.preferences.GameFilterPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.IdenticonUtil;
@@ -290,20 +290,20 @@ public class MapDetailController implements Controller<Node> {
   }
 
   public void onBlacklistButtonClicked() {
-    BlacklistPrefs blacklistPrefs = preferencesService.getPreferences().getBlacklistPrefs();
-    blacklistPrefs.getMapBlacklistProperty().add(map.getFolderName());
+    GameFilterPrefs gameFilterPrefs = preferencesService.getPreferences().getGameFilterPrefs();
+    gameFilterPrefs.mapBlacklistProperty().add(map.getFolderName());
     setFilterButtons();
   }
 
   public void onRemoveBlacklistButtonClicked() {
-    BlacklistPrefs blacklistPrefs = preferencesService.getPreferences().getBlacklistPrefs();
-    blacklistPrefs.getMapBlacklistProperty().remove(map.getFolderName());
+    GameFilterPrefs gameFilterPrefs = preferencesService.getPreferences().getGameFilterPrefs();
+    gameFilterPrefs.mapBlacklistProperty().remove(map.getFolderName());
     setFilterButtons();
   }
 
   public void setFilterButtons() {
-    BlacklistPrefs blacklistPrefs = preferencesService.getPreferences().getBlacklistPrefs();
-    boolean blacklisted = blacklistPrefs.getMapBlacklistProperty().contains(map.getFolderName());
+    GameFilterPrefs gameFilterPrefs = preferencesService.getPreferences().getGameFilterPrefs();
+    boolean blacklisted = gameFilterPrefs.mapBlacklistProperty().contains(map.getFolderName());
     blacklistButton.setVisible(!blacklisted);
     removeBlacklistButton.setVisible(blacklisted);
   }

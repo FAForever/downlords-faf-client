@@ -29,7 +29,7 @@ public class Preferences {
   public static final String DEFAULT_THEME_NAME = "default";
 
   private final WindowPrefs mainWindow;
-  private final BlacklistPrefs blacklistPrefs;
+  private final GameFilterPrefs gameFilterPrefs;
   private final GeneratorPrefs generatorPrefs;
   private final ForgedAlliancePrefs forgedAlliance;
   private final LoginPrefs login;
@@ -39,9 +39,6 @@ public class Preferences {
   private final LocalizationPrefs localization;
   private final LastGamePrefs lastGamePrefs;
   private final BooleanProperty prereleaseCheckEnabled;
-  private final BooleanProperty showPasswordProtectedGames;
-  private final BooleanProperty showModdedGames;
-  private final BooleanProperty showBlacklistedMaps;
   private final ListProperty<String> ignoredNotifications;
   private final StringProperty gamesViewMode;
   private final Ladder1v1Prefs ladder1v1;
@@ -62,7 +59,7 @@ public class Preferences {
     login = new LoginPrefs();
 
     generatorPrefs = new GeneratorPrefs();
-    blacklistPrefs = new BlacklistPrefs();
+    gameFilterPrefs = new GameFilterPrefs();
     localization = new LocalizationPrefs();
     lastGamePrefs = new LastGamePrefs();
     mainWindow = new WindowPrefs();
@@ -78,9 +75,6 @@ public class Preferences {
     vaultPrefs = new VaultPrefs();
     unitDataBaseType = new SimpleObjectProperty<>(UnitDataBaseType.SPOOKY);
     storedCookies = new SimpleMapProperty<>(FXCollections.observableHashMap());
-    showPasswordProtectedGames = new SimpleBooleanProperty(true);
-    showModdedGames = new SimpleBooleanProperty(true);
-    showBlacklistedMaps = new SimpleBooleanProperty(false);
     disallowJoinsViaDiscord = new SimpleBooleanProperty();
     showGameDetailsSidePane = new SimpleBooleanProperty(false);
     advancedIceLogEnabled = new SimpleBooleanProperty(false);
@@ -102,18 +96,6 @@ public class Preferences {
 
   public ObjectProperty<TilesSortingOrder> gameTileSortingOrderProperty() {
     return gameTileSortingOrder;
-  }
-
-  public BooleanProperty showPasswordProtectedGamesProperty() {
-    return showPasswordProtectedGames;
-  }
-
-  public BooleanProperty showModdedGamesProperty() {
-    return showModdedGames;
-  }
-
-  public BooleanProperty showBlacklistedMapsProperty() {
-    return showBlacklistedMaps;
   }
 
   public String getGamesViewMode() {
@@ -260,36 +242,12 @@ public class Preferences {
     return prereleaseCheckEnabled;
   }
 
-  public boolean isShowPasswordProtectedGames() {
-    return showPasswordProtectedGames.get();
-  }
-
-  public void setShowPasswordProtectedGames(boolean showPasswordProtectedGames) {
-    this.showPasswordProtectedGames.set(showPasswordProtectedGames);
-  }
-
-  public boolean isShowModdedGames() {
-    return showModdedGames.get();
-  }
-
-  public void setShowModdedGames(boolean showModdedGames) {
-    this.showModdedGames.set(showModdedGames);
-  }
-
-  public boolean isShowBlacklistedMaps() {
-    return showBlacklistedMaps.get();
-  }
-
-  public void setShowBlacklistedMaps(boolean showBlacklistedMaps) {
-    this.showBlacklistedMaps.set(showBlacklistedMaps);
-  }
-
   public GeneratorPrefs getGeneratorPrefs() {
     return generatorPrefs;
   }
 
-  public BlacklistPrefs getBlacklistPrefs() {
-    return blacklistPrefs;
+  public GameFilterPrefs getGameFilterPrefs() {
+    return gameFilterPrefs;
   }
 
   public enum UnitDataBaseType {
