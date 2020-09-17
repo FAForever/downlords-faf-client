@@ -13,17 +13,19 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 
 
 @Service
 @Slf4j
 public class FeaturedModFileCacheService implements InitializingBean {
   private final Path cacheDirectory;
-  private int cacheLifeTime;
+  private int cacheLifeTimeInDays;
 
   public FeaturedModFileCacheService(PreferencesService preferencesService) {
     this.cacheDirectory = preferencesService.getCacheDirectory();
-    this.cacheLifeTime = preferencesService.getPreferences().getCacheLifeTimeInDays() * 1000 * 3600 * 24;
+    this.cacheLifeTimeInDays = preferencesService.getPreferences().getCacheLifeTimeInDays();
   }
 
   private String getCachedFileName(FeaturedModFile featuredModFile) {
@@ -85,7 +87,8 @@ public class FeaturedModFileCacheService implements InitializingBean {
       ResourceLocks.acquireDiskLock();
 
       FileTime lastAccessTime = Files.readAttributes(filePath, BasicFileAttributes.class).lastAccessTime();
-      if (lastAccessTime.toMillis() + cacheLifeTime < System.currentTimeMillis()) {
+      OffsetDateTime comparableLastAccessTime = OffsetDateTime.ofInstant(lastAccessTime.toInstant(), ZoneId.systemDefault());
+      if (comparableLastAccessTime.plusDays(this.cacheLifeTimeInDays).isBefore(OffsetDateTime.now())) {
         log.info("deleting: " + filePath.toString());
         Files.deleteIfExists(filePath);
       }
