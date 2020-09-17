@@ -26,6 +26,7 @@ import com.faforever.client.replay.ReplayService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.alert.Alert;
 import com.faforever.client.ui.alert.animation.AlertAnimation;
+import com.faforever.client.util.ClipboardUtil;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -42,8 +43,6 @@ import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -273,9 +272,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   }
 
   public void onCopyUsernameSelected() {
-    ClipboardContent clipboardContent = new ClipboardContent();
-    clipboardContent.putString(chatUser.getUsername());
-    Clipboard.getSystemClipboard().setContent(clipboardContent);
+    ClipboardUtil.copyToClipboard(chatUser.getUsername());
   }
 
   public void onAddFriendSelected() {
