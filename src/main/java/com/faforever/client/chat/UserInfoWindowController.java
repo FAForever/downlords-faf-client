@@ -133,8 +133,8 @@ public class UserInfoWindowController implements Controller<Node> {
   public TableColumn<NameRecord, OffsetDateTime> changeDateColumn;
   public TableColumn<NameRecord, String> nameColumn;
   private Player player;
-  private Map<String, AchievementItemController> achievementItemById = new HashMap<>();
-  private Map<String, AchievementDefinition> achievementDefinitionById = new HashMap<>();
+  private final Map<String, AchievementItemController> achievementItemById = new HashMap<>();
+  private final Map<String, AchievementDefinition> achievementDefinitionById = new HashMap<>();
   private Window ownerWindow;
   private List<RatingHistoryDataPoint> ratingData;
 
@@ -418,7 +418,7 @@ public class UserInfoWindowController implements Controller<Node> {
   }
 
   @NotNull
-  private  StringConverter<RatingMode> ratingModeStringConverter() {
+  private StringConverter<RatingMode> ratingModeStringConverter() {
     return new StringConverter<>() {
       @Override
       public String toString(RatingMode mode) {
@@ -433,7 +433,7 @@ public class UserInfoWindowController implements Controller<Node> {
   }
 
   @NotNull
-  private  StringConverter<TimePeriod> timePeriodStringConverter() {
+  private StringConverter<TimePeriod> timePeriodStringConverter() {
     return new StringConverter<>() {
       @Override
       public String toString(TimePeriod period) {
