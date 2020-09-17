@@ -18,7 +18,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -59,12 +58,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
   private static final Predicate<Game> OPEN_CUSTOM_GAMES_PREDICATE = gameInfoBean ->
       gameInfoBean.getStatus() == GameStatus.OPEN
           && !HIDDEN_FEATURED_MODS.contains(gameInfoBean.getFeaturedMod());
-  @VisibleForTesting
-  static final PseudoClass PSEUDO_CLASS_RIGHT = PseudoClass.getPseudoClass("right");
-  @VisibleForTesting
-  static final PseudoClass PSEUDO_CLASS_OPENED = PseudoClass.getPseudoClass("opened");
-  @VisibleForTesting
-  static final PseudoClass PSEUDO_CLASS_CLOSED = PseudoClass.getPseudoClass("closed");
 
   private final UiService uiService;
   private final GameService gameService;
@@ -163,22 +156,13 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
     setSelectedGame(null);
 
-    toggleGameDetailPaneButton.pseudoClassStateChanged(PSEUDO_CLASS_RIGHT, true);
     toggleGameDetailPaneButton.selectedProperty().addListener(observable -> {
-      updateGameDetailPaneButton();
       preferencesService.getPreferences().setShowGameDetailsSidePane(toggleGameDetailPaneButton.isSelected());
       preferencesService.storeInBackground();
     });
     toggleGameDetailPaneButton.setSelected(preferencesService.getPreferences().isShowGameDetailsSidePane());
-    updateGameDetailPaneButton();
 
     eventBus.register(this);
-  }
-
-  private void updateGameDetailPaneButton() {
-    boolean selected = toggleGameDetailPaneButton.isSelected();
-    toggleGameDetailPaneButton.pseudoClassStateChanged(PSEUDO_CLASS_CLOSED, !selected);
-    toggleGameDetailPaneButton.pseudoClassStateChanged(PSEUDO_CLASS_OPENED, selected);
   }
 
   @Override

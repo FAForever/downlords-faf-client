@@ -20,8 +20,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.testfx.util.WaitForAsyncUtils;
 
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -154,7 +152,6 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
     assertFalse(preferencesService.getPreferences().isShowGameDetailsSidePane());
     verify(preferencesService, atLeast(2)).storeInBackground();
 
-    assertThat(instance.toggleGameDetailPaneButton.getPseudoClassStates(), hasItem(CustomGamesController.PSEUDO_CLASS_CLOSED));
     assertFalse(instance.gameDetailPane.isManaged());
     assertFalse(instance.gameDetailPane.isVisible());
   }

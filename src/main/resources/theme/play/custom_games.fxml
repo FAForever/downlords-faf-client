@@ -37,17 +37,21 @@
                                               <ToggleGroup fx:id="viewToggleGroup" />
                                           </toggleGroup>
                                           <graphic>
-                                              <Region styleClass="icon,table-icon" />
+                                              <Region styleClass="icon,table-icon"/>
                                           </graphic>
                                       </ToggleButton>
-                                      <ToggleButton fx:id="tilesButton" minWidth="-Infinity" mnemonicParsing="false" onAction="#onTilesButtonClicked" selected="true" styleClass="game-list-type" text="%view.tiles" toggleGroup="$viewToggleGroup">
+                                      <ToggleButton fx:id="tilesButton" minWidth="-Infinity" mnemonicParsing="false"
+                                                    onAction="#onTilesButtonClicked" selected="true"
+                                                    styleClass="game-list-type" text="%view.tiles"
+                                                    toggleGroup="$viewToggleGroup">
                                           <graphic>
-                                              <Region styleClass="icon,tiles-icon" />
+                                              <Region styleClass="icon,tiles-icon"/>
                                           </graphic>
                                       </ToggleButton>
-                                      <ToggleButton fx:id="toggleGameDetailPaneButton" mnemonicParsing="false" styleClass="pane-toggler">
+                                      <ToggleButton fx:id="toggleGameDetailPaneButton" mnemonicParsing="false"
+                                                    styleClass="pane-toggler, right">
                                           <graphic>
-                                              <Region styleClass="icon,toggle-icon" />
+                                              <Region styleClass="icon,toggle-icon"/>
                                           </graphic>
                                       </ToggleButton>
                                   </children>
