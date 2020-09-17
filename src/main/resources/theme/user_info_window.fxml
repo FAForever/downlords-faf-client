@@ -25,6 +25,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.control.ComboBox?>
 <VBox fx:id="userInfoRoot" prefHeight="700.0" prefWidth="900.0" styleClass="user-info-window" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.UserInfoWindowController">
    <children>
       <HBox alignment="CENTER_LEFT" spacing="20.0" styleClass="user-info-header-area">
@@ -108,29 +109,28 @@
                             </padding>
                         </GridPane>
                         <VBox styleClass="card" GridPane.columnSpan="2147483647" GridPane.rowIndex="1">
+                          <padding>
+                            <Insets right="15.0" />
+                          </padding>
                           <children>
-                            <HBox alignment="TOP_RIGHT" spacing="10.0">
+                            <HBox alignment="CENTER_RIGHT" spacing="10.0">
+                              <padding>
+                                <Insets top="10.0" />
+                              </padding>
                               <children>
-                                  <ToggleButton fx:id="ladder1v1Button" mnemonicParsing="false" onAction="#ladder1v1ButtonClicked" selected="true" text="%userInfo.ratingHistory.1v1">
-                                  <toggleGroup>
-                                      <ToggleGroup fx:id="ratingType" />
-                                  </toggleGroup>
-                                </ToggleButton>
-                                  <ToggleButton fx:id="globalButton" mnemonicParsing="false" onAction="#globalButtonClicked" text="%userInfo.ratingHistory.global" toggleGroup="$ratingType" />
+                                  <ComboBox fx:id="timePeriodComboBox" onAction="#plotPlayerRatingGraph"/>
+                                  <ComboBox fx:id="ratingTypeComboBox" onAction="#onRatingTypeChange"/>
                               </children>
                             </HBox>
                               <LineChart fx:id="ratingHistoryChart" createSymbols="false" legendVisible="false" prefHeight="300.0" VBox.vgrow="ALWAYS">
                               <xAxis>
-                                  <NumberAxis forceZeroInRange="false" side="BOTTOM" fx:id="xAxis" />
+                                  <NumberAxis forceZeroInRange="false" autoRanging="false" side="BOTTOM" fx:id="xAxis" />
                               </xAxis>
                               <yAxis>
                                   <NumberAxis fx:id="yAxis" forceZeroInRange="false" side="LEFT" />
                               </yAxis>
-                            </LineChart>
+                              </LineChart>
                           </children>
-                          <padding>
-                              <Insets top="10.0" />
-                          </padding>
                         </VBox>
                       </children>
                     </GridPane>
