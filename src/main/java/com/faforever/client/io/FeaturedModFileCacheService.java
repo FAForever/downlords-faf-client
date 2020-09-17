@@ -3,6 +3,7 @@ package com.faforever.client.io;
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.ResourceLocks;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
@@ -42,6 +43,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
     return cacheDirectory.resolve(featuredModFile.getGroup()).resolve(getCachedFileName(featuredModFile));
   }
 
+  @SneakyThrows
   public void copyFeaturedModFileFromCache(Path cacheFilePath, Path targetPath) throws java.io.IOException {
     Files.createDirectories(targetPath.getParent());
     ResourceLocks.acquireDiskLock();
@@ -50,6 +52,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
       Files.copy(cacheFilePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
     } catch (Exception e) {
       log.error(e.toString());
+      throw new RuntimeException(e);
     } finally {
       ResourceLocks.freeDiskLock();
     }
@@ -63,7 +66,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
     try {
       Files.walk(this.cacheDirectory).forEach(this::walkDirectoriesAndDeleteCachedFiles);
     } catch (IOException e) {
-      log.error("Exception during gathering files", e);
+      log.warn("Exception during gathering files", e);
     }
   }
 
@@ -71,7 +74,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
     try {
       Files.walk(directoryPath).forEach(this::deleteCachedFileIfNeeded);
     } catch (IOException e) {
-      log.error("Exception during gathering files per directory", e);
+      log.warn("Exception during gathering files per directory", e);
     }
   }
 
@@ -89,7 +92,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
       FileTime lastAccessTime = Files.readAttributes(filePath, BasicFileAttributes.class).lastAccessTime();
       OffsetDateTime comparableLastAccessTime = OffsetDateTime.ofInstant(lastAccessTime.toInstant(), ZoneId.systemDefault());
       if (comparableLastAccessTime.plusDays(this.cacheLifeTimeInDays).isBefore(OffsetDateTime.now())) {
-        log.info("deleting: " + filePath.toString());
+        log.info("deleting: {}", filePath.toString());
         Files.deleteIfExists(filePath);
       }
     } catch (IOException e) {
