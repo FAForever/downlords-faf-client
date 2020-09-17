@@ -14,5 +14,8 @@
         <Tab fx:id="globalLeaderboardTab" text="%leaderboard.global">
             <fx:include fx:id="globalLeaderboard" source="leaderboard.fxml"/>
         </Tab>
+        <Tab text="Team League">
+            <fx:include source="leaderboard.fxml"/>
+        </Tab>
     </tabs>
 </TabPane>
