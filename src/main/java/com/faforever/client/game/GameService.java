@@ -17,7 +17,6 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -429,12 +428,7 @@ public class GameService implements InitializingBean {
 
   private void notifyCantPlayReplay(@Nullable Integer replayId, Throwable throwable) {
     log.error("Could not play replay '" + replayId + "'", throwable);
-    notificationService.addNotification(new ImmediateErrorNotification(
-        i18n.get("errorTitle"),
-        i18n.get("replayCouldNotBeStarted", replayId),
-        throwable,
-        i18n, reportingService
-    ));
+    notificationService.addImmediateErrorNotification(throwable, "replayCouldNotBeStarted");
   }
 
   public CompletableFuture<Void> runWithLiveReplay(URI replayUrl, Integer gameId, String gameType, String mapName) {
@@ -589,9 +583,7 @@ public class GameService implements InitializingBean {
         })
         .exceptionally(throwable -> {
           log.warn("Game could not be started", throwable);
-          notificationService.addNotification(
-              new ImmediateErrorNotification(i18n.get("errorTitle"), i18n.get("game.start.couldNotStart"), throwable, i18n, reportingService)
-          );
+          notificationService.addImmediateErrorNotification(throwable, "game.start.couldNotStart");
           iceAdapter.stop();
           setGameRunning(false);
           return null;

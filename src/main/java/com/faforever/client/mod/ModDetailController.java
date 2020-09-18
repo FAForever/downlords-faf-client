@@ -3,7 +3,6 @@ package com.faforever.client.mod;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
@@ -205,11 +204,8 @@ public class ModDetailController implements Controller<Node> {
     modService.downloadAndInstallMod(modVersion, progressBar.progressProperty(), progressLabel.textProperty())
         .thenRun(() -> setInstalled(true))
         .exceptionally(throwable -> {
-          notificationService.addNotification(new ImmediateErrorNotification(
-              i18n.get("errorTitle"),
-              i18n.get("modVault.installationFailed", modVersion.getDisplayName(), throwable.getLocalizedMessage()),
-              throwable, i18n, reportingService
-          ));
+          notificationService.addImmediateErrorNotification(throwable, "modVault.installationFailed",
+              modVersion.getDisplayName(), throwable.getLocalizedMessage());
           setInstalled(false);
           return null;
         });
@@ -221,14 +217,11 @@ public class ModDetailController implements Controller<Node> {
 
     modService.uninstallMod(modVersion).thenRun(() -> setInstalled(false))
         .exceptionally(throwable -> {
-      notificationService.addNotification(new ImmediateErrorNotification(
-          i18n.get("errorTitle"),
-          i18n.get("modVault.couldNotDeleteMod", modVersion.getDisplayName(), throwable.getLocalizedMessage()),
-          throwable, i18n, reportingService
-      ));
-      setInstalled(true);
-      return null;
-    });
+          notificationService.addImmediateErrorNotification(throwable, "modVault.couldNotDeleteMod",
+              modVersion.getDisplayName(), throwable.getLocalizedMessage());
+          setInstalled(true);
+          return null;
+        });
   }
 
   public void onDimmerClicked() {

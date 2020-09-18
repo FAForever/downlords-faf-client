@@ -6,7 +6,6 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
 import com.faforever.client.map.MapService.PreviewSize;
-import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
@@ -258,11 +257,8 @@ public class MapDetailController implements Controller<Node> {
     return mapService.downloadAndInstallMap(map, progressBar.progressProperty(), progressLabel.textProperty())
         .thenRun(() -> setInstalled(true))
         .exceptionally(throwable -> {
-          notificationService.addNotification(new ImmediateErrorNotification(
-              i18n.get("errorTitle"),
-              i18n.get("mapVault.installationFailed", map.getDisplayName(), throwable.getLocalizedMessage()),
-              throwable, i18n, reportingService
-          ));
+          notificationService.addImmediateErrorNotification(throwable, "mapVault.installationFailed",
+              map.getDisplayName(), throwable.getLocalizedMessage());
           setInstalled(false);
           return null;
         });
@@ -275,11 +271,8 @@ public class MapDetailController implements Controller<Node> {
     mapService.uninstallMap(map)
         .thenRun(() -> setInstalled(false))
         .exceptionally(throwable -> {
-          notificationService.addNotification(new ImmediateErrorNotification(
-              i18n.get("errorTitle"),
-              i18n.get("mapVault.couldNotDeleteMap", map.getDisplayName(), throwable.getLocalizedMessage()),
-              throwable, i18n, reportingService
-          ));
+          notificationService.addImmediateErrorNotification(throwable, "mapVault.couldNotDeleteMap",
+              map.getDisplayName(), throwable.getLocalizedMessage());
           setInstalled(true);
           return null;
         });

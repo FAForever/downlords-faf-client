@@ -6,6 +6,7 @@ import com.faforever.client.reporting.ReportingService;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -97,8 +98,6 @@ public class NotificationService {
   public void addPersistentErrorNotification(Throwable throwable, String messageKey, Object... args) {
     addNotification(new PersistentNotification(i18n.get(messageKey, args), ERROR, singletonList(new ReportAction(i18n, reportingService, throwable))));
   }
-
-  // TODO refactor code to use this method where applicable
   
   public void addImmediateErrorNotification(Throwable throwable, String messageKey, Object... args) {
     addNotification(new ImmediateNotification(i18n.get("errorTitle"), i18n.get(messageKey, args), ERROR, throwable,

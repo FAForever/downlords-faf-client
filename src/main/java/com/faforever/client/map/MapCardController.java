@@ -4,7 +4,6 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService.PreviewSize;
-import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.IdenticonUtil;
@@ -23,6 +22,7 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -33,6 +33,7 @@ import java.util.function.Consumer;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
+@Slf4j
 public class MapCardController implements Controller<Node> {
 
   private final MapService mapService;
@@ -123,11 +124,8 @@ public class MapCardController implements Controller<Node> {
     mapService.downloadAndInstallMap(map, null, null)
         .thenRun(() -> setInstalled(true))
         .exceptionally(throwable -> {
-          notificationService.addNotification(new ImmediateErrorNotification(
-              i18n.get("errorTitle"),
-              i18n.get("mapVault.installationFailed", map.getDisplayName(), throwable.getLocalizedMessage()),
-              throwable, i18n, reportingService
-          ));
+          notificationService.addImmediateErrorNotification(throwable, "mapVault.installationFailed",
+              map.getDisplayName(), throwable.getLocalizedMessage());
           setInstalled(false);
           return null;
         });
@@ -137,11 +135,8 @@ public class MapCardController implements Controller<Node> {
     mapService.uninstallMap(map)
         .thenRun(() -> setInstalled(false))
         .exceptionally(throwable -> {
-          notificationService.addNotification(new ImmediateErrorNotification(
-              i18n.get("errorTitle"),
-              i18n.get("mapVault.couldNotDeleteMap", map.getDisplayName(), throwable.getLocalizedMessage()),
-              throwable, i18n, reportingService
-          ));
+          notificationService.addImmediateErrorNotification(throwable, "mapVault.couldNotDeleteMap",
+              map.getDisplayName(), throwable.getLocalizedMessage());
           setInstalled(true);
           return null;
         });
