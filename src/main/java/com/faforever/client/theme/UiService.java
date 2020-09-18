@@ -53,6 +53,7 @@ import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
@@ -261,7 +262,12 @@ public class UiService implements InitializingBean, DisposableBean {
         watchKeys.remove(path);
       }
     }
-
+    try {
+      //When replacing a theme file sometimes it is deleted and added again a few milli seconds later.
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {
+      logger.info("Watch thread was interrupted");
+    }
     reloadStylesheet();
   }
 
@@ -320,10 +326,10 @@ public class UiService implements InitializingBean, DisposableBean {
   public void setTheme(Theme theme) {
     stopWatchingOldThemes();
 
+    watchTheme(theme);
     if (theme == DEFAULT_THEME) {
       preferencesService.getPreferences().setThemeName(DEFAULT_THEME_NAME);
     } else {
-      watchTheme(theme);
       preferencesService.getPreferences().setThemeName(getThemeDirectory(theme).getFileName().toString());
     }
     preferencesService.storeInBackground();
@@ -429,6 +435,9 @@ public class UiService implements InitializingBean, DisposableBean {
   }
 
   private Path getThemeDirectory(Theme theme) {
+    if (theme == DEFAULT_THEME) {
+      return noCatch(() -> Paths.get(new ClassPathResource("theme").getURI()));
+    }
     return preferencesService.getThemesDirectory().resolve(folderNamesByTheme.get(theme));
   }
 

@@ -44,6 +44,7 @@ import javafx.scene.layout.Region;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import org.apache.commons.lang3.ArrayUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -51,6 +52,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Path;
@@ -107,6 +109,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ApplicationEventPublisher applicationEventPublisher;
   @Mock
+  private Environment environment;
+  @Mock
   private VaultFileSystemLocationChecker vaultFileSystemLocationChecker;
   private MainController instance;
   private BooleanProperty gameRunningProperty;
@@ -129,7 +133,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
         .setInitialStandardDeviation(500);
 
     instance = new MainController(preferencesService, i18n, notificationService, playerService, gameService,
-        uiService, eventBus, gamePathHandler, platformService, vaultFileSystemLocationChecker, clientProperties, applicationEventPublisher);
+        uiService, eventBus, gamePathHandler, platformService, vaultFileSystemLocationChecker, clientProperties, applicationEventPublisher, environment);
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(loginController.getRoot()).thenReturn(new Pane());
@@ -145,6 +149,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(uiService.loadFxml("theme/settings/settings.fxml")).thenReturn(settingsController);
     when(uiService.loadFxml("theme/login.fxml")).thenReturn(loginController);
     when(uiService.loadFxml("theme/chat/chat.fxml")).thenReturn(chatController);
+    when(environment.getActiveProfiles()).thenReturn(ArrayUtils.EMPTY_STRING_ARRAY);
     when(uiService.createScene(any())).thenAnswer(invocation -> new Scene(invocation.getArgument(0)));
 
     loadFxml("theme/main.fxml", clazz -> {

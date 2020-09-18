@@ -37,6 +37,7 @@ import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
+import com.google.common.eventbus.EventBus;
 import com.google.common.net.UrlEscapers;
 import com.google.common.primitives.Bytes;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +47,6 @@ import org.eclipse.jgit.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -135,7 +135,7 @@ public class ReplayService {
   private final FafService fafService;
   private final ModService modService;
   private final MapService mapService;
-  private final ApplicationEventPublisher publisher;
+  private final EventBus eventBus;
   private final MapGeneratorService mapGeneratorService;
   private final ExecutorService executorService;
   private Thread directoryWatcherThread;
@@ -152,7 +152,7 @@ public class ReplayService {
     taskService.submitTask(loadLocalReplaysTask).getFuture().thenAccept(replays -> {
       localReplays.clear();
       localReplays.addAll(replays);
-      publisher.publishEvent(new LocalReplaysChangedEvent(this, replays, new ArrayList<Replay>()));
+      eventBus.post(new LocalReplaysChangedEvent(replays, new ArrayList<Replay>()));
     });
 
     try {
@@ -221,7 +221,7 @@ public class ReplayService {
     try {
       List<Replay> newReplays = newReplaysFuture.get();
       localReplays.addAll(newReplays);
-      publisher.publishEvent(new LocalReplaysChangedEvent(this, newReplays, deletedReplays));
+      eventBus.post(new LocalReplaysChangedEvent(newReplays, deletedReplays));
     } catch (Exception e) {
       logger.warn("Failed to load new local replays ({})", e.getMessage());
     }
