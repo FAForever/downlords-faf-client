@@ -887,8 +887,8 @@ public class GameService implements InitializingBean {
           spawnTerminationListener(process, false);
         })
         .exceptionally(throwable -> {
-          notificationService.addImmediateErrorNotification(throwable, "tutorial.launchFailed");
           log.error("Launching tutorials failed", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "tutorial.launchFailed");
           return null;
         });
 

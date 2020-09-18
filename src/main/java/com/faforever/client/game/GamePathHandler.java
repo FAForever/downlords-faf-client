@@ -9,6 +9,7 @@ import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.ui.preferences.event.GameDirectoryChosenEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -25,6 +26,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 
 @Component
+@Slf4j
 public class GamePathHandler implements InitializingBean {
   private static final Collection<Path> USUAL_GAME_PATHS = Arrays.asList(
       Paths.get(System.getenv("ProgramFiles") + "\\THQ\\Gas Powered Games\\Supreme Commander - Forged Alliance"),
@@ -78,6 +80,7 @@ public class GamePathHandler implements InitializingBean {
     try {
       gamePathValidWithError = preferencesService.isGamePathValidWithError(gamePath);
     } catch (Exception e) {
+      log.error("Game path selection error", e);
       notificationService.addImmediateErrorNotification(e, "gamePath.select.error");
       future.ifPresent(pathCompletableFuture -> pathCompletableFuture.completeExceptionally(e));
       return;

@@ -237,6 +237,7 @@ public class CoopController extends AbstractViewController<Node> {
           Platform.runLater(() -> leaderboardTable.setItems(observableList(coopLeaderboardEntries)));
         })
         .exceptionally(throwable -> {
+          log.warn("Could not load coop leaderboard", throwable);
           notificationService.addImmediateErrorNotification(throwable, "coop.leaderboard.couldNotLoad");
           return null;
         });

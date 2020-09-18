@@ -204,6 +204,7 @@ public class ModDetailController implements Controller<Node> {
     modService.downloadAndInstallMod(modVersion, progressBar.progressProperty(), progressLabel.textProperty())
         .thenRun(() -> setInstalled(true))
         .exceptionally(throwable -> {
+          log.error("Could not install mod", throwable);
           notificationService.addImmediateErrorNotification(throwable, "modVault.installationFailed",
               modVersion.getDisplayName(), throwable.getLocalizedMessage());
           setInstalled(false);
@@ -217,6 +218,7 @@ public class ModDetailController implements Controller<Node> {
 
     modService.uninstallMod(modVersion).thenRun(() -> setInstalled(false))
         .exceptionally(throwable -> {
+          log.error("Could not delete mod", throwable);
           notificationService.addImmediateErrorNotification(throwable, "modVault.couldNotDeleteMod",
               modVersion.getDisplayName(), throwable.getLocalizedMessage());
           setInstalled(true);

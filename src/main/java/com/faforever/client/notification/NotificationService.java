@@ -6,7 +6,6 @@ import com.faforever.client.reporting.ReportingService;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 

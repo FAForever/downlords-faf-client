@@ -269,6 +269,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
           }
         })
         .exceptionally(throwable -> {
+          log.error("Vault search error", throwable);
           notificationService.addImmediateErrorNotification(throwable, "vault.searchError");
           enterResultState();
           return null;

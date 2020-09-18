@@ -20,6 +20,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,7 @@ import java.util.function.Consumer;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
+@Slf4j
 public class ModCardController implements Controller<Node> {
 
   private final ModService modService;
@@ -87,6 +89,7 @@ public class ModCardController implements Controller<Node> {
     modService.downloadAndInstallMod(modVersion, null, null)
         .thenRun(() -> setInstalled(true))
         .exceptionally(throwable -> {
+          log.error("Could not install mod", throwable);
           notificationService.addImmediateErrorNotification(throwable, "modVault.installationFailed",
               modVersion.getDisplayName(), throwable.getLocalizedMessage());
           setInstalled(false);
@@ -97,6 +100,7 @@ public class ModCardController implements Controller<Node> {
   public void onUninstallButtonClicked() {
     modService.uninstallMod(modVersion).thenRun(() -> setInstalled(false))
         .exceptionally(throwable -> {
+          log.error("Could not delete mod", throwable);
           notificationService.addImmediateErrorNotification(throwable, "modVault.couldNotDeleteMod",
               modVersion.getDisplayName(), throwable.getLocalizedMessage());
           setInstalled(true);

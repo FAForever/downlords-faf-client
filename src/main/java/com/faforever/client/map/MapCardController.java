@@ -124,6 +124,7 @@ public class MapCardController implements Controller<Node> {
     mapService.downloadAndInstallMap(map, null, null)
         .thenRun(() -> setInstalled(true))
         .exceptionally(throwable -> {
+          log.error("Map installation failed", throwable);
           notificationService.addImmediateErrorNotification(throwable, "mapVault.installationFailed",
               map.getDisplayName(), throwable.getLocalizedMessage());
           setInstalled(false);
@@ -135,6 +136,7 @@ public class MapCardController implements Controller<Node> {
     mapService.uninstallMap(map)
         .thenRun(() -> setInstalled(false))
         .exceptionally(throwable -> {
+          log.error("Could not delete map", throwable);
           notificationService.addImmediateErrorNotification(throwable, "mapVault.couldNotDeleteMap",
               map.getDisplayName(), throwable.getLocalizedMessage());
           setInstalled(true);
