@@ -43,6 +43,8 @@ public class Player {
   private final FloatProperty globalRatingMean;
   private final FloatProperty leaderboardRatingDeviation;
   private final FloatProperty leaderboardRatingMean;
+  private final IntegerProperty score;
+  private final IntegerProperty subDivisionIndex;
   private final ObjectProperty<Game> game;
   private final ObjectProperty<PlayerStatus> status;
   private final ObservableSet<ChatChannelUser> chatChannelUsers;
@@ -74,6 +76,8 @@ public class Player {
     globalRatingMean = new SimpleFloatProperty();
     leaderboardRatingDeviation = new SimpleFloatProperty();
     leaderboardRatingMean = new SimpleFloatProperty();
+    score = new SimpleIntegerProperty();
+    subDivisionIndex = new SimpleIntegerProperty();
     status = new SimpleObjectProperty<>(PlayerStatus.IDLE);
     chatChannelUsers = FXCollections.observableSet();
     game = new SimpleObjectProperty<>();
@@ -296,6 +300,30 @@ public class Player {
 
   public void setLeaderboardRatingDeviation(float leaderboardRatingDeviation) {
     this.leaderboardRatingDeviation.set(leaderboardRatingDeviation);
+  }
+
+  public int getScore() {
+    return score.get();
+  }
+
+  public void setScore(int score) {
+    this.score.set(score);
+  }
+
+  public IntegerProperty scoreProperty() {
+    return score;
+  }
+
+  public int getSubDivisionIndex() {
+    return subDivisionIndex.get();
+  }
+
+  public void setSubDivisionIndex(int subDivisionIndex) {
+    this.subDivisionIndex.set(subDivisionIndex);
+  }
+
+  public IntegerProperty subDivisionIndexProperty() {
+    return subDivisionIndex;
   }
 
   public Instant getIdleSince() {

@@ -30,6 +30,8 @@ public class LeaderboardEntry {
     gamesPlayed = new SimpleIntegerProperty();
     winLossRatio = new SimpleFloatProperty();
     score = new SimpleIntegerProperty();
+    majorDivisionIndex = new SimpleIntegerProperty();
+    subDivisionIndex = new SimpleIntegerProperty();
   }
 
   public static LeaderboardEntry fromLadder1v1(Ladder1v1LeaderboardEntry entry) {

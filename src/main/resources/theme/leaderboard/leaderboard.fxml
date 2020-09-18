@@ -30,13 +30,13 @@
                  </children>
                 </HBox>
                 <HBox alignment="BOTTOM_LEFT" spacing="10.0" styleClass="division-box">
-                    <ComboBox fx:id="majorDivisionPicker" promptText="GOLD" styleClass="division-selector" >
+                    <ComboBox fx:id="majorDivisionPicker" promptText="GOLD" styleClass="division-selector" onAction="#onMajorDivisionChanged">
                         <items>
                         </items>
                     </ComboBox>
                     <Pane HBox.hgrow="ALWAYS" />
                     <HBox fx:id="subdivisionPane" alignment="BOTTOM_RIGHT" >
-                        <ToggleButton mnemonicParsing="false" styleClass="main-navigation-button" prefWidth="70" text="I"/>
+                        <ToggleButton mnemonicParsing="false" styleClass="main-navigation-button" prefWidth="70" text="I" toggleGroup="$subDivisionToggleGroup"/>
                         <ToggleButton mnemonicParsing="false" styleClass="main-navigation-button" prefWidth="70" text="II"/>
                         <ToggleButton mnemonicParsing="false" styleClass="main-navigation-button" prefWidth="70" text="III"/>
                         <ToggleButton mnemonicParsing="false" styleClass="main-navigation-button" prefWidth="70" text="IV" selected="true"/>
@@ -65,7 +65,7 @@
                          <StackPane minWidth="180">
                            <Group>
                              <Circle centerX="50" centerY="50" radius="80" styleClass="score-circle" />
-                             <Arc centerX="50" centerY="50" length="-216" radiusX="80" radiusY="80" startAngle="90" styleClass="score-arc" />
+                             <Arc fx:id="scoreArc" centerX="50" centerY="50" length="-360" radiusX="80" radiusY="80" startAngle="90" styleClass="score-arc" />
                            </Group>
                            <Label fx:id="playerScoreLabel" styleClass="score" text="6"/>
                          </StackPane>

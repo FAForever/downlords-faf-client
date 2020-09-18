@@ -11,15 +11,16 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.Validator;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
-import javafx.beans.property.SimpleFloatProperty;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
+import javafx.event.ActionEvent;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.chart.BarChart;
@@ -29,10 +30,16 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Arc;
 import javafx.scene.text.Text;
+import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -60,6 +67,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
   private final I18n i18n;
   private final ReportingService reportingService;
   private final PlayerService playerService;
+  private final UiService uiService;
   public VBox leaderboardRoot;
   public TableColumn<LeaderboardEntry, Number> rankColumn;
   public TableColumn<LeaderboardEntry, String> nameColumn;
@@ -73,10 +81,13 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public Label playerDivisionNameLabel;
   public Label playerScoreLabel;
   public Label seasonLabel;
-  public ComboBox majorDivisionPicker;
+  public ComboBox<Division> majorDivisionPicker;
+  public Arc scoreArc;
+  public HBox subdivisionPane;
+  public ToggleGroup subDivisionToggleGroup;
   private KnownFeaturedMod ratingType;
   private Text youLabel;
-  private InvalidationListener playerRatingListener;
+  private InvalidationListener playerLeagueScoreListener;
 
   @Override
   public void initialize() {
@@ -99,9 +110,11 @@ public class LeaderboardController extends AbstractViewController<Node> {
 
     youLabel = new Text("You");
     youLabel.setId("1v1-you-text");
+    majorDivisionPicker.setConverter(divisionStringConverter());
 
     leaderboardService.getDivisions().thenAccept(divisions -> Platform.runLater(() -> {
       majorDivisionPicker.getItems().clear();
+
       majorDivisionPicker.getItems().addAll(
           divisions.stream().filter(division -> division.getSubDivisionIndex() == 1).collect(Collectors.toList()));
     })).exceptionally(throwable -> {
@@ -169,23 +182,24 @@ public class LeaderboardController extends AbstractViewController<Node> {
   }
 
   private void setCurrentPlayer(Player player) {
-    playerRatingListener = ratingObservable -> Platform.runLater(() -> updateRating(player));
+    playerLeagueScoreListener = leagueObservable -> Platform.runLater(() -> updateStats(player));
 
-    JavaFxUtil.addListener(player.leaderboardRatingDeviationProperty(), new WeakInvalidationListener(playerRatingListener));
-    JavaFxUtil.addListener(player.leaderboardRatingMeanProperty(), new WeakInvalidationListener(playerRatingListener));
-    updateRating(player);
+    JavaFxUtil.addListener(player.subDivisionIndexProperty(), new WeakInvalidationListener(playerLeagueScoreListener));
+    JavaFxUtil.addListener(player.scoreProperty(), new WeakInvalidationListener(playerLeagueScoreListener));
+    updateStats(player);
   }
 
-  private void updateRating(Player player) {
+  private void updateStats(Player player) {
 
-    leaderboardService.getEntryForPlayer(player.getId()).thenAccept(leaderboardEntry -> Platform.runLater(() -> {
+    leaderboardService.getLeagueEntryForPlayer(player.getId()).thenAccept(leaderboardEntry -> Platform.runLater(() -> {
       playerScoreLabel.setText(i18n.number(leaderboardEntry.getScore()));
       leaderboardService.getDivisions().thenAccept(divisions -> {
         divisions.forEach(division -> {
           if (division.getMajorDivisionIndex() == leaderboardEntry.getMajorDivisionIndex()
               && division.getSubDivisionIndex() == leaderboardEntry.getSubDivisionIndex()) {
             playerDivisionNameLabel.setText(i18n.get("leaderboard.divisionName",
-                i18n.get(division.getMajorDivisionName()), i18n.get(division.getSubDivisionName())));
+                division.getMajorDivisionName(), division.getSubDivisionName()));
+            scoreArc.setLength(-360.0 * leaderboardEntry.getScore() / division.getHighestScore());
           }
         });
       });
@@ -267,4 +281,40 @@ public class LeaderboardController extends AbstractViewController<Node> {
     });
   }
 
+  @NotNull
+  private StringConverter<Division> divisionStringConverter() {
+    return new StringConverter<>() {
+      @Override
+      public String toString(Division division) {
+        return division.getMajorDivisionName();
+        //return i18n.get(division.getI18nKey());
+      }
+
+      @Override
+      public Division fromString(String string) {
+        return null;
+      }
+    };
+  }
+
+  public void onMajorDivisionChanged(ActionEvent actionEvent) {
+    subdivisionPane.getChildren().clear();
+    boolean active = false;
+    leaderboardService.getDivisions().thenAccept(divisions -> Platform.runLater(() -> {
+      divisions.stream()
+          .filter(division -> division.getMajorDivisionIndex() == majorDivisionPicker.getValue().getMajorDivisionIndex())
+          .forEach(division -> {
+            SubDivisionButtonController controller = uiService.loadFxml("theme/leaderboard/subDivisionButton.fxml");
+            controller.setDivision(division);
+            controller.setButtonText(division.getSubDivisionName());
+            if (division.getSubDivisionIndex() == 1) {
+              controller.setButtonSelected(true);
+            }
+            //controller.setToggleGroup(subDivisionToggleGroup);
+            logger.info("getting there");
+            subdivisionPane.getChildren().add(controller.getRoot());
+            //controller.subDivisionToggleButton.setToggleGroup(subDivisionToggleGroup);
+          });
+    }));
+  }
 }
