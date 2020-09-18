@@ -24,6 +24,8 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -61,7 +63,6 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public VBox leaderboardRoot;
   public TableColumn<LeaderboardEntry, Number> rankColumn;
   public TableColumn<LeaderboardEntry, String> nameColumn;
-  public TableColumn<LeaderboardEntry, Number> divisionColumn;
   public TableColumn<LeaderboardEntry, Number> gamesPlayedColumn;
   public TableColumn<LeaderboardEntry, Number> scoreColumn;
   public TableView<LeaderboardEntry> ratingTable;
@@ -69,6 +70,10 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public Pane connectionProgressPane;
   public Pane contentPane;
   public BarChart ratingDistributionChart;
+  public Label playerDivisionNameLabel;
+  public Label playerScoreLabel;
+  public Label seasonLabel;
+  public ComboBox majorDivisionPicker;
   private KnownFeaturedMod ratingType;
   private Text youLabel;
   private InvalidationListener playerRatingListener;
@@ -82,9 +87,6 @@ public class LeaderboardController extends AbstractViewController<Node> {
     nameColumn.setCellValueFactory(param -> param.getValue().usernameProperty());
     nameColumn.setCellFactory(param -> new StringCell<>(name -> name));
 
-    divisionColumn.setCellValueFactory(param -> new SimpleFloatProperty(param.getValue().getWinLossRatio()));
-    divisionColumn.setCellFactory(param -> new StringCell<>(number -> i18n.get("percentage", number.floatValue() * 100)));
-
     gamesPlayedColumn.setCellValueFactory(param -> param.getValue().gamesPlayedProperty());
     gamesPlayedColumn.setCellFactory(param -> new StringCell<>(count -> i18n.number(count.intValue())));
 
@@ -95,8 +97,17 @@ public class LeaderboardController extends AbstractViewController<Node> {
     connectionProgressPane.managedProperty().bind(connectionProgressPane.visibleProperty());
     connectionProgressPane.visibleProperty().bind(contentPane.visibleProperty().not());
 
-    youLabel = new Text("IV");
+    youLabel = new Text("You");
     youLabel.setId("1v1-you-text");
+
+    leaderboardService.getDivisions().thenAccept(divisions -> Platform.runLater(() -> {
+      majorDivisionPicker.getItems().clear();
+      majorDivisionPicker.getItems().addAll(
+          divisions.stream().filter(division -> division.getSubDivisionIndex() == 1).collect(Collectors.toList()));
+    })).exceptionally(throwable -> {
+      logger.warn("Could not read divisions", throwable);
+      return null;
+    });
 
     JavaFxUtil.addListener(playerService.currentPlayerProperty(), (observable, oldValue, newValue) -> Platform.runLater(() -> setCurrentPlayer(newValue)));
     playerService.getCurrentPlayer().ifPresent(this::setCurrentPlayer);
@@ -167,15 +178,27 @@ public class LeaderboardController extends AbstractViewController<Node> {
 
   private void updateRating(Player player) {
 
+    leaderboardService.getEntryForPlayer(player.getId()).thenAccept(leaderboardEntry -> Platform.runLater(() -> {
+      playerScoreLabel.setText(i18n.number(leaderboardEntry.getScore()));
+      leaderboardService.getDivisions().thenAccept(divisions -> {
+        divisions.forEach(division -> {
+          if (division.getMajorDivisionIndex() == leaderboardEntry.getMajorDivisionIndex()
+              && division.getSubDivisionIndex() == leaderboardEntry.getSubDivisionIndex()) {
+            playerDivisionNameLabel.setText(i18n.get("leaderboard.divisionName",
+                i18n.get(division.getMajorDivisionName()), i18n.get(division.getSubDivisionName())));
+          }
+        });
+      });
+    })).exceptionally(throwable -> {
+      // Debug instead of warn, since it's fairly common that players don't have a leaderboard entry which causes a 404
+      logger.debug("Leaderboard entry could not be read for current player: " + player.getUsername(), throwable);
+      return null;
+    });
+
     leaderboardService.getLadder1v1Stats()
         .thenAccept(ranked1v1Stats -> {
           ranked1v1Stats.sort(Comparator.comparingInt(RatingStat::getRating));
-          int totalPlayers = 0;
-          for (RatingStat entry : ranked1v1Stats) {
-            totalPlayers += entry.getTotalCount();
-          }
           plotRatingDistributions(ranked1v1Stats, player);
-          String rankingOutOfText = i18n.get("ranked1v1.rankingOutOf", totalPlayers);
         })
         .exceptionally(throwable -> {
           logger.warn("Could not plot rating distribution", throwable);
@@ -205,6 +228,24 @@ public class LeaderboardController extends AbstractViewController<Node> {
 
     Platform.runLater(() -> ratingDistributionChart.getData().setAll(series));
   }
+
+  private void plotDivisionDistributions(List<Division> divisions, Player player) {
+    XYChart.Series<String, Integer> series = new XYChart.Series<>();
+    series.setName("Players");
+
+  }
+
+//  private void plotDivisionDistributions(List<Division> divisions, Player player) {
+//   // List<XYChart.Series> serieses = new List<XYChart.Series>();
+//    for (Division division : divisions) {
+//      if (division.getMajorDivisionIndex() == 1) {
+//        XYChart.Series<String, Integer> series = new XYChart.Series<>();
+//        series.setName(division.getSubDivisionName());
+//      }
+//      int playerCount = leaderboardService.getDivisionStats(division).thenAccept(divisionStats -> divisionStats.stream().)
+//
+//    }
+//  }
 
   private void addNodeOnTopOfBar(XYChart.Data<String, Integer> data, Node nodeToAdd) {
     final Node node = data.getNode();

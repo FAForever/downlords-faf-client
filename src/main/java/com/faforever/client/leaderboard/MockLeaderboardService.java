@@ -34,8 +34,28 @@ public class MockLeaderboardService implements LeaderboardService {
   }
 
   @Override
+  public CompletableFuture<List<DivisionStat>> getDivisionStats() {
+    return CompletableFuture.completedFuture(Collections.emptyList());
+  }
+
+  @Override
+  public CompletableFuture<List<Division>> getDivisions() {
+    return CompletableFuture.completedFuture(Collections.emptyList());
+  }
+
+  @Override
+  public CompletableFuture<List<LeaderboardEntry>> getDivisionEntries(Division division) {
+    return CompletableFuture.completedFuture(Collections.emptyList());
+  }
+
+  @Override
   public CompletableFuture<LeaderboardEntry> getEntryForPlayer(int playerId) {
     return CompletableFuture.completedFuture(createLadderInfoBean("Player #" + playerId, 111, 222, 333, 55.55f));
+  }
+
+  @Override
+  public CompletableFuture<LeaderboardEntry> getLeagueEntryForPlayer(int playerId) {
+    return null;
   }
 
   @Override

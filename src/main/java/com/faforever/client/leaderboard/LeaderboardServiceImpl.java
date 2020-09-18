@@ -28,6 +28,16 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     return fafService.getLadder1v1Leaderboard().thenApply(this::toRatingStats);
   }
 
+  @Override
+  public CompletableFuture<List<DivisionStat>> getDivisionStats() {
+//    return getDivisions().thenAccept(divisions -> {
+//      divisions.stream().map(division ->
+//          fafService.getDivisionLeaderboard(division).thenApply(this::toDivisionStats))
+//          .collect(Collectors.toList());
+//    });
+    return null;
+  }
+
   private List<RatingStat> toRatingStats(List<LeaderboardEntry> entries) {
     Map<Integer, Long> totalCount = countByRating(entries.stream());
     Map<Integer, Long> countWithoutFewGames = countByRating(entries.stream()
@@ -41,6 +51,10 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         .collect(Collectors.toList());
   }
 
+  private DivisionStat toDivisionStats(List<LeaderboardEntry> entries) {
+    return new DivisionStat(entries.size());
+  }
+
   private Map<Integer, Long> countByRating(Stream<LeaderboardEntry> entries) {
     return entries.collect(Collectors.groupingBy(leaderboardEntry ->
         RatingUtil.roundRatingToNextLowest100(leaderboardEntry.getRating()), Collectors.counting()));
@@ -49,6 +63,11 @@ public class LeaderboardServiceImpl implements LeaderboardService {
   @Override
   public CompletableFuture<LeaderboardEntry> getEntryForPlayer(int playerId) {
     return fafService.getLadder1v1EntryForPlayer(playerId);
+  }
+
+  @Override
+  public CompletableFuture<LeaderboardEntry> getLeagueEntryForPlayer(int playerId) {
+    return fafService.getLeagueEntryForPlayer(playerId);
   }
 
   @Override
@@ -61,5 +80,15 @@ public class LeaderboardServiceImpl implements LeaderboardService {
       default:
         throw new IllegalArgumentException("Not supported: " + ratingType);
     }
+  }
+
+  @Override
+  public CompletableFuture<List<Division>> getDivisions() {
+    return fafService.getDivisions();
+  }
+
+  @Override
+  public CompletableFuture<List<LeaderboardEntry>> getDivisionEntries(Division division) {
+    return fafService.getDivisionLeaderboard(division);
   }
 }

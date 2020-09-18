@@ -12,5 +12,13 @@ public interface LeaderboardService {
 
   CompletableFuture<LeaderboardEntry> getEntryForPlayer(int playerId);
 
+  CompletableFuture<LeaderboardEntry> getLeagueEntryForPlayer(int playerId);
+
   CompletableFuture<List<LeaderboardEntry>> getEntries(KnownFeaturedMod ratingType);
+
+  CompletableFuture<List<DivisionStat>> getDivisionStats();
+
+  CompletableFuture<List<Division>> getDivisions();
+
+  CompletableFuture<List<LeaderboardEntry>> getDivisionEntries(Division division);
 }

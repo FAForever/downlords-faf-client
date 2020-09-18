@@ -6,6 +6,7 @@ import com.faforever.client.api.dto.AchievementType;
 import com.faforever.client.api.dto.Clan;
 import com.faforever.client.api.dto.CoopMission;
 import com.faforever.client.api.dto.CoopResult;
+import com.faforever.client.api.dto.DivisionLeaderboardEntry;
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
@@ -26,6 +27,7 @@ import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.api.dto.Tournament;
 import com.faforever.client.api.dto.TutorialCategory;
 import com.faforever.client.game.KnownFeaturedMod;
+import com.faforever.client.leaderboard.Division;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
@@ -119,7 +121,17 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
+  public List<DivisionLeaderboardEntry> getDivisionLeaderboard(Division division) {
+    return Collections.emptyList();
+  }
+
+  @Override
   public Ladder1v1LeaderboardEntry getLadder1v1EntryForPlayer(int playerId) {
+    return null;
+  }
+
+  @Override
+  public DivisionLeaderboardEntry getLeagueEntryForPlayer(int playerId) {
     return null;
   }
 
@@ -300,6 +312,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
   @Override
   public MeResult getOwnPlayer() {
     return null;
+  }
+
+  @Override
+  public List<Division> getDivisions() {
+    return Collections.emptyList();
   }
 
   @Override

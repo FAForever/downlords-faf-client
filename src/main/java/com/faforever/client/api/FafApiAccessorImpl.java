@@ -4,6 +4,7 @@ import com.faforever.client.api.dto.AchievementDefinition;
 import com.faforever.client.api.dto.Clan;
 import com.faforever.client.api.dto.CoopMission;
 import com.faforever.client.api.dto.CoopResult;
+import com.faforever.client.api.dto.DivisionLeaderboardEntry;
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
@@ -30,6 +31,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Api;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.io.CountingFileSystemResource;
+import com.faforever.client.leaderboard.Division;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
@@ -187,6 +189,11 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
+  public List<DivisionLeaderboardEntry> getDivisionLeaderboard(Division division) {
+    return null;
+  }
+
+  @Override
   @Cacheable(CacheNames.LADDER_1V1_LEADERBOARD)
   @SneakyThrows
   public List<Ladder1v1LeaderboardEntry> getLadder1v1Leaderboard() {
@@ -204,6 +211,11 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   public Ladder1v1LeaderboardEntry getLadder1v1EntryForPlayer(int playerId) {
     return getOne("/leaderboards/ladder1v1/" + playerId, Ladder1v1LeaderboardEntry.class);
+  }
+
+  @Override
+  public DivisionLeaderboardEntry getLeagueEntryForPlayer(int playerId) {
+    return null;
   }
 
   @Override
@@ -365,6 +377,11 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   public MeResult getOwnPlayer() {
     return getOne("/me", MeResult.class);
+  }
+
+  @Override
+  public List<Division> getDivisions() {
+    return null;
   }
 
   @Override

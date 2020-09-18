@@ -17,7 +17,7 @@
             <children>
                 <HBox alignment="CENTER_LEFT" spacing="10.0">
                 <children>
-                    <Label text="Season 2020" styleClass="heading, season"/>
+                    <Label fx:id="seasonLabel" text="Season 2020" styleClass="heading, season"/>
                     <Pane HBox.hgrow="ALWAYS" />
                     <HBox alignment="CENTER_LEFT" spacing="10.0">
                         <Label contentDisplay="RIGHT" graphicTextGap="10.0" maxWidth="1.7976931348623157E308">
@@ -30,7 +30,7 @@
                  </children>
                 </HBox>
                 <HBox alignment="BOTTOM_LEFT" spacing="10.0" styleClass="division-box">
-                    <ComboBox promptText="GOLD" styleClass="division-selector" >
+                    <ComboBox fx:id="majorDivisionPicker" promptText="GOLD" styleClass="division-selector" >
                         <items>
                         </items>
                     </ComboBox>
@@ -47,7 +47,6 @@
                 <columns>
                   <TableColumn fx:id="rankColumn" prefWidth="60" text="RANK" />
                   <TableColumn fx:id="nameColumn" prefWidth="${ratingTable.width - 220}" text="NAME" />
-                  <TableColumn fx:id="divisionColumn" prefWidth="60" text="DIVISION" visible="false" />
                   <TableColumn fx:id="scoreColumn" prefWidth="80" text="SCORE" />
                   <TableColumn fx:id="gamesPlayedColumn" prefWidth="80" text="GAMES" />
                 </columns>
@@ -68,7 +67,7 @@
                              <Circle centerX="50" centerY="50" radius="80" styleClass="score-circle" />
                              <Arc centerX="50" centerY="50" length="-216" radiusX="80" radiusY="80" startAngle="90" styleClass="score-arc" />
                            </Group>
-                           <Label styleClass="score" text="6"/>
+                           <Label fx:id="playerScoreLabel" styleClass="score" text="6"/>
                          </StackPane>
                          <Label styleClass="heading" text="SCORE" />
                        </VBox>
@@ -76,7 +75,7 @@
                        <VBox alignment="BOTTOM_CENTER" spacing="20.0">
                          <Label prefHeight="160" prefWidth="320" styleClass="map-preview" />
                          <ImageView fitHeight="0.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true" />
-                         <Label styleClass="heading" text="SILVER II" />
+                         <Label fx:id="playerDivisionNameLabel" styleClass="heading" text="SILVER II" />
                        </VBox>
                      </children>
                     <padding>
