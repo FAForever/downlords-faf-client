@@ -1,6 +1,7 @@
 package com.faforever.client.map;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.HostGameEvent;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
@@ -33,6 +34,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
@@ -89,6 +91,61 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
       }
       return instance;
     });
+  }
+
+  @Test
+  public void onCreateButtonClickedMapNotInstalled() throws MalformedURLException {
+    when(mapService.isInstalled(anyString())).thenReturn(false);
+    when(playerService.getCurrentPlayer()).then(invocation -> {
+      Player player = mock(Player.class);
+      when(player.getUsername()).thenReturn("axel12");
+      return Optional.of(player);
+    });
+
+    MapBean mapBean = new MapBean();
+    mapBean.setFolderName("test");
+    mapBean.setAuthor("axel12");
+    mapBean.setRanked(true);
+    mapBean.setHidden(false);
+    mapBean.setId("23");
+    mapBean.setSize(MapSize.valueOf(1, 1));
+    mapBean.setDownloadUrl(new URL("http://google.com"));
+
+    instance.setMap(mapBean);
+
+    instance.onCreateGameButtonClicked();
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(mapService).downloadAndInstallMap(any(), any(DoubleProperty.class), any(StringProperty.class));
+    verify(eventBus).post(any(HostGameEvent.class));
+    assertThat(instance.uninstallButton.isVisible(), is(true));
+    assertThat(instance.installButton.isVisible(), is(false));
+  }
+
+  @Test
+  public void onCreateButtonClickedMapInstalled() throws MalformedURLException {
+    when(mapService.isInstalled(anyString())).thenReturn(true);
+    when(playerService.getCurrentPlayer()).then(invocation -> {
+      Player player = mock(Player.class);
+      when(player.getUsername()).thenReturn("axel12");
+      return Optional.of(player);
+    });
+
+    MapBean mapBean = new MapBean();
+    mapBean.setFolderName("test");
+    mapBean.setAuthor("axel12");
+    mapBean.setRanked(true);
+    mapBean.setHidden(false);
+    mapBean.setId("23");
+    mapBean.setSize(MapSize.valueOf(1, 1));
+    mapBean.setDownloadUrl(new URL("http://google.com"));
+
+    instance.setMap(mapBean);
+
+    instance.onCreateGameButtonClicked();
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(eventBus).post(any(HostGameEvent.class));
+    assertThat(instance.uninstallButton.isVisible(), is(true));
+    assertThat(instance.installButton.isVisible(), is(false));
   }
 
   @Test
