@@ -592,6 +592,7 @@ public class GameService implements InitializingBean {
           notificationService.addNotification(
               new ImmediateErrorNotification(i18n.get("errorTitle"), i18n.get("game.start.couldNotStart"), throwable, i18n, reportingService)
           );
+          iceAdapter.stop();
           setGameRunning(false);
           return null;
         });
