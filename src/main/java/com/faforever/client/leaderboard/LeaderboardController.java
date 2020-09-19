@@ -199,6 +199,8 @@ public class LeaderboardController extends AbstractViewController<Node> {
               && division.getSubDivisionIndex() == leaderboardEntry.getSubDivisionIndex()) {
             playerDivisionNameLabel.setText(i18n.get("leaderboard.divisionName",
                 division.getMajorDivisionName(), division.getSubDivisionName()));
+                //i18n.get(division.getMajorDivisionName().getI18nKey()).toUpperCase(),
+                //i18n.get(division.getSubDivisionName().getI18nKey()).toUpperCase()));
             scoreArc.setLength(-360.0 * leaderboardEntry.getScore() / division.getHighestScore());
           }
         });
@@ -286,8 +288,8 @@ public class LeaderboardController extends AbstractViewController<Node> {
     return new StringConverter<>() {
       @Override
       public String toString(Division division) {
-        return division.getMajorDivisionName();
-        //return i18n.get(division.getI18nKey());
+        return division.getMajorDivisionName().toUpperCase();
+        //return i18n.get(division.getMajorDivisionName().getI18nKey()).toUpperCase();
       }
 
       @Override
@@ -306,6 +308,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
           .forEach(division -> {
             SubDivisionButtonController controller = uiService.loadFxml("theme/leaderboard/subDivisionButton.fxml");
             controller.setDivision(division);
+            //controller.setButtonText(i18n.get(division.getSubDivisionName().getI18nKey()).toUpperCase());
             controller.setButtonText(division.getSubDivisionName());
             if (division.getSubDivisionIndex() == 1) {
               controller.setButtonSelected(true);
