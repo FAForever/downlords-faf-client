@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -67,7 +68,12 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
   @Override
   public CompletableFuture<LeaderboardEntry> getLeagueEntryForPlayer(int playerId) {
-    return fafService.getLeagueEntryForPlayer(playerId);
+    LeaderboardEntry entry = new LeaderboardEntry();
+    entry.setSubDivisionIndex(4);
+    entry.setMajorDivisionIndex(2);
+    entry.setScore(8);
+    return CompletableFuture.completedFuture(entry);
+    //return fafService.getLeagueEntryForPlayer(playerId);
   }
 
   @Override
@@ -84,7 +90,19 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
   @Override
   public CompletableFuture<List<Division>> getDivisions() {
-    return fafService.getDivisions();
+    String[] subnames = {"V", "IV", "III", "II", "I"};
+    String[] majornames = {"Bronze", "Silver", "Gold", "Diamond", "Master"};
+    List<Division> divisions = new LinkedList<Division>();
+    for (int k=1; k<6; k++) {
+      for (int i=1; i<6; i++) {
+        Division div = new Division(1, k, i, majornames[k-1], subnames[i-1], 10);
+        divisions.add(div);
+      }
+    }
+    Division div2 = new Division(1, 6, 1, "Supreme", "", 10);
+    divisions.add(div2);
+    return CompletableFuture.completedFuture(divisions);
+    //return fafService.getDivisions();
   }
 
   @Override
