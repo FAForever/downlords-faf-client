@@ -7,6 +7,10 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.MainController;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
@@ -20,6 +24,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.Banner.Mode;
@@ -41,6 +46,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 import static com.github.nocatch.NoCatch.noCatch;
+import static java.util.Arrays.asList;
 
 @Configuration
 @ComponentScan
@@ -107,7 +113,7 @@ public class FafClientApplication extends Application {
         .withSceneFactory(parent -> applicationContext.getBean(UiService.class).createScene(parent))
         .apply();
 
-    fxStage.getStage().setOnHiding(this::closeMainWindow);
+    fxStage.getStage().setOnCloseRequest(this::closeMainWindow);
 
     showMainWindow(fxStage);
 
@@ -133,11 +139,19 @@ public class FafClientApplication extends Application {
   private void closeMainWindow(WindowEvent event) {
     if (applicationContext.getBean(GameService.class).isGameRunning()) {
       I18n i18n = applicationContext.getBean(I18n.class);
-      Alert alert = new Alert(AlertType.WARNING, i18n.get("exitWarning.message"), ButtonType.YES, ButtonType.NO);
-      Optional<ButtonType> buttonType = alert.showAndWait();
-      if (!buttonType.isPresent() || (buttonType.get() == ButtonType.NO)) {
-        event.consume();
-      }
+      NotificationService notificationService = applicationContext.getBean(NotificationService.class);
+      notificationService.addNotification(new ImmediateNotification(i18n.get("exitWarning.title"),
+          i18n.get("exitWarning.message"),
+          Severity.WARN,
+          asList(
+              new Action(i18n.get("yes"), ev -> {
+                Window window = (Window) event.getSource();
+                window.hide();
+              }),
+              new Action(i18n.get("no"), ev -> {
+              })
+          )));
+      event.consume();
     }
   }
 
