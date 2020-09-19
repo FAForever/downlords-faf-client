@@ -133,7 +133,11 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
 
             logger.debug("Copying file '{}' to '{}'", source, destination);
             noCatch(() -> createDirectories(destination.getParent()));
-            noCatch(() -> copy(source, destination, REPLACE_EXISTING));
+            noCatch(() -> {
+              if (!Files.exists(destination)) {
+                copy(source, destination, REPLACE_EXISTING);
+              }
+            });
 
             if (org.bridj.Platform.isWindows()) {
               noCatch(() -> setAttribute(destination, "dos:readonly", false));

@@ -359,7 +359,7 @@ public class ModService implements InitializingBean, DisposableBean {
     Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
     Map<String, Boolean> mods = new HashMap<>();
 
-    String preferencesContent = new String(Files.readAllBytes(preferencesFile), US_ASCII);
+    String preferencesContent = Files.readString(preferencesFile, US_ASCII);
     Matcher matcher = ACTIVE_MODS_PATTERN.matcher(preferencesContent);
     if (matcher.find()) {
       Matcher activeModMatcher = ACTIVE_MOD_PATTERN.matcher(matcher.group(0));
