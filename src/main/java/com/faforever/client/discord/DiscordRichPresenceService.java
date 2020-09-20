@@ -37,7 +37,7 @@ public class DiscordRichPresenceService implements DisposableBean {
   private final Timer timer;
 
 
-  public DiscordRichPresenceService(PlayerService playerService, ClientDiscordEventHandler discordEventHandler,
+  public DiscordRichPresenceService(PlayerService playerService, DiscordEventHandler discordEventHandler,
                                     ClientProperties clientProperties, PreferencesService preferencesService) {
     this.playerService = playerService;
     this.clientProperties = clientProperties;
