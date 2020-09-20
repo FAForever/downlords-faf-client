@@ -103,6 +103,12 @@ public class PreferencesService implements InitializingBean {
         .toString());
     // duplicated, see getFafLogDirectory; make getFafLogDirectory or log dir static?
 
+    System.setProperty("LOG_FILE", PreferencesService.FAF_DATA_DIRECTORY
+        .resolve("logs")
+        .resolve("downlords-faf-client.log")
+        .toString());
+//     duplicated, see getFafLogDirectory; make getFafLogDirectory or log dir static?
+
     System.setProperty("ICE_ADVANCED_LOG", PreferencesService.FAF_DATA_DIRECTORY
         .resolve("logs/iceAdapterLogs")
         .resolve("advanced-ice-adapter.log")
