@@ -10,7 +10,7 @@
    <children>
       <Label fx:id="left" styleClass="left-label">
          <tooltip>
-            <Tooltip contentDisplay="GRAPHIC_ONLY" showDelay=".5s" hideDelay="2s">
+            <Tooltip contentDisplay="GRAPHIC_ONLY" showDelay=".5s" hideDelay="2s" showDuration="30s">
                <graphic>
                   <WebView fx:id="webViewToolTip" prefHeight="250" prefWidth="300"/>
                </graphic>
