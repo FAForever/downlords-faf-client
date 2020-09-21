@@ -199,6 +199,14 @@ public class LeaderboardController extends AbstractViewController<Node> {
                 //i18n.get(division.getMajorDivisionName().getI18nKey()).toUpperCase(),
                 //i18n.get(division.getSubDivisionName().getI18nKey()).toUpperCase()));
             scoreArc.setLength(-360.0 * leaderboardEntry.getScore() / division.getHighestScore());
+            majorDivisionPicker.getItems().stream()
+                .filter(item -> item.getMajorDivisionIndex() == division.getMajorDivisionIndex())
+                .findFirst().ifPresent(item -> majorDivisionPicker.getSelectionModel().select(item));
+            subDivisionTabs.getTabs().stream()
+                .filter(tab -> tab.getUserData().equals(division.getSubDivisionIndex()))
+                .findFirst().ifPresent(tab -> {
+              subDivisionTabs.getSelectionModel().select(tab);
+              });
           }
         });
       });
@@ -298,18 +306,18 @@ public class LeaderboardController extends AbstractViewController<Node> {
 
   public void onMajorDivisionChanged(ActionEvent actionEvent) {
     subDivisionTabs.getTabs().clear();
-    leaderboardService.getDivisions().thenAccept(divisions -> Platform.runLater(() -> {
+    leaderboardService.getDivisions().thenAccept(divisions ->
       divisions.stream()
           .filter(division -> division.getMajorDivisionIndex() == majorDivisionPicker.getValue().getMajorDivisionIndex())
           .forEach(division -> {
             SubDivisionTabController controller = uiService.loadFxml("theme/leaderboard/subDivisionTab.fxml");
-            controller.setDivision(division);
+            controller.getTab().setUserData(division.getSubDivisionIndex());
             //controller.setButtonText(i18n.get(division.getSubDivisionName().getI18nKey()).toUpperCase());
             controller.setTabText(division.getSubDivisionName());
             subDivisionTabs.getTabs().add(controller.getTab());
             subDivisionTabs.setTabMinWidth((subDivisionTabs.getWidth() / subDivisionTabs.getTabs().size()) - 100.0);
             subDivisionTabs.getSelectionModel().selectLast();
-          });
+
     }));
 
   }

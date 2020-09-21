@@ -12,9 +12,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -43,9 +41,6 @@ public class SubDivisionTabController implements Controller<Node> {
   public TableColumn<LeaderboardEntry, Number> gamesPlayedColumn;
   public TableColumn<LeaderboardEntry, Number> scoreColumn;
   public TableView<LeaderboardEntry> ratingTable;
-  @Getter
-  @Setter
-  private Division division;
 
   @Override
   public Node getRoot() {
