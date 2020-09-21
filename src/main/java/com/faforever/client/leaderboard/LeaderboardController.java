@@ -33,6 +33,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Arc;
 import javafx.scene.text.Text;
 import javafx.util.StringConverter;
@@ -70,7 +71,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public TextField searchTextField;
   public Pane connectionProgressPane;
   public Pane contentPane;
-  public BarChart ratingDistributionChart;
+  public BarChart<String, Integer> ratingDistributionChart;
   public Label playerDivisionNameLabel;
   public Label playerScoreLabel;
   public Label seasonLabel;
@@ -78,7 +79,6 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public Arc scoreArc;
   public TabPane subDivisionTabs;
   private KnownFeaturedMod ratingType;
-  private Text youLabel;
   private InvalidationListener playerLeagueScoreListener;
 
   @Override
@@ -89,8 +89,6 @@ public class LeaderboardController extends AbstractViewController<Node> {
     connectionProgressPane.managedProperty().bind(connectionProgressPane.visibleProperty());
     connectionProgressPane.visibleProperty().bind(contentPane.visibleProperty().not());
 
-    youLabel = new Text("You");
-    youLabel.setId("1v1-you-text");
     majorDivisionPicker.setConverter(divisionStringConverter());
 
     leaderboardService.getDivisions().thenAccept(divisions -> Platform.runLater(() -> {
@@ -170,64 +168,41 @@ public class LeaderboardController extends AbstractViewController<Node> {
               });
           }
         });
+        plotDivisionDistributions(divisions, leaderboardEntry);
       });
     })).exceptionally(throwable -> {
       // Debug instead of warn, since it's fairly common that players don't have a leaderboard entry which causes a 404
       logger.debug("Leaderboard entry could not be read for current player: " + player.getUsername(), throwable);
       return null;
     });
-
-    leaderboardService.getLadder1v1Stats()
-        .thenAccept(ranked1v1Stats -> {
-          ranked1v1Stats.sort(Comparator.comparingInt(RatingStat::getRating));
-          plotRatingDistributions(ranked1v1Stats, player);
-        })
-        .exceptionally(throwable -> {
-          logger.warn("Could not plot rating distribution", throwable);
-          return null;
-        });
   }
 
-  private void plotRatingDistributions(List<RatingStat> ratingStats, Player player) {
-    XYChart.Series<String, Integer> series = new XYChart.Series<>();
-    series.setName(i18n.get("ranked1v1.players", LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN));
-    int currentPlayerRating = RatingUtil.roundRatingToNextLowest100(RatingUtil.getLeaderboardRating(player));
-
-    series.getData().addAll(ratingStats.stream()
-        .sorted(Comparator.comparingInt(RatingStat::getRating))
-        .map(item -> {
-          int rating = item.getRating();
-          XYChart.Data<String, Integer> data = new XYChart.Data<>(i18n.number(rating), item.getCountWithEnoughGamesPlayed());
-          if (rating == currentPlayerRating) {
-            data.nodeProperty().addListener((observable, oldValue, newValue) -> {
-              newValue.pseudoClassStateChanged(NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS, true);
-              addNodeOnTopOfBar(data, youLabel);
-            });
-          }
-          return data;
-        })
-        .collect(Collectors.toList()));
-
-    Platform.runLater(() -> ratingDistributionChart.getData().setAll(series));
+  private void plotDivisionDistributions(List<Division> divisions, LeaderboardEntry leaderboardEntry) {
+    divisions.stream().filter(division -> division.getMajorDivisionIndex() == 1).forEach(firstTierSubDivision -> {
+      XYChart.Series<String, Integer> series = new XYChart.Series<>();
+      series.setName(firstTierSubDivision.getSubDivisionName());
+      series.getData().addAll(
+          divisions.stream().filter(division -> division.getSubDivisionIndex() == firstTierSubDivision.getSubDivisionIndex()).map(division -> {
+            XYChart.Data<String, Integer> data = new XYChart.Data<>(division.getMajorDivisionName(), 100);
+            Text label = new Text();
+            label.setText(division.getSubDivisionName());
+            label.setFill(Color.WHITE);
+            if (division.getMajorDivisionIndex() == leaderboardEntry.getMajorDivisionIndex()
+                && division.getSubDivisionIndex() == leaderboardEntry.getSubDivisionIndex()) {
+              data.nodeProperty().addListener((observable, oldValue, newValue) -> {
+                newValue.pseudoClassStateChanged(NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS, true);
+                addNodeOnTopOfBar(data, label);
+              });
+            } else {
+              data.nodeProperty().addListener((observable, oldValue, newValue) -> {
+                addNodeOnTopOfBar(data, label);
+              });
+            }
+            return data;
+          }).collect(Collectors.toList()));
+      Platform.runLater(() -> ratingDistributionChart.getData().add(series));
+    });
   }
-
-  private void plotDivisionDistributions(List<Division> divisions, Player player) {
-    XYChart.Series<String, Integer> series = new XYChart.Series<>();
-    series.setName("Players");
-
-  }
-
-//  private void plotDivisionDistributions(List<Division> divisions, Player player) {
-//   // List<XYChart.Series> serieses = new List<XYChart.Series>();
-//    for (Division division : divisions) {
-//      if (division.getMajorDivisionIndex() == 1) {
-//        XYChart.Series<String, Integer> series = new XYChart.Series<>();
-//        series.setName(division.getSubDivisionName());
-//      }
-//      int playerCount = leaderboardService.getDivisionStats(division).thenAccept(divisionStats -> divisionStats.stream().)
-//
-//    }
-//  }
 
   private void addNodeOnTopOfBar(XYChart.Data<String, Integer> data, Node nodeToAdd) {
     final Node node = data.getNode();

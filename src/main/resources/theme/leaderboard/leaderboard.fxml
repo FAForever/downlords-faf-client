@@ -76,12 +76,13 @@
                      <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                    </rowConstraints>
                    <children>
-                     <BarChart fx:id="ratingDistributionChart" categoryGap="4.0" prefHeight="300.0" prefWidth="878.0" title="Player Distribution">
+                     <BarChart fx:id="ratingDistributionChart" categoryGap="4.0" prefHeight="300.0" prefWidth="878.0"
+                               title="Player Distribution" legendVisible="false" styleClass="leaderboardChart" >
                        <xAxis>
                          <CategoryAxis fx:id="ratingDistributionXAxis" animated="false" label="Leagues" side="BOTTOM" tickLabelGap="0.0" />
                        </xAxis>
                        <yAxis>
-                         <NumberAxis fx:id="ratingDistributionYAxis" side="LEFT" />
+                         <NumberAxis fx:id="ratingDistributionYAxis" side="LEFT" label="Players"/>
                        </yAxis>
                      </BarChart>
                    </children>

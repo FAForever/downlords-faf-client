@@ -694,9 +694,26 @@
 
 .axis {
   -fx-tick-label-font-size: 1em;
+  -fx-font-size: 1.2em;
 }
 
 .default-color0.chart-bar:highlighted-bar {
+  -fx-bar-fill: HIGHLIGHT_COLOR;
+}
+
+.default-color1.chart-bar:highlighted-bar {
+  -fx-bar-fill: HIGHLIGHT_COLOR;
+}
+
+.default-color2.chart-bar:highlighted-bar {
+  -fx-bar-fill: HIGHLIGHT_COLOR;
+}
+
+.default-color3.chart-bar:highlighted-bar {
+  -fx-bar-fill: HIGHLIGHT_COLOR;
+}
+
+.default-color4.chart-bar:highlighted-bar {
   -fx-bar-fill: HIGHLIGHT_COLOR;
 }
 
@@ -787,6 +804,13 @@
   -fx-cell-size: 1.6em;
 }
 
+.leaderboardChart {
+  CHART_COLOR_1: #2B71D9;
+  CHART_COLOR_2: #2B71D9;
+  CHART_COLOR_3: #2B71D9;
+  CHART_COLOR_4: #2B71D9;
+  CHART_COLOR_5: #2B71D9;
+}
 
 /***************** Match maker *****************/
 
