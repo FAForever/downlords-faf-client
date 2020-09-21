@@ -13,37 +13,37 @@
    <children>
       <HBox fx:id="contentPane" spacing="20.0">
         <children>
-          <VBox spacing="20.0" VBox.vgrow="ALWAYS" prefWidth="600">
+          <VBox prefWidth="600">
             <children>
-                <HBox alignment="CENTER_LEFT" spacing="10.0">
-                <children>
-                    <Label fx:id="seasonLabel" text="%leaderboard.season" styleClass="season"/>
-                    <Pane HBox.hgrow="ALWAYS" />
-                    <HBox alignment="CENTER_LEFT" spacing="10.0">
-                        <Label contentDisplay="RIGHT" graphicTextGap="10.0" maxWidth="1.7976931348623157E308">
-                            <graphic>
-                                <Region styleClass="icon,search-icon" />
-                            </graphic>
-                        </Label>
-                        <TextField fx:id="searchTextField" maxWidth="1.7976931348623157E308" minWidth="120.0" prefWidth="120.0" promptText="%leaderboard.searchPrompt" styleClass="search" />
-                    </HBox>
-                 </children>
+                <Label fx:id="seasonLabel" text="%leaderboard.season" styleClass="season">
+                    <padding>
+                        <Insets bottom="20.0" />
+                    </padding>
+                </Label>
+                <HBox fx:id="box" spacing="10.0">
+                    <children>
+                        <ComboBox fx:id="majorDivisionPicker" styleClass="division-selector" onAction="#onMajorDivisionChanged"
+                                  promptText="Tiers"/>
+                        <Pane HBox.hgrow="ALWAYS" />
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                            <Label contentDisplay="RIGHT" graphicTextGap="10.0" maxWidth="1.7976931348623157E308">
+                                <graphic>
+                                    <Region styleClass="icon,search-icon" />
+                                </graphic>
+                            </Label>
+                            <TextField fx:id="searchTextField" maxWidth="1.7976931348623157E308" minWidth="120.0" prefWidth="120.0" promptText="%leaderboard.searchPrompt" styleClass="search" />
+                        </HBox>
+                    </children>
                 </HBox>
-                <AnchorPane VBox.vgrow="ALWAYS">
-                    <TabPane fx:id="subDivisionTabs" tabClosingPolicy="UNAVAILABLE" styleClass="subDivisionTabs"
-                             AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="11.0" AnchorPane.bottomAnchor="0.0"
-                             maxWidth="600.0">
-                    </TabPane>
-                    <ComboBox fx:id="majorDivisionPicker" styleClass="division-selector" onAction="#onMajorDivisionChanged"
-                              AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" promptText="Tiers"/>
-                </AnchorPane>
-
-                </children>
-                <padding>
-                  <Insets top="10.0" />
-                </padding>
+                <TabPane fx:id="subDivisionTabs" tabClosingPolicy="UNAVAILABLE" styleClass="subDivisionTabs"
+                         maxWidth="600.0" prefHeight="10000" >
+                </TabPane>
+            </children>
+            <padding>
+              <Insets top="10.0" />
+            </padding>
           </VBox>
-            <VBox alignment="BOTTOM_LEFT" spacing="40.0">
+            <VBox alignment="CENTER_LEFT" spacing="40.0">
                <children>
                   <HBox>
                      <children>
@@ -68,28 +68,22 @@
                       <Insets left="80.0" right="80.0" top="10.0" />
                     </padding>
                   </HBox>
-                 <GridPane maxWidth="898" styleClass="player-card">
-                   <columnConstraints>
-                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                   </columnConstraints>
-                   <rowConstraints>
-                     <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-                   </rowConstraints>
-                   <children>
-                     <BarChart fx:id="ratingDistributionChart" categoryGap="4.0" prefHeight="300.0" prefWidth="878.0"
-                               title="Player Distribution" legendVisible="false" styleClass="leaderboardChart" >
-                       <xAxis>
-                         <CategoryAxis fx:id="ratingDistributionXAxis" animated="false" label="%leaderboard.divisions" side="BOTTOM" tickLabelGap="0.0" />
-                       </xAxis>
-                       <yAxis>
-                         <NumberAxis fx:id="ratingDistributionYAxis" side="LEFT" label="%coop.leaderboard.players"/>
-                       </yAxis>
-                     </BarChart>
-                   </children>
-                   <padding>
-                     <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-                   </padding>
-                 </GridPane>
+                   <AnchorPane maxWidth="898" styleClass="player-card">
+                       <BarChart fx:id="ratingDistributionChart" categoryGap="4.0" prefHeight="300.0" prefWidth="878.0"
+                                 title="Player Distribution" legendVisible="false" styleClass="leaderboardChart"
+                                 AnchorPane.bottomAnchor="0.0" AnchorPane.topAnchor="0.0"
+                                 AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                           <xAxis>
+                               <CategoryAxis animated="false" label="%leaderboard.divisions" side="BOTTOM" tickLabelGap="0.0" />
+                           </xAxis>
+                           <yAxis>
+                               <NumberAxis side="LEFT" label="%coop.leaderboard.players"/>
+                           </yAxis>
+                       </BarChart>
+                       <padding>
+                           <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                       </padding>
+                   </AnchorPane>
                </children>
             </VBox>
         </children>

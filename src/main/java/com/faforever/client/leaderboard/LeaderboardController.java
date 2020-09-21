@@ -2,7 +2,6 @@ package com.faforever.client.leaderboard;
 
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.StringCell;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
@@ -13,8 +12,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
-import com.faforever.client.util.RatingUtil;
-import com.faforever.client.util.Validator;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -28,8 +25,6 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -46,11 +41,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.lang.invoke.MethodHandles;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static javafx.collections.FXCollections.observableList;
 
 
 @Component
@@ -105,6 +97,9 @@ public class LeaderboardController extends AbstractViewController<Node> {
       logger.warn("Could not read divisions", throwable);
       return null;
     });
+
+    //subDivisionTabs.tabMinWidthProperty().bind(box.widthProperty().divide(subDivisionTabs.getTabs().size()));
+    //subDivisionTabs.tabMaxWidthProperty().bind(subDivisionTabs.tabMinWidthProperty());
 
     JavaFxUtil.addListener(playerService.currentPlayerProperty(), (observable, oldValue, newValue) -> Platform.runLater(() -> setCurrentPlayer(newValue)));
     playerService.getCurrentPlayer().ifPresent(this::setCurrentPlayer);
@@ -256,10 +251,14 @@ public class LeaderboardController extends AbstractViewController<Node> {
             //controller.setButtonText(i18n.get(division.getSubDivisionName().getI18nKey()).toUpperCase());
             controller.setTabText(division.getSubDivisionName());
             subDivisionTabs.getTabs().add(controller.getTab());
-            subDivisionTabs.setTabMinWidth((subDivisionTabs.getWidth() / subDivisionTabs.getTabs().size()) - 100.0);
             subDivisionTabs.getSelectionModel().selectLast();
-
-    }));
-
+          }));
+    Platform.runLater(() -> subDivisionTabs.setTabMinWidth(subDivisionTabs.getWidth() / subDivisionTabs.getTabs().size()));
+    Platform.runLater(() -> subDivisionTabs.setTabMaxWidth(subDivisionTabs.getWidth() / subDivisionTabs.getTabs().size()));
+    logger.info(String.valueOf(subDivisionTabs.getWidth()));
+    logger.info(String.valueOf(subDivisionTabs.getTabs().size()));
+    logger.info(String.valueOf(subDivisionTabs.getWidth() / subDivisionTabs.getTabs().size()));
+    subDivisionTabs.getTabs().stream().findFirst().ifPresent(tab -> logger.info(String.valueOf(tab.getTabPane().getTabMinWidth())));
+    logger.info(String.valueOf(subDivisionTabs.getTabMinWidth()));
   }
 }

@@ -768,6 +768,7 @@
   -fx-border-width: 0;
   -fx-font-size: 20px;
   -fx-background-color: #1e1e1e;
+  -fx-background-radius: 10;
   -fx-font-family: 'Source Sans Pro Semibold';
 }
 
@@ -776,13 +777,26 @@
   -fx-font-size: 14px;
 }
 
+.subDivisionTabs .tab-down-button {
+-fx-padding: 0;
+}
+
+.subDivisionTabs .tab-down-button .arrow {
+-fx-padding: 0;
+}
+
 .subDivisionTabs > .tab-header-area {
-  -fx-background-color: #1e1e1e;
+  -fx-background-color: transparent;
   -fx-background: #FFFFFF12;
-  -fx-padding: 0 0 0 200;
+  -fx-padding: 0 0 0 10;
   -fx-border-width: 0 0 2 0;
   -fx-border-color: -fx-accent;
   -fx-font-size: 18px;
+}
+
+.subDivisionTabs > .tab-header-area > .headers-region > .tab {
+  -fx-background-insets: 0;
+  -fx-border-insets: 0;
 }
 
 .table-view .filler, .table-view .column-header {
