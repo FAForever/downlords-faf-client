@@ -1,3 +1,13 @@
+@font-face {
+    src: url("../font/SourceSansPro-Light.ttf"),
+}
+@font-face {
+    src: url("../font/SourceSansPro-Regular.ttf"),
+}
+@font-face {
+    src: url("../font/SourceSansPro-SemiBold.ttf"),
+}
+
 .secondary {
   -fx-text-fill: derive(-fx-text-background-color, -30%);
 }
@@ -719,30 +729,34 @@
 }
 
 .heading {
-  -fx-font-size: 24px;
+  -fx-font-size: 28px;
   -fx-padding: -9 0;
   -fx-text-fill: #5f5f5f;
-  -fx-font-weight: 700;
+  -fx-font-family: 'Source Sans Pro Semibold';
 }
 
 .search {
   -fx-font-size: 12px;
   -fx-text-fill: #ffffff;
+  -fx-font-family: 'Source Sans Pro';
 }
 
 .season {
   -fx-text-fill: #e0e0e0;
+  -fx-font-family: 'Source Sans Pro Semibold';
+  -fx-font-size: 30px;
 }
 
 .division-selector {
   -fx-border-width: 0;
   -fx-font-size: 20px;
   -fx-background-color: #1e1e1e;
+  -fx-font-family: 'Source Sans Pro Semibold';
 }
 
-.division-selector:showing {
-  -fx-font-size: 20px;
-  -fx-background-color: #1e1e1e;
+.subDivisionTabs {
+  -fx-font-family: 'Source Sans Pro Semibold';
+  -fx-font-size: 14px;
 }
 
 .subDivisionTabs > .tab-header-area {
@@ -751,7 +765,29 @@
   -fx-padding: 0 0 0 200;
   -fx-border-width: 0 0 2 0;
   -fx-border-color: -fx-accent;
+  -fx-font-size: 18px;
 }
+
+.table-view .filler, .table-view .column-header {
+  -fx-font-size: 16px;
+  -fx-size: 2.2em;
+}
+
+
+.table-row-cell {
+  -fx-font-family: 'Source Sans Pro';
+  -fx-font-size: 16px;
+}
+
+.table-cell {
+      -fx-padding: 0 0 0 15;
+}
+
+.table-row-cell, .tree-table-row-cell {
+  -fx-cell-size: 1.6em;
+}
+
+
 /***************** Match maker *****************/
 
 .player-card {
@@ -760,6 +796,8 @@
   -fx-background-radius: 9;
   -fx-border-radius: 9;
   -fx-border-width: 1;
+  -fx-font-family: 'Source Sans Pro';
+  -fx-font-size: 14px;
 }
 
 /***************** Faction buttons *****************/

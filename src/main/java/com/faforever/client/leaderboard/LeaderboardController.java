@@ -156,7 +156,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
           if (division.getMajorDivisionIndex() == leaderboardEntry.getMajorDivisionIndex()
               && division.getSubDivisionIndex() == leaderboardEntry.getSubDivisionIndex()) {
             playerDivisionNameLabel.setText(i18n.get("leaderboard.divisionName",
-                division.getMajorDivisionName(), division.getSubDivisionName()));
+                division.getMajorDivisionName().toUpperCase(), division.getSubDivisionName().toUpperCase()));
                 //i18n.get(division.getMajorDivisionName().getI18nKey()).toUpperCase(),
                 //i18n.get(division.getSubDivisionName().getI18nKey()).toUpperCase()));
             scoreArc.setLength(-360.0 * leaderboardEntry.getScore() / division.getHighestScore());
