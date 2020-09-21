@@ -27,12 +27,10 @@ import javafx.scene.chart.BarChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.ToggleGroup;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Arc;
@@ -83,8 +81,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public Label seasonLabel;
   public ComboBox<Division> majorDivisionPicker;
   public Arc scoreArc;
-  public HBox subdivisionPane;
-  public ToggleGroup subDivisionToggleGroup;
+  public TabPane subDivisionTabs;
   private KnownFeaturedMod ratingType;
   private Text youLabel;
   private InvalidationListener playerLeagueScoreListener;
@@ -300,24 +297,20 @@ public class LeaderboardController extends AbstractViewController<Node> {
   }
 
   public void onMajorDivisionChanged(ActionEvent actionEvent) {
-    subdivisionPane.getChildren().clear();
-    boolean active = false;
+    subDivisionTabs.getTabs().clear();
     leaderboardService.getDivisions().thenAccept(divisions -> Platform.runLater(() -> {
       divisions.stream()
           .filter(division -> division.getMajorDivisionIndex() == majorDivisionPicker.getValue().getMajorDivisionIndex())
           .forEach(division -> {
-            SubDivisionButtonController controller = uiService.loadFxml("theme/leaderboard/subDivisionButton.fxml");
+            SubDivisionTabController controller = uiService.loadFxml("theme/leaderboard/subDivisionTab.fxml");
             controller.setDivision(division);
             //controller.setButtonText(i18n.get(division.getSubDivisionName().getI18nKey()).toUpperCase());
-            controller.setButtonText(division.getSubDivisionName());
-            if (division.getSubDivisionIndex() == 1) {
-              controller.setButtonSelected(true);
-            }
-            //controller.setToggleGroup(subDivisionToggleGroup);
-            logger.info("getting there");
-            subdivisionPane.getChildren().add(controller.getRoot());
-            //controller.subDivisionToggleButton.setToggleGroup(subDivisionToggleGroup);
+            controller.setTabText(division.getSubDivisionName());
+            subDivisionTabs.getTabs().add(controller.getTab());
+            subDivisionTabs.setTabMinWidth((subDivisionTabs.getWidth() / subDivisionTabs.getTabs().size()) - 100.0);
+            subDivisionTabs.getSelectionModel().selectLast();
           });
     }));
+
   }
 }

@@ -29,29 +29,27 @@
                     </HBox>
                  </children>
                 </HBox>
-                <HBox alignment="BOTTOM_LEFT" spacing="10.0" styleClass="division-box">
-                    <ComboBox fx:id="majorDivisionPicker" promptText="GOLD" styleClass="division-selector" onAction="#onMajorDivisionChanged">
-                        <items>
-                        </items>
-                    </ComboBox>
-                    <Pane HBox.hgrow="ALWAYS" />
-                    <HBox fx:id="subdivisionPane" alignment="BOTTOM_RIGHT" >
-                        <ToggleButton mnemonicParsing="false" styleClass="main-navigation-button" prefWidth="70" text="I" toggleGroup="$subDivisionToggleGroup"/>
-                        <ToggleButton mnemonicParsing="false" styleClass="main-navigation-button" prefWidth="70" text="II"/>
-                        <ToggleButton mnemonicParsing="false" styleClass="main-navigation-button" prefWidth="70" text="III"/>
-                        <ToggleButton mnemonicParsing="false" styleClass="main-navigation-button" prefWidth="70" text="IV" selected="true"/>
-                        <ToggleButton mnemonicParsing="false" styleClass="main-navigation-button" prefWidth="70" text="V"/>
-                    </HBox>
-                </HBox>
-                <TableView fx:id="ratingTable" minWidth="350.0" VBox.vgrow="ALWAYS">
-                <columns>
-                  <TableColumn fx:id="rankColumn" prefWidth="60" text="RANK" />
-                  <TableColumn fx:id="nameColumn" prefWidth="${ratingTable.width - 220}" text="NAME" />
-                  <TableColumn fx:id="scoreColumn" prefWidth="80" text="SCORE" />
-                  <TableColumn fx:id="gamesPlayedColumn" prefWidth="80" text="GAMES" />
-                </columns>
+                <AnchorPane>
+                    <TabPane fx:id="subDivisionTabs" tabClosingPolicy="UNAVAILABLE" styleClass="subDivisionTabs"
+                             AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="11.0" maxWidth="600.0">
+                        <tabs>
+                            <Tab>
+                                <TableView fx:id="ratingTable" minWidth="350.0" VBox.vgrow="ALWAYS">
+                                    <columns>
+                                        <TableColumn fx:id="rankColumn" prefWidth="60" text="RANK" />
+                                        <TableColumn fx:id="nameColumn" prefWidth="${ratingTable.width - 220}" text="NAME" />
+                                        <TableColumn fx:id="scoreColumn" prefWidth="80" text="SCORE" />
+                                        <TableColumn fx:id="gamesPlayedColumn" prefWidth="80" text="GAMES" />
+                                    </columns>
 
-                </TableView>
+                                </TableView>
+                            </Tab>
+                        </tabs>
+                    </TabPane>
+                    <ComboBox fx:id="majorDivisionPicker" styleClass="division-selector" onAction="#onMajorDivisionChanged"
+                              AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" promptText="a"/>
+                </AnchorPane>
+
                 </children>
                 <padding>
                   <Insets top="10.0" />

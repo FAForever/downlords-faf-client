@@ -734,11 +734,6 @@
   -fx-text-fill: #e0e0e0;
 }
 
-.division-box {
-  -fx-border-width: 0 0 2 0;
-  -fx-border-color: -fx-accent;
-}
-
 .division-selector {
   -fx-border-width: 0;
   -fx-font-size: 20px;
@@ -748,6 +743,14 @@
 .division-selector:showing {
   -fx-font-size: 20px;
   -fx-background-color: #1e1e1e;
+}
+
+.subDivisionTabs > .tab-header-area {
+  -fx-background-color: #1e1e1e;
+  -fx-background: #FFFFFF12;
+  -fx-padding: 0 0 0 200;
+  -fx-border-width: 0 0 2 0;
+  -fx-border-color: -fx-accent;
 }
 /***************** Match maker *****************/
 
