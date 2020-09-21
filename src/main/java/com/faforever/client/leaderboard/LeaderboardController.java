@@ -74,6 +74,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public BarChart<String, Integer> ratingDistributionChart;
   public Label playerDivisionNameLabel;
   public Label playerScoreLabel;
+  public Label scoreLabel;
   public Label seasonLabel;
   public ComboBox<Division> majorDivisionPicker;
   public Arc scoreArc;
@@ -84,6 +85,10 @@ public class LeaderboardController extends AbstractViewController<Node> {
   @Override
   public void initialize() {
     super.initialize();
+
+    seasonLabel.setText(i18n.get("leaderboard.season").toUpperCase());
+    scoreLabel.setText(i18n.get("leaderboard.score").toUpperCase());
+    searchTextField.setPromptText(i18n.get("leaderboard.searchPrompt").toUpperCase());
 
     contentPane.managedProperty().bind(contentPane.visibleProperty());
     connectionProgressPane.managedProperty().bind(connectionProgressPane.visibleProperty());

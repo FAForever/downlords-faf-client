@@ -17,7 +17,7 @@
             <children>
                 <HBox alignment="CENTER_LEFT" spacing="10.0">
                 <children>
-                    <Label fx:id="seasonLabel" text="SEASON 1" styleClass="season"/>
+                    <Label fx:id="seasonLabel" text="%leaderboard.season" styleClass="season"/>
                     <Pane HBox.hgrow="ALWAYS" />
                     <HBox alignment="CENTER_LEFT" spacing="10.0">
                         <Label contentDisplay="RIGHT" graphicTextGap="10.0" maxWidth="1.7976931348623157E308">
@@ -25,7 +25,7 @@
                                 <Region styleClass="icon,search-icon" />
                             </graphic>
                         </Label>
-                        <TextField fx:id="searchTextField" maxWidth="1.7976931348623157E308" minWidth="120.0" prefWidth="120.0" promptText="SEARCH PLAYER..." styleClass="search" />
+                        <TextField fx:id="searchTextField" maxWidth="1.7976931348623157E308" minWidth="120.0" prefWidth="120.0" promptText="%leaderboard.searchPrompt" styleClass="search" />
                     </HBox>
                  </children>
                 </HBox>
@@ -35,7 +35,7 @@
                              maxWidth="600.0">
                     </TabPane>
                     <ComboBox fx:id="majorDivisionPicker" styleClass="division-selector" onAction="#onMajorDivisionChanged"
-                              AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" promptText="a"/>
+                              AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" promptText="Tiers"/>
                 </AnchorPane>
 
                 </children>
@@ -55,13 +55,13 @@
                            </Group>
                            <Label fx:id="playerScoreLabel" styleClass="score" text="6"/>
                          </StackPane>
-                         <Label styleClass="heading" text="SCORE" />
+                         <Label fx:id="scoreLabel" styleClass="heading" text="%leaderboard.score" />
                        </VBox>
                        <Pane minWidth="20.0" HBox.hgrow="ALWAYS" />
                        <VBox alignment="BOTTOM_CENTER" spacing="20.0">
                          <Label prefHeight="160" prefWidth="320" styleClass="map-preview" />
                          <ImageView fitHeight="0.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true" />
-                         <Label fx:id="playerDivisionNameLabel" styleClass="heading" text="SILVER II" />
+                         <Label fx:id="playerDivisionNameLabel" styleClass="heading" text="%leaderboard.divisionName" />
                        </VBox>
                      </children>
                     <padding>
@@ -79,10 +79,10 @@
                      <BarChart fx:id="ratingDistributionChart" categoryGap="4.0" prefHeight="300.0" prefWidth="878.0"
                                title="Player Distribution" legendVisible="false" styleClass="leaderboardChart" >
                        <xAxis>
-                         <CategoryAxis fx:id="ratingDistributionXAxis" animated="false" label="Leagues" side="BOTTOM" tickLabelGap="0.0" />
+                         <CategoryAxis fx:id="ratingDistributionXAxis" animated="false" label="%leaderboard.divisions" side="BOTTOM" tickLabelGap="0.0" />
                        </xAxis>
                        <yAxis>
-                         <NumberAxis fx:id="ratingDistributionYAxis" side="LEFT" label="Players"/>
+                         <NumberAxis fx:id="ratingDistributionYAxis" side="LEFT" label="%coop.leaderboard.players"/>
                        </yAxis>
                      </BarChart>
                    </children>
