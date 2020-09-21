@@ -161,5 +161,7 @@ public class ClientProperties {
     private String smallImageKey;
     private String bigImageKey;
     private String discordPrereleaseFeedbackChannelUrl;
+    /** URL to join the FAF Discord server. */
+    private String joinUrl;
   }
 }
