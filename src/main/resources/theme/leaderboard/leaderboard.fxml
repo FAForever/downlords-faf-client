@@ -32,19 +32,6 @@
                 <AnchorPane>
                     <TabPane fx:id="subDivisionTabs" tabClosingPolicy="UNAVAILABLE" styleClass="subDivisionTabs"
                              AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="11.0" maxWidth="600.0">
-                        <tabs>
-                            <Tab>
-                                <TableView fx:id="ratingTable" minWidth="350.0" VBox.vgrow="ALWAYS">
-                                    <columns>
-                                        <TableColumn fx:id="rankColumn" prefWidth="60" text="RANK" />
-                                        <TableColumn fx:id="nameColumn" prefWidth="${ratingTable.width - 220}" text="NAME" />
-                                        <TableColumn fx:id="scoreColumn" prefWidth="80" text="SCORE" />
-                                        <TableColumn fx:id="gamesPlayedColumn" prefWidth="80" text="GAMES" />
-                                    </columns>
-
-                                </TableView>
-                            </Tab>
-                        </tabs>
                     </TabPane>
                     <ComboBox fx:id="majorDivisionPicker" styleClass="division-selector" onAction="#onMajorDivisionChanged"
                               AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" promptText="a"/>

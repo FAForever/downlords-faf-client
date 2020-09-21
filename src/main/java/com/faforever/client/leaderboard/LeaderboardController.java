@@ -67,11 +67,6 @@ public class LeaderboardController extends AbstractViewController<Node> {
   private final PlayerService playerService;
   private final UiService uiService;
   public VBox leaderboardRoot;
-  public TableColumn<LeaderboardEntry, Number> rankColumn;
-  public TableColumn<LeaderboardEntry, String> nameColumn;
-  public TableColumn<LeaderboardEntry, Number> gamesPlayedColumn;
-  public TableColumn<LeaderboardEntry, Number> scoreColumn;
-  public TableView<LeaderboardEntry> ratingTable;
   public TextField searchTextField;
   public Pane connectionProgressPane;
   public Pane contentPane;
@@ -89,17 +84,6 @@ public class LeaderboardController extends AbstractViewController<Node> {
   @Override
   public void initialize() {
     super.initialize();
-    rankColumn.setCellValueFactory(param -> param.getValue().rankProperty());
-    rankColumn.setCellFactory(param -> new StringCell<>(rank -> i18n.number(rank.intValue())));
-
-    nameColumn.setCellValueFactory(param -> param.getValue().usernameProperty());
-    nameColumn.setCellFactory(param -> new StringCell<>(name -> name));
-
-    gamesPlayedColumn.setCellValueFactory(param -> param.getValue().gamesPlayedProperty());
-    gamesPlayedColumn.setCellFactory(param -> new StringCell<>(count -> i18n.number(count.intValue())));
-
-    scoreColumn.setCellValueFactory(param -> param.getValue().ratingProperty());
-    scoreColumn.setCellFactory(param -> new StringCell<>(rating -> i18n.number(rating.intValue())));
 
     contentPane.managedProperty().bind(contentPane.visibleProperty());
     connectionProgressPane.managedProperty().bind(connectionProgressPane.visibleProperty());
@@ -123,31 +107,9 @@ public class LeaderboardController extends AbstractViewController<Node> {
     playerService.getCurrentPlayer().ifPresent(this::setCurrentPlayer);
 
     searchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      if (Validator.isInt(newValue)) {
-        ratingTable.scrollTo(Integer.parseInt(newValue) - 1);
-      } else {
-        LeaderboardEntry foundPlayer = null;
-        for (LeaderboardEntry leaderboardEntry : ratingTable.getItems()) {
-          if (leaderboardEntry.getUsername().toLowerCase().startsWith(newValue.toLowerCase())) {
-            foundPlayer = leaderboardEntry;
-            break;
-          }
-        }
-        if (foundPlayer == null) {
-          for (LeaderboardEntry leaderboardEntry : ratingTable.getItems()) {
-            if (leaderboardEntry.getUsername().toLowerCase().contains(newValue.toLowerCase())) {
-              foundPlayer = leaderboardEntry;
-              break;
-            }
-          }
-        }
-        if (foundPlayer != null) {
-          ratingTable.scrollTo(foundPlayer);
-          ratingTable.getSelectionModel().select(foundPlayer);
-        } else {
-          ratingTable.getSelectionModel().select(null);
-        }
-      }
+      // Todo; make this work
+      // Also make this work over all divisions
+      //displayedTab.findPlayer(newValue);
     });
   }
 
@@ -157,7 +119,6 @@ public class LeaderboardController extends AbstractViewController<Node> {
 
     contentPane.setVisible(false);
     leaderboardService.getEntries(ratingType).thenAccept(leaderboardEntryBeans -> {
-      ratingTable.setItems(observableList(leaderboardEntryBeans));
       contentPane.setVisible(true);
     }).exceptionally(throwable -> {
       contentPane.setVisible(false);

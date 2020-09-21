@@ -7,6 +7,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.util.Validator;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -75,6 +76,34 @@ public class SubDivisionTabController implements Controller<Node> {
 
   public Tab getTab() {
     return subDivisionTab;
+  }
+
+  public void findPlayer(String searchText) {
+    if (Validator.isInt(searchText)) {
+      ratingTable.scrollTo(Integer.parseInt(searchText) - 1);
+    } else {
+      LeaderboardEntry foundPlayer = null;
+      for (LeaderboardEntry leaderboardEntry : ratingTable.getItems()) {
+        if (leaderboardEntry.getUsername().toLowerCase().startsWith(searchText.toLowerCase())) {
+          foundPlayer = leaderboardEntry;
+          break;
+        }
+      }
+      if (foundPlayer == null) {
+        for (LeaderboardEntry leaderboardEntry : ratingTable.getItems()) {
+          if (leaderboardEntry.getUsername().toLowerCase().contains(searchText.toLowerCase())) {
+            foundPlayer = leaderboardEntry;
+            break;
+          }
+        }
+      }
+      if (foundPlayer != null) {
+        ratingTable.scrollTo(foundPlayer);
+        ratingTable.getSelectionModel().select(foundPlayer);
+      } else {
+        ratingTable.getSelectionModel().select(null);
+      }
+    }
   }
 
   public void setTabText(String text) {
