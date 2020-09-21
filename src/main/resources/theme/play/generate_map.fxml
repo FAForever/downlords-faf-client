@@ -39,7 +39,7 @@
                GridPane.columnSpan="2147483647"/>
         <Label text="%game.generateMap.generatedName" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
         <TextField fx:id="previousMapName" maxHeight="Infinity"
-                   promptText="nerxois_map_generator_(version)_(seed)_(options)" style="-fx-pref-width: 5em"
+                   promptText="neroxis_map_generator_(version)_(seed)_(options)" style="-fx-pref-width: 5em"
                    GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="1">
             <tooltip>
                 <Tooltip text="%game.generateMap.nameCaution"/>
@@ -104,13 +104,13 @@
         </HBox>
 
 
-        <Button fx:id="generateMapButton" alignment="CENTER_LEFT" contentDisplay="RIGHT" defaultButton="true"
+        <Button fx:id="generateMapButton" alignment="CENTER_RIGHT" contentDisplay="RIGHT" defaultButton="true"
                 mnemonicParsing="false" onAction="#onGenerateMapButtonClicked" styleClass="game-generate-map"
                 text="%game.generateMap" GridPane.columnIndex="0" GridPane.rowIndex="10">
         </Button>
 
         <!-- Cancel, Ok -->
-        <Button alignment="CENTER_RIGHT" mnemonicParsing="false" onAction="#onCloseButtonClicked"
+        <Button alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onCloseButtonClicked"
                 styleClass="more-button-padding" text="%cancel" GridPane.columnIndex="2" GridPane.halignment="RIGHT"
                 GridPane.rowIndex="10">
         </Button>
