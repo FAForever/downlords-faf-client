@@ -571,7 +571,6 @@ public class MainController implements Controller<Node> {
 
   @Subscribe
   public void onNavigateEvent(NavigateEvent navigateEvent) {
-
     NavigationItem item = navigateEvent.getItem();
 
     AbstractViewController<?> controller = getView(item);

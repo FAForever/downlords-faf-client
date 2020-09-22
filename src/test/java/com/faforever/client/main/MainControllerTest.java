@@ -38,7 +38,6 @@ import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
@@ -60,11 +59,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import static java.util.Collections.singletonList;
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.in;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -384,6 +379,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnJoinDiscordButtonClicked() {
     instance.onDiscordButtonClicked();
-    verify(applicationEventPublisher).publishEvent(instanceOf(JoinDiscordEvent.class));
+    verify(applicationEventPublisher).publishEvent(any(JoinDiscordEvent.class));
   }
 }
