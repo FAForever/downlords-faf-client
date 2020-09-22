@@ -312,7 +312,3 @@ dependencies {
 
   codacy("com.github.codacy:codacy-coverage-reporter:-SNAPSHOT")
 }
-
-task downloadWebViewPatch{
-
-}
