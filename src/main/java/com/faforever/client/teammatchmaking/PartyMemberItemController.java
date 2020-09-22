@@ -14,14 +14,12 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Strings;
 import com.jfoenix.controls.JFXButton;
-import javafx.beans.Observable;
 import javafx.beans.binding.BooleanBinding;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -57,7 +55,7 @@ public class PartyMemberItemController implements Controller<Node> {
   @FXML
   public Label usernameLabel;
   @FXML
-  public Label ratingLabel;
+  public Label leagueLabel;
   @FXML
   public Label gameCountLabel;
   @FXML
@@ -66,6 +64,7 @@ public class PartyMemberItemController implements Controller<Node> {
   public Label cybranLabel;
   public Label aeonLabel;
   public Label seraphimLabel;
+  public ImageView leagueImageView;
 
   private Player player;
   //TODO: this is a bit hacky
@@ -112,9 +111,9 @@ public class PartyMemberItemController implements Controller<Node> {
     countryImageView.imageProperty().bind(createObjectBinding(() -> countryFlagService.loadCountryFlag(
         StringUtils.isEmpty(player.getCountry()) ? "" : player.getCountry()).orElse(null), player.countryProperty()));
 
-//    leagueImageView.visibleProperty().bind(player.avatarUrlProperty().isNotNull().and(player.avatarUrlProperty().isNotEmpty()));
-//    leagueImageView.imageProperty().bind(createObjectBinding(() -> Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));
-    avatarImageView.setImage(avatarService.loadAvatar("https://content.faforever.com/faf/avatars/ICE_Test.png"));
+    avatarImageView.visibleProperty().bind(player.avatarUrlProperty().isNotNull().and(player.avatarUrlProperty().isNotEmpty()));
+    avatarImageView.imageProperty().bind(createObjectBinding(() -> Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));
+    leagueImageView.setImage(avatarService.loadAvatar("https://content.faforever.com/faf/avatars/ICE_Test.png"));
 
     clanLabel.visibleProperty().bind(player.clanProperty().isNotEmpty().and(player.clanProperty().isNotNull()));
     clanLabel.textProperty().bind(createStringBinding(() -> Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan()), player.clanProperty()));
@@ -122,11 +121,10 @@ public class PartyMemberItemController implements Controller<Node> {
     usernameLabel.textProperty().bind(player.usernameProperty());
 //    usernameLabel.setText("GGGGGGGGGGGGGGGG"); // TODO: REMOVE
 
-    ratingLabel.textProperty().bind(createStringBinding(
-        () -> ratingLabel.getStyleClass().contains("uppercase") ?
-            i18n.get("teammatchmaking.rating", RatingUtil.getRoundedGlobalRating(player)).toUpperCase() :
-            i18n.get("teammatchmaking.rating", RatingUtil.getRoundedGlobalRating(player)),
-        player.globalRatingMeanProperty(), player.globalRatingDeviationProperty()));
+    leagueLabel.textProperty().bind(createStringBinding(
+        () -> leagueLabel.getStyleClass().contains("uppercase") ?
+            i18n.get("leaderboard.divisionName", RatingUtil.getLeaderboardRating(player)).toUpperCase() :
+            i18n.get("leaderboard.divisionName", RatingUtil.getLeaderboardRating(player))));
     gameCountLabel.textProperty().bind(createStringBinding(
         () -> gameCountLabel.getStyleClass().contains("uppercase") ?
             i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase() :

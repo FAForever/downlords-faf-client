@@ -75,13 +75,12 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   @FXML
   public Label usernameLabel;
   @FXML
-  public Label teamRatingLabel;
-  @FXML
   public Label gameCountLabel;
-  public Label ladderRatingLabel;
+  public Label leagueLabel;
   public HBox queueBox;
   public FlowPane partyMemberPane;
   public VBox preparationArea;
+  public ImageView leagueImageView;
   private Player player;
 
   @Override
@@ -90,7 +89,9 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     initializeUppercaseText();
     countryImageView.imageProperty().bind(createObjectBinding(() -> countryFlagService.loadCountryFlag(
         StringUtils.isEmpty(player.getCountry()) ? "" : player.getCountry()).orElse(null), player.countryProperty()));
-    avatarImageView.setImage(avatarService.loadAvatar("https://content.faforever.com/faf/avatars/ICE_Test.png"));
+    avatarImageView.visibleProperty().bind(player.avatarUrlProperty().isNotNull().and(player.avatarUrlProperty().isNotEmpty()));
+    avatarImageView.imageProperty().bind(createObjectBinding(() -> Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));
+    leagueImageView.setImage(avatarService.loadAvatar("https://content.faforever.com/faf/avatars/ICE_Test.png"));
     clanLabel.managedProperty().bind(clanLabel.visibleProperty());
     clanLabel.visibleProperty().bind(player.clanProperty().isNotEmpty().and(player.clanProperty().isNotNull()));
     clanLabel.textProperty().bind(createStringBinding(() ->
@@ -142,16 +143,10 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         button.setText(button.getText().toUpperCase());
       }
     }
-    teamRatingLabel.textProperty().bind(createStringBinding(
-        () -> teamRatingLabel.getStyleClass().contains("uppercase") ?
-            i18n.get("teammatchmaking.teamRating", RatingUtil.getRoundedGlobalRating(player)).toUpperCase() :
-            i18n.get("teammatchmaking.teamRating", RatingUtil.getRoundedGlobalRating(player)),
-        player.globalRatingMeanProperty(), player.globalRatingDeviationProperty()));
-    ladderRatingLabel.textProperty().bind(createStringBinding(
-        () -> ladderRatingLabel.getStyleClass().contains("uppercase") ?
-            i18n.get("teammatchmaking.1v1Rating", RatingUtil.getLeaderboardRating(player)).toUpperCase() :
-            i18n.get("teammatchmaking.1v1Rating", RatingUtil.getLeaderboardRating(player)),
-        player.leaderboardRatingMeanProperty(), player.leaderboardRatingDeviationProperty()));
+    leagueLabel.textProperty().bind(createStringBinding(
+        () -> leagueLabel.getStyleClass().contains("uppercase") ?
+            i18n.get("leaderboard.divisionName", RatingUtil.getLeaderboardRating(player)).toUpperCase() :
+            i18n.get("leaderboard.divisionName", RatingUtil.getLeaderboardRating(player))));
     gameCountLabel.textProperty().bind(createStringBinding(
         () -> gameCountLabel.getStyleClass().contains("uppercase") ?
             i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase() :

@@ -40,10 +40,11 @@
                                     </padding>
                                 </HBox>
                                 <HBox spacing="15.0">
-                                    <Label fx:id="ladderRatingLabel" styleClass="player-card-text, uppercase"
-                                           text="%teammatchmaking.1v1Rating"/>
-                                    <Label fx:id="teamRatingLabel" styleClass="player-card-text, uppercase"
-                                           text="%teammatchmaking.teamRating"/>
+                                    <ImageView fx:id="leagueImageView" fitHeight="20.0" fitWidth="40.0"
+                                               preserveRatio="true">
+                                    </ImageView>
+                                    <Label fx:id="leagueLabel" styleClass="player-card-text, uppercase"
+                                           text="%leaderboard.divisionName"/>
                                     <Label fx:id="gameCountLabel" styleClass="player-card-text, uppercase"
                                            text="%teammatchmaking.gameCount"/>
                                     <Pane HBox.hgrow="ALWAYS"/>
