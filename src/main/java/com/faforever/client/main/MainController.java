@@ -3,6 +3,7 @@ package com.faforever.client.main;
 import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.discord.JoinDiscordEvent;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
@@ -570,7 +571,6 @@ public class MainController implements Controller<Node> {
 
   @Subscribe
   public void onNavigateEvent(NavigateEvent navigateEvent) {
-
     NavigationItem item = navigateEvent.getItem();
 
     AbstractViewController<?> controller = getView(item);
@@ -640,6 +640,10 @@ public class MainController implements Controller<Node> {
 
   public void setFxStage(FxStage fxWindow) {
     this.fxStage = fxWindow;
+  }
+
+  public void onDiscordButtonClicked() {
+    applicationEventPublisher.publishEvent(new JoinDiscordEvent());
   }
 
   public class ToastDisplayer implements InvalidationListener {

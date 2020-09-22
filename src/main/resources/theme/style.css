@@ -507,14 +507,14 @@
   -fx-spacing: 0.416667em;
 }
 
-/***************** Notification Button *****************/
+/***************** Top right Menu Buttons *****************/
 
-.inbox-button {
+.inbox-button, .discord-button {
   -fx-padding: 0;
   -fx-background-color: null;
 }
 
-.inbox-icon {
+.inbox-icon, .discord-icon {
   -fx-background-color: -fx-light-text-color;
   -fx-min-width: 2em;
   -fx-max-width: 2em;
