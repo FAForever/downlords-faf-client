@@ -70,7 +70,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
   public Label seasonLabel;
   public ComboBox<Division> majorDivisionPicker;
   public Arc scoreArc;
-  public TabPane subDivisionTabs;
+  public TabPane subDivisionTabPane;
   private KnownFeaturedMod ratingType;
   private InvalidationListener playerLeagueScoreListener;
 
@@ -97,9 +97,6 @@ public class LeaderboardController extends AbstractViewController<Node> {
       logger.warn("Could not read divisions", throwable);
       return null;
     });
-
-    //subDivisionTabs.tabMinWidthProperty().bind(box.widthProperty().divide(subDivisionTabs.getTabs().size()));
-    //subDivisionTabs.tabMaxWidthProperty().bind(subDivisionTabs.tabMinWidthProperty());
 
     JavaFxUtil.addListener(playerService.currentPlayerProperty(), (observable, oldValue, newValue) -> Platform.runLater(() -> setCurrentPlayer(newValue)));
     playerService.getCurrentPlayer().ifPresent(this::setCurrentPlayer);
@@ -161,14 +158,17 @@ public class LeaderboardController extends AbstractViewController<Node> {
             majorDivisionPicker.getItems().stream()
                 .filter(item -> item.getMajorDivisionIndex() == division.getMajorDivisionIndex())
                 .findFirst().ifPresent(item -> majorDivisionPicker.getSelectionModel().select(item));
-            subDivisionTabs.getTabs().stream()
+            subDivisionTabPane.getTabs().stream()
                 .filter(tab -> tab.getUserData().equals(division.getSubDivisionIndex()))
                 .findFirst().ifPresent(tab -> {
-              subDivisionTabs.getSelectionModel().select(tab);
+              subDivisionTabPane.getSelectionModel().select(tab);
               });
           }
         });
         plotDivisionDistributions(divisions, leaderboardEntry);
+      }).exceptionally(throwable -> {
+        logger.warn("Could not get list of divisions", throwable);
+        return null;
       });
     })).exceptionally(throwable -> {
       // Debug instead of warn, since it's fairly common that players don't have a leaderboard entry which causes a 404
@@ -241,7 +241,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
   }
 
   public void onMajorDivisionChanged(ActionEvent actionEvent) {
-    subDivisionTabs.getTabs().clear();
+    subDivisionTabPane.getTabs().clear();
     leaderboardService.getDivisions().thenAccept(divisions ->
       divisions.stream()
           .filter(division -> division.getMajorDivisionIndex() == majorDivisionPicker.getValue().getMajorDivisionIndex())
@@ -250,15 +250,12 @@ public class LeaderboardController extends AbstractViewController<Node> {
             controller.getTab().setUserData(division.getSubDivisionIndex());
             //controller.setButtonText(i18n.get(division.getSubDivisionName().getI18nKey()).toUpperCase());
             controller.setTabText(division.getSubDivisionName());
-            subDivisionTabs.getTabs().add(controller.getTab());
-            subDivisionTabs.getSelectionModel().selectLast();
+            subDivisionTabPane.getTabs().add(controller.getTab());
+            subDivisionTabPane.getSelectionModel().selectLast();
           }));
-    Platform.runLater(() -> subDivisionTabs.setTabMinWidth(subDivisionTabs.getWidth() / subDivisionTabs.getTabs().size()));
-    Platform.runLater(() -> subDivisionTabs.setTabMaxWidth(subDivisionTabs.getWidth() / subDivisionTabs.getTabs().size()));
-    logger.info(String.valueOf(subDivisionTabs.getWidth()));
-    logger.info(String.valueOf(subDivisionTabs.getTabs().size()));
-    logger.info(String.valueOf(subDivisionTabs.getWidth() / subDivisionTabs.getTabs().size()));
-    subDivisionTabs.getTabs().stream().findFirst().ifPresent(tab -> logger.info(String.valueOf(tab.getTabPane().getTabMinWidth())));
-    logger.info(String.valueOf(subDivisionTabs.getTabMinWidth()));
+    // The tabs always appear 40px wider than they should for whatever reason. We add a little more to prevent horizontal scrolling
+    Platform.runLater(() -> subDivisionTabPane.setTabMinWidth(subDivisionTabPane.getWidth() / subDivisionTabPane.getTabs().size() - 45.0));
+    Platform.runLater(() -> subDivisionTabPane.setTabMaxWidth(subDivisionTabPane.getWidth() / subDivisionTabPane.getTabs().size() - 45.0));
+    // Todo: sometimes when starting the client the tabs have no text and still have default width
   }
 }

@@ -35,7 +35,6 @@ public class SubDivisionTabController implements Controller<Node> {
   private final I18n i18n;
   private final ReportingService reportingService;
 
-  public TabPane subDivisionTabs;
   public Tab subDivisionTab;
   public TableColumn<LeaderboardEntry, Number> rankColumn;
   public TableColumn<LeaderboardEntry, String> nameColumn;
@@ -44,8 +43,9 @@ public class SubDivisionTabController implements Controller<Node> {
   public TableView<LeaderboardEntry> ratingTable;
 
   @Override
+  // We can't return the tab, because it is not a node
   public Node getRoot() {
-    return subDivisionTabs;
+    return null;
   }
 
   @Override

@@ -96,6 +96,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     for (int k=1; k<6; k++) {
       for (int i=1; i<6; i++) {
         Division div = new Division(1, k, i, majornames[k-1], subnames[i-1], 10);
+        //if (k!=5 || i!=5)
         divisions.add(div);
       }
     }

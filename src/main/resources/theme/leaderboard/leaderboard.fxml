@@ -35,7 +35,7 @@
                         </HBox>
                     </children>
                 </HBox>
-                <TabPane fx:id="subDivisionTabs" tabClosingPolicy="UNAVAILABLE" styleClass="subDivisionTabs"
+                <TabPane fx:id="subDivisionTabPane" tabClosingPolicy="UNAVAILABLE" styleClass="subDivisionTabPane"
                          maxWidth="600.0" prefHeight="10000" >
                 </TabPane>
             </children>

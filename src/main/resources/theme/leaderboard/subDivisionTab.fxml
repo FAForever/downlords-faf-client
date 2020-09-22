@@ -3,16 +3,14 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<TabPane fx:id="subDivisionTabs" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
-         fx:controller="com.faforever.client.leaderboard.SubDivisionTabController">
-    <Tab fx:id="subDivisionTab" styleClass="main-navigation-button">
-        <TableView fx:id="ratingTable" minWidth="350.0" VBox.vgrow="ALWAYS">
-            <columns>
-                <TableColumn fx:id="rankColumn" prefWidth="60" text="RANK" />
-                <TableColumn fx:id="nameColumn" prefWidth="${ratingTable.width - 220}" text="NAME" />
-                <TableColumn fx:id="scoreColumn" prefWidth="80" text="SCORE" />
-                <TableColumn fx:id="gamesPlayedColumn" prefWidth="80" text="GAMES" />
-            </columns>
-        </TableView>
-    </Tab>
-</TabPane>
+<Tab fx:id="subDivisionTab" styleClass="main-navigation-button" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+     fx:controller="com.faforever.client.leaderboard.SubDivisionTabController">
+    <TableView fx:id="ratingTable" minWidth="350.0" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="rankColumn" prefWidth="60" text="RANK" />
+            <TableColumn fx:id="nameColumn" prefWidth="${ratingTable.width - 220}" text="NAME" />
+            <TableColumn fx:id="scoreColumn" prefWidth="80" text="SCORE" />
+            <TableColumn fx:id="gamesPlayedColumn" prefWidth="80" text="GAMES" />
+        </columns>
+    </TableView>
+</Tab>

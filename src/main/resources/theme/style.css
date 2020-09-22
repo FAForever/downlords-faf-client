@@ -772,20 +772,20 @@
   -fx-font-family: 'Source Sans Pro Semibold';
 }
 
-.subDivisionTabs {
+.subDivisionTabPane {
   -fx-font-family: 'Source Sans Pro Semibold';
   -fx-font-size: 14px;
 }
 
-.subDivisionTabs .tab-down-button {
+.subDivisionTabPane .tab-down-button {
 -fx-padding: 0;
 }
 
-.subDivisionTabs .tab-down-button .arrow {
+.subDivisionTabPane .tab-down-button .arrow {
 -fx-padding: 0;
 }
 
-.subDivisionTabs > .tab-header-area {
+.subDivisionTabPane > .tab-header-area {
   -fx-background-color: transparent;
   -fx-background: #FFFFFF12;
   -fx-padding: 0 0 0 10;
@@ -794,7 +794,7 @@
   -fx-font-size: 18px;
 }
 
-.subDivisionTabs > .tab-header-area > .headers-region > .tab {
+.subDivisionTabPane > .tab-header-area > .headers-region > .tab {
   -fx-background-insets: 0;
   -fx-border-insets: 0;
 }
