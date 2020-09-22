@@ -1,6 +1,7 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.vault.review.Review;
+import com.faforever.commons.mod.ModLoadException;
 import com.faforever.commons.mod.MountInfo;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
@@ -16,18 +17,21 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class ModVersion {
   private final StringProperty displayName;
   private final ObjectProperty<Path> imagePath;
@@ -106,10 +110,15 @@ public class ModVersion {
     modVersion.setModType(modInfo.isUiOnly() ? ModType.UI : ModType.SIM);
     modVersion.getMountInfos().setAll(modInfo.getMountInfos());
     modVersion.getHookDirectories().setAll(modInfo.getHookDirectories());
-    Optional.ofNullable(modInfo.getIcon())
-        .map(icon -> Paths.get(icon))
-        .filter(iconPath -> iconPath.getNameCount() > 2)
-        .ifPresent(iconPath -> modVersion.setImagePath(basePath.resolve(iconPath.subpath(2, iconPath.getNameCount()))));
+    try {
+      Optional.ofNullable(modInfo.getIcon())
+          .map(icon -> Paths.get(icon))
+          .filter(iconPath -> iconPath.getNameCount() > 2)
+          .ifPresent(iconPath -> modVersion.setImagePath(basePath.resolve(iconPath.subpath(2, iconPath.getNameCount()))));
+    } catch (Exception e) {
+      log.info("Parsing icon path for mod failed", e);
+      throw new ModLoadException(MessageFormat.format("Unable to parse icon file path: {}", modInfo.getIcon()));
+    }
     return modVersion;
   }
 
