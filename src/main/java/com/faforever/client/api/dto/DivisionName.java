@@ -1,6 +1,5 @@
 package com.faforever.client.api.dto;
 
-import lombok.Data;
 import lombok.Getter;
 
 public enum DivisionName {
@@ -9,12 +8,13 @@ public enum DivisionName {
   GOLD("leagues.divisionName.gold"),
   DIAMOND("leagues.divisionName.diamond"),
   MASTER("leagues.divisionName.master"),
-  SUPREME("leagues.divisionName.supreme"),
+  COMMANDER("leagues.divisionName.commander"),
   I("leagues.divisionName.I"),
   II("leagues.divisionName.II"),
   III("leagues.divisionName.III"),
   IV("leagues.divisionName.IV"),
-  V("leagues.divisionName.V");
+  V("leagues.divisionName.V"),
+  NONE("leagues.divisionName.none");
 
   @Getter
   private final String i18nKey;

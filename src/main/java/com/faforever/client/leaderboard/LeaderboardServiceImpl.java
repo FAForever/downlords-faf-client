@@ -1,6 +1,7 @@
 package com.faforever.client.leaderboard;
 
 import com.faforever.client.FafClientApplication;
+import com.faforever.client.api.dto.DivisionName;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.util.RatingUtil;
@@ -15,6 +16,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static com.faforever.client.api.dto.DivisionName.*;
 
 
 @Lazy
@@ -90,8 +93,8 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
   @Override
   public CompletableFuture<List<Division>> getDivisions() {
-    String[] subnames = {"V", "IV", "III", "II", "I"};
-    String[] majornames = {"Bronze", "Silver", "Gold", "Diamond", "Master"};
+    DivisionName[] subnames = {V, IV, III, II, I};
+    DivisionName[] majornames = {BRONZE, SILVER, GOLD, DIAMOND, MASTER};
     List<Division> divisions = new LinkedList<Division>();
     for (int k=1; k<6; k++) {
       for (int i=1; i<6; i++) {
@@ -100,7 +103,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         divisions.add(div);
       }
     }
-    Division div2 = new Division(1, 6, 1, "Supreme", "", 10);
+    Division div2 = new Division(1, 6, 1, COMMANDER, NONE, 10);
     divisions.add(div2);
     return CompletableFuture.completedFuture(divisions);
     //return fafService.getDivisions();

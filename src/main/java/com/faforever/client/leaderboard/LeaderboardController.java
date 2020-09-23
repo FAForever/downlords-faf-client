@@ -151,9 +151,8 @@ public class LeaderboardController extends AbstractViewController<Node> {
           if (division.getMajorDivisionIndex() == leaderboardEntry.getMajorDivisionIndex()
               && division.getSubDivisionIndex() == leaderboardEntry.getSubDivisionIndex()) {
             playerDivisionNameLabel.setText(i18n.get("leaderboard.divisionName",
-                division.getMajorDivisionName().toUpperCase(), division.getSubDivisionName().toUpperCase()));
-                //i18n.get(division.getMajorDivisionName().getI18nKey()).toUpperCase(),
-                //i18n.get(division.getSubDivisionName().getI18nKey()).toUpperCase()));
+                i18n.get(division.getMajorDivisionName().getI18nKey()),
+                i18n.get(division.getSubDivisionName().getI18nKey())).toUpperCase());
             scoreArc.setLength(-360.0 * leaderboardEntry.getScore() / division.getHighestScore());
             majorDivisionPicker.getItems().stream()
                 .filter(item -> item.getMajorDivisionIndex() == division.getMajorDivisionIndex())
@@ -180,12 +179,12 @@ public class LeaderboardController extends AbstractViewController<Node> {
   private void plotDivisionDistributions(List<Division> divisions, LeaderboardEntry leaderboardEntry) {
     divisions.stream().filter(division -> division.getMajorDivisionIndex() == 1).forEach(firstTierSubDivision -> {
       XYChart.Series<String, Integer> series = new XYChart.Series<>();
-      series.setName(firstTierSubDivision.getSubDivisionName());
+      series.setName(i18n.get(firstTierSubDivision.getSubDivisionName().getI18nKey()));
       series.getData().addAll(
           divisions.stream().filter(division -> division.getSubDivisionIndex() == firstTierSubDivision.getSubDivisionIndex()).map(division -> {
-            XYChart.Data<String, Integer> data = new XYChart.Data<>(division.getMajorDivisionName(), 100);
+            XYChart.Data<String, Integer> data = new XYChart.Data<>(i18n.get(division.getMajorDivisionName().getI18nKey()), 100);
             Text label = new Text();
-            label.setText(division.getSubDivisionName());
+            label.setText(i18n.get(division.getSubDivisionName().getI18nKey()));
             label.setFill(Color.WHITE);
             if (division.getMajorDivisionIndex() == leaderboardEntry.getMajorDivisionIndex()
                 && division.getSubDivisionIndex() == leaderboardEntry.getSubDivisionIndex()) {
@@ -229,8 +228,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
     return new StringConverter<>() {
       @Override
       public String toString(Division division) {
-        return division.getMajorDivisionName().toUpperCase();
-        //return i18n.get(division.getMajorDivisionName().getI18nKey()).toUpperCase();
+        return i18n.get(division.getMajorDivisionName().getI18nKey()).toUpperCase();
       }
 
       @Override
@@ -248,8 +246,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
           .forEach(division -> {
             SubDivisionTabController controller = uiService.loadFxml("theme/leaderboard/subDivisionTab.fxml");
             controller.getTab().setUserData(division.getSubDivisionIndex());
-            //controller.setButtonText(i18n.get(division.getSubDivisionName().getI18nKey()).toUpperCase());
-            controller.setTabText(division.getSubDivisionName());
+            controller.setTabText(i18n.get(division.getSubDivisionName().getI18nKey()).toUpperCase());
             subDivisionTabPane.getTabs().add(controller.getTab());
             subDivisionTabPane.getSelectionModel().selectLast();
           }));
