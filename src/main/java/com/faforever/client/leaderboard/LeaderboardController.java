@@ -12,6 +12,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
+import com.faforever.client.util.Validator;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -25,6 +26,7 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -102,9 +104,51 @@ public class LeaderboardController extends AbstractViewController<Node> {
     playerService.getCurrentPlayer().ifPresent(this::setCurrentPlayer);
 
     searchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      // Todo; make this work
-      // Also make this work over all divisions
-      //displayedTab.findPlayer(newValue);
+      TableView<LeaderboardEntry> ratingTable = (TableView<LeaderboardEntry>) subDivisionTabPane.getSelectionModel().getSelectedItem().getContent();
+      if (Validator.isInt(newValue)) {
+        ratingTable.scrollTo(Integer.parseInt(newValue) - 1);
+      } else {
+        LeaderboardEntry foundPlayer = null;
+        for (LeaderboardEntry leaderboardEntry : ratingTable.getItems()) {
+          if (leaderboardEntry.getUsername().toLowerCase().startsWith(newValue.toLowerCase())) {
+            foundPlayer = leaderboardEntry;
+            break;
+          }
+        }
+        if (foundPlayer == null) {
+          for (LeaderboardEntry leaderboardEntry : ratingTable.getItems()) {
+            if (leaderboardEntry.getUsername().toLowerCase().contains(newValue.toLowerCase())) {
+              foundPlayer = leaderboardEntry;
+              break;
+            }
+          }
+        }
+        if (foundPlayer != null) {
+          ratingTable.scrollTo(foundPlayer);
+          ratingTable.getSelectionModel().select(foundPlayer);
+        } else {
+          ratingTable.getSelectionModel().select(null);
+          searchInAllDivisions(newValue);
+        }
+      }
+    });
+  }
+
+  private void searchInAllDivisions(String searchText) {
+    playerService.getPlayerForUsername(searchText).ifPresent(player -> {
+      leaderboardService.getLeagueEntryForPlayer(player.getId()).thenAccept(leaderboardEntry -> {
+        majorDivisionPicker.getItems().stream()
+            .filter(item -> item.getMajorDivisionIndex() == leaderboardEntry.getMajorDivisionIndex())
+            .findFirst().ifPresent(item -> majorDivisionPicker.getSelectionModel().select(item));
+        subDivisionTabPane.getTabs().stream()
+            .filter(tab -> tab.getUserData().equals(leaderboardEntry.getSubDivisionIndex()))
+            .findFirst().ifPresent(tab -> {
+          subDivisionTabPane.getSelectionModel().select(tab);
+          TableView<LeaderboardEntry> newTable = (TableView<LeaderboardEntry>) tab.getContent();
+          newTable.scrollTo(leaderboardEntry);
+          newTable.getSelectionModel().select(leaderboardEntry);
+        });
+      });
     });
   }
 
@@ -160,8 +204,8 @@ public class LeaderboardController extends AbstractViewController<Node> {
             subDivisionTabPane.getTabs().stream()
                 .filter(tab -> tab.getUserData().equals(division.getSubDivisionIndex()))
                 .findFirst().ifPresent(tab -> {
-              subDivisionTabPane.getSelectionModel().select(tab);
-              });
+                  subDivisionTabPane.getSelectionModel().select(tab);
+            });
           }
         });
         plotDivisionDistributions(divisions, leaderboardEntry);
