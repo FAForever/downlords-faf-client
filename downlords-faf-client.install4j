@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="8.0.8" transformSequenceNumber="8">
-  <directoryPresets config="./src/media/appicon" />
+  <directoryPresets config="../../mypfx.pfx" />
   <application name="Downlord's FAF Client" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" lzmaCompression="true" pack200Compression="true" shortName="dfc" publisher="Downlord" publisherWeb="https://github.com/FAForever/downlords-faf-client" allPathsRelative="true" autoSave="true" macVolumeId="e230e730a6fc064c" javaMinVersion="14" javaMaxVersion="14" allowBetaVM="true">
     <searchSequence empty="true" />
+    <codeSigning windowsEnabled="true" windowsPkcs12File="~/client-cert.pfx" />
   </application>
   <files>
     <roots>
