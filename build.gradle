@@ -175,6 +175,12 @@ task buildInstall4jMediaFiles(type: Install4jTask) {
   group "distribution"
   description 'Creates install4j media files'
   dependsOn 'installDist'
+  if(project.hasProperty('certPassword') && !project.property('certPassword').toString().isEmpty()){
+    disableSigning false
+    winKeystorePassword project.property('certPassword').toString()
+  }else {
+    disableSigning true
+  }
 
   projectFile = file('downlords-faf-client.install4j')
   release = version
