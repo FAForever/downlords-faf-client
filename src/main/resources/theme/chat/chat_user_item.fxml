@@ -4,8 +4,8 @@
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
-
-<HBox fx:id="chatUserItemRoot" alignment="CENTER_LEFT" spacing="3.0" xmlns="http://javafx.com/javafx/11.0.1"
+<HBox fx:id="chatUserItemRoot" onContextMenuRequested="#onContextMenuRequested" onMouseClicked="#onItemClicked"
+      alignment="CENTER_LEFT" spacing="3.0" xmlns="http://javafx.com/javafx/11.0.1"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.ChatUserItemController">
     <children>
         <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true"/>
