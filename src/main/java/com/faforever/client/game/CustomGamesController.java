@@ -9,6 +9,7 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameStatus;
+import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
@@ -38,8 +39,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
@@ -49,16 +48,8 @@ import java.util.function.Predicate;
 @Slf4j
 public class CustomGamesController extends AbstractViewController<Node> {
 
-  private static final Collection<String> HIDDEN_FEATURED_MODS = Arrays.asList(
-      KnownFeaturedMod.COOP.getTechnicalName(),
-      KnownFeaturedMod.LADDER_1V1.getTechnicalName(),
-      KnownFeaturedMod.GALACTIC_WAR.getTechnicalName(),
-      KnownFeaturedMod.MATCHMAKER.getTechnicalName()
-  );
-
   private static final Predicate<Game> OPEN_CUSTOM_GAMES_PREDICATE = gameInfoBean ->
-      gameInfoBean.getStatus() == GameStatus.OPEN
-          && !HIDDEN_FEATURED_MODS.contains(gameInfoBean.getFeaturedMod());
+      gameInfoBean.getStatus() == GameStatus.OPEN && gameInfoBean.getGameType() == GameType.CUSTOM;
 
   private final UiService uiService;
   private final GameService gameService;

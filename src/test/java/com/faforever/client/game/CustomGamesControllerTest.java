@@ -4,6 +4,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.replay.WatchButtonController;
@@ -111,6 +112,8 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
     Game gameWithMod = GameBuilder.create().defaultValues().get();
     Game gameWithPW = GameBuilder.create().defaultValues().get();
     Game gameWithModAndPW = GameBuilder.create().defaultValues().get();
+    Game ladderGame = GameBuilder.create().defaultValues().get();
+    Game matchmakerGame = GameBuilder.create().defaultValues().get();
 
     ObservableMap<String, String> simMods = FXCollections.observableHashMap();
     simMods.put("123-456-789", "Fake mod name");
@@ -122,10 +125,15 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
     gameWithModAndPW.setPassword("password");
     gameWithModAndPW.passwordProtectedProperty().set(true);
 
+    ladderGame.setFeaturedMod(KnownFeaturedMod.LADDER_1V1.getTechnicalName());
+    ladderGame.setGameType(GameType.MATCHMAKER);
+    matchmakerGame.setGameType(GameType.MATCHMAKER);
+
     ObservableList<Game> games = FXCollections.observableArrayList();
-    games.addAll(game, gameWithMod, gameWithPW, gameWithModAndPW);
+    games.addAll(game, gameWithMod, gameWithPW, gameWithModAndPW, ladderGame, matchmakerGame);
     instance.setFilteredList(games);
 
+    instance.showModdedGamesCheckBox.setSelected(false);
     instance.showModdedGamesCheckBox.setSelected(true);
     instance.showPasswordProtectedGamesCheckBox.setSelected(true);
     assertEquals(4, instance.filteredItems.size());

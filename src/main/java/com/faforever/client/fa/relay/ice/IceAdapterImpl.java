@@ -297,6 +297,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
       return;
     }
 
+    // TODO: Remove this?
     if (KnownFeaturedMod.LADDER_1V1.getTechnicalName().equals(gameLaunchMessage.getMod())) {
       lobbyInitMode = LobbyMode.AUTO_LOBBY;
     } else {

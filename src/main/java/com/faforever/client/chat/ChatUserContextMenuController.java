@@ -9,7 +9,6 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.game.JoinGameHelper;
-import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
@@ -22,6 +21,7 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.alert.Alert;
@@ -201,15 +201,12 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
       removeFoeItem.visibleProperty().bind(newValue.socialStatusProperty().isEqualTo(FOE));
       reportItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF));
 
-      // TODO: Make this ignore TMM games too and not just ladder
-      // https://github.com/FAForever/downlords-faf-client/issues/1770
       joinGameItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF)
           .and(newValue.statusProperty().isEqualTo(PlayerStatus.LOBBYING)
               .or(newValue.statusProperty().isEqualTo(PlayerStatus.HOSTING)))
           .and(Bindings.createBooleanBinding(() -> {
                 return newValue.getGame() != null
-                    && newValue.getGame().getFeaturedMod() != null
-                    && !newValue.getGame().getFeaturedMod().equals(KnownFeaturedMod.LADDER_1V1.getTechnicalName());
+                    && newValue.getGame().getGameType() != GameType.MATCHMAKER;
               }, newValue.gameProperty())
           ));
       watchGameItem.visibleProperty().bind(newValue.statusProperty().isEqualTo(PlayerStatus.PLAYING));
