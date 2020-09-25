@@ -241,10 +241,6 @@
   -fx-padding: 0;
 }
 
-.chat-user-item-status {
-  -fx-font-size: 0.8em;
-}
-
 .chat-user-list-view .list-cell {
   -fx-background-color: transparent;
   -fx-padding: 1px 8px 1px 8px;
