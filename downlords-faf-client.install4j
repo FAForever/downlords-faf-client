@@ -45,7 +45,8 @@
         <content># Enter one VM parameter per line
 
 # Adjust maximum memory usage to 712MiB
--Xmx712m</content>
+-Xmx712m
+-Djava.library.path=.</content>
       </vmOptionsFile>
       <iconImageFiles>
         <file path="./src/media/appicon/16.png" />
