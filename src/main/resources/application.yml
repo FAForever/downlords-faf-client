@@ -104,3 +104,4 @@ logging:
     com.faforever.client.os: info
     com.faforever.client.fa.relay.ice: info
     com.faforever.client.fx: info
+  config: classpath:logback-spring.xml
