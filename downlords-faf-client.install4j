@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="8.0.8" transformSequenceNumber="8">
+<install4j version="8.0.7" transformSequenceNumber="8">
   <directoryPresets config="./src/media/appicon" />
-  <application name="Downlord's FAF Client" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" lzmaCompression="true" pack200Compression="true" shortName="dfc" publisher="Downlord" publisherWeb="https://github.com/FAForever/downlords-faf-client" allPathsRelative="true" autoSave="true" macVolumeId="e230e730a6fc064c" javaMinVersion="14" javaMaxVersion="14" allowBetaVM="true">
+  <application name="FAF Client" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" lzmaCompression="true" pack200Compression="true" shortName="faf" publisher="Forged Alliance Forever LLC" publisherWeb="https://www.faforever.com" allPathsRelative="true" autoSave="true" macVolumeId="e230e730a6fc064c" javaMinVersion="14" javaMaxVersion="14" allowBetaVM="true">
     <searchSequence empty="true" />
   </application>
   <files>
@@ -133,44 +133,6 @@ return console.askOkCancel(message, true);
                 <serializedBean>
                   <property name="labelText" type="string">${i18n:ClickNext}</property>
                 </serializedBean>
-              </formComponent>
-            </formComponents>
-          </screen>
-          <screen id="4" beanClass="com.install4j.runtime.beans.screens.InstallationDirectoryScreen">
-            <condition>!context.getBooleanVariable("sys.confirmedUpdateInstallation")</condition>
-            <actions>
-              <action id="5" beanClass="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction" multiExec="true" failureStrategy="askRetryQuit">
-                <serializedBean>
-                  <property name="excludedVariables" type="array" elementType="string" length="1">
-                    <element index="0">sys.installationDir</element>
-                  </property>
-                </serializedBean>
-                <condition>context.getVariable("sys.responseFile") == null</condition>
-              </action>
-            </actions>
-            <formComponents>
-              <formComponent id="39" beanClass="com.install4j.runtime.beans.formcomponents.MultilineLabelComponent" insetBottom="25">
-                <serializedBean>
-                  <property name="labelText" type="string">${i18n:SelectDirLabel(${compiler:sys.fullName})}</property>
-                </serializedBean>
-              </formComponent>
-              <formComponent id="40" beanClass="com.install4j.runtime.beans.formcomponents.InstallationDirectoryChooserComponent" useExternalParametrization="true" externalParametrizationName="Installation Directory Chooser" externalParametrizationMode="include">
-                <serializedBean>
-                  <property name="requestFocus" type="boolean" value="true" />
-                </serializedBean>
-                <externalParametrizationPropertyNames>
-                  <propertyName>suggestAppDir</propertyName>
-                  <propertyName>validateApplicationId</propertyName>
-                  <propertyName>existingDirWarning</propertyName>
-                  <propertyName>checkWritable</propertyName>
-                  <propertyName>manualEntryAllowed</propertyName>
-                  <propertyName>checkFreeSpace</propertyName>
-                  <propertyName>showRequiredDiskSpace</propertyName>
-                  <propertyName>showFreeDiskSpace</propertyName>
-                  <propertyName>allowSpacesOnUnix</propertyName>
-                  <propertyName>validationScript</propertyName>
-                  <propertyName>standardValidation</propertyName>
-                </externalParametrizationPropertyNames>
               </formComponent>
             </formComponents>
           </screen>
@@ -631,7 +593,7 @@ return console.askYesNo(message, true);
     </styles>
   </installerGui>
   <mediaSets>
-    <windows name="Windows" id="26" installDir="${compiler:sys.fullName}">
+    <windows name="Windows" id="26" installDir="${compiler:sys.fullName}" customInstallBaseDir="${LOCALAPPDATA}">
       <exclude>
         <entry location="lib/faf-uid" />
         <entry location="lib/uid" />
