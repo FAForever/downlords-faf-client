@@ -97,9 +97,9 @@ public class PreferencesService implements InitializingBean {
     }
     CACHE_DIRECTORY = FAF_DATA_DIRECTORY.resolve(CACHE_SUB_FOLDER);
 
-    System.setProperty("logging.file", PreferencesService.FAF_DATA_DIRECTORY
+    System.setProperty("logging.file.name", PreferencesService.FAF_DATA_DIRECTORY
         .resolve("logs")
-        .resolve("downlords-faf-client.log")
+        .resolve("client.log")
         .toString());
     // duplicated, see getFafLogDirectory; make getFafLogDirectory or log dir static?
 
