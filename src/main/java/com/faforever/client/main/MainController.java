@@ -2,6 +2,7 @@ package com.faforever.client.main;
 
 import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.FafClientApplication;
+import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.discord.JoinDiscordEvent;
@@ -39,6 +40,7 @@ import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.alert.Alert;
 import com.faforever.client.ui.alert.animation.AlertAnimation;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
+import com.faforever.client.user.event.LogOutRequestEvent;
 import com.faforever.client.user.event.LoggedInEvent;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
@@ -61,6 +63,7 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Labeled;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ToggleButton;
@@ -124,6 +127,7 @@ public class MainController implements Controller<Node> {
   private final VaultFileSystemLocationChecker vaultFileSystemLocationChecker;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final String mainWindowTitle;
+  private final ClientProperties clientProperties;
   private final int ratingBeta;
   private final boolean alwaysReloadTabs;
   private final Environment environment;
@@ -144,6 +148,8 @@ public class MainController implements Controller<Node> {
   public Pane leftMenuPane;
   public Pane rightMenuPane;
   public Button notificationButton;
+  public Menu helpLinksMenu;
+  public Menu socialLinksMenu;
   /** Dropdown for when there is not enough room for all navigation buttons to be displayed. */
   public MenuButton navigationDropdown;
 
@@ -171,6 +177,7 @@ public class MainController implements Controller<Node> {
     this.gamePathHandler = gamePathHandler;
     this.platformService = platformService;
     this.vaultFileSystemLocationChecker = vaultFileSystemLocationChecker;
+    this.clientProperties = clientProperties;
     this.applicationEventPublisher = applicationEventPublisher;
     this.environment = environment;
     this.viewCache = CacheBuilder.newBuilder().build();
@@ -207,6 +214,16 @@ public class MainController implements Controller<Node> {
     unitsButton.setUserData(NavigationItem.UNITS);
     tutorialsButton.setUserData(NavigationItem.TUTORIALS);
     eventBus.register(this);
+    clientProperties.getHelpLinks().forEach((name, url) -> {
+      MenuItem menuItem = new MenuItem(i18n.get(name));
+      menuItem.setOnAction(event -> platformService.showDocument(url));
+      helpLinksMenu.getItems().add(menuItem);
+    });
+    clientProperties.getSocialLinks().forEach((name, url) -> {
+      MenuItem menuItem = new MenuItem(i18n.get(name));
+      menuItem.setOnAction(event -> platformService.showDocument(url));
+      socialLinksMenu.getItems().add(menuItem);
+    });
 
     PersistentNotificationsController persistentNotificationsController = uiService.loadFxml("theme/persistent_notifications.fxml");
     persistentNotificationsPopup = new Popup();
@@ -634,6 +651,17 @@ public class MainController implements Controller<Node> {
     onNavigateButtonClicked(actionEvent);
   }
 
+  public void onShowProfile(ActionEvent event) {
+    UserInfoWindowController userInfoWindowController = uiService.loadFxml("theme/user_info_window.fxml");
+    userInfoWindowController.setPlayer(playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set")));
+    userInfoWindowController.setOwnerWindow(getRoot().getScene().getWindow());
+    userInfoWindowController.show();
+  }
+
+  public void onLogOut(ActionEvent actionEvent) {
+    eventBus.post(new LogOutRequestEvent());
+  }
+
   private void displayImmediateNotification(ImmediateNotification notification) {
     Alert<?> dialog = new Alert<>(fxStage.getStage());
 
@@ -644,14 +672,6 @@ public class MainController implements Controller<Node> {
     dialog.setContent(controller.getDialogLayout());
     dialog.setAnimation(AlertAnimation.TOP_ANIMATION);
     dialog.show();
-  }
-
-  public void onLinksAndHelp() {
-    LinksAndHelpController linksAndHelpController = uiService.loadFxml("theme/links_and_help.fxml");
-    Node root = linksAndHelpController.getRoot();
-    uiService.showInDialog(mainRoot, root, i18n.get("help.title"));
-
-    root.requestFocus();
   }
 
   public void setFxStage(FxStage fxWindow) {

@@ -128,7 +128,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class FafServerAccessorImpl extends AbstractServerAccessor implements FafServerAccessor,
     InitializingBean, DisposableBean {
 
-  private Gson gson = new GsonBuilder()
+  private final Gson gson = new GsonBuilder()
       .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
       .registerTypeAdapter(VictoryCondition.class, VictoryConditionTypeAdapter.INSTANCE)
       .registerTypeAdapter(GameStatus.class, GameStateTypeAdapter.INSTANCE)
@@ -161,10 +161,10 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private volatile CompletableFuture<LoginMessage> loginFuture;
   private CompletableFuture<SessionMessage> sessionFuture;
   private CompletableFuture<GameLaunchMessage> gameLaunchFuture;
-  private ObjectProperty<Long> sessionId = new SimpleObjectProperty<>();
+  private final ObjectProperty<Long> sessionId = new SimpleObjectProperty<>();
   private String username;
   private String password;
-  private ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>();
+  private final ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>();
   private Socket fafServerSocket;
   private CompletableFuture<List<Avatar>> avatarsFuture;
   private CompletableFuture<List<IceServer>> iceServersFuture;
@@ -180,13 +180,13 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private void onNotice(NoticeMessage noticeMessage) {
     if (Objects.equals(noticeMessage.getStyle(), "kill")) {
       log.warn("Game close requested by server...");
-      notificationService.addNotification(new ImmediateNotification(i18n.get("game.kicked.title"), i18n.get("game.kicked.message", clientProperties.getLinks().get("linksRules")), Severity.ERROR, Collections.singletonList(new DismissAction(i18n))));
+      notificationService.addNotification(new ImmediateNotification(i18n.get("game.kicked.title"), i18n.get("game.kicked.message", clientProperties.getHelpLinks().get("linksRules")), Severity.ERROR, Collections.singletonList(new DismissAction(i18n))));
       eventBus.post(new CloseGameEvent());
     }
 
     if (Objects.equals(noticeMessage.getStyle(), "kick")) {
       log.warn("Kicked from lobby, client closing after delay...");
-      notificationService.addNotification(new ImmediateNotification(i18n.get("server.kicked.title"), i18n.get("server.kicked.message", clientProperties.getLinks().get("linksRules")), Severity.ERROR, Collections.singletonList(new DismissAction(i18n))));
+      notificationService.addNotification(new ImmediateNotification(i18n.get("server.kicked.title"), i18n.get("server.kicked.message", clientProperties.getHelpLinks().get("linksRules")), Severity.ERROR, Collections.singletonList(new DismissAction(i18n))));
       taskScheduler.scheduleWithFixedDelay(Platform::exit, Duration.ofSeconds(10));
     }
 

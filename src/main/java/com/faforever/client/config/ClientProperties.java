@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +33,8 @@ public class ClientProperties {
   private Duration clientConfigConnectTimeout = Duration.ofSeconds(30);
   private boolean showIceAdapterDebugWindow;
   private String statusPageUrl;
-  private Map<String, String> links = new HashMap<>();
+  private Map<String, String> helpLinks = new LinkedHashMap<>();
+  private Map<String, String> socialLinks = new LinkedHashMap<>();
   private List<String> vanillaGameHashes = new ArrayList<>();
 
   @Data
