@@ -14,7 +14,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
-import javafx.scene.control.TableView;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -55,12 +54,14 @@ public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private UiService uiService;
   @Mock
+  private EventBus eventBus;
+  @Mock
   private ExecutorService executorService;
 
   @Before
   public void setUp() throws Exception {
     instance = new ReplayVaultController(notificationService, replayService, mapService, taskService, i18n, timeService,
-        reportingService, applicationContext, uiService);
+        reportingService, applicationContext, uiService, eventBus);
 
     loadFxml("theme/vault/replay/replay_vault.fxml", clazz -> instance);
   }
@@ -84,7 +85,7 @@ public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     instance.replayTableView.getItems().addListener((InvalidationListener) observable -> loadedLatch.countDown());
 
     instance.loadLocalReplaysInBackground();
-    instance.onLocalReplaysChanged(new LocalReplaysChangedEvent(this, replays, new ArrayList<Replay>()));
+    instance.onLocalReplaysChanged(new LocalReplaysChangedEvent(replays, new ArrayList<Replay>()));
 
     assertTrue(loadedLatch.await(5000, TimeUnit.MILLISECONDS));
     assertThat(instance.replayTableView.getItems().size(), is(3));

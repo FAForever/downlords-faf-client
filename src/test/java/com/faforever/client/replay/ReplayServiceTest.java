@@ -24,6 +24,7 @@ import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.replay.ReplayData;
+import com.google.common.eventbus.EventBus;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,7 +34,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.net.URI;
 import java.nio.file.Files;
@@ -46,7 +46,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -177,7 +176,7 @@ public class ReplayServiceTest {
   @Mock
   private MapService mapService;
   @Mock
-  private ApplicationEventPublisher publisher;
+  private EventBus eventBus;
   @Mock
   private MapGeneratorService mapGeneratorService;
   @Mock
@@ -190,7 +189,7 @@ public class ReplayServiceTest {
     MockitoAnnotations.initMocks(this);
 
     instance = new ReplayService(new ClientProperties(), preferencesService, userService, replayFileReader, notificationService, gameService, playerService,
-        taskService, i18n, reportingService, applicationContext, platformService, fafService, modService, mapService, publisher, mapGeneratorService, executorService);
+        taskService, i18n, reportingService, applicationContext, platformService, fafService, modService, mapService, eventBus, mapGeneratorService, executorService);
 
     when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath());
     when(preferencesService.getCorruptedReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath().resolve("corrupt"));
@@ -281,7 +280,7 @@ public class ReplayServiceTest {
 
     verify(taskService).submitTask(task);
     assertThat(instance.getLocalReplays(), hasSize(3));
-    verify(publisher).publishEvent(argThat((LocalReplaysChangedEvent event) -> event.getNewReplays().size() == 3));
+    verify(eventBus).post(argThat((LocalReplaysChangedEvent event) -> event.getNewReplays().size() == 3));
     verifyZeroInteractions(notificationService);
   }
 
@@ -336,7 +335,7 @@ public class ReplayServiceTest {
     when(watchKey.pollEvents()).thenReturn(eventsList);
 
     instance.onLocalReplaysWatchEvent(watchKey);
-    verify(publisher).publishEvent(argThat((LocalReplaysChangedEvent event) ->
+    verify(eventBus).post(argThat((LocalReplaysChangedEvent event) ->
         event.getNewReplays().stream().findFirst().get().getReplayFile() == newReplayFile
             && event.getDeletedReplays().stream().findFirst().get().getReplayFile() == deletedReplayFile
     ));

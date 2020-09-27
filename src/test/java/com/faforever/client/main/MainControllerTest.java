@@ -132,6 +132,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
         .setInitialMean(1500)
         .setInitialStandardDeviation(500);
 
+    when(environment.getActiveProfiles()).thenReturn(ArrayUtils.EMPTY_STRING_ARRAY);
+
     instance = new MainController(preferencesService, i18n, notificationService, playerService, gameService,
         uiService, eventBus, gamePathHandler, platformService, vaultFileSystemLocationChecker, clientProperties, applicationEventPublisher, environment);
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
@@ -149,7 +151,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(uiService.loadFxml("theme/settings/settings.fxml")).thenReturn(settingsController);
     when(uiService.loadFxml("theme/login.fxml")).thenReturn(loginController);
     when(uiService.loadFxml("theme/chat/chat.fxml")).thenReturn(chatController);
-    when(environment.getActiveProfiles()).thenReturn(ArrayUtils.EMPTY_STRING_ARRAY);
     when(uiService.createScene(any())).thenAnswer(invocation -> new Scene(invocation.getArgument(0)));
 
     loadFxml("theme/main.fxml", clazz -> {
