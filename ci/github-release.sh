@@ -11,6 +11,8 @@ if [ ! -d "${INSTALL4J_DIR}" ] || [ ! -d "$HOME/.install4j8/jres/windows-amd64-1
   tar xzf "$HOME/install4j/install4j8.tar.gz" -C "$HOME/install4j"
 fi
 
+echo ${CERT_BASE64} | base64 --decode > ~/client-cert.pfx
+
 ./gradlew -Pversion=${APP_VERSION} \
   -PjavafxPlatform=linux \
   -Pinstall4jHomeDir="${INSTALL4J_DIR}" \
@@ -21,6 +23,7 @@ fi
   -PjavafxPlatform=win \
   -Pinstall4jHomeDir="${INSTALL4J_DIR}" \
   -Pinstall4jLicense=${install4jLicense} \
+  -PcertPassword="${CERT_PASSWORD}" \
   --info \
   --stacktrace \
   buildInstall4jMediaFiles
