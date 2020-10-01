@@ -20,5 +20,11 @@
             <Insets left="15.0"/>
         </padding>
     </FlowPane>
+    <Label fx:id="matchFoundLabel" style="-fx-font-weight: bold;-fx-text-fill: #83be15"
+           text="%teammatchmaking.match.found" managed="false"/>
+    <Label fx:id="matchStartingLabel" style="-fx-font-weight: bold;-fx-text-fill: #83be15"
+           text="%teammatchmaking.match.starting" managed="false"/>
+    <Label fx:id="matchCancelledLabel" style="-fx-font-weight: bold;-fx-text-fill: #be6800"
+           text="%teammatchmaking.match.cancelled" managed="false"/>
     <Label fx:id="refreshingLabel" styleClass="icon" text="" visible="false"/>
 </VBox>
