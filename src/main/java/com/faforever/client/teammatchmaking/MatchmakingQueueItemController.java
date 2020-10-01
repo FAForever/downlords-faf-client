@@ -34,6 +34,8 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class MatchmakingQueueItemController implements Controller<Node> {
 
+  private final static String QUEUE_I18N_PATTERN = "teammatchmaking.queue.%s.%s";
+
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
   private final PlayerService playerService;
@@ -74,10 +76,10 @@ public class MatchmakingQueueItemController implements Controller<Node> {
       public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
         if ((double) newValue > 150.0) {
           joinLeaveQueueButton.setText(
-              i18n.get("teammatchmaking.queue." + queue.queueNameProperty().get() + ".fullName"));
+              i18n.get(String.format(QUEUE_I18N_PATTERN, queue.getQueueName(), "fullName")));
         } else {
           joinLeaveQueueButton.setText(
-              i18n.get("teammatchmaking.queue." + queue.queueNameProperty().get() + ".shortName"));
+              i18n.get(String.format(QUEUE_I18N_PATTERN, queue.getQueueName(), "shortName")));
         }
       }
     });
