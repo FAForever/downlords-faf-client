@@ -22,7 +22,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -78,7 +78,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public Label gameCountLabel;
   public Label leagueLabel;
   public HBox queueBox;
-  public FlowPane partyMemberPane;
+  public GridPane partyMemberPane;
   public VBox preparationArea;
   public ImageView leagueImageView;
   private Player player;
@@ -106,7 +106,11 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         }
         PartyMemberItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_member_card.fxml");
         controller.setMember(member);
-        partyMemberPane.getChildren().add(controller.getRoot());
+        int index = members.indexOf(member);
+        if (members.size() == 2) // Player + 1 teammember
+          partyMemberPane.add(controller.getRoot(), 0, 0, 2, 1);
+        else
+          partyMemberPane.add(controller.getRoot(), index % 2, index / 2);
       });
     });
 

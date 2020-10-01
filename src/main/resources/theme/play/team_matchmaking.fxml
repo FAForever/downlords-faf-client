@@ -16,8 +16,11 @@
         <VBox fx:id="preparationArea" spacing="25.0">
             <children>
                 <Label styleClass="h1-tmm, uppercase" text="%teammatchmaking.playerTitle"/>
-                <HBox spacing="10.0" styleClass="player-card">
+                <HBox spacing="10.0" styleClass="player-card" alignment="CENTER_LEFT">
                     <children>
+                        <ImageView fx:id="leagueImageView" fitHeight="40.0" fitWidth="80.0"
+                                   preserveRatio="true">
+                        </ImageView>
                         <VBox HBox.hgrow="ALWAYS">
                             <children>
                                 <HBox alignment="CENTER_LEFT" spacing="4.0">
@@ -40,9 +43,6 @@
                                     </padding>
                                 </HBox>
                                 <HBox spacing="15.0">
-                                    <ImageView fx:id="leagueImageView" fitHeight="20.0" fitWidth="40.0"
-                                               preserveRatio="true">
-                                    </ImageView>
                                     <Label fx:id="leagueLabel" styleClass="player-card-text, uppercase"
                                            text="%leaderboard.divisionName"/>
                                     <Label fx:id="gameCountLabel" styleClass="player-card-text, uppercase"
@@ -80,7 +80,12 @@
                         <Label fx:id="refreshingLabel" styleClass="icon" text="" visible="false"/>
                     </children>
                 </HBox>
-                <FlowPane fx:id="partyMemberPane" hgap="35" vgap="23"/>
+                <GridPane fx:id="partyMemberPane" hgap="35" vgap="23">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="50.0"/>
+                        <ColumnConstraints percentWidth="50.0"/>
+                    </columnConstraints>
+                </GridPane>
                 <Separator/>
                 <Label styleClass="h1-tmm, uppercase" text="%teammatchmaking.queueTitle"/>
                 <HBox fx:id="queueBox" spacing="12.0"/>
