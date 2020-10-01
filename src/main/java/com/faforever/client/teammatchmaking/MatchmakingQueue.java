@@ -8,6 +8,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import org.springframework.scheduling.TaskScheduler;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -19,6 +20,7 @@ public class MatchmakingQueue {
   private IntegerProperty partiesInQueue;
   private IntegerProperty playersInQueue;
   private BooleanProperty joined;
+  private ObjectProperty<MatchingStatus> matchingStatus;
 
   public MatchmakingQueue(String queueName) {
     this.queueName = new SimpleStringProperty(queueName);
@@ -27,6 +29,32 @@ public class MatchmakingQueue {
     this.partiesInQueue = new SimpleIntegerProperty(0);
     this.playersInQueue = new SimpleIntegerProperty(0);
     this.joined = new SimpleBooleanProperty(false);
+    this.matchingStatus = new SimpleObjectProperty<>(null);
+  }
+
+  public void setTimedOutMatchingStatus(MatchingStatus status, Duration timeout, TaskScheduler taskScheduler) {
+    setMatchingStatus(status);
+    taskScheduler.schedule(() -> {
+      if (getMatchingStatus() == status) {
+        setMatchingStatus(null);
+      }
+    }, Instant.now().plus(timeout));
+  }
+
+  public static enum MatchingStatus {
+    MATCH_FOUND, GAME_LAUNCHING, MATCH_CANCELLED
+  }
+
+  public MatchingStatus getMatchingStatus() {
+    return matchingStatus.get();
+  }
+
+  public ObjectProperty<MatchingStatus> matchingStatusProperty() {
+    return matchingStatus;
+  }
+
+  public void setMatchingStatus(MatchingStatus matchingStatus) {
+    this.matchingStatus.set(matchingStatus);
   }
 
   public String getQueueName() {

@@ -1,5 +1,6 @@
 package com.faforever.client.teammatchmaking;
 
+import com.faforever.client.game.Faction;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.domain.PartyInfoMessage;
@@ -12,8 +13,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -43,12 +42,19 @@ public class Party {
         .getPlayersByIds(message.getMembers().stream().map(PartyInfoMessage.PartyMember::getPlayer).collect(Collectors.toList()))
         .thenAccept(players -> {
           List<PartyMember> members = message.getMembers().stream().map(member -> {
-            Optional<Player> player = players.stream().filter(playerToBeFiltered -> playerToBeFiltered.getId() == member.getPlayer()).findFirst();
+            Optional<Player> player;
+            if (playerService.getCurrentPlayer().map(Player::getId).map(id -> id.equals(member.getPlayer())).orElse(false)) {
+              player = playerService.getCurrentPlayer(); // The player found by the search below might contain less information (e.g. a missing flag)
+            } else {
+              player = players.stream().filter(playerToBeFiltered -> playerToBeFiltered.getId() == member.getPlayer()).findFirst();
+            }
+
             if (!player.isPresent()) {
               log.warn("Could not find party member {}", member.getPlayer());
               return null;
+            } else {
+              return new PartyMember(player.get(), member.getReady(), member.getFactions());
             }
-            return new PartyMember(player.get(), member.getReady(), member.getFactions());
           }).filter(Objects::nonNull).collect(Collectors.toList());
           //TODO: this is a race condition. The api might answer with big delay and then server message order might be changed.
           Platform.runLater(() -> this.members.setAll(members));
@@ -80,12 +86,12 @@ public class Party {
   public static class PartyMember {
     private final Player player;
     private boolean ready;  // no properties used as this object is recreated for each recevied party info message
-    private List<Boolean> factions;
+    private List<Faction> factions;
 
     public PartyMember(Player player) {
       this.player = player;
       this.ready = false;
-      this.factions = new ArrayList<>(Arrays.asList(false, false, false, false));
+      this.factions = Collections.emptyList();
     }
   }
 }

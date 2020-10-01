@@ -13,7 +13,6 @@ import com.faforever.client.preferences.Ladder1v1Prefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
-import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue.QueueName;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.eventbus.EventBus;
@@ -104,7 +103,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
 
     when(leaderboardService.getLadder1v1Stats()).thenReturn(CompletableFuture.completedFuture(new ArrayList<>()));
     when(leaderboardService.getEntryForPlayer(PLAYER_ID)).thenReturn(CompletableFuture.completedFuture(leaderboardEntry));
-    when(gameService.searching1v1Property()).thenReturn(searching1v1Property);
+    when(gameService.inMatchmakerQueueProperty()).thenReturn(searching1v1Property);
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getLadder1v1Prefs()).thenReturn(ladder1V1Prefs);
     when(ladder1V1Prefs.getFactions()).thenReturn(factionList);
@@ -147,7 +146,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
   public void testOnCancelButtonClicked() throws Exception {
     instance.onCancelButtonClicked();
 
-    verify(gameService).stopSearchLadder1v1();
+    verify(gameService).onMatchmakerSearchStopped();
     assertThat(instance.cancelButton.isVisible(), is(false));
     assertThat(instance.playButton.isVisible(), is(true));
     assertThat(instance.searchingForOpponentLabel.isVisible(), is(false));
@@ -213,7 +212,7 @@ public class Ladder1V1ControllerTest extends AbstractPlainJavaFxTest {
     
     MatchmakerInfoMessage message = new MatchmakerInfoMessage();
     String timeString = DateTimeFormatter.ISO_INSTANT.format(Instant.now().plusSeconds(65));
-    message.setQueues(List.of(new MatchmakerInfoMessage.MatchmakerQueue(QueueName.LADDER_1V1, timeString, null, null)));
+    message.setQueues(List.of(new MatchmakerInfoMessage.MatchmakerQueue("ladder1v1", timeString, 1, 0, null, null)));
     
     listenerCaptor.getValue().accept(message);
     WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> instance.timeUntilQueuePopLabel.isVisible());

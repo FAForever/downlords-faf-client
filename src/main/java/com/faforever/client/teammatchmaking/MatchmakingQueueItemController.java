@@ -7,20 +7,15 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
-import com.jfoenix.controls.JFXButton;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.image.ImageView;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -28,6 +23,7 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.time.Instant;
 
+import static javafx.beans.binding.Bindings.createBooleanBinding;
 import static javafx.beans.binding.Bindings.createStringBinding;
 
 @Component
@@ -54,6 +50,13 @@ public class MatchmakingQueueItemController implements Controller<Node> {
   public ToggleButton joinLeaveQueueButton;
   @FXML
   public Label refreshingLabel;
+  @FXML
+  public Label matchFoundLabel;
+  @FXML
+  public Label matchStartingLabel;
+  @FXML
+  public Label matchCancelledLabel;
+
 
   private Timeline queuePopTimeUpdater;
 
@@ -99,6 +102,33 @@ public class MatchmakingQueueItemController implements Controller<Node> {
             i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue()),
         queue.playersInQueueProperty()));
 
+    matchFoundLabel.visibleProperty().bind(matchFoundLabel.managedProperty());
+    matchStartingLabel.visibleProperty().bind(matchStartingLabel.managedProperty());
+    matchCancelledLabel.visibleProperty().bind(matchCancelledLabel.managedProperty());
+    queue.matchingStatusProperty().addListener((observable, oldValue, newValue) -> {
+      disableMatchStatus();
+      if (newValue == null) {
+        return;
+      }
+      switch (newValue) {
+        case MATCH_FOUND:
+          matchFoundLabel.setManaged(true);
+          break;
+        case GAME_LAUNCHING:
+          matchStartingLabel.setManaged(true);
+          break;
+        case MATCH_CANCELLED:
+          matchCancelledLabel.setManaged(true);
+          break;
+      }
+    });
+
+    joinLeaveQueueButton.disableProperty().bind(createBooleanBinding(
+        () -> teamMatchmakingService.getParty().getMembers().size() > queue.getTeamSize()
+            || !teamMatchmakingService.getParty().getOwner().equals(playerService.getCurrentPlayer().orElse(null)),
+        teamMatchmakingService.getParty().getMembers()
+    ));
+
     queue.joinedProperty().addListener(observable -> refreshingLabel.setVisible(false));
 
     queuePopTimeUpdater = new Timeline(1, new KeyFrame(javafx.util.Duration.seconds(0), (ActionEvent event) -> {
@@ -117,6 +147,12 @@ public class MatchmakingQueueItemController implements Controller<Node> {
     }), new KeyFrame(javafx.util.Duration.seconds(1)));
     queuePopTimeUpdater.setCycleCount(Timeline.INDEFINITE);
     queuePopTimeUpdater.play();
+  }
+
+  public void disableMatchStatus() {
+    matchFoundLabel.setManaged(false);
+    matchStartingLabel.setManaged(false);
+    matchCancelledLabel.setManaged(false);
   }
 
   public void onJoinLeaveQueueClicked(ActionEvent actionEvent) {

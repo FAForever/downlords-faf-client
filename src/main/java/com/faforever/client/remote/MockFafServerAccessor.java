@@ -255,6 +255,20 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
+  public CompletableFuture<GameLaunchMessage> startSearchMatchmaker() {
+    logger.debug("Starting matchmaker game");
+    GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
+    gameLaunchMessage.setUid(123);
+    gameLaunchMessage.setMod(KnownFeaturedMod.DEFAULT.getTechnicalName()); // TODO
+    return CompletableFuture.completedFuture(gameLaunchMessage);
+  }
+
+  @Override
+  public void stopSearchMatchmaker() {
+
+  }
+
+  @Override
   public void stopSearchingRanked() {
     logger.debug("Stopping searching 1v1 match");
   }
@@ -320,7 +334,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public void gameMatchmaking(MatchmakingQueue queue, MatchmakingState state, Faction faction) {
+  public void gameMatchmaking(MatchmakingQueue queue, MatchmakingState state) {
 
   }
 
@@ -355,7 +369,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public void setPartyFactions(boolean[] factions) {
+  public void setPartyFactions(List<Faction> factions) {
 
   }
 

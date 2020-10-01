@@ -1,10 +1,14 @@
 package com.faforever.client.teammatchmaking;
 
+import com.faforever.client.fa.relay.LobbyMode;
 import com.faforever.client.game.Faction;
+import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.Action.ActionCallback;
+import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
@@ -16,18 +20,21 @@ import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.domain.GameLaunchMessage;
+import com.faforever.client.remote.domain.MatchCancelledMessage;
+import com.faforever.client.remote.domain.MatchFoundMessage;
 import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.remote.domain.PartyInfoMessage;
 import com.faforever.client.remote.domain.PartyInviteMessage;
 import com.faforever.client.remote.domain.PartyKickedMessage;
 import com.faforever.client.remote.domain.SearchInfoMessage;
+import com.faforever.client.teammatchmaking.MatchmakingQueue.MatchingStatus;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.util.IdenticonUtil;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.util.Pair;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -43,10 +50,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Random;
 import java.util.concurrent.ScheduledFuture;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Lazy
 @Service
@@ -61,6 +65,7 @@ public class TeamMatchmakingService implements InitializingBean {
   private final EventBus eventBus;
   private final I18n i18n;
   private final TaskScheduler taskScheduler;
+  private final GameService gameService;
 
   @Getter
   private final Party party;
@@ -73,7 +78,7 @@ public class TeamMatchmakingService implements InitializingBean {
 
   }
 
-  public TeamMatchmakingService(FafServerAccessor fafServerAccessor, PlayerService playerService, NotificationService notificationService, PreferencesService preferencesService, FafService fafService, EventBus eventBus, I18n i18n, TaskScheduler taskScheduler) {
+  public TeamMatchmakingService(FafServerAccessor fafServerAccessor, PlayerService playerService, NotificationService notificationService, PreferencesService preferencesService, FafService fafService, EventBus eventBus, I18n i18n, TaskScheduler taskScheduler, GameService gameService) {
     this.fafServerAccessor = fafServerAccessor;
     this.playerService = playerService;
     this.notificationService = notificationService;
@@ -82,12 +87,16 @@ public class TeamMatchmakingService implements InitializingBean {
     this.eventBus = eventBus;
     this.i18n = i18n;
     this.taskScheduler = taskScheduler;
+    this.gameService = gameService;
 
-    fafServerAccessor.addOnMessageListener(PartyInviteMessage.class, this::onPartyInvite);
-    fafServerAccessor.addOnMessageListener(PartyKickedMessage.class, this::onPartyKicked);
-    fafServerAccessor.addOnMessageListener(PartyInfoMessage.class, this::onPartyInfo);
-    fafServerAccessor.addOnMessageListener(SearchInfoMessage.class, this::onSearchInfoMessage);
-    fafServerAccessor.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
+    fafService.addOnMessageListener(PartyInviteMessage.class, this::onPartyInvite);
+    fafService.addOnMessageListener(PartyKickedMessage.class, this::onPartyKicked);
+    fafService.addOnMessageListener(PartyInfoMessage.class, this::onPartyInfo);
+    fafService.addOnMessageListener(SearchInfoMessage.class, this::onSearchInfoMessage);
+    fafService.addOnMessageListener(MatchFoundMessage.class, this::onMatchFoundMessage);
+    fafService.addOnMessageListener(MatchCancelledMessage.class, this::onMatchCancelledMessage);
+    fafService.addOnMessageListener(GameLaunchMessage.class, this::onGameLaunchMessage);
+    fafService.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == ConnectionState.DISCONNECTED) {
         Platform.runLater(() -> initParty(playerService.getCurrentPlayer().get()));
       }
@@ -126,29 +135,77 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   private void onSearchInfoMessage(SearchInfoMessage message) {
-    matchmakingQueues.stream().filter(q -> Objects.equals(q.getQueueName(), message.getQueueName())).forEach(q ->
-        Platform.runLater(() -> {
-          q.setJoined(message.getState() == MatchmakingState.START);
-          leaveQueueTimeouts.forEach(f -> f.cancel(false));
-        })
+    matchmakingQueues.stream().filter(q -> Objects.equals(q.getQueueName(), message.getQueueName())).forEach(q -> {
+          Platform.runLater(() -> {
+            q.setJoined(message.getState() == MatchmakingState.START);
+            leaveQueueTimeouts.forEach(f -> f.cancel(false));
+          });
+
+          //TODO: check current state / other queues
+          if (message.getState() == MatchmakingState.START) {
+            gameService.startSearchMatchmaker();
+          }
+        }
     );
+
+    if (matchmakingQueues.stream().noneMatch(MatchmakingQueue::isJoined)) {
+      gameService.onMatchmakerSearchStopped();
+    }
+  }
+
+  private void onMatchFoundMessage(MatchFoundMessage message) {
+    notificationService.addNotification(new TransientNotification(
+        i18n.get("teammatchmaking.notification.matchFound.title"),
+        i18n.get("teammatchmaking.notification.matchFound.message")
+    ));
+    matchmakingQueues.stream().filter(q -> Objects.equals(q.getQueueName(), message.getQueue())).forEach(q -> {
+      q.setTimedOutMatchingStatus(MatchingStatus.MATCH_FOUND, Duration.ofSeconds(15), taskScheduler);
+    });
+
+    matchmakingQueues.forEach(q -> q.setJoined(false));
+  }
+
+  private void onMatchCancelledMessage(MatchCancelledMessage message) {
+    matchmakingQueues.stream().filter(q -> q.getMatchingStatus() != null).forEach(q -> {
+      q.setTimedOutMatchingStatus(MatchingStatus.MATCH_CANCELLED, Duration.ofSeconds(15), taskScheduler);
+    });
+
+    gameService.onMatchmakerSearchStopped(); // joining custom games is still blocked till match is cancelled or launched
+  }
+
+  private void onGameLaunchMessage(GameLaunchMessage message) {
+    if (message.getInitMode() != LobbyMode.AUTO_LOBBY) {
+      return;
+    }
+
+    matchmakingQueues.stream().filter(q -> q.getMatchingStatus() != null).forEach(q -> {
+      q.setTimedOutMatchingStatus(MatchingStatus.GAME_LAUNCHING, Duration.ofSeconds(15), taskScheduler);
+    });
+
+    gameService.onMatchmakerSearchStopped(); // joining custom games is still blocked till match is cancelled or launched
   }
 
   public void joinQueue(MatchmakingQueue queue) {
-    //TODO: remove when the server can pull this from the party system itself
-    Faction faction = party.getMembers().stream()
-        .filter(m -> m.getPlayer() == playerService.getCurrentPlayer().orElse(null)).findFirst()
-        .map(PartyMember::getFactions).map(factionMask -> {
-          List<Faction> factions = IntStream.range(0, 4).mapToObj(i -> new Pair<>(factionMask.get(i), Faction.values()[i]))
-              .filter(Pair::getKey).map(Pair::getValue).collect(Collectors.toList());
-          return factions.isEmpty() ? Faction.AEON : factions.get(new Random().nextInt(factions.size()));
-        }).orElse(Faction.AEON);
+    if (!ensureValidGamePath()) {
+      return;
+    }
 
-    fafServerAccessor.gameMatchmaking(queue, MatchmakingState.START, faction);
+    if (gameService.isGameRunning()) {
+      log.debug("Game is running, ignoring tmm queue join request");
+      notificationService.addNotification(new ImmediateNotification(
+          i18n.get("teammatchmaking.notification.gameAlreadyRunning.title"),
+          i18n.get("teammatchmaking.notification.gameAlreadyRunning.message"),
+          Severity.WARN,
+          Collections.singletonList(new Action(i18n.get("dismiss")))
+      ));
+      return;
+    }
+
+    fafServerAccessor.gameMatchmaking(queue, MatchmakingState.START);
   }
 
   public void leaveQueue(MatchmakingQueue queue) {
-    fafServerAccessor.gameMatchmaking(queue, MatchmakingState.STOP, Faction.UEF);
+    fafServerAccessor.gameMatchmaking(queue, MatchmakingState.STOP);
 
     leaveQueueTimeouts.add(taskScheduler.schedule(
         () -> Platform.runLater(() -> queue.setJoined(false)), Instant.now().plus(Duration.ofSeconds(5))));
@@ -194,11 +251,22 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   private void acceptPartyInvite(Player player) {
+    if (isCurrentlyInQueue()) {
+      notificationService.addNotification(new ImmediateNotification(
+          i18n.get("teammatchmaking.notification.joinAlreadyInQueue.title"),
+          i18n.get("teammatchmaking.notification.joinAlreadyInQueue.message"),
+          Severity.WARN,
+          Collections.singletonList(new Action(i18n.get("dismiss")))
+      ));
+      return;
+    }
+
     if (!ensureValidGamePath()) {
       return;
     }
 
-    fafServerAccessor.acceptPartyInvite(player);
+    fafServerAccessor.acceptPartyInvite(player); // TODO: SHOULD ALL OF THE fafServerAccessor calls be move to fafService????
+    eventBus.post(new OpenTeamMatchmakingEvent());
   }
 
   public void onPartyKicked(PartyKickedMessage message) {
@@ -206,6 +274,16 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   public void invitePlayer(String player) {
+    if (isCurrentlyInQueue()) {
+      notificationService.addNotification(new ImmediateNotification(
+          i18n.get("teammatchmaking.notification.inviteAlreadyInQueue.title"),
+          i18n.get("teammatchmaking.notification.inviteAlreadyInQueue.message"),
+          Severity.WARN,
+          Collections.singletonList(new Action(i18n.get("dismiss")))
+      ));
+      return;
+    }
+
     if (!ensureValidGamePath()) {
       return;
     }
@@ -235,7 +313,7 @@ public class TeamMatchmakingService implements InitializingBean {
     fafServerAccessor.unreadyParty();
   }
 
-  public void setPartyFactions(boolean[] factions) {
+  public void setPartyFactions(List<Faction> factions) {
     fafServerAccessor.setPartyFactions(factions);
   }
 
@@ -245,5 +323,9 @@ public class TeamMatchmakingService implements InitializingBean {
       return false;
     }
     return true;
+  }
+
+  public boolean isCurrentlyInQueue() {
+    return matchmakingQueues.stream().anyMatch(MatchmakingQueue::isJoined);
   }
 }

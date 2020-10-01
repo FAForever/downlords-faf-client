@@ -6,6 +6,7 @@ import com.faforever.client.chat.ChatUserContextMenuController;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.game.Faction;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
@@ -82,15 +83,6 @@ public class PartyMemberItemController implements Controller<Node> {
 
   private ChatChannelUser chatUser;
 
-  private boolean isFactionSelectedInParty(int faction) {
-    return teamMatchmakingService.getParty().getMembers().stream()
-        .anyMatch(m -> m.getPlayer().getId() == player.getId() && m.getFactions().get(faction));
-  }
-
-  public void onKickPlayerButtonClicked(ActionEvent actionEvent) {
-    teamMatchmakingService.kickPlayerFromParty(this.player);
-  }
-
   public PartyMemberItemController(CountryFlagService countryFlagService, AvatarService avatarService, PlayerService playerService, TeamMatchmakingService teamMatchmakingService, UiService uiService, ChatService chatService, I18n i18n) {
     this.countryFlagService = countryFlagService;
     this.avatarService = avatarService;
@@ -106,8 +98,6 @@ public class PartyMemberItemController implements Controller<Node> {
     //TODO: this is a bit hacky, a chat channel user is required to create a context menu as in the chat tab (for foeing/befriending/messaging people...)
     chatUser = new ChatChannelUser(player.getUsername(), chatService.getChatUserColor(player.getUsername()), false, player);
 
-//    userImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
-
     countryImageView.imageProperty().bind(createObjectBinding(() -> countryFlagService.loadCountryFlag(
         StringUtils.isEmpty(player.getCountry()) ? "" : player.getCountry()).orElse(null), player.countryProperty()));
 
@@ -119,7 +109,6 @@ public class PartyMemberItemController implements Controller<Node> {
     clanLabel.textProperty().bind(createStringBinding(() -> Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan()), player.clanProperty()));
 
     usernameLabel.textProperty().bind(player.usernameProperty());
-//    usernameLabel.setText("GGGGGGGGGGGGGGGG"); // TODO: REMOVE
 
     leagueLabel.textProperty().bind(createStringBinding(
         () -> leagueLabel.getStyleClass().contains("uppercase") ?
@@ -134,12 +123,8 @@ public class PartyMemberItemController implements Controller<Node> {
     BooleanBinding isDifferentPlayerBinding = playerService.currentPlayerProperty().isNotEqualTo(player);
     kickPlayerButton.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(playerService.currentPlayerProperty()).and(isDifferentPlayerBinding));
     kickPlayerButton.managedProperty().bind(kickPlayerButton.visibleProperty());
-//    kickPlayerButton.visibleProperty().set(true); // TODO: remove
 
-      aeonLabel.setDisable(!isFactionSelectedInParty(0));
-      cybranLabel.setDisable(!isFactionSelectedInParty(1));
-      uefLabel.setDisable(!isFactionSelectedInParty(2));
-      seraphimLabel.setDisable(!isFactionSelectedInParty(3));
+    selectFactionsBasedOnParty();
 
       boolean ready = teamMatchmakingService.getParty().getMembers().stream()
           .anyMatch(m -> m.getPlayer().getId() == player.getId() && m.isReady());
@@ -150,6 +135,22 @@ public class PartyMemberItemController implements Controller<Node> {
       if (!ready) {
         classes.remove("card-playerReady");
       }
+  }
+
+  private void selectFactionsBasedOnParty() {
+    uefLabel.setDisable(isFactionSelectedInParty(Faction.UEF));
+    aeonLabel.setDisable(isFactionSelectedInParty(Faction.AEON));
+    cybranLabel.setDisable(isFactionSelectedInParty(Faction.CYBRAN));
+    seraphimLabel.setDisable(isFactionSelectedInParty(Faction.SERAPHIM));
+  }
+
+  private boolean isFactionSelectedInParty(Faction faction) {
+    return teamMatchmakingService.getParty().getMembers().stream()
+        .anyMatch(m -> m.getPlayer().getId() == player.getId() && m.getFactions().contains(faction));
+  }
+
+  public void onKickPlayerButtonClicked(ActionEvent actionEvent) {
+    teamMatchmakingService.kickPlayerFromParty(this.player);
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {

@@ -3,6 +3,7 @@ package com.faforever.client.teammatchmaking;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.game.Faction;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowLadderMapsEvent;
 import com.faforever.client.player.Player;
@@ -34,6 +35,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static javafx.beans.binding.Bindings.createBooleanBinding;
@@ -124,9 +126,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       });
     });
 
-    invitePlayerButton.managedProperty().bind(invitePlayerButton.visibleProperty());
-    invitePlayerButton.visibleProperty().bind(createBooleanBinding(
-        () -> teamMatchmakingService.getParty().getOwner().getId() == playerService.getCurrentPlayer().map(Player::getId).orElse(-1),
+    invitePlayerButton.disableProperty().bind(createBooleanBinding(
+        () -> teamMatchmakingService.getParty().getOwner().getId() != playerService.getCurrentPlayer().map(Player::getId).orElse(-1),
         teamMatchmakingService.getParty().ownerProperty(),
         playerService.currentPlayerProperty()
     ));
@@ -193,12 +194,19 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   }
 
   public void onFactionButtonClicked(ActionEvent actionEvent) {
-    boolean[] factions = {
-        aeonButton.isSelected(),
-        cybranButton.isSelected(),
-        uefButton.isSelected(),
-        seraphimButton.isSelected()
-    };
+    List<Faction> factions = new ArrayList<>();
+    if (uefButton.isSelected()) {
+      factions.add(Faction.UEF);
+    }
+    if (aeonButton.isSelected()) {
+      factions.add(Faction.AEON);
+    }
+    if (cybranButton.isSelected()) {
+      factions.add(Faction.CYBRAN);
+    }
+    if (seraphimButton.isSelected()) {
+      factions.add(Faction.SERAPHIM);
+    }
 
     teamMatchmakingService.setPartyFactions(factions);
 
