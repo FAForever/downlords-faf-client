@@ -12,6 +12,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.awt.Desktop;
 import java.nio.file.Path;
 
 /**
@@ -28,8 +29,12 @@ public class FileOpeningHandler implements ApplicationRunner, InitializingBean {
 
   @Override
   public void afterPropertiesSet() {
-    log.debug("Registering file opening handler: {}", this.getClass().getName());
-    StartupNotification.registerStartupListener(this::onStartup);
+    if (Desktop.isDesktopSupported()) {
+      log.debug("Registering file opening handler: {}", this.getClass().getName());
+      StartupNotification.registerStartupListener(this::onStartup);
+    } else {
+      log.warn("This desktop is not supported by awt therefore file opening handler was not registered");
+    }
   }
 
   private void onStartup(String parameters) {
