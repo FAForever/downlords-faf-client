@@ -1114,10 +1114,6 @@
   -fx-font-size: 24px;
 }
 
-.card-playerReady {
-  -fx-background-color: #00400f !important;
-}
-
 .factionindicator .text {
   -fx-font-size: 18;
 }

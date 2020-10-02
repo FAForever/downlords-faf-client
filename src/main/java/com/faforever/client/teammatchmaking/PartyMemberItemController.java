@@ -16,7 +16,6 @@ import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Strings;
 import com.jfoenix.controls.JFXButton;
 import javafx.beans.binding.BooleanBinding;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -125,23 +124,13 @@ public class PartyMemberItemController implements Controller<Node> {
     kickPlayerButton.managedProperty().bind(kickPlayerButton.visibleProperty());
 
     selectFactionsBasedOnParty();
-
-      boolean ready = teamMatchmakingService.getParty().getMembers().stream()
-          .anyMatch(m -> m.getPlayer().getId() == player.getId() && m.isReady());
-      ObservableList<String> classes = playerItemRoot.getStyleClass();
-      if (ready && !classes.contains("card-playerReady")) {
-        classes.add("card-playerReady");
-      }
-      if (!ready) {
-        classes.remove("card-playerReady");
-      }
   }
 
   private void selectFactionsBasedOnParty() {
-    uefLabel.setDisable(isFactionSelectedInParty(Faction.UEF));
-    aeonLabel.setDisable(isFactionSelectedInParty(Faction.AEON));
-    cybranLabel.setDisable(isFactionSelectedInParty(Faction.CYBRAN));
-    seraphimLabel.setDisable(isFactionSelectedInParty(Faction.SERAPHIM));
+    uefLabel.setDisable(!isFactionSelectedInParty(Faction.UEF));
+    aeonLabel.setDisable(!isFactionSelectedInParty(Faction.AEON));
+    cybranLabel.setDisable(!isFactionSelectedInParty(Faction.CYBRAN));
+    seraphimLabel.setDisable(!isFactionSelectedInParty(Faction.SERAPHIM));
   }
 
   private boolean isFactionSelectedInParty(Faction faction) {

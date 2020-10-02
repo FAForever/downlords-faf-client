@@ -194,6 +194,12 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   }
 
   public void onFactionButtonClicked(ActionEvent actionEvent) {
+
+    if (!uefButton.isSelected() && !aeonButton.isSelected() && !cybranButton.isSelected() && !seraphimButton.isSelected()) {
+      selectFactionsBasedOnParty();
+      return;
+    }
+
     List<Faction> factions = new ArrayList<>();
     if (uefButton.isSelected()) {
       factions.add(Faction.UEF);
@@ -211,5 +217,17 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     teamMatchmakingService.setPartyFactions(factions);
 
     refreshingLabel.setVisible(true);
+  }
+
+  private void selectFactionsBasedOnParty() {
+    uefButton.setSelected(isFactionSelectedInParty(Faction.UEF));
+    aeonButton.setSelected(isFactionSelectedInParty(Faction.AEON));
+    cybranButton.setSelected(isFactionSelectedInParty(Faction.CYBRAN));
+    seraphimButton.setSelected(isFactionSelectedInParty(Faction.SERAPHIM));
+  }
+
+  private boolean isFactionSelectedInParty(Faction faction) {
+    return teamMatchmakingService.getParty().getMembers().stream()
+        .anyMatch(m -> m.getPlayer().getId() == player.getId() && m.getFactions().contains(faction));
   }
 }
