@@ -28,6 +28,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 @Slf4j
 @Component
@@ -41,6 +42,7 @@ public class MapVaultController extends VaultEntityController<MapBean> {
   private final EventBus eventBus;
 
   private MapDetailController mapDetailController;
+  private int recommendedShowRoomPageCount = 1;
 
   public MapVaultController(MapService mapService, I18n i18n, EventBus eventBus, PreferencesService preferencesService,
                             UiService uiService, NotificationService notificationService, ReportingService reportingService) {
@@ -58,6 +60,9 @@ public class MapVaultController extends VaultEntityController<MapBean> {
     searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().mapSortConfigProperty());
     searchController.setOnlyShowLastYearCheckBoxVisible(false, false);
 
+    preferencesService.getRemotePreferencesAsync().thenAccept(clientConfiguration ->
+        recommendedShowRoomPageCount = clientConfiguration.getRecommendedMaps().size() / TOP_ELEMENT_COUNT);
+
     eventBus.register(this);
   }
 
@@ -71,27 +76,13 @@ public class MapVaultController extends VaultEntityController<MapBean> {
 
   protected void setSupplier(SearchConfig searchConfig) {
     switch (searchType) {
-      case SEARCH:
-        currentSupplier = mapService.findByQueryWithPageCount(searchConfig, pageSize, pagination.getCurrentPageIndex() + 1);
-        break;
-      case RECOMMENDED:
-        currentSupplier = mapService.getRecommendedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-        break;
-      case NEWEST:
-        currentSupplier = mapService.getNewestMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-        break;
-      case HIGHEST_RATED:
-        currentSupplier = mapService.getHighestRatedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-        break;
-      case PLAYED:
-        currentSupplier = mapService.getMostPlayedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-        break;
-      case LADDER:
-        currentSupplier = mapService.getLadderMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-        break;
-      case OWN:
-        currentSupplier = mapService.getOwnedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-        break;
+      case SEARCH -> currentSupplier = mapService.findByQueryWithPageCount(searchConfig, pageSize, pagination.getCurrentPageIndex() + 1);
+      case RECOMMENDED -> currentSupplier = mapService.getRecommendedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
+      case NEWEST -> currentSupplier = mapService.getNewestMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
+      case HIGHEST_RATED -> currentSupplier = mapService.getHighestRatedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
+      case PLAYED -> currentSupplier = mapService.getMostPlayedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
+      case LADDER -> currentSupplier = mapService.getLadderMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
+      case OWN -> currentSupplier = mapService.getOwnedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
     }
   }
 
@@ -104,8 +95,16 @@ public class MapVaultController extends VaultEntityController<MapBean> {
 
   @Override
   protected List<ShowRoomCategory> getShowRoomCategories() {
+    Random random = new Random();
+    int recommendedPage;
+    if (recommendedShowRoomPageCount > 0) {
+      recommendedPage = random.nextInt(recommendedShowRoomPageCount) + 1;
+    } else {
+      recommendedPage = 1;
+    }
+
     return Arrays.asList(
-        new ShowRoomCategory(() -> mapService.getRecommendedMapsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.RECOMMENDED, "mapVault.recommended"),
+        new ShowRoomCategory(() -> mapService.getRecommendedMapsWithPageCount(TOP_ELEMENT_COUNT, recommendedPage), SearchType.RECOMMENDED, "mapVault.recommended"),
         new ShowRoomCategory(() -> mapService.getHighestRatedMapsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.HIGHEST_RATED, "mapVault.mostLikedMaps"),
         new ShowRoomCategory(() -> mapService.getNewestMapsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.NEWEST, "mapVault.newestMaps"),
         new ShowRoomCategory(() -> mapService.getMostPlayedMapsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.PLAYED, "mapVault.mostPlayed"),
