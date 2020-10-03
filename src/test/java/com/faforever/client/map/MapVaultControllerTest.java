@@ -12,7 +12,9 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.update.ClientConfiguration;
 import com.faforever.client.util.Tuple;
+import com.faforever.client.vault.VaultEntityController;
 import com.faforever.client.vault.VaultEntityController.SearchType;
+import com.faforever.client.vault.VaultEntityController.ShowRoomCategory;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
@@ -25,6 +27,7 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -133,10 +136,23 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testShowMapDetail() {
     MapBean mapBean = MapBeanBuilder.create().defaultValues().get();
-    Platform.runLater(()-> instance.onDisplayDetails(mapBean));
+    Platform.runLater(() -> instance.onDisplayDetails(mapBean));
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(mapDetailController).setMap(mapBean);
     assertThat(mapDetailController.getRoot().isVisible(), is(true));
+  }
+
+  @Test
+  public void testGetShowRoomCategories() {
+    List<VaultEntityController<MapBean>.ShowRoomCategory> categories = instance.getShowRoomCategories();
+    for (ShowRoomCategory category : categories) {
+      category.getEntitySupplier().get();
+    }
+    verify(mapService).getHighestRatedMapsWithPageCount(anyInt(), anyInt());
+    verify(mapService).getNewestMapsWithPageCount(anyInt(), anyInt());
+    verify(mapService).getMostPlayedMapsWithPageCount(anyInt(), anyInt());
+    verify(mapService).getRecommendedMapsWithPageCount(anyInt(), anyInt());
+    verify(mapService).getOwnedMapsWithPageCount(anyInt(), anyInt());
   }
 }

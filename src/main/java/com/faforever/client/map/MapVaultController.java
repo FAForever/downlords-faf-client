@@ -42,7 +42,7 @@ public class MapVaultController extends VaultEntityController<MapBean> {
   private final EventBus eventBus;
 
   private MapDetailController mapDetailController;
-  private int recommendedShowRoomPageCount = 1;
+  private Integer recommendedShowRoomPageCount;
 
   public MapVaultController(MapService mapService, I18n i18n, EventBus eventBus, PreferencesService preferencesService,
                             UiService uiService, NotificationService notificationService, ReportingService reportingService) {
@@ -61,7 +61,12 @@ public class MapVaultController extends VaultEntityController<MapBean> {
     searchController.setOnlyShowLastYearCheckBoxVisible(false, false);
 
     preferencesService.getRemotePreferencesAsync().thenAccept(clientConfiguration ->
-        recommendedShowRoomPageCount = clientConfiguration.getRecommendedMaps().size() / TOP_ELEMENT_COUNT);
+        recommendedShowRoomPageCount = clientConfiguration.getRecommendedMaps().size() / TOP_ELEMENT_COUNT)
+        .exceptionally(throwable -> {
+          recommendedShowRoomPageCount = null;
+          log.warn("Client Configuration get recommended maps failed", throwable);
+          return null;
+        });
 
     eventBus.register(this);
   }
@@ -97,7 +102,7 @@ public class MapVaultController extends VaultEntityController<MapBean> {
   protected List<ShowRoomCategory> getShowRoomCategories() {
     Random random = new Random();
     int recommendedPage;
-    if (recommendedShowRoomPageCount > 0) {
+    if (recommendedShowRoomPageCount != null && recommendedShowRoomPageCount > 0) {
       recommendedPage = random.nextInt(recommendedShowRoomPageCount) + 1;
     } else {
       recommendedPage = 1;
