@@ -101,20 +101,17 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan()), player.clanProperty()));
     usernameLabel.textProperty().bind(player.usernameProperty());
     teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> {
-      List<PartyMember> members = teamMatchmakingService.getParty().getMembers();
+      List<PartyMember> members = new ArrayList<>(teamMatchmakingService.getParty().getMembers());
       partyMemberPane.getChildren().clear();
-      members.iterator().forEachRemaining(member -> {
-        if (member.getPlayer().equals(player)) {
-          return;
-        }
+      members.removeIf(partyMember -> partyMember.getPlayer().equals(player));
+      for(int i = 0; i < members.size(); i++) {
         PartyMemberItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_member_card.fxml");
-        controller.setMember(member);
-        int index = members.indexOf(member);
-        if (members.size() == 2) // Player + 1 teammember
+        controller.setMember(members.get(i));
+        if (members.size() == 1)
           partyMemberPane.add(controller.getRoot(), 0, 0, 2, 1);
         else
-          partyMemberPane.add(controller.getRoot(), index % 2, index / 2);
-      });
+          partyMemberPane.add(controller.getRoot(), i % 2, i / 2);
+      }
     });
 
     teamMatchmakingService.getMatchmakingQueues().addListener((Observable o) -> {
