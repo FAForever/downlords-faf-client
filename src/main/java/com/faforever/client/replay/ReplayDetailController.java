@@ -45,6 +45,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -74,6 +75,7 @@ public class ReplayDetailController implements Controller<Node> {
   private final PlayerService playerService;
   private final ClientProperties clientProperties;
   private final ReviewService reviewService;
+  private final ArrayList<TeamCardController> teamCardControllers = new ArrayList<>();
   public Pane replayDetailRoot;
   public Label titleLabel;
   public Button copyButton;
@@ -102,10 +104,10 @@ public class ReplayDetailController implements Controller<Node> {
   public TextField replayIdField;
   public ScrollPane scrollPane;
   public Button showRatingChangeButton;
+  public Label notRatedReasonLabel;
   @Setter
   private Runnable onClosure;
   private Replay replay;
-  private ArrayList<TeamCardController> teamCardControllers = new ArrayList<>();
   private ObservableMap<String, List<PlayerStats>> teams;
 
   public void initialize() {
@@ -143,6 +145,8 @@ public class ReplayDetailController implements Controller<Node> {
     playerCountLabel.setTooltip(new Tooltip(i18n.get("replay.playerCountTooltip")));
     ratingLabel.setTooltip(new Tooltip(i18n.get("replay.ratingTooltip")));
     qualityLabel.setTooltip(new Tooltip(i18n.get("replay.qualityTooltip")));
+    showRatingChangeButton.managedProperty().bind(showRatingChangeButton.visibleProperty());
+    notRatedReasonLabel.managedProperty().bind(notRatedReasonLabel.visibleProperty());
 
     onClosure = () -> ((Pane) replayDetailRoot.getParent()).getChildren().remove(replayDetailRoot);
   }
@@ -180,9 +184,9 @@ public class ReplayDetailController implements Controller<Node> {
     }
 
     modLabel.setText(
-      Optional.ofNullable(replay.getFeaturedMod())
-        .map(mod -> mod.getDisplayName())
-        .orElseGet(() -> i18n.get("unknown"))
+        Optional.ofNullable(replay.getFeaturedMod())
+            .map(mod -> mod.getDisplayName())
+            .orElseGet(() -> i18n.get("unknown"))
     );
     playerCountLabel.setText(i18n.number(replay.getTeams().values().stream().mapToInt(List::size).sum()));
     double gameQuality = ratingService.calculateQuality(replay);
@@ -283,16 +287,7 @@ public class ReplayDetailController implements Controller<Node> {
   private void populateTeamsContainer() {
     teamsContainer.getChildren().clear();
     teamCardControllers.clear();
-    if (!replay.getValidity().equals(Validity.VALID)) {
-      showRatingChangeButton.setDisable(true);
-      showRatingChangeButton.setText(i18n.get("game.notValid"));
-    } else if (!replayService.replayChangedRating(replay)) {
-      showRatingChangeButton.setDisable(true);
-      showRatingChangeButton.setText(i18n.get("game.notRatedYet"));
-    } else {
-      showRatingChangeButton.setDisable(false);
-      showRatingChangeButton.setText(i18n.get("game.showRatingChange"));
-    }
+    configureRatingControls();
     Map<Integer, PlayerStats> statsByPlayerId = teams.values().stream()
         .flatMap(Collection::stream)
         .collect(Collectors.toMap(PlayerStats::getPlayerId, Function.identity()));
@@ -320,6 +315,28 @@ public class ReplayDetailController implements Controller<Node> {
 
       teamsContainer.getChildren().add(controller.getRoot());
     }));
+  }
+
+  private void configureRatingControls() {
+    if (!replay.getValidity().equals(Validity.VALID)) {
+      showRatingChangeButton.setVisible(false);
+      notRatedReasonLabel.setVisible(true);
+      String reasonText;
+      try {
+        reasonText = i18n.get("game.reasonNotValid", i18n.get(replay.getValidity().getI18nKey()));
+      } catch (NoSuchMessageException e) {
+        reasonText = replay.getValidity().toString();
+      }
+      notRatedReasonLabel.setText(reasonText);
+    } else if (!replayService.replayChangedRating(replay)) {
+      showRatingChangeButton.setVisible(false);
+      notRatedReasonLabel.setVisible(true);
+      notRatedReasonLabel.setText(i18n.get("game.notRatedYet"));
+    } else {
+      showRatingChangeButton.setVisible(true);
+      showRatingChangeButton.setDisable(false);
+      notRatedReasonLabel.setVisible(false);
+    }
   }
 
   @Override
