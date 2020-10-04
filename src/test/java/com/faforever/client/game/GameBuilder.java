@@ -32,7 +32,7 @@ public class GameBuilder {
     game.setTitle("Title");
     game.setTeams(FXCollections.emptyObservableMap());
     game.setId(1);
-    game.setMaxRating(800);
+    game.setMinRating(800);
     game.setMaxRating(1300);
     game.setStartTime(Instant.now());
     game.setGameType(GameType.CUSTOM);
