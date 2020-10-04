@@ -2,7 +2,6 @@ package com.faforever.client.game;
 
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameStatus;
-import com.faforever.client.remote.domain.VictoryCondition;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,7 +74,7 @@ public class GameInfoMessageBuilder {
     return this;
   }
 
-  public GameInfoMessageBuilder gameType(VictoryCondition gameType) {
+  public GameInfoMessageBuilder gameType(String gameType) {
     gameInfoMessage.setGameType(gameType);
     return this;
   }
