@@ -16,12 +16,14 @@ import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Strings;
 import com.jfoenix.controls.JFXButton;
 import javafx.beans.binding.BooleanBinding;
+import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
+import javafx.scene.layout.HBox;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -35,6 +37,8 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class PartyMemberItemController implements Controller<Node> {
+
+  private static final PseudoClass LEADER_PSEUDO_CLASS = PseudoClass.getPseudoClass("leader");
 
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
@@ -65,6 +69,8 @@ public class PartyMemberItemController implements Controller<Node> {
   public Label aeonLabel;
   public Label seraphimLabel;
   public ImageView leagueImageView;
+  public Label crownLabel;
+  public HBox playerCard;
 
   private Player player;
   //TODO: this is a bit hacky
@@ -122,6 +128,8 @@ public class PartyMemberItemController implements Controller<Node> {
     BooleanBinding isDifferentPlayerBinding = playerService.currentPlayerProperty().isNotEqualTo(player);
     kickPlayerButton.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(playerService.currentPlayerProperty()).and(isDifferentPlayerBinding));
     kickPlayerButton.managedProperty().bind(kickPlayerButton.visibleProperty());
+    crownLabel.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(player));
+    playerCard.pseudoClassStateChanged(LEADER_PSEUDO_CLASS, teamMatchmakingService.getParty().getOwner().equals(player));
 
     selectFactionsBasedOnParty();
   }

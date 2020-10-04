@@ -1033,6 +1033,10 @@
   -fx-border-width: 1;
 }
 
+.player-card:leader {
+  -fx-border-color: #dddddd;
+}
+
 .h1-tmm {
   -fx-font-size: 24px;
   -fx-padding: -9 0 -9 16;
@@ -1062,10 +1066,6 @@
   -fx-font-size: 14px;
   -fx-font-family: 'Source Sans Pro';
   -fx-text-fill: #8f8f8f;
-}
-
-.leader{
-  -fx-border-color: #dddddd;
 }
 
 .invite-button {

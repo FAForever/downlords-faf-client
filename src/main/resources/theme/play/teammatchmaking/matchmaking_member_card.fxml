@@ -7,51 +7,63 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
-<HBox xmlns:fx="http://javafx.com/fxml/1" fx:id="playerItemRoot" prefHeight="75.0" spacing="10.0"
-         xmlns="http://javafx.com/javafx/11.0.1" onContextMenuRequested="#onContextMenuRequested" styleClass="player-card"
-         fx:controller="com.faforever.client.teammatchmaking.PartyMemberItemController" alignment="CENTER_LEFT">
-    <ImageView fx:id="leagueImageView" fitHeight="40.0" fitWidth="80.0" pickOnBounds="true"
-               preserveRatio="true"/>
-    <VBox HBox.hgrow="ALWAYS">
-        <HBox spacing="4.0">
-            <HBox alignment="CENTER_LEFT" spacing="4.0" HBox.hgrow="ALWAYS" >
-                <children>
-                    <Label fx:id="clanLabel" styleClass="clan" text="[CLAN]" />
-                    <Label fx:id="usernameLabel" styleClass="member-name" text="&lt;Username&gt;" />
-                    <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" preserveRatio="true">
-                        <HBox.margin>
-                            <Insets left="5.0"/>
-                        </HBox.margin>
-                    </ImageView>
-                </children>
-                <padding>
-                    <Insets top="2.0" />
-                </padding>
-            </HBox>
-            <JFXButton fx:id="kickPlayerButton" onAction="#onKickPlayerButtonClicked" text=""
-                       styleClass="icon-button" />
-            <Pane HBox.hgrow="ALWAYS" />
-            <HBox spacing="5.0" alignment="CENTER_LEFT">
-                <Label fx:id="uefLabel" styleClass="icon, factionindicator, uef" text="" />
-                <Label fx:id="cybranLabel" styleClass="icon, factionindicator, cybran" text=""/>
-                <Label fx:id="aeonLabel" styleClass="icon, factionindicator, aeon" text=""/>
-                <Label fx:id="seraphimLabel" styleClass="icon, factionindicator, seraphim" text="" HBox.hgrow="ALWAYS"/>
-            </HBox>
-        </HBox>
-        <HBox spacing="15.0" alignment="CENTER_LEFT">
-            <children>
-                <Label fx:id="leagueLabel" text="%leaderboard.divisionName" styleClass="player-card-text, uppercase" />
-                <Label fx:id="gameCountLabel" text="%teammatchmaking.gameCount" styleClass="player-card-text, uppercase" />
-                <HBox HBox.hgrow="ALWAYS" alignment="CENTER_RIGHT">
-                    <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="36.0" preserveRatio="true" />
-                    <padding>
-                        <Insets right="1.0" />
-                    </padding>
+<?import javafx.scene.layout.AnchorPane?>
+<AnchorPane fx:id="playerItemRoot" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            onContextMenuRequested="#onContextMenuRequested"
+            fx:controller="com.faforever.client.teammatchmaking.PartyMemberItemController">
+    <children>
+        <HBox fx:id="playerCard" prefHeight="75.0" spacing="10.0" styleClass="player-card" alignment="CENTER_LEFT"
+              AnchorPane.topAnchor="20.0" AnchorPane.leftAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+            <ImageView fx:id="leagueImageView" fitHeight="40.0" fitWidth="80.0" pickOnBounds="true"
+                       preserveRatio="true"/>
+            <VBox HBox.hgrow="ALWAYS">
+                <HBox spacing="4.0">
+                    <HBox alignment="CENTER_LEFT" spacing="4.0" HBox.hgrow="ALWAYS" >
+                        <children>
+                            <Label fx:id="clanLabel" styleClass="clan" text="[CLAN]" />
+                            <Label fx:id="usernameLabel" styleClass="member-name" text="&lt;Username&gt;" />
+                            <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" preserveRatio="true">
+                                <HBox.margin>
+                                    <Insets left="5.0"/>
+                                </HBox.margin>
+                            </ImageView>
+                        </children>
+                        <padding>
+                            <Insets top="2.0" />
+                        </padding>
+                    </HBox>
+                    <JFXButton fx:id="kickPlayerButton" onAction="#onKickPlayerButtonClicked" text=""
+                               styleClass="icon-button" />
+                    <Pane HBox.hgrow="ALWAYS" />
+                    <HBox spacing="5.0" alignment="CENTER_LEFT">
+                        <Label fx:id="uefLabel" styleClass="icon, factionindicator, uef" text="" />
+                        <Label fx:id="cybranLabel" styleClass="icon, factionindicator, cybran" text=""/>
+                        <Label fx:id="aeonLabel" styleClass="icon, factionindicator, aeon" text=""/>
+                        <Label fx:id="seraphimLabel" styleClass="icon, factionindicator, seraphim" text="" HBox.hgrow="ALWAYS"/>
+                    </HBox>
                 </HBox>
-            </children>
+                <HBox spacing="15.0" alignment="CENTER_LEFT">
+                    <children>
+                        <Label fx:id="leagueLabel" text="%leaderboard.divisionName" styleClass="player-card-text, uppercase" />
+                        <Label fx:id="gameCountLabel" text="%teammatchmaking.gameCount" styleClass="player-card-text, uppercase" />
+                        <HBox HBox.hgrow="ALWAYS" alignment="CENTER_RIGHT">
+                            <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="36.0" preserveRatio="true" />
+                            <padding>
+                                <Insets right="1.0" />
+                            </padding>
+                        </HBox>
+                    </children>
+                </HBox>
+            </VBox>
+            <padding>
+                <Insets bottom="8.0" left="12.0" right="14.0" top="12.0" />
+            </padding>
         </HBox>
-    </VBox>
+        <Label fx:id="crownLabel" text="" styleClass="icon" style="-fx-font-size: 2.5em;"
+               AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="15.0" />
+    </children>
     <padding>
-        <Insets bottom="8.0" left="12.0" right="14.0" top="12.0" />
+        <Insets top="-20.0" />
     </padding>
-</HBox>
+</AnchorPane>
+
