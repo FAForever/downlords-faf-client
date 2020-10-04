@@ -1,3 +1,8 @@
+<p align="center">
+  <a href="https://faforever.com" rel="noopener" target="_blank"><img width="250" src="https://faforever.com/images/faf-logo.png" alt="FAF logo"></a></p>
+</p>
+
+
 # Downlord's FAF Client
 <img src="https://steamuserimages-a.akamaihd.net/ugc/961979645585692753/48588B65300A3EDE35622C75922E863B1D5CAE9A/" width="512">
 
