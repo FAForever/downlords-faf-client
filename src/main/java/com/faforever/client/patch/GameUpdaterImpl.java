@@ -73,7 +73,7 @@ public class GameUpdaterImpl implements GameUpdater {
 
     if (!NAMES_OF_FEATURED_BASE_MODS.contains(featuredMod.getTechnicalName())) {
       future = future.thenCompose(aVoid -> modService.getFeaturedMod(FAF.getTechnicalName()))
-          .thenCompose(baseMod -> updateFeaturedMod(baseMod, null))
+          .thenCompose(baseMod -> updateFeaturedMod(baseMod, version))
           .thenAccept(patchResults::add);
     }
 
