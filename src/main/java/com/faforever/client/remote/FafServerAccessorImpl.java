@@ -510,7 +510,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
       if (serverMessage instanceof GameLaunchMessage) {//TODO: this is horrible!!!!!!!!!!!!!!!!!!!!!!
         Matcher matcher = Pattern.compile("\"faction\":(\\d)").matcher(jsonString);
         if (matcher.find()) {
-          ((GameLaunchMessage) serverMessage).setFaction(Faction.fromFaValue(Integer.parseInt(matcher.group(1))));
+          ((GameLaunchMessage) serverMessage).setFaction(Faction.fromString(matcher.group(1)));
         }
       }
 

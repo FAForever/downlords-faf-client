@@ -20,11 +20,11 @@ public class PartyInfoMessage extends FafServerMessage {
   public static class PartyMember {
     private Integer player;
     private Boolean ready;
-    private List<Integer> factions;
+    private List<String> factions;
 
     // gson deserializes factions based on name, faction ids are used here
     public List<Faction> getFactions() {
-      return factions.stream().map(Faction::fromFaValue).collect(Collectors.toList());
+      return factions.stream().map(Faction::fromString).collect(Collectors.toList());
     }
   }
 }

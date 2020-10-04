@@ -15,6 +15,7 @@ import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDialog;
+import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -133,6 +134,10 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     ));
     leavePartyButton.disableProperty().bind(createBooleanBinding(() -> teamMatchmakingService.getParty().getMembers().size() <= 1, teamMatchmakingService.getParty().getMembers()));
 
+    teamMatchmakingService.getParty().getMembers().addListener((InvalidationListener) c -> {
+      refreshingLabel.setVisible(false);
+      selectFactionsBasedOnParty();
+    });
   }
 
   private void initializeUppercaseText() {

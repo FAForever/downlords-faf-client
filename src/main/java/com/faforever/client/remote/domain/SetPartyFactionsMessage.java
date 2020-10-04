@@ -7,18 +7,18 @@ import java.util.stream.Collectors;
 
 public class SetPartyFactionsMessage extends ClientMessage {
 
-  private List<Integer> factions;
+  private List<String> factions;
 
   public SetPartyFactionsMessage(List<Faction> factions) {
     super(ClientMessageType.SET_PARTY_FACTIONS);
-    this.factions = factions.stream().map(Faction::toFaValue).collect(Collectors.toList());
+    this.factions = factions.stream().map(Faction::getString).collect(Collectors.toList());
   }
 
-  public List<Integer> getFactions() {
+  public List<String> getFactions() {
     return factions;
   }
 
-  public void setFactions(List<Integer> factions) {
+  public void setFactions(List<String> factions) {
     this.factions = factions;
   }
 }
