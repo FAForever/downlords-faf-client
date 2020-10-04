@@ -4,7 +4,6 @@ import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.chat.ChatFormat;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
-
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
@@ -26,7 +25,9 @@ import java.util.Locale;
 import java.util.Optional;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
-import static com.faforever.client.preferences.LanguageChannel.*;
+import static com.faforever.client.preferences.LanguageChannel.FRENCH;
+import static com.faforever.client.preferences.LanguageChannel.GERMAN;
+import static com.faforever.client.preferences.LanguageChannel.RUSSIAN;
 
 public class ChatPrefs {
 
@@ -46,6 +47,7 @@ public class ChatPrefs {
   private final IntegerProperty channelTabScrollPaneWidth;
   private final MapProperty<String, Color> userToColor;
   private final BooleanProperty hideFoeMessages;
+  private final BooleanProperty playerListShown;
   private final ObjectProperty<TimeInfo> timeFormat;
   private final ObjectProperty<ChatFormat> chatFormat;
   private final ListProperty<String> autoJoinChannels;
@@ -67,6 +69,7 @@ public class ChatPrefs {
     idleThreshold = new SimpleIntegerProperty(10);
     chatFormat = new SimpleObjectProperty<>(ChatFormat.COMPACT);
     autoJoinChannels = new SimpleListProperty<>(FXCollections.observableArrayList());
+    playerListShown = new SimpleBooleanProperty(true);
 
     Locale localeLanguage = new Locale(Locale.getDefault().getLanguage());
     Optional.ofNullable(LOCALE_LANGUAGES_TO_CHANNELS.get(localeLanguage))
@@ -204,5 +207,17 @@ public class ChatPrefs {
 
   public ObservableList<String> getAutoJoinChannels() {
     return autoJoinChannels.get();
+  }
+
+  public boolean isPlayerListShown() {
+    return playerListShown.get();
+  }
+
+  public void setPlayerListShown(boolean playerListShown) {
+    this.playerListShown.set(playerListShown);
+  }
+
+  public BooleanProperty playerListShownProperty() {
+    return playerListShown;
   }
 }
