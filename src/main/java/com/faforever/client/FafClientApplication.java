@@ -24,7 +24,6 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.Banner.Mode;
@@ -145,8 +144,7 @@ public class FafClientApplication extends Application {
           Severity.WARN,
           asList(
               new Action(i18n.get("yes"), ev -> {
-                Window window = (Window) event.getSource();
-                window.hide();
+                Platform.exit();
               }),
               new Action(i18n.get("no"), ev -> {
               })
