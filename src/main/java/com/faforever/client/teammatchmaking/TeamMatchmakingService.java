@@ -144,10 +144,17 @@ public class TeamMatchmakingService implements InitializingBean {
           //TODO: check current state / other queues
           if (message.getState() == MatchmakingState.START) {
             gameService.startSearchMatchmaker();
+
+            // Send own factions to server upon joining a queue
+            Optional<PartyMember> ownPartyMember = party.getMembers().stream()
+                .filter(m -> m.getPlayer().getId() == playerService.getCurrentPlayer().map(Player::getId).orElse(-1))
+                .findFirst();
+            ownPartyMember.ifPresent(m -> setPartyFactions(m.getFactions()));
           }
         }
     );
 
+    //TODO: save match found message and don't cancel here after match found
     if (matchmakingQueues.stream().noneMatch(MatchmakingQueue::isJoined)
         && message.getState() != MatchmakingState.START) { // catches a race condition due MatchmakingQueue::isJoined being set on UI thread
       gameService.onMatchmakerSearchStopped();
