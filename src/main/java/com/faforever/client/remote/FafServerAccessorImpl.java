@@ -128,8 +128,6 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -505,13 +503,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
       if (serverMessage == null) {
         log.debug("Discarding unimplemented server message: {}", jsonString);
         return;
-      }
-
-      if (serverMessage instanceof GameLaunchMessage) {//TODO: this is horrible!!!!!!!!!!!!!!!!!!!!!!
-        Matcher matcher = Pattern.compile("\"faction\":(\\d)").matcher(jsonString);
-        if (matcher.find()) {
-          ((GameLaunchMessage) serverMessage).setFaction(Faction.fromString(matcher.group(1)));
-        }
       }
 
       Class<?> messageClass = serverMessage.getClass();
