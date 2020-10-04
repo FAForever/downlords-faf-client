@@ -10,8 +10,11 @@ import com.faforever.client.query.SpecificationController;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.update.ClientConfiguration;
 import com.faforever.client.util.Tuple;
+import com.faforever.client.vault.VaultEntityController;
 import com.faforever.client.vault.VaultEntityController.SearchType;
+import com.faforever.client.vault.VaultEntityController.ShowRoomCategory;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
@@ -24,6 +27,7 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -58,6 +62,8 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   private PlayerService playerService;
   @Mock
   private ReportingService reportingService;
+  @Mock
+  private ClientConfiguration clientConfiguration;
 
   private MapVaultController instance;
   private SortConfig sortOrder;
@@ -67,6 +73,8 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
+    when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
+    when(clientConfiguration.getRecommendedMaps()).thenReturn(Collections.emptyList());
 
     doAnswer(invocation -> {
       mapDetailController = mock(MapDetailController.class);
@@ -74,7 +82,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
       return mapDetailController;
     }).when(uiService).loadFxml("theme/vault/map/map_detail.fxml");
 
-    instance = new MapVaultController(mapService, i18n, eventBus, preferencesService, uiService, notificationService,reportingService);
+    instance = new MapVaultController(mapService, i18n, eventBus, preferencesService, uiService, notificationService, reportingService);
     sortOrder = preferencesService.getPreferences().getVaultPrefs().getMapSortConfig();
     standardSearchConfig = new SearchConfig(sortOrder, "query");
 
@@ -128,10 +136,23 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testShowMapDetail() {
     MapBean mapBean = MapBeanBuilder.create().defaultValues().get();
-    Platform.runLater(()-> instance.onDisplayDetails(mapBean));
+    Platform.runLater(() -> instance.onDisplayDetails(mapBean));
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(mapDetailController).setMap(mapBean);
     assertThat(mapDetailController.getRoot().isVisible(), is(true));
+  }
+
+  @Test
+  public void testGetShowRoomCategories() {
+    List<VaultEntityController<MapBean>.ShowRoomCategory> categories = instance.getShowRoomCategories();
+    for (ShowRoomCategory category : categories) {
+      category.getEntitySupplier().get();
+    }
+    verify(mapService).getHighestRatedMapsWithPageCount(anyInt(), anyInt());
+    verify(mapService).getNewestMapsWithPageCount(anyInt(), anyInt());
+    verify(mapService).getMostPlayedMapsWithPageCount(anyInt(), anyInt());
+    verify(mapService).getRecommendedMapsWithPageCount(anyInt(), anyInt());
+    verify(mapService).getOwnedMapsWithPageCount(anyInt(), anyInt());
   }
 }

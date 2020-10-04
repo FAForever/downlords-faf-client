@@ -39,7 +39,7 @@
                GridPane.columnSpan="2147483647"/>
         <Label text="%game.generateMap.generatedName" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
         <TextField fx:id="previousMapName" maxHeight="Infinity"
-                   promptText="nerxois_map_generator_(version)_(seed)_(options)" style="-fx-pref-width: 5em"
+                   promptText="neroxis_map_generator_(version)_(seed)_(options)" style="-fx-pref-width: 5em"
                    GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="1">
             <tooltip>
                 <Tooltip text="%game.generateMap.nameCaution"/>
@@ -68,9 +68,9 @@
             <CheckBox fx:id="waterRandom"/>
         </HBox>
         <HBox fx:id="waterSliderBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="2" GridPane.rowIndex="6">
-            <Label text="%game.generateMap.none"/>
+            <Label text="%game.generateMap.less"/>
             <Slider fx:id="waterSlider" max="127" maxHeight="Infinity" HBox.hgrow="ALWAYS"/>
-            <Label text="%game.generateMap.lots"/>
+            <Label text="%game.generateMap.more"/>
         </HBox>
         <Label text="%game.generateMap.plateauSlider" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
         <HBox fx:id="plateauRandomBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="7">
@@ -78,9 +78,9 @@
             <CheckBox fx:id="plateauRandom"/>
         </HBox>
         <HBox fx:id="plateauSliderBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="2" GridPane.rowIndex="7">
-            <Label text="%game.generateMap.none"/>
+            <Label text="%game.generateMap.less"/>
             <Slider fx:id="plateauSlider" max="127" maxHeight="Infinity" HBox.hgrow="ALWAYS"/>
-            <Label text="%game.generateMap.lots"/>
+            <Label text="%game.generateMap.more"/>
         </HBox>
         <Label text="%game.generateMap.mountainSlider" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
         <HBox fx:id="mountainRandomBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="8">
@@ -88,9 +88,9 @@
             <CheckBox fx:id="mountainRandom"/>
         </HBox>
         <HBox fx:id="mountainSliderBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="2" GridPane.rowIndex="8">
-            <Label text="%game.generateMap.none"/>
+            <Label text="%game.generateMap.less"/>
             <Slider fx:id="mountainSlider" max="127" maxHeight="Infinity" HBox.hgrow="ALWAYS"/>
-            <Label text="%game.generateMap.lots"/>
+            <Label text="%game.generateMap.more"/>
         </HBox>
         <Label text="%game.generateMap.rampSlider" GridPane.columnIndex="0" GridPane.rowIndex="9"/>
         <HBox fx:id="rampRandomBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="9">
@@ -98,20 +98,20 @@
             <CheckBox fx:id="rampRandom"/>
         </HBox>
         <HBox fx:id="rampSliderBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="2" GridPane.rowIndex="9">
-            <Label text="%game.generateMap.none"/>
+            <Label text="%game.generateMap.less"/>
             <Slider fx:id="rampSlider" max="127" maxHeight="Infinity" HBox.hgrow="ALWAYS"/>
-            <Label text="%game.generateMap.lots"/>
+            <Label text="%game.generateMap.more"/>
         </HBox>
 
 
-        <Button fx:id="generateMapButton" alignment="CENTER_LEFT" contentDisplay="RIGHT" defaultButton="true"
+        <Button fx:id="generateMapButton" contentDisplay="RIGHT" defaultButton="true"
                 mnemonicParsing="false" onAction="#onGenerateMapButtonClicked" styleClass="game-generate-map"
-                text="%game.generateMap" GridPane.columnIndex="0" GridPane.rowIndex="10">
+                text="%game.generateMap" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="10">
         </Button>
 
         <!-- Cancel, Ok -->
-        <Button alignment="CENTER_RIGHT" mnemonicParsing="false" onAction="#onCloseButtonClicked"
-                styleClass="more-button-padding" text="%cancel" GridPane.columnIndex="2" GridPane.halignment="RIGHT"
+        <Button mnemonicParsing="false" onAction="#onCloseButtonClicked"
+                styleClass="more-button-padding" text="%cancel" GridPane.columnIndex="0" GridPane.halignment="LEFT"
                 GridPane.rowIndex="10">
         </Button>
     </children>

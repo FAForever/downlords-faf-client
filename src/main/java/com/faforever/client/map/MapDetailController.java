@@ -43,6 +43,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -250,7 +251,11 @@ public class MapDetailController implements Controller<Node> {
   }
 
   public void onInstallButtonClicked() {
-    mapService.downloadAndInstallMap(map, progressBar.progressProperty(), progressLabel.textProperty())
+    installMap();
+  }
+
+  public CompletableFuture<Void> installMap(){
+    return mapService.downloadAndInstallMap(map, progressBar.progressProperty(), progressLabel.textProperty())
         .thenRun(() -> setInstalled(true))
         .exceptionally(throwable -> {
           notificationService.addNotification(new ImmediateErrorNotification(
@@ -289,7 +294,11 @@ public class MapDetailController implements Controller<Node> {
   }
 
   public void onCreateGameButtonClicked() {
-    eventBus.post(new HostGameEvent(map.getFolderName()));
+    if (!mapService.isInstalled(map.getFolderName())) {
+      installMap().thenRun(() -> eventBus.post(new HostGameEvent(map.getFolderName())));
+    } else {
+      eventBus.post(new HostGameEvent(map.getFolderName()));
+    }
   }
 
   public void hideMap() {

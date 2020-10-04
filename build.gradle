@@ -308,11 +308,7 @@ dependencies {
   testCompile("com.natpryce.hamcrest:hamcrest-reflection:0.1-2")
   testCompile("org.springframework.boot:spring-boot-starter-test")
 
-  optional("org.springframework.boot:spring-boot-configuration-processor")
+  annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
   codacy("com.github.codacy:codacy-coverage-reporter:-SNAPSHOT")
-}
-
-task downloadWebViewPatch{
-
 }

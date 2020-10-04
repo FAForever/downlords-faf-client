@@ -18,8 +18,6 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -327,20 +325,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   protected void onDisplay(NavigateEvent navigateEvent) {
     Class<? extends NavigateEvent> defaultNavigateEvent = getDefaultNavigateEvent();
     if (!(navigateEvent.getClass().equals(defaultNavigateEvent)) && !navigateEvent.getClass().equals(NavigateEvent.class)) {
-      if (state.get() == State.UNINITIALIZED) {
-        state.addListener(new ChangeListener<>() {
-          @Override
-          public void changed(ObservableValue<? extends State> observable, State oldValue, State newValue) {
-            if (newValue != State.UNINITIALIZED) {
-              state.removeListener(this);
-              handleSpecialNavigateEvent(navigateEvent);
-            }
-          }
-        });
-        loadShowRoom();
-      } else {
-        handleSpecialNavigateEvent(navigateEvent);
-      }
+      handleSpecialNavigateEvent(navigateEvent);
     } else if (state.get() == State.UNINITIALIZED) {
       loadShowRoom();
     }

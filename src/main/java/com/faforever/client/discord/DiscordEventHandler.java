@@ -14,15 +14,13 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class ClientDiscordEventHandler extends DiscordEventHandlers {
+public class DiscordEventHandler extends DiscordEventHandlers {
   private final ApplicationEventPublisher applicationEventPublisher;
   private final NotificationService notificationService;
-  private final PreferencesService preferencesService;
 
-  public ClientDiscordEventHandler(ApplicationEventPublisher applicationEventPublisher, NotificationService notificationService, PreferencesService preferencesService) {
+  public DiscordEventHandler(ApplicationEventPublisher applicationEventPublisher, NotificationService notificationService) {
     this.applicationEventPublisher = applicationEventPublisher;
     this.notificationService = notificationService;
-    this.preferencesService = preferencesService;
     ready = this::onDiscordReady;
     disconnected = this::onDisconnected;
     errored = this::onError;

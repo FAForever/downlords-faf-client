@@ -9,6 +9,8 @@ import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameBuilder;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapService;
+import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
@@ -77,6 +79,9 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
   private PlatformService platformService;
   @Mock
   private TimeService timeService;
+  @Mock
+  private MapService mapService;
+
   private ClanTooltipController clanTooltipControllerMock;
   private Clan testClan;
 
@@ -100,8 +105,21 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
     when(uiService.getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING)).thenReturn(new Image(UiService.CHAT_LIST_STATUS_HOSTING));
     when(uiService.getThemeImage(UiService.CHAT_LIST_STATUS_LOBBYING)).thenReturn(new Image(UiService.CHAT_LIST_STATUS_LOBBYING));
     when(uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING)).thenReturn(new Image(UiService.CHAT_LIST_STATUS_PLAYING));
+    when(mapService.loadPreview("mapName", PreviewSize.SMALL)).thenReturn(new Image(UiService.UNKNOWN_MAP_IMAGE));
 
-    instance = new ChatUserItemController(preferencesService, avatarService, countryFlagService, i18n, uiService, eventBus, clanService, playerService, platformService, timeService);
+    instance = new ChatUserItemController(
+        preferencesService,
+        avatarService,
+        countryFlagService,
+        i18n,
+        uiService,
+        eventBus,
+        clanService,
+        playerService,
+        platformService,
+        timeService,
+        mapService
+    );
     loadFxml("theme/chat/chat_user_item.fxml", param -> instance);
   }
 
@@ -152,12 +170,15 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.playerStatusIndicator.isVisible());
+    assertFalse(instance.playerMapImage.isVisible());
 
     player.setGame(GameBuilder.create().defaultValues().get());
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.playerStatusIndicator.isVisible());
     assertThat(instance.playerStatusIndicator.getImage().getUrl(), endsWith(Paths.get(UiService.CHAT_LIST_STATUS_LOBBYING).getFileName().toString()));
+    assertTrue(instance.playerMapImage.isVisible());
+    assertThat(instance.playerMapImage.getImage().getUrl(), endsWith(UiService.UNKNOWN_MAP_IMAGE));
   }
 
   @Test
@@ -172,12 +193,15 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.playerStatusIndicator.isVisible());
+    assertFalse(instance.playerMapImage.isVisible());
 
     player.setGame(GameBuilder.create().defaultValues().host("junit").state(GameStatus.OPEN).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.playerStatusIndicator.isVisible());
     assertThat(instance.playerStatusIndicator.getImage().getUrl(), endsWith(Paths.get(UiService.CHAT_LIST_STATUS_HOSTING).getFileName().toString()));
+    assertTrue(instance.playerMapImage.isVisible());
+    assertThat(instance.playerMapImage.getImage().getUrl(), endsWith(UiService.UNKNOWN_MAP_IMAGE));
   }
 
   @Test
@@ -191,12 +215,15 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.playerStatusIndicator.isVisible());
+    assertFalse(instance.playerMapImage.isVisible());
 
     player.setGame(GameBuilder.create().defaultValues().host("junit").state(GameStatus.PLAYING).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.playerStatusIndicator.isVisible());
     assertThat(instance.playerStatusIndicator.getImage().getUrl(), endsWith(Paths.get(UiService.CHAT_LIST_STATUS_PLAYING).getFileName().toString()));
+    assertTrue(instance.playerMapImage.isVisible());
+    assertThat(instance.playerMapImage.getImage().getUrl(), endsWith(UiService.UNKNOWN_MAP_IMAGE));
   }
 
   @Test
@@ -212,10 +239,13 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
 
     assertTrue(instance.playerStatusIndicator.isVisible());
     assertThat(instance.playerStatusIndicator.getImage().getUrl(), endsWith(Paths.get(UiService.CHAT_LIST_STATUS_PLAYING).getFileName().toString()));
+    assertTrue(instance.playerMapImage.isVisible());
+    assertThat(instance.playerMapImage.getImage().getUrl(), endsWith(UiService.UNKNOWN_MAP_IMAGE));
     player.setGame(null);
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.playerStatusIndicator.isVisible());
+    assertFalse(instance.playerMapImage.isVisible());
   }
 
   @Test

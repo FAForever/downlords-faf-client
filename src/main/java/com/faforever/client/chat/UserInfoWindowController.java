@@ -9,6 +9,7 @@ import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.events.EventService;
+import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.OffsetDateTimeCell;
 import com.faforever.client.game.KnownFeaturedMod;
@@ -21,28 +22,25 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
-import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
-import com.neovisionaries.i18n.CountryCode;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.StackedBarChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.chart.XYChart.Data;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
@@ -57,8 +55,11 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -88,7 +89,6 @@ import static javafx.collections.FXCollections.observableList;
 @Slf4j
 @RequiredArgsConstructor
 public class UserInfoWindowController implements Controller<Node> {
-  private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMM");
 
   private final StatisticsService statisticsService;
   private final CountryFlagService countryFlagService;
@@ -119,11 +119,11 @@ public class UserInfoWindowController implements Controller<Node> {
   public Label mostRecentAchievementNameLabel;
   public Pane lockedAchievementsContainer;
   public Pane unlockedAchievementsContainer;
-  public ToggleButton globalButton;
-  public ToggleButton ladder1v1Button;
   public NumberAxis yAxis;
   public NumberAxis xAxis;
-  public LineChart<Integer, Integer> ratingHistoryChart;
+  public LineChart<Long, Integer> ratingHistoryChart;
+  public ComboBox<TimePeriod> timePeriodComboBox;
+  public ComboBox<RatingMode> ratingTypeComboBox;
   public Label usernameLabel;
   public Label countryLabel;
   public ImageView countryImageView;
@@ -132,9 +132,10 @@ public class UserInfoWindowController implements Controller<Node> {
   public TableColumn<NameRecord, OffsetDateTime> changeDateColumn;
   public TableColumn<NameRecord, String> nameColumn;
   private Player player;
-  private Map<String, AchievementItemController> achievementItemById = new HashMap<>();
-  private Map<String, AchievementDefinition> achievementDefinitionById = new HashMap<>();
+  private final Map<String, AchievementItemController> achievementItemById = new HashMap<>();
+  private final Map<String, AchievementDefinition> achievementDefinitionById = new HashMap<>();
   private Window ownerWindow;
+  private List<RatingHistoryDataPoint> ratingData;
 
   private static boolean isUnlocked(PlayerAchievement playerAchievement) {
     return UNLOCKED == AchievementState.valueOf(playerAchievement.getState().name());
@@ -167,6 +168,20 @@ public class UserInfoWindowController implements Controller<Node> {
     nameColumn.setCellValueFactory(param -> param.getValue().nameProperty());
     changeDateColumn.setCellValueFactory(param -> param.getValue().changeDateProperty());
     changeDateColumn.setCellFactory(param -> new OffsetDateTimeCell<>(timeService));
+
+    timePeriodComboBox.setConverter(timePeriodStringConverter());
+
+    timePeriodComboBox.getItems().addAll(TimePeriod.values());
+    timePeriodComboBox.setValue(TimePeriod.ALL_TIME);
+
+    ratingTypeComboBox.setConverter(ratingModeStringConverter());
+
+    ArrayList<RatingMode> modes = new ArrayList<>(Arrays.asList(RatingMode.values()));
+    modes.removeIf(mode -> mode == RatingMode.NONE);
+    ratingTypeComboBox.getItems().addAll(modes);
+    ratingTypeComboBox.setValue(RatingMode.GLOBAL);
+
+    ratingData = Collections.emptyList();
   }
 
   public Region getRoot() {
@@ -196,17 +211,9 @@ public class UserInfoWindowController implements Controller<Node> {
     ratingLabel1v1.setText(i18n.number(RatingUtil.getLeaderboardRating(player)));
 
     updateNameHistory(player);
+    countryLabel.setText(i18n.getCountryNameLocalized(player.getCountry()));
 
-    CountryCode countryCode = CountryCode.getByCode(player.getCountry());
-    if (countryCode != null) {
-      // Country code is unknown to CountryCode, like A1 or A2 (from GeoIP)
-      countryLabel.setText(countryCode.getName());
-    } else {
-      countryLabel.setText(player.getCountry());
-    }
-
-    globalButton.fire();
-    globalButton.setSelected(true);
+    onRatingTypeChange();
 
     loadAchievements();
     eventService.getPlayerEvents(player.getId())
@@ -368,13 +375,14 @@ public class UserInfoWindowController implements Controller<Node> {
     achievementsPane.setVisible(true);
   }
 
-  public void ladder1v1ButtonClicked() {
-    loadStatistics(KnownFeaturedMod.LADDER_1V1);
+  public void onRatingTypeChange() {
+    CompletableFuture<Void> statisticsFuture = loadStatistics(ratingTypeComboBox.getValue().getFeaturedMod());
+    statisticsFuture.thenRun(() -> Platform.runLater(this::plotPlayerRatingGraph));
   }
 
   private CompletableFuture<Void> loadStatistics(KnownFeaturedMod featuredMod) {
     return statisticsService.getRatingHistory(featuredMod, player.getId())
-        .thenAccept(ratingHistory -> Platform.runLater(() -> plotPlayerRatingGraph(ratingHistory)))
+        .thenAccept(ratingHistory -> ratingData = ratingHistory)
         .exceptionally(throwable -> {
           // FIXME display to user
           log.warn("Statistics could not be loaded", throwable);
@@ -382,31 +390,62 @@ public class UserInfoWindowController implements Controller<Node> {
         });
   }
 
-  @SuppressWarnings("unchecked")
-  private void plotPlayerRatingGraph(List<RatingHistoryDataPoint> dataPoints) {
-    List<XYChart.Data<Integer, Integer>> values = dataPoints.stream()
-        .map(datapoint -> new Data<>(dataPoints.indexOf(datapoint), RatingUtil.getRating(datapoint)))
+  public void plotPlayerRatingGraph() {
+    OffsetDateTime afterDate = OffsetDateTime.of(timePeriodComboBox.getValue().getDate(), ZoneOffset.UTC);
+    List<XYChart.Data<Long, Integer>> values = ratingData.stream()
+        .filter(dataPoint -> dataPoint.getInstant().isAfter(afterDate))
+        .map(dataPoint -> new Data<>(dataPoint.getInstant().toEpochSecond(), RatingUtil.getRating(dataPoint)))
         .collect(Collectors.toList());
 
-    xAxis.setTickLabelFormatter(ratingLabelFormatter(dataPoints));
+    xAxis.setTickLabelFormatter(ratingLabelFormatter());
+    if (values.size() > 0) {
+      xAxis.setLowerBound(values.get(0).getXValue());
+      xAxis.setUpperBound(values.get(values.size() - 1).getXValue());
+    }
+    xAxis.setTickUnit((xAxis.getUpperBound() - xAxis.getLowerBound()) / 10);
 
-    XYChart.Series<Integer, Integer> series = new XYChart.Series<>(observableList(values));
+    XYChart.Series<Long, Integer> series = new XYChart.Series<>(observableList(values));
     series.setName(i18n.get("userInfo.ratingOverTime"));
-    ratingHistoryChart.getData().setAll(series);
+    ratingHistoryChart.setData(FXCollections.observableList(Collections.singletonList(series)));
   }
 
   @NotNull
-  private StringConverter<Number> ratingLabelFormatter(final List<RatingHistoryDataPoint> dataPoints) {
-    return new StringConverter<Number>() {
+  private StringConverter<RatingMode> ratingModeStringConverter() {
+    return new StringConverter<>() {
+      @Override
+      public String toString(RatingMode mode) {
+        return i18n.get(mode.getI18nKey());
+      }
+
+      @Override
+      public RatingMode fromString(String string) {
+        return null;
+      }
+    };
+  }
+
+  @NotNull
+  private StringConverter<TimePeriod> timePeriodStringConverter() {
+    return new StringConverter<>() {
+      @Override
+      public String toString(TimePeriod period) {
+        return i18n.get(period.getI18nKey());
+      }
+
+      @Override
+      public TimePeriod fromString(String string) {
+        return null;
+      }
+    };
+  }
+
+  @NotNull
+  private StringConverter<Number> ratingLabelFormatter() {
+    return new StringConverter<>() {
       @Override
       public String toString(Number object) {
-        int number = object.intValue();
-        int numberOfDataPoints = dataPoints.size();
-        int dataPointIndex = number >= numberOfDataPoints ? numberOfDataPoints - 1 : number;
-        if (dataPointIndex >= dataPoints.size() || dataPointIndex < 0) {
-          return "";
-        }
-        return DATE_FORMATTER.format(dataPoints.get(dataPointIndex).getInstant());
+        long number = object.longValue();
+        return timeService.asDate(Instant.ofEpochSecond(number));
       }
 
       @Override
@@ -414,10 +453,6 @@ public class UserInfoWindowController implements Controller<Node> {
         return null;
       }
     };
-  }
-
-  public void globalButtonClicked() {
-    loadStatistics(KnownFeaturedMod.FAF);
   }
 
   public void show() {
