@@ -31,6 +31,10 @@ public final class Version {
     return currentVersion;
   }
 
+  public static boolean followsSemverPattern(String versionString) {
+    return versionString != null && SEMVER_PATTERN.matcher(versionString).matches();
+  }
+
   /**
    * Compares a remote version with the current version of the application.
    *
@@ -39,6 +43,7 @@ public final class Version {
   public static boolean shouldUpdate(@NonNull String fromVersionRaw, @NonNull String toVersionRaw) {
     log.debug("Comparing current version '{}' to remote version '{}'", currentVersion, toVersionRaw);
 
+    // Strip the "v" prefix
     String fromVersion = removePrefix(fromVersionRaw);
     String toVersion = removePrefix(toVersionRaw);
 
@@ -47,19 +52,18 @@ public final class Version {
       return false;
     }
 
-    if (!SEMVER_PATTERN.matcher(fromVersion).matches()) {
+    if (!followsSemverPattern(fromVersion)) {
       log.error("fromVersion '{}' is not matching semver pattern", fromVersion);
       // since obviously the app is not properly versioned, throw an exception - this should not happen
       throw new IllegalArgumentException(format("fromVersion ''{0}'' is not matching semver pattern", fromVersion));
     }
 
-    if (!SEMVER_PATTERN.matcher(toVersion).matches()) {
+    if (!followsSemverPattern(toVersion)) {
       log.error("toVersion '{}' is not matching semver pattern", toVersion);
       // probably issue on the remote side where we fetched the toVersion - no exception and "just no update"
       return false;
     }
 
-    // Strip the "v" prefix
     ComparableVersion fromComparableVersion = new ComparableVersion(fromVersion);
     ComparableVersion toComparableVersion = new ComparableVersion(toVersion);
 
@@ -74,7 +78,7 @@ public final class Version {
     }
   }
 
-  private static String removePrefix(String version) {
+  public static String removePrefix(String version) {
     if (version.startsWith("v")) {
       return version.substring(1);
     } else {
