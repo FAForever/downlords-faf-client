@@ -130,6 +130,7 @@ public class MatchmakingQueueItemController implements Controller<Node> {
     ));
 
     queue.joinedProperty().addListener(observable -> refreshingLabel.setVisible(false));
+    queue.joinedProperty().addListener(observable -> joinLeaveQueueButton.setSelected(queue.isJoined()));
 
     queuePopTimeUpdater = new Timeline(1, new KeyFrame(javafx.util.Duration.seconds(0), (ActionEvent event) -> {
       if (queue.getQueuePopTime() != null) {
