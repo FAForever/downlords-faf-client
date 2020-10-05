@@ -6,18 +6,29 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.StackPane?>
 <VBox xmlns:fx="http://javafx.com/fxml"
       xmlns="http://javafx.com/javafx"
       fx:controller="com.faforever.client.teammatchmaking.InvitePlayerController"
-      prefHeight="400.0" prefWidth="600.0" fx:id="root">
+      prefHeight="400.0" prefWidth="400.0" fx:id="root" >
 
     <children>
         <HBox spacing="20">
             <JFXTextField fx:id="playerTextField" HBox.hgrow="ALWAYS" onAction="#onInviteButtonClicked"/>
             <JFXButton text="%teammatchmaking.invite" onAction="#onInviteButtonClicked"/>
         </HBox>
-
-        <JFXListView fx:id="playersListView" styleClass="party-player-invite-list-view" onKeyPressed="#onKeyPressed"/>
+        <StackPane alignment="TOP_LEFT">
+            <VBox spacing="20">
+                <Label text="%teammatchmaking.invitedPlayers" />
+                <ListView fx:id="invitedPlayersListView" />
+                <padding>
+                    <Insets top="20.0" />
+                </padding>
+            </VBox>
+            <JFXListView fx:id="playersListView" styleClass="party-player-invite-list-view" onKeyPressed="#onKeyPressed"/>
+        </StackPane>
     </children>
 
     <padding>

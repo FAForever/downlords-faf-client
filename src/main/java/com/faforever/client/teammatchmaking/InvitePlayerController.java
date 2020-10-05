@@ -13,9 +13,12 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -23,6 +26,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.function.Consumer;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -40,6 +44,7 @@ public class InvitePlayerController implements Controller<Pane> {
   public JFXTextField playerTextField;
   @FXML
   public JFXListView<String> playersListView;
+  public ListView<String> invitedPlayersListView;
 
   @Override
   public void initialize() {
@@ -89,8 +94,10 @@ public class InvitePlayerController implements Controller<Pane> {
   }
 
   private void invite() {
-    playersListView.getSelectionModel().getSelectedItems().forEach(teamMatchmakingService::invitePlayer);
-
+    playersListView.getSelectionModel().getSelectedItems().forEach(player -> {
+      teamMatchmakingService.invitePlayer(player);
+      invitedPlayersListView.getItems().add(player);
+    });
     playerTextField.setText("");
   }
 
