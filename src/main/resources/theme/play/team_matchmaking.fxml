@@ -87,7 +87,7 @@
                     </columnConstraints>
                 </GridPane>
                 <Separator/>
-                <Label styleClass="h1-tmm, uppercase" text="%teammatchmaking.queueTitle"/>
+                <Label fx:id="queueHeadingLabel" styleClass="h1-tmm, uppercase" text="%teammatchmaking.queueTitle"/>
                 <HBox fx:id="queueBox" spacing="12.0"/>
             </children>
             <padding>

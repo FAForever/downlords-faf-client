@@ -10,7 +10,6 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
 import com.jfoenix.controls.JFXButton;
@@ -84,6 +83,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public GridPane partyMemberPane;
   public VBox preparationArea;
   public ImageView leagueImageView;
+  public Label queueHeadingLabel;
   private Player player;
 
   @Override
@@ -150,15 +150,29 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         button.setText(button.getText().toUpperCase());
       }
     }
-    leagueLabel.textProperty().bind(createStringBinding(
-        () -> leagueLabel.getStyleClass().contains("uppercase") ?
-            i18n.get("leaderboard.divisionName", RatingUtil.getLeaderboardRating(player)).toUpperCase() :
-            i18n.get("leaderboard.divisionName", RatingUtil.getLeaderboardRating(player))));
-    gameCountLabel.textProperty().bind(createStringBinding(
-        () -> gameCountLabel.getStyleClass().contains("uppercase") ?
-            i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase() :
-            i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()),
-        player.numberOfGamesProperty()));
+
+    leagueLabel.textProperty().bind(createStringBinding(() -> {
+      String text = i18n.get("leaderboard.divisionName");
+      if (leagueLabel.getStyleClass().contains("uppercase"))
+        text = text.toUpperCase();
+      return text;
+    }, player.globalRatingMeanProperty())); // This should actually be a divisionProperty once that is available
+
+    gameCountLabel.textProperty().bind(createStringBinding(() -> {
+      String text = i18n.get("teammatchmaking.gameCount", player.getNumberOfGames());
+      if (gameCountLabel.getStyleClass().contains("uppercase"))
+        text = text.toUpperCase();
+      return text;
+    }, player.numberOfGamesProperty()));
+
+    queueHeadingLabel.textProperty().bind(createStringBinding(() -> {
+      String text = i18n.get("teammatchmaking.queueTitle");
+      if (!teamMatchmakingService.getParty().getOwner().equals(player))
+        text = i18n.get("teammatchmaking.queueTitle.inParty");
+      if (queueHeadingLabel.getStyleClass().contains("uppercase"))
+        text = text.toUpperCase();
+      return text;
+    }, teamMatchmakingService.getParty().ownerProperty()));
   }
 
   @Override
