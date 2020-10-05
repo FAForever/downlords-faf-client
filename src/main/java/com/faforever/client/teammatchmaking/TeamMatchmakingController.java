@@ -3,6 +3,7 @@ package com.faforever.client.teammatchmaking;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Faction;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowLadderMapsEvent;
@@ -21,6 +22,7 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
@@ -84,12 +86,15 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public VBox preparationArea;
   public ImageView leagueImageView;
   public Label queueHeadingLabel;
+  public ScrollPane scrollPane;
   private Player player;
 
   @Override
   public void initialize() {
     player = playerService.getCurrentPlayer().get();
+    JavaFxUtil.fixScrollSpeed(scrollPane);
     initializeUppercaseText();
+    
     countryImageView.imageProperty().bind(createObjectBinding(() -> countryFlagService.loadCountryFlag(
         StringUtils.isEmpty(player.getCountry()) ? "" : player.getCountry()).orElse(null), player.countryProperty()));
     avatarImageView.visibleProperty().bind(player.avatarUrlProperty().isNotNull().and(player.avatarUrlProperty().isNotEmpty()));
@@ -100,6 +105,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     clanLabel.textProperty().bind(createStringBinding(() ->
         Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan()), player.clanProperty()));
     usernameLabel.textProperty().bind(player.usernameProperty());
+    
     teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> {
       List<PartyMember> members = new ArrayList<>(teamMatchmakingService.getParty().getMembers());
       partyMemberPane.getChildren().clear();
