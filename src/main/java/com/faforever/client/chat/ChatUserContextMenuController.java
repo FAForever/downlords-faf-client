@@ -42,6 +42,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.ImageView;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -93,6 +94,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public MenuItem reportItem;
   public SeparatorMenuItem moderatorActionSeparator;
   public MenuItem banItem;
+  public MenuItem broadcastMessage;
   public ContextMenu chatUserContextMenuRoot;
   public MenuItem showUserInfo;
   public Button removeCustomColorButton;
@@ -230,8 +232,8 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     kickGameItem.setVisible(notSelf & permissions.contains(GroupPermission.ADMIN_KICK_SERVER));
     kickLobbyItem.setVisible(notSelf & permissions.contains(GroupPermission.ADMIN_KICK_SERVER));
     banItem.setVisible(notSelf & permissions.contains(GroupPermission.ROLE_ADMIN_ACCOUNT_BAN));
-    moderatorActionSeparator.setVisible(kickGameItem.isVisible() || kickLobbyItem.isVisible() || banItem.isVisible());
-
+    broadcastMessage.setVisible(notSelf & permissions.contains(GroupPermission.ROLE_WRITE_MESSAGE));
+    moderatorActionSeparator.setVisible(kickGameItem.isVisible() || kickLobbyItem.isVisible() || banItem.isVisible() || broadcastMessage.isVisible());
   }
 
   private void loadAvailableAvatars(Player player) {
@@ -335,6 +337,24 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     dialog.setContent(controller.getDialogLayout());
     dialog.setAnimation(AlertAnimation.TOP_ANIMATION);
     dialog.show();
+  }
+
+  public void onBroadcastMessage(ActionEvent actionEvent) {
+    actionEvent.consume();
+
+    TextInputDialog broadcastMessageInputDialog = new TextInputDialog();
+    broadcastMessageInputDialog.setTitle(i18n.get("chat.userContext.broadcast"));
+
+    broadcastMessageInputDialog.showAndWait()
+        .ifPresent(broadcastMessage -> {
+              if (broadcastMessage.isBlank()) {
+                log.error("Broadcast message is empty: {}", broadcastMessage);
+              } else {
+                log.info("Sending broadcast message: {}", broadcastMessage);
+                moderatorService.broadcastMessage(broadcastMessage);
+              }
+            }
+        );
   }
 
   public void onJoinGameSelected() {
