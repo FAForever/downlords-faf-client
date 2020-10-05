@@ -36,7 +36,7 @@ public class BanDialogController implements Controller<Node> {
   public TextField durationText;
   public ChoiceBox<PeriodType> periodTypeChoiceBox;
   public Button banButton;
-  public Label successsLabel;
+  public Label successLabel;
   private DialogLayout dialogLayout;
   private ObjectProperty<Player> player;
 
@@ -84,7 +84,7 @@ public class BanDialogController implements Controller<Node> {
       return;
     }
     moderatorService.banPlayer(player.get().getId(), Integer.parseInt(durationText.getText()), (PeriodType) periodTypeChoiceBox.getSelectionModel().getSelectedItem(), reasonText.getText());
-    successsLabel.setVisible(true);
+    successLabel.setVisible(true);
     banButton.setDisable(true);
   }
 
