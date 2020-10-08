@@ -42,15 +42,14 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.ImageView;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.util.Objects;
 import java.util.Set;
@@ -61,11 +60,11 @@ import static com.faforever.client.player.SocialStatus.FRIEND;
 import static com.faforever.client.player.SocialStatus.SELF;
 import static java.util.Locale.US;
 
+@Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final PreferencesService preferencesService;
   private final ClientProperties clientProperties;
   private final PlayerService playerService;
@@ -95,6 +94,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public MenuItem reportItem;
   public SeparatorMenuItem moderatorActionSeparator;
   public MenuItem banItem;
+  public MenuItem broadcastMessage;
   public ContextMenu chatUserContextMenuRoot;
   public MenuItem showUserInfo;
   public Button removeCustomColorButton;
@@ -232,8 +232,8 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     kickGameItem.setVisible(notSelf & permissions.contains(GroupPermission.ADMIN_KICK_SERVER));
     kickLobbyItem.setVisible(notSelf & permissions.contains(GroupPermission.ADMIN_KICK_SERVER));
     banItem.setVisible(notSelf & permissions.contains(GroupPermission.ROLE_ADMIN_ACCOUNT_BAN));
-    moderatorActionSeparator.setVisible(kickGameItem.isVisible() || kickLobbyItem.isVisible() || banItem.isVisible());
-
+    broadcastMessage.setVisible(notSelf & permissions.contains(GroupPermission.ROLE_WRITE_MESSAGE));
+    moderatorActionSeparator.setVisible(kickGameItem.isVisible() || kickLobbyItem.isVisible() || banItem.isVisible() || broadcastMessage.isVisible());
   }
 
   private void loadAvailableAvatars(Player player) {
@@ -310,7 +310,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     try {
       replayService.runLiveReplay(player.getGame().getId());
     } catch (Exception e) {
-      logger.error("Cannot display live replay {}", e.getCause());
+      log.error("Cannot display live replay", e.getCause());
       String title = i18n.get("replays.live.loadFailure.title");
       String message = i18n.get("replays.live.loadFailure.message");
       notificationService.addNotification(new ImmediateNotification(title, message, Severity.ERROR));
@@ -330,13 +330,31 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     actionEvent.consume();
     Alert<?> dialog = new Alert<>(getRoot().getOwnerWindow());
 
-    BanDialogController controller = ((BanDialogController) uiService.loadFxml("theme/moderator/ban_dialog.fxml"))
+    BanDialogController controller = uiService.<BanDialogController>loadFxml("theme/moderator/ban_dialog.fxml")
         .setPlayer(getPlayer())
         .setCloseListener(dialog::close);
 
     dialog.setContent(controller.getDialogLayout());
     dialog.setAnimation(AlertAnimation.TOP_ANIMATION);
     dialog.show();
+  }
+
+  public void onBroadcastMessage(ActionEvent actionEvent) {
+    actionEvent.consume();
+
+    TextInputDialog broadcastMessageInputDialog = new TextInputDialog();
+    broadcastMessageInputDialog.setTitle(i18n.get("chat.userContext.broadcast"));
+
+    broadcastMessageInputDialog.showAndWait()
+        .ifPresent(broadcastMessage -> {
+              if (broadcastMessage.isBlank()) {
+                log.error("Broadcast message is empty: {}", broadcastMessage);
+              } else {
+                log.info("Sending broadcast message: {}", broadcastMessage);
+                moderatorService.broadcastMessage(broadcastMessage);
+              }
+            }
+        );
   }
 
   public void onJoinGameSelected() {
