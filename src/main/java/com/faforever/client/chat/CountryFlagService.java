@@ -11,11 +11,15 @@ import org.springframework.stereotype.Service;
 
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import static com.faforever.client.config.CacheNames.COUNTRY_FLAGS;
+import static com.faforever.client.config.CacheNames.COUNTRY_NAMES;
 
 @Lazy
 @Service
@@ -33,6 +37,24 @@ public class CountryFlagService {
 
     return getCountryFlagUrl(country)
         .map(url -> new Image(url.toString(), true));
+  }
+
+  @Cacheable(COUNTRY_NAMES)
+  public List<String> getCountries(String startsWith) {
+    String[] countries = Locale.getISOCountries();
+    if(startsWith == null) {
+      return Arrays.asList(countries);
+    }
+
+    startsWith = startsWith.toLowerCase();
+
+    ArrayList<String> result = new ArrayList(countries.length);
+    for(String country : countries)  {
+      if(country.toLowerCase().startsWith(startsWith))
+        result.add(country);
+    }
+
+    return result;
   }
 
   @SneakyThrows
