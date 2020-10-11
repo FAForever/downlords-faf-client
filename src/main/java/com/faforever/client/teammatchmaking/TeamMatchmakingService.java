@@ -199,9 +199,9 @@ public class TeamMatchmakingService implements InitializingBean {
     gameService.onMatchmakerSearchStopped(); // joining custom games is still blocked till match is cancelled or launched
   }
 
-  public void joinQueue(MatchmakingQueue queue) {
+  public boolean joinQueue(MatchmakingQueue queue) {
     if (!ensureValidGamePath()) {
-      return;
+      return false;
     }
 
     if (gameService.isGameRunning()) {
@@ -212,10 +212,11 @@ public class TeamMatchmakingService implements InitializingBean {
           Severity.WARN,
           Collections.singletonList(new Action(i18n.get("dismiss")))
       ));
-      return;
+      return false;
     }
 
     fafServerAccessor.gameMatchmaking(queue, MatchmakingState.START);
+    return true;
   }
 
   public void leaveQueue(MatchmakingQueue queue) {

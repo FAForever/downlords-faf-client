@@ -160,7 +160,11 @@ public class MatchmakingQueueItemController implements Controller<Node> {
     if (queue.isJoined()) {
       teamMatchmakingService.leaveQueue(queue);
     } else {
-      teamMatchmakingService.joinQueue(queue);
+      boolean success = teamMatchmakingService.joinQueue(queue);
+      if (!success) {
+        joinLeaveQueueButton.setSelected(false);
+        refreshingLabel.setVisible(false);
+      }
     }
     refreshingLabel.setVisible(true);
   }
