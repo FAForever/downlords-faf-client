@@ -17,6 +17,7 @@ import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDialog;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -49,6 +50,8 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 public class TeamMatchmakingController extends AbstractViewController<Node> {
+
+  private static final PseudoClass LEADER_PSEUDO_CLASS = PseudoClass.getPseudoClass("leader");
 
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
@@ -87,6 +90,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public ImageView leagueImageView;
   public Label queueHeadingLabel;
   public ScrollPane scrollPane;
+  public HBox playerCard;
+  public Label crownLabel;
   private Player player;
 
   @Override
@@ -94,7 +99,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     player = playerService.getCurrentPlayer().get();
     JavaFxUtil.fixScrollSpeed(scrollPane);
     initializeUppercaseText();
-    
+
     countryImageView.imageProperty().bind(createObjectBinding(() -> countryFlagService.loadCountryFlag(
         StringUtils.isEmpty(player.getCountry()) ? "" : player.getCountry()).orElse(null), player.countryProperty()));
     avatarImageView.visibleProperty().bind(player.avatarUrlProperty().isNotNull().and(player.avatarUrlProperty().isNotEmpty()));
@@ -105,8 +110,13 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     clanLabel.textProperty().bind(createStringBinding(() ->
         Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan()), player.clanProperty()));
     usernameLabel.textProperty().bind(player.usernameProperty());
-    
+    crownLabel.visibleProperty().bind(createBooleanBinding(() ->
+        teamMatchmakingService.getParty().getMembers().size() > 1 && teamMatchmakingService.getParty().getOwner().equals(player),
+        teamMatchmakingService.getParty().ownerProperty(), teamMatchmakingService.getParty().getMembers()));
+
     teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> {
+      playerCard.pseudoClassStateChanged(LEADER_PSEUDO_CLASS,
+          (teamMatchmakingService.getParty().getOwner().equals(player) && teamMatchmakingService.getParty().getMembers().size() > 1));
       List<PartyMember> members = new ArrayList<>(teamMatchmakingService.getParty().getMembers());
       partyMemberPane.getChildren().clear();
       members.removeIf(partyMember -> partyMember.getPlayer().equals(player));

@@ -16,8 +16,13 @@
             <VBox fx:id="preparationArea" spacing="25.0" >
                 <children>
                     <Label styleClass="h1-tmm, uppercase" text="%teammatchmaking.playerTitle"/>
-                    <HBox spacing="10.0" styleClass="player-card" alignment="CENTER_LEFT">
-                        <children>
+                    <AnchorPane>
+                        <HBox fx:id="playerCard" spacing="10.0" styleClass="player-card" alignment="CENTER_LEFT"
+                              AnchorPane.topAnchor="20.0" AnchorPane.leftAnchor="0.0" AnchorPane.bottomAnchor="0.0"
+                              AnchorPane.rightAnchor="0.0">
+                            <padding>
+                                <Insets bottom="10.0" left="15.0" right="15.0" top="10.0"/>
+                            </padding>
                             <ImageView fx:id="leagueImageView" fitHeight="40.0" fitWidth="80.0"
                                        preserveRatio="true">
                             </ImageView>
@@ -63,11 +68,13 @@
                             <ToggleButton fx:id="seraphimButton" mnemonicParsing="false"
                                           styleClass="seraphim, icon-button, tmm"
                                           onAction="#onFactionButtonClicked" selected="true" text=""/>
-                        </children>
+                        </HBox>
+                        <Label fx:id="crownLabel" text="" styleClass="icon" style="-fx-font-size: 2.5em;"
+                               AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="15.0" />
                         <padding>
-                            <Insets bottom="10.0" left="15.0" right="15.0" top="10.0"/>
+                            <Insets top="-20.0" />
                         </padding>
-                    </HBox>
+                    </AnchorPane>
                     <HBox alignment="CENTER_LEFT" spacing="10.0">
                         <children>
                             <Label styleClass="h1-tmm, uppercase" text="%teammatchmaking.partyTitle"/>
