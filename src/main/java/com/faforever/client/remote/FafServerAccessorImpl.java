@@ -385,7 +385,14 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
   @Override
   public void stopSearchMatchmaker() {
-    gameLaunchFuture.cancel(true);
+    if (gameLaunchFuture != null && !gameLaunchFuture.isDone()) {
+      gameLaunchFuture.cancel(true);
+    } else {
+      // this might happen when entering multiple queues, the game already having started and the server
+      // telling the client about leaving all queues, therefore the client trying to cancel the matchmaking
+      // as it isn't aware of the launching game anymore (which has already launched)
+      log.warn("Game launch was already completed / cancelled when trying to stop searching for a matchmade game. Ignoring...");
+    }
   }
 
   @Override

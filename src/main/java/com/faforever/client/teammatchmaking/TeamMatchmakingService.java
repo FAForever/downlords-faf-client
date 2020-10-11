@@ -73,6 +73,8 @@ public class TeamMatchmakingService implements InitializingBean {
   private final ObservableList<MatchmakingQueue> matchmakingQueues = FXCollections.observableArrayList();
   private final List<ScheduledFuture<?>> leaveQueueTimeouts = new LinkedList<>();
 
+  private volatile boolean matchFoundAndWaitingForGameLaunch = false;
+
   @Override
   public void afterPropertiesSet() throws Exception {
 
@@ -154,14 +156,16 @@ public class TeamMatchmakingService implements InitializingBean {
         }
     );
 
-    //TODO: save match found message and don't cancel here after match found
     if (matchmakingQueues.stream().noneMatch(MatchmakingQueue::isJoined)
-        && message.getState() != MatchmakingState.START) { // catches a race condition due MatchmakingQueue::isJoined being set on UI thread
+        && message.getState() != MatchmakingState.START // catches a race condition due MatchmakingQueue::isJoined being set on UI thread
+        && !matchFoundAndWaitingForGameLaunch) {
       gameService.onMatchmakerSearchStopped();
     }
   }
 
   private void onMatchFoundMessage(MatchFoundMessage message) {
+    matchFoundAndWaitingForGameLaunch = true; // messages from server: match found -> STOP all queues that you are in that haven't found a match -> game launch
+
     notificationService.addNotification(new TransientNotification(
         i18n.get("teammatchmaking.notification.matchFound.title"),
         i18n.get("teammatchmaking.notification.matchFound.message")
@@ -178,6 +182,7 @@ public class TeamMatchmakingService implements InitializingBean {
       q.setTimedOutMatchingStatus(MatchingStatus.MATCH_CANCELLED, Duration.ofSeconds(15), taskScheduler);
     });
 
+    matchFoundAndWaitingForGameLaunch = false;
     gameService.onMatchmakerSearchStopped(); // joining custom games is still blocked till match is cancelled or launched
   }
 
@@ -190,6 +195,7 @@ public class TeamMatchmakingService implements InitializingBean {
       q.setTimedOutMatchingStatus(MatchingStatus.GAME_LAUNCHING, Duration.ofSeconds(15), taskScheduler);
     });
 
+    matchFoundAndWaitingForGameLaunch = false;
     gameService.onMatchmakerSearchStopped(); // joining custom games is still blocked till match is cancelled or launched
   }
 
