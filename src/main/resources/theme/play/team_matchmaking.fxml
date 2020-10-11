@@ -11,7 +11,7 @@
 <?import javafx.scene.control.ScrollPane?>
 <StackPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/11.0.1"
            fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingController" fx:id="teamMatchmakingRoot">
-    <SplitPane dividerPositions="0.5" >
+    <SplitPane dividerPositions="0.7" >
         <ScrollPane fx:id="scrollPane" fitToWidth="true" >
             <VBox fx:id="preparationArea" spacing="25.0" >
                 <children>
