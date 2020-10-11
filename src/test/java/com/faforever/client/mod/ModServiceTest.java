@@ -9,7 +9,9 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.commons.io.ByteCopier;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -53,13 +55,12 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ModServiceTest {
+public class ModServiceTest extends AbstractPlainJavaFxTest {
 
   public static final String BLACK_OPS_UNLEASHED_DIRECTORY_NAME = "BlackOpsUnleashed";
   private static final ClassPathResource BLACKOPS_SUPPORT_MOD_INFO = new ClassPathResource("/mods/blackops_support_mod_info.lua");
@@ -112,11 +113,14 @@ public class ModServiceTest {
     when(forgedAlliancePrefs.getPreferencesFile()).thenReturn(gamePrefsPath);
     when(forgedAlliancePrefs.getModsDirectory()).thenReturn(modsDirectory.getRoot().toPath());
     when(forgedAlliancePrefs.modsDirectoryProperty()).thenReturn(new SimpleObjectProperty<>(modsDirectory.getRoot().toPath()));
-    // FIXME how did that happen... I see this line many times but it doesn't seem to do anything useful
-    doAnswer(invocation -> invocation.getArgument(0)).when(taskService).submitTask(any());
+    when(taskService.submitTask(any(CompletableTask.class))).then(invocation -> {
+      CompletableTask<?> completableTask = invocation.getArgument(0);
+      completableTask.run();
+      completableTask.get(2, TimeUnit.SECONDS);
+      return completableTask;
+    });
 
     blackopsSupportPath = copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);
-
     instance.afterPropertiesSet();
   }
 

@@ -446,7 +446,6 @@ public class MapService implements InitializingBean, DisposableBean {
     return taskService.submitTask(mapUploadTask);
   }
 
-
   @CacheEvict(CacheNames.MAPS)
   public void evictCache() {
     // Nothing to see here
@@ -455,7 +454,6 @@ public class MapService implements InitializingBean, DisposableBean {
   /**
    * Tries to find a map my its folder name, first locally then on the server.
    */
-
   public CompletableFuture<Optional<MapBean>> findByMapFolderName(String folderName) {
     Optional<MapBean> installed = getMapLocallyFromName(folderName);
     if (installed.isPresent()) {
@@ -469,7 +467,6 @@ public class MapService implements InitializingBean, DisposableBean {
         .thenApply(Optional::isPresent);
   }
 
-
   @Async
   public CompletableFuture<Integer> getFileSize(URL downloadUrl) {
     return CompletableFuture.completedFuture(noCatch(() -> downloadUrl
@@ -477,16 +474,13 @@ public class MapService implements InitializingBean, DisposableBean {
         .getContentLength()));
   }
 
-
   public CompletableFuture<Tuple<List<MapBean>, Integer>> findByQueryWithPageCount(SearchConfig searchConfig, int count, int page) {
     return fafService.findMapsByQueryWithPageCount(searchConfig, count, page);
   }
 
-
   public Optional<MapBean> findMap(String id) {
     return fafService.findMapById(id);
   }
-
 
   public CompletableFuture<Tuple<List<MapBean>, Integer>> getLadderMapsWithPageCount(int loadMoreCount, int page) {
     return fafService.getLadder1v1MapsWithPageCount(loadMoreCount, page);
