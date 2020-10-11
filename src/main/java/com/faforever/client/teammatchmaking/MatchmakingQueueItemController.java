@@ -126,7 +126,7 @@ public class MatchmakingQueueItemController implements Controller<Node> {
     joinLeaveQueueButton.disableProperty().bind(createBooleanBinding(
         () -> teamMatchmakingService.getParty().getMembers().size() > queue.getTeamSize()
             || !teamMatchmakingService.getParty().getOwner().equals(playerService.getCurrentPlayer().orElse(null)),
-        teamMatchmakingService.getParty().getMembers()
+        teamMatchmakingService.getParty().getMembers(), queue.teamSizeProperty()
     ));
 
     queue.joinedProperty().addListener(observable -> refreshingLabel.setVisible(false));
