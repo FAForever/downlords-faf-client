@@ -156,8 +156,8 @@ public class TeamMatchmakingService implements InitializingBean {
         }
     );
 
-    if (matchmakingQueues.stream().noneMatch(MatchmakingQueue::isJoined)
-        && message.getState() != MatchmakingState.START // catches a race condition due MatchmakingQueue::isJoined being set on UI thread
+    if (matchmakingQueues.stream().noneMatch(q -> q.isJoined() && !q.getQueueName().equals(message.getQueueName())) // filter catches a race condition due MatchmakingQueue::isJoined being set on UI thread
+        && message.getState() != MatchmakingState.START // catches same race condition
         && !matchFoundAndWaitingForGameLaunch) {
       gameService.onMatchmakerSearchStopped();
     }
