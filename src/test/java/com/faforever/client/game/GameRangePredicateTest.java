@@ -15,12 +15,15 @@ public class GameRangePredicateTest {
 
   private Player validPlayer;
   private GameRangePredicate predicate;
+  private Game game;
 
   @Before
   public void setUp() {
     validPlayer = new Player("");
     validPlayer.setGlobalRatingMean(1400);
     validPlayer.setGlobalRatingDeviation(100); //this should result in a global rating of 1100
+    game = new Game();
+    game.setEnforceRating(true);
 
     predicate = new GameRangePredicate(Optional.of(validPlayer));
   }
@@ -30,11 +33,12 @@ public class GameRangePredicateTest {
     //Arrange
     GameRangePredicate rangePredicate = new GameRangePredicate(Optional.empty());
     ArrayList<Game> games = new ArrayList<>();
-    games.add(new Game());
+    games.add(game);
 
     Game game1 = new Game();
+    game1.setEnforceRating(true);
     game1.setMinRating(100);
-    game1.setMaxRating(10000);
+    game1.setMaxRating(0);
     games.add(game1);
 
     //Act
@@ -45,9 +49,23 @@ public class GameRangePredicateTest {
   }
 
   @Test
+  public void testAlwaysMatchWhenNotEnforcing() {
+    //Arrange
+    game.setEnforceRating(false);
+    game.setMaxRating(1000);
+    game.setMinRating(100);
+
+    //Act
+    boolean result = predicate.test(game);
+
+    //Assert
+    Assert.assertTrue(result);
+  }
+
+  @Test
   public void testMatchesWithin() {
     //Arrange
-    Game game = new Game();
+    game.setEnforceRating(true);
     game.setMaxRating(1200);
     game.setMinRating(1000);
 
@@ -61,7 +79,6 @@ public class GameRangePredicateTest {
   @Test
   public void testMatchesOnBorderingMin() {
     //Arrange
-    Game game = new Game();
     game.setMaxRating(1200);
     game.setMinRating(1100);
 
@@ -75,7 +92,6 @@ public class GameRangePredicateTest {
   @Test
   public void testMatchesOnBorderingMax() {
     //Arrange
-    Game game = new Game();
     game.setMaxRating(1100);
     game.setMinRating(100);
 
@@ -89,7 +105,6 @@ public class GameRangePredicateTest {
   @Test
   public void testDoesntMatchOnPlayerRatingAbove() {
     //Arrange
-    Game game = new Game();
     game.setMaxRating(800);
     game.setMinRating(100);
 
@@ -103,7 +118,6 @@ public class GameRangePredicateTest {
   @Test
   public void testDoesntMatchOnPlayerRatingBelow() {
     //Arrange
-    Game game = new Game();
     game.setMaxRating(1800);
     game.setMinRating(1400);
 

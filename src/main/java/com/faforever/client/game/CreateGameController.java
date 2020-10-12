@@ -92,6 +92,7 @@ public class CreateGameController implements Controller<Pane> {
   public TextField passwordTextField;
   public TextField minRankingTextField;
   public TextField maxRankingTextField;
+  public CheckBox enforceRankingCheckBox;
   public ListView<FeaturedMod> featuredModListView;
   public ListView<MapBean> mapListView;
   public StackPane gamesRoot;
@@ -386,13 +387,34 @@ public class CreateGameController implements Controller<Pane> {
         .map(ModVersion::getUid)
         .collect(Collectors.toSet());
 
+    int minRating = 0;
+    int maxRating = 3000;
+    boolean enforceRating = false;
+
+    try {
+      minRating = Integer.parseInt(minRankingTextField.getText());
+    } catch (NumberFormatException e) {
+      //TODO Handle this
+    }
+
+    try {
+      maxRating = Integer.parseInt(maxRankingTextField.getText());
+    } catch (NumberFormatException e) {
+      //TODO Handle this
+    }
+
+    enforceRating = enforceRankingCheckBox.isSelected();
+
     NewGameInfo newGameInfo = new NewGameInfo(
         titleTextField.getText(),
         Strings.emptyToNull(passwordTextField.getText()),
         featuredModListView.getSelectionModel().getSelectedItem(),
         mapListView.getSelectionModel().getSelectedItem().getFolderName(),
         mods,
-        onlyForFriendsCheckBox.isSelected() ? GameVisibility.PRIVATE : GameVisibility.PUBLIC);
+        onlyForFriendsCheckBox.isSelected() ? GameVisibility.PRIVATE : GameVisibility.PUBLIC,
+        minRating,
+        maxRating,
+        enforceRating);
 
     gameService.hostGame(newGameInfo).exceptionally(throwable -> {
       log.warn("Game could not be hosted", throwable);

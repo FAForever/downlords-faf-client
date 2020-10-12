@@ -106,12 +106,6 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 @RequiredArgsConstructor
 public class GameService implements InitializingBean {
 
-  private static final String RATING_NUMBER = "\\d+(?:\\.\\d+)?k?";
-  private static final Pattern MIN_RATING_PATTERN = Pattern.compile(">\\s*(" + RATING_NUMBER + ")|(" + RATING_NUMBER + ")\\s*\\+");
-  private static final Pattern MAX_RATING_PATTERN = Pattern.compile("<\\s*(" + RATING_NUMBER + ")");
-  private static final Pattern ABOUT_RATING_PATTERN = Pattern.compile("~\\s*(" + RATING_NUMBER + ")");
-  private static final Pattern BETWEEN_RATING_PATTERN = Pattern.compile("(" + RATING_NUMBER + ")\\s*-\\s*(" + RATING_NUMBER + ")");
-
   @VisibleForTesting
   final BooleanProperty gameRunning;
 
@@ -666,7 +660,7 @@ public class GameService implements InitializingBean {
               featuredModBean,
               game.getMapFolderName(),
               new HashSet<>(game.getSimMods().values())
-          )));
+              , game.getMinRating(), game.getMaxRating(), game.getEnforceRating())));
     }
   }
 
@@ -823,37 +817,10 @@ public class GameService implements InitializingBean {
       }
     }
 
-    // TODO this can be removed as soon as we valueOf server side support. Until then, let's be hacky
-    String titleString = game.getTitle();
-    Matcher matcher = BETWEEN_RATING_PATTERN.matcher(titleString);
-    if (matcher.find()) {
-      game.setMinRating(parseRating(matcher.group(1)));
-      game.setMaxRating(parseRating(matcher.group(2)));
-    } else {
-      matcher = MIN_RATING_PATTERN.matcher(titleString);
-      if (matcher.find()) {
-        if (matcher.group(1) != null) {
-          game.setMinRating(parseRating(matcher.group(1)));
-        }
-        if (matcher.group(2) != null) {
-          game.setMinRating(parseRating(matcher.group(2)));
-        }
-        game.setMaxRating(3000);
-      } else {
-        matcher = MAX_RATING_PATTERN.matcher(titleString);
-        if (matcher.find()) {
-          game.setMinRating(0);
-          game.setMaxRating(parseRating(matcher.group(1)));
-        } else {
-          matcher = ABOUT_RATING_PATTERN.matcher(titleString);
-          if (matcher.find()) {
-            int rating = parseRating(matcher.group(1));
-            game.setMinRating(rating - 300);
-            game.setMaxRating(rating + 300);
-          }
-        }
-      }
-    }
+    //TODO Why don't we get the ratings here?!
+    game.setMinRating(gameInfoMessage.getRatingMin());
+    game.setMaxRating(gameInfoMessage.getRatingMax());
+    game.setEnforceRating(gameInfoMessage.isEnforceRatingRange());
   }
 
 

@@ -35,19 +35,19 @@
         <RowConstraints vgrow="NEVER" />
     </rowConstraints>
     <children>
-    
     	<!-- Title, Password, Rating -->
         <TextField fx:id="titleTextField" promptText="%game.create.title" styleClass="game-title-input" GridPane.columnSpan="2147483647" />
         <PasswordField fx:id="passwordTextField" promptText="%game.create.password" GridPane.rowIndex="1" />
         <CheckBox fx:id="onlyForFriendsCheckBox" mnemonicParsing="false" text="%game.create.onlyFriends" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-        <Label alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308" text="%game.create.rating" textAlignment="JUSTIFY" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-        <HBox alignment="CENTER" maxWidth="1.7976931348623157E308" spacing="10.0" GridPane.columnIndex="3" GridPane.columnSpan="2147483647" GridPane.rowIndex="1">
+        <HBox alignment="CENTER_RIGHT" spacing="10.0" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.columnSpan="2147483647" GridPane.rowIndex="1">
             <children>
+                <Label alignment="CENTER_RIGHT" text="%game.create.rating" textAlignment="JUSTIFY" GridPane.columnIndex="2" GridPane.rowIndex="1" />
                 <TextField fx:id="minRankingTextField" minWidth="30.0" prefWidth="60.0" promptText="%games.create.minRating" HBox.hgrow="NEVER" />
                 <Label text="%games.create.minRating" />
-                <Pane minHeight="0.0" minWidth="0.0" HBox.hgrow="ALWAYS" />
+<!--                <Pane minHeight="0.0" minWidth="0.0" HBox.hgrow="ALWAYS" />-->
                 <Label text="%games.create.maxRating" />
                 <TextField fx:id="maxRankingTextField" minWidth="30.0" prefWidth="60.0" promptText="%games.create.maxRating" HBox.hgrow="NEVER" />
+                <CheckBox fx:id="enforceRankingCheckBox" HBox.hgrow="NEVER" text="%games.create.enforceRating" />
             </children>
             <padding>
                 <Insets left="2.0" right="2.0" top="2.0" />

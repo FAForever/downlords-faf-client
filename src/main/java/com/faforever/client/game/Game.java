@@ -37,6 +37,7 @@ public class Game {
   private final ObjectProperty<GameStatus> status;
   private final ObjectProperty<VictoryCondition> victoryCondition;
   private final ObjectProperty<Instant> startTime;
+  private final BooleanProperty enforceRating;
   /**
    * Maps a sim mod's UID to its name.
    */
@@ -67,6 +68,7 @@ public class Game {
     featuredModVersions = new SimpleMapProperty<>(FXCollections.observableHashMap());
     status = new SimpleObjectProperty<>();
     startTime = new SimpleObjectProperty<>();
+    enforceRating = new SimpleBooleanProperty(false);
   }
 
   public String getHost() {
@@ -187,6 +189,14 @@ public class Game {
 
   public IntegerProperty maxRatingProperty() {
     return maxRating;
+  }
+
+  public void setEnforceRating(boolean enforceRating) {
+    this.enforceRating.set(enforceRating);
+  }
+
+  public boolean getEnforceRating() {
+    return enforceRating.getValue();
   }
 
   public GameStatus getStatus() {

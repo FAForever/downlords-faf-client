@@ -103,7 +103,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
     this.playerService = playerService;
 
     rangePredicate = new GameRangePredicate(playerService.getCurrentPlayer());
-
     gameChangeListener = (observable, oldValue, newValue) -> setSelectedGame(newValue);
   }
 

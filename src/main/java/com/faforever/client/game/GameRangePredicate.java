@@ -15,7 +15,7 @@ public class GameRangePredicate implements Predicate<Game> {
 
   @Override
   public boolean test(Game game) {
-    if(!player.isPresent())
+    if(!player.isPresent() || !game.getEnforceRating())
       return true;
 
     float rating = RatingUtil.getGlobalRating(player.get());
