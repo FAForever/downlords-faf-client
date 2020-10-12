@@ -9,7 +9,6 @@ import com.faforever.client.util.RatingUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.MenuButton;
@@ -20,7 +19,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Locale;
+import java.util.List;
 import java.util.Optional;
 
 import static com.faforever.client.game.PlayerStatus.HOSTING;
@@ -33,20 +32,23 @@ import static com.faforever.client.game.PlayerStatus.PLAYING;
 public class UserFilterController implements Controller<Node> {
 
   private final I18n i18n;
-  private CountryFlagService flagService;
+  private final CountryFlagService flagService;
   public MenuButton gameStatusMenu;
   public GridPane filterUserRoot;
   public TextField clanFilterField;
   public TextField minRatingFilterField;
   public TextField maxRatingFilterField;
   public ToggleGroup gameStatusToggleGroup;
-  public ComboBox countryFilterField;
+  public TextField countryFilterField;
+
 
   private final BooleanProperty filterApplied;
   @VisibleForTesting
   ChannelTabController channelTabController;
   @VisibleForTesting
   PlayerStatus playerStatusFilter;
+
+  List<String> currentSelectedCountries;
 
   public UserFilterController(I18n i18n, CountryFlagService flagService) {
     this.i18n = i18n;
@@ -62,11 +64,9 @@ public class UserFilterController implements Controller<Node> {
     clanFilterField.textProperty().addListener((observable, oldValue, newValue) -> filterUsers());
     minRatingFilterField.textProperty().addListener((observable, oldValue, newValue) -> filterUsers());
     maxRatingFilterField.textProperty().addListener((observable, oldValue, newValue) -> filterUsers());
-    countryFilterField.getEditor().textProperty().addListener((observable, oldValue, newValue) -> filterUsers());
-    countryFilterField.getEditor().textProperty().addListener(((observable, oldValue, newValue) -> updateCountryList(newValue)));
-    countryFilterField.getItems().addAll(flagService.getCountries(null));
+    countryFilterField.textProperty().addListener(((observable, oldValue, newValue) -> filterCountry()));
+    currentSelectedCountries = flagService.getCountries(null);
   }
-
 
   public void filterUsers() {
     channelTabController.setUserFilter(this::filterUser);
@@ -75,7 +75,7 @@ public class UserFilterController implements Controller<Node> {
             || !minRatingFilterField.getText().isEmpty()
             || !clanFilterField.getText().isEmpty()
             || playerStatusFilter != null
-            || !countryFilterField.getEditor().getText().isEmpty()
+            || !countryFilterField.getText().isEmpty()
     );
   }
 
@@ -87,6 +87,11 @@ public class UserFilterController implements Controller<Node> {
         && isBoundByRating(user)
         && isGameStatusMatch(user)
         && isCountryMatch(user));
+  }
+
+  private void filterCountry() {
+    currentSelectedCountries = flagService.getCountries(countryFilterField.textProperty().get());
+    filterUsers();
   }
 
   public BooleanProperty filterAppliedProperty() {
@@ -173,24 +178,15 @@ public class UserFilterController implements Controller<Node> {
   }
 
   boolean isCountryMatch(ChatChannelUser chatUser) {
-    var fieldValue = countryFilterField.getEditor().getText();
-    if(fieldValue.isEmpty())
-      return true;
-
     Optional<Player> playerOptional = chatUser.getPlayer();
-
-    if(!playerOptional.isPresent())
+    if (!playerOptional.isPresent()) {
       return false;
+    }
 
     Player player = playerOptional.get();
 
     var country = player.getCountry();
-    return country.toLowerCase().startsWith(fieldValue.toLowerCase());
-  }
-
-  private void updateCountryList(String newValue) {
-    countryFilterField.getItems().clear();
-    countryFilterField.getItems().addAll(flagService.getCountries(newValue));
+    return currentSelectedCountries.contains(country);
   }
 
   public void onGameStatusPlaying() {

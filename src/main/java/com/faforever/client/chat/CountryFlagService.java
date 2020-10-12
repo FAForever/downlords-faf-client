@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.i18n.I18n;
 import javafx.scene.image.Image;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
@@ -17,6 +18,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.faforever.client.config.CacheNames.COUNTRY_FLAGS;
 import static com.faforever.client.config.CacheNames.COUNTRY_NAMES;
@@ -28,6 +30,12 @@ public class CountryFlagService {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final Collection<String> NON_COUNTRY_CODES = Arrays.asList("A1", "A2", "");
+  private final I18n i18n;
+
+  public CountryFlagService(I18n i18n) {
+    this.i18n = i18n;
+  }
+
 
   @Cacheable(COUNTRY_FLAGS)
   public Optional<Image> loadCountryFlag(final String country) {
@@ -41,20 +49,23 @@ public class CountryFlagService {
 
   @Cacheable(COUNTRY_NAMES)
   public List<String> getCountries(String startsWith) {
-    String[] countries = Locale.getISOCountries();
-    if(startsWith == null) {
-      return Arrays.asList(countries);
+    if (startsWith == null) {
+      return Arrays.stream(Locale.getISOCountries()).collect(Collectors.toList());
     }
 
-    startsWith = startsWith.toLowerCase();
+    final String startsWithLowered = startsWith.toLowerCase();
+    return Arrays.stream(Locale.getISOCountries())
+        .filter(country -> matchCountry(country, startsWithLowered))
+        .collect(Collectors.toList());
+  }
 
-    ArrayList<String> result = new ArrayList(countries.length);
-    for(String country : countries)  {
-      if(country.toLowerCase().startsWith(startsWith))
-        result.add(country);
+  private boolean matchCountry(String countryCode, String startsWithLowered) {
+    if (countryCode.toLowerCase().startsWith(startsWithLowered)) {
+      return true;
     }
 
-    return result;
+    String localName = i18n.getCountryNameLocalized(countryCode).toLowerCase();
+    return localName.startsWith(startsWithLowered);
   }
 
   @SneakyThrows

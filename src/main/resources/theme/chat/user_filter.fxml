@@ -9,7 +9,6 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.control.ComboBox?>
 <GridPane fx:id="filterUserRoot" hgap="10.0" styleClass="filter-user" vgap="10.0"
           xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1"
           fx:controller="com.faforever.client.chat.UserFilterController">
@@ -28,8 +27,8 @@
                    GridPane.rowIndex="2"/>
         <TextField fx:id="maxRatingFilterField" promptText="%chat.filter.maxRating" GridPane.columnSpan="2147483647"
                    GridPane.rowIndex="1"/>
-        <ComboBox fx:id="countryFilterField" promptText="%chat.filter.countryPrompt" GridPane.columnSpan="2147483647"
-                  GridPane.rowIndex="3" editable="true"  />
+        <TextField fx:id="countryFilterField" promptText="%chat.filter.countryPrompt" GridPane.columnSpan="2147483647"
+                  GridPane.rowIndex="3" />
         <MenuButton fx:id="gameStatusMenu" mnemonicParsing="false" text="%game.gameStatus" GridPane.rowIndex="4">
             <items>
                 <RadioMenuItem mnemonicParsing="false" text="%game.gameStatus.none" onAction="#onGameStatusNone">
