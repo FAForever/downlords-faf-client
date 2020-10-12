@@ -391,16 +391,12 @@ public class CreateGameController implements Controller<Pane> {
     int maxRating = 3000;
     boolean enforceRating = false;
 
-    try {
+    if (!minRankingTextField.getText().isEmpty()) {
       minRating = Integer.parseInt(minRankingTextField.getText());
-    } catch (NumberFormatException e) {
-      //TODO Handle this
     }
 
-    try {
+    if(!maxRankingTextField.getText().isEmpty()) {
       maxRating = Integer.parseInt(maxRankingTextField.getText());
-    } catch (NumberFormatException e) {
-      //TODO Handle this
     }
 
     enforceRating = enforceRankingCheckBox.isSelected();

@@ -817,10 +817,9 @@ public class GameService implements InitializingBean {
       }
     }
 
-    //TODO Why don't we get the ratings here?!
     game.setMinRating(gameInfoMessage.getRatingMin());
     game.setMaxRating(gameInfoMessage.getRatingMax());
-    game.setEnforceRating(gameInfoMessage.isEnforceRatingRange());
+    game.setEnforceRating(gameInfoMessage.getEnforceRatingRange());
   }
 
 

@@ -26,9 +26,9 @@ public class GameInfoMessage extends FafServerMessage {
   private Map<String, String> simMods;
   private String mapname;
   private Double launchedAt;
-  private int ratingMin;
-  private int ratingMax;
-  private boolean enforceRatingRange;
+  private Integer ratingMin;
+  private Integer ratingMax;
+  private Boolean enforceRatingRange;
   /**
    * The server may either send a single game or a list of games in the same message... *cringe*.
    */
