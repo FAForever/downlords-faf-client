@@ -15,6 +15,7 @@ import com.faforever.client.preferences.PreferenceUpdateListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
@@ -85,6 +86,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
   private final ClientProperties clientProperties;
   private final FafService fafService;
   private final EventBus eventBus;
+  private final UiService uiService;
 
   public CategoryAxis ratingDistributionXAxis;
   public NumberAxis ratingDistributionYAxis;
@@ -122,7 +124,7 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
   public void initialize() {
     super.initialize();
 
-    searchProgressIndicator.setImage(new Image(getClass().getResource("/images/loading-dancing-acu.gif").toExternalForm()));
+    searchProgressIndicator.setImage(new Image(uiService.getThemeFile(UiService.LADDER_LOADING_GIF)));
     searchingForOpponentLabel.managedProperty().bind(searchingForOpponentLabel.visibleProperty());
 
     searchProgressIndicator.managedProperty().bind(searchProgressIndicator.visibleProperty());

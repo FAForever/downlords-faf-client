@@ -11,16 +11,19 @@ import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.StarsController;
-import com.google.common.base.Joiner;
 import com.jfoenix.controls.JFXRippler;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -30,17 +33,17 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 public class ReplayCardController implements Controller<Node> {
 
+  private final ReplayService replayService;
   private final TimeService timeService;
   private final MapService mapService;
   private final RatingService ratingService;
-
+  private final I18n i18n;
   public Label dateLabel;
   public ImageView mapThumbnailImageView;
   public Label gameTitleLabel;
@@ -52,14 +55,13 @@ public class ReplayCardController implements Controller<Node> {
   public Label ratingLabel;
   public Label qualityLabel;
   public Label numberOfReviewsLabel;
-  public Label playerListLabel;
+  public HBox teamsContainer;
   public Label onMapLabel;
+  public Button watchButton;
   public StarsController starsController;
-
   private Replay replay;
-  private Consumer<Replay> onOpenDetailListener;
-  private final I18n i18n;
   private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
+  private Consumer<Replay> onOpenDetailListener;
   private JFXRippler jfxRippler;
 
   @Override
@@ -101,17 +103,28 @@ public class ReplayCardController implements Controller<Node> {
     Integer replayTicks = replay.getReplayTicks();
     if (replayTicks != null) {
       durationLabel.setText(timeService.shortDuration(Duration.ofMillis(replayTicks * 100)));
-      ((Label) durationLabel.getGraphic()).setText("");
+      // FIXME which icon was added in https://github.com/FAForever/downlords-faf-client/commit/58357c603eafead218ef7cceb8907e86c5d864b6#r40460680
+//      durationLabel.getGraphic().getStyleClass().remove("duration-icon");
+//      durationLabel.getGraphic().getStyleClass().remove("time-icon");
     } else {
       durationLabel.setText(Optional.ofNullable(replay.getEndTime())
           .map(endTime -> timeService.shortDuration(Duration.between(replay.getStartTime(), endTime)))
           .orElse(i18n.get("notAvailable")));
     }
 
-    String players = replay.getTeams().values().stream()
-        .map(team -> Joiner.on(i18n.get("textSeparator")).join(team))
-        .collect(Collectors.joining(i18n.get("vsSeparator")));
-    playerListLabel.setText(players);
+    replay.getTeams()
+        .forEach((id, team) -> {
+          VBox teamBox = new VBox();
+
+          String teamLabelText = id.equals("1") ? i18n.get("replay.noTeam") : i18n.get("replay.team", Integer.parseInt(id) - 1);
+          Label teamLabel = new Label(teamLabelText);
+          teamLabel.getStyleClass().add("replay-card-team-label");
+          teamLabel.setPadding(new Insets(0, 0, 5, 0));
+          teamBox.getChildren().add(teamLabel);
+          team.forEach(player -> teamBox.getChildren().add(new Label(player)));
+
+          teamsContainer.getChildren().add(teamBox);
+        });
 
     ObservableList<Review> reviews = replay.getReviews();
     JavaFxUtil.addListener(reviews, new WeakInvalidationListener(reviewsChangedListener));
@@ -136,5 +149,9 @@ public class ReplayCardController implements Controller<Node> {
 
   public void onShowReplayDetail() {
     onOpenDetailListener.accept(replay);
+  }
+
+  public void onWatchButtonClicked() {
+    replayService.runReplay(replay);
   }
 }

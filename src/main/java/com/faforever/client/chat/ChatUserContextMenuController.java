@@ -1,11 +1,15 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.api.dto.GroupPermission;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.game.JoinGameHelper;
+import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
@@ -20,39 +24,35 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.alert.Alert;
+import com.faforever.client.ui.alert.animation.AlertAnimation;
+import com.faforever.client.util.ClipboardUtil;
 import com.google.common.eventbus.EventBus;
-import com.jfoenix.animation.alert.JFXAlertAnimation;
-import com.jfoenix.controls.JFXAlert;
-import com.jfoenix.controls.JFXButton;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
-import javafx.stage.Stage;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.util.Objects;
+import java.util.Set;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static com.faforever.client.player.SocialStatus.FOE;
@@ -60,12 +60,13 @@ import static com.faforever.client.player.SocialStatus.FRIEND;
 import static com.faforever.client.player.SocialStatus.SELF;
 import static java.util.Locale.US;
 
+@Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final PreferencesService preferencesService;
+  private final ClientProperties clientProperties;
   private final PlayerService playerService;
   private final ReplayService replayService;
   private final NotificationService notificationService;
@@ -74,8 +75,8 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   private final JoinGameHelper joinGameHelper;
   private final AvatarService avatarService;
   private final UiService uiService;
+  private final PlatformService platformService;
   private final ModeratorService moderatorService;
-  private final BooleanProperty isModeratorProperty = new SimpleBooleanProperty(false);
   public ComboBox<AvatarBean> avatarComboBox;
   public CustomMenuItem avatarPickerMenuItem;
   public MenuItem sendPrivateMessageItem;
@@ -90,11 +91,13 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public MenuItem watchGameItem;
   public MenuItem viewReplaysItem;
   public MenuItem inviteItem;
+  public MenuItem reportItem;
   public SeparatorMenuItem moderatorActionSeparator;
   public MenuItem banItem;
+  public MenuItem broadcastMessage;
   public ContextMenu chatUserContextMenuRoot;
   public MenuItem showUserInfo;
-  public JFXButton removeCustomColorButton;
+  public Button removeCustomColorButton;
   private ChatChannelUser chatUser;
   public MenuItem kickGameItem;
   public MenuItem kickLobbyItem;
@@ -102,11 +105,13 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   @SuppressWarnings("FieldCanBeLocal")
   private ChangeListener<Player> playerChangeListener;
 
-  public ChatUserContextMenuController(PreferencesService preferencesService,
+  public ChatUserContextMenuController(PreferencesService preferencesService, ClientProperties clientProperties,
                                        PlayerService playerService, ReplayService replayService,
                                        NotificationService notificationService, I18n i18n, EventBus eventBus,
-                                       JoinGameHelper joinGameHelper, AvatarService avatarService, UiService uiService, ModeratorService moderatorService) {
+                                       JoinGameHelper joinGameHelper, AvatarService avatarService, UiService uiService,
+                                       PlatformService platformService, ModeratorService moderatorService) {
     this.preferencesService = preferencesService;
+    this.clientProperties = clientProperties;
     this.playerService = playerService;
     this.replayService = replayService;
     this.notificationService = notificationService;
@@ -115,6 +120,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     this.joinGameHelper = joinGameHelper;
     this.avatarService = avatarService;
     this.uiService = uiService;
+    this.platformService = platformService;
     this.moderatorService = moderatorService;
   }
 
@@ -128,10 +134,6 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     // Workaround for the issue that the popup gets closed when the "custom color" button is clicked, causing an NPE
     // in the custom color popup window.
     colorPicker.focusedProperty().addListener((observable, oldValue, newValue) -> chatUserContextMenuRoot.setAutoHide(!newValue));
-  }
-
-  private void initModerator() {
-    moderatorService.isModerator().thenAccept(isModeratorProperty::set);
   }
 
   @NotNull
@@ -187,11 +189,8 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
         loadAvailableAvatars(newValue);
       }
 
-      initModerator();
-      kickGameItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF).and(isModeratorProperty));
-      kickLobbyItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF).and(isModeratorProperty));
-      banItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF).and(isModeratorProperty));
-      moderatorActionSeparator.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF).and(isModeratorProperty));
+      moderatorService.getPermissions()
+          .thenAccept(permissions -> setModeratorOptions(permissions, newValue));
 
       sendPrivateMessageItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF));
       addFriendItem.visibleProperty().bind(
@@ -200,13 +199,23 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
       removeFriendItem.visibleProperty().bind(newValue.socialStatusProperty().isEqualTo(FRIEND));
       addFoeItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(FOE).and(newValue.socialStatusProperty().isNotEqualTo(SELF)));
       removeFoeItem.visibleProperty().bind(newValue.socialStatusProperty().isEqualTo(FOE));
+      reportItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF));
 
+      // TODO: Make this ignore TMM games too and not just ladder
+      // https://github.com/FAForever/downlords-faf-client/issues/1770
       joinGameItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF)
           .and(newValue.statusProperty().isEqualTo(PlayerStatus.LOBBYING)
-              .or(newValue.statusProperty().isEqualTo(PlayerStatus.HOSTING))));
+              .or(newValue.statusProperty().isEqualTo(PlayerStatus.HOSTING)))
+          .and(Bindings.createBooleanBinding(() -> {
+                return newValue.getGame() != null
+                    && newValue.getGame().getFeaturedMod() != null
+                    && !newValue.getGame().getFeaturedMod().equals(KnownFeaturedMod.LADDER_1V1.getTechnicalName());
+              }, newValue.gameProperty())
+          ));
       watchGameItem.visibleProperty().bind(newValue.statusProperty().isEqualTo(PlayerStatus.PLAYING));
       inviteItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF)
           .and(newValue.statusProperty().isNotEqualTo(PlayerStatus.PLAYING)));
+
     };
     JavaFxUtil.addListener(chatUser.playerProperty(), new WeakChangeListener<>(playerChangeListener));
     playerChangeListener.changed(chatUser.playerProperty(), null, chatUser.getPlayer().orElse(null));
@@ -215,6 +224,16 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
         removeFriendItem.visibleProperty().or(
             addFoeItem.visibleProperty().or(
                 removeFoeItem.visibleProperty()))));
+  }
+
+  private void setModeratorOptions(Set<String> permissions, Player newValue) {
+    boolean notSelf = !newValue.getSocialStatus().equals(SELF);
+
+    kickGameItem.setVisible(notSelf & permissions.contains(GroupPermission.ADMIN_KICK_SERVER));
+    kickLobbyItem.setVisible(notSelf & permissions.contains(GroupPermission.ADMIN_KICK_SERVER));
+    banItem.setVisible(notSelf & permissions.contains(GroupPermission.ROLE_ADMIN_ACCOUNT_BAN));
+    broadcastMessage.setVisible(notSelf & permissions.contains(GroupPermission.ROLE_WRITE_MESSAGE));
+    moderatorActionSeparator.setVisible(kickGameItem.isVisible() || kickLobbyItem.isVisible() || banItem.isVisible() || broadcastMessage.isVisible());
   }
 
   private void loadAvailableAvatars(Player player) {
@@ -253,9 +272,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   }
 
   public void onCopyUsernameSelected() {
-    ClipboardContent clipboardContent = new ClipboardContent();
-    clipboardContent.putString(chatUser.getUsername());
-    Clipboard.getSystemClipboard().setContent(clipboardContent);
+    ClipboardUtil.copyToClipboard(chatUser.getUsername());
   }
 
   public void onAddFriendSelected() {
@@ -269,6 +286,10 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public void onRemoveFriendSelected() {
     Player player = getPlayer();
     playerService.removeFriend(player);
+  }
+
+  public void onReport() {
+    platformService.showDocument(clientProperties.getWebsite().getReportUrl());
   }
 
   public void onAddFoeSelected() {
@@ -289,7 +310,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     try {
       replayService.runLiveReplay(player.getGame().getId());
     } catch (Exception e) {
-      logger.error("Cannot display live replay {}", e.getCause());
+      log.error("Cannot display live replay", e.getCause());
       String title = i18n.get("replays.live.loadFailure.title");
       String message = i18n.get("replays.live.loadFailure.message");
       notificationService.addNotification(new ImmediateNotification(title, message, Severity.ERROR));
@@ -307,15 +328,33 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
   public void onBan(ActionEvent actionEvent) {
     actionEvent.consume();
-    JFXAlert<?> dialog = new JFXAlert<>((Stage) getRoot().getOwnerWindow());
+    Alert<?> dialog = new Alert<>(getRoot().getOwnerWindow());
 
-    BanDialogController controller = ((BanDialogController) uiService.loadFxml("theme/moderator/ban_dialog.fxml"))
+    BanDialogController controller = uiService.<BanDialogController>loadFxml("theme/moderator/ban_dialog.fxml")
         .setPlayer(getPlayer())
         .setCloseListener(dialog::close);
 
     dialog.setContent(controller.getDialogLayout());
-    dialog.setAnimation(JFXAlertAnimation.TOP_ANIMATION);
+    dialog.setAnimation(AlertAnimation.TOP_ANIMATION);
     dialog.show();
+  }
+
+  public void onBroadcastMessage(ActionEvent actionEvent) {
+    actionEvent.consume();
+
+    TextInputDialog broadcastMessageInputDialog = new TextInputDialog();
+    broadcastMessageInputDialog.setTitle(i18n.get("chat.userContext.broadcast"));
+
+    broadcastMessageInputDialog.showAndWait()
+        .ifPresent(broadcastMessage -> {
+              if (broadcastMessage.isBlank()) {
+                log.error("Broadcast message is empty: {}", broadcastMessage);
+              } else {
+                log.info("Sending broadcast message: {}", broadcastMessage);
+                moderatorService.broadcastMessage(broadcastMessage);
+              }
+            }
+        );
   }
 
   public void onJoinGameSelected() {

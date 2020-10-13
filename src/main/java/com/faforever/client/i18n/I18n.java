@@ -62,6 +62,7 @@ public class I18n implements InitializingBean {
         new Locale("iw"),
         new Locale("tr"),
         new Locale("nl"),
+        Locale.ITALIAN,
         new Locale("pl")
     ));
 
@@ -96,6 +97,13 @@ public class I18n implements InitializingBean {
 
   public Locale getUserSpecificLocale() {
     return this.userSpecificLocale;
+  }
+
+  public String getCountryNameLocalized(String isoCode) {
+    if (isoCode == null) {
+      return "";
+    }
+    return new Locale("", isoCode).getDisplayCountry(this.userSpecificLocale);
   }
 
   public String getQuantized(String singularKey, String pluralKey, long arg) {

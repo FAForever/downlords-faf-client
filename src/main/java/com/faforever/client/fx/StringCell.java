@@ -1,24 +1,18 @@
 package com.faforever.client.fx;
 
-import javafx.geometry.Pos;
 import javafx.scene.control.TableCell;
+import lombok.RequiredArgsConstructor;
 
 import java.util.function.Function;
 
+@RequiredArgsConstructor
 public class StringCell<S, T> extends TableCell<S, T> {
 
-  private Function<T, String> function;
-  private Pos alignment;
-  private String[] cssClasses;
+  private final Function<T, String> function;
+  private final String[] cssClasses;
 
   public StringCell(Function<T, String> function) {
-    this(function, Pos.CENTER_LEFT);
-  }
-
-  public StringCell(Function<T, String> function, Pos alignment, String... cssClasses) {
-    this.function = function;
-    this.alignment = alignment;
-    this.cssClasses = cssClasses;
+    this(function, new String[0]);
   }
 
   @Override
@@ -30,7 +24,6 @@ public class StringCell<S, T> extends TableCell<S, T> {
       setGraphic(null);
     } else {
       setText(function.apply(item));
-      setAlignment(alignment);
       getStyleClass().addAll(cssClasses);
     }
   }

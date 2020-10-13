@@ -1,5 +1,6 @@
 package com.faforever.client.task;
 
+import com.faforever.client.util.Assert;
 import javafx.concurrent.Task;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,9 +29,7 @@ public abstract class CompletableTask<V> extends Task<V> implements PrioritizedC
   }
 
   public void setPriority(Priority priority) {
-    if (this.priority != null) {
-      throw new IllegalStateException("Priority has already been set");
-    }
+    Assert.checkNotNullIllegalState(this.priority, "Priority has already been set");
     this.priority = priority;
   }
 

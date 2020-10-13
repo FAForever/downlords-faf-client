@@ -7,6 +7,7 @@ import com.faforever.client.achievements.PlayerAchievementBuilder;
 import com.faforever.client.api.dto.AchievementState;
 import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.events.EventService;
+import com.faforever.client.fa.RatingMode;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardEntry;
@@ -79,7 +80,6 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
     when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
     when(achievementItemController.getRoot()).thenReturn(new HBox());
     when(playerService.getPlayersByIds(any())).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
-
     when(leaderboardService.getEntryForPlayer(eq(PLAYER_ID))).thenReturn(CompletableFuture.completedFuture(new LeaderboardEntry()));
     when(statisticsService.getRatingHistory(any(), eq(PLAYER_ID))).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
         new RatingHistoryDataPoint(OffsetDateTime.now(), 1500f, 50f),
@@ -138,16 +138,18 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnGlobalRatingButtonClicked() throws Exception {
+  public void testOnRatingTypeChangeGlobal() throws Exception {
     testSetPlayerInfoBean();
-    instance.globalButtonClicked();
+    instance.ratingTypeComboBox.setValue(RatingMode.GLOBAL);
+    instance.onRatingTypeChange();
     verify(statisticsService, times(2)).getRatingHistory(KnownFeaturedMod.FAF, PLAYER_ID);
   }
 
   @Test
-  public void testOn1v1RatingButtonClicked() throws Exception {
+  public void testOnRatingTypeChange1v1() throws Exception {
     testSetPlayerInfoBean();
-    instance.ladder1v1ButtonClicked();
+    instance.ratingTypeComboBox.setValue(RatingMode.LADDER_1V1);
+    instance.onRatingTypeChange();
     verify(statisticsService).getRatingHistory(KnownFeaturedMod.LADDER_1V1, PLAYER_ID);
   }
 }

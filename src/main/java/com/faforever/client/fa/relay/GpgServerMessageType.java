@@ -3,6 +3,7 @@ package com.faforever.client.fa.relay;
 import com.faforever.client.remote.domain.IceServerMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.remote.domain.ServerMessageType;
+import com.faforever.client.util.Assert;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,13 +38,12 @@ public enum GpgServerMessageType implements ServerMessageType {
 
   public static GpgServerMessageType fromString(String string) {
     GpgServerMessageType gpgServerMessageType = fromString.get(string);
-    if (gpgServerMessageType == null) {
-      /*
-       * If an unknown command is received, ignoring it would probably cause the application to enter an unknown state.
-       * So it's better to crash right now so there's no doubt that something went wrong.
-       */
-      throw new IllegalArgumentException("Unknown relay server command: " + string);
-    }
+    /*
+     * If an unknown command is received, ignoring it would probably cause the application to enter an unknown state.
+     * So it's better to crash right now so there's no doubt that something went wrong.
+     */
+    Assert.checkNullIllegalState(gpgServerMessageType, "Unknown relay server command: " + string);
+
     return gpgServerMessageType;
   }
 

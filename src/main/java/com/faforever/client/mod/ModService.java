@@ -13,8 +13,10 @@ import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.CompletableTask.Priority;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.IdenticonUtil;
+import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
@@ -95,9 +97,9 @@ public class ModService implements InitializingBean, DisposableBean {
   private final ModReader modReader = new ModReader();
 
   private Path modsDirectory;
-  private Map<Path, ModVersion> pathToMod = new HashMap<>();
-  private ObservableList<ModVersion> installedModVersions = FXCollections.observableArrayList();
-  private ObservableList<ModVersion> readOnlyInstalledModVersions = FXCollections.unmodifiableObservableList(installedModVersions);
+  private final Map<Path, ModVersion> pathToMod = new HashMap<>();
+  private final ObservableList<ModVersion> installedModVersions = FXCollections.observableArrayList();
+  private final ObservableList<ModVersion> readOnlyInstalledModVersions = FXCollections.unmodifiableObservableList(installedModVersions);
   private Thread directoryWatcherThread;
 
   @Override
@@ -109,7 +111,14 @@ public class ModService implements InitializingBean, DisposableBean {
         onModDirectoryReady();
       }
     };
-    modDirectoryChangedListener.invalidated(preferencesService.getPreferences().getForgedAlliance().modsDirectoryProperty());
+    taskService.submitTask(new CompletableTask<Void>(Priority.LOW) {
+      @Override
+      protected Void call() throws Exception {
+        updateTitle(i18n.get("modVault.loadingMods"));
+        modDirectoryChangedListener.invalidated(preferencesService.getPreferences().getForgedAlliance().modsDirectoryProperty());
+        return null;
+      }
+    });
     JavaFxUtil.addListener(preferencesService.getPreferences().getForgedAlliance().modsDirectoryProperty(), modDirectoryChangedListener);
   }
 
@@ -243,8 +252,8 @@ public class ModService implements InitializingBean, DisposableBean {
         .orElse(null);
   }
 
-  public CompletableFuture<List<ModVersion>> getNewestMods(int count, int page) {
-    return findByQuery(new SearchConfig(new SortConfig(SearchablePropertyMappings.NEWEST_MOD_KEY, SortOrder.DESC), "latestVersion.hidden==\"false\""), page, count);
+  public CompletableFuture<Tuple<List<ModVersion>, Integer>> getNewestModsWithPageCount(int count, int page) {
+    return findByQueryWithPageCount(new SearchConfig(new SortConfig(SearchablePropertyMappings.NEWEST_MOD_KEY, SortOrder.DESC), "latestVersion.hidden==\"false\""), count,  page);
   }
 
   @NotNull
@@ -316,8 +325,8 @@ public class ModService implements InitializingBean, DisposableBean {
     ));
   }
 
-  public CompletableFuture<List<ModVersion>> findByQuery(SearchConfig searchConfig, int page, int count) {
-    return fafService.findModsByQuery(searchConfig, page, count);
+  public CompletableFuture<Tuple<List<ModVersion>, Integer>> findByQueryWithPageCount(SearchConfig searchConfig, int count, int page) {
+    return fafService.findModsByQueryWithPageCount(searchConfig, count, page);
   }
 
   @CacheEvict(value = CacheNames.MODS, allEntries = true)
@@ -326,12 +335,12 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   @Async
-  public CompletableFuture<List<ModVersion>> getHighestRatedUiMods(int count, int page) {
-    return fafService.findModsByQuery(new SearchConfig(new SortConfig(SearchablePropertyMappings.HIGHEST_RATED_MOD_KEY, SortOrder.DESC), "latestVersion.type==UI;latestVersion.hidden==\"false\""), page, count);
+  public CompletableFuture<Tuple<List<ModVersion>, Integer>> getHighestRatedUiModsWithPageCount(int count, int page) {
+    return fafService.findModsByQueryWithPageCount(new SearchConfig(new SortConfig(SearchablePropertyMappings.HIGHEST_RATED_MOD_KEY, SortOrder.DESC), "latestVersion.type==UI;latestVersion.hidden==\"false\""), count, page);
   }
 
-  public CompletableFuture<List<ModVersion>> getHighestRatedMods(int count, int page) {
-    return fafService.findModsByQuery(new SearchConfig(new SortConfig(SearchablePropertyMappings.HIGHEST_RATED_MOD_KEY, SortOrder.DESC), "latestVersion.hidden==\"false\""), page, count);
+  public CompletableFuture<Tuple<List<ModVersion>, Integer>> getHighestRatedModsWithPageCount(int count, int page) {
+    return fafService.findModsByQueryWithPageCount(new SearchConfig(new SortConfig(SearchablePropertyMappings.HIGHEST_RATED_MOD_KEY, SortOrder.DESC), "latestVersion.hidden==\"false\""), count, page);
   }
 
   public List<ModVersion> getActivatedSimAndUIMods() throws IOException {
@@ -421,6 +430,13 @@ public class ModService implements InitializingBean, DisposableBean {
       notificationService.addNotification(new PersistentNotification(i18n.get("corruptedMods.notification", path.getFileName()), WARN, singletonList(
           new Action(i18n.get("corruptedMods.show"), event -> platformService.reveal(path))
       )));
+    } catch (Exception e) {
+      logger.warn("Skipping mod because of exception during adding of mod: " + path, e);
+
+      notificationService.addNotification(new PersistentNotification(i18n.get("corruptedModsError.notification", path.getFileName()), WARN, singletonList(
+          new Action(i18n.get("corruptedMods.show"), event -> platformService.reveal(path))
+      )));
+
     }
   }
 

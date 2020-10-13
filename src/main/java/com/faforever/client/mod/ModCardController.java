@@ -3,6 +3,9 @@ package com.faforever.client.mod;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.ImmediateErrorNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.StarsController;
@@ -14,6 +17,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.WeakListChangeListener;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import lombok.RequiredArgsConstructor;
@@ -29,20 +33,25 @@ import java.util.function.Consumer;
 public class ModCardController implements Controller<Node> {
 
   private final ModService modService;
+  private final NotificationService notificationService;
   private final TimeService timeService;
   private final I18n i18n;
+  private final ReportingService reportingService;
   public ImageView thumbnailImageView;
   public Label nameLabel;
   public Label authorLabel;
   public Node modTileRoot;
   public Label createdLabel;
+  public Label updatedLabel;
   public Label numberOfReviewsLabel;
   public Label typeLabel;
+  public Button installButton;
+  public Button uninstallButton;
   private ModVersion modVersion;
   private Consumer<ModVersion> onOpenDetailListener;
   private ListChangeListener<ModVersion> installStatusChangeListener;
   public StarsController starsController;
-  private InvalidationListener reviewsChangedListener = observable -> populateReviews();
+  private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
   private JFXRippler jfxRippler;
 
   private void populateReviews() {
@@ -55,6 +64,8 @@ public class ModCardController implements Controller<Node> {
 
   public void initialize() {
     jfxRippler = new JFXRippler(modTileRoot);
+    installButton.managedProperty().bind(installButton.visibleProperty());
+    uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
     installStatusChangeListener = change -> {
       while (change.next()) {
         for (ModVersion modVersion : change.getAddedSubList()) {
@@ -73,8 +84,36 @@ public class ModCardController implements Controller<Node> {
     };
   }
 
+  public void onInstallButtonClicked() {
+    modService.downloadAndInstallMod(modVersion, null, null)
+        .thenRun(() -> setInstalled(true))
+        .exceptionally(throwable -> {
+          notificationService.addNotification(new ImmediateErrorNotification(
+              i18n.get("errorTitle"),
+              i18n.get("modVault.installationFailed", modVersion.getDisplayName(), throwable.getLocalizedMessage()),
+              throwable, i18n, reportingService
+          ));
+          setInstalled(false);
+          return null;
+        });
+  }
+
+  public void onUninstallButtonClicked() {
+    modService.uninstallMod(modVersion).thenRun(() -> setInstalled(false))
+        .exceptionally(throwable -> {
+          notificationService.addNotification(new ImmediateErrorNotification(
+              i18n.get("errorTitle"),
+              i18n.get("modVault.couldNotDeleteMod", modVersion.getDisplayName(), throwable.getLocalizedMessage()),
+              throwable, i18n, reportingService
+          ));
+          setInstalled(true);
+          return null;
+        });
+  }
+
   private void setInstalled(boolean installed) {
-    //TODO:IMPLEMENT ISSUE #670
+    installButton.setVisible(!installed);
+    uninstallButton.setVisible(installed);
   }
 
   public void setModVersion(ModVersion modVersion) {
@@ -85,7 +124,9 @@ public class ModCardController implements Controller<Node> {
       authorLabel.setText(modVersion.getMod().getAuthor());
     }
     createdLabel.setText(timeService.asDate(modVersion.getCreateTime()));
+    updatedLabel.setText(timeService.asDate(modVersion.getUpdateTime()));
     typeLabel.setText(modVersion.getModType() != null ? i18n.get(modVersion.getModType().getI18nKey()) : "");
+    setInstalled(modService.isModInstalled(modVersion.getUid()));
 
     ObservableList<ModVersion> installedModVersions = modService.getInstalledModVersions();
     JavaFxUtil.addListener(installedModVersions, new WeakListChangeListener<>(installStatusChangeListener));

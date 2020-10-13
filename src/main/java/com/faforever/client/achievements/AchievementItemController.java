@@ -6,6 +6,7 @@ import com.faforever.client.api.dto.AchievementType;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.util.Assert;
 import com.google.common.base.MoreObjects;
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -18,8 +19,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import java.util.Objects;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -69,12 +68,9 @@ public class AchievementItemController implements Controller<Node> {
   }
 
   public void setPlayerAchievement(PlayerAchievement playerAchievement) {
-    if (achievementDefinition == null) {
-      throw new IllegalStateException("achievementDefinition needs to be set first");
-    }
-    if (!Objects.equals(achievementDefinition.getId(), playerAchievement.getAchievement().getId())) {
-      throw new IllegalStateException("Achievement ID does not match");
-    }
+    Assert.checkNullIllegalState(achievementDefinition, "achievementDefinition needs to be set first");
+    Assert.checkObjectUnequalsIllegalState(achievementDefinition.getId(), playerAchievement.getAchievement().getId(),
+        "Achievement ID does not match");
 
     if (AchievementState.UNLOCKED == AchievementState.valueOf(playerAchievement.getState().name())) {
       imageView.setImage(achievementService.getImage(achievementDefinition, AchievementState.UNLOCKED));

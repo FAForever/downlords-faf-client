@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+
+<HBox fx:id="removableCellRoot" alignment="CENTER_LEFT" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.preferences.ui.RemovableListCellController">
+   <children>
+      <Label fx:id="label" maxWidth="1.7976931348623157E308" text="Label" HBox.hgrow="ALWAYS" />
+      <Button mnemonicParsing="false" onAction="#onRemoveButtonClicked" styleClass="remove-item-button">
+         <graphic>
+            <Region>
+               <styleClass>
+                  <String fx:value="remove-icon" />
+                  <String fx:value="icon" />
+               </styleClass></Region>
+         </graphic>
+      </Button>
+   </children>
+</HBox>

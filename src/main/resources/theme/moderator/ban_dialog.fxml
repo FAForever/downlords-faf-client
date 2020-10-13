@@ -21,7 +21,7 @@
             <Button fx:id="banButton" onAction="#onBanButtonClicked" text="%chat.userContext.ban"/>
             <Button fx:id="dismissButton" onAction="#dismiss" text="%dismiss" defaultButton="true"/>
         </HBox>
-        <Label fx:id="successsLabel" text="%moderator.ban.success" visible="false"/>
+        <Label fx:id="successLabel" text="%moderator.ban.success" visible="false"/>
     </children>
     <VBox.margin>
         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>

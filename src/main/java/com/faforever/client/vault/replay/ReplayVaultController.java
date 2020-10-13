@@ -13,6 +13,7 @@ import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.ClipboardUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.map.MapPreviewTableCellController;
 import com.google.common.base.Joiner;
@@ -21,6 +22,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -39,6 +42,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.lang.invoke.MethodHandles;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.temporal.Temporal;
@@ -120,6 +124,9 @@ public class ReplayVaultController extends AbstractViewController<Node> {
   @NotNull
   private TableRow<Replay> replayRowFactory() {
     TableRow<Replay> row = new TableRow<>();
+    ContextMenu contextMenu = replayRowContextMenuFactory(row);
+    row.setContextMenu(contextMenu);
+
     row.setOnMouseClicked(event -> {
       // If ID == 0, this isn't an entry but root node
       if (event.getClickCount() == 2 && !row.isEmpty() && row.getItem().getId() != 0) {
@@ -127,6 +134,24 @@ public class ReplayVaultController extends AbstractViewController<Node> {
       }
     });
     return row;
+  }
+
+  @NotNull
+  private ContextMenu replayRowContextMenuFactory(TableRow<Replay> row) {
+    ContextMenu contextMenu = new ContextMenu();
+    MenuItem copyReplayId = new MenuItem(i18n.get("vault.replays.copyReplayId"));
+    copyReplayId.setOnAction(event -> {
+      int replayId = row.getItem().getId();
+      ClipboardUtil.copyToClipboard(String.valueOf(replayId));
+    });
+    MenuItem copyReplayPath = new MenuItem(i18n.get("vault.replays.copyReplayPath"));
+    copyReplayPath.setOnAction(event -> {
+      Path replayPath = row.getItem().getReplayFile();
+      ClipboardUtil.copyToClipboard(replayPath.toFile().getAbsolutePath());
+    });
+    contextMenu.getItems().addAll(copyReplayId, copyReplayPath);
+
+    return contextMenu;
   }
 
   private ObservableValue<String> playersValueFactory(TableColumn.CellDataFeatures<Replay, String> features) {
@@ -256,7 +281,7 @@ public class ReplayVaultController extends AbstractViewController<Node> {
     replayTableView.setVisible(true);
     loadingPane.setVisible(false);
   }
-  
+
   public Node getRoot() {
     return replayVaultRoot;
   }

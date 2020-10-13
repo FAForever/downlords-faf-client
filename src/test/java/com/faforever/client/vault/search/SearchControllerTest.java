@@ -19,6 +19,7 @@ import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -26,6 +27,7 @@ import java.util.function.Consumer;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -101,6 +103,20 @@ public class SearchControllerTest extends AbstractPlainJavaFxTest {
     specificationController.valueField.setValue("JUnit");
 
     assertThat(instance.queryTextField.getText(), is("name==JUnit"));
+  }
+
+  @Test
+  public void testBuildQueryWithCheckbox() throws Exception {
+    instance.onAddCriteriaButtonClicked();
+    instance.setOnlyShowLastYearCheckBoxVisible(true, true);
+    WaitForAsyncUtils.waitForFxEvents();
+    assertTrue(instance.queryTextField.getText().matches("endTime=ge=\"\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d+Z\""));
+  }
+
+  @Test
+  public void testSelectOnlyShowLastYearCheckbox() throws Exception {
+    instance.setOnlyShowLastYearCheckBoxVisible(true, true);
+    assertTrue(instance.onlyShowLastYearCheckBox.isSelected());
   }
 
   @Test

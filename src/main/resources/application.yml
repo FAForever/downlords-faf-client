@@ -8,10 +8,9 @@ faf-client:
 
   links:
     linksTecHelpDiscord: https://discord.gg/BMDMUKS
-    linksTecHelpForum: https://forums.faforever.com/viewforum.php?f=3&sid=d568e8a0f72f6a8df422f5b1317c5946
+    linksTecHelpForum: https://forum.faforever.com/category/4/i-need-help
     linksRules: ${faf-client.website.base-url}/rules
     linksModerationReport: ${faf-client.website.base-url}/account/report
-    linksDiscord: https://discordapp.com/invite/hgvj6Af
     linksFacebook: https://www.facebook.com/ForgedAllianceForever/
     linksDevNews: https://faforeverdevblog.tumblr.com
     linksYoutube: https://www.youtube.com/channel/UCkAWiUu4QE172kv-ZuyR42w
@@ -19,14 +18,13 @@ faf-client:
   vault:
     rules_url: https://forums.faforever.com/viewtopic.php?f=2&t=17873
     map_validation_url: ${faf-client.api.base-url}/maps/validate
-    mapDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/maps/%s.zip
-    mapPreviewUrlFormat: ${faf-client.vault.base-url}/faf/vault/map_previews/%s/%s.png
-    replayDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/replay_vault/replay.php?id=%s
-    modDownloadUrlFormat: ${faf-client.vault.base-url}/faf/vault/maps/%s.zip
+    mapDownloadUrlFormat: ${faf-client.vault.base-url}/maps/%s.zip
+    mapPreviewUrlFormat: ${faf-client.vault.base-url}/maps/previews/%s/%s.png
 
   website:
       forgot-password-url: ${faf-client.website.base-url}/account/password/reset
       create-account-url: ${faf-client.website.base-url}/account/register
+      report-url: ${faf-client.website.base-url}/account/report
       news-hub-url: ${faf-client.website.base-url}/newshub
 
   imgur:
@@ -34,7 +32,7 @@ faf-client:
       clientId: 141ee8a7030f16d
 
   unit-database:
-    spookiesUrl: https://spooky.github.io/unitdb/#/
+    spookiesUrl: https://faforever.github.io/spooky-db/#/
     rackOversUrl: https://unitdb.faforever.com?settings64=eyJwcmV2aWV3Q29ybmVyIjoiTm9uZSJ9
 
   vanillaGameHashes:
@@ -43,7 +41,10 @@ faf-client:
   map-generator:
     repoAndOwnerName: FAForever/Neroxis-Map-Generator
     queryLatestVersionUrl: https://api.github.com/repos/${faf-client.map-generator.repoAndOwnerName}/releases/latest
+    queryVersionsUrl: https://api.github.com/repos/${faf-client.map-generator.repoAndOwnerName}/releases
     downloadUrlFormat: https://github.com/${faf-client.map-generator.repoAndOwnerName}/releases/download/%1$s/NeroxisGen_%1$s.jar
+    maxSupportedMajorVersion: 1
+    minSupportedMajorVersion: 0
 
   translation-project-url: https://poeditor.com/join/project/2oWfdaZQZj
   client-config-url: https://content.faforever.com/dfc-config.json
@@ -55,6 +56,7 @@ faf-client:
     application_id: 464069837237518357
     small_image_key: faf_logo_small
     big_image_key: faf_logo_big
+    join-url: https://discord.gg/PfGcWas
 
 spring:
   profiles:
@@ -102,3 +104,4 @@ logging:
     com.faforever.client.os: info
     com.faforever.client.fa.relay.ice: info
     com.faforever.client.fx: info
+  config: classpath:logback-spring.xml

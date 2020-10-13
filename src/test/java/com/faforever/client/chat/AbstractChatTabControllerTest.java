@@ -248,7 +248,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
       modifier = KeyCode.CONTROL;
     }
 
-    Image image = new Image(getClass().getResourceAsStream("/theme/images/close.png"));
+    Image image = new Image(getClass().getResourceAsStream("/theme/images/default_achievement.png"));
 
     String url = "http://www.example.com/fake.png";
     when(imageUploadService.uploadImageInBackground(any())).thenReturn(completedFuture(url));
@@ -268,7 +268,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPasteImageShiftInsert() {
-    Image image = new Image(getClass().getResourceAsStream("/theme/images/close.png"));
+    Image image = new Image(getClass().getResourceAsStream("/theme/images/default_achievement.png"));
 
     String url = "http://www.example.com/fake.png";
     when(imageUploadService.uploadImageInBackground(any())).thenReturn(completedFuture(url));

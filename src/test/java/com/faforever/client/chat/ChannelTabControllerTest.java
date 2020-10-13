@@ -49,6 +49,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -388,5 +389,25 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     defaultChannel.setTopic("topic2: https://faforever.com topic3: https://faforever.com/example");
     WaitForAsyncUtils.waitForFxEvents();
     assertEquals(instance.topicText.getChildren().size(), 4);
+  }
+
+  @Test
+  public void testChannelListHide() {
+    instance.toggleSidePaneButton.fire();
+    WaitForAsyncUtils.waitForFxEvents();
+    assertFalse(instance.channelTabScrollPaneVBox.isManaged());
+    assertFalse(instance.toggleSidePaneButton.isSelected());
+  }
+
+  @Test
+  public void testHideSidePane() {
+    instance.toggleSidePaneButton.fire();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertFalse(preferencesService.getPreferences().getChat().isPlayerListShown());
+    verify(preferencesService, atLeast(1)).storeInBackground();
+
+    assertFalse(instance.channelTabScrollPaneVBox.isManaged());
+    assertFalse(instance.channelTabScrollPaneVBox.isVisible());
   }
 }

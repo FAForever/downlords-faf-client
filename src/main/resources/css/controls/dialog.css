@@ -1,0 +1,23 @@
+.dialog-overlay-pane {
+  -fx-background-color: #00000099;
+}
+
+.dialog-content {
+  -fx-background-color: -fx-base;
+  -fx-background-radius: 3;
+  -fx-border-color: -fx-box-border;
+  -fx-border-radius: 3;
+}
+
+.dialog-trigger {
+  -fx-font-size: 14px;
+}
+
+.layout-heading .label {
+  -fx-font-size: 20px;
+}
+
+.dialog-accept {
+  -fx-font-weight: BOLD;
+  -fx-padding: 0.7em 0.8em;
+}

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXButton?>
+<?import javafx.scene.control.Button?>
 <?import com.jfoenix.controls.JFXProgressBar?>
 <?import com.jfoenix.controls.JFXSpinner?>
 <?import javafx.geometry.Insets?>
@@ -13,6 +13,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Region?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="modUploadRoot" minHeight="100.0" minWidth="100.0" styleClass="dialog-window" xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.mod.ModUploadController">
   <children>
       <VBox fx:id="modInfoPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="500.0" minWidth="480.0" prefWidth="560.0" spacing="20.0" VBox.vgrow="ALWAYS">
@@ -21,7 +22,7 @@
           <children>
               <Label maxWidth="1.7976931348623157E308" styleClass="hint" text="%modVault.upload.hint" wrapText="true" HBox.hgrow="ALWAYS">
                   <graphic>
-                      <Label contentDisplay="RIGHT" styleClass="icon" text="" />
+                      <Region styleClass="icon,info-icon" />
                   </graphic>
               </Label>
           </children>
@@ -57,8 +58,8 @@
         </GridPane>
         <ButtonBar prefHeight="40.0" prefWidth="200.0">
           <buttons>
-              <JFXButton defaultButton="true" mnemonicParsing="false" onAction="#onUploadClicked" text="%modVault.upload.uploadNow" />
-              <JFXButton mnemonicParsing="false" onAction="#onCancelClicked" text="%cancel" />
+              <Button defaultButton="true" mnemonicParsing="false" onAction="#onUploadClicked" text="%modVault.upload.uploadNow" />
+              <Button mnemonicParsing="false" onAction="#onCancelClicked" text="%cancel" />
           </buttons>
                <VBox.margin>
                   <Insets top="10.0" />
@@ -80,7 +81,7 @@
           <Label fx:id="uploadTaskTitleLabel" contentDisplay="TOP" layoutX="108.0" layoutY="30.0" styleClass="h2" text="%mapVault.upload.uploading" />
           <JFXProgressBar fx:id="uploadProgressBar" maxWidth="1.7976931348623157E308" progress="0.0" />
           <Label fx:id="uploadTaskMessageLabel" text="&lt;bytes&gt;" />
-          <JFXButton mnemonicParsing="false" onAction="#onCancelUploadClicked" text="%cancel" />
+          <Button mnemonicParsing="false" onAction="#onCancelUploadClicked" text="%cancel" />
       </children>
     </VBox>
       <VBox fx:id="uploadCompletePane" alignment="CENTER" layoutX="20.0" layoutY="648.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="20.0" VBox.vgrow="ALWAYS">

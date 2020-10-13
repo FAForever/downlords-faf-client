@@ -57,7 +57,7 @@ public class UserFilterController implements Controller<Node> {
     maxRatingFilterField.textProperty().addListener((observable, oldValue, newValue) -> filterUsers());
   }
 
-  private void filterUsers() {
+  public void filterUsers() {
     channelTabController.setUserFilter(this::filterUser);
     filterApplied.set(
         !maxRatingFilterField.getText().isEmpty()
@@ -68,14 +68,12 @@ public class UserFilterController implements Controller<Node> {
   }
 
   private boolean filterUser(CategoryOrChatUserListItem userListItem) {
-    if (userListItem.getUser() == null) {
-      return false;
-    }
     ChatChannelUser user = userListItem.getUser();
-    return channelTabController.isUsernameMatch(user)
+    return userListItem.getCategory() != null
+        || (channelTabController.isUsernameMatch(user)
         && isInClan(user)
         && isBoundByRating(user)
-        && isGameStatusMatch(user);
+        && isGameStatusMatch(user));
   }
 
   public BooleanProperty filterAppliedProperty() {

@@ -8,7 +8,9 @@ import com.faforever.client.preferences.gson.PathTypeAdapter;
 import com.faforever.client.preferences.gson.PropertyTypeAdapter;
 import com.faforever.client.remote.gson.FactionTypeAdapter;
 import com.faforever.client.update.ClientConfiguration;
+import com.faforever.client.util.Assert;
 import com.github.nocatch.NoCatch.NoCatchRunnable;
+import com.github.nocatch.NoCatchException;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.jna.platform.win32.Shell32Util;
@@ -49,11 +51,15 @@ import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CountDownLatch;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static com.github.nocatch.NoCatch.noCatch;
 
@@ -80,6 +86,8 @@ public class PreferencesService implements InitializingBean {
   private static final String CACHE_SUB_FOLDER = "cache";
   private static final String CACHE_STYLESHEETS_SUB_FOLDER = Paths.get(CACHE_SUB_FOLDER, "stylesheets").toString();
   private static final Path CACHE_DIRECTORY;
+  private static final Pattern GAME_LOG_PATTERN = Pattern.compile("game(_\\d*)?.log");
+  private static final int NUMBER_GAME_LOGS_STORED = 10;
 
   static {
     if (org.bridj.Platform.isWindows()) {
@@ -89,12 +97,12 @@ public class PreferencesService implements InitializingBean {
     }
     CACHE_DIRECTORY = FAF_DATA_DIRECTORY.resolve(CACHE_SUB_FOLDER);
 
-    System.setProperty("logging.file", PreferencesService.FAF_DATA_DIRECTORY
+    System.setProperty("logging.file.name", PreferencesService.FAF_DATA_DIRECTORY
         .resolve("logs")
-        .resolve("downlords-faf-client.log")
+        .resolve("client.log")
         .toString());
     // duplicated, see getFafLogDirectory; make getFafLogDirectory or log dir static?
-    
+
     System.setProperty("ICE_ADVANCED_LOG", PreferencesService.FAF_DATA_DIRECTORY
         .resolve("logs/iceAdapterLogs")
         .resolve("advanced-ice-adapter.log")
@@ -225,9 +233,7 @@ public class PreferencesService implements InitializingBean {
   }
 
   private void readExistingFile(Path path) {
-    if (preferences != null) {
-      throw new IllegalStateException("Preferences have already been initialized");
-    }
+    Assert.checkNotNullIllegalState(preferences, "Preferences have already been initialized");
 
     try (Reader reader = Files.newBufferedReader(path, CHARSET)) {
       logger.debug("Reading preferences file {}", preferencesFilePath.toAbsolutePath());
@@ -344,6 +350,22 @@ public class PreferencesService implements InitializingBean {
 
   public Path getThemesDirectory() {
     return getFafDataDirectory().resolve("themes");
+  }
+
+  public Path getNewGameLogFile(int gameUID) {
+    try (Stream<Path> listOfLogFiles = Files.list(getFafLogDirectory())) {
+      listOfLogFiles
+          .filter(p -> GAME_LOG_PATTERN.matcher(p.getFileName().toString()).matches())
+          .sorted(Comparator.comparingLong(p -> p.toFile().lastModified()))
+          .sorted(Collections.reverseOrder())
+          .skip(NUMBER_GAME_LOGS_STORED - 1)
+          .forEach(p -> noCatch(() -> Files.delete(p)));
+    } catch (IOException e) {
+      logger.error("Could not list log directory.", e);
+    } catch (NoCatchException e) {
+      logger.error("Could not delete game log file");
+    }
+    return getFafLogDirectory().resolve(String.format("game_%d.log", gameUID));
   }
 
   @SneakyThrows

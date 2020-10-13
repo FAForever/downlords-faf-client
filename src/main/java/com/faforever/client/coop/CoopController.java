@@ -35,6 +35,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.SingleSelectionModel;
@@ -43,7 +44,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
-import javafx.scene.text.Text;
+import javafx.scene.layout.Region;
 import javafx.scene.web.WebView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -208,22 +209,24 @@ public class CoopController extends AbstractViewController<Node> {
   private ListCell<CoopMission> missionListCell() {
     return new StringListCell<>(CoopMission::getName,
         mission -> {
-          Text text = new Text();
-          text.getStyleClass().add(UiService.CSS_CLASS_ICON);
+          Label label = new Label();
+          Region iconRegion = new Region();
+          label.setGraphic(iconRegion);
+          iconRegion.getStyleClass().add(UiService.CSS_CLASS_ICON);
           switch (mission.getCategory()) {
             case AEON:
-              text.setText("\uE900");
+              iconRegion.getStyleClass().add(UiService.AEON_STYLE_CLASS);
               break;
             case CYBRAN:
-              text.setText("\uE902");
+              iconRegion.getStyleClass().add(UiService.CYBRAN_STYLE_CLASS);
               break;
             case UEF:
-              text.setText("\uE904");
+              iconRegion.getStyleClass().add(UiService.UEF_STYLE_CLASS);
               break;
             default:
               return null;
           }
-          return text;
+          return label;
         }, Pos.CENTER_LEFT, "coop-mission");
   }
 

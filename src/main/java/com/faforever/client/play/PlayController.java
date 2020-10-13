@@ -35,8 +35,8 @@ public class PlayController extends AbstractViewController<Node> {
   public Ladder1v1Controller ladderController;
   public CoopController coopController;
   private boolean isHandlingEvent;
-  private AbstractViewController<?> lastTab;
-
+  private AbstractViewController<?> lastTabController;
+  private Tab lastTab;
 
   public PlayController(EventBus eventBus) {
     this.eventBus = eventBus;
@@ -44,8 +44,8 @@ public class PlayController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
-    eventBus.post(new OpenTeamMatchmakingEvent());
-    lastTab = customGamesController;
+    lastTab = teamMatchmakingTab;
+    lastTabController = teamMatchmakingController;
     playRootTabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
       if (isHandlingEvent) {
         return;
@@ -68,28 +68,21 @@ public class PlayController extends AbstractViewController<Node> {
     isHandlingEvent = true;
 
     try {
-      if (Objects.equals(navigateEvent.getClass(), NavigateEvent.class)
-          || navigateEvent instanceof OpenTeamMatchmakingEvent) {
-        playRootTabPane.getSelectionModel().select(teamMatchmakingTab);
-        teamMatchmakingController.display(navigateEvent);
-        lastTab = teamMatchmakingController;
-      }
-      if (navigateEvent instanceof OpenCustomGamesEvent) {
-        playRootTabPane.getSelectionModel().select(customGamesTab);
-        customGamesController.display(navigateEvent);
-        lastTab = customGamesController;
+      if (navigateEvent instanceof OpenTeamMatchmakingEvent) {
+        lastTab = teamMatchmakingTab;
+        lastTabController = teamMatchmakingController;
+      } else if (navigateEvent instanceof OpenCustomGamesEvent) {
+        lastTab = customGamesTab;
+        lastTabController = customGamesController;
       } else if (navigateEvent instanceof Open1v1Event) {
-        playRootTabPane.getSelectionModel().select(ladderTab);
-        ladderController.display(navigateEvent);
-        lastTab = ladderController;
+        lastTab = ladderTab;
+        lastTabController = ladderController;
+      } else if (navigateEvent instanceof OpenCoopEvent) {
+        lastTab = coopTab;
+        lastTabController = coopController;
       }
-      else if (navigateEvent instanceof OpenCoopEvent) {
-        playRootTabPane.getSelectionModel().select(coopTab);
-        coopController.display(navigateEvent);
-        lastTab = coopController;
-      } else if (Objects.equals(navigateEvent.getClass(), NavigateEvent.class)) {
-        lastTab.display(navigateEvent);
-      }
+      playRootTabPane.getSelectionModel().select(lastTab);
+      lastTabController.display(navigateEvent);
     } finally {
       isHandlingEvent = false;
     }

@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.DecimalCell;
+import com.faforever.client.fx.IconCell;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
@@ -22,7 +23,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.SortEvent;
@@ -139,8 +139,7 @@ public class GamesTableController implements Controller<Node> {
       averageRatingColumn.setCellValueFactory(param -> param.getValue().averageRatingProperty());
       averageRatingColumn.setCellFactory(param -> new DecimalCell<>(
           new DecimalFormat("0"),
-          number -> Math.round(number.doubleValue() / 100.0) * 100.0,
-          Pos.CENTER)
+          number -> Math.round(number.doubleValue() / 100.0) * 100.0)
       );
     }
 
@@ -237,14 +236,13 @@ public class GamesTableController implements Controller<Node> {
   }
 
   private TableCell<Game, Boolean> passwordIndicatorColumn() {
-    return new StringCell<>(
-        isPasswordProtected -> isPasswordProtected ? "\uD83D\uDD12" : "",
-        Pos.CENTER, UiService.CSS_CLASS_ICON);
+    return new IconCell<>(
+        isPasswordProtected -> isPasswordProtected ? "lock-icon" : "");
   }
 
   private TableCell<Game, PlayerFill> playersCell() {
     return new StringCell<>(playerFill -> i18n.get("game.players.format",
-        playerFill.getPlayers(), playerFill.getMaxPlayers()), Pos.CENTER);
+        playerFill.getPlayers(), playerFill.getMaxPlayers()));
   }
 
   private TableCell<Game, RatingRange> ratingTableCell() {
@@ -262,6 +260,6 @@ public class GamesTableController implements Controller<Node> {
       }
 
       return i18n.get("game.ratingFormat.maxOnly", ratingRange.getMax());
-    }, Pos.CENTER);
+    });
   }
 }

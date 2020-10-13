@@ -4,7 +4,6 @@ import com.google.common.base.Strings;
 import com.sun.javafx.stage.PopupWindowHelper;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.User32;
-import com.sun.jna.platform.win32.WinDef;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -38,6 +37,7 @@ import javafx.util.Duration;
 import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
 import lombok.SneakyThrows;
+import org.springframework.util.Assert;
 
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Field;
@@ -46,7 +46,6 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 
 import static com.github.nocatch.NoCatch.noCatch;
-import static com.sun.jna.platform.win32.WinUser.GWL_STYLE;
 import static java.nio.file.Files.createDirectories;
 import static javax.imageio.ImageIO.write;
 
@@ -119,11 +118,11 @@ public final class JavaFxUtil {
       objTimer.getKeyFrames().setAll(new KeyFrame(new Duration(100000)));
     });
   }
-  
+
   /**
    * Better version of {@link Tooltip#setGraphic(Node)} that does not add unnecessary space.
    * Javadoc of {@link Tooltip#setGraphic(Node)} explains that this method is meant for adding icons.
-   * 
+   *
    * @param content - The content of the tooltip.
    * @return New Tooltip with added content.
    */
@@ -146,15 +145,11 @@ public final class JavaFxUtil {
   }
 
   public static void assertApplicationThread() {
-    if (!Platform.isFxApplicationThread()) {
-      throw new IllegalStateException("Must run in FX Application thread");
-    }
+    Assert.state(Platform.isFxApplicationThread(), "Must run in FX Application thread");
   }
 
   public static void assertBackgroundThread() {
-    if (Platform.isFxApplicationThread()) {
-      throw new IllegalStateException("Must not run in FX Application thread");
-    }
+    Assert.state(!Platform.isFxApplicationThread(), "Must not run in FX Application thread");
   }
 
   public static boolean isVisibleRecursively(Node node) {
@@ -389,22 +384,6 @@ public final class JavaFxUtil {
 
   public static void bindManagedToVisible(Node... nodes) {
     Arrays.stream(nodes).forEach(node -> node.managedProperty().bind(node.visibleProperty()));
-  }
-
-
-  /**
-   * Uniconifies stages when clicking on the icon in the task bar. Source: http://stackoverflow.com/questions/26972683/javafx-minimizing-undecorated-stage
-   * Bug report: https://bugs.openjdk.java.net/browse/JDK-8089296
-   */
-  public static void fixJDK8089296() {
-    if (!org.bridj.Platform.isWindows()) {
-      return;
-    }
-    Pointer lpVoid = getNativeWindow();
-    WinDef.HWND hwnd = new WinDef.HWND(lpVoid);
-    final User32 user32 = User32.INSTANCE;
-    int newStyle = user32.GetWindowLong(hwnd, GWL_STYLE) | 0x00020000; //WS_MINIMIZEBOX
-    user32.SetWindowLong(hwnd, GWL_STYLE, newStyle);
   }
 
   public static void assureRunOnMainThread(Runnable runnable) {

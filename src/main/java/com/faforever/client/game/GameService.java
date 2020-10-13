@@ -637,6 +637,7 @@ public class GameService implements InitializingBean {
           notificationService.addNotification(
               new ImmediateErrorNotification(i18n.get("errorTitle"), i18n.get("game.start.couldNotStart"), throwable, i18n, reportingService)
           );
+          iceAdapter.stop();
           setGameRunning(false);
           return null;
         });
@@ -866,13 +867,6 @@ public class GameService implements InitializingBean {
       game.getTeams().clear();
       if (gameInfoMessage.getTeams() != null) {
         game.getTeams().putAll(gameInfoMessage.getTeams());
-      }
-    }
-
-    synchronized (game.getFeaturedModVersions()) {
-      game.getFeaturedModVersions().clear();
-      if (gameInfoMessage.getFeaturedModVersions() != null) {
-        game.getFeaturedModVersions().putAll(gameInfoMessage.getFeaturedModVersions());
       }
     }
 

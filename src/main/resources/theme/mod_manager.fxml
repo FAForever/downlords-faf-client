@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="root" xmlns="http://javafx.com/javafx/11.0.1"
+      fx:controller="com.faforever.client.mod.ModManagerController">
+    <!-- Mods -->
+    <HBox fillHeight="false" spacing="10.0">
+        <ToggleButton fx:id="uiModsButton" maxWidth="1.7976931348623157E308" minWidth="-Infinity"
+                      mnemonicParsing="false" onAction="#onShowUIMods" styleClass="game-list-type"
+                      text="%mod.manager.uiMods" HBox.hgrow="ALWAYS">
+            <tooltip>
+                <Tooltip text="%mod.manager.uiModsTooltip"/>
+            </tooltip>
+            <toggleGroup>
+                <ToggleGroup fx:id="viewToggleGroup"/>
+            </toggleGroup>
+        </ToggleButton>
+        <ToggleButton fx:id="simModsButton" maxWidth="1.7976931348623157E308" minWidth="-Infinity"
+                      mnemonicParsing="false" onAction="#onShowSimMods" selected="true" styleClass="game-list-type"
+                      text="%mod.manager.simMods" toggleGroup="$viewToggleGroup" HBox.hgrow="ALWAYS">
+            <tooltip>
+                <Tooltip text="%mod.manager.simModsTooltip"/>
+            </tooltip>
+        </ToggleButton>
+    </HBox>
+    <ListView fx:id="modListView" maxHeight="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+        <VBox.margin>
+            <Insets bottom="10.0" top="10.0"/>
+        </VBox.margin>
+    </ListView>
+    <HBox alignment="CENTER" spacing="10.0">
+        <children>
+            <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onDeselectModsButtonClicked"
+                    text="%mod.manager.deselectAll" HBox.hgrow="ALWAYS"/>
+            <Button maxWidth="1.7976931348623157E308" minWidth="-Infinity" mnemonicParsing="false"
+                    onAction="#onReloadModsButtonClicked" text="%mod.manager.reload" HBox.hgrow="ALWAYS"/>
+        </children>
+    </HBox>
+
+</VBox>

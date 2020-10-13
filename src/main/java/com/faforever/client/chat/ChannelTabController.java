@@ -146,6 +146,7 @@ public class ChannelTabController extends AbstractChatTabController {
   public ListView<CategoryOrChatUserListItem> chatUserListView;
   public VBox topicPane;
   public TextFlow topicText;
+  public ToggleButton toggleSidePaneButton;
 
   private Channel channel;
   private Popup filterUserPopup;
@@ -288,7 +289,7 @@ public class ChannelTabController extends AbstractChatTabController {
   public void initialize() {
     super.initialize();
 
-    userSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> filterChatUsers(newValue));
+    userSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> userFilterController.filterUsers());
 
     channelTabScrollPaneVBox.setMinWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
     channelTabScrollPaneVBox.setPrefWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
@@ -299,6 +300,19 @@ public class ChannelTabController extends AbstractChatTabController {
     chatUserListView.setCellFactory(param -> new ChatUserListCell(uiService));
 
     autoCompletionHelper.bindTo(messageTextField());
+
+    initializeSideToggle();
+  }
+
+  private void initializeSideToggle() {
+    toggleSidePaneButton.setSelected(preferencesService.getPreferences().getChat().isPlayerListShown());
+    JavaFxUtil.bind(channelTabScrollPaneVBox.visibleProperty(), toggleSidePaneButton.selectedProperty());
+    JavaFxUtil.bind(channelTabScrollPaneVBox.managedProperty(), channelTabScrollPaneVBox.visibleProperty());
+    JavaFxUtil.addListener(toggleSidePaneButton.selectedProperty(), (observable, oldValue, newValue) -> splitPane.setDividerPositions(newValue ? 0.8 : 1));
+    JavaFxUtil.addListener(toggleSidePaneButton.selectedProperty(), (observable, oldValue, newValue) -> {
+      preferencesService.getPreferences().getChat().setPlayerListShown(newValue);
+      preferencesService.storeInBackground();
+    });
   }
 
   @Override
@@ -404,7 +418,7 @@ public class ChannelTabController extends AbstractChatTabController {
     //Workaround for issue #1080 https://github.com/FAForever/downlords-faf-client/issues/1080
     Platform.runLater(() -> {
       try {
-        engine.executeScript("removeUserMessageClass(\'" + String.format(USER_CSS_CLASS_FORMAT, chatUser.getUsername()) + "\',\'" + cssClass + "\');");
+        engine.executeScript("removeUserMessageClass('" + String.format(USER_CSS_CLASS_FORMAT, chatUser.getUsername()) + "','" + cssClass + "');");
       } catch (Exception ignored) {
         //before with "getJsObject().call..." if the engine was not yet loaded the Exception was ignored and hence I know to the same
         //TODO: only accept calls after the engine loaded the page completely
@@ -418,20 +432,6 @@ public class ChannelTabController extends AbstractChatTabController {
 
   private void updateUserMessageDisplay(ChatChannelUser chatUser, String display) {
     Platform.runLater(() -> getJsObject().call("updateUserMessageDisplay", chatUser.getUsername(), display));
-  }
-
-  /** Filters by username "contains" case insensitive. */
-  @SuppressWarnings("unchecked")
-  private void filterChatUsers(String searchString) {
-    setUserFilter(listItem -> {
-      if (Strings.isNullOrEmpty(searchString)) {
-        return true;
-      }
-
-      ChatChannelUser user = listItem.getUser();
-
-      return listItem.getCategory() != null || user.getUsername().toLowerCase(US).contains(searchString.toLowerCase(US));
-    });
   }
 
   private void associateChatUserWithPlayer(Player player, ChatChannelUser chatUser) {

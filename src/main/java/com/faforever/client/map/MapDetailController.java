@@ -43,6 +43,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -175,7 +176,7 @@ public class MapDetailController implements Controller<Node> {
     dateLabel.setText(timeService.asDate(createTime));
 
     boolean mapInstalled = mapService.isInstalled(map.getFolderName());
-    installButton.setVisible(!mapInstalled);
+    setInstalled(mapInstalled);
 
     Player player = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("No user is logged in"));
 
@@ -200,17 +201,21 @@ public class MapDetailController implements Controller<Node> {
             installButton.setDisable(true);
           }
         }));
-    uninstallButton.setVisible(mapInstalled);
 
     mapDescriptionLabel.setText(Optional.ofNullable(map.getDescription())
         .map(Strings::emptyToNull)
         .map(FaStrings::removeLocalizationTag)
         .orElseGet(() -> i18n.get("map.noDescriptionAvailable")));
 
-    ObservableList<MapBean> installedMaps = mapService.getInstalledMaps();
-    JavaFxUtil.addListener(installedMaps, new WeakListChangeListener<>(installStatusChangeListener));
 
-    setInstalled(mapService.isInstalled(map.getFolderName()));
+    if (mapService.isOfficialMap(map.getFolderName())) {
+      installButton.setVisible(false);
+      uninstallButton.setVisible(false);
+    } else {
+      ObservableList<MapBean> installedMaps = mapService.getInstalledMaps();
+      JavaFxUtil.addListener(installedMaps, new WeakListChangeListener<>(installStatusChangeListener));
+      setInstalled(mapService.isInstalled(map.getFolderName()));
+    }
   }
 
   private void onDeleteReview(Review review) {
@@ -246,9 +251,11 @@ public class MapDetailController implements Controller<Node> {
   }
 
   public void onInstallButtonClicked() {
-    installButton.setVisible(false);
+    installMap();
+  }
 
-    mapService.downloadAndInstallMap(map, progressBar.progressProperty(), progressLabel.textProperty())
+  public CompletableFuture<Void> installMap(){
+    return mapService.downloadAndInstallMap(map, progressBar.progressProperty(), progressLabel.textProperty())
         .thenRun(() -> setInstalled(true))
         .exceptionally(throwable -> {
           notificationService.addNotification(new ImmediateErrorNotification(
@@ -264,7 +271,6 @@ public class MapDetailController implements Controller<Node> {
   public void onUninstallButtonClicked() {
     progressBar.progressProperty().unbind();
     progressBar.setProgress(-1);
-    uninstallButton.setVisible(false);
 
     mapService.uninstallMap(map)
         .thenRun(() -> setInstalled(false))
@@ -288,7 +294,11 @@ public class MapDetailController implements Controller<Node> {
   }
 
   public void onCreateGameButtonClicked() {
-    eventBus.post(new HostGameEvent(map.getFolderName()));
+    if (!mapService.isInstalled(map.getFolderName())) {
+      installMap().thenRun(() -> eventBus.post(new HostGameEvent(map.getFolderName())));
+    } else {
+      eventBus.post(new HostGameEvent(map.getFolderName()));
+    }
   }
 
   public void hideMap() {

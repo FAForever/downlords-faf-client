@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXSpinner?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Pagination?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.ComboBox?>
+<BorderPane fx:id="root" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
+    <center>
+        <StackPane fx:id="vaultRoot">
+            <ScrollPane fx:id="scrollPane" fitToWidth="true" maxHeight="1.7976931348623157E308"
+                        maxWidth="1.7976931348623157E308">
+                <VBox fx:id="contentPane" spacing="10.0">
+                    <padding>
+                        <Insets bottom="20.0" left="20.0" right="20.0" top="30.0"/>
+                    </padding>
+                    <HBox fx:id="searchBox" VBox.vgrow="NEVER">
+                        <fx:include fx:id="search" source="search/search.fxml"
+                                    HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="manageModsButton" text="%modVault.manageMods"
+                                visible="false"/>
+                    </HBox>
+                    <Separator maxWidth="1.7976931348623157E308"/>
+                    <HBox spacing="10.0">
+                        <Button fx:id="backButton" mnemonicParsing="false" text="%back">
+                            <graphic>
+                                <Region styleClass="icon,back-icon"/>
+                            </graphic>
+                        </Button>
+                        <Button fx:id="refreshButton" mnemonicParsing="false" text="%refresh">
+                            <graphic>
+                                <Region styleClass="icon,refresh-icon"/>
+                            </graphic>
+                        </Button>
+                        <Button fx:id="uploadButton" mnemonicParsing="false" text="%vault.upload">
+                            <graphic>
+                                <Region styleClass="icon,upload-icon"/>
+                            </graphic>
+                        </Button>
+                    </HBox>
+                    <VBox fx:id="searchResultGroup" spacing="10.0">
+                        <Label styleClass="h2" text="%searchResult"/>
+                        <FlowPane fx:id="searchResultPane" hgap="10.0" vgap="10.0"/>
+                    </VBox>
+                    <VBox fx:id="showRoomGroup" spacing="10.0">
+                    </VBox>
+                    <padding>
+                        <Insets bottom="20.0" left="20.0" right="20.0" top="30.0"/>
+                    </padding>
+                </VBox>
+            </ScrollPane>
+            <VBox fx:id="loadingPane" alignment="CENTER" maxHeight="1.7976931348623157E308"
+                  maxWidth="1.7976931348623157E308" mouseTransparent="true" spacing="10.0">
+                <Label contentDisplay="TOP" text="%vault.loading">
+                    <graphic>
+                        <JFXSpinner/>
+                    </graphic>
+                </Label>
+                <VBox/>
+            </VBox>
+        </StackPane>
+    </center>
+    <bottom>
+        <HBox fx:id="paginationGroup" alignment="CENTER" BorderPane.alignment="CENTER">
+            <VBox HBox.hgrow="ALWAYS">
+                <Label text="%search.perPage"/>
+                <ComboBox fx:id="perPageComboBox"/>
+            </VBox>
+            <VBox>
+                <HBox.margin>
+                    <Insets top="5.0"/>
+                </HBox.margin>
+                <Button fx:id="firstPageButton" styleClass="page-button" prefHeight="36">
+                    <graphic>
+                        <Region styleClass="icon,fast-rewind-icon"/>
+                    </graphic>
+                </Button>
+            </VBox>
+            <VBox>
+                <Pagination fx:id="pagination" pickOnBounds="false"/>
+            </VBox>
+            <VBox>
+                <HBox.margin>
+                    <Insets top="5.0"/>
+                </HBox.margin>
+                <Button fx:id="lastPageButton" styleClass="page-button" prefHeight="36">
+                    <graphic>
+                        <Region styleClass="icon,fast-forward-icon"/>
+                    </graphic>
+                </Button>
+            </VBox>
+            <VBox alignment="TOP_RIGHT" HBox.hgrow="ALWAYS">
+            </VBox>
+            <padding>
+                <Insets bottom="20.0" left="20.0" right="20.0" top="5.0"/>
+            </padding>
+        </HBox>
+    </bottom>
+</BorderPane>

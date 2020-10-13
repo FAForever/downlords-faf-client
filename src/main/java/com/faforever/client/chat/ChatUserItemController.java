@@ -9,6 +9,8 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapService;
+import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
@@ -36,6 +38,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.PopupWindow;
+import javafx.util.Duration;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -77,6 +80,7 @@ public class ChatUserItemController implements Controller<Node> {
   private final ClanService clanService;
   private final PlatformService platformService;
   private final TimeService timeService;
+  private final MapService mapService;
 
   private final InvalidationListener colorChangeListener;
   private final InvalidationListener formatChangeListener;
@@ -106,6 +110,8 @@ public class ChatUserItemController implements Controller<Node> {
   public ImageView avatarImageView;
   public Label usernameLabel;
   public MenuButton clanMenu;
+  public ImageView playerMapImage;
+
   private ChatChannelUser chatUser;
   @VisibleForTesting
   protected Tooltip countryTooltip;
@@ -122,7 +128,7 @@ public class ChatUserItemController implements Controller<Node> {
                                 CountryFlagService countryFlagService,
                                 I18n i18n, UiService uiService, EventBus eventBus,
                                 ClanService clanService, PlayerService playerService,
-                                PlatformService platformService, TimeService timeService) {
+                                PlatformService platformService, TimeService timeService, MapService mapService) {
     this.platformService = platformService;
     this.preferencesService = preferencesService;
     this.avatarService = avatarService;
@@ -133,6 +139,7 @@ public class ChatUserItemController implements Controller<Node> {
     this.uiService = uiService;
     this.eventBus = eventBus;
     this.timeService = timeService;
+    this.mapService = mapService;
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
     colorPerUserInvalidationListener = change -> {
@@ -239,6 +246,9 @@ public class ChatUserItemController implements Controller<Node> {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     weakColorInvalidationListener.invalidated(chatPrefs.chatColorModeProperty());
     weakFormatInvalidationListener.invalidated(chatPrefs.chatFormatProperty());
+
+    playerStatusIndicator.managedProperty().bind(playerStatusIndicator.visibleProperty());
+    playerMapImage.managedProperty().bind(playerMapImage.visibleProperty());
 
     updateFormat();
     initClanTooltip();
@@ -361,8 +371,8 @@ public class ChatUserItemController implements Controller<Node> {
     Optional.ofNullable(countryTooltip).ifPresent(imageView -> Tooltip.uninstall(countryImageView, countryTooltip));
 
     chatUser.getPlayer().ifPresent(player -> {
-      countryTooltip = new Tooltip(player.getCountry());
-      countryTooltip.setText(player.getCountry());
+      countryTooltip = new Tooltip(i18n.getCountryNameLocalized(player.getCountry()));
+      countryTooltip.showDelayProperty().set(Duration.millis(250));
       Tooltip.install(countryImageView, countryTooltip);
     });
   }
@@ -466,6 +476,7 @@ public class ChatUserItemController implements Controller<Node> {
     Optional<Player> playerOptional = chatUser.getPlayer();
     if (!playerOptional.isPresent()) {
       playerStatusIndicator.setVisible(false);
+      playerMapImage.setVisible(false);
       return;
     }
 
@@ -473,9 +484,12 @@ public class ChatUserItemController implements Controller<Node> {
 
     if (player.getStatus() == PlayerStatus.IDLE) {
       playerStatusIndicator.setVisible(false);
+      playerMapImage.setVisible(false);
     } else {
       playerStatusIndicator.setVisible(true);
       playerStatusIndicator.setImage(getPlayerStatusIcon(player.getStatus()));
+      playerMapImage.setVisible(true);
+      playerMapImage.setImage(mapService.loadPreview(player.getGame().getMapFolderName(), PreviewSize.SMALL));
     }
   }
 

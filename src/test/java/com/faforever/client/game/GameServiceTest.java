@@ -49,6 +49,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static com.faforever.client.fa.RatingMode.GLOBAL;
 import static com.faforever.client.remote.domain.GameStatus.CLOSED;
@@ -578,5 +579,28 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     when(preferencesService.isGamePathValid()).thenReturn(false);
     instance.launchTutorial(null, null);
     verify(eventBus).post(any(GameDirectoryChooseEvent.class));
+  }
+
+  @Test
+  public void iceCloseOnError() throws Exception {
+    Game game = GameBuilder.create().defaultValues().get();
+
+    game.setMapFolderName("map");
+
+    GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
+
+    mockGlobalStartGameProcess(gameLaunchMessage.getUid());
+    when(mapService.isInstalled("map")).thenReturn(true);
+    when(fafService.requestJoinGame(game.getId(), null)).thenReturn(completedFuture(gameLaunchMessage));
+    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    when(replayService.start(anyInt(), any(Supplier.class))).thenReturn(CompletableFuture.completedFuture(new Throwable()));
+
+    CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
+
+    assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
+    verify(mapService, never()).download(any());
+    verify(replayService).start(eq(game.getId()), any());
+    verify(iceAdapter).stop();
   }
 }
