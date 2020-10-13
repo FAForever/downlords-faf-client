@@ -20,6 +20,7 @@ import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
@@ -63,7 +64,7 @@ public class PartyMemberItemController implements Controller<Node> {
   @FXML
   public Label gameCountLabel;
   @FXML
-  public JFXButton kickPlayerButton;
+  public Button kickPlayerButton;
   public Label uefLabel;
   public Label cybranLabel;
   public Label aeonLabel;

@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXButton?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.control.Button?>
 <AnchorPane fx:id="playerItemRoot" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
             onContextMenuRequested="#onContextMenuRequested"
             fx:controller="com.faforever.client.teammatchmaking.PartyMemberItemController">
     <children>
         <HBox fx:id="playerCard" prefHeight="75.0" spacing="10.0" styleClass="player-card" alignment="CENTER_LEFT"
-              AnchorPane.topAnchor="20.0" AnchorPane.leftAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+              AnchorPane.topAnchor="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
             <ImageView fx:id="leagueImageView" fitHeight="40.0" fitWidth="80.0" pickOnBounds="true"
                        preserveRatio="true"/>
             <VBox HBox.hgrow="ALWAYS">
-                <HBox spacing="5.0" alignment="CENTER_LEFT">
+                <HBox spacing="3.0" alignment="CENTER_LEFT">
                     <HBox alignment="CENTER_LEFT" spacing="4.0" HBox.hgrow="ALWAYS" >
                         <children>
                             <Label fx:id="clanLabel" styleClass="clan" text="[CLAN]" />
@@ -32,12 +32,31 @@
                             <Insets top="2.0" />
                         </padding>
                     </HBox>
-                    <JFXButton fx:id="kickPlayerButton" onAction="#onKickPlayerButtonClicked" text=""
-                               styleClass="icon-button" />
-                    <Label fx:id="uefLabel" styleClass="icon, factionindicator, uef" text="" />
-                    <Label fx:id="cybranLabel" styleClass="icon, factionindicator, cybran" text=""/>
-                    <Label fx:id="aeonLabel" styleClass="icon, factionindicator, aeon" text=""/>
-                    <Label fx:id="seraphimLabel" styleClass="icon, factionindicator, seraphim" text="" HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="kickPlayerButton" onAction="#onKickPlayerButtonClicked" styleClass="kickbutton" >
+                        <graphic>
+                            <Region styleClass="icon, close-icon"/>
+                        </graphic>
+                    </Button>
+                    <Label fx:id="uefLabel" styleClass="faction-indicator" alignment="BOTTOM_CENTER" >
+                        <graphic>
+                            <Region styleClass="icon, uef-icon" />
+                        </graphic>
+                    </Label>
+                    <Label fx:id="cybranLabel" styleClass="faction-indicator" alignment="BOTTOM_CENTER" >
+                        <graphic>
+                            <Region styleClass="icon, cybran-icon" />
+                        </graphic>
+                    </Label>
+                    <Label fx:id="aeonLabel" styleClass="faction-indicator" alignment="BOTTOM_CENTER" >
+                        <graphic>
+                            <Region styleClass="icon, aeon-icon" />
+                        </graphic>
+                    </Label>
+                    <Label fx:id="seraphimLabel" styleClass="faction-indicator" alignment="BOTTOM_CENTER" >
+                        <graphic>
+                            <Region styleClass="icon, seraphim-icon" />
+                        </graphic>
+                    </Label>
                 </HBox>
                 <HBox spacing="15.0" alignment="CENTER_LEFT">
                     <children>
@@ -56,11 +75,14 @@
                 <Insets bottom="8.0" left="12.0" right="14.0" top="12.0" />
             </padding>
         </HBox>
-        <Label fx:id="crownLabel" text="" styleClass="icon" style="-fx-font-size: 2.5em;"
-               AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="15.0" />
+        <Label fx:id="crownLabel" AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="15.0" >
+            <graphic>
+                <Region styleClass="icon, crown-icon" />
+            </graphic>
+        </Label>
     </children>
     <padding>
-        <Insets top="-20.0" />
+        <Insets top="-10.0" />
     </padding>
 </AnchorPane>
 

@@ -25,7 +25,7 @@
                     <Label styleClass="h1-tmm, uppercase" text="%teammatchmaking.playerTitle"/>
                     <AnchorPane>
                         <HBox fx:id="playerCard" spacing="10.0" styleClass="player-card" alignment="CENTER_LEFT"
-                              AnchorPane.topAnchor="20.0" AnchorPane.leftAnchor="0.0" AnchorPane.bottomAnchor="0.0"
+                              AnchorPane.topAnchor="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.bottomAnchor="0.0"
                               AnchorPane.rightAnchor="0.0">
                             <padding>
                                 <Insets bottom="10.0" left="15.0" right="15.0" top="10.0"/>
@@ -66,36 +66,42 @@
                                     </HBox>
                                 </children>
                             </VBox>
-                            <ToggleButton fx:id="uefButton" mnemonicParsing="false" styleClass="faction-button, tmm"
+                            <ToggleButton fx:id="uefButton" mnemonicParsing="false"
+                                          styleClass="faction-button, tmm, uef"
                                           onAction="#onFactionButtonClicked" selected="true">
                                 <graphic>
                                     <Region styleClass="uef-icon"/>
                                 </graphic>
                             </ToggleButton>
-                            <ToggleButton fx:id="cybranButton" mnemonicParsing="false" styleClass="faction-button, tmm"
+                            <ToggleButton fx:id="cybranButton" mnemonicParsing="false"
+                                          styleClass="faction-button, tmm, cybran"
                                           onAction="#onFactionButtonClicked" selected="true">
                                 <graphic>
                                     <Region styleClass="cybran-icon"/>
                                 </graphic>
                             </ToggleButton>
-                            <ToggleButton fx:id="aeonButton" mnemonicParsing="false" styleClass="faction-button, tmm"
+                            <ToggleButton fx:id="aeonButton" mnemonicParsing="false"
+                                          styleClass="faction-button, tmm, aeon"
                                           onAction="#onFactionButtonClicked" selected="true">
                                 <graphic>
                                     <Region styleClass="aeon-icon"/>
                                 </graphic>
                             </ToggleButton>
                             <ToggleButton fx:id="seraphimButton" mnemonicParsing="false"
-                                          styleClass="faction-button, tmm"
+                                          styleClass="faction-button, tmm, seraphim"
                                           onAction="#onFactionButtonClicked" selected="true">
                                 <graphic>
                                     <Region styleClass="seraphim-icon"/>
                                 </graphic>
                             </ToggleButton>
                         </HBox>
-                        <Label fx:id="crownLabel" text="" styleClass="icon" style="-fx-font-size: 2.5em;"
-                               AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="15.0" />
+                        <Label fx:id="crownLabel" AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="15.0" >
+                            <graphic>
+                                <Region styleClass="icon, crown-icon" />
+                            </graphic>
+                        </Label>
                         <padding>
-                            <Insets top="-20.0" />
+                            <Insets top="-10.0" />
                         </padding>
                     </AnchorPane>
                     <HBox alignment="CENTER_LEFT" spacing="10.0">
@@ -107,9 +113,9 @@
                             <Button fx:id="leavePartyButton" mnemonicParsing="false"
                                     styleClass="tmm, leave-button, uppercase"
                                     text="%teammatchmaking.leaveParty" onAction="#onLeavePartyButtonClicked"/>
-                            <Label fx:id="refreshingLabel" visible="false">
+                            <Label fx:id="refreshingLabel" visible="false" >
                                 <graphic>
-                                    <Region styleClass="refresh-icon"/>
+                                    <Region styleClass="icon, refresh-icon" />
                                 </graphic>
                             </Label>
                         </children>

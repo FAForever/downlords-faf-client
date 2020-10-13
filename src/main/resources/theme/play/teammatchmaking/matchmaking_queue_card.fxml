@@ -7,6 +7,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.Region?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="queueItemRoot" xmlns="http://javafx.com/javafx/11.0.1"
       fx:controller="com.faforever.client.teammatchmaking.MatchmakingQueueItemController"
       spacing="10.0" HBox.hgrow="ALWAYS" alignment="TOP_CENTER">
@@ -26,5 +27,9 @@
            text="%teammatchmaking.match.starting" managed="false"/>
     <Label fx:id="matchCancelledLabel" style="-fx-font-weight: bold;-fx-text-fill: #be6800"
            text="%teammatchmaking.match.cancelled" managed="false"/>
-    <Label fx:id="refreshingLabel" styleClass="icon" text="" visible="false"/>
+    <Label fx:id="refreshingLabel" visible="false" >
+        <graphic>
+            <Region styleClass="icon, refresh-icon" />
+        </graphic>
+    </Label>
 </VBox>

@@ -803,67 +803,61 @@
   -fx-font-size: 24px;
 }
 
-.factionindicator .text {
-  -fx-font-size: 18;
+.kickbutton {
+  -fx-background-color: transparent;
 }
 
-.factionindicator:disabled .text {
+.faction-indicator {
+  -fx-pref-width: 18;
+  -fx-pref-height: 18;
+}
+
+.faction-indicator:disabled {
   -fx-opacity: 0.2;
 }
 
 
 /***************** Faction buttons *****************/
-.toggle-button.aeon,
-.toggle-button.cybran,
-.toggle-button.uef,
-.toggle-button.seraphim {
-  -fx-pref-width: 50;
-  -fx-pref-height: 50;
-  -fx-padding: 6;
-}
-
-.toggle-button.aeon:hover .text,
-.toggle-button.cybran:hover .text,
-.toggle-button.uef:hover .text,
-.toggle-button.seraphim:hover .text {
-  -fx-opacity: 1;
-  -fx-fill: -fx-text-color;
-}
 
 .toggle-button.aeon:selected {
-  -fx-border-color: -green-500;
+  -fx-border-color: AEON_COLOR;
 }
 
 .toggle-button.cybran:selected {
-  -fx-border-color: -red-500;
+  -fx-border-color: CYBRAN_COLOR;
 }
 
 .toggle-button.uef:selected {
-  -fx-border-color: -blue-500;
+  -fx-border-color: UEF_COLOR;
 }
 
 .toggle-button.seraphim:selected {
-  -fx-border-color: -amber-500;
+  -fx-border-color: SERAPHIM_COLOR;
 }
 
 .toggle-button.faction-button {
-  /*-fx-background-radius: 3;*/
-  /*-fx-border-radius: 3;*/
-  /*-fx-border-color: -fx-box-border;*/
-  /*-fx-border-width: 1;*/
-  /*-fx-padding: 1em;*/
-  /*-fx-min-width: 6em;*/
-  /*-fx-min-height: 6em;*/
-  /*-fx-max-width: 6em;*/
-  /*-fx-max-height: 6em;*/
-  /*-fx-background-color: -fx-background;*/
-  /*-fx-background: -fx-control-inner-background;*/
+  -fx-min-width: 50;
+  -fx-max-width: 50;
+  -fx-max-height: 50;
+  -fx-padding: 6;
 }
 
-.toggle-button.faction-button .aeon-icon,
-.toggle-button.faction-button .seraphim-icon {
-  -fx-max-width: 3em;
-  -fx-max-height: 4em;
+.toggle-button.faction-button:hover * {
+  -fx-opacity: 1;
+  -fx-background-color: -fx-text-color;
+}
+
+/* 34 * aspect ratio */
+.toggle-button .cybran-icon {
+    -fx-max-height: 32.7;
+}
+
+.toggle-button .aeon-icon {
+    -fx-max-width: 24.3;
+}
+
+.toggle-button .seraphim-icon {
+    -fx-max-width: 28;
 }
 
 .toggle-button.faction-button * {
@@ -872,11 +866,6 @@
 
 .toggle-button.faction-button:selected * {
   -fx-opacity: 1;
-}
-
-.toggle-button.faction-button:selected {
-  -fx-background: derive(-fx-control-inner-background, 10%);
-  -fx-color: -fx-accent;
 }
 
 .toggle-button.pane-toggler {
