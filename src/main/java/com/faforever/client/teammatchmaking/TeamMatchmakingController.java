@@ -11,10 +11,9 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.dialog.Dialog;
 import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
-import com.jfoenix.controls.JFXButton;
-import com.jfoenix.controls.JFXDialog;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.css.PseudoClass;
@@ -61,12 +60,12 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private final TeamMatchmakingService teamMatchmakingService;
   private final EventBus eventBus;
   @FXML
-  public JFXButton invitePlayerButton;
+  public Button invitePlayerButton;
 
   @FXML
   public StackPane teamMatchmakingRoot;
   @FXML
-  public JFXButton leavePartyButton;
+  public Button leavePartyButton;
   @FXML
   public Label refreshingLabel;
   public ToggleButton uefButton;
@@ -204,7 +203,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public void onInvitePlayerButtonClicked(ActionEvent actionEvent) {
     InvitePlayerController invitePlayerController = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_invite_player.fxml");
     Pane root = invitePlayerController.getRoot();
-    JFXDialog dialog = uiService.showInDialog(teamMatchmakingRoot, root, i18n.get("teammatchmaking.invitePlayer"));
+    Dialog dialog = uiService.showInDialog(teamMatchmakingRoot, root, i18n.get("teammatchmaking.invitePlayer"));
   }
 
   public void onEnterQueueButtonClicked(ActionEvent actionEvent) {
