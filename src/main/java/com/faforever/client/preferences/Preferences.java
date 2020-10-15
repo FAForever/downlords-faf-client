@@ -234,8 +234,12 @@ public class Preferences {
     return advancedIceLogEnabled;
   }
 
+  public boolean isDebugLogEnabled() { return debugLogEnabled.get(); }
+
+  public void setDebugLogEnabled(boolean debugLogEnabled) { this.debugLogEnabled.set(debugLogEnabled); }
+
   public BooleanProperty debugLogEnabledProperty() {
-    return advancedIceLogEnabled;
+    return debugLogEnabled;
   }
 
   public BooleanProperty showGameDetailsSidePaneProperty() {

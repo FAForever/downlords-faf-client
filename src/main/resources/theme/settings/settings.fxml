@@ -153,7 +153,7 @@
                                    <children>
                                        <Label styleClass="setting-title" text="%settings.general.debugLog" wrapText="true" />
                                        <Label styleClass="setting-description" text="%settings.general.debugLog.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
-                                       <CheckBox fx:id="debugLogToggle" GridPane.columnIndex="1" />
+                                       <CheckBox fx:id="debugLogToggle" onAction="#onDebugLogToggle" GridPane.columnIndex="1" />
                                    </children>
                                </GridPane>
                            </children>

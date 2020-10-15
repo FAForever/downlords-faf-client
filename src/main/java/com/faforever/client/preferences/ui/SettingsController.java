@@ -1,5 +1,7 @@
 package com.faforever.client.preferences.ui;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.chat.ChatFormat;
 import com.faforever.client.config.ClientProperties;
@@ -58,6 +60,7 @@ import javafx.stage.Screen;
 import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -320,6 +323,8 @@ public class SettingsController implements Controller<Node> {
     });
 
     advancedIceLogToggle.selectedProperty().bindBidirectional(preferences.advancedIceLogEnabledProperty());
+
+    preferences.setDebugLogEnabled(false);
     debugLogToggle.selectedProperty().bindBidirectional(preferences.debugLogEnabledProperty());
 
     prereleaseToggle.selectedProperty().bindBidirectional(preferences.prereleaseCheckEnabledProperty());
@@ -558,6 +563,13 @@ public class SettingsController implements Controller<Node> {
     preferencesService.getPreferences().getChat().getAutoJoinChannels().add(channelTextField.getText());
     preferencesService.storeInBackground();
     channelTextField.clear();
+  }
+
+  public void onDebugLogToggle() {
+    Level logLevel = preferencesService.getPreferences().isDebugLogEnabled() ? Level.DEBUG : Level.INFO;
+    Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+    rootLogger.setLevel(logLevel);
+    log.info("Switching logging configuration to " + logLevel.levelStr);
   }
 }
 
