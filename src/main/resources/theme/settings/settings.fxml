@@ -141,6 +141,21 @@
                                             <CheckBox fx:id="advancedIceLogToggle" GridPane.columnIndex="1" />
                                  </children>
                               </GridPane>
+                               <GridPane styleClass="setting-container">
+                                   <columnConstraints>
+                                       <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                       <ColumnConstraints minWidth="10.0" />
+                                   </columnConstraints>
+                                   <rowConstraints>
+                                       <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                       <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                   </rowConstraints>
+                                   <children>
+                                       <Label styleClass="setting-title" text="%settings.general.debugLog" wrapText="true" />
+                                       <Label styleClass="setting-description" text="%settings.general.debugLog.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                       <CheckBox fx:id="debugLogToggle" GridPane.columnIndex="1" />
+                                   </children>
+                               </GridPane>
                            </children>
                         </VBox>
                      </content>

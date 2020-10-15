@@ -5,7 +5,6 @@ import com.faforever.client.chat.ChatFormat;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.NodeListCell;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.i18n.I18n;
@@ -137,6 +136,7 @@ public class SettingsController implements Controller<Node> {
   public CheckBox disallowJoinsCheckBox;
   public CheckBox secondaryVaultLocationToggle;
   public CheckBox advancedIceLogToggle;
+  public CheckBox debugLogToggle;
   public CheckBox prereleaseToggle;
   public Region settingsHeader;
   public ComboBox<NavigationItem> startTabChoiceBox;
@@ -320,6 +320,7 @@ public class SettingsController implements Controller<Node> {
     });
 
     advancedIceLogToggle.selectedProperty().bindBidirectional(preferences.advancedIceLogEnabledProperty());
+    debugLogToggle.selectedProperty().bindBidirectional(preferences.debugLogEnabledProperty());
 
     prereleaseToggle.selectedProperty().bindBidirectional(preferences.prereleaseCheckEnabledProperty());
     prereleaseToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
