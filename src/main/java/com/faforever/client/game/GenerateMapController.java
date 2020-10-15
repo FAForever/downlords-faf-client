@@ -223,13 +223,13 @@ public class GenerateMapController implements Controller<Pane> {
   private void handleGenerationException(Throwable e) {
     Throwable cause = e.getCause();
     if (cause instanceof InvalidParameterException) {
-      log.warn("Map generation failed", e);
+      log.warn("Map generation failed due to invalid parameter", e);
       notificationService.addImmediateErrorNotification(e, "mapGenerator.invalidName");
     } else if (cause instanceof UnsupportedVersionException) {
-      log.warn("Map generation failed", e);
+      log.warn("Map generation failed due to unsupported version", e);
       notificationService.addImmediateErrorNotification(cause, "mapGenerator.tooNewVersion");
     } else if (cause instanceof OutdatedVersionException) {
-      log.warn("Map generation failed", e);
+      log.warn("Map generation failed due to outdated version", e);
       notificationService.addImmediateErrorNotification(cause, "mapGenerator.tooOldVersion");
     } else {
       log.warn("Map generation failed", e);
