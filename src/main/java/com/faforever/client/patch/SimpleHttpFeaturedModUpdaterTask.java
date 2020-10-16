@@ -15,14 +15,15 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
+
+import static com.google.common.io.Files.hash;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -63,52 +64,48 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
     List<FeaturedModFile> featuredModFiles = fafService.getFeaturedModFiles(featuredMod, version).get();
     Path fafDataDirectory = preferencesService.getFafDataDirectory();
 
-    Path initFile = null;
-    Path cacheFilePath;
-    Path targetPath;
+    featuredModFiles
+        .forEach(featuredModFile -> {
+          Path targetPath = fafDataDirectory
+              .resolve(featuredModFile.getGroup())
+              .resolve(featuredModFile.getName());
 
-    Map<String, String> knownTargetHashes = new HashMap<>();
+          try {
+            if (fileAlreadyLoaded(featuredModFile, targetPath)) {
+              log.debug("Featured mod file already prepared: {}", featuredModFile);
+            } else if (featuredModFileCacheService.isCached(featuredModFile)) {
+              featuredModFileCacheService.copyFeaturedModFileFromCache(featuredModFile, targetPath);
+            } else {
+              downloadFeaturedModFile(featuredModFile, featuredModFileCacheService.getCachedFilePath(featuredModFile));
+              featuredModFileCacheService.copyFeaturedModFileFromCache(featuredModFile, targetPath);
+            }
+          } catch (IOException e) {
+            log.error("Error on updating featured mod file: {}", featuredModFile, e);
+            throw new RuntimeException(e);
+          }
+        });
 
-    // Download to cache if file exists in target place, otherwise, download to direct place.
-    for (FeaturedModFile featuredModFile : featuredModFiles) {
-      targetPath = fafDataDirectory.resolve(featuredModFile.getGroup()).resolve(featuredModFile.getName());
-      cacheFilePath = featuredModFileCacheService.getCachedFilePath(featuredModFile);
-
-      String existingTargetFileHash = null;
-      if (Files.exists(targetPath)) {
-        existingTargetFileHash = com.google.common.io.Files.hash(targetPath.toFile(), Hashing.md5()).toString();
-        knownTargetHashes.put(targetPath.toString(), existingTargetFileHash);
-      }
-
-      if (!featuredModFile.getMd5().equals(existingTargetFileHash)) {
-        log.info("Downloading: {}", cacheFilePath);
-        downloadFeaturedModFile(featuredModFile, cacheFilePath);
-      }
-
-      if ("bin".equals(featuredModFile.getGroup()) && initFileName.equalsIgnoreCase(featuredModFile.getName())) {
-        initFile = targetPath;
-      }
-    }
-
-    for (FeaturedModFile featuredModFile : featuredModFiles) {
-      targetPath = fafDataDirectory.resolve(featuredModFile.getGroup()).resolve(featuredModFile.getName());
-      cacheFilePath = featuredModFileCacheService.getCachedFilePath(featuredModFile);
-      String existingTargetFileHash = knownTargetHashes.get(targetPath.toString());
-
-      if (!featuredModFile.getMd5().equals(existingTargetFileHash)) {
-        log.info("copying featured mod file: {} to {}", cacheFilePath, targetPath);
-        featuredModFileCacheService.copyFeaturedModFileFromCache(cacheFilePath, targetPath);
-      }
-    }
-
-    Assert.isTrue(initFile != null && Files.exists(initFile), "'" + initFileName + "' could be found.");
+    Path initFile = featuredModFiles.stream()
+        .filter(featuredModFile -> "bin".equals(featuredModFile.getGroup()) &&
+            initFileName.equalsIgnoreCase(featuredModFile.getName()))
+        .map(featuredModFile -> fafDataDirectory
+            .resolve(featuredModFile.getGroup())
+            .resolve(featuredModFile.getName()))
+        .filter(Files::exists)
+        .findAny()
+        .orElseThrow(() -> new IllegalStateException("No init file found for featured mod: " + featuredMod.getTechnicalName()));
 
     int maxVersion = featuredModFiles.stream()
         .mapToInt(mod -> Integer.parseInt(mod.getVersion()))
         .max()
-        .orElseThrow(() -> new IllegalStateException("No version found"));
+        .orElseThrow(() -> new IllegalStateException("No version found for featured mod: " + featuredMod.getTechnicalName()));
 
     return PatchResult.withLegacyInitFile(new ComparableVersion(String.valueOf(maxVersion)), initFile);
+  }
+
+  private boolean fileAlreadyLoaded(FeaturedModFile featuredModFile, Path targetPath) throws IOException {
+    return Files.exists(targetPath)
+        && Objects.equals(featuredModFile.getMd5(), hash(targetPath.toFile(), Hashing.md5()).toString());
   }
 
   private void downloadFeaturedModFile(FeaturedModFile featuredModFile, Path targetPath) throws java.io.IOException {
