@@ -16,7 +16,6 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModManagerController;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.mod.ModVersion;
-import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.LastGamePrefs;
 import com.faforever.client.preferences.PreferenceUpdateListener;
@@ -381,8 +380,8 @@ public class CreateGameController implements Controller<Pane> {
         root.requestFocus();
       }
     } catch (Exception e) {
-      notificationService.addImmediateErrorNotification(e, "mapGenerator.generationFailed");
       log.error("Map generation failed", e);
+      notificationService.addImmediateErrorNotification(e, "mapGenerator.generationFailed");
     }
   }
 
@@ -401,13 +400,7 @@ public class CreateGameController implements Controller<Pane> {
 
     gameService.hostGame(newGameInfo).exceptionally(throwable -> {
       log.warn("Game could not be hosted", throwable);
-      notificationService.addNotification(
-          new ImmediateErrorNotification(
-              i18n.get("errorTitle"),
-              i18n.get("game.create.failed"),
-              throwable,
-              i18n, reportingService
-          ));
+      notificationService.addImmediateErrorNotification(throwable, "game.create.failed");
       return null;
     });
 

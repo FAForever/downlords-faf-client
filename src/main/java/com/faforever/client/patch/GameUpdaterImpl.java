@@ -82,6 +82,7 @@ public class GameUpdaterImpl implements GameUpdater {
     return future
         .thenCompose(s -> updateGameBinaries(patchResults.get(patchResults.size() - 1).getVersion()))
         .exceptionally(throwable -> {
+          log.warn("Game not terminated correctly", throwable);
           notificationService.addImmediateErrorNotification(throwable, "error.game.notTerminatedCorrectly");
           return null;
         })

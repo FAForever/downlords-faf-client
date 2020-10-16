@@ -17,7 +17,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.replay.ReplayService;
@@ -238,9 +237,8 @@ public class CoopController extends AbstractViewController<Node> {
           Platform.runLater(() -> leaderboardTable.setItems(observableList(coopLeaderboardEntries)));
         })
         .exceptionally(throwable -> {
-          notificationService.addNotification(new ImmediateErrorNotification(
-              i18n.get("errorTitle"), i18n.get("coop.leaderboard.couldNotLoad"), throwable, i18n, reportingService
-          ));
+          log.warn("Could not load coop leaderboard", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "coop.leaderboard.couldNotLoad");
           return null;
         });
   }

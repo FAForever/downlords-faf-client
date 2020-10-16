@@ -224,8 +224,8 @@ public class UserInfoWindowController implements Controller<Node> {
           plotGamesPlayedChart();
         })
         .exceptionally(throwable -> {
-          notificationService.addImmediateErrorNotification(throwable, "userInfo.statistics.errorLoading");
           log.warn("Could not load player events", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "userInfo.statistics.errorLoading");
           return null;
         });
   }
@@ -234,6 +234,7 @@ public class UserInfoWindowController implements Controller<Node> {
     playerService.getPlayersByIds(Collections.singletonList(player.getId()))
         .thenAccept(players -> nameHistoryTable.setItems(players.get(0).getNames()))
         .exceptionally(throwable -> {
+          log.warn("Could not load player name history", throwable);
           notificationService.addImmediateErrorNotification(throwable, "userInfo.nameHistory.errorLoading");
           return null;
         });
@@ -243,8 +244,8 @@ public class UserInfoWindowController implements Controller<Node> {
     enterAchievementsLoadingState();
     achievementService.getAchievementDefinitions()
         .exceptionally(throwable -> {
-          notificationService.addImmediateErrorNotification(throwable, "userInfo.achievements.errorLoading");
           log.warn("Player achievements could not be loaded", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "userInfo.achievements.errorLoading");
           return Collections.emptyList();
         })
         .thenAccept(this::setAvailableAchievements)
@@ -254,9 +255,8 @@ public class UserInfoWindowController implements Controller<Node> {
           enterAchievementsLoadedState();
         })
         .exceptionally(throwable -> {
-          notificationService.addImmediateErrorNotification(throwable, "userInfo.achievements.errorLDisplaying");
           log.warn("Could not display achievement definitions", throwable);
-
+          notificationService.addImmediateErrorNotification(throwable, "userInfo.achievements.errorLDisplaying");
           return null;
         });
   }

@@ -4,7 +4,6 @@ import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
-import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
@@ -270,9 +269,8 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
           }
         })
         .exceptionally(throwable -> {
-          notificationService.addNotification(new ImmediateErrorNotification(
-              i18n.get("errorTitle"), i18n.get("vault.searchError"), throwable, i18n, reportingService
-          ));
+          log.error("Vault search error", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "vault.searchError");
           enterResultState();
           return null;
         });
