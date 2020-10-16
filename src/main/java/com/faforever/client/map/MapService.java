@@ -73,6 +73,7 @@ import static com.github.nocatch.NoCatch.noCatch;
 import static com.google.common.net.UrlEscapers.urlFragmentEscaper;
 import static java.lang.String.format;
 import static java.nio.file.Files.list;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.util.stream.Collectors.toCollection;
 
@@ -196,12 +197,24 @@ public class MapService implements InitializingBean, DisposableBean {
   private Thread startDirectoryWatcher(Path mapsDirectory) {
     Thread thread = new Thread(() -> noCatch(() -> {
       try (WatchService watcher = mapsDirectory.getFileSystem().newWatchService()) {
-        forgedAlliancePreferences.getCustomMapsDirectory().register(watcher, ENTRY_DELETE);
+        forgedAlliancePreferences.getCustomMapsDirectory().register(watcher, ENTRY_DELETE, ENTRY_CREATE);
         while (!Thread.interrupted()) {
           WatchKey key = watcher.take();
           key.pollEvents().stream()
-              .filter(event -> event.kind() == ENTRY_DELETE)
-              .forEach(event -> removeMap(mapsDirectory.resolve((Path) event.context())));
+              .filter(event -> event.kind() == ENTRY_DELETE || event.kind() == ENTRY_CREATE)
+              .forEach(event -> {
+                if (event.kind() == ENTRY_DELETE) {
+                  removeMap(mapsDirectory.resolve((Path) event.context()));
+                } else if (event.kind() == ENTRY_CREATE) {
+                  Path mapPath = mapsDirectory.resolve((Path) event.context());
+                  try {
+                    Thread.sleep(1000);
+                  } catch (InterruptedException e) {
+                    logger.debug("Thread interrupted ({})", e.getMessage());
+                  }
+                  addInstalledMap(mapPath);
+                }
+              });
           key.reset();
         }
       } catch (InterruptedException e) {
