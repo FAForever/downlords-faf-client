@@ -153,8 +153,8 @@ public class CreateGameController implements Controller<Pane> {
         new DualStringListCell<>(FeaturedMod::getDisplayName, isDefaultModString, STYLE_CLASS_DUAL_LIST_CELL, uiService)
     );
 
-    JavaFxUtil.makeNumericTextField(minRankingTextField, MAX_RATING_LENGTH);
-    JavaFxUtil.makeNumericTextField(maxRankingTextField, MAX_RATING_LENGTH);
+    JavaFxUtil.makeNumericTextField(minRankingTextField, MAX_RATING_LENGTH, true);
+    JavaFxUtil.makeNumericTextField(maxRankingTextField, MAX_RATING_LENGTH, true);
 
     modService.getFeaturedMods().thenAccept(featuredModBeans -> Platform.runLater(() -> {
       featuredModListView.setItems(FXCollections.observableList(featuredModBeans).filtered(FeaturedMod::isVisible));
