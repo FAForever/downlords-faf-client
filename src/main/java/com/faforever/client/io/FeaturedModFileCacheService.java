@@ -34,9 +34,8 @@ public class FeaturedModFileCacheService implements InitializingBean {
     return Files.exists(getCachedFilePath(featuredModFile));
   }
 
-  private String readHashFromFile(Path filePath) {
-    // see buildCachedFileName
-    return filePath.getFileName().toString();
+  public String readHashFromFile(Path filePath) throws IOException {
+    return hash(filePath.toFile(), Hashing.md5()).toString();
   }
 
   private Path getCachedFilePath(String hash, String group) {
@@ -50,7 +49,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
   }
 
   private Path getCachedFilePath(Path targetPath) throws IOException {
-    return getCachedFilePath(hash(targetPath.toFile(), Hashing.md5()).toString(), targetPath.getParent().getFileName().toString());
+    return getCachedFilePath(readHashFromFile(targetPath), targetPath.getParent().getFileName().toString());
   }
 
   public void moveFeaturedModFileFromCache(FeaturedModFile featuredModFile, Path targetPath) throws IOException {
@@ -58,7 +57,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
     ResourceLocks.acquireDiskLock();
 
     try {
-      if (Files.exists(targetPath)) {
+      if (Files.exists(targetPath) && preferencesService.getPreferences().isGameDataCacheActivated()) {
         //We want to keep the old file for now in case it is needed again for example for old replays
         moveFeaturedModFileToCache(targetPath);
       }
@@ -110,7 +109,9 @@ public class FeaturedModFileCacheService implements InitializingBean {
 
       FileTime lastAccessTime = Files.readAttributes(filePath, BasicFileAttributes.class).lastAccessTime();
       OffsetDateTime comparableLastAccessTime = OffsetDateTime.ofInstant(lastAccessTime.toInstant(), ZoneId.systemDefault());
-      if (comparableLastAccessTime.plusDays(preferencesService.getPreferences().getCacheLifeTimeInDays()).isBefore(OffsetDateTime.now())) {
+      final boolean olderThanCacheTime = comparableLastAccessTime.plusDays(preferencesService.getPreferences().getCacheLifeTimeInDays()).isBefore(OffsetDateTime.now());
+      final boolean gameDataCacheActivated = preferencesService.getPreferences().isGameDataCacheActivated();
+      if (olderThanCacheTime || !gameDataCacheActivated) {
         log.debug("Deleting cached file ''{}'' ", filePath.toString());
         Files.deleteIfExists(filePath);
       }

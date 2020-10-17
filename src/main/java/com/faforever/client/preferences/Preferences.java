@@ -56,6 +56,7 @@ public class Preferences {
   private final BooleanProperty showGameDetailsSidePane;
   private final BooleanProperty advancedIceLogEnabled;
   private final IntegerProperty cacheLifeTimeInDays;
+  private final BooleanProperty gameDataCacheActivated;
 
   public Preferences() {
     gameTileSortingOrder = new SimpleObjectProperty<>(TilesSortingOrder.PLAYER_DES);
@@ -85,12 +86,12 @@ public class Preferences {
     advancedIceLogEnabled = new SimpleBooleanProperty(false);
     prereleaseCheckEnabled = new SimpleBooleanProperty(false);
     cacheLifeTimeInDays = new SimpleIntegerProperty(30);
+    gameDataCacheActivated = new SimpleBooleanProperty(false);
   }
 
   public VaultPrefs getVaultPrefs() {
     return vaultPrefs;
   }
-
 
   public TilesSortingOrder getGameTileSortingOrder() {
     return gameTileSortingOrder.get();
@@ -300,4 +301,15 @@ public class Preferences {
     return cacheLifeTimeInDays;
   }
 
+  public boolean isGameDataCacheActivated() {
+    return gameDataCacheActivated.get();
+  }
+
+  public void setGameDataCacheActivated(boolean gameDataCacheActivated) {
+    this.gameDataCacheActivated.set(gameDataCacheActivated);
+  }
+
+  public BooleanProperty gameDataCacheActivatedProperty() {
+    return gameDataCacheActivated;
+  }
 }

@@ -8,7 +8,6 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
-import com.google.common.hash.Hashing;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -21,8 +20,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
-
-import static com.google.common.io.Files.hash;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -104,7 +101,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
 
   private boolean fileAlreadyLoaded(FeaturedModFile featuredModFile, Path targetPath) throws IOException {
     return Files.exists(targetPath)
-        && Objects.equals(featuredModFile.getMd5(), hash(targetPath.toFile(), Hashing.md5()).toString());
+        && Objects.equals(featuredModFile.getMd5(), featuredModFileCacheService.readHashFromFile(targetPath));
   }
 
   private void downloadFeaturedModFile(FeaturedModFile featuredModFile, Path targetPath) throws java.io.IOException {
