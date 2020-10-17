@@ -289,18 +289,32 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   private void initRatingBoundaries() {
-    int lastGameMinRating = preferencesService.getPreferences().getLastGamePrefs().getLastGameMinRating();
-    int lastGameMaxRating = preferencesService.getPreferences().getLastGamePrefs().getLastGameMaxRating();
+    Integer lastGameMinRating = preferencesService.getPreferences().getLastGamePrefs().getLastGameMinRating();
+    Integer lastGameMaxRating = preferencesService.getPreferences().getLastGamePrefs().getLastGameMaxRating();
 
-    minRankingTextField.setText(i18n.number(lastGameMinRating));
-    maxRankingTextField.setText(i18n.number(lastGameMaxRating));
+    if(lastGameMinRating != null) {
+      minRankingTextField.setText(i18n.number(lastGameMinRating));
+    }
+
+    if(lastGameMaxRating != null) {
+      maxRankingTextField.setText(i18n.number(lastGameMaxRating));
+    }
 
     minRankingTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().getLastGamePrefs().setLastGameMinRating(Integer.parseInt(newValue));
+      Integer minRating = null;
+      if(!newValue.isEmpty()) {
+        minRating = Integer.parseInt(newValue);
+      }
+
+      preferencesService.getPreferences().getLastGamePrefs().setLastGameMinRating(minRating);
       preferencesService.storeInBackground();
     });
     maxRankingTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().getLastGamePrefs().setLastGameMaxRating(Integer.parseInt(newValue));
+      Integer maxRating = null;
+      if(!newValue.isEmpty()) {
+        maxRating = Integer.parseInt(newValue);
+      }
+      preferencesService.getPreferences().getLastGamePrefs().setLastGameMaxRating(maxRating);
       preferencesService.storeInBackground();
     });
   }
@@ -387,9 +401,9 @@ public class CreateGameController implements Controller<Pane> {
         .map(ModVersion::getUid)
         .collect(Collectors.toSet());
 
-    int minRating = 0;
-    int maxRating = 3000;
-    boolean enforceRating = false;
+    Integer minRating = null;
+    Integer maxRating = null;
+    boolean enforceRating;
 
     if (!minRankingTextField.getText().isEmpty()) {
       minRating = Integer.parseInt(minRankingTextField.getText());

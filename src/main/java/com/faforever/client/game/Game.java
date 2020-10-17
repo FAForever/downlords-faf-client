@@ -29,8 +29,8 @@ public class Game {
   private final IntegerProperty numPlayers;
   private final IntegerProperty maxPlayers;
   private final DoubleProperty averageRating;
-  private final IntegerProperty minRating;
-  private final IntegerProperty maxRating;
+  private final ObjectProperty<Integer> minRating;
+  private final ObjectProperty<Integer> maxRating;
   private final BooleanProperty passwordProtected;
   private final StringProperty password;
   private final ObjectProperty<GameVisibility> visibility;
@@ -57,8 +57,8 @@ public class Game {
     numPlayers = new SimpleIntegerProperty();
     maxPlayers = new SimpleIntegerProperty();
     averageRating = new SimpleDoubleProperty(0);
-    minRating = new SimpleIntegerProperty(0);
-    maxRating = new SimpleIntegerProperty(3000);
+    minRating = new SimpleObjectProperty<>(null);
+    maxRating = new SimpleObjectProperty<>(null);
     passwordProtected = new SimpleBooleanProperty();
     password = new SimpleStringProperty();
     victoryCondition = new SimpleObjectProperty<>();
@@ -167,27 +167,27 @@ public class Game {
     this.averageRating.set(averageRating);
   }
 
-  public int getMinRating() {
+  public Integer getMinRating() {
     return minRating.get();
   }
 
-  public void setMinRating(int minRating) {
+  public void setMinRating(Integer minRating) {
     this.minRating.set(minRating);
   }
 
-  public IntegerProperty minRatingProperty() {
+  public ObjectProperty<Integer> minRatingProperty() {
     return minRating;
   }
 
-  public int getMaxRating() {
+  public Integer getMaxRating() {
     return maxRating.get();
   }
 
-  public void setMaxRating(int maxRating) {
+  public void setMaxRating(Integer maxRating) {
     this.maxRating.set(maxRating);
   }
 
-  public IntegerProperty maxRatingProperty() {
+  public ObjectProperty<Integer> maxRatingProperty() {
     return maxRating;
   }
 

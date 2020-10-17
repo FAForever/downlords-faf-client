@@ -24,6 +24,8 @@ public class GameRangePredicateTest {
     validPlayer.setGlobalRatingDeviation(100); //this should result in a global rating of 1100
     game = new Game();
     game.setEnforceRating(true);
+    game.setMaxRating(1200);
+    game.setMinRating(1000);
 
     predicate = new GameRangePredicate(Optional.of(validPlayer));
   }
@@ -54,6 +56,43 @@ public class GameRangePredicateTest {
     game.setEnforceRating(false);
     game.setMaxRating(1000);
     game.setMinRating(100);
+
+    //Act
+    boolean result = predicate.test(game);
+
+    //Assert
+    Assert.assertTrue(result);
+  }
+
+  @Test
+  public void testAlwaysMatchOnNoRankingMaxAndMin() {
+    //Arrange
+    game.setMaxRating(null);
+    game.setMinRating(null);
+
+    //Act
+    boolean result = predicate.test(game);
+
+    //Assert
+    Assert.assertTrue(result);
+  }
+
+  @Test
+  public void testShouldMatchOnNoMinRanking() {
+    //Arrange
+    game.setMinRating(null);
+
+    //Act
+    boolean result = predicate.test(game);
+
+    //Assert
+    Assert.assertTrue(result);
+  }
+
+  @Test
+  public void testShouldMatchOnNoMaxRanking() {
+    //Arrange
+    game.setMaxRating(null);
 
     //Act
     boolean result = predicate.test(game);

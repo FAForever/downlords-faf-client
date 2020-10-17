@@ -15,10 +15,19 @@ public class GameRangePredicate implements Predicate<Game> {
 
   @Override
   public boolean test(Game game) {
-    if(!player.isPresent() || !game.getEnforceRating())
+    if (!player.isPresent() || !game.getEnforceRating()) {
       return true;
+    }
 
     float rating = RatingUtil.getGlobalRating(player.get());
-    return game.getMaxRating() >= rating && game.getMinRating() <= rating;
+
+    Integer maxRating = game.getMaxRating();
+
+    if (maxRating != null && maxRating < rating) {
+      return false;
+    }
+
+    Integer minRating = game.getMinRating();
+    return minRating == null || rating >= minRating;
   }
 }
