@@ -3,7 +3,9 @@ package com.faforever.client.io;
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.ResourceLocks;
-import lombok.SneakyThrows;
+import com.faforever.client.util.UpdaterUtil;
+import com.google.common.hash.Hashing;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
@@ -14,68 +16,61 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.text.MessageFormat;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.stream.Stream;
 
+import static com.google.common.io.Files.hash;
+
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class FeaturedModFileCacheService implements InitializingBean {
-  private final Path cacheDirectory;
-  private final int cacheLifeTimeInDays;
+  private final PreferencesService preferencesService;
 
-  public FeaturedModFileCacheService(PreferencesService preferencesService) {
-    this.cacheDirectory = preferencesService.getCacheDirectory();
-    this.cacheLifeTimeInDays = preferencesService.getPreferences().getCacheLifeTimeInDays();
-  }
-
-  public boolean isCached(FeaturedModFile featuredModFile) {
+  public boolean isCached(FeaturedModFile featuredModFile) throws IOException {
     return Files.exists(getCachedFilePath(featuredModFile));
   }
 
   private String readHashFromFile(Path filePath) {
     // see buildCachedFileName
-    return filePath.getFileName().toString().split("\\.")[3];
+    return filePath.getFileName().toString();
   }
 
-  private String buildCachedFileName(FeaturedModFile featuredModFile) {
-    return String.format(
-        "%s.%s.%s.%s",
-        featuredModFile.getId(),
-        featuredModFile.getVersion(),
-        featuredModFile.getMd5(),
-        featuredModFile.getName()
-    );
+  private Path getCachedFilePath(String hash, String group) {
+    return preferencesService.getFeaturedModCachePath()
+        .resolve(group)
+        .resolve(hash);
   }
 
-  public Path getCachedFilePath(FeaturedModFile featuredModFile) {
-    return cacheDirectory
-        .resolve(featuredModFile.getGroup())
-        .resolve(buildCachedFileName(featuredModFile));
+  public Path getCachedFilePath(FeaturedModFile featuredModFile) throws IOException {
+    return getCachedFilePath(featuredModFile.getMd5(), featuredModFile.getGroup());
   }
 
-  public void copyFeaturedModFileFromCache(FeaturedModFile featuredModFile, Path targetPath) throws IOException {
+  private Path getCachedFilePath(Path targetPath) throws IOException {
+    return getCachedFilePath(hash(targetPath.toFile(), Hashing.md5()).toString(), targetPath.getParent().getFileName().toString());
+  }
+
+  public void moveFeaturedModFileFromCache(FeaturedModFile featuredModFile, Path targetPath) throws IOException {
     Files.createDirectories(targetPath.getParent());
     ResourceLocks.acquireDiskLock();
 
     try {
-      Files.copy(getCachedFilePath(featuredModFile), targetPath, StandardCopyOption.REPLACE_EXISTING);
+      if (Files.exists(targetPath)) {
+        //We want to keep the old file for now in case it is needed again for example for old replays
+        moveFeaturedModFileToCache(targetPath);
+      }
+      Files.move(getCachedFilePath(featuredModFile), targetPath, StandardCopyOption.REPLACE_EXISTING);
+      UpdaterUtil.extractMoviesIfPresent(targetPath, preferencesService.getFafDataDirectory());
     } finally {
       ResourceLocks.freeDiskLock();
     }
   }
 
-  @SneakyThrows
-  public void copyFeaturedModFileFromCache(Path cacheFilePath, Path targetPath) {
-    Files.createDirectories(targetPath.getParent());
-    ResourceLocks.acquireDiskLock();
-
-    try {
-      Files.copy(cacheFilePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
-    } finally {
-      ResourceLocks.freeDiskLock();
-    }
+  private void moveFeaturedModFileToCache(Path targetPath) throws IOException {
+    Files.move(targetPath, getCachedFilePath(targetPath), StandardCopyOption.REPLACE_EXISTING);
   }
 
   /**
@@ -83,11 +78,21 @@ public class FeaturedModFileCacheService implements InitializingBean {
    */
   @Override
   public void afterPropertiesSet() {
+    Path cacheDirectory = preferencesService.getFeaturedModCachePath();
+    if (!Files.isDirectory(cacheDirectory)) {
+      try {
+        Files.createDirectories(cacheDirectory);
+      } catch (IOException e) {
+        log.error("Could not create Featured Mod Cache directory in ''{}''", cacheDirectory);
+        throw new RuntimeException(MessageFormat.format("Could not create Featured Mod Cache directory in ''{}''." +
+            " You might have to delete it or check if the needed permission are given.", cacheDirectory));
+      }
+    }
     cleanUnusedFilesFromCache();
   }
 
   private void cleanUnusedFilesFromCache() {
-    try (Stream<Path> pathElements = Files.walk(this.cacheDirectory)) {
+    try (Stream<Path> pathElements = Files.walk(preferencesService.getFeaturedModCachePath())) {
       pathElements
           .filter(Files::isRegularFile)
           .forEach(this::deleteCachedFileIfNeeded);
@@ -105,8 +110,8 @@ public class FeaturedModFileCacheService implements InitializingBean {
 
       FileTime lastAccessTime = Files.readAttributes(filePath, BasicFileAttributes.class).lastAccessTime();
       OffsetDateTime comparableLastAccessTime = OffsetDateTime.ofInstant(lastAccessTime.toInstant(), ZoneId.systemDefault());
-      if (comparableLastAccessTime.plusDays(this.cacheLifeTimeInDays).isBefore(OffsetDateTime.now())) {
-        log.info("Deleting cached file ''{}'' (last access:", filePath.toString());
+      if (comparableLastAccessTime.plusDays(preferencesService.getPreferences().getCacheLifeTimeInDays()).isBefore(OffsetDateTime.now())) {
+        log.debug("Deleting cached file ''{}'' ", filePath.toString());
         Files.deleteIfExists(filePath);
       }
     } catch (IOException e) {

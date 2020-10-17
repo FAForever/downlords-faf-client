@@ -8,7 +8,6 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
-import com.faforever.client.util.UpdaterUtil;
 import com.google.common.hash.Hashing;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -74,10 +73,10 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
             if (fileAlreadyLoaded(featuredModFile, targetPath)) {
               log.debug("Featured mod file already prepared: {}", featuredModFile);
             } else if (featuredModFileCacheService.isCached(featuredModFile)) {
-              featuredModFileCacheService.copyFeaturedModFileFromCache(featuredModFile, targetPath);
+              featuredModFileCacheService.moveFeaturedModFileFromCache(featuredModFile, targetPath);
             } else {
               downloadFeaturedModFile(featuredModFile, featuredModFileCacheService.getCachedFilePath(featuredModFile));
-              featuredModFileCacheService.copyFeaturedModFileFromCache(featuredModFile, targetPath);
+              featuredModFileCacheService.moveFeaturedModFileFromCache(featuredModFile, targetPath);
             }
           } catch (IOException e) {
             log.error("Error on updating featured mod file: {}", featuredModFile, e);
@@ -114,7 +113,6 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
 
     String url = featuredModFile.getUrl();
     downloadService.downloadFile(new URL(url), targetPath, this::updateProgress);
-    UpdaterUtil.extractMoviesIfPresent(targetPath, preferencesService.getFafDataDirectory());
   }
 
   public void setFeaturedMod(FeaturedMod featuredMod) {
