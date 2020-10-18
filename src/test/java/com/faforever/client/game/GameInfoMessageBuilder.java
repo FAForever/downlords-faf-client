@@ -30,6 +30,9 @@ public class GameInfoMessageBuilder {
     gameInfoMessage.setTitle("Test preferences");
     gameInfoMessage.setTeams(new HashMap<>());
     gameInfoMessage.setPasswordProtected(false);
+    gameInfoMessage.setEnforceRatingRange(false);
+    gameInfoMessage.setRatingMax(3000);
+    gameInfoMessage.setRatingMin(0);
     return this;
   }
 

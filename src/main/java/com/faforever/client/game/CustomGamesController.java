@@ -6,6 +6,7 @@ import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
 import com.faforever.client.main.event.NavigateEvent;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.theme.UiService;
@@ -64,6 +65,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
   private final PreferencesService preferencesService;
   private final EventBus eventBus;
   private final I18n i18n;
+  private final PlayerService playerService;
 
   @SuppressWarnings("WeakerAccess")
   public GameDetailController gameDetailController;
@@ -90,12 +92,13 @@ public class CustomGamesController extends AbstractViewController<Node> {
   private final ChangeListener<Game> gameChangeListener;
 
   public CustomGamesController(UiService uiService, GameService gameService, PreferencesService preferencesService,
-                               EventBus eventBus, I18n i18n) {
+                               EventBus eventBus, I18n i18n, PlayerService playerService) {
     this.uiService = uiService;
     this.gameService = gameService;
     this.preferencesService = preferencesService;
     this.eventBus = eventBus;
     this.i18n = i18n;
+    this.playerService = playerService;
 
     gameChangeListener = (observable, oldValue, newValue) -> setSelectedGame(newValue);
   }

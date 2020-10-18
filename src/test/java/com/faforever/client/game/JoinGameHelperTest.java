@@ -27,6 +27,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
@@ -141,12 +142,11 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
    */
   @Test
   public void testJoinGameIgnoreRatings() throws Exception {
+    when(game.getMaxRating()).thenReturn(100);
     instance.join(game, "haha", true);
     verify(gameService).joinGame(game, "haha");
     verify(notificationService, never()).addNotification(any(ImmediateNotification.class));
-
-    verify(game, never()).getMinRating();
-    verify(game, never()).getMaxRating();
+    verifyNoInteractions(notificationService);
   }
 
   /**

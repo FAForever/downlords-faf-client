@@ -67,7 +67,7 @@ public class BanDialogController implements Controller<Node> {
       }
     });
     periodTypeChoiceBox.setItems(FXCollections.observableArrayList(PeriodType.values()));
-    JavaFxUtil.makeNumericTextField(durationText, 5);
+    JavaFxUtil.makeNumericTextField(durationText, 5, false);
   }
 
   public Region getRoot() {
