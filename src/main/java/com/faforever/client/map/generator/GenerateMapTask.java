@@ -1,10 +1,10 @@
 package com.faforever.client.map.generator;
 
-import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.google.common.eventbus.EventBus;
 import lombok.Setter;
@@ -27,8 +27,7 @@ import java.util.concurrent.TimeUnit;
 public class GenerateMapTask extends CompletableTask<Void> {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private final MapGeneratorService mapGeneratorService;
-  private final ClientProperties clientProperties;
+  private final PreferencesService preferencesService;
   private final NotificationService notificationService;
   private final I18n i18n;
   private final EventBus eventBus;
@@ -43,11 +42,10 @@ public class GenerateMapTask extends CompletableTask<Void> {
   private String mapFilename;
 
   @Inject
-  public GenerateMapTask(MapGeneratorService mapGeneratorService, ClientProperties clientProperties, NotificationService notificationService, I18n i18n, EventBus eventBus) {
+  public GenerateMapTask(PreferencesService preferencesService, NotificationService notificationService, I18n i18n, EventBus eventBus) {
     super(Priority.HIGH);
 
-    this.mapGeneratorService = mapGeneratorService;
-    this.clientProperties = clientProperties;
+    this.preferencesService = preferencesService;
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.eventBus = eventBus;
@@ -59,7 +57,7 @@ public class GenerateMapTask extends CompletableTask<Void> {
 
     updateTitle(i18n.get("game.mapGeneration.generateMap.title", version, String.valueOf(seed)));
 
-    Path workingDirectory = mapGeneratorService.getCustomMapsDirectory();
+    Path workingDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
 
     ProcessBuilder processBuilder = new ProcessBuilder();
     processBuilder.inheritIO();
