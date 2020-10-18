@@ -95,7 +95,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
       pathElements
           .filter(Files::isRegularFile)
           .forEach(this::deleteCachedFileIfNeeded);
-    } catch (IOException e) {
+    } catch (Exception e) {
       log.error("Cleaning featured mod files cache failed", e);
     }
   }
@@ -115,7 +115,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
         log.debug("Deleting cached file ''{}'' ", filePath.toString());
         Files.deleteIfExists(filePath);
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       log.error("Exception during deleting the cache files", e);
     } finally {
       ResourceLocks.freeDiskLock();
