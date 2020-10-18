@@ -1,7 +1,6 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
@@ -30,6 +29,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -136,7 +136,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnInstallButtonClickedInstallindModThrowsException() {
+  public void testOnInstallButtonClickedInstallingModThrowsException() {
     CompletableFuture<Void> future = new CompletableFuture<>();
     future.completeExceptionally(new FakeTestException());
     when(modService.downloadAndInstallMod(any(ModVersion.class), any(), any())).thenReturn(future);
@@ -146,7 +146,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
     instance.onInstallButtonClicked();
 
     verify(modService).downloadAndInstallMod(any(ModVersion.class), any(), any());
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString(), anyString(), anyString());
   }
 
   @Test
@@ -172,7 +172,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
     instance.onUninstallButtonClicked();
 
     verify(modService).uninstallMod(modVersion);
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString(), anyString(), anyString());
   }
 
   @Test

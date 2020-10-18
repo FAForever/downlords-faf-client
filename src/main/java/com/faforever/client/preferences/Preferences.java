@@ -2,10 +2,12 @@ package com.faforever.client.preferences;
 
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -53,6 +55,8 @@ public class Preferences {
   private final BooleanProperty disallowJoinsViaDiscord;
   private final BooleanProperty showGameDetailsSidePane;
   private final BooleanProperty advancedIceLogEnabled;
+  private final IntegerProperty cacheLifeTimeInDays;
+  private final BooleanProperty gameDataCacheActivated;
 
   public Preferences() {
     gameTileSortingOrder = new SimpleObjectProperty<>(TilesSortingOrder.PLAYER_DES);
@@ -81,12 +85,13 @@ public class Preferences {
     showGameDetailsSidePane = new SimpleBooleanProperty(false);
     advancedIceLogEnabled = new SimpleBooleanProperty(false);
     prereleaseCheckEnabled = new SimpleBooleanProperty(false);
+    cacheLifeTimeInDays = new SimpleIntegerProperty(30);
+    gameDataCacheActivated = new SimpleBooleanProperty(false);
   }
 
   public VaultPrefs getVaultPrefs() {
     return vaultPrefs;
   }
-
 
   public TilesSortingOrder getGameTileSortingOrder() {
     return gameTileSortingOrder.get();
@@ -282,5 +287,29 @@ public class Preferences {
     UnitDataBaseType(String i18nKey) {
       this.i18nKey = i18nKey;
     }
+  }
+
+  public int getCacheLifeTimeInDays() {
+    return cacheLifeTimeInDays.get();
+  }
+
+  public void setCacheLifeTimeInDays(int cacheLifeTimeInDays) {
+    this.cacheLifeTimeInDays.set(cacheLifeTimeInDays);
+  }
+
+  public IntegerProperty cacheLifeTimeInDaysProperty() {
+    return cacheLifeTimeInDays;
+  }
+
+  public boolean isGameDataCacheActivated() {
+    return gameDataCacheActivated.get();
+  }
+
+  public void setGameDataCacheActivated(boolean gameDataCacheActivated) {
+    this.gameDataCacheActivated.set(gameDataCacheActivated);
+  }
+
+  public BooleanProperty gameDataCacheActivatedProperty() {
+    return gameDataCacheActivated;
   }
 }

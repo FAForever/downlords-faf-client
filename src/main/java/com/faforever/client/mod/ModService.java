@@ -13,6 +13,7 @@ import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.CompletableTask.Priority;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.Tuple;
@@ -96,9 +97,9 @@ public class ModService implements InitializingBean, DisposableBean {
   private final ModReader modReader = new ModReader();
 
   private Path modsDirectory;
-  private Map<Path, ModVersion> pathToMod = new HashMap<>();
-  private ObservableList<ModVersion> installedModVersions = FXCollections.observableArrayList();
-  private ObservableList<ModVersion> readOnlyInstalledModVersions = FXCollections.unmodifiableObservableList(installedModVersions);
+  private final Map<Path, ModVersion> pathToMod = new HashMap<>();
+  private final ObservableList<ModVersion> installedModVersions = FXCollections.observableArrayList();
+  private final ObservableList<ModVersion> readOnlyInstalledModVersions = FXCollections.unmodifiableObservableList(installedModVersions);
   private Thread directoryWatcherThread;
 
   @Override
@@ -110,7 +111,14 @@ public class ModService implements InitializingBean, DisposableBean {
         onModDirectoryReady();
       }
     };
-    modDirectoryChangedListener.invalidated(preferencesService.getPreferences().getForgedAlliance().modsDirectoryProperty());
+    taskService.submitTask(new CompletableTask<Void>(Priority.LOW) {
+      @Override
+      protected Void call() throws Exception {
+        updateTitle(i18n.get("modVault.loadingMods"));
+        modDirectoryChangedListener.invalidated(preferencesService.getPreferences().getForgedAlliance().modsDirectoryProperty());
+        return null;
+      }
+    });
     JavaFxUtil.addListener(preferencesService.getPreferences().getForgedAlliance().modsDirectoryProperty(), modDirectoryChangedListener);
   }
 
@@ -422,6 +430,13 @@ public class ModService implements InitializingBean, DisposableBean {
       notificationService.addNotification(new PersistentNotification(i18n.get("corruptedMods.notification", path.getFileName()), WARN, singletonList(
           new Action(i18n.get("corruptedMods.show"), event -> platformService.reveal(path))
       )));
+    } catch (Exception e) {
+      logger.warn("Skipping mod because of exception during adding of mod: " + path, e);
+
+      notificationService.addNotification(new PersistentNotification(i18n.get("corruptedModsError.notification", path.getFileName()), WARN, singletonList(
+          new Action(i18n.get("corruptedMods.show"), event -> platformService.reveal(path))
+      )));
+
     }
   }
 

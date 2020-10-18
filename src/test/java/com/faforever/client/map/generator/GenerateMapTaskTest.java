@@ -1,8 +1,8 @@
 package com.faforever.client.map.generator;
 
-import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.preferences.PreferencesService;
 import com.google.common.eventbus.EventBus;
 import org.junit.Before;
 import org.junit.Rule;
@@ -25,7 +25,7 @@ public class GenerateMapTaskTest {
   private GenerateMapTask instance;
 
   @Mock
-  private MapGeneratorService mapGeneratorService;
+  private PreferencesService preferencesService;
   @Mock
   private NotificationService notificationService;
   @Mock
@@ -35,8 +35,7 @@ public class GenerateMapTaskTest {
 
   @Before
   public void setUp() throws Exception {
-    ClientProperties clientProperties = new ClientProperties();
-    instance = new GenerateMapTask(mapGeneratorService, clientProperties, notificationService, i18n, eventBus);
+    instance = new GenerateMapTask(preferencesService, notificationService, i18n, eventBus);
   }
 
   @Test
