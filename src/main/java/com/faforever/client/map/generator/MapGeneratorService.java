@@ -113,6 +113,8 @@ public class MapGeneratorService implements InitializingBean {
             .forEach(p -> noCatch(() -> FileUtils.deleteRecursively(p)));
       } catch (IOException e) {
         log.error("Could not list custom maps directory for deleting leftover generated maps.", e);
+      } catch (RuntimeException e) {
+        log.error("Could not delete generated map folder");
       }
     }
   }
