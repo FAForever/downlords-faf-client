@@ -2,7 +2,6 @@ package com.faforever.client.preferences;
 
 import com.faforever.client.game.KnownFeaturedMod;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -27,7 +26,7 @@ public class LastGamePrefs {
     lastGameMinRating = new SimpleObjectProperty<>(null);
     lastGameMaxRating = new SimpleObjectProperty<>(null);
     lastGameOnlyFriends = new SimpleBooleanProperty();
-    lastGameEnforceRating = new SimpleBooleanProperty();
+    lastGameEnforceRating = new SimpleBooleanProperty(false);
 
   }
 
@@ -113,5 +112,17 @@ public class LastGamePrefs {
 
   public BooleanProperty lastGameOnlyFriendsProperty() {
     return lastGameOnlyFriends;
+  }
+
+  public boolean isLastGameEnforceRating() {
+    return lastGameEnforceRating.get();
+  }
+
+  public void setLastGameEnforceRating(boolean lastGameEnforceRating) {
+    this.lastGameEnforceRating.set(lastGameEnforceRating);
+  }
+
+  public BooleanProperty lastGameEnforceRatingProperty() {
+    return lastGameEnforceRating;
   }
 }

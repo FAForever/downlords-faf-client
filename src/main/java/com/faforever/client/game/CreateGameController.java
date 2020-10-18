@@ -313,14 +313,19 @@ public class CreateGameController implements Controller<Pane> {
       preferencesService.getPreferences().getLastGamePrefs().setLastGameMinRating(minRating);
       preferencesService.storeInBackground();
     });
+
     maxRankingTextField.textProperty().addListener((observable, oldValue, newValue) -> {
       Integer maxRating = null;
-      if(!newValue.isEmpty()) {
+      if (!newValue.isEmpty()) {
         maxRating = Integer.parseInt(newValue);
       }
       preferencesService.getPreferences().getLastGamePrefs().setLastGameMaxRating(maxRating);
       preferencesService.storeInBackground();
     });
+
+    enforceRankingCheckBox.selectedProperty()
+        .bindBidirectional(preferencesService.getPreferences().getLastGamePrefs().lastGameEnforceRatingProperty());
+    enforceRankingCheckBox.selectedProperty().addListener(observable -> preferencesService.storeInBackground());
   }
 
   private void selectLastMap() {
