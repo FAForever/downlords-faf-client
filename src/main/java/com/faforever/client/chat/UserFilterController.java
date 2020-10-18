@@ -168,8 +168,7 @@ public class UserFilterController implements Controller<Node> {
       return false;
     }
 
-    Player player = playerOptional.get();
-    PlayerStatus playerStatus = player.getStatus();
+    PlayerStatus playerStatus = playerOptional.get().getStatus();
     if (playerStatusFilter == LOBBYING) {
       return LOBBYING == playerStatus || HOSTING == playerStatus;
     } else {
@@ -183,9 +182,7 @@ public class UserFilterController implements Controller<Node> {
       return false;
     }
 
-    Player player = playerOptional.get();
-
-    var country = player.getCountry();
+    String country = playerOptional.get().getCountry();
     return currentSelectedCountries.contains(country);
   }
 

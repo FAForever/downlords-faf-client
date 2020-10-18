@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
 import javafx.scene.image.Image;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,17 +26,13 @@ import static com.faforever.client.config.CacheNames.COUNTRY_NAMES;
 
 @Lazy
 @Service
+@RequiredArgsConstructor
 public class CountryFlagService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final Collection<String> NON_COUNTRY_CODES = Arrays.asList("A1", "A2", "");
   private final I18n i18n;
-
-  public CountryFlagService(I18n i18n) {
-    this.i18n = i18n;
-  }
-
 
   @Cacheable(COUNTRY_FLAGS)
   public Optional<Image> loadCountryFlag(final String country) {
