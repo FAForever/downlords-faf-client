@@ -44,7 +44,6 @@
                 <Label alignment="CENTER_RIGHT" text="%game.create.rating" textAlignment="JUSTIFY" GridPane.columnIndex="2" GridPane.rowIndex="1" />
                 <TextField fx:id="minRankingTextField" minWidth="30.0" prefWidth="60.0" promptText="%games.create.minRating" HBox.hgrow="NEVER" />
                 <Label text="%games.create.minRating" />
-<!--                <Pane minHeight="0.0" minWidth="0.0" HBox.hgrow="ALWAYS" />-->
                 <Label text="%games.create.maxRating" />
                 <TextField fx:id="maxRankingTextField" minWidth="30.0" prefWidth="60.0" promptText="%games.create.maxRating" HBox.hgrow="NEVER" />
                 <CheckBox fx:id="enforceRankingCheckBox" HBox.hgrow="NEVER" text="%games.create.enforceRating" />

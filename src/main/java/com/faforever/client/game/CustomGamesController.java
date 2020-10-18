@@ -60,8 +60,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
       gameInfoBean.getStatus() == GameStatus.OPEN
           && !HIDDEN_FEATURED_MODS.contains(gameInfoBean.getFeaturedMod());
 
-  private GameRangePredicate rangePredicate;
-
   private final UiService uiService;
   private final GameService gameService;
   private final PreferencesService preferencesService;
@@ -102,7 +100,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
     this.i18n = i18n;
     this.playerService = playerService;
 
-    rangePredicate = new GameRangePredicate(playerService.getCurrentPlayer());
     gameChangeListener = (observable, oldValue, newValue) -> setSelectedGame(newValue);
   }
 
@@ -188,8 +185,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
     filteredItems.setPredicate(OPEN_CUSTOM_GAMES_PREDICATE
         .and(gameInfoBean ->
             (showPasswordProtectedGames || !gameInfoBean.isPasswordProtected())
-                && (showModdedGames || gameInfoBean.getSimMods().isEmpty()))
-        .and(rangePredicate));
+                && (showModdedGames || gameInfoBean.getSimMods().isEmpty())));
   }
 
   public void onCreateGameButtonClicked() {
