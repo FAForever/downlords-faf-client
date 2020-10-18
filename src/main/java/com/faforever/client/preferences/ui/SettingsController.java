@@ -317,9 +317,9 @@ public class SettingsController implements Controller<Node> {
     autoChannelListView.managedProperty().bind(autoChannelListView.visibleProperty());
     autoChannelListView.visibleProperty().bind(Bindings.createBooleanBinding(() -> !autoChannelListView.getItems().isEmpty(), autoChannelListView.getItems()));
 
-    secondaryVaultLocationToggle.setSelected(preferences.getForgedAlliance().getVaultBaseDirectory().equals(preferencesService.getSecondaryVaultLocation()));
+    secondaryVaultLocationToggle.setSelected(preferences.getForgedAlliance().getVaultBaseDirectory().equals(preferencesService.getFAFVaultLocation()));
     secondaryVaultLocationToggle.selectedProperty().addListener(observable -> {
-      Path vaultBaseDirectory = secondaryVaultLocationToggle.isSelected() ? preferencesService.getSecondaryVaultLocation() : preferencesService.getPrimaryVaultLocation();
+      Path vaultBaseDirectory = secondaryVaultLocationToggle.isSelected() ? preferencesService.getFAFVaultLocation() : preferencesService.getGPGVaultLocation();
       preferences.getForgedAlliance().setVaultBaseDirectory(vaultBaseDirectory);
     });
 

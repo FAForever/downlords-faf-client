@@ -74,7 +74,7 @@ public class PreferencesService implements InitializingBean {
    * Points to the FAF data directory where log files, config files and others are held. The returned value varies
    * depending on the operating system.
    */
-  private static final Path FAF_DATA_DIRECTORY;
+  protected static final Path FAF_DATA_DIRECTORY;
   private static final Logger logger;
   private static final long STORE_DELAY = 1000;
   private static final Charset CHARSET = StandardCharsets.UTF_8;
@@ -218,17 +218,14 @@ public class PreferencesService implements InitializingBean {
   }
 
   /**
-   * This is the fall back location for the vault, it is set when for some reasons the game can not find the files in
-   * the "My Documents" folder.
-   *
-   * @see com.faforever.client.vault.VaultFileSystemLocationChecker
+   * This is where FAF stores maps and mods. This avoids writing to the My Documents folder on Windows
    */
-  public Path getSecondaryVaultLocation() {
-    return Paths.get(FAF_DATA_DIRECTORY.toAbsolutePath().toString(), "user", "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
+  public Path getFAFVaultLocation() {
+    return ForgedAlliancePrefs.FAF_VAULT_PATH;
   }
 
-  public Path getPrimaryVaultLocation() {
-    return ForgedAlliancePrefs.GPG_FA_PATH;
+  public Path getGPGVaultLocation() {
+    return ForgedAlliancePrefs.GPG_VAULT_PATH;
   }
 
   public Path getPatchReposDirectory() {
