@@ -70,7 +70,10 @@ public class JoinGameHelper {
       return;
     }
 
-    if (!ignoreRating && (playerRating < game.getMinRating() || playerRating > game.getMaxRating())) {
+    boolean minRatingViolated = game.getMinRating() != null && playerRating < game.getMinRating();
+    boolean maxRatingViolated = game.getMaxRating() != null && playerRating > game.getMaxRating();
+
+    if (!ignoreRating && (minRatingViolated || maxRatingViolated)) {
       showRatingOutOfBoundsConfirmation(playerRating, game, password);
       return;
     }
