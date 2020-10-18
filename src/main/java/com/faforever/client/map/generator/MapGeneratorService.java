@@ -52,7 +52,7 @@ public class MapGeneratorService implements InitializingBean {
   public static final BaseEncoding NAME_ENCODER = BaseEncoding.base32().omitPadding().lowerCase();
   @VisibleForTesting
   public static final String GENERATOR_EXECUTABLE_SUB_DIRECTORY = "map_generator";
-  public static final int GENERATION_TIMEOUT_SECONDS = 60;
+  public static final int GENERATION_TIMEOUT_SECONDS = 60 * 3;
   private static final Pattern VERSION_PATTERN = Pattern.compile("\\d\\d?\\d?\\.\\d\\d?\\d?\\.\\d\\d?\\d?");
   private static final Pattern GENERATED_MAP_PATTERN = Pattern.compile("neroxis_map_generator_(" + VERSION_PATTERN + ")_(.*)");
   @Getter
