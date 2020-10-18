@@ -21,7 +21,7 @@ public class NewGameInfo {
   private Integer ratingMax;
   private Boolean enforceRatingRange;
 
-  public NewGameInfo(String title, String password, FeaturedMod featuredMod, String map, Set<String> simMods, int minRating, int maxRating, boolean enforceRating) {
-    this(title, password, featuredMod, map, simMods, GameVisibility.PUBLIC, minRating, maxRating, enforceRating);
+  public NewGameInfo(String title, String password, FeaturedMod featuredMod, String map, Set<String> simMods, boolean enforceRating) {
+    this(title, password, featuredMod, map, simMods, GameVisibility.PUBLIC, null, null, enforceRating);
   }
 }

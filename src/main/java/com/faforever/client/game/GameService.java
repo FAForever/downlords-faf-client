@@ -651,8 +651,9 @@ public class GameService implements InitializingBean {
               game.getPassword(),
               featuredModBean,
               game.getMapFolderName(),
-              new HashSet<>(game.getSimMods().values())
-              , game.getMinRating(), game.getMaxRating(), game.getEnforceRating())));
+              new HashSet<>(game.getSimMods().values()),
+              GameVisibility.PUBLIC,
+              game.getMinRating(), game.getMaxRating(), game.getEnforceRating())));
     }
   }
 

@@ -266,8 +266,6 @@ public class CoopController extends AbstractViewController<Node> {
         .thenAccept(featuredModBean -> gameService.hostGame(new NewGameInfo(titleTextField.getText(),
             Strings.emptyToNull(passwordTextField.getText()), featuredModBean, getSelectedMission().getMapFolderName(),
             emptySet(),
-            0, //Rating isn't interesting for coop games
-            3000,
             false)));
   }
 
