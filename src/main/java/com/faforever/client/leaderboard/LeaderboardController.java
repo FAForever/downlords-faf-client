@@ -5,7 +5,6 @@ import com.faforever.client.fx.StringCell;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
-import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.Assert;
@@ -112,10 +111,7 @@ public class LeaderboardController extends AbstractViewController<Node> {
     }).exceptionally(throwable -> {
       contentPane.setVisible(false);
       logger.warn("Error while loading leaderboard entries", throwable);
-      notificationService.addNotification(new ImmediateErrorNotification(
-          i18n.get("errorTitle"), i18n.get("leaderboard.failedToLoad"),
-          throwable, i18n, reportingService
-      ));
+      notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoad");
       return null;
     });
   }

@@ -74,7 +74,7 @@ public class PreferencesService implements InitializingBean {
    * Points to the FAF data directory where log files, config files and others are held. The returned value varies
    * depending on the operating system.
    */
-  private static final Path FAF_DATA_DIRECTORY;
+  protected static final Path FAF_DATA_DIRECTORY;
   private static final Logger logger;
   private static final long STORE_DELAY = 1000;
   private static final Charset CHARSET = StandardCharsets.UTF_8;
@@ -84,10 +84,12 @@ public class PreferencesService implements InitializingBean {
   private static final String REPLAYS_SUB_FOLDER = "replays";
   private static final String CORRUPTED_REPLAYS_SUB_FOLDER = "corrupt";
   private static final String CACHE_SUB_FOLDER = "cache";
+  private static final String FEATURED_MOD_CACHE_SUB_FOLDER = "featured_mod";
   private static final String CACHE_STYLESHEETS_SUB_FOLDER = Paths.get(CACHE_SUB_FOLDER, "stylesheets").toString();
   private static final Path CACHE_DIRECTORY;
   private static final Pattern GAME_LOG_PATTERN = Pattern.compile("game(_\\d*)?.log");
   private static final int NUMBER_GAME_LOGS_STORED = 10;
+  private static final Path FEATURED_MOD_CACHE_PATH;
 
   static {
     if (org.bridj.Platform.isWindows()) {
@@ -96,6 +98,7 @@ public class PreferencesService implements InitializingBean {
       FAF_DATA_DIRECTORY = Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
     }
     CACHE_DIRECTORY = FAF_DATA_DIRECTORY.resolve(CACHE_SUB_FOLDER);
+    FEATURED_MOD_CACHE_PATH = CACHE_DIRECTORY.resolve(FEATURED_MOD_CACHE_SUB_FOLDER);
 
     System.setProperty("logging.file.name", PreferencesService.FAF_DATA_DIRECTORY
         .resolve("logs")
@@ -215,17 +218,14 @@ public class PreferencesService implements InitializingBean {
   }
 
   /**
-   * This is the fall back location for the vault, it is set when for some reasons the game can not find the files in
-   * the "My Documents" folder.
-   *
-   * @see com.faforever.client.vault.VaultFileSystemLocationChecker
+   * This is where FAF stores maps and mods. This avoids writing to the My Documents folder on Windows
    */
-  public Path getSecondaryVaultLocation() {
-    return Paths.get(FAF_DATA_DIRECTORY.toAbsolutePath().toString(), "user", "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
+  public Path getFAFVaultLocation() {
+    return ForgedAlliancePrefs.FAF_VAULT_PATH;
   }
 
-  public Path getPrimaryVaultLocation() {
-    return ForgedAlliancePrefs.GPG_FA_PATH;
+  public Path getGPGVaultLocation() {
+    return ForgedAlliancePrefs.GPG_VAULT_PATH;
   }
 
   public Path getPatchReposDirectory() {
@@ -342,6 +342,10 @@ public class PreferencesService implements InitializingBean {
 
   public Path getCacheDirectory() {
     return CACHE_DIRECTORY;
+  }
+
+  public Path getFeaturedModCachePath() {
+    return FEATURED_MOD_CACHE_PATH;
   }
 
   public Path getFafLogDirectory() {

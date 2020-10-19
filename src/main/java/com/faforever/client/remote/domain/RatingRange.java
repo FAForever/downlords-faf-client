@@ -14,7 +14,13 @@ public class RatingRange implements Comparable<RatingRange> {
 
   @Override
   public int compareTo(@NotNull RatingRange o) {
-    return Integer.compare(getMin(), o.getMin());
+    Integer otherMin = o.getMin();
+
+    if (min == null) {
+      return otherMin == null ? 0 : otherMin;
+    }
+
+    return Integer.compare(min, o.getMin());
   }
 
   public Integer getMin() {

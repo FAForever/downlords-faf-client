@@ -24,7 +24,7 @@
     </entries>
   </files>
   <launchers>
-    <launcher name="DownlordsFafClient" id="25">
+    <launcher name="FAF Client" id="25">
       <executable name="downlords-faf-client" iconSet="true" executableMode="gui" changeWorkingDirectory="false" workingDirectory="bin" singleInstance="true" checkConsoleParameter="true" dpiAware="true" />
       <splashScreen show="true" width="640" height="400" bitmapFile="./src/media/splash/splash.png" textOverlay="true">
         <text>

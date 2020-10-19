@@ -7,7 +7,6 @@ import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
-import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.Player;
@@ -424,9 +423,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     }).exceptionally(throwable -> {
       throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
       logger.warn("Message could not be sent: {}", text, throwable);
-      notificationService.addNotification(new ImmediateErrorNotification(
-          i18n.get("errorTitle"), i18n.get("chat.sendFailed"), throwable, i18n, reportingService)
-      );
+      notificationService.addImmediateErrorNotification(throwable, "chat.sendFailed");
 
       messageTextField.setDisable(false);
       messageTextField.requestFocus();

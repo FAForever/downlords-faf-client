@@ -38,8 +38,8 @@ public class DiscordEventHandler extends DiscordEventHandlers {
     try {
       applicationEventPublisher.publishEvent(new DiscordJoinEvent(discordJoinSecret.getGameId()));
     } catch (Exception e) {
-      notificationService.addImmediateErrorNotification(e, "game.couldNotJoin", discordJoinSecret.getGameId());
       log.error("Could not join game from discord rich presence", e);
+      notificationService.addImmediateErrorNotification(e, "game.couldNotJoin", discordJoinSecret.getGameId());
     }
   }
 
@@ -48,8 +48,8 @@ public class DiscordEventHandler extends DiscordEventHandlers {
     try {
       applicationEventPublisher.publishEvent(new DiscordSpectateEvent(discordSpectateSecret.getGameId()));
     } catch (Exception e) {
-      notificationService.addImmediateErrorNotification(e, "replay.couldNotOpen", discordSpectateSecret.getGameId());
       log.error("Could not join game from discord rich presence", e);
+      notificationService.addImmediateErrorNotification(e, "replay.couldNotOpen", discordSpectateSecret.getGameId());
     }
   }
 

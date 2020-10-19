@@ -15,7 +15,6 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.DismissAction;
-import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -489,9 +488,8 @@ public class ReplayService {
     downloadReplay(replayId)
         .thenAccept(this::runReplayFile)
         .exceptionally(throwable -> {
-          notificationService.addNotification(new ImmediateErrorNotification(
-              i18n.get("errorTitle"), i18n.get("replayCouldNotBeStarted", replayId), throwable, i18n, reportingService
-          ));
+          log.error("Replay could not be started", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "replayCouldNotBeStarted", replayId);
           return null;
         });
   }

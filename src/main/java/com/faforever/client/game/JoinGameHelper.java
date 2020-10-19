@@ -3,7 +3,6 @@ package com.faforever.client.game;
 import com.faforever.client.discord.DiscordJoinEvent;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
@@ -71,7 +70,10 @@ public class JoinGameHelper {
       return;
     }
 
-    if (!ignoreRating && (playerRating < game.getMinRating() || playerRating > game.getMaxRating())) {
+    boolean minRatingViolated = game.getMinRating() != null && playerRating < game.getMinRating();
+    boolean maxRatingViolated = game.getMaxRating() != null && playerRating > game.getMaxRating();
+
+    if (!ignoreRating && (minRatingViolated || maxRatingViolated)) {
       showRatingOutOfBoundsConfirmation(playerRating, game, password);
       return;
     }
@@ -86,12 +88,7 @@ public class JoinGameHelper {
       gameService.joinGame(game, password)
           .exceptionally(throwable -> {
             logger.warn("Game could not be joined", throwable);
-            notificationService.addNotification(new ImmediateErrorNotification(
-                i18n.get("errorTitle"),
-                i18n.get("games.couldNotJoin"),
-                throwable,
-                i18n, reportingService
-            ));
+            notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
             return null;
           });
     }

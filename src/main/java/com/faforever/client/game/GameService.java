@@ -17,7 +17,6 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -105,12 +104,6 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 @Slf4j
 @RequiredArgsConstructor
 public class GameService implements InitializingBean {
-
-  private static final String RATING_NUMBER = "\\d+(?:\\.\\d+)?k?";
-  private static final Pattern MIN_RATING_PATTERN = Pattern.compile(">\\s*(" + RATING_NUMBER + ")|(" + RATING_NUMBER + ")\\s*\\+");
-  private static final Pattern MAX_RATING_PATTERN = Pattern.compile("<\\s*(" + RATING_NUMBER + ")");
-  private static final Pattern ABOUT_RATING_PATTERN = Pattern.compile("~\\s*(" + RATING_NUMBER + ")");
-  private static final Pattern BETWEEN_RATING_PATTERN = Pattern.compile("(" + RATING_NUMBER + ")\\s*-\\s*(" + RATING_NUMBER + ")");
 
   @VisibleForTesting
   final BooleanProperty gameRunning;
@@ -429,12 +422,7 @@ public class GameService implements InitializingBean {
 
   private void notifyCantPlayReplay(@Nullable Integer replayId, Throwable throwable) {
     log.error("Could not play replay '" + replayId + "'", throwable);
-    notificationService.addNotification(new ImmediateErrorNotification(
-        i18n.get("errorTitle"),
-        i18n.get("replayCouldNotBeStarted", replayId),
-        throwable,
-        i18n, reportingService
-    ));
+    notificationService.addImmediateErrorNotification(throwable, "replayCouldNotBeStarted");
   }
 
   public CompletableFuture<Void> runWithLiveReplay(URI replayUrl, Integer gameId, String gameType, String mapName) {
@@ -589,9 +577,7 @@ public class GameService implements InitializingBean {
         })
         .exceptionally(throwable -> {
           log.warn("Game could not be started", throwable);
-          notificationService.addNotification(
-              new ImmediateErrorNotification(i18n.get("errorTitle"), i18n.get("game.start.couldNotStart"), throwable, i18n, reportingService)
-          );
+          notificationService.addImmediateErrorNotification(throwable, "game.start.couldNotStart");
           iceAdapter.stop();
           setGameRunning(false);
           return null;
@@ -665,8 +651,9 @@ public class GameService implements InitializingBean {
               game.getPassword(),
               featuredModBean,
               game.getMapFolderName(),
-              new HashSet<>(game.getSimMods().values())
-          )));
+              new HashSet<>(game.getSimMods().values()),
+              GameVisibility.PUBLIC,
+              game.getMinRating(), game.getMaxRating(), game.getEnforceRating())));
     }
   }
 
@@ -823,37 +810,9 @@ public class GameService implements InitializingBean {
       }
     }
 
-    // TODO this can be removed as soon as we valueOf server side support. Until then, let's be hacky
-    String titleString = game.getTitle();
-    Matcher matcher = BETWEEN_RATING_PATTERN.matcher(titleString);
-    if (matcher.find()) {
-      game.setMinRating(parseRating(matcher.group(1)));
-      game.setMaxRating(parseRating(matcher.group(2)));
-    } else {
-      matcher = MIN_RATING_PATTERN.matcher(titleString);
-      if (matcher.find()) {
-        if (matcher.group(1) != null) {
-          game.setMinRating(parseRating(matcher.group(1)));
-        }
-        if (matcher.group(2) != null) {
-          game.setMinRating(parseRating(matcher.group(2)));
-        }
-        game.setMaxRating(3000);
-      } else {
-        matcher = MAX_RATING_PATTERN.matcher(titleString);
-        if (matcher.find()) {
-          game.setMinRating(0);
-          game.setMaxRating(parseRating(matcher.group(1)));
-        } else {
-          matcher = ABOUT_RATING_PATTERN.matcher(titleString);
-          if (matcher.find()) {
-            int rating = parseRating(matcher.group(1));
-            game.setMinRating(rating - 300);
-            game.setMaxRating(rating + 300);
-          }
-        }
-      }
-    }
+    game.setMinRating(gameInfoMessage.getRatingMin());
+    game.setMaxRating(gameInfoMessage.getRatingMax());
+    game.setEnforceRating(gameInfoMessage.getEnforceRatingRange());
   }
 
 
@@ -895,8 +854,8 @@ public class GameService implements InitializingBean {
           spawnTerminationListener(process, false);
         })
         .exceptionally(throwable -> {
-          notificationService.addImmediateErrorNotification(throwable, "tutorial.launchFailed");
           log.error("Launching tutorials failed", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "tutorial.launchFailed");
           return null;
         });
 
