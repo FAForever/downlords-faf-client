@@ -57,6 +57,7 @@ public class Preferences {
   private final BooleanProperty advancedIceLogEnabled;
   private final IntegerProperty cacheLifeTimeInDays;
   private final BooleanProperty gameDataCacheActivated;
+  private final BooleanProperty debugLogEnabled;
 
   public Preferences() {
     gameTileSortingOrder = new SimpleObjectProperty<>(TilesSortingOrder.PLAYER_DES);
@@ -87,6 +88,7 @@ public class Preferences {
     preReleaseCheckEnabled = new SimpleBooleanProperty(false);
     cacheLifeTimeInDays = new SimpleIntegerProperty(30);
     gameDataCacheActivated = new SimpleBooleanProperty(false);
+    debugLogEnabled = new SimpleBooleanProperty(false);
   }
 
   public VaultPrefs getVault() {
@@ -311,5 +313,17 @@ public class Preferences {
 
   public BooleanProperty gameDataCacheActivatedProperty() {
     return gameDataCacheActivated;
+  }
+
+  public boolean isDebugLogEnabled() {
+    return debugLogEnabled.get();
+  }
+
+  public void setDebugLogEnabled(boolean debugLogEnabled) {
+    this.debugLogEnabled.set(debugLogEnabled);
+  }
+
+  public BooleanProperty debugLogEnabledProperty() {
+    return debugLogEnabled;
   }
 }

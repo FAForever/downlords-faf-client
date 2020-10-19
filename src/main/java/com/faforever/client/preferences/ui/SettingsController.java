@@ -153,6 +153,7 @@ public class SettingsController implements Controller<Node> {
   public Spinner<Integer> gameDataCacheTimeSpinner;
   public CheckBox allowReplayWhileInGameCheckBox;
   public Button allowReplayWhileInGameButton;
+  public CheckBox debugLogToggle;
 
   private final InvalidationListener availableLanguagesListener;
 
@@ -335,6 +336,8 @@ public class SettingsController implements Controller<Node> {
         clientUpdateService.checkForUpdateInBackground();
       }
     });
+
+    debugLogToggle.selectedProperty().bindBidirectional(preferences.debugLogEnabledProperty());
 
     initUnitDatabaseSelection(preferences);
 
