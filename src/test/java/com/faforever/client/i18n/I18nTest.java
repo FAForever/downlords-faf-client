@@ -11,8 +11,13 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Locale;
+import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
@@ -103,7 +108,11 @@ public class I18nTest {
   }
 
   @Test
-  public void getAvailableLanguages() {
-    assertThat(instance.getAvailableLanguages(), hasSize(13));
+  public void testLoadedLanguagesAreComplete() throws IOException {
+    final Path path = Paths.get("src", "main", "resources", "i18n");
+    try (Stream<Path> walk = Files.walk(path)) {
+      final long messageFileCount = walk.filter(propertiesFile -> Files.isRegularFile(propertiesFile) && propertiesFile.getFileName().toString().endsWith(".properties")).count();
+      assertThat(instance.getAvailableLanguages(), hasSize((int) messageFileCount));
+    }
   }
 }

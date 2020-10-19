@@ -2,9 +2,9 @@ package com.faforever.client.preferences;
 
 import com.faforever.client.game.KnownFeaturedMod;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -13,8 +13,9 @@ public class LastGamePrefs {
   private final StringProperty lastGameTitle;
   private final StringProperty lastMap;
   private final StringProperty lastGamePassword;
-  private final IntegerProperty lastGameMinRating;
-  private final IntegerProperty lastGameMaxRating;
+  private final ObjectProperty<Integer> lastGameMinRating;
+  private final ObjectProperty<Integer> lastGameMaxRating;
+  private final BooleanProperty lastGameEnforceRating;
   private final BooleanProperty lastGameOnlyFriends;
 
   public LastGamePrefs() {
@@ -22,9 +23,10 @@ public class LastGamePrefs {
     lastGameTitle = new SimpleStringProperty();
     lastMap = new SimpleStringProperty();
     lastGamePassword = new SimpleStringProperty();
-    lastGameMinRating = new SimpleIntegerProperty(800);
-    lastGameMaxRating = new SimpleIntegerProperty(1300);
+    lastGameMinRating = new SimpleObjectProperty<>(null);
+    lastGameMaxRating = new SimpleObjectProperty<>(null);
     lastGameOnlyFriends = new SimpleBooleanProperty();
+    lastGameEnforceRating = new SimpleBooleanProperty(false);
 
   }
 
@@ -76,27 +78,27 @@ public class LastGamePrefs {
     return lastGamePassword;
   }
 
-  public int getLastGameMinRating() {
+  public Integer getLastGameMinRating() {
     return lastGameMinRating.get();
   }
 
-  public void setLastGameMinRating(int lastGameMinRating) {
+  public void setLastGameMinRating(Integer lastGameMinRating) {
     this.lastGameMinRating.set(lastGameMinRating);
   }
 
-  public IntegerProperty lastGameMinRatingProperty() {
+  public ObjectProperty<Integer> lastGameMinRatingProperty() {
     return lastGameMinRating;
   }
 
-  public int getLastGameMaxRating() {
+  public Integer getLastGameMaxRating() {
     return lastGameMaxRating.get();
   }
 
-  public void setLastGameMaxRating(int lastGameMaxRating) {
+  public void setLastGameMaxRating(Integer lastGameMaxRating) {
     this.lastGameMaxRating.set(lastGameMaxRating);
   }
 
-  public IntegerProperty lastGameMaxRatingProperty() {
+  public ObjectProperty<Integer> lastGameMaxRatingProperty() {
     return lastGameMaxRating;
   }
 
@@ -110,5 +112,17 @@ public class LastGamePrefs {
 
   public BooleanProperty lastGameOnlyFriendsProperty() {
     return lastGameOnlyFriends;
+  }
+
+  public boolean isLastGameEnforceRating() {
+    return lastGameEnforceRating.get();
+  }
+
+  public void setLastGameEnforceRating(boolean lastGameEnforceRating) {
+    this.lastGameEnforceRating.set(lastGameEnforceRating);
+  }
+
+  public BooleanProperty lastGameEnforceRatingProperty() {
+    return lastGameEnforceRating;
   }
 }

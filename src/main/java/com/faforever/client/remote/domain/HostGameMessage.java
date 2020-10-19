@@ -19,8 +19,11 @@ public class HostGameMessage extends ClientMessage {
   private Integer version;
   private String password;
   private GameVisibility visibility;
+  private Integer ratingMin;
+  private Integer ratingMax;
+  private Boolean enforceRatingRange;
 
-  public HostGameMessage(GameAccess gameAccess, String mapName, String title, boolean[] options, String mod, String password, Integer version, GameVisibility gameVisibility) {
+  public HostGameMessage(GameAccess gameAccess, String mapName, String title, boolean[] options, String mod, String password, Integer version, GameVisibility gameVisibility, Integer ratingMin, Integer ratingMax, Boolean enforceRatingRange) {
     super(ClientMessageType.HOST_GAME);
     access = gameAccess;
     this.mapname = mapName;
@@ -30,6 +33,8 @@ public class HostGameMessage extends ClientMessage {
     this.password = password;
     this.version = version;
     this.visibility = gameVisibility;
+    this.ratingMin = ratingMin;
+    this.ratingMax = ratingMax;
+    this.enforceRatingRange = enforceRatingRange;
   }
-
 }

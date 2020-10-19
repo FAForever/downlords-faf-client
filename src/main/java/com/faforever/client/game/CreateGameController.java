@@ -91,6 +91,7 @@ public class CreateGameController implements Controller<Pane> {
   public TextField passwordTextField;
   public TextField minRankingTextField;
   public TextField maxRankingTextField;
+  public CheckBox enforceRankingCheckBox;
   public ListView<FeaturedMod> featuredModListView;
   public ListView<MapBean> mapListView;
   public StackPane gamesRoot;
@@ -156,8 +157,8 @@ public class CreateGameController implements Controller<Pane> {
         )
     );
 
-    JavaFxUtil.makeNumericTextField(minRankingTextField, MAX_RATING_LENGTH);
-    JavaFxUtil.makeNumericTextField(maxRankingTextField, MAX_RATING_LENGTH);
+    JavaFxUtil.makeNumericTextField(minRankingTextField, MAX_RATING_LENGTH, true);
+    JavaFxUtil.makeNumericTextField(maxRankingTextField, MAX_RATING_LENGTH, true);
 
     modService.getFeaturedMods().thenAccept(featuredModBeans -> Platform.runLater(() -> {
       featuredModListView.setItems(FXCollections.observableList(featuredModBeans).filtered(FeaturedMod::isVisible));
@@ -292,20 +293,39 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   private void initRatingBoundaries() {
-    int lastGameMinRating = preferencesService.getPreferences().getLastGamePrefs().getLastGameMinRating();
-    int lastGameMaxRating = preferencesService.getPreferences().getLastGamePrefs().getLastGameMaxRating();
+    Integer lastGameMinRating = preferencesService.getPreferences().getLastGamePrefs().getLastGameMinRating();
+    Integer lastGameMaxRating = preferencesService.getPreferences().getLastGamePrefs().getLastGameMaxRating();
 
-    minRankingTextField.setText(i18n.number(lastGameMinRating));
-    maxRankingTextField.setText(i18n.number(lastGameMaxRating));
+    if(lastGameMinRating != null) {
+      minRankingTextField.setText(i18n.number(lastGameMinRating));
+    }
+
+    if(lastGameMaxRating != null) {
+      maxRankingTextField.setText(i18n.number(lastGameMaxRating));
+    }
 
     minRankingTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().getLastGamePrefs().setLastGameMinRating(Integer.parseInt(newValue));
+      Integer minRating = null;
+      if(!newValue.isEmpty()) {
+        minRating = Integer.parseInt(newValue);
+      }
+
+      preferencesService.getPreferences().getLastGamePrefs().setLastGameMinRating(minRating);
       preferencesService.storeInBackground();
     });
+
     maxRankingTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().getLastGamePrefs().setLastGameMaxRating(Integer.parseInt(newValue));
+      Integer maxRating = null;
+      if (!newValue.isEmpty()) {
+        maxRating = Integer.parseInt(newValue);
+      }
+      preferencesService.getPreferences().getLastGamePrefs().setLastGameMaxRating(maxRating);
       preferencesService.storeInBackground();
     });
+
+    enforceRankingCheckBox.selectedProperty()
+        .bindBidirectional(preferencesService.getPreferences().getLastGamePrefs().lastGameEnforceRatingProperty());
+    enforceRankingCheckBox.selectedProperty().addListener(observable -> preferencesService.storeInBackground());
   }
 
   private void selectLastMap() {
@@ -390,13 +410,30 @@ public class CreateGameController implements Controller<Pane> {
         .map(ModVersion::getUid)
         .collect(Collectors.toSet());
 
+    Integer minRating = null;
+    Integer maxRating = null;
+    boolean enforceRating;
+
+    if (!minRankingTextField.getText().isEmpty()) {
+      minRating = Integer.parseInt(minRankingTextField.getText());
+    }
+
+    if(!maxRankingTextField.getText().isEmpty()) {
+      maxRating = Integer.parseInt(maxRankingTextField.getText());
+    }
+
+    enforceRating = enforceRankingCheckBox.isSelected();
+
     NewGameInfo newGameInfo = new NewGameInfo(
         titleTextField.getText(),
         Strings.emptyToNull(passwordTextField.getText()),
         featuredModListView.getSelectionModel().getSelectedItem(),
         mapListView.getSelectionModel().getSelectedItem().getFolderName(),
         mods,
-        onlyForFriendsCheckBox.isSelected() ? GameVisibility.PRIVATE : GameVisibility.PUBLIC);
+        onlyForFriendsCheckBox.isSelected() ? GameVisibility.PRIVATE : GameVisibility.PUBLIC,
+        minRating,
+        maxRating,
+        enforceRating);
 
     gameService.hostGame(newGameInfo).exceptionally(throwable -> {
       log.warn("Game could not be hosted", throwable);
