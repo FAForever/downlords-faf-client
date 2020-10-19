@@ -97,8 +97,6 @@ public class NotificationService {
   public void addPersistentErrorNotification(Throwable throwable, String messageKey, Object... args) {
     addNotification(new PersistentNotification(i18n.get(messageKey, args), ERROR, singletonList(new ReportAction(i18n, reportingService, throwable))));
   }
-
-  // TODO refactor code to use this method where applicable
   
   public void addImmediateErrorNotification(Throwable throwable, String messageKey, Object... args) {
     addNotification(new ImmediateNotification(i18n.get("errorTitle"), i18n.get(messageKey, args), ERROR, throwable,

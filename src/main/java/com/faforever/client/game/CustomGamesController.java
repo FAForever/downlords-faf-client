@@ -121,13 +121,13 @@ public class CustomGamesController extends AbstractViewController<Node> {
       }
     });
 
-    ObservableList<Game> games = gameService.getGames();
-
-    filteredItems = new FilteredList<>(games);
     JavaFxUtil.bindBidirectional(showModdedGamesCheckBox.selectedProperty(), preferencesService.getPreferences().showModdedGamesProperty());
     JavaFxUtil.bindBidirectional(showPasswordProtectedGamesCheckBox.selectedProperty(), preferencesService.getPreferences().showPasswordProtectedGamesProperty());
 
+    ObservableList<Game> games = gameService.getGames();
+    filteredItems = new FilteredList<>(games, getGamePredicate());
     updateFilteredItems();
+
     JavaFxUtil.addListener(preferencesService.getPreferences().showModdedGamesProperty(), new WeakChangeListener<>(filterConditionsChangedListener));
     JavaFxUtil.addListener(preferencesService.getPreferences().showPasswordProtectedGamesProperty(), new WeakChangeListener<>(filterConditionsChangedListener));
 
@@ -175,11 +175,14 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   private void updateFilteredItems() {
     preferencesService.storeInBackground();
+    filteredItems.setPredicate(getGamePredicate());
+  }
 
+  private Predicate<Game> getGamePredicate() {
     boolean showPasswordProtectedGames = showPasswordProtectedGamesCheckBox.isSelected();
     boolean showModdedGames = showModdedGamesCheckBox.isSelected();
 
-    filteredItems.setPredicate(OPEN_CUSTOM_GAMES_PREDICATE.and(gameInfoBean ->
+    return (OPEN_CUSTOM_GAMES_PREDICATE.and(gameInfoBean ->
         (showPasswordProtectedGames || !gameInfoBean.isPasswordProtected())
             && (showModdedGames || gameInfoBean.getSimMods().isEmpty())));
   }

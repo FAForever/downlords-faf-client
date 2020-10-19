@@ -5,7 +5,6 @@ import com.faforever.client.chat.ChatFormat;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.NodeListCell;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.i18n.I18n;
@@ -48,6 +47,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
@@ -145,6 +145,9 @@ public class SettingsController implements Controller<Node> {
   public TextField channelTextField;
   public Button addChannelButton;
   public ListView<String> autoChannelListView;
+  public Button clearCacheButton;
+  public CheckBox gameDataCacheCheckBox;
+  public Spinner<Integer> gameDataCacheTimeSpinner;
 
   private final InvalidationListener availableLanguagesListener;
 
@@ -219,11 +222,12 @@ public class SettingsController implements Controller<Node> {
     toastScreenComboBox.setItems(Screen.getScreens());
     NumberFormat integerNumberFormat = NumberFormat.getIntegerInstance();
     integerNumberFormat.setGroupingUsed(false);
+    NumberStringConverter numberToStringConverter = new NumberStringConverter(integerNumberFormat);
 
     Preferences preferences = preferencesService.getPreferences();
     temporarilyDisableUnsupportedSettings(preferences);
 
-    JavaFxUtil.bindBidirectional(maxMessagesTextField.textProperty(), preferences.getChat().maxMessagesProperty(), new NumberStringConverter(integerNumberFormat));
+    JavaFxUtil.bindBidirectional(maxMessagesTextField.textProperty(), preferences.getChat().maxMessagesProperty(), numberToStringConverter);
     imagePreviewToggle.selectedProperty().bindBidirectional(preferences.getChat().previewImageUrlsProperty());
     enableNotificationsToggle.selectedProperty().bindBidirectional(preferences.getNotification().transientNotificationsEnabledProperty());
 
@@ -313,9 +317,9 @@ public class SettingsController implements Controller<Node> {
     autoChannelListView.managedProperty().bind(autoChannelListView.visibleProperty());
     autoChannelListView.visibleProperty().bind(Bindings.createBooleanBinding(() -> !autoChannelListView.getItems().isEmpty(), autoChannelListView.getItems()));
 
-    secondaryVaultLocationToggle.setSelected(preferences.getForgedAlliance().getVaultBaseDirectory().equals(preferencesService.getSecondaryVaultLocation()));
+    secondaryVaultLocationToggle.setSelected(preferences.getForgedAlliance().getVaultBaseDirectory().equals(preferencesService.getFAFVaultLocation()));
     secondaryVaultLocationToggle.selectedProperty().addListener(observable -> {
-      Path vaultBaseDirectory = secondaryVaultLocationToggle.isSelected() ? preferencesService.getSecondaryVaultLocation() : preferencesService.getPrimaryVaultLocation();
+      Path vaultBaseDirectory = secondaryVaultLocationToggle.isSelected() ? preferencesService.getFAFVaultLocation() : preferencesService.getGPGVaultLocation();
       preferences.getForgedAlliance().setVaultBaseDirectory(vaultBaseDirectory);
     });
 
@@ -330,6 +334,20 @@ public class SettingsController implements Controller<Node> {
 
     initUnitDatabaseSelection(preferences);
 
+    initNotifyMeOnAtMention();
+
+    initGameDataCache();
+  }
+
+  private void initGameDataCache() {
+    gameDataCacheCheckBox.selectedProperty().bindBidirectional(preferencesService.getPreferences().gameDataCacheActivatedProperty());
+    //Binding for CacheLifeTimeInDays does not work because of some java fx bug
+    gameDataCacheTimeSpinner.getValueFactory().setValue(preferencesService.getPreferences().getCacheLifeTimeInDays());
+    gameDataCacheTimeSpinner.getValueFactory().valueProperty()
+        .addListener((observable, oldValue, newValue) -> preferencesService.getPreferences().setCacheLifeTimeInDays(newValue));
+  }
+
+  private void initNotifyMeOnAtMention() {
     String username = userService.getUsername();
     notifyAtMentionTitle.setText(i18n.get("settings.chat.notifyOnAtMentionOnly", "@" + username));
     notifyAtMentionDescription.setText(i18n.get("settings.chat.notifyOnAtMentionOnly.description", "@" + username));

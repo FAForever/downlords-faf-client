@@ -10,7 +10,6 @@ import com.faforever.client.map.MapBeanBuilder;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.player.PlayerService;
@@ -46,7 +45,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -508,7 +506,7 @@ public class ReplayServiceTest {
 
     instance.runReplay(replay);
 
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString(), anyInt());
     verifyNoMoreInteractions(gameService);
   }
 

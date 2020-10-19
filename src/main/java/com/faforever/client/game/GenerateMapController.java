@@ -63,8 +63,8 @@ public class GenerateMapController implements Controller<Pane> {
   public HBox rampSliderBox;
   public HBox rampRandomBox;
   private Runnable onCloseButtonClickedListener;
-  private ObservableList<String> validMapSizes = FXCollections.observableArrayList("5km", "10km", "20km");
-  private int[] mapValues = new int[]{256, 512, 1024};
+  private final ObservableList<String> validMapSizes = FXCollections.observableArrayList("5km", "10km", "20km");
+  private final int[] mapValues = new int[]{256, 512, 1024};
 
   public void initialize() {
     initSpawnCountSpinner();
@@ -194,8 +194,8 @@ public class GenerateMapController implements Controller<Pane> {
     CompletableFuture<String> generateFuture;
     if (!previousMapName.getText().isEmpty()) {
       if (!mapGeneratorService.isGeneratedMap(previousMapName.getText())) {
-        notificationService.addImmediateErrorNotification(new IllegalArgumentException(), "mapGenerator.invalidName");
         log.warn("Invalid Generated Map Name", new IllegalArgumentException());
+        notificationService.addImmediateErrorNotification(new IllegalArgumentException(), "mapGenerator.invalidName");
         return;
       }
       generateFuture = mapGeneratorService.generateMap(previousMapName.getText());
@@ -223,17 +223,17 @@ public class GenerateMapController implements Controller<Pane> {
   private void handleGenerationException(Throwable e) {
     Throwable cause = e.getCause();
     if (cause instanceof InvalidParameterException) {
+      log.warn("Map generation failed due to invalid parameter", e);
       notificationService.addImmediateErrorNotification(e, "mapGenerator.invalidName");
-      log.warn("Map generation failed", e);
     } else if (cause instanceof UnsupportedVersionException) {
+      log.warn("Map generation failed due to unsupported version", e);
       notificationService.addImmediateErrorNotification(cause, "mapGenerator.tooNewVersion");
-      log.warn("Map generation failed", e);
     } else if (cause instanceof OutdatedVersionException) {
+      log.warn("Map generation failed due to outdated version", e);
       notificationService.addImmediateErrorNotification(cause, "mapGenerator.tooOldVersion");
-      log.warn("Map generation failed", e);
     } else {
-      notificationService.addImmediateErrorNotification(e, "mapGenerator.generationFailed");
       log.warn("Map generation failed", e);
+      notificationService.addImmediateErrorNotification(e, "mapGenerator.generationFailed");
     }
   }
 
