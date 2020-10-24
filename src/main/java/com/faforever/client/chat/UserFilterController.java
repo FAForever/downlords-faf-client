@@ -10,6 +10,7 @@ import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.faforever.client.game.PlayerStatus.HOSTING;
@@ -30,20 +32,27 @@ import static com.faforever.client.game.PlayerStatus.PLAYING;
 public class UserFilterController implements Controller<Node> {
 
   private final I18n i18n;
+  private final CountryFlagService flagService;
   public MenuButton gameStatusMenu;
   public GridPane filterUserRoot;
   public TextField clanFilterField;
   public TextField minRatingFilterField;
   public TextField maxRatingFilterField;
   public ToggleGroup gameStatusToggleGroup;
+  public TextField countryFilterField;
+
+
   private final BooleanProperty filterApplied;
   @VisibleForTesting
   ChannelTabController channelTabController;
   @VisibleForTesting
   PlayerStatus playerStatusFilter;
 
-  public UserFilterController(I18n i18n) {
+  List<String> currentSelectedCountries;
+
+  public UserFilterController(I18n i18n, CountryFlagService flagService) {
     this.i18n = i18n;
+    this.flagService = flagService;
     this.filterApplied = new SimpleBooleanProperty(false);
   }
 
@@ -55,6 +64,8 @@ public class UserFilterController implements Controller<Node> {
     clanFilterField.textProperty().addListener((observable, oldValue, newValue) -> filterUsers());
     minRatingFilterField.textProperty().addListener((observable, oldValue, newValue) -> filterUsers());
     maxRatingFilterField.textProperty().addListener((observable, oldValue, newValue) -> filterUsers());
+    countryFilterField.textProperty().addListener(((observable, oldValue, newValue) -> filterCountry()));
+    currentSelectedCountries = flagService.getCountries(null);
   }
 
   public void filterUsers() {
@@ -64,6 +75,7 @@ public class UserFilterController implements Controller<Node> {
             || !minRatingFilterField.getText().isEmpty()
             || !clanFilterField.getText().isEmpty()
             || playerStatusFilter != null
+            || !countryFilterField.getText().isEmpty()
     );
   }
 
@@ -73,7 +85,13 @@ public class UserFilterController implements Controller<Node> {
         || (channelTabController.isUsernameMatch(user)
         && isInClan(user)
         && isBoundByRating(user)
-        && isGameStatusMatch(user));
+        && isGameStatusMatch(user)
+        && isCountryMatch(user));
+  }
+
+  private void filterCountry() {
+    currentSelectedCountries = flagService.getCountries(countryFilterField.textProperty().get());
+    filterUsers();
   }
 
   public BooleanProperty filterAppliedProperty() {
@@ -150,13 +168,22 @@ public class UserFilterController implements Controller<Node> {
       return false;
     }
 
-    Player player = playerOptional.get();
-    PlayerStatus playerStatus = player.getStatus();
+    PlayerStatus playerStatus = playerOptional.get().getStatus();
     if (playerStatusFilter == LOBBYING) {
       return LOBBYING == playerStatus || HOSTING == playerStatus;
     } else {
       return playerStatusFilter == playerStatus;
     }
+  }
+
+  boolean isCountryMatch(ChatChannelUser chatUser) {
+    Optional<Player> playerOptional = chatUser.getPlayer();
+    if (!playerOptional.isPresent()) {
+      return false;
+    }
+
+    String country = playerOptional.get().getCountry();
+    return currentSelectedCountries.contains(country);
   }
 
   public void onGameStatusPlaying() {

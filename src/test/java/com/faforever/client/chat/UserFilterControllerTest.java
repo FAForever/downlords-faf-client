@@ -25,6 +25,9 @@ public class UserFilterControllerTest extends AbstractPlainJavaFxTest {
   private ChannelTabController channelTabController;
   @Mock
   private I18n i18n;
+  @Mock
+  private CountryFlagService flagService;
+
 
   private ChatChannelUser chatChannelUser;
   private UserFilterController instance;
@@ -32,7 +35,7 @@ public class UserFilterControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new UserFilterController(i18n);
+    instance = new UserFilterController(i18n, flagService);
     instance.channelTabController = channelTabController;
 
     player = PlayerBuilder.create("junit").defaultValues().get();
