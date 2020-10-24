@@ -292,12 +292,12 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   }
 
   private void updateLobbyModeFromGameInfo(GameLaunchMessage gameLaunchMessage) {
+    // TODO: Replace with game type. Needs https://github.com/FAForever/server/issues/685
     if (gameLaunchMessage.getInitMode() != null) {
       lobbyInitMode = gameLaunchMessage.getInitMode();
       return;
     }
 
-    // TODO: Remove this?
     if (KnownFeaturedMod.LADDER_1V1.getTechnicalName().equals(gameLaunchMessage.getMod())) {
       lobbyInitMode = LobbyMode.AUTO_LOBBY;
     } else {
