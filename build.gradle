@@ -25,7 +25,6 @@ plugins {
   id "com.install4j.gradle" version "7.0.7"
   id "co.riiid.gradle" version "0.4.2"
   id "de.undercouch.download" version "3.4.3"
-  id "io.franzbecker.gradle-lombok" version "1.14"
   id 'net.ltgt.apt' version '0.19'
   id 'jacoco'
   id 'com.github.kt3k.coveralls' version "${coverallsGradlePluginVersion}"
@@ -74,11 +73,6 @@ processResources {
 
 configurations {
   compile.exclude module: "assertj-core"
-}
-
-lombok {
-  version = "${lombokVersion}"
-  sha256 = ""
 }
 
 class HttpBuilder extends HTTPBuilder {
@@ -309,6 +303,10 @@ dependencies {
   testCompile("org.springframework.boot:spring-boot-starter-test")
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+  annotationProcessor("org.projectlombok:lombok")
+  testAnnotationProcessor("org.projectlombok:lombok")
+  compileOnly("org.projectlombok:lombok")
+  testCompileOnly("org.projectlombok:lombok")
 
   codacy("com.github.codacy:codacy-coverage-reporter:-SNAPSHOT")
 }
