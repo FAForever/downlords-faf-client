@@ -41,7 +41,7 @@ public class UserFilterControllerTest extends AbstractPlainJavaFxTest {
     player = PlayerBuilder.create("junit").defaultValues().get();
     chatChannelUser = ChatChannelUserBuilder.create("junit")
         .defaultValues()
-        .setPlayer(player)
+        .player(player)
         .get();
 
     loadFxml("theme/chat/user_filter.fxml", clazz -> instance);

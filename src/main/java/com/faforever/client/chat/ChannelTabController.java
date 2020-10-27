@@ -296,8 +296,8 @@ public class ChannelTabController extends AbstractChatTabController {
     JavaFxUtil.addListener(preferencesService.getPreferences().getChat().chatColorModeProperty(), chatColorModeChangeListener);
     addUserFilterPopup();
 
-    chatUserListView.setItems(filteredChatUserList);
     chatUserListView.setCellFactory(param -> new ChatUserListCell(uiService));
+    chatUserListView.setItems(filteredChatUserList);
 
     autoCompletionHelper.bindTo(messageTextField());
 
@@ -330,8 +330,8 @@ public class ChannelTabController extends AbstractChatTabController {
 
   private void setAllMessageColors() {
     Map<String, String> userToColor = new HashMap<>();
-    channel.getUsers().stream().filter(chatUser -> chatUser.getColor() != null).forEach(chatUser
-        -> userToColor.put(chatUser.getUsername(), JavaFxUtil.toRgbCode(chatUser.getColor())));
+    channel.getUsers().stream().filter(chatUser -> chatUser.getColor().isPresent()).forEach(chatUser
+        -> userToColor.put(chatUser.getUsername(), JavaFxUtil.toRgbCode(chatUser.getColor().get())));
     getJsObject().call("setAllMessageColors", new Gson().toJson(userToColor));
   }
 
@@ -404,8 +404,8 @@ public class ChannelTabController extends AbstractChatTabController {
 
   private void updateUserMessageColor(ChatChannelUser chatUser) {
     String color = "";
-    if (chatUser.getColor() != null) {
-      color = JavaFxUtil.toRgbCode(chatUser.getColor());
+    if (chatUser.getColor().isPresent()) {
+      color = JavaFxUtil.toRgbCode(chatUser.getColor().get());
     }
     getJsObject().call("updateUserMessageColor", chatUser.getUsername(), color);
   }
@@ -461,7 +461,7 @@ public class ChannelTabController extends AbstractChatTabController {
     JavaFxUtil.addListener(chatPrefs.hideFoeMessagesProperty(), weakHideFoeMessagesListener);
 
     Platform.runLater(() -> {
-      weakColorPropertyListener.changed(chatUser.colorProperty(), null, chatUser.getColor());
+      weakColorPropertyListener.changed(chatUser.colorProperty(), null, chatUser.getColor().orElse(null));
       weakHideFoeMessagesListener.changed(chatPrefs.hideFoeMessagesProperty(), null, chatPrefs.getHideFoeMessages());
     });
   }
@@ -641,8 +641,8 @@ public class ChannelTabController extends AbstractChatTabController {
     } else {
       ChatColorMode chatColorMode = chatPrefs.getChatColorMode();
       if ((chatColorMode == ChatColorMode.CUSTOM || chatColorMode == ChatColorMode.RANDOM)
-          && chatUser.getColor() != null) {
-        color = createInlineStyleFromColor(chatUser.getColor());
+          && chatUser.getColor().isPresent()) {
+        color = createInlineStyleFromColor(chatUser.getColor().get());
       }
     }
 
