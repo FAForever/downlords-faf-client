@@ -1,7 +1,10 @@
 package com.faforever.client.teammatchmaking;
 
+import com.faforever.client.chat.ChatMessage;
 import com.faforever.client.chat.CountryFlagService;
+import com.faforever.client.chat.MatchmakingChatController;
 import com.faforever.client.chat.avatar.AvatarService;
+import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Faction;
@@ -14,6 +17,8 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.css.PseudoClass;
@@ -23,6 +28,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
@@ -91,10 +97,13 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public ScrollPane scrollPane;
   public HBox playerCard;
   public Label crownLabel;
+  public TabPane chatTabPane;
   private Player player;
+  private MatchmakingChatController matchmakingChatController;
 
   @Override
   public void initialize() {
+    eventBus.register(this);
     player = playerService.getCurrentPlayer().get();
     JavaFxUtil.fixScrollSpeed(scrollPane);
     initializeUppercaseText();
@@ -150,6 +159,11 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       refreshingLabel.setVisible(false);
       selectFactionsBasedOnParty();
     });
+
+    teamMatchmakingService.getParty().ownerProperty().addListener(observable -> {
+      createChannelTab(String.format("%s's Party", teamMatchmakingService.getParty().getOwner().getUsername()));
+    });
+    createChannelTab(String.format("%s's Party", teamMatchmakingService.getParty().getOwner().getUsername()));
   }
 
   private void initializeUppercaseText() {
@@ -260,5 +274,22 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private boolean isFactionSelectedInParty(Faction faction) {
     return teamMatchmakingService.getParty().getMembers().stream()
         .anyMatch(m -> m.getPlayer().getId() == player.getId() && m.getFactions().contains(faction));
+  }
+
+  private void createChannelTab(String channelName) {
+    JavaFxUtil.assertApplicationThread();
+    matchmakingChatController = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml");
+    matchmakingChatController.setChannel(channelName);
+      chatTabPane.getTabs().add(matchmakingChatController.getRoot());
+  }
+
+  @Subscribe
+  public void onChatMessage(ChatMessageEvent event) {
+    Platform.runLater(() -> {
+      ChatMessage message = event.getMessage();
+      if (message.getSource().equals(String.format("%s's Party", teamMatchmakingService.getParty().getOwner().getUsername()))) {
+        matchmakingChatController.onChatMessage(message);
+      }
+    });
   }
 }

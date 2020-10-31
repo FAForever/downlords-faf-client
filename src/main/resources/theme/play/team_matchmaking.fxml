@@ -16,9 +16,10 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.TabPane?>
 <StackPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/11.0.1"
            fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingController" fx:id="teamMatchmakingRoot">
-    <SplitPane dividerPositions="0.7" >
+    <SplitPane dividerPositions="0.7" styleClass="tmm-splitpane">
         <ScrollPane fx:id="scrollPane" fitToWidth="true" >
             <VBox fx:id="preparationArea" spacing="25.0" >
                 <children>
@@ -135,6 +136,6 @@
                 </padding>
             </VBox>
         </ScrollPane>
-        <Pane />
+        <TabPane fx:id="chatTabPane" styleClass="chat-tab-pane" />
     </SplitPane>
 </StackPane>

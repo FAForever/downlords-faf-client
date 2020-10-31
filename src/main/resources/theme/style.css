@@ -714,6 +714,18 @@
   -fx-border-color: #424242;
 }
 
+.tmm-splitpane > .split-pane-divider {
+  -fx-background-color: -divider-color;
+  -fx-padding: 0 1 0 0;
+}
+
+.chat-tab-pane {
+    -fx-tab-max-height: 0 ;
+}
+.chat-tab-pane .tab-header-area {
+    visibility: hidden ;
+}
+
 .player-card {
   -fx-background-color: #1d1d1d99;
   -fx-border-color: #636363;
