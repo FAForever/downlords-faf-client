@@ -160,9 +160,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       selectFactionsBasedOnParty();
     });
 
-    teamMatchmakingService.getParty().ownerProperty().addListener(observable -> {
-      createChannelTab(String.format("%s's Party", teamMatchmakingService.getParty().getOwner().getUsername()));
-    });
+    JavaFxUtil.addListener(teamMatchmakingService.getParty().ownerProperty(), (observable, oldValue, newValue) ->
+        createChannelTab(String.format("%s's Party", newValue.getUsername())));
     createChannelTab(String.format("%s's Party", teamMatchmakingService.getParty().getOwner().getUsername()));
   }
 
@@ -280,7 +279,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     JavaFxUtil.assertApplicationThread();
     matchmakingChatController = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml");
     matchmakingChatController.setChannel(channelName);
-      chatTabPane.getTabs().add(matchmakingChatController.getRoot());
+    chatTabPane.getTabs().clear();
+    chatTabPane.getTabs().add(matchmakingChatController.getRoot());
   }
 
   @Subscribe
