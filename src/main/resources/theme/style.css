@@ -719,6 +719,12 @@
   -fx-padding: 0 1 0 0;
 }
 
+.tmm-chat {
+  -fx-background-color: transparent;
+  -fx-border-width: 2 0 0 0;
+  -fx-border-color: #424242;
+}
+
 .chat-tab-pane {
     -fx-tab-max-height: 0 ;
 }

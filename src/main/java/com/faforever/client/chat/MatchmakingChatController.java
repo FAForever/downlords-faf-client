@@ -34,6 +34,7 @@ public class MatchmakingChatController extends AbstractChatTabController {
   public WebView messagesWebView;
   public TextInputControl messageTextField;
 
+  private Channel channel;
   private MapChangeListener<String, ChatChannelUser> usersChangeListener;
 
   @Inject
@@ -63,6 +64,8 @@ public class MatchmakingChatController extends AbstractChatTabController {
   }
 
   public void setChannel(String partyName) {
+    channel = chatService.getOrCreateChannel(partyName);
+    chatService.joinChannel(partyName);
     setReceiver(partyName);
     matchmakingChatTabRoot.setId(partyName);
     matchmakingChatTabRoot.setText(partyName);
@@ -75,6 +78,11 @@ public class MatchmakingChatController extends AbstractChatTabController {
       }
     };
     chatService.addUsersListener(partyName, usersChangeListener);
+  }
+
+  public void closeChannel() {
+    chatService.leaveChannel(channel.getName());
+    chatService.removeUsersListener(channel.getName(), usersChangeListener);
   }
 
   @Override

@@ -136,10 +136,10 @@ public class ChatController extends AbstractViewController<Node> {
     tabPane.getTabs().addListener((InvalidationListener) observable -> noOpenTabsContainer.setVisible(tabPane.getTabs().isEmpty()));
 
     chatService.addChannelsListener(change -> {
-      if (change.wasRemoved()) {
+      if (change.wasRemoved() && !change.getValueRemoved().getName().endsWith("'sParty")) {
         onChannelLeft(change.getValueRemoved());
       }
-      if (change.wasAdded()) {
+      if (change.wasAdded() && !change.getValueAdded().getName().endsWith("'sParty")) {
         onChannelJoined(change.getValueAdded());
       }
     });
@@ -179,7 +179,7 @@ public class ChatController extends AbstractViewController<Node> {
   public void onChatMessage(ChatMessageEvent event) {
     Platform.runLater(() -> {
       ChatMessage message = event.getMessage();
-      if (message.getSource().endsWith("'s Party"))
+      if (message.getSource().endsWith("'sParty"))
         return;
       if (!message.isPrivate()) {
         getOrCreateChannelTab(message.getSource()).onChatMessage(message);

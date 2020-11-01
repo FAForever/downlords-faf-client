@@ -160,9 +160,13 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       selectFactionsBasedOnParty();
     });
 
-    JavaFxUtil.addListener(teamMatchmakingService.getParty().ownerProperty(), (observable, oldValue, newValue) ->
-        createChannelTab(String.format("%s's Party", newValue.getUsername())));
-    createChannelTab(String.format("%s's Party", teamMatchmakingService.getParty().getOwner().getUsername()));
+    JavaFxUtil.addListener(teamMatchmakingService.getParty().ownerProperty(), (observable, oldValue, newValue) -> {
+      if (matchmakingChatController != null) {
+        matchmakingChatController.closeChannel();
+      }
+      createChannelTab(String.format("#%s'sParty", newValue.getUsername()));
+    });
+    createChannelTab(String.format("#%s'sParty", teamMatchmakingService.getParty().getOwner().getUsername()));
   }
 
   private void initializeUppercaseText() {
@@ -287,7 +291,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public void onChatMessage(ChatMessageEvent event) {
     Platform.runLater(() -> {
       ChatMessage message = event.getMessage();
-      if (message.getSource().equals(String.format("%s's Party", teamMatchmakingService.getParty().getOwner().getUsername()))) {
+      if (message.getSource().equals(String.format("#%s'sParty", teamMatchmakingService.getParty().getOwner().getUsername()))) {
         matchmakingChatController.onChatMessage(message);
       }
     });
