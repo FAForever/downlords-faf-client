@@ -89,7 +89,6 @@ img.country-flag {
   /* Use same as -fx-light-text-color */
   color: #DCDCDC;
   cursor: pointer;
-  font-weight: bold;
 }
 
 .chat-section .clan-tag:hover {
@@ -122,6 +121,7 @@ img.country-flag {
 .chat-section.compact,
 .chat-section.compact .messages-wrapper {
   width: 100%;
+  vertical-align: top;
 }
 
 .chat-section.compact img.avatar[src=""],
@@ -129,12 +129,18 @@ img.country-flag {
   visibility: hidden;
 }
 
-.chat-section.compact td.author {
+.chat-section.compact td.decoration {
   vertical-align: top;
-  min-width: 200px;
+  min-width: 75px;
 }
 
-.chat-section.compact td.author * {
+.chat-section.compact td.author {
+  vertical-align: top;
+  text-align: right;
+  min-width: 120px;
+}
+
+.chat-section.compact td.decoration * {
   vertical-align: middle;
   line-height: 1em;
 }
