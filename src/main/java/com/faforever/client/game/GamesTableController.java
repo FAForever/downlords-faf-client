@@ -8,6 +8,7 @@ import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.theme.UiService;
@@ -16,6 +17,7 @@ import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
@@ -23,6 +25,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
+import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.SortEvent;
@@ -36,6 +39,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.util.Pair;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -52,7 +56,9 @@ import java.util.stream.Collectors;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class GamesTableController implements Controller<Node> {
+
 
   private final ObjectProperty<Game> selectedGame = new SimpleObjectProperty<>();
   private final MapService mapService;
@@ -60,10 +66,12 @@ public class GamesTableController implements Controller<Node> {
   private final I18n i18n;
   private final UiService uiService;
   private final PreferencesService preferencesService;
+  private final PlayerService playerService;
   public TableView<Game> gamesTable;
   public TableColumn<Game, Image> mapPreviewColumn;
   public TableColumn<Game, String> gameTitleColumn;
   public TableColumn<Game, PlayerFill> playersColumn;
+  public TableColumn<Game, Boolean> friendsColumn;
   public TableColumn<Game, Number> averageRatingColumn;
   public TableColumn<Game, RatingRange> ratingRangeColumn;
   public TableColumn<Game, String> modsColumn;
@@ -126,6 +134,9 @@ public class GamesTableController implements Controller<Node> {
         param.getValue().numPlayersProperty(), param.getValue().maxPlayersProperty())
     );
     playersColumn.setCellFactory(param -> playersCell());
+    friendsColumn.setCellValueFactory(param -> new SimpleBooleanProperty(!playerService.friendsInGame(param.getValue()).isEmpty()));
+    friendsColumn.setCellFactory(param -> friendsCell());
+
     ratingRangeColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(new RatingRange(param.getValue().getMinRating(), param.getValue().getMaxRating())));
     ratingRangeColumn.setCellFactory(param -> ratingTableCell());
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
@@ -214,8 +225,10 @@ public class GamesTableController implements Controller<Node> {
         } else {
           setTooltip(tooltip);
         }
+        super.pseudoClassStateChanged(PseudoClass.getPseudoClass("friend"), !playerService.friendsInGame(game).isEmpty());
       }
     };
+
     row.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
         Game game = row.getItem();
@@ -243,6 +256,11 @@ public class GamesTableController implements Controller<Node> {
   private TableCell<Game, PlayerFill> playersCell() {
     return new StringCell<>(playerFill -> i18n.get("game.players.format",
         playerFill.getPlayers(), playerFill.getMaxPlayers()));
+  }
+
+  private TableCell<Game, Boolean> friendsCell() {
+    return new IconCell<>(
+        isFriendInGame -> isFriendInGame ? "friend-icon" : "");
   }
 
   private TableCell<Game, RatingRange> ratingTableCell() {

@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -342,6 +343,30 @@ public class PlayerService implements InitializingBean {
       player.updateFromDto(dto);
 
       eventBus.post(new PlayerOnlineEvent(player));
+    }
+  }
+
+  List<Player> friendsOnline() {
+    return this.friendList.stream()
+        .filter(playersById::containsKey)
+        .map(playersById::get)
+        .collect(Collectors.toList());
+  }
+
+  public List<Player> friendsInGame(Game game) {
+    if (game == null || friendList.isEmpty()){
+      return Collections.emptyList();
+    } else {
+      List<String> playersInGame = game.getTeams().values().stream()
+          .flatMap(Collection::stream)
+          .collect(Collectors.toList());
+      List<Player> friendsInGame = this.friendsOnline().stream()
+          .filter(e -> playersInGame.contains(e.getUsername()))
+          .collect(Collectors.toList());
+      if (friendsInGame.size() > 0){
+        log.debug("Found {} friends in game '{}'. Friend(s): '{}', available players: {}", friendsInGame.size(), game.getTitle(), friendsInGame.stream().map(Player::getUsername).collect(Collectors.toList()), playersInGame);
+      }
+      return friendsInGame;
     }
   }
 }

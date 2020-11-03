@@ -11,7 +11,9 @@ import com.faforever.client.player.PlayerService;
 import com.google.common.base.Joiner;
 import javafx.application.Platform;
 import javafx.beans.binding.StringBinding;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableMap;
+import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
@@ -48,6 +50,7 @@ public class GameTileController implements Controller<Node> {
   public Node gameCardRoot;
   public Label gameMapLabel;
   public Label gameTitleLabel;
+  public Node friendsLabel;
   public Label numberOfPlayersLabel;
   public Label avgRatingLabel;
   public Label hostLabel;
@@ -110,6 +113,8 @@ public class GameTileController implements Controller<Node> {
     ));
 
     lockIconLabel.visibleProperty().bind(game.passwordProtectedProperty());
+    friendsLabel.visibleProperty().bind(new SimpleBooleanProperty(!playerService.friendsInGame(game).isEmpty()));
+    gameCardRoot.pseudoClassStateChanged(PseudoClass.getPseudoClass("friend"), !playerService.friendsInGame(game).isEmpty());
   }
 
   private String getSimModsLabelContent(ObservableMap<String, String> simMods) {

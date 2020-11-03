@@ -13,6 +13,7 @@ import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import org.junit.Before;
 import org.junit.Test;
@@ -287,5 +288,60 @@ public class PlayerServiceTest {
 
     assertThat(player1.getGame(), is(nullValue()));
     assertThat(player2.getGame(), is(nullValue()));
+  }
+
+  @Test
+  public void testFriendsOnline() {
+    final Player ta4Life = instance.createAndGetPlayerForUsername("TA4Life");
+    ta4Life.setId(16);
+    final Player gyle = instance.createAndGetPlayerForUsername("Gyle");
+    gyle.setId(333);
+    final Player zock = instance.createAndGetPlayerForUsername("Zock");
+    ta4Life.setId(6516);
+
+    instance.addFriend(ta4Life);
+    instance.addFriend(gyle);
+    instance.addFoe(zock);
+
+    assertThat(instance.friendsOnline().size(), is(2));
+    assertThat(instance.friendsOnline().contains(ta4Life), is(true));
+    assertThat(instance.friendsOnline().contains(gyle), is(true));
+    assertThat(instance.friendsOnline().contains(zock), is(false));
+  }
+
+  @Test
+  public void testNoFriendsOnline() {
+    assertThat(instance.friendsOnline().size(), is(0));
+  }
+
+  @Test
+  public void testThereAreNoFriendsInGame() {
+    Game game = new Game();
+    game.setTitle("Test game");
+    ObservableMap<String, List<String>> teams = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
+    teams.putIfAbsent("1", List.of("Gyle", "TA4Life"));
+    teams.putIfAbsent("2", List.of("ZePilot", "Downlord", "ZLO"));
+    game.setTeams(teams);
+
+    assertThat(instance.friendsInGame(game), is(Collections.emptyList()));
+  }
+
+  @Test
+  public void testAreMyFriendsInGame() {
+    final Player ta4Life = instance.createAndGetPlayerForUsername("TA4Life");
+    ta4Life.setId(16);
+    final Player gyle = instance.createAndGetPlayerForUsername("Gyle");
+    gyle.setId(333);
+    instance.addFriend(ta4Life);
+    instance.addFriend(gyle);
+
+    Game game = new Game();
+    game.setTitle("Test game");
+    ObservableMap<String, List<String>> teams = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
+    teams.putIfAbsent("1", List.of(gyle.getUsername(), "TA4Life"));
+    teams.putIfAbsent("2", List.of("ZePilot", "Downlord", "ZLO"));
+    game.setTeams(teams);
+
+    assertThat(instance.friendsInGame(game), is(List.of(ta4Life, gyle)));
   }
 }

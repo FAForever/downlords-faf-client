@@ -955,7 +955,15 @@
   -fx-font-size: 1.2em;
 }
 
+.game-card:friend{
+  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, -fx-accent, -fx-base 100%);
+}
+
 .table-row-cell {
   -fx-border-color: null;
   -fx-border-width: 0;
+}
+
+.table-row-cell:friend{
+  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, -fx-accent, -fx-base 100%);
 }

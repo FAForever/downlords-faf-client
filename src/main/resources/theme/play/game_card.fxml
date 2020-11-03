@@ -34,6 +34,7 @@
                         <Label fx:id="gameMapLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="card-subtitle" text="&lt;Game Map&gt;" />
                     </children>
                 </VBox>
+                <Region fx:id="friendsLabel" layoutX="10.0" layoutY="10.0" styleClass="friend-icon,icon" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0" />
             </children>
         </AnchorPane>
         <Label fx:id="gameTitleLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="card-title" text="&lt;Very long game title to see if wrapping works&gt;" wrapText="true" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="0">
