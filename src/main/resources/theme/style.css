@@ -959,3 +959,7 @@
   -fx-border-color: null;
   -fx-border-width: 0;
 }
+
+#friend{
+  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, -fx-accent, -fx-base 100%);
+}

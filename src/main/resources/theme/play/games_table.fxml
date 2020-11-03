@@ -9,8 +9,9 @@
     <TableColumn fx:id="mapPreviewColumn" editable="false" minWidth="45.0" prefWidth="45.0" resizable="false" text="%game.map" />
     <TableColumn fx:id="gameTitleColumn" editable="false" minWidth="20.0" prefWidth="200.0" text="%game.title" />
     <TableColumn fx:id="playersColumn" editable="false" minWidth="20.0" prefWidth="50.0" text="%game.players" />
-      <TableColumn fx:id="averageRatingColumn" editable="false" minWidth="20.0" prefWidth="50.0" text="%game.averageRating" />
-      <TableColumn fx:id="ratingRangeColumn" editable="false" minWidth="20.0" prefWidth="100.0" text="%game.ratingRange" />
+    <TableColumn fx:id="friendsColumn" editable="false" minWidth="30.0" maxWidth="30.0" prefWidth="30.0" />
+    <TableColumn fx:id="averageRatingColumn" editable="false" minWidth="20.0" prefWidth="50.0" text="%game.averageRating" />
+    <TableColumn fx:id="ratingRangeColumn" editable="false" minWidth="20.0" prefWidth="100.0" text="%game.ratingRange" />
     <TableColumn fx:id="hostColumn" editable="false" minWidth="20.0" text="%game.host" />
     <TableColumn fx:id="modsColumn" editable="false" minWidth="20.0" prefWidth="-1.0" text="%game.mods" />
     <TableColumn fx:id="coopMissionName" editable="false" minWidth="20.0" prefWidth="-1.0" text="%game.missionName" />
