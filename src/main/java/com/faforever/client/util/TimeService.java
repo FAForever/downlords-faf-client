@@ -80,7 +80,7 @@ public class TimeService {
       return i18n.get("noDateAvailable");
     }
     return DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
-        .withLocale(getCurrentTimeLocale())
+        .withLocale(getCurrentDateLocale())
         .withZone(TimeZone.getDefault().toZoneId())
         .format(temporalAccessor);
   }
@@ -106,6 +106,15 @@ public class TimeService {
       return Locale.getDefault();
     }
     return preferencesService.getPreferences().getChat().getTimeFormat().getUsedLocale();
+
+  }
+
+  private Locale getCurrentDateLocale() {
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+    if (chatPrefs.getDateFormat().equals(TimeInfo.AUTO)) {
+      return Locale.getDefault();
+    }
+    return preferencesService.getPreferences().getChat().getDateFormat().getUsedLocale();
 
   }
 
