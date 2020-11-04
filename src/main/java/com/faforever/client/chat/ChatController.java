@@ -13,7 +13,6 @@ import com.faforever.client.util.ProgrammingError;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
 import javafx.collections.ListChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
@@ -73,7 +72,6 @@ public class ChatController extends AbstractViewController<Node> {
     Platform.runLater(() -> {
       connectingProgressPane.setVisible(true);
       tabPane.setVisible(false);
-      noOpenTabsContainer.setVisible(false);
     });
   }
 
@@ -81,7 +79,6 @@ public class ChatController extends AbstractViewController<Node> {
     Platform.runLater(() -> {
       connectingProgressPane.setVisible(false);
       tabPane.setVisible(true);
-      noOpenTabsContainer.setVisible(false);
     });
   }
 
@@ -89,7 +86,6 @@ public class ChatController extends AbstractViewController<Node> {
     Platform.runLater(() -> {
       connectingProgressPane.setVisible(true);
       tabPane.setVisible(false);
-      noOpenTabsContainer.setVisible(false);
     });
   }
 
@@ -121,19 +117,17 @@ public class ChatController extends AbstractViewController<Node> {
 
     if (chatService.isDefaultChannel(playerOrChannelName)) {
       tabPane.getTabs().add(0, tab);
-      tabPane.getSelectionModel().select(tab);
-      nameToChatTabController.get(tab.getId()).onDisplay();
     } else {
-      tabPane.getTabs().add(tab);
+      tabPane.getTabs().add(tabPane.getTabs().size() - 1, tab);
     }
+    tabPane.getSelectionModel().select(tab);
+    nameToChatTabController.get(tab.getId()).onDisplay();
   }
 
   @Override
   public void initialize() {
     super.initialize();
     eventBus.register(this);
-
-    tabPane.getTabs().addListener((InvalidationListener) observable -> noOpenTabsContainer.setVisible(tabPane.getTabs().isEmpty()));
 
     chatService.addChannelsListener(change -> {
       if (change.wasRemoved()) {
