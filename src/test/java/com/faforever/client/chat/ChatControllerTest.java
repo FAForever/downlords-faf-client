@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.net.ConnectionState;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
@@ -29,6 +30,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -56,6 +58,8 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ChatService chatService;
   @Mock
+  private NotificationService notificationService;
+  @Mock
   private EventBus eventBus;
   @Captor
   private ArgumentCaptor<MapChangeListener<String, Channel>> channelsListener;
@@ -67,7 +71,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ChatController(chatService, uiService, userService, eventBus);
+    instance = new ChatController(chatService, uiService, userService, notificationService, eventBus);
 
     connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
 
@@ -181,6 +185,29 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
     assertThat(instance.tabPane.getTabs(), hasSize(2));
     assertThat(instance.tabPane.getTabs().get(0).getId(), is(TEST_CHANNEL_NAME));
+  }
+
+  @Test
+  public void testOnJoinChannelButtonClickedInvalidChannel() throws Exception {
+    assertEquals(instance.tabPane.getTabs().size(), 1);
+
+    Tab tab = new Tab();
+    tab.setId(TEST_CHANNEL_NAME);
+
+    when(channelTabController.getRoot()).thenReturn(tab);
+    when(userService.getUsername()).thenReturn(TEST_USER_NAME);
+    doAnswer(invocation -> {
+      MapChangeListener.Change<? extends String, ? extends Channel> change = mock(MapChangeListener.Change.class);
+      when(change.wasAdded()).thenReturn(true);
+      doReturn(new Channel(invocation.getArgument(0))).when(change).getValueAdded();
+      channelsListener.getValue().onChanged(change);
+      return null;
+    }).when(chatService).joinChannel(anyString());
+
+    instance.channelNameTextField.setText(TEST_CHANNEL_NAME.replace("#", ""));
+    instance.onJoinChannelButtonClicked();
+
+    verify(notificationService).addImmediateErrorNotification(any(IllegalArgumentException.class), anyString(), anyString());
   }
 
   @Test
