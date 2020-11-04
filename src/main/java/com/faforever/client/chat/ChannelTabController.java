@@ -54,6 +54,7 @@ import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -78,6 +79,7 @@ import static com.faforever.client.fx.PlatformService.URL_REGEX_PATTERN;
 import static com.faforever.client.player.SocialStatus.FOE;
 import static java.util.Locale.US;
 
+@Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ChannelTabController extends AbstractChatTabController {
@@ -370,6 +372,7 @@ public class ChannelTabController extends AbstractChatTabController {
     if (playerService.getPlayerForUsername(chatMessage.getUsername())
         .filter(player -> player.getSocialStatus() == FOE)
         .isPresent()) {
+      log.debug("Ignored ping from {}", chatMessage.getUsername());
       return;
     }
 
