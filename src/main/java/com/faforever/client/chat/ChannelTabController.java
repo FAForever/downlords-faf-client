@@ -366,6 +366,13 @@ public class ChannelTabController extends AbstractChatTabController {
         && !chatMessage.getMessage().contains("@" + userService.getUsername())) {
       return;
     }
+
+    if (playerService.getPlayerForUsername(chatMessage.getUsername())
+        .filter(player -> player.getSocialStatus() == FOE)
+        .isPresent()) {
+      return;
+    }
+
     if (!hasFocus()) {
       audioService.playChatMentionSound();
       showNotificationIfNecessary(chatMessage);
