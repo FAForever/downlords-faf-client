@@ -1,5 +1,7 @@
 package com.faforever.client.game;
 
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.generator.GenerationType;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
@@ -31,6 +33,8 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
   NotificationService notificationService;
   @Mock
   private MapGeneratorService mapGeneratorService;
+  @Mock
+  private I18n i18n;
 
   private Preferences preferences;
   private GenerateMapController instance;
@@ -50,7 +54,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new GenerateMapController(preferencesService, notificationService, mapGeneratorService);
+    instance = new GenerateMapController(preferencesService, notificationService, mapGeneratorService, i18n);
 
     preferences = new Preferences();
     preferences.getForgedAlliance().setInstallationPath(Paths.get("."));
@@ -282,6 +286,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     instance.previousMapName.setText("neroxis_map_generator");
     instance.previousMapName.setText("");
 
+    assertFalse(instance.generationTypeComboBox.isDisabled());
     assertFalse(instance.rampRandomBox.isDisabled());
     assertFalse(instance.rampSliderBox.isDisabled());
     assertFalse(instance.waterRandomBox.isDisabled());
@@ -300,6 +305,64 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForFxEvents();
     instance.previousMapName.setText("neroxis_map_generator");
 
+    assertTrue(instance.generationTypeComboBox.isDisabled());
+    assertTrue(instance.rampRandomBox.isDisabled());
+    assertTrue(instance.rampSliderBox.isDisabled());
+    assertTrue(instance.waterRandomBox.isDisabled());
+    assertTrue(instance.waterSliderBox.isDisabled());
+    assertTrue(instance.plateauRandomBox.isDisabled());
+    assertTrue(instance.plateauSliderBox.isDisabled());
+    assertTrue(instance.mountainRandomBox.isDisabled());
+    assertTrue(instance.mountainSliderBox.isDisabled());
+  }
+
+  @Test
+  public void testOptionsNotDisabledWithCasual() {
+    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+    instance.generationTypeComboBox.setValue(GenerationType.TOURNAMENT);
+    instance.generationTypeComboBox.setValue(GenerationType.CASUAL);
+
+    assertFalse(instance.rampRandomBox.isDisabled());
+    assertFalse(instance.rampSliderBox.isDisabled());
+    assertFalse(instance.waterRandomBox.isDisabled());
+    assertFalse(instance.waterSliderBox.isDisabled());
+    assertFalse(instance.plateauRandomBox.isDisabled());
+    assertFalse(instance.plateauSliderBox.isDisabled());
+    assertFalse(instance.mountainRandomBox.isDisabled());
+    assertFalse(instance.mountainSliderBox.isDisabled());
+  }
+
+  @Test
+  public void testOptionsDisabledWithTournament() {
+    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+    instance.generationTypeComboBox.setValue(GenerationType.TOURNAMENT);
+
+    assertFalse(instance.generationTypeComboBox.isDisabled());
+    assertTrue(instance.rampRandomBox.isDisabled());
+    assertTrue(instance.rampSliderBox.isDisabled());
+    assertTrue(instance.waterRandomBox.isDisabled());
+    assertTrue(instance.waterSliderBox.isDisabled());
+    assertTrue(instance.plateauRandomBox.isDisabled());
+    assertTrue(instance.plateauSliderBox.isDisabled());
+    assertTrue(instance.mountainRandomBox.isDisabled());
+    assertTrue(instance.mountainSliderBox.isDisabled());
+  }
+
+  @Test
+  public void testOptionsDisabledWithBlind() {
+    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+    instance.generationTypeComboBox.setValue(GenerationType.BLIND);
+
+    assertFalse(instance.generationTypeComboBox.isDisabled());
     assertTrue(instance.rampRandomBox.isDisabled());
     assertTrue(instance.rampSliderBox.isDisabled());
     assertTrue(instance.waterRandomBox.isDisabled());
@@ -340,6 +403,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGetOptionArrayRandom() {
     preferences.getGeneratorPrefs().setSpawnCountProperty(6);
+    preferences.getGeneratorPrefs().setMapSizeProperty("10km");
     preferences.getGeneratorPrefs().setWaterRandomProperty(true);
     preferences.getGeneratorPrefs().setMountainRandomProperty(true);
     preferences.getGeneratorPrefs().setPlateauRandomProperty(true);
@@ -351,10 +415,11 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(instance.getOptionArray()[0], 6);
-    assertTrue(instance.getOptionArray()[1]>=0);
-    assertTrue(instance.getOptionArray()[2]>=0);
-    assertTrue(instance.getOptionArray()[3]>=0);
-    assertTrue(instance.getOptionArray()[4]>=0);
+    assertEquals(instance.getOptionArray()[1], 512 / 64);
+    assertTrue(instance.getOptionArray()[2] >= 0);
+    assertTrue(instance.getOptionArray()[3] >= 0);
+    assertTrue(instance.getOptionArray()[4] >= 0);
+    assertTrue(instance.getOptionArray()[5] >= 0);
   }
 }
 
