@@ -97,9 +97,7 @@ public class MatchmakingQueueItemController implements Controller<Node> {
     this.queue = queue;
 
     playersInQueueLabel.textProperty().bind(createStringBinding(
-        () -> playersInQueueLabel.getStyleClass().contains("uppercase") ?
-            i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue()).toUpperCase() :
-            i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue()),
+        () -> i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue()).toUpperCase(),
         queue.playersInQueueProperty()));
 
     matchFoundLabel.visibleProperty().bind(matchFoundLabel.managedProperty());
@@ -137,12 +135,9 @@ public class MatchmakingQueueItemController implements Controller<Node> {
         Instant now = Instant.now();
         Duration timeUntilPopQueue = Duration.between(now, queue.getQueuePopTime());
         if (!timeUntilPopQueue.isNegative()) {
-          String formatted = i18n.get("teammatchmaking.queuePopTimer",
+          queuePopTimeLabel.setText(i18n.get("teammatchmaking.queuePopTimer",
               timeUntilPopQueue.toMinutes(),
-              timeUntilPopQueue.toSecondsPart());
-          queuePopTimeLabel.setText(
-              queuePopTimeLabel.getStyleClass().contains("uppercase") ? formatted.toUpperCase() : formatted);
-          return;
+              timeUntilPopQueue.toSecondsPart()).toUpperCase());
         }
       }
     }), new KeyFrame(javafx.util.Duration.seconds(1)));

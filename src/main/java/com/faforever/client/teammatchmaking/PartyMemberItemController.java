@@ -117,13 +117,9 @@ public class PartyMemberItemController implements Controller<Node> {
     usernameLabel.textProperty().bind(player.usernameProperty());
 
     leagueLabel.textProperty().bind(createStringBinding(
-        () -> leagueLabel.getStyleClass().contains("uppercase") ?
-            i18n.get("leaderboard.divisionName", RatingUtil.getLeaderboardRating(player)).toUpperCase() :
-            i18n.get("leaderboard.divisionName", RatingUtil.getLeaderboardRating(player))));
+        () -> i18n.get("leaderboard.divisionName", RatingUtil.getLeaderboardRating(player)).toUpperCase()));
     gameCountLabel.textProperty().bind(createStringBinding(
-        () -> gameCountLabel.getStyleClass().contains("uppercase") ?
-            i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase() :
-            i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()),
+        () -> i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase(),
         player.numberOfGamesProperty()));
 
     BooleanBinding isDifferentPlayerBinding = playerService.currentPlayerProperty().isNotEqualTo(player);

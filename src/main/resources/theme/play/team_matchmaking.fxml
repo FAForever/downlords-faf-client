@@ -23,7 +23,7 @@
         <ScrollPane fx:id="scrollPane" fitToWidth="true" >
             <VBox fx:id="preparationArea" spacing="25.0" >
                 <children>
-                    <Label styleClass="h1-tmm, uppercase" text="%teammatchmaking.playerTitle"/>
+                    <Label fx:id="matchmakerHeadingLabel" styleClass="h1-tmm" text="%teammatchmaking.playerTitle"/>
                     <AnchorPane>
                         <HBox fx:id="playerCard" spacing="10.0" styleClass="player-card" alignment="CENTER_LEFT"
                               AnchorPane.topAnchor="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.bottomAnchor="0.0"
@@ -56,9 +56,9 @@
                                         </padding>
                                     </HBox>
                                     <HBox spacing="15.0">
-                                        <Label fx:id="leagueLabel" styleClass="player-card-text, uppercase"
+                                        <Label fx:id="leagueLabel" styleClass="player-card-text"
                                                text="%leaderboard.divisionName"/>
-                                        <Label fx:id="gameCountLabel" styleClass="player-card-text, uppercase"
+                                        <Label fx:id="gameCountLabel" styleClass="player-card-text"
                                                text="%teammatchmaking.gameCount"/>
                                         <Pane HBox.hgrow="ALWAYS"/>
                                         <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="36.0"
@@ -107,12 +107,12 @@
                     </AnchorPane>
                     <HBox alignment="CENTER_LEFT" spacing="10.0">
                         <children>
-                            <Label styleClass="h1-tmm, uppercase" text="%teammatchmaking.partyTitle"/>
+                            <Label fx:id="partyHeadingLabel" styleClass="h1-tmm" text="%teammatchmaking.partyTitle"/>
                             <Button fx:id="invitePlayerButton" mnemonicParsing="false"
-                                    styleClass="tmm, invite-button, uppercase"
+                                    styleClass="tmm, invite-button"
                                     text="%teammatchmaking.invitePlayer" onAction="#onInvitePlayerButtonClicked"/>
                             <Button fx:id="leavePartyButton" mnemonicParsing="false"
-                                    styleClass="tmm, leave-button, uppercase"
+                                    styleClass="tmm, leave-button"
                                     text="%teammatchmaking.leaveParty" onAction="#onLeavePartyButtonClicked"/>
                             <Label fx:id="refreshingLabel" visible="false" >
                                 <graphic>
@@ -128,7 +128,7 @@
                         </columnConstraints>
                     </GridPane>
                     <Separator/>
-                    <Label fx:id="queueHeadingLabel" styleClass="h1-tmm, uppercase" text="%teammatchmaking.queueTitle"/>
+                    <Label fx:id="queueHeadingLabel" styleClass="h1-tmm" text="%teammatchmaking.queueTitle"/>
                     <HBox fx:id="queueBox" spacing="12.0"/>
                 </children>
                 <padding>

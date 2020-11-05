@@ -15,8 +15,8 @@
                       maxWidth="1.7976931348623157E308" onAction="#onJoinLeaveQueueClicked" />
         <JFXButton text="MAPLIST" styleClass="tmm, player-card-text" alignment="TOP_LEFT" maxWidth="1.7976931348623157E308" />
     <FlowPane hgap="10">
-        <Label fx:id="queuePopTimeLabel" styleClass="player-card-text, uppercase" text="%teammatchmaking.queuePopTimer"/>
-        <Label fx:id="playersInQueueLabel" styleClass="player-card-text, uppercase" text="%teammatchmaking.playersInQueue"/>
+        <Label fx:id="queuePopTimeLabel" styleClass="player-card-text" text="%teammatchmaking.queuePopTimer"/>
+        <Label fx:id="playersInQueueLabel" styleClass="player-card-text" text="%teammatchmaking.playersInQueue"/>
         <padding>
             <Insets left="15.0"/>
         </padding>

@@ -93,6 +93,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public GridPane partyMemberPane;
   public VBox preparationArea;
   public ImageView leagueImageView;
+  public Label matchmakerHeadingLabel;
+  public Label partyHeadingLabel;
   public Label queueHeadingLabel;
   public ScrollPane scrollPane;
   public HBox playerCard;
@@ -170,40 +172,20 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   }
 
   private void initializeUppercaseText() {
-    // TODO: it would be nice if we could start from the root node, however SplitPane uses items instead of children,
-    // so lookupAll ignores the contents of the SplitPane
-    for (Node node : preparationArea.lookupAll(".uppercase")) {
-      if (node instanceof Label) {
-          Label label = (Label) node;
-          label.setText(label.getText().toUpperCase());
-      }
-      if (node instanceof Button) {
-        Button button = (Button) node;
-        button.setText(button.getText().toUpperCase());
-      }
-    }
+    matchmakerHeadingLabel.setText(i18n.get("teammatchmaking.playerTitle").toUpperCase());
+    partyHeadingLabel.setText(i18n.get("teammatchmaking.partyTitle").toUpperCase());
+    invitePlayerButton.setText(i18n.get("teammatchmaking.invitePlayer").toUpperCase());
+    leavePartyButton.setText(i18n.get("teammatchmaking.leaveParty").toUpperCase());
 
-    leagueLabel.textProperty().bind(createStringBinding(() -> {
-      String text = i18n.get("leaderboard.divisionName");
-      if (leagueLabel.getStyleClass().contains("uppercase"))
-        text = text.toUpperCase();
-      return text;
-    }, player.globalRatingMeanProperty())); // This should actually be a divisionProperty once that is available
-
-    gameCountLabel.textProperty().bind(createStringBinding(() -> {
-      String text = i18n.get("teammatchmaking.gameCount", player.getNumberOfGames());
-      if (gameCountLabel.getStyleClass().contains("uppercase"))
-        text = text.toUpperCase();
-      return text;
-    }, player.numberOfGamesProperty()));
-
+    leagueLabel.textProperty().bind(createStringBinding(() -> i18n.get("leaderboard.divisionName").toUpperCase(),
+        player.globalRatingMeanProperty())); // This should actually be a divisionProperty once that is available
+    gameCountLabel.textProperty().bind(createStringBinding(() ->
+        i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase(), player.numberOfGamesProperty()));
     queueHeadingLabel.textProperty().bind(createStringBinding(() -> {
-      String text = i18n.get("teammatchmaking.queueTitle");
-      if (!teamMatchmakingService.getParty().getOwner().equals(player))
-        text = i18n.get("teammatchmaking.queueTitle.inParty");
-      if (queueHeadingLabel.getStyleClass().contains("uppercase"))
-        text = text.toUpperCase();
-      return text;
+      if (teamMatchmakingService.getParty().getOwner().equals(player))
+        return i18n.get("teammatchmaking.queueTitle").toUpperCase();
+      else
+        return i18n.get("teammatchmaking.queueTitle.inParty").toUpperCase();
     }, teamMatchmakingService.getParty().ownerProperty()));
   }
 

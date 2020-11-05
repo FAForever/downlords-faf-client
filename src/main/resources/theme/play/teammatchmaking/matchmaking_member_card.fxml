@@ -60,8 +60,8 @@
                 </HBox>
                 <HBox spacing="15.0" alignment="CENTER_LEFT">
                     <children>
-                        <Label fx:id="leagueLabel" text="%leaderboard.divisionName" styleClass="player-card-text, uppercase" />
-                        <Label fx:id="gameCountLabel" text="%teammatchmaking.gameCount" styleClass="player-card-text, uppercase" />
+                        <Label fx:id="leagueLabel" text="%leaderboard.divisionName" styleClass="player-card-text" />
+                        <Label fx:id="gameCountLabel" text="%teammatchmaking.gameCount" styleClass="player-card-text" />
                         <HBox HBox.hgrow="ALWAYS" alignment="CENTER_RIGHT">
                             <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="36.0" preserveRatio="true" />
                             <padding>
