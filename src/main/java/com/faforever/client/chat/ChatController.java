@@ -65,7 +65,7 @@ public class ChatController extends AbstractViewController<Node> {
     String channelName = channel.getName();
     chatService.addUsersListener(channelName, change -> {
       if (change.wasRemoved()) {
-        onChatUserLeftChannel(channelName, change.getValueRemoved().getUsername());
+        onChatUserLeftChannel(change.getValueRemoved(), channelName);
       }
       if (change.wasAdded()) {
         onUserJoinedChannel(change.getValueAdded(), channelName);
@@ -232,19 +232,18 @@ public class ChatController extends AbstractViewController<Node> {
     chatService.joinChannel(channelName);
   }
 
-  private void onChatUserLeftChannel(String channelName, String username) {
-    if (!username.equalsIgnoreCase(userService.getUsername())) {
-      return;
-    }
-    AbstractChatTabController chatTab = nameToChatTabController.get(channelName);
-    if (chatTab != null) {
-      Platform.runLater(() -> tabPane.getTabs().remove(chatTab.getRoot()));
+  private void onChatUserLeftChannel(ChatChannelUser chatUser, String channelName) {
+    if (isCurrentUser(chatUser)) {
+      AbstractChatTabController chatTab = nameToChatTabController.get(channelName);
+      if (chatTab != null) {
+        Platform.runLater(() -> tabPane.getTabs().remove(chatTab.getRoot()));
+      }
     }
   }
 
   private void onUserJoinedChannel(ChatChannelUser chatUser, String channelName) {
-    Platform.runLater(() -> {
-      if (isCurrentUser(chatUser)) {
+    if (isCurrentUser(chatUser)) {
+      Platform.runLater(() -> {
         AbstractChatTabController tabController = getOrCreateChannelTab(channelName);
         onConnected();
         if (channelName.equals(chatService.getDefaultChannelName())) {
@@ -252,8 +251,8 @@ public class ChatController extends AbstractViewController<Node> {
           tabPane.getSelectionModel().select(tab);
           nameToChatTabController.get(tab.getId()).onDisplay();
         }
-      }
-    });
+      });
+    }
   }
 
   private boolean isCurrentUser(ChatChannelUser chatUser) {
