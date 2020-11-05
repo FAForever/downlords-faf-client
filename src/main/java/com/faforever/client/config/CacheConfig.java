@@ -23,6 +23,7 @@ import static com.faforever.client.config.CacheNames.CLAN;
 import static com.faforever.client.config.CacheNames.COOP_LEADERBOARD;
 import static com.faforever.client.config.CacheNames.COOP_MAPS;
 import static com.faforever.client.config.CacheNames.COUNTRY_FLAGS;
+import static com.faforever.client.config.CacheNames.COUNTRY_NAMES;
 import static com.faforever.client.config.CacheNames.FEATURED_MODS;
 import static com.faforever.client.config.CacheNames.FEATURED_MOD_FILES;
 import static com.faforever.client.config.CacheNames.GLOBAL_LEADERBOARD;
@@ -73,6 +74,7 @@ public class CacheConfig extends CachingConfigurerSupport {
         new CaffeineCache(URL_PREVIEW, newBuilder().weakValues().expireAfterAccess(30, MINUTES).build()),
         new CaffeineCache(MAP_PREVIEW, newBuilder().weakValues().build()),
         new CaffeineCache(COUNTRY_FLAGS, newBuilder().weakValues().build()),
+        new CaffeineCache(COUNTRY_NAMES, newBuilder().weakValues().build()),
         new CaffeineCache(THEME_IMAGES, newBuilder().weakValues().build()),
         new CaffeineCache(MOD_THUMBNAIL, newBuilder().weakValues().build()
         )));
