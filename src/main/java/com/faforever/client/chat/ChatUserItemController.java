@@ -1,16 +1,12 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.chat.avatar.AvatarService;
+import com.faforever.client.chat.event.ChatUserGameChangeEvent;
+import com.faforever.client.chat.event.ChatUserPopulateEvent;
 import com.faforever.client.clan.Clan;
-import com.faforever.client.clan.ClanService;
-import com.faforever.client.clan.ClanTooltipController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapService;
-import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
@@ -18,19 +14,16 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.WeakChangeListener;
+import javafx.beans.binding.Bindings;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
@@ -39,20 +32,13 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.PopupWindow;
 import javafx.util.Duration;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
-import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static com.faforever.client.player.SocialStatus.SELF;
@@ -68,39 +54,20 @@ public class ChatUserItemController implements Controller<Node> {
 
   private static final PseudoClass COMPACT = PseudoClass.getPseudoClass("compact");
 
-  private static volatile Map<PlayerStatus, Image> playerStatusIcons;
-
-  private final AvatarService avatarService;
-  private final CountryFlagService countryFlagService;
   private final PreferencesService preferencesService;
   private final I18n i18n;
   private final UiService uiService;
   private final EventBus eventBus;
   private final PlayerService playerService;
-  private final ClanService clanService;
   private final PlatformService platformService;
   private final TimeService timeService;
-  private final MapService mapService;
+  private final ChatPrefs chatPrefs;
 
   private final InvalidationListener colorChangeListener;
   private final InvalidationListener formatChangeListener;
   private final InvalidationListener colorPerUserInvalidationListener;
-  private final ChangeListener<String> avatarChangeListener;
-  private final ChangeListener<String> clanChangeListener;
-  private final ChangeListener<String> countryChangeListener;
-  private final ChangeListener<PlayerStatus> gameStatusChangeListener;
-  private final ChangeListener<Player> playerChangeListener;
-  private final InvalidationListener userActivityListener;
-  private final InvalidationListener usernameInvalidationListener;
-  private final WeakChangeListener<Player> weakPlayerChangeListener;
-  private final WeakInvalidationListener weakUsernameInvalidationListener;
   private final WeakInvalidationListener weakColorInvalidationListener;
   private final WeakInvalidationListener weakFormatInvalidationListener;
-  private final WeakInvalidationListener weakUserActivityListener;
-  private final WeakChangeListener<PlayerStatus> weakGameStatusListener;
-  private final WeakChangeListener<String> weakAvatarChangeListener;
-  private final WeakChangeListener<String> weakClanChangeListener;
-  private final WeakChangeListener<String> weakCountryChangeListener;
   private final WeakInvalidationListener weakColorPerUserInvalidationListener;
 
   public ImageView playerStatusIndicator;
@@ -119,28 +86,19 @@ public class ChatUserItemController implements Controller<Node> {
   protected Tooltip avatarTooltip;
   @VisibleForTesting
   protected Tooltip userTooltip;
-  private Clan clan;
-  private ClanTooltipController clanTooltipController;
-  private Tooltip clanTooltip;
 
   // TODO reduce dependencies, rely on eventBus instead
-  public ChatUserItemController(PreferencesService preferencesService, AvatarService avatarService,
-                                CountryFlagService countryFlagService,
-                                I18n i18n, UiService uiService, EventBus eventBus,
-                                ClanService clanService, PlayerService playerService,
-                                PlatformService platformService, TimeService timeService, MapService mapService) {
+  public ChatUserItemController(PreferencesService preferencesService,
+                                I18n i18n, UiService uiService, EventBus eventBus, PlayerService playerService,
+                                PlatformService platformService, TimeService timeService) {
     this.platformService = platformService;
     this.preferencesService = preferencesService;
-    this.avatarService = avatarService;
     this.playerService = playerService;
-    this.clanService = clanService;
-    this.countryFlagService = countryFlagService;
     this.i18n = i18n;
     this.uiService = uiService;
     this.eventBus = eventBus;
     this.timeService = timeService;
-    this.mapService = mapService;
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+    this.chatPrefs = preferencesService.getPreferences().getChat();
 
     colorPerUserInvalidationListener = change -> {
       if (chatUser != null) {
@@ -156,72 +114,6 @@ public class ChatUserItemController implements Controller<Node> {
 
     JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), weakColorInvalidationListener);
     JavaFxUtil.addListener(chatPrefs.chatFormatProperty(), weakFormatInvalidationListener);
-
-    userActivityListener = (observable) -> JavaFxUtil.runLater(this::onUserActivity);
-    gameStatusChangeListener = (observable, oldValue, newValue) -> JavaFxUtil.runLater(this::updateGameStatus);
-    avatarChangeListener = (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> setAvatarUrl(newValue));
-    clanChangeListener = (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> setClanTag(newValue));
-    countryChangeListener = (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> setCountry(newValue));
-
-    weakUserActivityListener = new WeakInvalidationListener(userActivityListener);
-    weakGameStatusListener = new WeakChangeListener<>(gameStatusChangeListener);
-    weakAvatarChangeListener = new WeakChangeListener<>(avatarChangeListener);
-    weakClanChangeListener = new WeakChangeListener<>(clanChangeListener);
-    weakCountryChangeListener = new WeakChangeListener<>(countryChangeListener);
-
-    playerChangeListener = (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> {
-      if (oldValue != null) {
-        JavaFxUtil.removeListener(oldValue.idleSinceProperty(), weakUserActivityListener);
-        JavaFxUtil.removeListener(oldValue.statusProperty(), weakUserActivityListener);
-        JavaFxUtil.removeListener(oldValue.statusProperty(), weakGameStatusListener);
-        JavaFxUtil.removeListener(oldValue.avatarUrlProperty(), weakAvatarChangeListener);
-        JavaFxUtil.removeListener(oldValue.clanProperty(), weakClanChangeListener);
-        JavaFxUtil.removeListener(oldValue.countryProperty(), weakCountryChangeListener);
-
-        weakGameStatusListener.changed(oldValue.statusProperty(), oldValue.getStatus(), null);
-        weakAvatarChangeListener.changed(oldValue.avatarUrlProperty(), oldValue.getAvatarUrl(), null);
-        weakClanChangeListener.changed(oldValue.clanProperty(), oldValue.getClan(), null);
-        weakCountryChangeListener.changed(oldValue.countryProperty(), oldValue.getCountry(), null);
-      }
-
-      if (newValue != null) {
-        JavaFxUtil.addListener(newValue.idleSinceProperty(), weakUserActivityListener);
-        JavaFxUtil.addListener(newValue.statusProperty(), weakUserActivityListener);
-        JavaFxUtil.addListener(newValue.statusProperty(), weakGameStatusListener);
-        JavaFxUtil.addListener(newValue.avatarUrlProperty(), weakAvatarChangeListener);
-        JavaFxUtil.addListener(newValue.clanProperty(), weakClanChangeListener);
-        JavaFxUtil.addListener(newValue.countryProperty(), weakCountryChangeListener);
-
-        weakUserActivityListener.invalidated(newValue.idleSinceProperty());
-        weakGameStatusListener.changed(newValue.statusProperty(), null, newValue.getStatus());
-        weakAvatarChangeListener.changed(newValue.avatarUrlProperty(), null, newValue.getAvatarUrl());
-        weakClanChangeListener.changed(newValue.clanProperty(), null, newValue.getClan());
-        weakCountryChangeListener.changed(newValue.countryProperty(), null, newValue.getCountry());
-      }
-
-      if (this.chatUser != null) {
-        userActivityListener.invalidated(null);
-      }
-    });
-    weakPlayerChangeListener = new WeakChangeListener<>(playerChangeListener);
-
-    usernameInvalidationListener = observable -> {
-      updateNameLabelTooltip();
-      if (this.chatUser == null) {
-        usernameLabel.setText("");
-      } else {
-        usernameLabel.setText(this.chatUser.getUsername());
-      }
-    };
-    weakUsernameInvalidationListener = new WeakInvalidationListener(usernameInvalidationListener);
-  }
-
-  private void initClanTooltip() {
-    clanTooltipController = uiService.loadFxml("theme/chat/clan_tooltip.fxml");
-
-    clanTooltip = new Tooltip();
-    clanTooltip.setGraphic(clanTooltipController.getRoot());
-    Tooltip.install(clanMenu, clanTooltip);
   }
 
   private void updateFormat() {
@@ -238,20 +130,27 @@ public class ChatUserItemController implements Controller<Node> {
 
   public void initialize() {
     chatUserItemRoot.setUserData(this);
-    countryImageView.managedProperty().bind(countryImageView.visibleProperty());
-    countryImageView.setVisible(false);
-    clanMenu.managedProperty().bind(clanMenu.visibleProperty());
-    clanMenu.setVisible(false);
+    userTooltip = new Tooltip();
+    usernameLabel.setTooltip(userTooltip);
+    avatarTooltip = new Tooltip();
+    Tooltip.install(avatarImageView, avatarTooltip);
+    avatarTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
+    countryTooltip = new Tooltip();
+    countryTooltip.showDelayProperty().set(Duration.millis(250));
+    Tooltip.install(countryImageView, countryTooltip);
 
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     weakColorInvalidationListener.invalidated(chatPrefs.chatColorModeProperty());
     weakFormatInvalidationListener.invalidated(chatPrefs.chatFormatProperty());
 
-    playerStatusIndicator.managedProperty().bind(playerStatusIndicator.visibleProperty());
-    playerMapImage.managedProperty().bind(playerMapImage.visibleProperty());
+    JavaFxUtil.bindManagedToVisible(countryImageView, clanMenu, playerStatusIndicator, playerMapImage);
+
+    JavaFxUtil.bind(avatarImageView.visibleProperty(), Bindings.isNotNull(avatarImageView.imageProperty()));
+    JavaFxUtil.bind(countryImageView.visibleProperty(), Bindings.isNotNull(countryImageView.imageProperty()));
+    JavaFxUtil.bind(clanMenu.visibleProperty(), Bindings.isNotNull(clanMenu.textProperty()));
+    JavaFxUtil.bind(playerStatusIndicator.visibleProperty(), Bindings.isNotNull(playerStatusIndicator.imageProperty()));
+    JavaFxUtil.bind(playerMapImage.visibleProperty(), Bindings.isNotNull(playerMapImage.imageProperty()));
 
     updateFormat();
-    initClanTooltip();
   }
 
   private WeakReference<ChatUserContextMenuController> contextMenuController = null;
@@ -280,9 +179,9 @@ public class ChatUserItemController implements Controller<Node> {
 
   private void updateColor() {
     if (chatUser == null) {
+      assignColor(null);
       return;
     }
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
     chatUser.getPlayer().ifPresent(player -> {
       if (player.getSocialStatus() == SELF) {
@@ -316,34 +215,6 @@ public class ChatUserItemController implements Controller<Node> {
     }
   }
 
-  private void setAvatarUrl(@Nullable String avatarUrl) {
-    updateAvatarTooltip();
-    if (Strings.isNullOrEmpty(avatarUrl)) {
-      avatarImageView.setVisible(false);
-    } else {
-      // Loading the avatar image asynchronously would be better but asynchronous list cell updates don't work well
-      avatarImageView.setImage(avatarService.loadAvatar(avatarUrl));
-      avatarImageView.setVisible(true);
-    }
-  }
-
-  private void setClanTag(String clanTag) {
-    if (!chatUser.getPlayer().isPresent() || Strings.isNullOrEmpty(clanTag)) {
-      clanMenu.setVisible(false);
-      return;
-    }
-    clanMenu.setText(String.format("[%s]", clanTag));
-    clanMenu.setVisible(true);
-    setClan();
-  }
-
-  private static void loadPlayerStatusIcons(UiService uiService) throws IOException {
-    playerStatusIcons = new HashMap<>();
-    playerStatusIcons.put(PlayerStatus.HOSTING, uiService.getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING));
-    playerStatusIcons.put(PlayerStatus.LOBBYING, uiService.getThemeImage(UiService.CHAT_LIST_STATUS_LOBBYING));
-    playerStatusIcons.put(PlayerStatus.PLAYING, uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING));
-  }
-
   public Pane getRoot() {
     return chatUserItemRoot;
   }
@@ -357,149 +228,49 @@ public class ChatUserItemController implements Controller<Node> {
       return;
     }
 
+    JavaFxUtil.unbind(usernameLabel.textProperty());
+    JavaFxUtil.unbind(avatarImageView.imageProperty());
+    JavaFxUtil.unbind(clanMenu.textProperty());
+    JavaFxUtil.unbind(countryImageView.imageProperty());
+    JavaFxUtil.unbind(playerMapImage.imageProperty());
+    JavaFxUtil.unbind(playerStatusIndicator.imageProperty());
+    JavaFxUtil.unbind(avatarTooltip.textProperty());
+    JavaFxUtil.unbind(countryTooltip.textProperty());
+
     if (this.chatUser != null) {
-      removeListeners(this.chatUser);
+      this.chatUser.setDisplayed(false);
     }
 
     this.chatUser = chatUser;
+
     if (this.chatUser != null) {
-      addListeners(this.chatUser);
-    }
-  }
-
-  private void updateCountryTooltip() {
-    Optional.ofNullable(countryTooltip).ifPresent(imageView -> Tooltip.uninstall(countryImageView, countryTooltip));
-
-    chatUser.getPlayer().ifPresent(player -> {
-      countryTooltip = new Tooltip(i18n.getCountryNameLocalized(player.getCountry()));
-      countryTooltip.showDelayProperty().set(Duration.millis(250));
-      Tooltip.install(countryImageView, countryTooltip);
-    });
-  }
-
-  private void setClan() {
-    chatUser.getPlayer().ifPresent(this::setClan);
-  }
-
-  private void updateNameLabelTooltip() {
-    Optional.ofNullable(usernameLabel.getTooltip()).ifPresent(tooltip -> usernameLabel.setTooltip(null));
-
-    if (chatUser == null || !chatUser.getPlayer().isPresent()) {
-      return;
+      this.chatUser.setDisplayed(true);
+      JavaFxUtil.bind(usernameLabel.textProperty(), this.chatUser.usernameProperty());
+      JavaFxUtil.bind(avatarImageView.imageProperty(), this.chatUser.avatarProperty());
+      JavaFxUtil.bind(clanMenu.textProperty(), this.chatUser.clanTagProperty());
+      JavaFxUtil.bind(countryImageView.imageProperty(), this.chatUser.countryFlagProperty());
+      JavaFxUtil.bind(countryTooltip.textProperty(), this.chatUser.countryNameProperty());
+      JavaFxUtil.bind(playerMapImage.imageProperty(), this.chatUser.mapImageProperty());
+      JavaFxUtil.bind(playerStatusIndicator.imageProperty(), this.chatUser.statusImageProperty());
+      if (this.chatUser.getPlayer().isPresent()) {
+        JavaFxUtil.bind(avatarTooltip.textProperty(), this.chatUser.getPlayer().get().avatarTooltipProperty());
+      }
+      eventBus.post(new ChatUserGameChangeEvent(this.chatUser));
+      eventBus.post(new ChatUserPopulateEvent(this.chatUser));
     }
 
-    chatUser.getPlayer().ifPresent(player -> {
-      userTooltip = new Tooltip();
-      usernameLabel.setTooltip(userTooltip);
-      updateNameLabelText(player);
-    });
+    updateColor();
   }
 
   private void updateNameLabelText(Player player) {
     userTooltip.setText(String.format("%s\n%s",
         i18n.get("userInfo.ratingFormat", getGlobalRating(player), getLeaderboardRating(player)),
-        i18n.get("userInfo.idleTimeFormat", timeService.timeAgo(player.getIdleSince()))));
-  }
-
-  private void addListeners(@NotNull ChatChannelUser chatUser) {
-    JavaFxUtil.addListener(chatUser.usernameProperty(), weakUsernameInvalidationListener);
-    JavaFxUtil.addListener(chatUser.colorProperty(), weakColorInvalidationListener);
-    JavaFxUtil.addListener(chatUser.playerProperty(), weakPlayerChangeListener);
-
-    weakUsernameInvalidationListener.invalidated(chatUser.usernameProperty());
-    weakColorInvalidationListener.invalidated(chatUser.colorProperty());
-    weakPlayerChangeListener.changed(chatUser.playerProperty(), null, chatUser.getPlayer().orElse(null));
-  }
-
-  private void removeListeners(@NotNull ChatChannelUser chatUser) {
-    JavaFxUtil.removeListener(chatUser.usernameProperty(), weakUsernameInvalidationListener);
-    JavaFxUtil.removeListener(chatUser.colorProperty(), weakColorInvalidationListener);
-    JavaFxUtil.removeListener(chatUser.playerProperty(), weakPlayerChangeListener);
-
-    weakPlayerChangeListener.changed(chatUser.playerProperty(), chatUser.getPlayer().orElse(null), null);
-  }
-
-  private void setCountry(String country) {
-    if (StringUtils.isEmpty(country)) {
-      countryImageView.setVisible(false);
-    } else {
-      countryFlagService.loadCountryFlag(country).ifPresent(image -> {
-        countryImageView.setImage(image);
-        countryImageView.setVisible(true);
-        updateCountryTooltip();
-      });
-    }
+        i18n.get("userInfo.idleTimeFormat", timeService.timeAgo(chatUser.getLastActive()))));
   }
 
   public void setVisible(boolean visible) {
     chatUserItemRoot.setVisible(visible);
     chatUserItemRoot.setManaged(visible);
-  }
-
-  private void onUserActivity() {
-    // TODO only until server-side support
-    updateGameStatus();
-    if (chatUser.getPlayer().isPresent() && userTooltip != null) {
-      updateNameLabelText(chatUser.getPlayer().get());
-    }
-  }
-
-  private void setClan(Player player) {
-    clanService.getClanByTag(player.getClan())
-        .thenAccept(optionalClan -> JavaFxUtil.runLater(() -> setClan(optionalClan)))
-        .exceptionally(throwable -> {
-          log.warn("Clan was not updated", throwable);
-          return null;
-        });
-  }
-
-  private void setClan(Optional<Clan> optionalClan) {
-    clan = optionalClan.orElse(null);
-  }
-
-  public void updateAvatarTooltip() {
-    Optional.ofNullable(avatarTooltip).ifPresent(tooltip -> Tooltip.uninstall(avatarImageView, tooltip));
-
-    chatUser.getPlayer().ifPresent(player -> {
-      avatarTooltip = new Tooltip(player.getAvatarTooltip());
-      avatarTooltip.textProperty().bind(player.avatarTooltipProperty());
-      avatarTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
-
-      Tooltip.install(avatarImageView, avatarTooltip);
-    });
-  }
-
-  private void updateGameStatus() {
-    if (chatUser == null) {
-      return;
-    }
-    Optional<Player> playerOptional = chatUser.getPlayer();
-    if (!playerOptional.isPresent()) {
-      playerStatusIndicator.setVisible(false);
-      playerMapImage.setVisible(false);
-      return;
-    }
-
-    Player player = playerOptional.get();
-
-    if (player.getStatus() == PlayerStatus.IDLE) {
-      playerStatusIndicator.setVisible(false);
-      playerMapImage.setVisible(false);
-    } else {
-      playerStatusIndicator.setVisible(true);
-      playerStatusIndicator.setImage(getPlayerStatusIcon(player.getStatus()));
-      playerMapImage.setVisible(true);
-      playerMapImage.setImage(mapService.loadPreview(player.getGame().getMapFolderName(), PreviewSize.SMALL));
-    }
-  }
-
-  @SneakyThrows(IOException.class)
-  private Image getPlayerStatusIcon(PlayerStatus status) {
-    if (playerStatusIcons == null) {
-      loadPlayerStatusIcons(uiService);
-    }
-
-    return playerStatusIcons.get(status);
   }
 
   public void onMouseEnteredUserNameLabel() {
@@ -512,9 +283,12 @@ public class ChatUserItemController implements Controller<Node> {
    */
   public void onClanMenuRequested() {
     clanMenu.getItems().clear();
-    if (clan == null) {
+    clanMenu.hide();
+    if (chatUser.getClan().isEmpty()) {
       return;
     }
+
+    Clan clan = chatUser.getClan().get();
 
     Player currentPlayer = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("Player has to be set"));
@@ -530,20 +304,6 @@ public class ChatUserItemController implements Controller<Node> {
     visitClanPageAction.setOnAction(event -> platformService.showDocument(clan.getWebsiteUrl()));
     clanMenu.getItems().add(visitClanPageAction);
 
-    //reload to load newly set UI
-    clanMenu.hide();
     clanMenu.show();
-  }
-
-  /**
-   * Because of a bug in java fx tooltip when controls are updated without the tooltip showing the ui is leaked, so we
-   * only update when the user hover over the tooltip. This will reduce that to a minimum.
-   */
-  public void updateClanData() {
-    if (clan == null) {
-      return;
-    }
-    clanTooltipController.setClan(clan);
-    clanTooltip.setMaxHeight(clanTooltipController.getRoot().getHeight());
   }
 }
