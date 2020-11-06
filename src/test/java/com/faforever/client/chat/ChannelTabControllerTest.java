@@ -348,7 +348,8 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testUserIsRemovedFromCategoriesToUserListItems() {
-    instance.setChannel(defaultChannel);
+    Platform.runLater(() -> instance.setChannel(defaultChannel));
+    WaitForAsyncUtils.waitForFxEvents();
 
     ArgumentCaptor<MapChangeListener<String, ChatChannelUser>> captor = ArgumentCaptor.forClass(MapChangeListener.class);
     verify(chatService).addUsersListener(anyString(), captor.capture());

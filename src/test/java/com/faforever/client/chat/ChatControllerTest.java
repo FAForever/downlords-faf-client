@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.net.ConnectionState;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
@@ -26,9 +27,10 @@ import java.util.concurrent.TimeUnit;
 import static com.natpryce.hamcrest.reflection.HasAnnotationMatcher.hasAnnotation;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -56,6 +58,8 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ChatService chatService;
   @Mock
+  private NotificationService notificationService;
+  @Mock
   private EventBus eventBus;
   @Captor
   private ArgumentCaptor<MapChangeListener<String, Channel>> channelsListener;
@@ -67,7 +71,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ChatController(chatService, uiService, userService, eventBus);
+    instance = new ChatController(chatService, uiService, userService, notificationService, eventBus);
 
     connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
 
@@ -82,8 +86,10 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnMessageForChannel() throws Exception {
-    when(channelTabController.getRoot()).thenReturn(new Tab());
+  public void testOnMessageForChannel() {
+    Tab tab = new Tab(TEST_CHANNEL_NAME);
+    tab.setId(TEST_CHANNEL_NAME);
+    when(channelTabController.getRoot()).thenReturn(tab);
 
     ChatMessage chatMessage = new ChatMessage(TEST_CHANNEL_NAME, Instant.now(), TEST_USER_NAME, "message");
     instance.onChatMessage(new ChatMessageEvent(chatMessage));
@@ -147,7 +153,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnJoinChannelButtonClicked() throws Exception {
-    assertThat(instance.tabPane.getTabs(), is(empty()));
+    assertEquals(instance.tabPane.getTabs().size(), 1);
 
     Tab tab = new Tab();
     tab.setId(TEST_CHANNEL_NAME);
@@ -177,8 +183,21 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
     instance.tabPane.getTabs().addListener((InvalidationListener) observable -> tabAddedLatch.countDown());
     tabAddedLatch.await(2, TimeUnit.SECONDS);
 
-    assertThat(instance.tabPane.getTabs(), hasSize(1));
+    assertThat(instance.tabPane.getTabs(), hasSize(2));
     assertThat(instance.tabPane.getTabs().get(0).getId(), is(TEST_CHANNEL_NAME));
+  }
+
+  @Test
+  public void testOnJoinChannelButtonClickedInvalidChannel() throws Exception {
+    assertEquals(instance.tabPane.getTabs().size(), 1);
+
+    Tab tab = new Tab();
+    tab.setId(TEST_CHANNEL_NAME);
+
+    instance.channelNameTextField.setText(TEST_CHANNEL_NAME.replace("#", ""));
+    instance.onJoinChannelButtonClicked();
+
+    verify(notificationService).addImmediateErrorNotification(any(IllegalArgumentException.class), anyString(), anyString());
   }
 
   @Test
