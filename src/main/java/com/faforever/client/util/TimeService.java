@@ -2,6 +2,7 @@ package com.faforever.client.util;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.DateInfo;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.TimeInfo;
 import lombok.RequiredArgsConstructor;
@@ -111,7 +112,7 @@ public class TimeService {
 
   private Locale getCurrentDateLocale() {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    if (chatPrefs.getDateFormat().equals(TimeInfo.AUTO)) {
+    if (chatPrefs.getDateFormat().equals(DateInfo.AUTO)) {
       return Locale.getDefault();
     }
     return preferencesService.getPreferences().getChat().getDateFormat().getUsedLocale();
