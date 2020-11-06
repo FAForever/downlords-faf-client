@@ -117,7 +117,7 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
     loadFxml("theme/chat/chat_user_context_menu.fxml", clazz -> instance);
 
     player = PlayerBuilder.create(TEST_USER_NAME).socialStatus(SELF).avatar(null).game(new Game()).get();
-    chatUser = ChatChannelUserBuilder.create(TEST_USER_NAME).defaultValues().setPlayer(player).get();
+    chatUser = ChatChannelUserBuilder.create(TEST_USER_NAME).defaultValues().player(player).get();
   }
 
   @Test

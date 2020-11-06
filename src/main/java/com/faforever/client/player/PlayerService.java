@@ -5,6 +5,7 @@ import com.faforever.client.chat.ChatUserCreatedEvent;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.chat.event.ChatMessageEvent;
+import com.faforever.client.chat.event.ChatUserGameChangeEvent;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameAddedEvent;
@@ -168,21 +169,34 @@ public class PlayerService implements InitializingBean {
         if (!currentPlayers.contains(player.getUsername())) {
           player.setGame(null);
           playersThatLeftTheGame.add(player);
+          player.getChatChannelUsers().forEach(chatChannelUser -> eventBus.post(new ChatUserGameChangeEvent(chatChannelUser)));
         }
       }
       previousPlayersFromGame.removeAll(playersThatLeftTheGame);
+    }
+
+    //Game is closed remove players
+    if (game != null && game.getStatus() == GameStatus.CLOSED && playersByGame.get(game.getId()) != null) {
+      List<Player> previousPlayersFromGame = playersByGame.get(game.getId());
+      for (Player player : previousPlayersFromGame) {
+        player.setGame(null);
+        player.getChatChannelUsers().forEach(chatChannelUser -> eventBus.post(new ChatUserGameChangeEvent(chatChannelUser)));
+      }
+      previousPlayersFromGame.clear();
     }
   }
 
   private void updateGameDataForPlayer(Game game, Player player) {
     if (game == null) {
       player.setGame(null);
+      player.getChatChannelUsers().forEach(chatChannelUser -> eventBus.post(new ChatUserGameChangeEvent(chatChannelUser)));
       return;
     }
 
     if (game.getStatus() == GameStatus.CLOSED) {
       playersByGame.remove(game.getId());
       player.setGame(null);
+      player.getChatChannelUsers().forEach(chatChannelUser -> eventBus.post(new ChatUserGameChangeEvent(chatChannelUser)));
       return;
     }
 
@@ -192,6 +206,7 @@ public class PlayerService implements InitializingBean {
 
     if (!playersByGame.get(game.getId()).contains(player)) {
       player.setGame(game);
+      player.getChatChannelUsers().forEach(chatChannelUser -> eventBus.post(new ChatUserGameChangeEvent(chatChannelUser)));
       playersByGame.get(game.getId()).add(player);
       if (player.getSocialStatus() == FRIEND
           && game.getStatus() == GameStatus.OPEN

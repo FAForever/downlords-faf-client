@@ -291,6 +291,24 @@
                                                 <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
                                             </rowConstraints>
                                             <children>
+                                                <Label styleClass="setting-title" text="%settings.chat.dateFormat"/>
+                                                <Label styleClass="setting-description"
+                                                       text="%settings.chat.dateFormat.description"
+                                                       GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
+                                                <ComboBox fx:id="dateComboBox" maxWidth="1.7976931348623157E308"
+                                                          onAction="#onDateFormatSelected" GridPane.columnIndex="1"/>
+                                            </children>
+                                        </GridPane>
+                                        <GridPane styleClass="setting-container">
+                                            <columnConstraints>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                            </rowConstraints>
+                                            <children>
                                                 <Label styleClass="setting-title" text="%settings.chat.chatFormat"/>
                                                 <ComboBox fx:id="chatComboBox" maxWidth="1.7976931348623157E308"
                                                           onAction="#onChatFormatSelected" GridPane.columnIndex="1"/>

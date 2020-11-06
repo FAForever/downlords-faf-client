@@ -84,6 +84,7 @@ public class PrivateUserInfoController implements Controller<Node> {
   }
 
   public void setChatUser(@NotNull ChatChannelUser chatUser) {
+    chatUser.setDisplayed(true);
     chatUser.getPlayer().ifPresentOrElse(this::displayPlayerInfo, () -> {
       chatUser.playerProperty().addListener((observable, oldValue, newValue) -> {
         if (newValue != null) {
@@ -93,11 +94,13 @@ public class PrivateUserInfoController implements Controller<Node> {
         }
       });
       displayChatUserInfo(chatUser);
+      JavaFxUtil.bind(usernameLabel.textProperty(), chatUser.usernameProperty());
+      JavaFxUtil.bind(countryImageView.imageProperty(), chatUser.countryFlagProperty());
+      JavaFxUtil.bind(countryLabel.textProperty(), chatUser.countryNameProperty());
     });
   }
 
   private void displayChatUserInfo(ChatChannelUser chatUser) {
-    usernameLabel.textProperty().bind(chatUser.usernameProperty());
     onPlayerGameChanged(null);
     setPlayerInfoVisible(false);
   }
@@ -118,14 +121,8 @@ public class PrivateUserInfoController implements Controller<Node> {
   private void displayPlayerInfo(Player player) {
     setPlayerInfoVisible(true);
 
-    usernameLabel.textProperty().bind(player.usernameProperty());
-
     userImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
     userImageView.setVisible(true);
-
-    countryFlagService.loadCountryFlag(player.getCountry()).ifPresent(image -> countryImageView.setImage(image));
-    countryLabel.setText(i18n.getCountryNameLocalized(player.getCountry()));
-    countryLabel.setVisible(true);
 
     globalRatingInvalidationListener = (observable) -> loadReceiverGlobalRatingInformation(player);
     JavaFxUtil.addListener(player.globalRatingMeanProperty(), new WeakInvalidationListener(globalRatingInvalidationListener));
