@@ -14,6 +14,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.preferences.DateInfo;
 import com.faforever.client.preferences.LocalizationPrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
@@ -127,6 +128,7 @@ public class SettingsController implements Controller<Node> {
   public PasswordField newPasswordField;
   public PasswordField confirmPasswordField;
   public ComboBox<TimeInfo> timeComboBox;
+  public ComboBox<DateInfo> dateComboBox;
   public ComboBox<ChatFormat> chatComboBox;
   public Label passwordChangeErrorLabel;
   public Label passwordChangeSuccessLabel;
@@ -277,6 +279,7 @@ public class SettingsController implements Controller<Node> {
       }
     });
     configureTimeSetting(preferences);
+    configureDateSetting(preferences);
     configureChatSetting(preferences);
     configureLanguageSelection();
     configureThemeSelection();
@@ -400,6 +403,22 @@ public class SettingsController implements Controller<Node> {
     log.debug("A new time format was selected: {}", timeComboBox.getValue());
     Preferences preferences = preferencesService.getPreferences();
     preferences.getChat().setTimeFormat(timeComboBox.getValue());
+    preferencesService.storeInBackground();
+  }
+
+  private void configureDateSetting(Preferences preferences) {
+    dateComboBox.setButtonCell(new StringListCell<>(dateInfo -> i18n.get(dateInfo.getDisplayNameKey())));
+    dateComboBox.setCellFactory(param -> new StringListCell<>(dateInfo -> i18n.get(dateInfo.getDisplayNameKey())));
+    dateComboBox.setItems(FXCollections.observableArrayList(DateInfo.values()));
+    dateComboBox.setDisable(false);
+    dateComboBox.setFocusTraversable(true);
+    dateComboBox.getSelectionModel().select(preferences.getChat().getDateFormat());
+  }
+
+  public void onDateFormatSelected() {
+    log.debug("A new date format was selected: {}", dateComboBox.getValue());
+    Preferences preferences = preferencesService.getPreferences();
+    preferences.getChat().setDateFormat(dateComboBox.getValue());
     preferencesService.storeInBackground();
   }
 
