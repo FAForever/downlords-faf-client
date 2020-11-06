@@ -169,7 +169,7 @@ public class PlayerService implements InitializingBean {
         if (!currentPlayers.contains(player.getUsername())) {
           player.setGame(null);
           playersThatLeftTheGame.add(player);
-          player.getChatChannelUsers().forEach(chatChannelUser -> eventBus.post(new ChatUserGameChangeEvent(chatChannelUser)));
+          updatePlayerChatUsers(player);
         }
       }
       previousPlayersFromGame.removeAll(playersThatLeftTheGame);
@@ -180,7 +180,7 @@ public class PlayerService implements InitializingBean {
       List<Player> previousPlayersFromGame = playersByGame.get(game.getId());
       for (Player player : previousPlayersFromGame) {
         player.setGame(null);
-        player.getChatChannelUsers().forEach(chatChannelUser -> eventBus.post(new ChatUserGameChangeEvent(chatChannelUser)));
+        updatePlayerChatUsers(player);
       }
       previousPlayersFromGame.clear();
     }
@@ -189,14 +189,14 @@ public class PlayerService implements InitializingBean {
   private void updateGameDataForPlayer(Game game, Player player) {
     if (game == null) {
       player.setGame(null);
-      player.getChatChannelUsers().forEach(chatChannelUser -> eventBus.post(new ChatUserGameChangeEvent(chatChannelUser)));
+      updatePlayerChatUsers(player);
       return;
     }
 
     if (game.getStatus() == GameStatus.CLOSED) {
       playersByGame.remove(game.getId());
       player.setGame(null);
-      player.getChatChannelUsers().forEach(chatChannelUser -> eventBus.post(new ChatUserGameChangeEvent(chatChannelUser)));
+      updatePlayerChatUsers(player);
       return;
     }
 
@@ -206,7 +206,7 @@ public class PlayerService implements InitializingBean {
 
     if (!playersByGame.get(game.getId()).contains(player)) {
       player.setGame(game);
-      player.getChatChannelUsers().forEach(chatChannelUser -> eventBus.post(new ChatUserGameChangeEvent(chatChannelUser)));
+      updatePlayerChatUsers(player);
       playersByGame.get(game.getId()).add(player);
       if (player.getSocialStatus() == FRIEND
           && game.getStatus() == GameStatus.OPEN
@@ -252,6 +252,15 @@ public class PlayerService implements InitializingBean {
 
   public Set<String> getPlayerNames() {
     return new HashSet<>(playersByName.keySet());
+  }
+
+  public void updatePlayerChatUsers(Player player) {
+    player.getChatChannelUsers().forEach(chatChannelUser -> {
+      if (chatChannelUser.isDisplayed()
+          && chatChannelUser.getStatus().filter(playerStatus -> playerStatus != player.getStatus()).isPresent()) {
+        eventBus.post(new ChatUserGameChangeEvent(chatChannelUser));
+      }
+    });
   }
 
   public void addFriend(Player player) {

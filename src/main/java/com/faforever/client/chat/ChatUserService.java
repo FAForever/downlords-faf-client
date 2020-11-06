@@ -39,16 +39,24 @@ public class ChatUserService implements InitializingBean {
 
   public void populateClan(ChatChannelUser chatChannelUser) {
     if (chatChannelUser.getClan().isEmpty()) {
-      chatChannelUser.getPlayer().ifPresent(player -> clanService.getClanByTag(player.getClan())
-          .thenAccept(optionalClan -> Platform.runLater(() -> {
-            if (optionalClan.isPresent()) {
-              chatChannelUser.setClan(optionalClan.get());
-              chatChannelUser.setClanTag(String.format("[%s]", optionalClan.get().getTag()));
-            } else {
-              chatChannelUser.setClan(null);
-              chatChannelUser.setClanTag(null);
-            }
-          })));
+      chatChannelUser.getPlayer().ifPresent(player -> {
+        if (player.getClan() != null) {
+          clanService.getClanByTag(player.getClan())
+              .thenAccept(optionalClan -> Platform.runLater(() -> {
+                    if (optionalClan.isPresent()) {
+                      chatChannelUser.setClan(optionalClan.get());
+                      chatChannelUser.setClanTag(String.format("[%s]", optionalClan.get().getTag()));
+                    } else {
+                      chatChannelUser.setClan(null);
+                      chatChannelUser.setClanTag(null);
+                    }
+                  })
+              );
+        } else {
+          chatChannelUser.setClan(null);
+          chatChannelUser.setClanTag(null);
+        }
+      });
     }
   }
 
@@ -104,16 +112,22 @@ public class ChatUserService implements InitializingBean {
   @Subscribe
   public void onChatUserPopulate(ChatUserPopulateEvent event) {
     ChatChannelUser chatChannelUser = event.getChatChannelUser();
-    if (chatChannelUser.isDisplayed()) {
+    if (chatChannelUser.isDisplayed() && !chatChannelUser.isPopulated()) {
+      chatChannelUser.setPopulated(true);
       populateAvatar(chatChannelUser);
       populateClan(chatChannelUser);
       populateCountry(chatChannelUser);
+      populateGameStatus(chatChannelUser);
     } else if (!chatChannelUser.isDisplayed()) {
       chatChannelUser.setClan(null);
       chatChannelUser.setClanTag(null);
       chatChannelUser.setAvatar(null);
       chatChannelUser.setCountryFlag(null);
       chatChannelUser.setCountryName(null);
+      chatChannelUser.setStatus(null);
+      chatChannelUser.setMapImage(null);
+      chatChannelUser.setStatusImage(null);
+      chatChannelUser.setPopulated(false);
     }
   }
 

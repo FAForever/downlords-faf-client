@@ -66,7 +66,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     avatarURL = new URL("http://avatar.png");
     testClan = new Clan();
     testClan.setTag("testClan");
-    when(clanService.getClanByTag(null)).thenReturn(CompletableFuture.completedFuture(Optional.empty()));
     when(clanService.getClanByTag(anyString())).thenReturn(CompletableFuture.completedFuture(Optional.of(testClan)));
     when(countryFlagService.loadCountryFlag(anyString())).thenReturn(Optional.of(mock(Image.class)));
     when(uiService.getThemeImage(anyString())).thenReturn(mock(Image.class));
@@ -92,11 +91,44 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
         .defaultValues()
         .get();
-    instance.onChatUserGameChange(new ChatUserGameChangeEvent(chatUser));
     instance.onChatUserPopulate(new ChatUserPopulateEvent(chatUser));
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(clanService, never()).getClanByTag(anyString());
+    verify(countryFlagService, never()).loadCountryFlag(anyString());
+    verify(avatarService, never()).loadAvatar(anyString());
+    verify(mapService, never()).loadPreview(anyString(), any(PreviewSize.class));
+    verify(uiService, never()).getThemeImage(anyString());
+  }
+
+  @Test
+  public void testChatUserNotDisplayed() {
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
+        .defaultValues()
+        .displayed(false)
+        .get();
+    instance.onChatUserPopulate(new ChatUserPopulateEvent(chatUser));
+    instance.onChatUserGameChange(new ChatUserGameChangeEvent(chatUser));
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(clanService, never()).getClanByTag(anyString());
+    verify(countryFlagService, never()).loadCountryFlag(anyString());
+    verify(avatarService, never()).loadAvatar(anyString());
+    verify(mapService, never()).loadPreview(anyString(), any(PreviewSize.class));
+    verify(uiService, never()).getThemeImage(anyString());
+  }
+
+  @Test
+  public void testChatUserPopulated() {
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
+        .defaultValues()
+        .populated(true)
+        .get();
+    instance.onChatUserPopulate(new ChatUserPopulateEvent(chatUser));
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(clanService, never()).getClanByTag(anyString());
+    verify(countryFlagService, never()).loadCountryFlag(anyString());
     verify(avatarService, never()).loadAvatar(anyString());
     verify(mapService, never()).loadPreview(anyString(), any(PreviewSize.class));
     verify(uiService, never()).getThemeImage(anyString());
@@ -127,7 +159,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     instance.onChatUserPopulate(new ChatUserPopulateEvent(chatUser));
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(clanService).getClanByTag(null);
+    verify(clanService, never()).getClanByTag(anyString());
     assertTrue(chatUser.getClan().isEmpty());
     assertTrue(chatUser.getClanTag().isEmpty());
   }

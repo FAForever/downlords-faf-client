@@ -38,6 +38,7 @@ public class ChatChannelUser {
   private final ObjectProperty<Image> mapImage;
   private final ObjectProperty<Image> statusImage;
   private final BooleanProperty displayed;
+  private final BooleanProperty populated;
 
   ChatChannelUser(String username, Color color, boolean moderator) {
     this(username, color, moderator, null);
@@ -58,6 +59,7 @@ public class ChatChannelUser {
     this.mapImage = new SimpleObjectProperty<>();
     this.statusImage = new SimpleObjectProperty<>();
     this.displayed = new SimpleBooleanProperty(false);
+    this.populated = new SimpleBooleanProperty(false);
   }
 
   public Optional<Player> getPlayer() {
@@ -227,6 +229,18 @@ public class ChatChannelUser {
 
   public BooleanProperty displayedProperty() {
     return displayed;
+  }
+
+  public boolean isPopulated() {
+    return populated.get();
+  }
+
+  public void setPopulated(boolean populated) {
+    this.populated.set(populated);
+  }
+
+  public BooleanProperty populatedProperty() {
+    return populated;
   }
 
   @Override
