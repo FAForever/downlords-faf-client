@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.chat.event.ChatUserGameChangeEvent;
 import com.faforever.client.chat.event.ChatUserPopulateEvent;
 import com.faforever.client.clan.Clan;
 import com.faforever.client.fx.Controller;
@@ -146,7 +145,7 @@ public class ChatUserItemController implements Controller<Node> {
 
     JavaFxUtil.bind(avatarImageView.visibleProperty(), Bindings.isNotNull(avatarImageView.imageProperty()));
     JavaFxUtil.bind(countryImageView.visibleProperty(), Bindings.isNotNull(countryImageView.imageProperty()));
-    JavaFxUtil.bind(clanMenu.visibleProperty(), Bindings.isNotNull(clanMenu.textProperty()));
+    JavaFxUtil.bind(clanMenu.visibleProperty(), Bindings.isNotEmpty(clanMenu.textProperty()));
     JavaFxUtil.bind(playerStatusIndicator.visibleProperty(), Bindings.isNotNull(playerStatusIndicator.imageProperty()));
     JavaFxUtil.bind(playerMapImage.visibleProperty(), Bindings.isNotNull(playerMapImage.imageProperty()));
 
@@ -321,8 +320,9 @@ public class ChatUserItemController implements Controller<Node> {
       if (this.chatUser.getPlayer().isPresent()) {
         JavaFxUtil.bind(avatarTooltip.textProperty(), this.chatUser.getPlayer().get().avatarTooltipProperty());
       }
-      eventBus.post(new ChatUserGameChangeEvent(this.chatUser));
-      eventBus.post(new ChatUserPopulateEvent(this.chatUser));
+      if (!this.chatUser.isPopulated()) {
+        eventBus.post(new ChatUserPopulateEvent(this.chatUser));
+      }
     }
 
     updateColor();

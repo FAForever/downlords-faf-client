@@ -793,6 +793,7 @@ public class GameService implements InitializingBean {
     ));
     game.setStatus(gameInfoMessage.getState());
     game.setPasswordProtected(gameInfoMessage.getPasswordProtected());
+    game.setGameType(gameInfoMessage.getGameType());
 
     game.setAverageRating(calcAverageRating(gameInfoMessage));
 

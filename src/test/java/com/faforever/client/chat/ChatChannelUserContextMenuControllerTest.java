@@ -20,6 +20,7 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameStatus;
+import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
@@ -196,9 +197,9 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
   }
 
   @Test
-  public void testJoinGameContextMenuNotShownForLadderUser() {
+  public void testJoinGameContextMenuNotShownForMatchmakerPlayer() {
     Game game = new Game();
-    game.setFeaturedMod(KnownFeaturedMod.LADDER_1V1.getTechnicalName());
+    game.setGameType(GameType.MATCHMAKER);
     game.setStatus(GameStatus.OPEN);
     game.setHost(player.getUsername());
 
