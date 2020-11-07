@@ -83,21 +83,23 @@ public class ChatUserService implements InitializingBean {
   public void populateGameStatus(ChatChannelUser chatChannelUser) {
     chatChannelUser.getPlayer()
         .ifPresent(player -> Platform.runLater(() -> {
-          Image playerStatusImage = switch (player.getStatus()) {
+          PlayerStatus status = player.getStatus();
+          Image playerStatusImage = switch (status) {
             case HOSTING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING);
             case LOBBYING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_LOBBYING);
             case PLAYING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING);
             default -> null;
           };
+          chatChannelUser.setStatusTooltipText(i18n.get(status.getI18nKey()));
           chatChannelUser.setStatusImage(playerStatusImage);
 
-          if (player.getStatus() != PlayerStatus.IDLE) {
+          if (status != PlayerStatus.IDLE) {
             chatChannelUser.setMapImage(mapService.loadPreview(player.getGame().getMapFolderName(), PreviewSize.SMALL));
           } else {
             chatChannelUser.setMapImage(null);
           }
 
-          chatChannelUser.setStatus(player.getStatus());
+          chatChannelUser.setStatus(status);
         }));
   }
 

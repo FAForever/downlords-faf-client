@@ -44,17 +44,19 @@ public class GameTooltipController implements Controller<Node> {
   private WeakInvalidationListener weakModChangeListener;
   private int maxPrefColumns;
   private Game game;
+  private boolean showMods;
 
   public void initialize() {
     modsPane.managedProperty().bind(modsPane.visibleProperty());
     maxPrefColumns = teamsPane.getPrefColumns();
+    showMods = true;
   }
 
   public void setGame(Game game) {
     if (lastTeams != null && weakTeamChangeListener != null) {
       lastTeams.removeListener(weakTeamChangeListener);
     }
-    if (lastSimMods != null && weakModChangeListener != null) {
+    if (showMods && lastSimMods != null && weakModChangeListener != null) {
       lastSimMods.removeListener(weakModChangeListener);
     }
     this.game = game;
@@ -65,15 +67,19 @@ public class GameTooltipController implements Controller<Node> {
       return;
     }
     teamChangedListener = change -> createTeams(game.getTeams());
-    simModsChangedListener = change -> createModsList(game.getSimMods());
-    lastSimMods = game.getSimMods();
     lastTeams = game.getTeams();
     createTeams(game.getTeams());
-    createModsList(game.getSimMods());
     weakTeamChangeListener = new WeakInvalidationListener(teamChangedListener);
     JavaFxUtil.addListener(game.getTeams(), weakTeamChangeListener);
-    weakModChangeListener = new WeakInvalidationListener(simModsChangedListener);
-    JavaFxUtil.addListener(game.getSimMods(), weakModChangeListener);
+    if (showMods) {
+      simModsChangedListener = change -> createModsList(game.getSimMods());
+      lastSimMods = game.getSimMods();
+      createModsList(game.getSimMods());
+      weakModChangeListener = new WeakInvalidationListener(simModsChangedListener);
+      JavaFxUtil.addListener(game.getSimMods(), weakModChangeListener);
+    } else {
+      modsPane.setVisible(false);
+    }
   }
 
   private void createTeams(ObservableMap<? extends String, ? extends List<String>> teamsList) {
@@ -97,6 +103,10 @@ public class GameTooltipController implements Controller<Node> {
       modsLabel.setText(stringSimMods);
       modsPane.setVisible(true);
     });
+  }
+
+  public void setShowMods(boolean showMods) {
+    this.showMods = showMods;
   }
 
   public Node getRoot() {
