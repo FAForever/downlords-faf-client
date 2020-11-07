@@ -164,7 +164,7 @@ public class ChatController extends AbstractViewController<Node> {
         onDisconnected();
         break;
       case CONNECTED:
-//        onConnected();
+        onConnected();
         break;
       case CONNECTING:
         onConnecting();
@@ -267,7 +267,7 @@ public class ChatController extends AbstractViewController<Node> {
     }
     if (!tabPane.getTabs().isEmpty()) {
       Tab tab = tabPane.getSelectionModel().getSelectedItem();
-      nameToChatTabController.get(tab.getId()).onDisplay();
+      Optional.ofNullable(nameToChatTabController.get(tab.getId())).ifPresent(AbstractChatTabController::onDisplay);
     }
   }
 
