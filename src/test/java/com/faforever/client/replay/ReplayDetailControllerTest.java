@@ -125,8 +125,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     replay.setTitle("test");
     Path tmpPath = Paths.get("foo.tmp");
     replay.setReplayFile(tmpPath);
-    when(replayService.getSize(replay.getId())).thenReturn(CompletableFuture.completedFuture(1024));
-    when(ratingService.calculateQuality(replay)).thenReturn(0.427);
+    when(ratingService.calculateQuality(replay)).thenReturn(Double.NaN);
 
     instance.setReplay(replay);
     verify(replayService).enrich(replay, tmpPath);
