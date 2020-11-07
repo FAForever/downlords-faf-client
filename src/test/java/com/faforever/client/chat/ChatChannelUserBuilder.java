@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.clan.Clan;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.player.Player;
 import javafx.scene.image.Image;
@@ -55,11 +54,6 @@ public final class ChatChannelUserBuilder {
 
   public ChatChannelUserBuilder avatar(Image avatar) {
     chatChannelUser.setAvatar(avatar);
-    return this;
-  }
-
-  public ChatChannelUserBuilder clan(Clan clan) {
-    chatChannelUser.setClan(clan);
     return this;
   }
 

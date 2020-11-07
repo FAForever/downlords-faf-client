@@ -5,7 +5,6 @@ import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.chat.event.ChatUserGameChangeEvent;
 import com.faforever.client.chat.event.ChatUserPopulateEvent;
 import com.faforever.client.clan.Clan;
-import com.faforever.client.clan.ClanService;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameBuilder;
 import com.faforever.client.game.PlayerStatus;
@@ -26,7 +25,6 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.net.URL;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -52,8 +50,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private EventBus eventBus;
   @Mock
-  private ClanService clanService;
-  @Mock
   private MapService mapService;
   @Mock
   private AvatarBean avatar;
@@ -66,7 +62,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     avatarURL = new URL("http://avatar.png");
     testClan = new Clan();
     testClan.setTag("testClan");
-    when(clanService.getClanByTag(anyString())).thenReturn(CompletableFuture.completedFuture(Optional.of(testClan)));
     when(countryFlagService.loadCountryFlag(anyString())).thenReturn(Optional.of(mock(Image.class)));
     when(uiService.getThemeImage(anyString())).thenReturn(mock(Image.class));
     when(mapService.loadPreview(anyString(), any(PreviewSize.class))).thenReturn(mock(Image.class));
@@ -79,7 +74,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
         uiService,
         mapService,
         avatarService,
-        clanService,
         countryFlagService,
         i18n,
         eventBus
@@ -94,7 +88,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     instance.onChatUserPopulate(new ChatUserPopulateEvent(chatUser));
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(clanService, never()).getClanByTag(anyString());
     verify(countryFlagService, never()).loadCountryFlag(anyString());
     verify(avatarService, never()).loadAvatar(anyString());
     verify(mapService, never()).loadPreview(anyString(), any(PreviewSize.class));
@@ -111,7 +104,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     instance.onChatUserGameChange(new ChatUserGameChangeEvent(chatUser));
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(clanService, never()).getClanByTag(anyString());
     verify(countryFlagService, never()).loadCountryFlag(anyString());
     verify(avatarService, never()).loadAvatar(anyString());
     verify(mapService, never()).loadPreview(anyString(), any(PreviewSize.class));
@@ -127,7 +119,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     instance.onChatUserPopulate(new ChatUserPopulateEvent(chatUser));
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(clanService, never()).getClanByTag(anyString());
     verify(countryFlagService, never()).loadCountryFlag(anyString());
     verify(avatarService, never()).loadAvatar(anyString());
     verify(mapService, never()).loadPreview(anyString(), any(PreviewSize.class));
@@ -144,8 +135,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     instance.onChatUserPopulate(new ChatUserPopulateEvent(chatUser));
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(clanService).getClanByTag(testClan.getTag());
-    assertEquals(chatUser.getClan().orElse(null), testClan);
     assertEquals(chatUser.getClanTag().orElse(null), String.format("[%s]", testClan.getTag()));
   }
 
@@ -159,8 +148,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     instance.onChatUserPopulate(new ChatUserPopulateEvent(chatUser));
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(clanService, never()).getClanByTag(anyString());
-    assertTrue(chatUser.getClan().isEmpty());
     assertTrue(chatUser.getClanTag().isEmpty());
   }
 

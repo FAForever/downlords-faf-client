@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.clan.Clan;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.player.Player;
 import javafx.beans.property.BooleanProperty;
@@ -31,7 +30,6 @@ public class ChatChannelUser {
   private final ObjectProperty<Instant> lastActive;
   private final ObjectProperty<PlayerStatus> status;
   private final ObjectProperty<Image> avatar;
-  private final ObjectProperty<Clan> clan;
   private final StringProperty clanTag;
   private final ObjectProperty<Image> countryFlag;
   private final StringProperty countryName;
@@ -52,7 +50,6 @@ public class ChatChannelUser {
     this.lastActive = new SimpleObjectProperty<>();
     this.status = new SimpleObjectProperty<>();
     this.avatar = new SimpleObjectProperty<>();
-    this.clan = new SimpleObjectProperty<>();
     this.clanTag = new SimpleStringProperty();
     this.countryFlag = new SimpleObjectProperty<>();
     this.countryName = new SimpleStringProperty();
@@ -145,18 +142,6 @@ public class ChatChannelUser {
 
   public ObjectProperty<Image> avatarProperty() {
     return avatar;
-  }
-
-  public Optional<Clan> getClan() {
-    return Optional.ofNullable(clan.get());
-  }
-
-  public void setClan(Clan clan) {
-    this.clan.set(clan);
-  }
-
-  public ObjectProperty<Clan> clanProperty() {
-    return clan;
   }
 
   public Optional<String> getClanTag() {

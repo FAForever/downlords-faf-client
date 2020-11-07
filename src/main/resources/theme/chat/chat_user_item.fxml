@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <HBox fx:id="chatUserItemRoot" alignment="CENTER_LEFT" spacing="3.0" xmlns="http://javafx.com/javafx/11.0.1"
@@ -10,9 +9,7 @@
     <children>
         <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true"/>
         <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true"/>
-        <MenuButton fx:id="clanMenu" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-                    onMouseClicked="#onClanMenuRequested"
-                    styleClass="chat-user-control-clan" text="[CLAN]"/>
+        <Label fx:id="clanLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="[CLAN]"/>
         <Label fx:id="usernameLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" onMouseClicked="#onItemClicked"
                onMouseEntered="#onMouseEnteredUserNameLabel" styleClass="chat-user-item-username"
                text="&lt;Username&gt;" HBox.hgrow="ALWAYS"/>

@@ -1,7 +1,6 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.chat.event.ChatUserPopulateEvent;
-import com.faforever.client.clan.Clan;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
@@ -20,8 +19,6 @@ import javafx.beans.binding.Bindings;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
@@ -75,7 +72,7 @@ public class ChatUserItemController implements Controller<Node> {
   public ImageView countryImageView;
   public ImageView avatarImageView;
   public Label usernameLabel;
-  public MenuButton clanMenu;
+  public Label clanLabel;
   public ImageView playerMapImage;
 
   private ChatChannelUser chatUser;
@@ -141,11 +138,11 @@ public class ChatUserItemController implements Controller<Node> {
     weakColorInvalidationListener.invalidated(chatPrefs.chatColorModeProperty());
     weakFormatInvalidationListener.invalidated(chatPrefs.chatFormatProperty());
 
-    JavaFxUtil.bindManagedToVisible(countryImageView, clanMenu, playerStatusIndicator, playerMapImage);
+    JavaFxUtil.bindManagedToVisible(countryImageView, clanLabel, playerStatusIndicator, playerMapImage);
 
     JavaFxUtil.bind(avatarImageView.visibleProperty(), Bindings.isNotNull(avatarImageView.imageProperty()));
     JavaFxUtil.bind(countryImageView.visibleProperty(), Bindings.isNotNull(countryImageView.imageProperty()));
-    JavaFxUtil.bind(clanMenu.visibleProperty(), Bindings.isNotEmpty(clanMenu.textProperty()));
+    JavaFxUtil.bind(clanLabel.visibleProperty(), Bindings.isNotEmpty(clanLabel.textProperty()));
     JavaFxUtil.bind(playerStatusIndicator.visibleProperty(), Bindings.isNotNull(playerStatusIndicator.imageProperty()));
     JavaFxUtil.bind(playerMapImage.visibleProperty(), Bindings.isNotNull(playerMapImage.imageProperty()));
 
@@ -185,7 +182,7 @@ public class ChatUserItemController implements Controller<Node> {
     chatUser.getPlayer().ifPresent(player -> {
       if (player.getSocialStatus() == SELF) {
         usernameLabel.getStyleClass().add(SELF.getCssClass());
-        clanMenu.getStyleClass().add(SELF.getCssClass());
+        clanLabel.getStyleClass().add(SELF.getCssClass());
       }
     });
 
@@ -207,10 +204,10 @@ public class ChatUserItemController implements Controller<Node> {
   private void assignColor(Color color) {
     if (color != null) {
       usernameLabel.setStyle(String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)));
-      clanMenu.setStyle(String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)));
+      clanLabel.setStyle(String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)));
     } else {
       usernameLabel.setStyle("");
-      clanMenu.setStyle("");
+      clanLabel.setStyle("");
     }
   }
 
@@ -229,7 +226,7 @@ public class ChatUserItemController implements Controller<Node> {
 
     JavaFxUtil.unbind(usernameLabel.textProperty());
     JavaFxUtil.unbind(avatarImageView.imageProperty());
-    JavaFxUtil.unbind(clanMenu.textProperty());
+    JavaFxUtil.unbind(clanLabel.textProperty());
     JavaFxUtil.unbind(countryImageView.imageProperty());
     JavaFxUtil.unbind(playerMapImage.imageProperty());
     JavaFxUtil.unbind(playerStatusIndicator.imageProperty());
@@ -246,7 +243,7 @@ public class ChatUserItemController implements Controller<Node> {
       this.chatUser.setDisplayed(true);
       JavaFxUtil.bind(usernameLabel.textProperty(), this.chatUser.usernameProperty());
       JavaFxUtil.bind(avatarImageView.imageProperty(), this.chatUser.avatarProperty());
-      JavaFxUtil.bind(clanMenu.textProperty(), this.chatUser.clanTagProperty());
+      JavaFxUtil.bind(clanLabel.textProperty(), this.chatUser.clanTagProperty());
       JavaFxUtil.bind(countryImageView.imageProperty(), this.chatUser.countryFlagProperty());
       JavaFxUtil.bind(countryTooltip.textProperty(), this.chatUser.countryNameProperty());
       JavaFxUtil.bind(playerMapImage.imageProperty(), this.chatUser.mapImageProperty());
@@ -275,35 +272,5 @@ public class ChatUserItemController implements Controller<Node> {
 
   public void onMouseEnteredUserNameLabel() {
     chatUser.getPlayer().ifPresent(this::updateNameLabelText);
-  }
-
-  /**
-   * Memory analysis suggest this menu uses tons of memory while it stays unclear why exactly (something java fx
-   * internal). We just load the menu on click. Also we destroy it over and over again.
-   */
-  public void onClanMenuRequested() {
-    clanMenu.getItems().clear();
-    clanMenu.hide();
-    if (chatUser.getClan().isEmpty()) {
-      return;
-    }
-
-    Clan clan = chatUser.getClan().get();
-
-    Player currentPlayer = playerService.getCurrentPlayer()
-        .orElseThrow(() -> new IllegalStateException("Player has to be set"));
-
-    if (currentPlayer.getId() != clan.getLeader().getId()
-        && playerService.isOnline(clan.getLeader().getId())) {
-      MenuItem messageLeaderItem = new MenuItem(i18n.get("clan.messageLeader"));
-      messageLeaderItem.setOnAction(event -> eventBus.post(new InitiatePrivateChatEvent(clan.getLeader().getUsername())));
-      clanMenu.getItems().add(messageLeaderItem);
-    }
-
-    MenuItem visitClanPageAction = new MenuItem(i18n.get("clan.visitPage"));
-    visitClanPageAction.setOnAction(event -> platformService.showDocument(clan.getWebsiteUrl()));
-    clanMenu.getItems().add(visitClanPageAction);
-
-    clanMenu.show();
   }
 }

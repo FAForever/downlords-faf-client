@@ -3,7 +3,6 @@ package com.faforever.client.chat;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.chat.event.ChatUserGameChangeEvent;
 import com.faforever.client.chat.event.ChatUserPopulateEvent;
-import com.faforever.client.clan.ClanService;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -27,7 +26,6 @@ public class ChatUserService implements InitializingBean {
   private final UiService uiService;
   private final MapService mapService;
   private final AvatarService avatarService;
-  private final ClanService clanService;
   private final CountryFlagService countryFlagService;
   private final I18n i18n;
   private final EventBus eventBus;
@@ -38,22 +36,11 @@ public class ChatUserService implements InitializingBean {
   }
 
   public void populateClan(ChatChannelUser chatChannelUser) {
-    if (chatChannelUser.getClan().isEmpty()) {
+    if (chatChannelUser.getClanTag().isEmpty()) {
       chatChannelUser.getPlayer().ifPresent(player -> {
         if (player.getClan() != null) {
-          clanService.getClanByTag(player.getClan())
-              .thenAccept(optionalClan -> Platform.runLater(() -> {
-                    if (optionalClan.isPresent()) {
-                      chatChannelUser.setClan(optionalClan.get());
-                      chatChannelUser.setClanTag(String.format("[%s]", optionalClan.get().getTag()));
-                    } else {
-                      chatChannelUser.setClan(null);
-                      chatChannelUser.setClanTag(null);
-                    }
-                  })
-              );
+          chatChannelUser.setClanTag(String.format("[%s]", player.getClan()));
         } else {
-          chatChannelUser.setClan(null);
           chatChannelUser.setClanTag(null);
         }
       });
@@ -119,7 +106,6 @@ public class ChatUserService implements InitializingBean {
       populateCountry(chatChannelUser);
       populateGameStatus(chatChannelUser);
     } else if (!chatChannelUser.isDisplayed()) {
-      chatChannelUser.setClan(null);
       chatChannelUser.setClanTag(null);
       chatChannelUser.setAvatar(null);
       chatChannelUser.setCountryFlag(null);

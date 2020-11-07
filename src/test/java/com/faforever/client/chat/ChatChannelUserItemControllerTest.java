@@ -1,7 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.chat.avatar.AvatarBean;
-import com.faforever.client.clan.Clan;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
@@ -14,9 +12,7 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
-import javafx.collections.ObservableList;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
@@ -28,9 +24,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.net.URL;
-import java.util.Optional;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertFalse;
@@ -38,7 +31,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -63,20 +55,10 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private TimeService timeService;
 
-  private Clan testClan;
-
   @Before
   public void setUp() throws Exception {
     Preferences preferences = new Preferences();
     when(preferencesService.getPreferences()).thenReturn(preferences);
-
-    when(i18n.get(eq("clan.messageLeader"))).thenReturn("Message clan leader");
-    when(i18n.get(eq("clan.visitPage"))).thenReturn("Visit clan website");
-    testClan = new Clan();
-    testClan.setTag("e");
-    testClan.setLeader(PlayerBuilder.create("test_player").defaultValues().id(2).get());
-    when(playerService.isOnline(eq(2))).thenReturn(true);
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(new Player("junit")));
 
     instance = new ChatUserItemController(
         preferencesService,
@@ -179,73 +161,6 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
     verify(uiService).loadFxml("theme/chat/chat_user_context_menu.fxml");
     verify(contextMenuController).setChatUser(chatUser);
     verify(contextMenu).show(any(Window.class), anyDouble(), anyDouble());
-  }
-
-  @Test
-  public void testContactClanLeaderNotShowing() throws Exception {
-    Player player = PlayerBuilder.create("junit")
-        .defaultValues()
-        .id(2)
-        .clan("e")
-        .avatar(new AvatarBean(new URL("http://example.com/avatar.png"), "dog"))
-        .get();
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
-    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().player(player).clan(testClan).get());
-    WaitForAsyncUtils.waitForFxEvents();
-
-    instance.clanMenu.getOnMouseClicked().handle(null);
-
-    ObservableList<MenuItem> items = instance.clanMenu.getItems();
-    assertThat(items.size(), is(1));
-    boolean containsMessageItem = items.stream().anyMatch((item) -> "Message clan leader".equals(item.getText()));
-    assertThat(containsMessageItem, is(false));
-  }
-
-  @Test
-  public void testContactClanLeaderShowingSameClan() throws Exception {
-    Player player = PlayerBuilder.create("junit")
-        .defaultValues()
-        .clan("e")
-        .avatar(new AvatarBean(new URL("http://example.com/avatar.png"), "dog"))
-        .get();
-    Player otherClanLeader = PlayerBuilder.create("test_player")
-        .id(2)
-        .defaultValues()
-        .clan("e")
-        .avatar(new AvatarBean(new URL("http://example.com/avatar.png"), "dog"))
-        .get();
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(otherClanLeader));
-    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().player(player).clan(testClan).get());
-    WaitForAsyncUtils.waitForFxEvents();
-
-    instance.clanMenu.getOnMouseClicked().handle(null);
-
-    ObservableList<MenuItem> items = instance.clanMenu.getItems();
-    assertThat(items.size(), is(2));
-    boolean containsMessageItem = items.stream().anyMatch((item) -> "Message clan leader".equals(item.getText()));
-    assertThat(containsMessageItem, is(true));
-  }
-
-  @Test
-  public void testContactClanLeaderShowingOtherClan() throws Exception {
-    Player player = PlayerBuilder.create("junit")
-        .defaultValues()
-        .clan("e")
-        .get();
-    Player otherClanLeader = PlayerBuilder.create("test_player")
-        .defaultValues()
-        .clan("not")
-        .get();
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(otherClanLeader));
-    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().player(player).clan(testClan).get());
-    WaitForAsyncUtils.waitForFxEvents();
-
-    instance.clanMenu.getOnMouseClicked().handle(null);
-
-    ObservableList<MenuItem> items = instance.clanMenu.getItems();
-    assertThat(items.size(), is(2));
-    boolean containsMessageItem = items.stream().anyMatch((item) -> "Message clan leader".equals(item.getText()));
-    assertThat(containsMessageItem, is(true));
   }
 
 
