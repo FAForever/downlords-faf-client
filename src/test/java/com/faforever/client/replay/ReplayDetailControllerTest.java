@@ -102,17 +102,37 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void setReplay() throws Exception {
+  public void setReplayOnline() throws Exception {
     Replay replay = new Replay();
     replay.setValidity(Validity.VALID);
     replay.setFeaturedMod(new FeaturedMod());
     replay.getReviews().setAll(FXCollections.emptyObservableList());
+    replay.setTitle("test");
     when(replayService.getSize(replay.getId())).thenReturn(CompletableFuture.completedFuture(1024));
     when(ratingService.calculateQuality(replay)).thenReturn(0.427);
 
     instance.setReplay(replay);
 
-    assertEquals(instance.qualityLabel.textProperty().get(), (i18n.get("percentage", 0.43)));
+    assertEquals(instance.titleLabel.textProperty().get(), "test");
+  }
+
+  @Test
+  public void setReplayLocal() throws Exception {
+    Replay replay = new Replay();
+    replay.setValidity(Validity.VALID);
+    replay.setFeaturedMod(new FeaturedMod());
+    replay.getReviews().setAll(FXCollections.emptyObservableList());
+    replay.setTitle("test");
+    Path tmpPath = Paths.get("foo.tmp");
+    replay.setReplayFile(tmpPath);
+    when(replayService.getSize(replay.getId())).thenReturn(CompletableFuture.completedFuture(1024));
+    when(ratingService.calculateQuality(replay)).thenReturn(0.427);
+
+    instance.setReplay(replay);
+    verify(replayService).enrich(replay, tmpPath);
+    assertThat(instance.optionsTable.isVisible(), is(true));
+    assertThat(instance.chatTable.isVisible(), is(true));
+    assertEquals(instance.titleLabel.textProperty().get(), "test");
   }
 
   @Test

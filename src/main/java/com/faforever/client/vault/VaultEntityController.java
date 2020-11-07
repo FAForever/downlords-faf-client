@@ -23,6 +23,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -58,8 +59,10 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   protected final ReportingService reportingService;
   public Pane root;
   public StackPane vaultRoot;
+  public HBox searchBox;
   public VBox searchResultGroup;
   public Pane searchResultPane;
+  public Separator searchSeparator;
   public VBox showRoomGroup;
   public VBox loadingPane;
   public Button backButton;
@@ -108,21 +111,12 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   public void initialize() {
     super.initialize();
     JavaFxUtil.fixScrollSpeed(scrollPane);
-    loadingPane.managedProperty().bind(loadingPane.visibleProperty());
-    searchResultGroup.managedProperty().bind(searchResultGroup.visibleProperty());
-    backButton.managedProperty().bind(backButton.visibleProperty());
-    refreshButton.managedProperty().bind(refreshButton.visibleProperty());
-    pagination.managedProperty().bind(pagination.visibleProperty());
+    JavaFxUtil.bindManagedToVisible(loadingPane, searchResultGroup, backButton, refreshButton, pagination,
+        firstPageButton, lastPageButton, showRoomGroup, manageModsButton, searchBox, searchSeparator);
 
-    firstPageButton.managedProperty().bind(firstPageButton.visibleProperty());
     firstPageButton.disableProperty().bind(pagination.currentPageIndexProperty().isEqualTo(0));
-    lastPageButton.managedProperty().bind(lastPageButton.visibleProperty());
     lastPageButton.disableProperty().bind(pagination.currentPageIndexProperty()
         .isEqualTo(pagination.pageCountProperty().subtract(1)));
-
-    showRoomGroup.managedProperty().bind(showRoomGroup.visibleProperty());
-
-    manageModsButton.managedProperty().bind(manageModsButton.visibleProperty());
 
     backButton.setOnAction((event -> onBackButtonClicked()));
     refreshButton.setOnAction((event -> onRefreshButtonClicked()));

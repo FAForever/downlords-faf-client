@@ -42,8 +42,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
-  private static final int MAX_RESULTS = 100;
-
   private OnlineReplayVaultController instance;
 
   @Mock
@@ -73,7 +71,7 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   private ArgumentCaptor<Consumer<SearchConfig>> searchListenerCaptor;
   private SortConfig sortOrder;
   private SearchConfig standardSearchConfig;
-  private Replay testReplay = new Replay();
+  private final Replay testReplay = new Replay();
 
   @Before
   public void setUp() throws Exception {

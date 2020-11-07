@@ -2,15 +2,15 @@ package com.faforever.client.vault;
 
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.main.event.NavigateEvent;
+import com.faforever.client.main.event.OpenLocalReplayVaultEvent;
 import com.faforever.client.main.event.OpenMapVaultEvent;
 import com.faforever.client.main.event.OpenModVaultEvent;
 import com.faforever.client.main.event.OpenOnlineReplayVaultEvent;
-import com.faforever.client.main.event.OpenReplayVaultEvent;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
+import com.faforever.client.replay.LocalReplayVaultController;
 import com.faforever.client.replay.OnlineReplayVaultController;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.vault.replay.ReplayVaultController;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
@@ -32,7 +32,7 @@ public class VaultController extends AbstractViewController<Node> {
   public ModVaultController modVaultController;
 
   public OnlineReplayVaultController onlineReplayVaultController;
-  public ReplayVaultController localReplayVaultController;
+  public LocalReplayVaultController localReplayVaultController;
   public Tab onlineReplayVaultTab;
   public Tab localReplayVaultTab;
   private boolean isHandlingEvent;
@@ -57,6 +57,8 @@ public class VaultController extends AbstractViewController<Node> {
     mapVaultTab.setContent(mapVaultController.getRoot());
     modVaultController = uiService.loadFxml("theme/vault/vault_entity.fxml", ModVaultController.class);
     modVaultTab.setContent(modVaultController.getRoot());
+    localReplayVaultController = uiService.loadFxml("theme/vault/vault_entity.fxml", LocalReplayVaultController.class);
+    localReplayVaultTab.setContent(localReplayVaultController.getRoot());
     lastTab = onlineReplayVaultTab;
     lastTabController = onlineReplayVaultController;
     vaultRoot.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -71,7 +73,7 @@ public class VaultController extends AbstractViewController<Node> {
       } else if (newValue == onlineReplayVaultTab) {
         eventBus.post(new OpenOnlineReplayVaultEvent());
       } else if (newValue == localReplayVaultTab) {
-        eventBus.post(new OpenReplayVaultEvent());
+        eventBus.post(new OpenLocalReplayVaultEvent());
       }
       // TODO implement other tabs
     });
@@ -91,7 +93,7 @@ public class VaultController extends AbstractViewController<Node> {
       } else if (navigateEvent instanceof OpenOnlineReplayVaultEvent) {
         lastTab = onlineReplayVaultTab;
         lastTabController = onlineReplayVaultController;
-      } else if (navigateEvent instanceof OpenReplayVaultEvent) {
+      } else if (navigateEvent instanceof OpenLocalReplayVaultEvent) {
         lastTab = localReplayVaultTab;
         lastTabController = localReplayVaultController;
       }
