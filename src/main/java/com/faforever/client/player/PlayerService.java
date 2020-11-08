@@ -3,6 +3,7 @@ package com.faforever.client.player;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.chat.event.ChatMessageEvent;
+import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.chat.event.ChatUserGameChangeEvent;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Game;
@@ -265,7 +266,7 @@ public class PlayerService implements InitializingBean {
     friendList.add(player.getId());
     foeList.remove((Integer) player.getId());
 
-    player.getChatChannelUsers().forEach(chatUser -> eventBus.post(new PlayerSocialChangeEvent(chatUser)));
+    player.getChatChannelUsers().forEach(chatUser -> eventBus.post(new ChatUserCategoryChangeEvent(chatUser)));
     fafService.addFriend(player);
   }
 
@@ -273,7 +274,7 @@ public class PlayerService implements InitializingBean {
     playersByName.get(player.getUsername()).setSocialStatus(OTHER);
     friendList.remove((Integer) player.getId());
 
-    player.getChatChannelUsers().forEach(chatUser -> eventBus.post(new PlayerSocialChangeEvent(chatUser)));
+    player.getChatChannelUsers().forEach(chatUser -> eventBus.post(new ChatUserCategoryChangeEvent(chatUser)));
     fafService.removeFriend(player);
   }
 
@@ -282,7 +283,7 @@ public class PlayerService implements InitializingBean {
     foeList.add(player.getId());
     friendList.remove((Integer) player.getId());
 
-    player.getChatChannelUsers().forEach(chatUser -> eventBus.post(new PlayerSocialChangeEvent(chatUser)));
+    player.getChatChannelUsers().forEach(chatUser -> eventBus.post(new ChatUserCategoryChangeEvent(chatUser)));
     fafService.addFoe(player);
   }
 
@@ -290,7 +291,7 @@ public class PlayerService implements InitializingBean {
     playersByName.get(player.getUsername()).setSocialStatus(OTHER);
     foeList.remove((Integer) player.getId());
 
-    player.getChatChannelUsers().forEach(chatUser -> eventBus.post(new PlayerSocialChangeEvent(chatUser)));
+    player.getChatChannelUsers().forEach(chatUser -> eventBus.post(new ChatUserCategoryChangeEvent(chatUser)));
     fafService.removeFoe(player);
   }
 

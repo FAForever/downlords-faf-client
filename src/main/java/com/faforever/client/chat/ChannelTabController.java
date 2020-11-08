@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -8,7 +9,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.player.PlayerSocialChangeEvent;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
@@ -26,8 +26,6 @@ import javafx.beans.WeakInvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.SetChangeListener;
-import javafx.collections.WeakSetChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -66,6 +64,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -98,7 +97,7 @@ public class ChannelTabController extends AbstractChatTabController {
   };
   @VisibleForTesting
   /** Maps a chat user category to a list of all user items that belong to it. */
-  protected final Map<ChatUserCategory, List<CategoryOrChatUserListItem>> categoriesToUserListItems;
+  final Map<ChatUserCategory, List<CategoryOrChatUserListItem>> categoriesToUserListItems;
   /** Maps a chat user category to the list items that represent the respective category within the chat user list. */
   private final Map<ChatUserCategory, CategoryOrChatUserListItem> categoriesToCategoryListItems;
   /** Maps usernames to all chat user list items that belong to that user. */
@@ -130,9 +129,6 @@ public class ChannelTabController extends AbstractChatTabController {
   private Popup filterUserPopup;
   private UserFilterController userFilterController;
   private MapChangeListener<String, ChatChannelUser> usersChangeListener;
-  /** For a set of usernames. */
-  @SuppressWarnings("FieldCanBeLocal")
-  private SetChangeListener<String> moderatorsChangedListener;
 
   // TODO cut dependencies
   public ChannelTabController(UserService userService, ChatService chatService,
@@ -183,23 +179,6 @@ public class ChannelTabController extends AbstractChatTabController {
     setReceiver(channelName);
     channelTabRoot.setId(channelName);
     channelTabRoot.setText(channelName);
-
-    moderatorsChangedListener = change -> {
-      String username = null;
-      if (change.wasAdded()) {
-        username = change.getElementAdded();
-        userNamesToListItems.get(username).forEach(this::addModerator);
-      } else if (change.wasRemoved()) {
-        username = change.getElementRemoved();
-        userNamesToListItems.get(username).forEach(this::removeModerator);
-      }
-      if (username != null) {
-        ChatChannelUser chatUser = chatService.getChatUser(username, channelName);
-        updateInChatUserList(chatUser);
-        updateUserMessageColor(chatUser);
-      }
-    };
-    JavaFxUtil.addListener(chatChannel.getModerators(), new WeakSetChangeListener<>(moderatorsChangedListener));
 
     usersChangeListener = change -> {
       if (change.wasAdded()) {
@@ -262,16 +241,8 @@ public class ChannelTabController extends AbstractChatTabController {
         });
   }
 
-  private void removeModerator(CategoryOrChatUserListItem item) {
-    updateCssClass(item.getUser());
-  }
-
   private void updateUserCount(int count) {
     JavaFxUtil.runLater(() -> userSearchTextField.setPromptText(i18n.get("chat.userCount", count)));
-  }
-
-  private void addModerator(CategoryOrChatUserListItem item) {
-    updateCssClass(item.getUser());
   }
 
   @Override
@@ -427,19 +398,12 @@ public class ChannelTabController extends AbstractChatTabController {
     chatUserService.associatePlayerToChatUser(chatUser, player);
 
     updateCssClass(chatUser);
-    updateInChatUserList(chatUser);
+    updateChatUserListItemsForCategories(chatUser);
   }
 
   private void onUserJoinedChannel(ChatChannelUser chatUser) {
     Optional<Player> playerOptional = playerService.getPlayerForUsername(chatUser.getUsername());
-    playerOptional.ifPresentOrElse(player -> associateChatUserWithPlayer(player, chatUser), () -> updateInChatUserList(chatUser));
-  }
-
-  private void updateInChatUserList(ChatChannelUser chatUser) {
-    synchronized (userNamesToListItems) {
-      userNamesToListItems.computeIfAbsent(chatUser.getUsername(), s -> new ArrayList<>());
-    }
-    updateChatUserListItemsForCategories(chatUser);
+    playerOptional.ifPresentOrElse(player -> associateChatUserWithPlayer(player, chatUser), () -> updateChatUserListItemsForCategories(chatUser));
   }
 
   /**
@@ -448,16 +412,21 @@ public class ChannelTabController extends AbstractChatTabController {
    * be removed from the friends category.
    */
   private void updateChatUserListItemsForCategories(ChatChannelUser chatUser) {
-    List<CategoryOrChatUserListItem> userListItems = userNamesToListItems.getOrDefault(chatUser.getUsername(), new ArrayList<>());
+    List<CategoryOrChatUserListItem> userListItems;
+    synchronized (userNamesToListItems) {
+      userNamesToListItems.computeIfAbsent(chatUser.getUsername(), s -> new ArrayList<>());
+      userListItems = userNamesToListItems.get(chatUser.getUsername());
+    }
+    Set<ChatUserCategory> chatUserCategorySet = chatUser.getChatUserCategories();
     Arrays.stream(ChatUserCategory.values())
         .forEach(category -> {
           List<CategoryOrChatUserListItem> categoryUserList = categoriesToUserListItems.get(category);
-          if (chatUser.getChatUserCategories().contains(category) && userListItems.stream().noneMatch(categoryUserList::contains)) {
+          if (chatUserCategorySet.contains(category) && userListItems.stream().noneMatch(categoryUserList::contains)) {
             CategoryOrChatUserListItem userItem = new CategoryOrChatUserListItem(chatUser, category);
             userListItems.add(userItem);
             categoryUserList.add(userItem);
             addToTreeItemSorted(userItem);
-          } else if (!chatUser.getChatUserCategories().contains(category) && userListItems.stream().anyMatch(categoryUserList::contains)) {
+          } else if (!chatUserCategorySet.contains(category) && userListItems.stream().anyMatch(categoryUserList::contains)) {
             List<CategoryOrChatUserListItem> itemsToRemove = userListItems.stream().filter(categoryUserList::contains).collect(Collectors.toList());
             userListItems.removeAll(itemsToRemove);
             categoryUserList.removeAll(itemsToRemove);
@@ -469,18 +438,19 @@ public class ChannelTabController extends AbstractChatTabController {
   private void addToTreeItemSorted(CategoryOrChatUserListItem child) {
     ChatUserCategory category = child.getCategory();
     CategoryOrChatUserListItem parent = categoriesToCategoryListItems.get(category);
-    synchronized (chatUserListItems) {
-      for (int index = chatUserListItems.indexOf(parent) + 1; index < chatUserListItems.size(); index++) {
-        CategoryOrChatUserListItem otherItem = chatUserListItems.get(index);
+    JavaFxUtil.runLater(() -> {
+      synchronized (chatUserListItems) {
+        for (int index = chatUserListItems.indexOf(parent) + 1; index < chatUserListItems.size(); index++) {
+          CategoryOrChatUserListItem otherItem = chatUserListItems.get(index);
 
-        if (otherItem.getCategory() != category || CHAT_USER_ITEM_COMPARATOR.compare(child, otherItem) > 0) {
-          int finalIndex = index;
-          JavaFxUtil.runLater(() -> chatUserListItems.add(finalIndex, child));
-          return;
+          if (otherItem.getCategory() != category || CHAT_USER_ITEM_COMPARATOR.compare(child, otherItem) > 0) {
+            chatUserListItems.add(index, child);
+            return;
+          }
         }
+        chatUserListItems.add(child);
       }
-      JavaFxUtil.runLater(() -> chatUserListItems.add(child));
-    }
+    });
   }
 
   private void updateCssClass(ChatChannelUser chatUser) {
@@ -583,7 +553,7 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   @Subscribe
-  public void onPlayerSocialChange(PlayerSocialChangeEvent event) {
+  public void onChatUserCategoryChange(ChatUserCategoryChangeEvent event) {
     // We could add a listener on chatChannelUser.socialStatusProperty() but this would result in thousands of mostly idle
     // listeners which we're trying to avoid.
     ChatChannelUser chatUser = event.getChatUser();
@@ -593,6 +563,7 @@ public class ChannelTabController extends AbstractChatTabController {
       } else {
         updateUserMessageDisplay(chatUser, "");
       }
+      updateCssClass(chatUser);
       updateUserMessageColor(chatUser);
       updateChatUserListItemsForCategories(chatUser);
     }

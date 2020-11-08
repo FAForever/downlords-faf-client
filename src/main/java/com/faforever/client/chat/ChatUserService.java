@@ -160,7 +160,7 @@ public class ChatUserService implements InitializingBean {
   }
 
   public void associatePlayerToChatUser(ChatChannelUser chatChannelUser, Player player) {
-    if (player != null) {
+    if (player != null && chatChannelUser.getPlayer().filter(userPlayer -> userPlayer.getUsername().equals(player.getUsername())).isEmpty()) {
       chatChannelUser.setPlayer(player);
       populateGameImages(chatChannelUser);
       populateClan(chatChannelUser);
@@ -168,7 +168,7 @@ public class ChatUserService implements InitializingBean {
       populateAvatar(chatChannelUser);
       populateColor(chatChannelUser);
       addListeners(chatChannelUser);
-    } else {
+    } else if (player == null) {
       chatChannelUser.removeListeners();
       chatChannelUser.setPlayer(null);
       chatChannelUser.setStatusTooltipText(null);

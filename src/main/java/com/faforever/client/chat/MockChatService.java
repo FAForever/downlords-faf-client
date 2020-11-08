@@ -3,7 +3,6 @@ package com.faforever.client.chat;
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LoginSuccessEvent;
@@ -32,8 +31,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-
-import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 
 @Lazy
 @Service
@@ -88,15 +85,7 @@ public class MockChatService implements ChatService, InitializingBean {
 
   @Override
   public CompletableFuture<String> sendMessageInBackground(String target, String message) {
-    return taskService.submitTask(new CompletableTask<String>(HIGH) {
-      @Override
-      protected String call() throws Exception {
-        updateTitle(i18n.get("chat.sendMessageTask.title"));
-
-        Thread.sleep(200);
-        return message;
-      }
-    }).getFuture();
+    return CompletableFuture.completedFuture(message);
   }
 
   @Override
