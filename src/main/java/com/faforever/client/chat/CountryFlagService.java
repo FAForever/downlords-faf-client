@@ -33,7 +33,7 @@ public class CountryFlagService {
   private static final Collection<String> NON_COUNTRY_CODES = Arrays.asList("A1", "A2", "");
   private final I18n i18n;
 
-  @Cacheable(COUNTRY_FLAGS)
+  @Cacheable(value = COUNTRY_FLAGS, sync = true)
   public Optional<Image> loadCountryFlag(final String country) {
     if (country == null) {
       return Optional.empty();
@@ -43,7 +43,7 @@ public class CountryFlagService {
         .map(url -> new Image(url.toString(), true));
   }
 
-  @Cacheable(COUNTRY_NAMES)
+  @Cacheable(value = COUNTRY_NAMES, sync = true)
   public List<String> getCountries(String startsWith) {
     if (startsWith == null) {
       return Arrays.stream(Locale.getISOCountries()).collect(Collectors.toList());
