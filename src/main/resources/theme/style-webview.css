@@ -45,6 +45,7 @@ a {
 
 img.avatar,
 img.country-flag {
+  margin-left: 1px;
   margin-right: 0.2em;
 }
 
@@ -130,14 +131,18 @@ img.country-flag {
 }
 
 .chat-section.compact td.decoration {
+  white-space: nowrap;
   vertical-align: top;
-  min-width: 75px;
 }
 
 .chat-section.compact td.author {
   vertical-align: top;
-  text-align: right;
-  min-width: 120px;
+  text-align: left;
+  min-width: 130px;
+  max-width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chat-section.compact td.decoration * {
