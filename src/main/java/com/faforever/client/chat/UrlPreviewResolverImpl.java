@@ -49,7 +49,7 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
   }
 
   @Override
-  @Cacheable(CacheNames.URL_PREVIEW)
+  @Cacheable(value = CacheNames.URL_PREVIEW, sync = true)
   @Async
   @SneakyThrows
   public CompletableFuture<Optional<Preview>> resolvePreview(String urlString) {

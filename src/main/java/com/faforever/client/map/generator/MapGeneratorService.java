@@ -141,7 +141,7 @@ public class MapGeneratorService implements InitializingBean {
   }
 
   @VisibleForTesting
-  @Cacheable(CacheNames.MAP_GENERATOR)
+  @Cacheable(value = CacheNames.MAP_GENERATOR, sync = true)
   public ComparableVersion queryMaxSupportedVersion() {
     ComparableVersion version = new ComparableVersion("");
     ComparableVersion minVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator().getMinSupportedMajorVersion()));
