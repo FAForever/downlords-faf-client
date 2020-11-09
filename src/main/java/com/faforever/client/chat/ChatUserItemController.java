@@ -5,6 +5,8 @@ import com.faforever.client.clan.Clan;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.game.Game;
+import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
@@ -18,6 +20,7 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.css.PseudoClass;
+import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
@@ -69,14 +72,17 @@ public class ChatUserItemController implements Controller<Node> {
   private final WeakInvalidationListener weakFormatInvalidationListener;
   private final WeakInvalidationListener weakColorPerUserInvalidationListener;
 
+  public ImageView playerMapImage;
   public ImageView playerStatusIndicator;
+  protected Tooltip statusGameTooltip;
+  protected Tooltip gameInfoTooltip;
+  private GameTooltipController gameInfoController;
 
   public Pane chatUserItemRoot;
   public ImageView countryImageView;
   public ImageView avatarImageView;
   public Label usernameLabel;
   public MenuButton clanMenu;
-  public ImageView playerMapImage;
 
   private ChatChannelUser chatUser;
   @VisibleForTesting
@@ -129,14 +135,8 @@ public class ChatUserItemController implements Controller<Node> {
 
   public void initialize() {
     chatUserItemRoot.setUserData(this);
-    userTooltip = new Tooltip();
-    usernameLabel.setTooltip(userTooltip);
-    avatarTooltip = new Tooltip();
-    Tooltip.install(avatarImageView, avatarTooltip);
-    avatarTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
-    countryTooltip = new Tooltip();
-    countryTooltip.showDelayProperty().set(Duration.millis(250));
-    Tooltip.install(countryImageView, countryTooltip);
+
+    initializeTooltips();
 
     weakColorInvalidationListener.invalidated(chatPrefs.chatColorModeProperty());
     weakFormatInvalidationListener.invalidated(chatPrefs.chatFormatProperty());
@@ -150,7 +150,71 @@ public class ChatUserItemController implements Controller<Node> {
     JavaFxUtil.bind(playerMapImage.visibleProperty(), Bindings.isNotNull(playerMapImage.imageProperty()));
 
     updateFormat();
+    addEventHandlersToPlayerMapImage();
   }
+
+  private void initializeTooltips() {
+    userTooltip = new Tooltip();
+    usernameLabel.setTooltip(userTooltip);
+
+    avatarTooltip = new Tooltip();
+    avatarTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
+    Tooltip.install(avatarImageView, avatarTooltip);
+
+    countryTooltip = new Tooltip();
+    countryTooltip.showDelayProperty().set(Duration.millis(250));
+    Tooltip.install(countryImageView, countryTooltip);
+
+    statusGameTooltip = new Tooltip();
+    statusGameTooltip.setShowDuration(Duration.seconds(30));
+    statusGameTooltip.setShowDelay(Duration.ZERO);
+    statusGameTooltip.setHideDelay(Duration.ZERO);
+    Tooltip.install(playerStatusIndicator, statusGameTooltip);
+  }
+
+  private void addEventHandlersToPlayerMapImage() {
+    playerMapImage.addEventHandler(MouseEvent.MOUSE_MOVED, eventHandlerInitializeGameInfoTooltip());
+    playerMapImage.addEventHandler(MouseEvent.MOUSE_EXITED, eventHandlerRemoveGameInfoTooltip());
+  }
+
+  private EventHandler<MouseEvent> eventHandlerInitializeGameInfoTooltip() {
+    return event -> {
+      if (chatUser == null || chatUser.getPlayer().isEmpty() || gameInfoTooltip != null || gameInfoController != null) {
+        return;
+      }
+      gameInfoController = prepareGameInfoController(chatUser.getPlayer().get().getGame());
+      gameInfoTooltip = prepareGameInfoTooltip(gameInfoController);
+      gameInfoController.displayGame();
+      Tooltip.install(playerMapImage, gameInfoTooltip);
+    };
+  }
+
+  private GameTooltipController prepareGameInfoController(Game game) {
+    GameTooltipController controller = uiService.loadFxml("theme/play/game_tooltip.fxml");
+    controller.setShowMods(false);
+    controller.setGame(game);
+    return controller;
+  }
+
+  private Tooltip prepareGameInfoTooltip(GameTooltipController controller) {
+    Tooltip tooltip = JavaFxUtil.createCustomTooltip(controller.getRoot());
+    tooltip.setShowDelay(Duration.ZERO);
+    tooltip.setShowDuration(Duration.seconds(30));
+    return tooltip;
+  }
+
+  private EventHandler<MouseEvent> eventHandlerRemoveGameInfoTooltip() {
+    return event -> {
+      if (gameInfoTooltip == null || gameInfoController == null) {
+        return;
+      }
+      Tooltip.uninstall(playerMapImage, gameInfoTooltip);
+      gameInfoTooltip = null;
+      gameInfoController = null;
+    };
+  }
+
+
 
   private WeakReference<ChatUserContextMenuController> contextMenuController = null;
 
@@ -235,6 +299,7 @@ public class ChatUserItemController implements Controller<Node> {
     JavaFxUtil.unbind(playerStatusIndicator.imageProperty());
     JavaFxUtil.unbind(avatarTooltip.textProperty());
     JavaFxUtil.unbind(countryTooltip.textProperty());
+    JavaFxUtil.unbind(statusGameTooltip.textProperty());
 
     if (this.chatUser != null) {
       this.chatUser.setDisplayed(false);
@@ -251,6 +316,7 @@ public class ChatUserItemController implements Controller<Node> {
       JavaFxUtil.bind(countryTooltip.textProperty(), this.chatUser.countryNameProperty());
       JavaFxUtil.bind(playerMapImage.imageProperty(), this.chatUser.mapImageProperty());
       JavaFxUtil.bind(playerStatusIndicator.imageProperty(), this.chatUser.statusImageProperty());
+      JavaFxUtil.bind(statusGameTooltip.textProperty(), this.chatUser.statusTooltipTextProperty());
       if (this.chatUser.getPlayer().isPresent()) {
         JavaFxUtil.bind(avatarTooltip.textProperty(), this.chatUser.getPlayer().get().avatarTooltipProperty());
       }

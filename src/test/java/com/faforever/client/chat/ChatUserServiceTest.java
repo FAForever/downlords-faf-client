@@ -229,12 +229,14 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
         .defaultValues()
         .player(player)
         .get();
+    when(i18n.get("game.gameStatus.none")).thenReturn("None");
     instance.onChatUserGameChange(new ChatUserGameChangeEvent(chatUser));
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(uiService, never()).getThemeImage(anyString());
     assertFalse(chatUser.getMapImage().isPresent());
     assertEquals(PlayerStatus.IDLE, chatUser.getStatus().orElse(null));
+    assertEquals("None", chatUser.getStatusTooltipText().orElse(null));
   }
 
   @Test
@@ -245,12 +247,14 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
         .defaultValues()
         .player(player)
         .get();
+    when(i18n.get("game.gameStatus.playing")).thenReturn("Playing");
     instance.onChatUserGameChange(new ChatUserGameChangeEvent(chatUser));
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(uiService).getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING);
     assertTrue(chatUser.getMapImage().isPresent());
     assertEquals(PlayerStatus.PLAYING, chatUser.getStatus().orElse(null));
+    assertEquals("Playing", chatUser.getStatusTooltipText().orElse(null));
   }
 
   @Test
@@ -261,12 +265,14 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
         .defaultValues()
         .player(player)
         .get();
+    when(i18n.get("game.gameStatus.hosting")).thenReturn("Hosting");
     instance.onChatUserGameChange(new ChatUserGameChangeEvent(chatUser));
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(uiService).getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING);
     assertTrue(chatUser.getMapImage().isPresent());
     assertEquals(PlayerStatus.HOSTING, chatUser.getStatus().orElse(null));
+    assertEquals("Hosting", chatUser.getStatusTooltipText().orElse(null));
   }
 
   @Test
@@ -277,11 +283,13 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
         .defaultValues()
         .player(player)
         .get();
+    when(i18n.get("game.gameStatus.lobby")).thenReturn("Waiting for game to start");
     instance.onChatUserGameChange(new ChatUserGameChangeEvent(chatUser));
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(uiService).getThemeImage(UiService.CHAT_LIST_STATUS_LOBBYING);
     assertTrue(chatUser.getMapImage().isPresent());
     assertEquals(PlayerStatus.LOBBYING, chatUser.getStatus().orElse(null));
+    assertEquals("Waiting for game to start", chatUser.getStatusTooltipText().orElse(null));
   }
 }

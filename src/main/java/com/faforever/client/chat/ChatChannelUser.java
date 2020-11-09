@@ -37,6 +37,7 @@ public class ChatChannelUser {
   private final StringProperty countryName;
   private final ObjectProperty<Image> mapImage;
   private final ObjectProperty<Image> statusImage;
+  private final StringProperty statusTooltipText;
   private final BooleanProperty displayed;
   private final BooleanProperty populated;
 
@@ -58,6 +59,7 @@ public class ChatChannelUser {
     this.countryName = new SimpleStringProperty();
     this.mapImage = new SimpleObjectProperty<>();
     this.statusImage = new SimpleObjectProperty<>();
+    this.statusTooltipText = new SimpleStringProperty();
     this.displayed = new SimpleBooleanProperty(false);
     this.populated = new SimpleBooleanProperty(false);
   }
@@ -217,6 +219,18 @@ public class ChatChannelUser {
 
   public ObjectProperty<Image> statusImageProperty() {
     return statusImage;
+  }
+
+  public Optional<String> getStatusTooltipText() {
+    return Optional.ofNullable(statusTooltipText.get());
+  }
+
+  public void setStatusTooltipText(String value) {
+    this.statusTooltipText.set(value);
+  }
+
+  public StringProperty statusTooltipTextProperty() {
+    return statusTooltipText;
   }
 
   public boolean isDisplayed() {
