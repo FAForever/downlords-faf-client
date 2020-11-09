@@ -390,7 +390,7 @@ public class MapService implements InitializingBean, DisposableBean {
    * Loads the preview of a map or returns a "unknown map" image.
    */
 
-  @Cacheable(CacheNames.MAP_PREVIEW)
+  @Cacheable(value = CacheNames.MAP_PREVIEW)
   public Image loadPreview(MapBean map, PreviewSize previewSize) {
     URL url;
     switch (previewSize) {
@@ -406,7 +406,7 @@ public class MapService implements InitializingBean, DisposableBean {
     return loadPreview(url, previewSize);
   }
 
-  @Cacheable(CacheNames.MAP_PREVIEW)
+  @Cacheable(value = CacheNames.MAP_PREVIEW)
   public Image loadPreview(URL url, PreviewSize previewSize) {
     return assetService.loadAndCacheImage(url, Paths.get("maps").resolve(previewSize.folderName),
         () -> uiService.getThemeImage(UiService.UNKNOWN_MAP_IMAGE));
