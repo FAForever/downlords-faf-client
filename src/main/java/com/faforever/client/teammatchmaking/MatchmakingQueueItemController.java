@@ -2,7 +2,9 @@ package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.ShowMapPoolEvent;
 import com.faforever.client.player.PlayerService;
+import com.google.common.eventbus.EventBus;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
@@ -30,6 +32,7 @@ public class MatchmakingQueueItemController implements Controller<Node> {
   private final PlayerService playerService;
   private final TeamMatchmakingService teamMatchmakingService;
   private final I18n i18n;
+  private final EventBus eventBus;
 
   public Node queueItemRoot;
   public Label playersInQueueLabel;
@@ -45,14 +48,16 @@ public class MatchmakingQueueItemController implements Controller<Node> {
 
   private MatchmakingQueue queue;
 
-  public MatchmakingQueueItemController(PlayerService playerService, TeamMatchmakingService teamMatchmakingService, I18n i18n) {
+  public MatchmakingQueueItemController(PlayerService playerService, TeamMatchmakingService teamMatchmakingService, I18n i18n, EventBus eventBus) {
     this.playerService = playerService;
     this.teamMatchmakingService = teamMatchmakingService;
     this.i18n = i18n;
+    this.eventBus = eventBus;
   }
 
   @Override
   public void initialize() {
+    eventBus.register(this);
     joinLeaveQueueButton.widthProperty().addListener(new ChangeListener<Number>() {
       @Override
       public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -135,5 +140,10 @@ public class MatchmakingQueueItemController implements Controller<Node> {
       }
     }
     refreshingLabel.setVisible(true);
+  }
+
+  public void showMapPool(ActionEvent actionEvent) {
+    // TODO do this properly and get the id from the api instead of using the teamSize
+    eventBus.post(new ShowMapPoolEvent(queue.getTeamSize()));
   }
 }

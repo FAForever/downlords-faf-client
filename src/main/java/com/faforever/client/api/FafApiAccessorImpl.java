@@ -11,11 +11,11 @@ import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.GameReviewsSummary;
 import com.faforever.client.api.dto.GlobalLeaderboardEntry;
 import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
-import com.faforever.client.api.dto.Ladder1v1Map;
 import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapStatistics;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
+import com.faforever.client.api.dto.MatchmakerQueueMapPool;
 import com.faforever.client.api.dto.MeResult;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersion;
@@ -430,9 +430,11 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  public Tuple<List<Ladder1v1Map>, java.util.Map<String, ?>> getLadder1v1MapsWithMeta(int count, int page) {
-    JSONAPIDocument<List<Ladder1v1Map>> jsonApiDoc = getPageWithMeta("/data/ladder1v1Map", count, page, ImmutableMap.of(
-        "include", "mapVersion,mapVersion.map,mapVersion.map.latestVersion,mapVersion.map.latestVersion.reviews,mapVersion.map.author,mapVersion.map.statistics"));
+  public Tuple<List<MatchmakerQueueMapPool>, java.util.Map<String, ?>> getMatchMakerPoolsWithMeta(int matchmakerQueueId, int count, int page) {
+    JSONAPIDocument<List<MatchmakerQueueMapPool>> jsonApiDoc = getPageWithMeta("/data/matchmakerQueueMapPool", count, page, ImmutableMap.of(
+        "include", "matchmakerQueue,mapPool,mapPool.mapVersions," +
+            "mapPool.mapVersions.map,mapPool.mapVersions.map.latestVersion,mapPool.mapVersions.map.latestVersion.reviews,mapPool.mapVersions.map.author,mapPool.mapVersions.map.statistics",
+        "filter", rsql(qBuilder().string("matchmakerQueue.id").eq(String.valueOf(matchmakerQueueId)))));
     return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
   }
 

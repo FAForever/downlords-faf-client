@@ -12,10 +12,10 @@ import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.GlobalLeaderboardEntry;
 import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
-import com.faforever.client.api.dto.Ladder1v1Map;
 import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
+import com.faforever.client.api.dto.MatchmakerQueueMapPool;
 import com.faforever.client.api.dto.MeResult;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersion;
@@ -279,7 +279,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public Tuple<List<Ladder1v1Map>, java.util.Map<String, ?>> getLadder1v1MapsWithMeta(int count, int page) {
+  public Tuple<List<MatchmakerQueueMapPool>, java.util.Map<String, ?>> getMatchMakerPoolsWithMeta(int matchmakerQueueId, int count, int page) {
     return new Tuple(Collections.emptyList(), Collections.emptyMap());
   }
 

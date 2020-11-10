@@ -7,10 +7,10 @@ import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
-import com.faforever.client.api.dto.Ladder1v1Map;
 import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
+import com.faforever.client.api.dto.MatchmakerQueueMapPool;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.PlayerAchievement;
@@ -458,11 +458,15 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getLadder1v1MapsWithPageCount(int count, int page) {
-    Tuple<List<Ladder1v1Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.getLadder1v1MapsWithMeta(count, page);
+  public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(int matchmakerQueueId, int count, int page) {
+    // fixme This uses the count for the number of map pools instead of the number of maps
+    Tuple<List<MatchmakerQueueMapPool>, java.util.Map<String, ?>> tuple = fafApiAccessor.getMatchMakerPoolsWithMeta(matchmakerQueueId, count, page);
     return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
         .parallelStream()
-        .map(ladder1v1Map -> MapBean.fromMapVersionDto(ladder1v1Map.getMapVersion()))
+        .map(MatchmakerQueueMapPool::getMapPool)
+        .flatMap(mapPool -> mapPool.getMapVersions().stream())
+        .map(MapBean::fromMapVersionDto)
+        .distinct() // This is not working?
         .collect(toList()),
         ((HashMap<String,Integer>) tuple.getSecond().get("page")).get("totalPages")));
   }

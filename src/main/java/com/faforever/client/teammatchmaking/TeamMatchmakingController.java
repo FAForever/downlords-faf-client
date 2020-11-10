@@ -9,7 +9,6 @@ import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Faction;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.main.event.ShowLadderMapsEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.FafService;
@@ -17,7 +16,6 @@ import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.google.common.base.Strings;
-import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -64,7 +62,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private final I18n i18n;
   private final UiService uiService;
   private final TeamMatchmakingService teamMatchmakingService;
-  private final EventBus eventBus;
   private final FafService fafService;
 
   public StackPane teamMatchmakingRoot;
@@ -97,7 +94,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
-    eventBus.register(this);
     player = playerService.getCurrentPlayer().get();
     JavaFxUtil.fixScrollSpeed(scrollPane);
     initializeUppercaseText();
@@ -186,11 +182,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   @Override
   public Node getRoot() {
     return teamMatchmakingRoot;
-  }
-
-  // TODO: use
-  public void showMatchmakingMaps(ActionEvent actionEvent) {
-    eventBus.post(new ShowLadderMapsEvent());//TODO show team matchmaking maps and not ladder maps
   }
 
   public void onInvitePlayerButtonClicked(ActionEvent actionEvent) {

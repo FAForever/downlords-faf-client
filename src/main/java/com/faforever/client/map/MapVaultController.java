@@ -4,7 +4,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenMapVaultEvent;
-import com.faforever.client.main.event.ShowLadderMapsEvent;
+import com.faforever.client.main.event.ShowMapPoolEvent;
 import com.faforever.client.map.event.MapUploadedEvent;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
@@ -86,7 +86,6 @@ public class MapVaultController extends VaultEntityController<MapBean> {
       case NEWEST -> currentSupplier = mapService.getNewestMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
       case HIGHEST_RATED -> currentSupplier = mapService.getHighestRatedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
       case PLAYED -> currentSupplier = mapService.getMostPlayedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-      case LADDER -> currentSupplier = mapService.getLadderMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
       case OWN -> currentSupplier = mapService.getOwnedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
     }
   }
@@ -143,9 +142,11 @@ public class MapVaultController extends VaultEntityController<MapBean> {
 
   @Override
   protected void handleSpecialNavigateEvent(NavigateEvent navigateEvent) {
-    if (navigateEvent instanceof ShowLadderMapsEvent) {
-      searchType = SearchType.LADDER;
-      onPageChange(null, true);
+    if (navigateEvent instanceof ShowMapPoolEvent) {
+      int id = ((ShowMapPoolEvent) navigateEvent).getQueueId();
+      currentSupplier = mapService.getMatchmakerMapsWithPageCount(id, pageSize, pagination.getCurrentPageIndex() + 1);
+      enterSearchingState();
+      displayFromSupplier(() -> currentSupplier, true);
     } else {
       log.warn("No such NavigateEvent for this Controller: {}", navigateEvent.getClass());
     }
