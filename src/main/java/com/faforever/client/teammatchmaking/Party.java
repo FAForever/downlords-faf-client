@@ -54,7 +54,7 @@ public class Party {
               log.warn("Could not find party member {}", member.getPlayer());
               return null;
             } else {
-              return new PartyMember(player.get(), member.getReady(), member.getFactions());
+              return new PartyMember(player.get(), member.getFactions());
             }
           }).filter(Objects::nonNull).collect(Collectors.toList());
           //TODO: this is a race condition. The api might answer with big delay and then server message order might be changed.
@@ -86,12 +86,10 @@ public class Party {
   @AllArgsConstructor
   public static class PartyMember {
     private final Player player;
-    private boolean ready;  // no properties used as this object is recreated for each recevied party info message
     private List<Faction> factions;
 
     public PartyMember(Player player) {
       this.player = player;
-      this.ready = false;
       this.factions = Arrays.asList(Faction.AEON, Faction.CYBRAN, Faction.SERAPHIM, Faction.UEF);
     }
   }

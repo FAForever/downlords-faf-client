@@ -1,18 +1,13 @@
 package com.faforever.client.teammatchmaking;
 
-import com.faforever.client.chat.ChatService;
-import com.faforever.client.chat.CountryFlagService;
-import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.theme.UiService;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
@@ -32,29 +27,17 @@ public class MatchmakingQueueItemController implements Controller<Node> {
 
   private final static String QUEUE_I18N_PATTERN = "teammatchmaking.queue.%s.%s";
 
-  private final CountryFlagService countryFlagService;
-  private final AvatarService avatarService;
   private final PlayerService playerService;
   private final TeamMatchmakingService teamMatchmakingService;
-  private final UiService uiService;
-  private final ChatService chatService;
   private final I18n i18n;
 
-  @FXML
   public Node queueItemRoot;
-  @FXML
   public Label playersInQueueLabel;
-  @FXML
   public Label queuePopTimeLabel;
-  @FXML
   public ToggleButton joinLeaveQueueButton;
-  @FXML
   public Label refreshingLabel;
-  @FXML
   public Label matchFoundLabel;
-  @FXML
   public Label matchStartingLabel;
-  @FXML
   public Label matchCancelledLabel;
 
 
@@ -62,13 +45,9 @@ public class MatchmakingQueueItemController implements Controller<Node> {
 
   private MatchmakingQueue queue;
 
-  public MatchmakingQueueItemController(CountryFlagService countryFlagService, AvatarService avatarService, PlayerService playerService, TeamMatchmakingService teamMatchmakingService, UiService uiService, ChatService chatService, I18n i18n) {
-    this.countryFlagService = countryFlagService;
-    this.avatarService = avatarService;
+  public MatchmakingQueueItemController(PlayerService playerService, TeamMatchmakingService teamMatchmakingService, I18n i18n) {
     this.playerService = playerService;
     this.teamMatchmakingService = teamMatchmakingService;
-    this.uiService = uiService;
-    this.chatService = chatService;
     this.i18n = i18n;
   }
 
@@ -109,15 +88,9 @@ public class MatchmakingQueueItemController implements Controller<Node> {
         return;
       }
       switch (newValue) {
-        case MATCH_FOUND:
-          matchFoundLabel.setManaged(true);
-          break;
-        case GAME_LAUNCHING:
-          matchStartingLabel.setManaged(true);
-          break;
-        case MATCH_CANCELLED:
-          matchCancelledLabel.setManaged(true);
-          break;
+        case MATCH_FOUND -> matchFoundLabel.setManaged(true);
+        case GAME_LAUNCHING -> matchStartingLabel.setManaged(true);
+        case MATCH_CANCELLED -> matchCancelledLabel.setManaged(true);
       }
     });
 
