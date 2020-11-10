@@ -19,6 +19,8 @@ import java.util.function.Consumer;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -85,7 +87,7 @@ public class GameTileControllerTest extends AbstractPlainJavaFxTest {
     instance.setGame(game);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(i18n).get("game.mods.twoAndMore", "test4", 3);
+    verify(i18n).get(eq("game.mods.twoAndMore"), contains("test"), contains("test"), eq(2));
   }
 
   @Test
