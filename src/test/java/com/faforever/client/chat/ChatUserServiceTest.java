@@ -235,7 +235,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
     verify(uiService, never()).getThemeImage(anyString());
     assertFalse(chatUser.getMapImage().isPresent());
-    assertEquals(PlayerStatus.IDLE, chatUser.getStatus().orElse(null));
+    assertEquals(PlayerStatus.IDLE, chatUser.getGameStatus().orElse(null));
     assertEquals("None", chatUser.getStatusTooltipText().orElse(null));
   }
 
@@ -253,7 +253,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
     verify(uiService).getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING);
     assertTrue(chatUser.getMapImage().isPresent());
-    assertEquals(PlayerStatus.PLAYING, chatUser.getStatus().orElse(null));
+    assertEquals(PlayerStatus.PLAYING, chatUser.getGameStatus().orElse(null));
     assertEquals("Playing", chatUser.getStatusTooltipText().orElse(null));
   }
 
@@ -271,7 +271,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
     verify(uiService).getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING);
     assertTrue(chatUser.getMapImage().isPresent());
-    assertEquals(PlayerStatus.HOSTING, chatUser.getStatus().orElse(null));
+    assertEquals(PlayerStatus.HOSTING, chatUser.getGameStatus().orElse(null));
     assertEquals("Hosting", chatUser.getStatusTooltipText().orElse(null));
   }
 
@@ -289,7 +289,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
     verify(uiService).getThemeImage(UiService.CHAT_LIST_STATUS_LOBBYING);
     assertTrue(chatUser.getMapImage().isPresent());
-    assertEquals(PlayerStatus.LOBBYING, chatUser.getStatus().orElse(null));
+    assertEquals(PlayerStatus.LOBBYING, chatUser.getGameStatus().orElse(null));
     assertEquals("Waiting for game to start", chatUser.getStatusTooltipText().orElse(null));
   }
 }

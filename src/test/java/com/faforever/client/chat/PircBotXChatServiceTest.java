@@ -72,7 +72,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import static com.faforever.client.chat.ChatColorMode.CUSTOM;
+import static com.faforever.client.chat.ChatColorMode.DEFAULT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -159,7 +159,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   private CountDownLatch botShutdownLatch;
   private CompletableFuture<Object> botStartedFuture;
-  private Preferences preferences = new Preferences();
+  private final Preferences preferences = new Preferences();
 
   @Before
   public void setUp() throws Exception {
@@ -175,7 +175,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     botShutdownLatch = new CountDownLatch(1);
 
-    preferences.getChat().setChatColorMode(CUSTOM);
+    preferences.getChat().setChatColorMode(DEFAULT);
 
     when(userService.getUsername()).thenReturn(CHAT_USER_NAME);
     when(userService.getPassword()).thenReturn(CHAT_PASSWORD);

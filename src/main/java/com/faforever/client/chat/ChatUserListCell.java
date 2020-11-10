@@ -8,7 +8,7 @@ import java.util.Objects;
 public class ChatUserListCell extends ListCell<CategoryOrChatUserListItem> {
 
   private final ChatUserItemController chatUserItemController;
-  private final ChatUserItemCategoryController chatUserCategoryController;
+  private final ChatCategoryItemController chatUserCategoryController;
   private Object oldItem;
 
   public ChatUserListCell(UiService uiService) {

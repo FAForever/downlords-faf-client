@@ -87,7 +87,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ChatUserItemController chatUserItemController;
   @Mock
-  private ChatUserItemCategoryController chatUserItemCategoryController;
+  private ChatCategoryItemController chatCategoryItemController;
   @Mock
   private WebViewConfigurer webViewConfigurer;
   @Mock
@@ -119,7 +119,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     when(userService.getUsername()).thenReturn(USER_NAME);
     when(uiService.loadFxml("theme/chat/user_filter.fxml")).thenReturn(userFilterController);
     when(uiService.loadFxml("theme/chat/chat_user_item.fxml")).thenReturn(chatUserItemController);
-    when(uiService.loadFxml("theme/chat/chat_user_category.fxml")).thenReturn(chatUserItemCategoryController);
+    when(uiService.loadFxml("theme/chat/chat_user_category.fxml")).thenReturn(chatCategoryItemController);
     when(chatUserItemController.getRoot()).thenReturn(new Pane());
     when(uiService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
 
@@ -326,25 +326,6 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
     String expected = instance.createInlineStyleFromColor(color);
     String result = instance.getInlineStyle(somePlayer);
-    assertEquals(expected, result);
-  }
-
-  @Test
-  public void getInlineStyleCustom() {
-    Color color = ColorGeneratorUtil.generateRandomColor();
-    String colorStyle = instance.createInlineStyleFromColor(color);
-    String username = "somePlayer";
-    ChatChannelUser chatUser = new ChatChannelUser(username, color, false);
-
-    when(chatService.getChatUser(username, CHANNEL_NAME)).thenReturn(chatUser);
-    runOnFxThreadAndWait(() -> {
-      instance.setChannel(defaultChannel);
-      preferences.getChat().setChatColorMode(ChatColorMode.CUSTOM);
-      preferences.getChat().setHideFoeMessages(false);
-    });
-
-    String expected = String.format("%s%s", colorStyle, "");
-    String result = instance.getInlineStyle(username);
     assertEquals(expected, result);
   }
 

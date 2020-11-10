@@ -49,7 +49,7 @@ public final class ChatChannelUserBuilder {
   }
 
   public ChatChannelUserBuilder status(PlayerStatus status) {
-    chatChannelUser.setStatus(status);
+    chatChannelUser.setGameStatus(status);
     return this;
   }
 
@@ -84,7 +84,7 @@ public final class ChatChannelUserBuilder {
   }
 
   public ChatChannelUserBuilder statusImage(Image statusImage) {
-    chatChannelUser.setStatusImage(statusImage);
+    chatChannelUser.setGameStatusImage(statusImage);
     return this;
   }
 
