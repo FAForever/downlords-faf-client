@@ -208,20 +208,7 @@ public class UserFilterController implements Controller<Node> {
       gameStatusToggleGroup.selectToggle(null);
       return;
     }
-
-    switch (status) {
-      case PLAYING:
-        gameStatusMenu.setText(i18n.get("game.gameStatus.playing"));
-        break;
-      case LOBBYING:
-        gameStatusMenu.setText(i18n.get("game.gameStatus.lobby"));
-        break;
-      case IDLE:
-        gameStatusMenu.setText(i18n.get("game.gameStatus.none"));
-        break;
-      default:
-        throw new ProgrammingError("Uncovered player status: " + status);
-    }
+    gameStatusMenu.setText(i18n.get(status.getI18nKey()));
   }
 
   public Node getRoot() {

@@ -54,18 +54,18 @@ public class AchievementService implements InitializingBean {
     return fafService.getPlayerAchievements(playerId);
   }
 
-  
+
   public CompletableFuture<List<AchievementDefinition>> getAchievementDefinitions() {
     return fafService.getAchievementDefinitions();
   }
 
-  
+
   public CompletableFuture<AchievementDefinition> getAchievementDefinition(String achievementId) {
     return fafService.getAchievementDefinition(achievementId);
   }
 
-  
-  @Cacheable(CacheNames.ACHIEVEMENT_IMAGES)
+
+  @Cacheable(value = CacheNames.ACHIEVEMENT_IMAGES, sync = true)
   public Image getImage(AchievementDefinition achievementDefinition, AchievementState achievementState) {
     URL url;
     switch (achievementState) {

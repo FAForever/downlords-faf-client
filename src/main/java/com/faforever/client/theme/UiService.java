@@ -302,7 +302,7 @@ public class UiService implements InitializingBean, DisposableBean {
   /**
    * Loads an image from the current theme.
    */
-  @Cacheable(CacheNames.THEME_IMAGES)
+  @Cacheable(value = CacheNames.THEME_IMAGES, sync = true)
   public Image getThemeImage(String relativeImage) {
     return new Image(getThemeFile(relativeImage), true);
   }
@@ -489,6 +489,9 @@ public class UiService implements InitializingBean, DisposableBean {
 
   @SneakyThrows
   public boolean doesThemeNeedRestart(Theme theme) {
+    if (theme.equals(DEFAULT_THEME)) {
+      return true;
+    }
     try (Stream<Path> stream = Files.list(getThemeDirectory(theme))) {
       return stream.anyMatch(path -> Files.isRegularFile(path) && !path.endsWith(".css") && !path.endsWith(".properties"));
     }

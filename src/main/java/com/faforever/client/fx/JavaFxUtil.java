@@ -349,6 +349,16 @@ public final class JavaFxUtil {
   }
 
   /**
+   * Since the JavaFX properties API is not thread safe, unbinding a property must be synchronized on the property -
+   * which is what this method does.
+   */
+  public static <T> void unbind(Property<T> property) {
+    synchronized (property) {
+      property.unbind();
+    }
+  }
+
+  /**
    * Since the JavaFX properties API is not thread safe, binding properties must be synchronized on the properties -
    * which is what this method does. Since synchronization happens on both property in order {@code property1,
    * property2}, this is prone to deadlocks. To avoid this, pass the property with the lower visibility (e.g. method- or

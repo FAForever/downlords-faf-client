@@ -263,6 +263,15 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void testNormalMentionDoesNotTriggerNotificationFromFoe() {
+    this.getRoot().setVisible(false);
+    preferencesService.getPreferences().getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(false);
+    when(playerService.getPlayerForUsername("junit")).thenReturn(Optional.ofNullable(PlayerBuilder.create("junit").defaultValues().socialStatus(FOE).get()));
+    instance.onMention(new ChatMessage("junit", Instant.now(), "junit", "hello " + USER_NAME + "!!"));
+    verify(audioService, never()).playChatMentionSound();
+  }
+
+  @Test
   public void getInlineStyleRandom() {
     String somePlayer = "somePlayer";
     Color color = ColorGeneratorUtil.generateRandomColor();
@@ -339,7 +348,8 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testUserIsRemovedFromCategoriesToUserListItems() {
-    instance.setChannel(defaultChannel);
+    Platform.runLater(() -> instance.setChannel(defaultChannel));
+    WaitForAsyncUtils.waitForFxEvents();
 
     ArgumentCaptor<MapChangeListener<String, ChatChannelUser>> captor = ArgumentCaptor.forClass(MapChangeListener.class);
     verify(chatService).addUsersListener(anyString(), captor.capture());

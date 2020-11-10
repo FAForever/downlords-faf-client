@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.remote.domain.GameStatus;
+import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.remote.domain.VictoryCondition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -38,6 +39,7 @@ public class Game {
   private final ObjectProperty<VictoryCondition> victoryCondition;
   private final ObjectProperty<Instant> startTime;
   private final BooleanProperty enforceRating;
+  private final ObjectProperty<GameType> gameType;
   /**
    * Maps a sim mod's UID to its name.
    */
@@ -69,6 +71,7 @@ public class Game {
     status = new SimpleObjectProperty<>();
     startTime = new SimpleObjectProperty<>();
     enforceRating = new SimpleBooleanProperty(false);
+    gameType = new SimpleObjectProperty<>();
   }
 
   public String getHost() {
@@ -221,6 +224,18 @@ public class Game {
 
   public ObjectProperty<VictoryCondition> victoryConditionProperty() {
     return victoryCondition;
+  }
+
+  public GameType getGameType() {
+    return gameType.get();
+  }
+
+  public void setGameType(GameType gameType) {
+    this.gameType.set(gameType);
+  }
+
+  public ObjectProperty<GameType> gameTypeProperty() {
+    return gameType;
   }
 
   /**

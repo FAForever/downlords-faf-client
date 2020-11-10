@@ -4,7 +4,6 @@
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
-
 <HBox fx:id="chatUserItemRoot" alignment="CENTER_LEFT" spacing="3.0" xmlns="http://javafx.com/javafx/11.0.1"
       onContextMenuRequested="#onContextMenuRequested" onMouseClicked="#onItemClicked" styleClass="chat-user-item"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.ChatUserItemController">
@@ -12,7 +11,7 @@
         <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true"/>
         <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true"/>
         <MenuButton fx:id="clanMenu" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-                    onMouseClicked="#onClanMenuRequested" onMouseEntered="#updateClanData"
+                    onMouseClicked="#onClanMenuRequested"
                     styleClass="chat-user-control-clan" text="[CLAN]"/>
         <Label fx:id="usernameLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" onMouseClicked="#onItemClicked"
                onMouseEntered="#onMouseEnteredUserNameLabel" styleClass="chat-user-item-username"
