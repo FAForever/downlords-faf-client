@@ -14,11 +14,9 @@ import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Strings;
-import com.jfoenix.controls.JFXButton;
 import javafx.beans.binding.BooleanBinding;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -49,27 +47,19 @@ public class PartyMemberItemController implements Controller<Node> {
   private final ChatService chatService;
   private final I18n i18n;
 
-  @FXML
   public Node playerItemRoot;
-  @FXML
   public ImageView avatarImageView;
-  @FXML
   public ImageView countryImageView;
-  @FXML
-  public Label clanLabel;
-  @FXML
-  public Label usernameLabel;
-  @FXML
-  public Label leagueLabel;
-  @FXML
-  public Label gameCountLabel;
-  @FXML
+  public ImageView leagueImageView;
   public Button kickPlayerButton;
+  public Label clanLabel;
+  public Label usernameLabel;
+  public Label leagueLabel;
+  public Label gameCountLabel;
   public Label uefLabel;
   public Label cybranLabel;
   public Label aeonLabel;
   public Label seraphimLabel;
-  public ImageView leagueImageView;
   public Label crownLabel;
   public HBox playerCard;
 

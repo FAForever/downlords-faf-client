@@ -12,13 +12,10 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -26,7 +23,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.function.Consumer;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -38,11 +34,9 @@ public class InvitePlayerController implements Controller<Pane> {
   private final ObservableList<String> playerList = FXCollections.observableArrayList();
   private final FilteredList<String> filteredPlayerList = new FilteredList<>(playerList, p -> true);
   private final SortedList<String> sortedPlayerList = new SortedList<>(filteredPlayerList, Comparator.naturalOrder());
-  @FXML
+
   public Pane root;
-  @FXML
   public JFXTextField playerTextField;
-  @FXML
   public JFXListView<String> playersListView;
   public ListView<String> invitedPlayersListView;
 

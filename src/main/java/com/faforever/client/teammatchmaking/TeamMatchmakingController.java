@@ -23,7 +23,6 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -65,28 +64,19 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private final UiService uiService;
   private final TeamMatchmakingService teamMatchmakingService;
   private final EventBus eventBus;
-  @FXML
-  public Button invitePlayerButton;
 
-  @FXML
   public StackPane teamMatchmakingRoot;
-  @FXML
+  public Button invitePlayerButton;
   public Button leavePartyButton;
-  @FXML
   public Label refreshingLabel;
   public ToggleButton uefButton;
   public ToggleButton cybranButton;
   public ToggleButton aeonButton;
   public ToggleButton seraphimButton;
-  @FXML
   public ImageView avatarImageView;
-  @FXML
   public ImageView countryImageView;
-  @FXML
   public Label clanLabel;
-  @FXML
   public Label usernameLabel;
-  @FXML
   public Label gameCountLabel;
   public Label leagueLabel;
   public HBox queueBox;
@@ -205,22 +195,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     Dialog dialog = uiService.showInDialog(teamMatchmakingRoot, root, i18n.get("teammatchmaking.invitePlayer"));
   }
 
-  public void onEnterQueueButtonClicked(ActionEvent actionEvent) {
-    //TODO
-  }
-
   public void onLeavePartyButtonClicked(ActionEvent actionEvent) {
     teamMatchmakingService.leaveParty();
-  }
-
-  public void onLeaveQueueButtonClicked(ActionEvent actionEvent) {
-    //TODO
-  }
-
-  public boolean isSelfReady() {
-    return teamMatchmakingService.getParty().getMembers().stream()
-        .anyMatch(p -> p.getPlayer().getId() == playerService.getCurrentPlayer().map(Player::getId).orElse(-1)
-            && p.isReady());
   }
 
   public void onFactionButtonClicked(ActionEvent actionEvent) {
