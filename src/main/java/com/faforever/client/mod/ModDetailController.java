@@ -7,6 +7,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.ReviewService;
@@ -45,6 +46,7 @@ public class ModDetailController implements Controller<Node> {
   private final TimeService timeService;
   private final ReviewService reviewService;
   private final PlayerService playerService;
+  private final UiService uiService;
 
   public Label updatedLabel;
   public Label sizeLabel;
@@ -57,6 +59,7 @@ public class ModDetailController implements Controller<Node> {
   public Button installButton;
   public ImageView thumbnailImageView;
   public Label nameLabel;
+  public Label idLabel;
   public Label uploaderLabel;
   public ProgressBar progressBar;
   public Label modDescriptionLabel;
@@ -68,6 +71,7 @@ public class ModDetailController implements Controller<Node> {
   private ListChangeListener<ModVersion> installStatusChangeListener;
 
   public void initialize() {
+    JavaFxUtil.addLabelContextMenus(uiService, nameLabel, authorLabel, idLabel, uploaderLabel, versionLabel);
     JavaFxUtil.fixScrollSpeed(scrollPane);
     uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
     installButton.managedProperty().bind(installButton.visibleProperty());
@@ -124,6 +128,7 @@ public class ModDetailController implements Controller<Node> {
     this.modVersion = modVersion;
     thumbnailImageView.setImage(modService.loadThumbnail(modVersion));
     nameLabel.setText(modVersion.getDisplayName());
+    idLabel.setText(i18n.get("mod.id", modVersion.getId()));
 
     setUploaderAndAuthor(modVersion);
 

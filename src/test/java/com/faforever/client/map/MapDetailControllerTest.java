@@ -7,6 +7,7 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewController;
 import com.faforever.client.vault.review.ReviewService;
@@ -54,6 +55,8 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private I18n i18n;
   @Mock
+  private UiService uiService;
+  @Mock
   private ReviewsController reviewsController;
   @Mock
   private ReviewController reviewController;
@@ -74,7 +77,7 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
     when(mapService.hasPlayedMap(anyInt(), anyString())).thenReturn(CompletableFuture.completedFuture(true));
     when(mapService.getFileSize(any(URL.class))).thenReturn(CompletableFuture.completedFuture(12));
     when(mapService.getInstalledMaps()).thenReturn(FXCollections.observableArrayList());
-    instance = new MapDetailController(mapService, notificationService, i18n, timeService, reportingService, playerService, reviewService, eventBus);
+    instance = new MapDetailController(mapService, notificationService, i18n, timeService, reportingService, playerService, reviewService, uiService, eventBus);
 
     loadFxml("theme/vault/map/map_detail.fxml", param -> {
       if (param == ReviewsController.class) {

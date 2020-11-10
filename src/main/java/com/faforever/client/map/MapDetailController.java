@@ -10,6 +10,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
@@ -57,6 +58,7 @@ public class MapDetailController implements Controller<Node> {
   private final ReportingService reportingService;
   private final PlayerService playerService;
   private final ReviewService reviewService;
+  private final UiService uiService;
   private final EventBus eventBus;
 
   public Label progressLabel;
@@ -86,6 +88,7 @@ public class MapDetailController implements Controller<Node> {
   private ListChangeListener<MapBean> installStatusChangeListener;
 
   public void initialize() {
+    JavaFxUtil.addLabelContextMenus(uiService, nameLabel, authorLabel, mapDescriptionLabel, mapIdLabel);
     JavaFxUtil.fixScrollSpeed(scrollPane);
     uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
     installButton.managedProperty().bind(installButton.visibleProperty());
