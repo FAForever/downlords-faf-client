@@ -128,7 +128,7 @@ public class ModDetailController implements Controller<Node> {
     this.modVersion = modVersion;
     thumbnailImageView.setImage(modService.loadThumbnail(modVersion));
     nameLabel.setText(modVersion.getDisplayName());
-    idLabel.setText(i18n.get("mod.id", modVersion.getId()));
+    idLabel.setText(i18n.get("mod.idNumber", modVersion.getId()));
 
     setUploaderAndAuthor(modVersion);
 

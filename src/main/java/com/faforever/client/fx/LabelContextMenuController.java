@@ -19,13 +19,7 @@ public class LabelContextMenuController implements Controller<ContextMenu> {
 
   private Label label;
 
-  public LabelContextMenuController() {
-  }
-
-  public void initialize() {
-  }
-
-  ContextMenu getContextMenu() {
+  public ContextMenu getContextMenu() {
     return labelContextMenuRoot;
   }
 
