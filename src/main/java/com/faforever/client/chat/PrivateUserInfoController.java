@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.api.dto.AchievementState;
+import com.faforever.client.chat.event.ChatUserPopulateEvent;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Game;
@@ -10,6 +11,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -32,6 +34,8 @@ public class PrivateUserInfoController implements Controller<Node> {
   private final CountryFlagService countryFlagService;
   private final I18n i18n;
   private final AchievementService achievementService;
+  private final EventBus eventBus;
+  private ChatChannelUser chatUser;
 
   public ImageView userImageView;
   public Label usernameLabel;
@@ -56,10 +60,11 @@ public class PrivateUserInfoController implements Controller<Node> {
   @SuppressWarnings("FieldCanBeLocal")
   private InvalidationListener gameInvalidationListener;
 
-  public PrivateUserInfoController(CountryFlagService countryFlagService, I18n i18n, AchievementService achievementService) {
+  public PrivateUserInfoController(CountryFlagService countryFlagService, I18n i18n, AchievementService achievementService, EventBus eventBus) {
     this.countryFlagService = countryFlagService;
     this.i18n = i18n;
     this.achievementService = achievementService;
+    this.eventBus = eventBus;
   }
 
   @Override
@@ -84,23 +89,25 @@ public class PrivateUserInfoController implements Controller<Node> {
   }
 
   public void setChatUser(@NotNull ChatChannelUser chatUser) {
-    chatUser.setDisplayed(true);
-    chatUser.getPlayer().ifPresentOrElse(this::displayPlayerInfo, () -> {
-      chatUser.playerProperty().addListener((observable, oldValue, newValue) -> {
+    this.chatUser = chatUser;
+    this.chatUser.setDisplayed(true);
+    this.chatUser.getPlayer().ifPresentOrElse(this::displayPlayerInfo, () -> {
+      this.chatUser.playerProperty().addListener((observable, oldValue, newValue) -> {
         if (newValue != null) {
           displayPlayerInfo(newValue);
         } else {
-          displayChatUserInfo(chatUser);
+          displayChatUserInfo();
         }
       });
-      displayChatUserInfo(chatUser);
-      JavaFxUtil.bind(usernameLabel.textProperty(), chatUser.usernameProperty());
-      JavaFxUtil.bind(countryImageView.imageProperty(), chatUser.countryFlagProperty());
-      JavaFxUtil.bind(countryLabel.textProperty(), chatUser.countryNameProperty());
+      displayChatUserInfo();
     });
+    JavaFxUtil.bind(usernameLabel.textProperty(), this.chatUser.usernameProperty());
+    JavaFxUtil.bind(countryImageView.imageProperty(), this.chatUser.countryFlagProperty());
+    JavaFxUtil.bind(countryLabel.textProperty(), this.chatUser.countryNameProperty());
+    eventBus.post(new ChatUserPopulateEvent(this.chatUser));
   }
 
-  private void displayChatUserInfo(ChatChannelUser chatUser) {
+  private void displayChatUserInfo() {
     onPlayerGameChanged(null);
     setPlayerInfoVisible(false);
   }
