@@ -111,6 +111,7 @@ public class CreateGameController implements Controller<Pane> {
   private boolean initialized;
 
   public void initialize() {
+    JavaFxUtil.addLabelContextMenus(uiService, mapNameLabel, mapDescriptionLabel);
     versionLabel.managedProperty().bind(versionLabel.visibleProperty());
 
     mapPreviewPane.prefHeightProperty().bind(mapPreviewPane.widthProperty());

@@ -1,5 +1,6 @@
 package com.faforever.client.fx;
 
+import com.faforever.client.theme.UiService;
 import com.google.common.base.Strings;
 import com.sun.javafx.stage.PopupWindowHelper;
 import com.sun.jna.Pointer;
@@ -25,6 +26,7 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
@@ -151,6 +153,21 @@ public final class JavaFxUtil {
     Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
     stage.setX((screenBounds.getMaxX() - screenBounds.getMinX() - width) / 2);
     stage.setY((screenBounds.getMaxY() - screenBounds.getMinY() - height) / 2);
+  }
+
+  public static void addLabelContextMenus(UiService uiService, Label... labels) {
+    Arrays.stream(labels).forEach(label -> addLabelContextMenuRequest(uiService, label));
+  }
+
+  /**
+   * Adds Label Context Menu Handler to Label
+   */
+  public static void addLabelContextMenuRequest(UiService uiService, Label label) {
+    label.setOnContextMenuRequested(event -> {
+      LabelContextMenuController controller = uiService.loadFxml("theme/label_context_menu.fxml");
+      controller.setLabel(label);
+      controller.getContextMenu().show(label.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+    });
   }
 
   public static void assertApplicationThread() {

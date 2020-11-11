@@ -56,9 +56,9 @@ public class GameDetailController implements Controller<Pane> {
   public Label gameTitleLabel;
   public Node joinButton;
   public WatchButtonController watchButtonController;
-  private ReadOnlyObjectWrapper<Game> game;
+  private final ReadOnlyObjectWrapper<Game> game;
   @SuppressWarnings("FieldCanBeLocal")
-  private InvalidationListener teamsInvalidationListener;
+  private final InvalidationListener teamsInvalidationListener;
   @SuppressWarnings("FieldCanBeLocal")
   private final InvalidationListener gameStatusInvalidationListener;
   private final WeakInvalidationListener weakTeamListener;
@@ -86,6 +86,7 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   public void initialize() {
+    JavaFxUtil.addLabelContextMenus(uiService, gameTitleLabel, mapLabel, gameTypeLabel);
     gameDetailRoot.parentProperty().addListener(observable -> {
       if (!(gameDetailRoot.getParent() instanceof Pane)) {
         return;

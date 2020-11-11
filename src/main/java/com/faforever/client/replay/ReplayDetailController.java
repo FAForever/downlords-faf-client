@@ -111,6 +111,7 @@ public class ReplayDetailController implements Controller<Node> {
   private ObservableMap<String, List<PlayerStats>> teams;
 
   public void initialize() {
+    JavaFxUtil.addLabelContextMenus(uiService, onMapLabel, titleLabel);
     JavaFxUtil.fixScrollSpeed(scrollPane);
 
     chatGameTimeColumn.setCellValueFactory(param -> param.getValue().timeProperty());
