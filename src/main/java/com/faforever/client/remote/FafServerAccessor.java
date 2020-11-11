@@ -49,13 +49,9 @@ public interface FafServerAccessor {
 
   void requestMatchmakerInfo();
 
-  CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction);
-
   CompletableFuture<GameLaunchMessage> startSearchMatchmaker();
 
   void stopSearchMatchmaker();
-
-  void stopSearchingRanked();
 
   void sendGpgMessage(GpgGameMessage message);
 

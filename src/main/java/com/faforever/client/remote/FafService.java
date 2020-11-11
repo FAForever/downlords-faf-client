@@ -95,10 +95,6 @@ public class FafService {
     return fafServerAccessor.requestJoinGame(gameId, password);
   }
 
-  public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction) { // TODO: remove
-    return fafServerAccessor.startSearchLadder1v1(faction);
-  }
-
   public CompletableFuture<GameLaunchMessage> startSearchMatchmaker() {
     return fafServerAccessor.startSearchMatchmaker();
   }
@@ -107,12 +103,9 @@ public class FafService {
     fafServerAccessor.stopSearchMatchmaker();
   }
 
+  //TODO: use for TMM or remove
   public void requestMatchmakerInfo() {
     fafServerAccessor.requestMatchmakerInfo();
-  }
-
-  public void stopSearchingRanked() { // TODO: remove
-    fafServerAccessor.stopSearchingRanked();
   }
 
   public void sendGpgGameMessage(GpgGameMessage message) {

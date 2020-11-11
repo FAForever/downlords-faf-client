@@ -24,7 +24,6 @@ public class PlayController extends AbstractViewController<Node> {
   public Tab teamMatchmakingTab;
   public Tab customGamesTab;
   public Tab coopTab;
-  public Tab ladderTab;
   public TabPane playRootTabPane;
   public TeamMatchmakingController teamMatchmakingController;
   public CustomGamesController customGamesController;
