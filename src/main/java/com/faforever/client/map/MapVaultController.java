@@ -43,6 +43,7 @@ public class MapVaultController extends VaultEntityController<MapBean> {
 
   private MapDetailController mapDetailController;
   private Integer recommendedShowRoomPageCount;
+  private Integer matchmakerQueueId;
 
   public MapVaultController(MapService mapService, I18n i18n, EventBus eventBus, PreferencesService preferencesService,
                             UiService uiService, NotificationService notificationService, ReportingService reportingService) {
@@ -86,6 +87,7 @@ public class MapVaultController extends VaultEntityController<MapBean> {
       case NEWEST -> currentSupplier = mapService.getNewestMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
       case HIGHEST_RATED -> currentSupplier = mapService.getHighestRatedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
       case PLAYED -> currentSupplier = mapService.getMostPlayedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
+      case MAP_POOL -> currentSupplier = mapService.getMatchmakerMapsWithPageCount(matchmakerQueueId, pageSize, pagination.getCurrentPageIndex() + 1);
       case OWN -> currentSupplier = mapService.getOwnedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
     }
   }
@@ -143,10 +145,9 @@ public class MapVaultController extends VaultEntityController<MapBean> {
   @Override
   protected void handleSpecialNavigateEvent(NavigateEvent navigateEvent) {
     if (navigateEvent instanceof ShowMapPoolEvent) {
-      int id = ((ShowMapPoolEvent) navigateEvent).getQueueId();
-      currentSupplier = mapService.getMatchmakerMapsWithPageCount(id, pageSize, pagination.getCurrentPageIndex() + 1);
-      enterSearchingState();
-      displayFromSupplier(() -> currentSupplier, true);
+      matchmakerQueueId = ((ShowMapPoolEvent) navigateEvent).getQueueId();
+      searchType = SearchType.MAP_POOL;
+      onPageChange(null, true);
     } else {
       log.warn("No such NavigateEvent for this Controller: {}", navigateEvent.getClass());
     }
