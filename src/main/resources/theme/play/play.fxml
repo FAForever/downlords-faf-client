@@ -14,9 +14,6 @@
                 <Tab fx:id="customGamesTab" text="%play.custom">
                     <fx:include fx:id="customGames" source="custom_games.fxml" />
                 </Tab>
-                <Tab fx:id="ladderTab" text="%play.ranked1v1">
-                    <fx:include fx:id="ladder" source="ranked_1v1.fxml" />
-                </Tab>
                 <Tab fx:id="coopTab" text="%play.coop">
                     <fx:include fx:id="coop" source="coop/coop.fxml" />
                 </Tab>
