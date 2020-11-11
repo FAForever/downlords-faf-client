@@ -500,43 +500,6 @@ public class GameService implements InitializingBean {
     fafService.addOnMessageListener(MatchmakerInfoMessage.class, listener);
   }
 
-  //TODO: remove
-//  public CompletableFuture<Void> startSearchLadder1v1(Faction faction) {
-//    if (isRunning()) {
-//      log.debug("Game is running, ignoring 1v1 search request");
-//      return completedFuture(null);
-//    }
-//
-//    if (!preferencesService.isGamePathValid()) {
-//      CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
-//      return gameDirectoryFuture.thenCompose(path -> startSearchLadder1v1(faction));
-//    }
-//
-//    searching1v1.set(true);
-//
-//    return modService.getFeaturedMod(LADDER_1V1.getTechnicalName())
-//        .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
-//        .thenCompose(aVoid -> fafService.startSearchLadder1v1(faction))
-//        .thenAccept((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapname())
-//            .thenRun(() -> {
-//              gameLaunchMessage.setArgs(new ArrayList<>(gameLaunchMessage.getArgs()));
-//
-//              gameLaunchMessage.getArgs().add("/team " + gameLaunchMessage.getTeam());
-//              gameLaunchMessage.getArgs().add("/players " + gameLaunchMessage.getExpectedPlayers());
-//              gameLaunchMessage.getArgs().add("/startspot " + gameLaunchMessage.getMapPosition());
-//
-//              startGame(gameLaunchMessage, faction, RatingMode.LADDER_1V1);
-//            }))
-//        .exceptionally(throwable -> {
-//          if (throwable instanceof CancellationException) {
-//            log.info("Ranked1v1 search has been cancelled");
-//          } else {
-//            log.warn("Ranked1v1 could not be started", throwable);
-//          }
-//          return null;
-//        });
-//  }
-
   public CompletableFuture<Void> startSearchMatchmaker() {
 
     inMatchmakerQueue.set(true);
@@ -564,11 +527,9 @@ public class GameService implements InitializingBean {
         });
   }
 
-  //TODO: disable usages, rename to onMatchmakerSearchStopped
   public void onMatchmakerSearchStopped() {
     if (inMatchmakerQueue.get()) {
       fafService.stopSearchMatchmaker();
-      fafService.stopSearchingRanked();
       inMatchmakerQueue.set(false);
     }
   }

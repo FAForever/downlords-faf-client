@@ -246,15 +246,6 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction) {
-    logger.debug("Searching 1v1 match with faction: {}", faction);
-    GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
-    gameLaunchMessage.setUid(123);
-    gameLaunchMessage.setMod(KnownFeaturedMod.DEFAULT.getTechnicalName());
-    return CompletableFuture.completedFuture(gameLaunchMessage);
-  }
-
-  @Override
   public CompletableFuture<GameLaunchMessage> startSearchMatchmaker() {
     logger.debug("Starting matchmaker game");
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
@@ -266,11 +257,6 @@ public class MockFafServerAccessor implements FafServerAccessor {
   @Override
   public void stopSearchMatchmaker() {
 
-  }
-
-  @Override
-  public void stopSearchingRanked() {
-    logger.debug("Stopping searching 1v1 match");
   }
 
   @Override

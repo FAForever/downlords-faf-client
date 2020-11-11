@@ -13,12 +13,9 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
-import com.faforever.client.rankedmatch.SearchLadder1v1ClientMessage;
-import com.faforever.client.rankedmatch.StopSearchLadder1v1ClientMessage;
 import com.faforever.client.remote.domain.ClientMessageType;
 import com.faforever.client.remote.domain.FafServerMessage;
 import com.faforever.client.remote.domain.FafServerMessageType;
-import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.InitSessionMessage;
 import com.faforever.client.remote.domain.LoginClientMessage;
 import com.faforever.client.remote.domain.LoginMessage;
@@ -42,7 +39,6 @@ import com.google.gson.GsonBuilder;
 import org.apache.commons.compress.utils.IOUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -72,7 +68,6 @@ import java.util.concurrent.TimeUnit;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonList;
-import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.core.Is.is;
@@ -325,42 +320,6 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
     sendFromServer(noticeMessage);
 
     verify(taskScheduler, timeout(1000)).scheduleWithFixedDelay(any(Runnable.class), any(Duration.class));
-
-    instance.disconnect();
-  }
-
-  @Test
-  public void startSearchLadder1v1WithAeon() throws Exception {
-    connectAndLogIn();
-
-    CompletableFuture<GameLaunchMessage> future = instance.startSearchLadder1v1(Faction.AEON).toCompletableFuture();
-
-    String clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    SearchLadder1v1ClientMessage searchRanked1v1Message = gson.fromJson(clientMessage, SearchLadder1v1ClientMessage.class);
-
-    assertThat(searchRanked1v1Message, instanceOf(SearchLadder1v1ClientMessage.class));
-    assertThat(searchRanked1v1Message.getFaction(), is(Faction.AEON));
-
-    GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
-    gameLaunchMessage.setUid(1234);
-    sendFromServer(gameLaunchMessage);
-
-    assertThat(future.get(TIMEOUT, TIMEOUT_UNIT).getUid(), is(gameLaunchMessage.getUid()));
-
-    instance.disconnect();
-  }
-
-  @Test
-  @Ignore // TODO: TMM, CHECK!
-  public void stopSearchingLadder1v1Match() throws Exception {
-    connectAndLogIn();
-
-    instance.stopSearchingRanked();
-
-    String clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    StopSearchLadder1v1ClientMessage stopSearchRanked1v1Message = gson.fromJson(clientMessage, StopSearchLadder1v1ClientMessage.class);
-    assertThat(stopSearchRanked1v1Message, instanceOf(StopSearchLadder1v1ClientMessage.class));
-    assertThat(stopSearchRanked1v1Message.getCommand(), is(ClientMessageType.GAME_MATCH_MAKING));
 
     instance.disconnect();
   }

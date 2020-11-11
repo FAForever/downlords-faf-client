@@ -23,8 +23,6 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.player.Player;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerInfoClientMessage;
-import com.faforever.client.rankedmatch.SearchLadder1v1ClientMessage;
-import com.faforever.client.rankedmatch.StopSearchLadder1v1ClientMessage;
 import com.faforever.client.remote.domain.AcceptPartyInviteMessage;
 import com.faforever.client.remote.domain.AddFoeMessage;
 import com.faforever.client.remote.domain.AddFriendMessage;
@@ -371,13 +369,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction) {
-    gameLaunchFuture = new CompletableFuture<>();
-    writeToServer(new SearchLadder1v1ClientMessage(faction));
-    return gameLaunchFuture;
-  }
-
-  @Override
   public CompletableFuture<GameLaunchMessage> startSearchMatchmaker() {
     gameLaunchFuture = new CompletableFuture<>();
     return gameLaunchFuture;
@@ -393,12 +384,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
       // as it isn't aware of the launching game anymore (which has already launched)
       log.warn("Game launch was already completed / cancelled when trying to stop searching for a matchmade game. Ignoring...");
     }
-  }
-
-  @Override
-  public void stopSearchingRanked() {
-    writeToServer(new StopSearchLadder1v1ClientMessage());
-    gameLaunchFuture = null;
   }
 
   @Override
