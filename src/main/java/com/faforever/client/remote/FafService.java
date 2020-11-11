@@ -465,8 +465,8 @@ public class FafService {
         .parallelStream()
         .map(MatchmakerQueueMapPool::getMapPool)
         .flatMap(mapPool -> mapPool.getMapVersions().stream())
+        .distinct()
         .map(MapBean::fromMapVersionDto)
-        .distinct() // This is not working?
         .collect(toList()),
         ((HashMap<String,Integer>) tuple.getSecond().get("page")).get("totalPages")));
   }
