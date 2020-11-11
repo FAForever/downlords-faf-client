@@ -12,6 +12,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowLadderMapsEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
@@ -64,6 +65,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private final UiService uiService;
   private final TeamMatchmakingService teamMatchmakingService;
   private final EventBus eventBus;
+  private final FafService fafService;
 
   public StackPane teamMatchmakingRoot;
   public Button invitePlayerButton;
@@ -159,6 +161,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       createChannelTab(String.format("#%s'sParty", newValue.getUsername()));
     });
     createChannelTab(String.format("#%s'sParty", teamMatchmakingService.getParty().getOwner().getUsername()));
+
+    fafService.requestMatchmakerInfo();
   }
 
   private void initializeUppercaseText() {

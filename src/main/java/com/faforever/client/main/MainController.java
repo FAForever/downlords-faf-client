@@ -14,7 +14,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
-import com.faforever.client.main.event.Open1v1Event;
+import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
 import com.faforever.client.news.UnreadNewsEvent;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
@@ -371,7 +371,7 @@ public class MainController implements Controller<Node> {
         i18n.get("ranked1v1.notification.title"),
         i18n.get("ranked1v1.notification.message"),
         uiService.getThemeImage(UiService.LADDER_1V1_IMAGE),
-        event -> eventBus.post(new Open1v1Event())
+        event -> eventBus.post(new OpenTeamMatchmakingEvent())
     ));
   }
 
