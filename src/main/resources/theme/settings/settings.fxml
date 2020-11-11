@@ -457,10 +457,8 @@
                                               <Label styleClass="setting-title" text="%settings.notifications.pmReceived" GridPane.rowIndex="5" />
                                               <CheckBox fx:id="displayPmReceivedToastCheckBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
                                               <CheckBox fx:id="playPmReceivedSoundCheckBox" mnemonicParsing="false" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
-                                              <Label styleClass="setting-title" text="%settings.notifications.ranked1v1" GridPane.rowIndex="6" />
-                                              <CheckBox fx:id="displayLadder1v1ToastCheckBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="6" GridPane.valignment="CENTER" />
-                                              <Label styleClass="setting-title" text="%settings.notifications.afterGameReview" GridPane.rowIndex="7" />
-                                              <CheckBox fx:id="afterGameReviewCheckBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="7" GridPane.valignment="CENTER" />
+                                              <Label styleClass="setting-title" text="%settings.notifications.afterGameReview" GridPane.rowIndex="6" />
+                                              <CheckBox fx:id="afterGameReviewCheckBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="6" GridPane.valignment="CENTER" />
                                  </children>
                               </GridPane>
                            </children>

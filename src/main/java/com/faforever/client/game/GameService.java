@@ -496,10 +496,6 @@ public class GameService implements InitializingBean {
     return game;
   }
 
-  public void addOnMatchmakerQueueNotificationListener(Consumer<MatchmakerInfoMessage> listener) {
-    fafService.addOnMessageListener(MatchmakerInfoMessage.class, listener);
-  }
-
   public CompletableFuture<Void> startSearchMatchmaker() {
 
     inMatchmakerQueue.set(true);

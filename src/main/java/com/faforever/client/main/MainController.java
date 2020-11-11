@@ -219,7 +219,6 @@ public class MainController implements Controller<Node> {
     notificationService.addPersistentNotificationListener(change -> runLater(() -> updateNotificationsButton(change.getSet())));
     notificationService.addImmediateNotificationListener(notification -> runLater(() -> displayImmediateNotification(notification)));
     notificationService.addTransientNotificationListener(notification -> runLater(() -> transientNotificationsController.addNotification(notification)));
-    gameService.addOnMatchmakerQueueNotificationListener(this::onMatchmakerMessage);
     // Always load chat immediately so messages or joined channels don't need to be cached until we display them.
     getView(NavigationItem.CHAT);
 
@@ -319,60 +318,6 @@ public class MainController implements Controller<Node> {
     notificationButton.pseudoClassStateChanged(NOTIFICATION_INFO_PSEUDO_CLASS, highestSeverity == Severity.INFO);
     notificationButton.pseudoClassStateChanged(NOTIFICATION_WARN_PSEUDO_CLASS, highestSeverity == Severity.WARN);
     notificationButton.pseudoClassStateChanged(NOTIFICATION_ERROR_PSEUDO_CLASS, highestSeverity == Severity.ERROR);
-  }
-
-
-  //TODO: adapt for TMM
-  private void onMatchmakerMessage(MatchmakerInfoMessage message) {
-    if (message.getQueues() == null
-        || gameService.gameRunningProperty().get()
-        || gameService.inMatchmakerQueueProperty().get()
-        || !preferencesService.getPreferences().getNotification().getLadder1v1ToastEnabled()
-        || !playerService.getCurrentPlayer().isPresent()) {
-      return;
-    }
-
-    Player currentPlayer = playerService.getCurrentPlayer().get();
-
-    int deviationFor80PercentQuality = (int) (ratingBeta / 2.5f);
-    int deviationFor75PercentQuality = (int) (ratingBeta / 1.25f);
-    float leaderboardRatingDeviation = currentPlayer.getLeaderboardRatingDeviation();
-
-    Function<MatchmakerInfoMessage.MatchmakerQueue, List<RatingRange>> ratingRangesSupplier;
-    if (leaderboardRatingDeviation <= deviationFor80PercentQuality) {
-      ratingRangesSupplier = MatchmakerInfoMessage.MatchmakerQueue::getBoundary80s;
-    } else if (leaderboardRatingDeviation <= deviationFor75PercentQuality) {
-      ratingRangesSupplier = MatchmakerInfoMessage.MatchmakerQueue::getBoundary75s;
-    } else {
-      return;
-    }
-
-    float leaderboardRatingMean = currentPlayer.getLeaderboardRatingMean();
-    boolean showNotification = false;
-    for (MatchmakerInfoMessage.MatchmakerQueue matchmakerQueue : message.getQueues()) {
-      if (!Objects.equals("ladder1v1", matchmakerQueue.getQueueName())) {
-        continue;
-      }
-      List<RatingRange> ratingRanges = ratingRangesSupplier.apply(matchmakerQueue);
-
-      for (RatingRange ratingRange : ratingRanges) {
-        if (ratingRange.getMin() <= leaderboardRatingMean && leaderboardRatingMean <= ratingRange.getMax()) {
-          showNotification = true;
-          break;
-        }
-      }
-    }
-
-    if (!showNotification) {
-      return;
-    }
-
-    notificationService.addNotification(new TransientNotification(
-        i18n.get("ranked1v1.notification.title"),
-        i18n.get("ranked1v1.notification.message"),
-        uiService.getThemeImage(UiService.LADDER_1V1_IMAGE),
-        event -> eventBus.post(new OpenTeamMatchmakingEvent())
-    ));
   }
 
   public void display() {

@@ -134,15 +134,6 @@ public class MockFafServerAccessor implements FafServerAccessor {
           }
         }, 7000);
 
-        timer.schedule(new TimerTask() {
-          @Override
-          public void run() {
-            MatchmakerInfoMessage matchmakerServerMessage = new MatchmakerInfoMessage();
-            matchmakerServerMessage.setQueues(singletonList(new MatchmakerQueue("ladder1v1", null, 1, 1, singletonList(new RatingRange(100, 200)), singletonList(new RatingRange(100, 200)))));
-            messageListeners.getOrDefault(matchmakerServerMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(matchmakerServerMessage));
-          }
-        }, 7000);
-
         List<GameInfoMessage> gameInfoMessages = Arrays.asList(
             createGameInfo(1, "Mock game 500 - 800", PUBLIC, "faf", "scmp_010", 1, 6, "Mock user"),
             createGameInfo(2, "Mock game 500+", PUBLIC, "faf", "scmp_011", 2, 6, "Mock user"),
