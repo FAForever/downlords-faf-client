@@ -192,6 +192,10 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     ).thenReturn(process);
   }
 
+  private void mockStartReplayProcess(Path path, int id) throws IOException {
+    when(forgedAllianceService.startReplay(path, id)).thenReturn(process);
+  }
+
   @Test
   @SuppressWarnings("unchecked")
   public void postConstruct() {
@@ -245,6 +249,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
     future.join();
+    mockStartReplayProcess(replayPath, replayId);
     instance.runWithReplay(replayPath, replayId, "", null, null, null, "map");
 
     verify(replayService).start(eq(game.getId()), any());
@@ -272,6 +277,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
     future.join();
+    mockStartReplayProcess(replayPath, replayId);
     instance.runWithReplay(replayPath, replayId, "", null, null, null, "map");
 
     verify(replayService).start(eq(game.getId()), any());
