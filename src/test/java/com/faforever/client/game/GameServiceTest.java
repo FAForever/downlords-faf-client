@@ -138,6 +138,8 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   private Preferences preferences;
   @Mock
   private Process process;
+  @Mock
+  private ForgedAlliancePrefs forgedAlliancePrefs;
 
   @Captor
   private ArgumentCaptor<Consumer<GameInfoMessage>> gameInfoMessageListenerCaptor;
@@ -145,12 +147,10 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   private ArgumentCaptor<Set<String>> simModsCaptor;
 
   private Player junitPlayer;
-  private ForgedAlliancePrefs forgedAlliancePrefs;
 
   @Before
   public void setUp() throws Exception {
     junitPlayer = PlayerBuilder.create("JUnit").defaultValues().get();
-    forgedAlliancePrefs = new ForgedAlliancePrefs();
 
     ClientProperties clientProperties = new ClientProperties();
 
@@ -229,7 +229,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testStartReplayWhileInGameAllowed() throws Exception {
-    forgedAlliancePrefs.setAllowReplaysWhileInGame(true);
+    when(forgedAlliancePrefs.isAllowReplaysWhileInGame()).thenReturn(true);
     Game game = GameBuilder.create().defaultValues().get();
 
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
@@ -256,8 +256,8 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testStartReplayWhileInGameNotAllowed() throws Exception {
+    when(forgedAlliancePrefs.isAllowReplaysWhileInGame()).thenReturn(false);
     Game game = GameBuilder.create().defaultValues().get();
-    forgedAlliancePrefs.setAllowReplaysWhileInGame(false);
 
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
     Path replayPath = Paths.get("temp.scfareplay");
