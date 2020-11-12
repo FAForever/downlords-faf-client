@@ -372,7 +372,7 @@ public class SettingsController implements Controller<Node> {
       gameService.isGamePrefsPatchedToAllowMultiInstances()
           .thenAccept(isPatched -> allowReplayWhileInGameButton.setDisable(isPatched));
     } catch (IOException e) {
-      log.warn("Failed evaluating if game.prefs file is patched for multiple instances.");
+      log.warn("Failed evaluating if game.prefs file is patched for multiple instances.", e);
       allowReplayWhileInGameButton.setDisable(true);
     }
   }
