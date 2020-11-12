@@ -103,7 +103,7 @@ public class GameUpdaterImpl implements GameUpdater {
                 "that allows multiple game instances to run in parallel this is most likely the cause.");
             throw new UnsupportedOperationException("Unable to patch Forged Alliance to the required version " +
                 "due to conflicting version running", throwable);
-          } else if (!(allowReplaysWhileInGame && version != null)) {
+          } else if (!allowReplaysWhileInGame) {
             log.warn("Game files not accessible", throwable);
             notificationService.addImmediateErrorNotification(throwable, "error.game.filesNotAccessible");
           } else {
