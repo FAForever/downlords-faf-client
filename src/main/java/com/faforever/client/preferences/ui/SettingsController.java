@@ -366,6 +366,7 @@ public class SettingsController implements Controller<Node> {
   }
 
   private void initAllowReplaysWhileInGame(Preferences preferences) {
+    allowReplayWhileInGameCheckBox.setSelected(preferences.getForgedAlliance().isAllowReplaysWhileInGame());
     JavaFxUtil.bindBidirectional(allowReplayWhileInGameCheckBox.selectedProperty(), preferences.getForgedAlliance().allowReplaysWhileInGameProperty());
     try {
       gameService.isGamePrefsPatchedToAllowMultiInstances()

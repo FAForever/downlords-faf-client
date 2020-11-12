@@ -393,7 +393,7 @@ public class GameService implements InitializingBean {
         .thenRun(() -> {
           try {
             Process processForReplay = forgedAllianceService.startReplay(path, replayId);
-            if (forgedAlliancePrefs.isAllowReplaysWhileInGame()) {
+            if (forgedAlliancePrefs.isAllowReplaysWhileInGame() && isRunning()) {
               return;
             }
             this.process = processForReplay;
@@ -471,7 +471,7 @@ public class GameService implements InitializingBean {
         .thenCompose(aVoid -> downloadMapIfNecessary(mapName))
         .thenRun(() -> noCatch(() -> {
           Process processCreated = forgedAllianceService.startReplay(replayUrl, gameId, getCurrentPlayer());
-          if (forgedAlliancePrefs.isAllowReplaysWhileInGame()) {
+          if (forgedAlliancePrefs.isAllowReplaysWhileInGame() && isRunning()) {
             return;
           }
           this.process = processCreated;
