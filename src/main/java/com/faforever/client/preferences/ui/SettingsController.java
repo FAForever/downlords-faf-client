@@ -620,11 +620,12 @@ public class SettingsController implements Controller<Node> {
   public void onPatchGamePrefsForMultipleInstances() {
     try {
       gameService.patchGamePrefsForMultiInstances()
-          .thenRun(() -> Platform.runLater(() -> allowReplayWhileInGameButton.setDisable(true))).exceptionally(throwable -> {
-        log.error("Game.prefs patch failed", throwable);
-        notificationService.addImmediateErrorNotification(throwable, "settings.fa.patchGamePrefsFailed");
-        return null;
-      });
+          .thenRun(() -> Platform.runLater(() -> allowReplayWhileInGameButton.setDisable(true)))
+          .exceptionally(throwable -> {
+            log.error("Game.prefs patch failed", throwable);
+            notificationService.addImmediateErrorNotification(throwable, "settings.fa.patchGamePrefsFailed");
+            return null;
+          });
     } catch (Exception e) {
       log.error("Game.prefs patch failed", e);
       notificationService.addImmediateErrorNotification(e, "settings.fa.patchGamePrefsFailed");
