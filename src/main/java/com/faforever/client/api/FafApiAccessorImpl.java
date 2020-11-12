@@ -430,12 +430,11 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  public Tuple<List<MatchmakerQueueMapPool>, java.util.Map<String, ?>> getMatchMakerPoolsWithMeta(int matchmakerQueueId, int count, int page) {
-    JSONAPIDocument<List<MatchmakerQueueMapPool>> jsonApiDoc = getPageWithMeta("/data/matchmakerQueueMapPool", count, page, ImmutableMap.of(
+  public List<MatchmakerQueueMapPool> getMatchMakerPoolsWithMeta(int matchmakerQueueId) {
+    return getAll("/data/matchmakerQueueMapPool", ImmutableMap.of(
         "include", "matchmakerQueue,mapPool,mapPool.mapVersions," +
             "mapPool.mapVersions.map,mapPool.mapVersions.map.latestVersion,mapPool.mapVersions.map.latestVersion.reviews,mapPool.mapVersions.map.author,mapPool.mapVersions.map.statistics",
         "filter", rsql(qBuilder().string("matchmakerQueue.id").eq(String.valueOf(matchmakerQueueId)))));
-    return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
   }
 
   @Override

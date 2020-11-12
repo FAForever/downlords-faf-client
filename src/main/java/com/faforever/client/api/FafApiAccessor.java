@@ -128,7 +128,7 @@ public interface FafApiAccessor {
 
   Tuple<List<Mod>, java.util.Map<String, ?>> findModsByQueryWithMeta(SearchConfig query, int maxResults, int page);
 
-  Tuple<List<MatchmakerQueueMapPool>, java.util.Map<String, ?>> getMatchMakerPoolsWithMeta(int matchmakerQueueId, int count, int page);
+  List<MatchmakerQueueMapPool> getMatchMakerPoolsWithMeta(int matchmakerQueueId);
 
   List<Tournament> getAllTournaments();
 

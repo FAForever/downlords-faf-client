@@ -459,16 +459,20 @@ public class FafService {
 
   @Async
   public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(int matchmakerQueueId, int count, int page) {
-    // fixme This uses the count for the number of map pools instead of the number of maps
-    Tuple<List<MatchmakerQueueMapPool>, java.util.Map<String, ?>> tuple = fafApiAccessor.getMatchMakerPoolsWithMeta(matchmakerQueueId, count, page);
-    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
-        .parallelStream()
+    List<MapVersion> mapVersions = fafApiAccessor.getMatchMakerPoolsWithMeta(matchmakerQueueId)
+        .stream()
         .map(MatchmakerQueueMapPool::getMapPool)
         .flatMap(mapPool -> mapPool.getMapVersions().stream())
         .distinct()
+        .collect(toList());
+    int totalPages = mapVersions.size() / count;
+    return CompletableFuture.completedFuture(new Tuple<>(mapVersions
+        .stream()
+        .skip((page - 1) * count)
+        .limit(count)
         .map(MapBean::fromMapVersionDto)
         .collect(toList()),
-        ((HashMap<String,Integer>) tuple.getSecond().get("page")).get("totalPages")));
+        totalPages));
   }
 
   @Async

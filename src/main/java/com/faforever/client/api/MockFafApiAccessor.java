@@ -279,8 +279,8 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public Tuple<List<MatchmakerQueueMapPool>, java.util.Map<String, ?>> getMatchMakerPoolsWithMeta(int matchmakerQueueId, int count, int page) {
-    return new Tuple(Collections.emptyList(), Collections.emptyMap());
+  public List<MatchmakerQueueMapPool> getMatchMakerPoolsWithMeta(int matchmakerQueueId) {
+    return Collections.emptyList();
   }
 
   @Override
