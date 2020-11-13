@@ -51,7 +51,7 @@
         <ComboBox fx:id="generationTypeComboBox" maxHeight="Infinity" GridPane.columnIndex="1"
                   GridPane.columnSpan="2" GridPane.rowIndex="4">
             <tooltip>
-                <Tooltip text="%game.create.spawnCount"/>
+                <Tooltip text="%game.create.generationType"/>
             </tooltip>
         </ComboBox>
         <Label text="%game.create.spawnCount" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
