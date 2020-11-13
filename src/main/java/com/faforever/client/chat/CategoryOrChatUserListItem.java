@@ -13,6 +13,17 @@ import lombok.Value;
  */
 @Value
 class CategoryOrChatUserListItem {
+
   ChatUserCategory category;
   ChatChannelUser user;
+
+  CategoryOrChatUserListItem(ChatUserCategory category) {
+    this.category = category;
+    this.user = null;
+  }
+
+  CategoryOrChatUserListItem(ChatChannelUser user) {
+    this.user = user;
+    this.category = null;
+  }
 }

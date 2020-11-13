@@ -64,8 +64,10 @@ import org.springframework.util.Assert;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -326,7 +328,7 @@ public class ChannelTabController extends AbstractChatTabController {
   @NotNull
   private List<CategoryOrChatUserListItem> createCategoryTreeObjects() {
     return Arrays.stream(ChatUserCategory.values())
-        .map(chatUserCategory -> new CategoryOrChatUserListItem(chatUserCategory, null))
+        .map(CategoryOrChatUserListItem::new)
         .collect(Collectors.toList());
   }
 
@@ -495,10 +497,14 @@ public class ChannelTabController extends AbstractChatTabController {
         .filter(chatUserCategory -> !chatUserCategories.contains(chatUserCategory))
         .map(categoriesToUserListItems::get)
         .flatMap(Collection::stream)
-        .filter(categoryOrChatUserListItem -> categoryOrChatUserListItem.getUser() != null && categoryOrChatUserListItem.getUser().equals(chatUser))
+        .filter(item -> chatUser.equals(item.getUser()))
         .forEach(chatUserListItems::remove);
 
-    CategoryOrChatUserListItem listItem = new CategoryOrChatUserListItem(null, chatUser);
+    Arrays.stream(ChatUserCategory.values())
+        .filter(chatUserCategory -> !chatUserCategories.contains(chatUserCategory))
+        .forEach(category -> categoriesToUserListItems.get(category).removeIf(item -> chatUser.equals(item.getUser())));
+
+    CategoryOrChatUserListItem listItem = new CategoryOrChatUserListItem(chatUser);
     userNamesToListItems.getOrDefault(chatUser.getUsername(), new ArrayList<>()).add(listItem);
 
     chatUserCategories.stream()
@@ -670,5 +676,27 @@ public class ChannelTabController extends AbstractChatTabController {
     // listeners which we're trying to avoid.
     ChatChannelUser chatUser = chatService.getChatUser(event.getPlayer().getUsername(), channel.getName());
     associateChatUserWithPlayer(event.getPlayer(), chatUser);
+  }
+
+  @VisibleForTesting
+  protected List<CategoryOrChatUserListItem> getChatUserItemsByCategory(ChatUserCategory category) {
+    CategoryOrChatUserListItem categoryItem = categoriesToCategoryListItems.get(category);
+    if (categoryItem == null) {
+      return Collections.emptyList();
+    }
+    int categoryIndex = chatUserListView.getItems().indexOf(categoryItem);
+    if (categoryIndex == -1) {
+      return Collections.emptyList();
+    }
+    List<CategoryOrChatUserListItem> users = new ArrayList<>();
+    Iterator<CategoryOrChatUserListItem> iterator = chatUserListView.getItems().listIterator(++categoryIndex); // to start with first user of this category
+    while (iterator.hasNext()) {
+      CategoryOrChatUserListItem item = iterator.next();
+      if (item.getCategory() != null) {
+        break;
+      }
+      users.add(item);
+    }
+    return users;
   }
 }

@@ -268,23 +268,15 @@ public class ChatChannelUser {
     Set<ChatUserCategory> userCategories = new HashSet<>();
 
     Optional<Player> playerOptional = Optional.ofNullable(player.get());
-    if (!playerOptional.isPresent()) {
+    if (playerOptional.isEmpty()) {
       userCategories.add(ChatUserCategory.CHAT_ONLY);
     } else {
-      switch (playerOptional.get().getSocialStatus()) {
-        case FRIEND:
-          userCategories.add(ChatUserCategory.FRIEND);
-          break;
-        case FOE:
-          userCategories.add(ChatUserCategory.FOE);
-          break;
-        case OTHER:
-        case SELF:
-          userCategories.add(ChatUserCategory.OTHER);
-          break;
-        default:
-          // Nothing to do
-      }
+      ChatUserCategory category = switch (playerOptional.get().getSocialStatus()) {
+        case FRIEND -> ChatUserCategory.FRIEND;
+        case FOE -> ChatUserCategory.FOE;
+        case OTHER, SELF -> ChatUserCategory.OTHER;
+      };
+      userCategories.add(category);
     }
 
     if (moderator.get()) {

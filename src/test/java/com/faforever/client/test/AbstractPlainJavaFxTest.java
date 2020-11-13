@@ -17,6 +17,7 @@ import org.springframework.context.support.MessageSourceResourceBundle;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
 import java.net.URL;
@@ -120,5 +121,10 @@ public abstract class AbstractPlainJavaFxTest extends ApplicationTest {
 
   protected URL getThemeFileUrl(String file) {
     return noCatch(() -> new ClassPathResource(getThemeFile(file)).getURL());
+  }
+
+  protected void runOnFxThreadAndWait(Runnable runnable) {
+    Platform.runLater(runnable);
+    WaitForAsyncUtils.waitForFxEvents();
   }
 }
