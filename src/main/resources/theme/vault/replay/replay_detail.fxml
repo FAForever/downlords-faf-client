@@ -128,24 +128,25 @@
                            </VBox.margin>
                         </GridPane>
                          <Separator maxWidth="1.7976931348623157E308"/>
-                         <HBox>
+                         <HBox fx:id="teamsInfoBox">
                              <children>
                                  <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%game.lineUp"
                                         HBox.hgrow="ALWAYS"/>
                                  <Button fx:id="showRatingChangeButton" alignment="CENTER" mnemonicParsing="false"
-                                            onAction="#showRatingChange" text="%game.showRatingChange"/>
+                                         onAction="#showRatingChange" text="%game.showRatingChange"/>
                                  <Label fx:id="notRatedReasonLabel" alignment="CENTER"/>
                              </children>
                          </HBox>
                          <HBox fx:id="teamsContainer" alignment="TOP_CENTER" spacing="20.0"/>
                          <Separator fx:id="ratingSeparator" layoutX="10.0" layoutY="251.0"
                                     maxWidth="1.7976931348623157E308"/>
-                         <VBox alignment="TOP_CENTER" maxWidth="640.0">
+                         <VBox fx:id="reviewsContainer" alignment="TOP_CENTER" maxWidth="640.0">
                              <children>
                                  <fx:include fx:id="reviews" source="../review/reviews.fxml"/>
                              </children>
                          </VBox>
-                         <Separator layoutX="10.0" layoutY="254.0" maxWidth="1.7976931348623157E308"/>
+                         <Separator fx:id="reviewSeparator" layoutX="10.0" layoutY="254.0"
+                                    maxWidth="1.7976931348623157E308"/>
                          <Button fx:id="downloadMoreInfoButton" mnemonicParsing="false"
                                     onAction="#onDownloadMoreInfoClicked" text="%game.downloadMoreInfo"/>
                          <VBox fx:id="moreInformationPane" maxWidth="1.7976931348623157E308">

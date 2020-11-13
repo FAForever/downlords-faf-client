@@ -7,10 +7,8 @@ import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.main.event.LocalReplaysChangedEvent;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
-import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.Action;
@@ -20,6 +18,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
@@ -36,6 +35,7 @@ import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
+import com.google.common.eventbus.EventBus;
 import com.google.common.net.UrlEscapers;
 import com.google.common.primitives.Bytes;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +44,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -61,9 +60,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -73,10 +69,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.faforever.client.notification.Severity.WARN;
@@ -87,9 +83,6 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.move;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
@@ -115,7 +108,6 @@ public class ReplayService {
   private static final String FAF_LIFE_PROTOCOL = "faflive";
   private static final String GPGNET_SCHEME = "gpgnet";
   private static final String TEMP_SCFA_REPLAY_FILE_NAME = "temp.scfareplay";
-  private static final long MAX_REPLAYS = 300;
   private static final Pattern invalidCharacters = Pattern.compile("[?@*%{}<>|\"]");
 
   private final ClientProperties clientProperties;
@@ -133,97 +125,8 @@ public class ReplayService {
   private final FafService fafService;
   private final ModService modService;
   private final MapService mapService;
-  private final ApplicationEventPublisher publisher;
-  private final MapGeneratorService mapGeneratorService;
-  private final ExecutorService executorService;
-  private Thread directoryWatcherThread;
-  private WatchService watchService;
-  protected List<Replay> localReplays = new ArrayList<Replay>();
-
-  public void startLoadingAndWatchingLocalReplays() {
-    Path replaysDirectory = preferencesService.getReplaysDirectory();
-    if (Files.notExists(replaysDirectory)) {
-      noCatch(() -> createDirectories(replaysDirectory));
-    }
-
-    LoadLocalReplaysTask loadLocalReplaysTask = applicationContext.getBean(LoadLocalReplaysTask.class);
-    taskService.submitTask(loadLocalReplaysTask).getFuture().thenAccept(replays -> {
-      localReplays.clear();
-      localReplays.addAll(replays);
-      publisher.publishEvent(new LocalReplaysChangedEvent(this, replays, new ArrayList<Replay>()));
-    });
-
-    try {
-      Optional.ofNullable(directoryWatcherThread).ifPresent(Thread::interrupt);
-      directoryWatcherThread = startDirectoryWatcher(replaysDirectory);
-    } catch (IOException e) {
-      logger.warn("Failed to start watching the local replays directory");
-    }
-  }
-
-  public Collection<Replay> getLocalReplays() {
-    return localReplays;
-  }
-
-  protected Thread startDirectoryWatcher(Path replaysDirectory) throws IOException {
-    Thread thread = new Thread(() -> noCatch(() -> {
-      try (WatchService watcher = replaysDirectory.getFileSystem().newWatchService()) {
-        replaysDirectory.register(watcher, ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE);
-        while (!Thread.interrupted()) {
-          WatchKey key = watcher.take();
-          onLocalReplaysWatchEvent(key);
-          key.reset();
-        }
-      } catch (InterruptedException e) {
-        logger.debug("Local replay directory watcher terminated ({})", e.getMessage());
-      }
-    }));
-    thread.setDaemon(true);
-    thread.start();
-    return thread;
-  }
-
-  @VisibleForTesting
-  protected void onLocalReplaysWatchEvent(WatchKey key) {
-    List<CompletableFuture<Replay>> newReplaysFutures = new ArrayList<CompletableFuture<Replay>>();
-    Collection<Replay> deletedReplays = new ArrayList<Replay>();
-    for (WatchEvent<?> watchEvent : key.pollEvents()) {
-      Path path = (Path) watchEvent.context();
-      Path fullPathToReplay = preferencesService.getReplaysDirectory().resolve(path);
-
-      if (watchEvent.kind() == ENTRY_CREATE) {
-        newReplaysFutures.add(tryLoadingLocalReplay(fullPathToReplay));
-      } else if (watchEvent.kind() == ENTRY_DELETE) {
-        Optional<Replay> existingReplay = localReplays
-            .stream()
-            .filter(replay -> replay.getReplayFile().compareTo(fullPathToReplay) == 0)
-            .findFirst();
-
-        if (existingReplay.isPresent()) {
-          Replay deletedReplay = existingReplay.get();
-          deletedReplays.add(deletedReplay);
-          localReplays.remove(deletedReplay);
-        }
-      }
-    }
-
-    CompletableFuture[] replayFuturesArray = newReplaysFutures.toArray(new CompletableFuture[newReplaysFutures.size()]);
-    CompletableFuture<List<Replay>> newReplaysFuture = CompletableFuture.allOf(replayFuturesArray)
-        .thenApply(ignoredVoid ->
-            newReplaysFutures.stream()
-                .map(CompletableFuture::join)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList())
-        );
-
-    try {
-      List<Replay> newReplays = newReplaysFuture.get();
-      localReplays.addAll(newReplays);
-      publisher.publishEvent(new LocalReplaysChangedEvent(this, newReplays, deletedReplays));
-    } catch (Exception e) {
-      logger.warn("Failed to load new local replays ({})", e.getMessage());
-    }
-  }
+  private final EventBus eventBus;
+  protected List<Replay> localReplays = new ArrayList<>();
 
   @VisibleForTesting
   static Integer parseSupComVersion(byte[] rawReplayBytes) {
@@ -273,11 +176,8 @@ public class ReplayService {
     return KnownFeaturedMod.DEFAULT.getTechnicalName();
   }
 
-  /**
-   * Loads some, but not all, local replays. Loading all local replays could result in OOME.
-   */
   @Async
-  public CompletableFuture<Collection<Replay>> loadLocalReplays() throws IOException {
+  public CompletableFuture<Tuple<List<Replay>, Integer>> loadLocalReplayPage(int pageSize, int page) throws IOException {
     String replayFileGlob = clientProperties.getReplay().getReplayFileGlob();
 
     Path replaysDirectory = preferencesService.getReplaysDirectory();
@@ -285,25 +185,32 @@ public class ReplayService {
       noCatch(() -> createDirectories(replaysDirectory));
     }
 
+    int skippedReplays = pageSize * (page - 1);
 
     try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(replaysDirectory, replayFileGlob)) {
-      List<CompletableFuture<Replay>> replayFutures = StreamSupport.stream(directoryStream.spliterator(), false)
-          .sorted(Comparator.comparing(path -> noCatch(() -> Files.getLastModifiedTime((Path) path))).reversed())
-          .limit(MAX_REPLAYS)
+      Stream<Path> filesStream = StreamSupport.stream(directoryStream.spliterator(), false)
+          .sorted(Comparator.comparing(path -> noCatch(() -> Files.getLastModifiedTime((Path) path))).reversed());
+
+      List<Path> filesList = filesStream.collect(Collectors.toList());
+      int numPages = filesList.size() / pageSize;
+
+      List<CompletableFuture<Replay>> replayFutures = filesList.stream()
+          .skip(skippedReplays)
+          .limit(pageSize)
           .map(this::tryLoadingLocalReplay)
           .filter(e -> !e.isCompletedExceptionally())
           .collect(Collectors.toList());
 
-      CompletableFuture[] replayFuturesArray = replayFutures.toArray(new CompletableFuture[replayFutures.size()]);
-      return CompletableFuture.allOf(replayFuturesArray)
+      return CompletableFuture.allOf(replayFutures.toArray(new CompletableFuture[0]))
           .thenApply(ignoredVoid ->
               replayFutures.stream()
                   .map(CompletableFuture::join)
                   .filter(Objects::nonNull)
-                  .collect(Collectors.toList()));
-
+                  .collect(Collectors.toList()))
+          .thenApply(replays -> new Tuple<>(replays, numPages));
     }
   }
+
 
   private CompletableFuture<Replay> tryLoadingLocalReplay(Path replayFile) {
     try {
@@ -314,7 +221,7 @@ public class ReplayService {
 
       return CompletableFuture.allOf(featuredModFuture, mapBeanFuture).thenApply(ignoredVoid -> {
         Optional<MapBean> mapBean = mapBeanFuture.join();
-        if (!mapBean.isPresent()) {
+        if (mapBean.isEmpty()) {
           logger.warn("Could not find map for replay file '{}'", replayFile);
         }
         return new Replay(replayInfo, replayFile, featuredModFuture.join(), mapBean.orElse(null));
@@ -364,7 +271,7 @@ public class ReplayService {
       throw new RuntimeException("There's no game with ID: " + gameId);
     }
     /* A courtesy towards the replay server so we can see in logs who we're dealing with. */
-    String playerName = playerService.getCurrentPlayer().map(p -> p.getUsername()).orElse("Unknown");
+    String playerName = playerService.getCurrentPlayer().map(Player::getUsername).orElse("Unknown");
 
     URI uri = UriComponentsBuilder.newInstance()
         .scheme(FAF_LIFE_PROTOCOL)

@@ -14,9 +14,7 @@
                 <Tab fx:id="liveReplayVaultTab" text="%vault.liveReplays">
                     <fx:include fx:id="liveReplayVault" source="replay/live_replays.fxml"/>
                 </Tab>
-                <Tab fx:id="localReplayVaultTab" text="%vault.localReplays">
-                    <fx:include fx:id="localReplayVault" source="replay/replay_vault.fxml"/>
-                </Tab>
+                <Tab fx:id="localReplayVaultTab" text="%vault.localReplays"/>
             </tabs>
         </TabPane>
     </children>

@@ -5,7 +5,6 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.main.event.LocalReplaysChangedEvent;
 import com.faforever.client.map.MapBeanBuilder;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.generator.MapGeneratorService;
@@ -23,6 +22,7 @@ import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.replay.ReplayData;
+import com.google.common.eventbus.EventBus;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,16 +32,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -49,8 +45,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
@@ -62,7 +56,6 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -175,7 +168,7 @@ public class ReplayServiceTest {
   @Mock
   private MapService mapService;
   @Mock
-  private ApplicationEventPublisher publisher;
+  private EventBus publisher;
   @Mock
   private MapGeneratorService mapGeneratorService;
   @Mock
@@ -188,7 +181,7 @@ public class ReplayServiceTest {
     MockitoAnnotations.initMocks(this);
 
     instance = new ReplayService(new ClientProperties(), preferencesService, userService, replayFileReader, notificationService, gameService, playerService,
-        taskService, i18n, reportingService, applicationContext, platformService, fafService, modService, mapService, publisher, mapGeneratorService, executorService);
+        taskService, i18n, reportingService, applicationContext, platformService, fafService, modService, mapService, publisher);
 
     when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath());
     when(preferencesService.getCorruptedReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath().resolve("corrupt"));
@@ -253,7 +246,7 @@ public class ReplayServiceTest {
 
     Collection<Replay> localReplays = new ArrayList<>();
     try {
-      localReplays.addAll(instance.loadLocalReplays().get());
+      localReplays.addAll(instance.loadLocalReplayPage(2, 1).get().getFirst());
     } catch (FakeTestException exception) {
       // expected
     }
@@ -263,24 +256,6 @@ public class ReplayServiceTest {
 
     assertThat(Files.exists(file1), is(false));
     assertThat(Files.exists(file2), is(false));
-  }
-
-  @Test
-  public void testStartLoadingAndWatchingLocalReplays() throws Exception {
-    LoadLocalReplaysTask task = mock(LoadLocalReplaysTask.class);
-    when(task.getFuture()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
-        ReplayInfoBeanBuilder.create().get(),
-        ReplayInfoBeanBuilder.create().get(),
-        ReplayInfoBeanBuilder.create().get()
-    )));
-    when(applicationContext.getBean(LoadLocalReplaysTask.class)).thenReturn(task);
-
-    instance.startLoadingAndWatchingLocalReplays();
-
-    verify(taskService).submitTask(task);
-    assertThat(instance.getLocalReplays(), hasSize(3));
-    verify(publisher).publishEvent(argThat((LocalReplaysChangedEvent event) -> event.getNewReplays().size() == 3));
-    verifyZeroInteractions(notificationService);
   }
 
   @Test
@@ -295,50 +270,11 @@ public class ReplayServiceTest {
     when(modService.getFeaturedMod(any())).thenReturn(CompletableFuture.completedFuture(null));
     when(mapService.findByMapFolderName(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(MapBeanBuilder.create().defaultValues().get())));
 
-    Collection<Replay> localReplays = instance.loadLocalReplays().get();
+    Collection<Replay> localReplays = instance.loadLocalReplayPage(1, 1).get().getFirst();
 
     assertThat(localReplays, hasSize(1));
     assertThat(localReplays.iterator().next().getId(), is(123));
     assertThat(localReplays.iterator().next().getTitle(), is("title"));
-  }
-
-  @Test
-  public void testLocalReplaysWatchEvent() throws Exception {
-    WatchKey watchKey = mock(WatchKey.class);
-
-    Path newReplayFile = replayDirectory.newFile("newReplay.fafreplay").toPath();
-    LocalReplayInfo newReplayInfo = new LocalReplayInfo();
-    newReplayInfo.setUid(123);
-    newReplayInfo.setSimMods(Collections.emptyMap());
-    newReplayInfo.setFeaturedModVersions(emptyMap());
-    newReplayInfo.setFeaturedMod("faf");
-    newReplayInfo.setMapname(TEST_MAP_NAME);
-    when(replayFileReader.parseMetaData(newReplayFile)).thenReturn(newReplayInfo);
-    when(modService.getFeaturedMod(any())).thenReturn(CompletableFuture.completedFuture(null));
-    when(mapService.findByMapFolderName(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(MapBeanBuilder.create().defaultValues().get())));
-    WatchEvent watchEventForNewReplay = mock(WatchEvent.class);
-    when(watchEventForNewReplay.kind()).thenReturn(ENTRY_CREATE);
-    when(watchEventForNewReplay.context()).thenReturn(newReplayFile);
-
-    Replay deletedReplay = mock(Replay.class);
-    instance.localReplays.add(deletedReplay);
-    Path deletedReplayFile = replayDirectory.newFile("deletedReplay.fafreplay").toPath();
-    when(deletedReplay.getReplayFile()).thenReturn(deletedReplayFile);
-    WatchEvent watchEventForDeletedReplay = mock(WatchEvent.class);
-    when(watchEventForDeletedReplay.kind()).thenReturn(ENTRY_DELETE);
-    when(watchEventForDeletedReplay.context()).thenReturn(deletedReplayFile);
-
-    List<WatchEvent<?>> eventsList = new ArrayList<>();
-    eventsList.add(watchEventForNewReplay);
-    eventsList.add(watchEventForDeletedReplay);
-    when(watchKey.pollEvents()).thenReturn(eventsList);
-
-    instance.onLocalReplaysWatchEvent(watchKey);
-    verify(publisher).publishEvent(argThat((LocalReplaysChangedEvent event) ->
-        event.getNewReplays().stream().findFirst().get().getReplayFile() == newReplayFile
-            && event.getDeletedReplays().stream().findFirst().get().getReplayFile() == deletedReplayFile
-    ));
-    verifyZeroInteractions(notificationService);
   }
 
   @Test

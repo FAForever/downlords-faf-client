@@ -33,6 +33,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -42,7 +43,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.NoSuchMessageException;
@@ -88,8 +88,12 @@ public class ReplayDetailController implements Controller<Node> {
   public Label ratingLabel;
   public Label qualityLabel;
   public Label onMapLabel;
+  public Pane teamsInfoBox;
   public Pane teamsContainer;
+  public Separator ratingSeparator;
+  public Pane reviewsContainer;
   public ReviewsController reviewsController;
+  public Separator reviewSeparator;
   public TableView<ChatMessage> chatTable;
   public TableColumn<ChatMessage, Duration> chatGameTimeColumn;
   public TableColumn<ChatMessage, String> chatSenderColumn;
@@ -105,8 +109,6 @@ public class ReplayDetailController implements Controller<Node> {
   public ScrollPane scrollPane;
   public Button showRatingChangeButton;
   public Label notRatedReasonLabel;
-  @Setter
-  private Runnable onClosure;
   private Replay replay;
   private ObservableMap<String, List<PlayerStats>> teams;
 
@@ -129,12 +131,12 @@ public class ReplayDetailController implements Controller<Node> {
     optionValueColumn.setCellValueFactory(param -> param.getValue().valueProperty());
     optionValueColumn.setCellFactory(param -> new StringCell<>(String::toString));
 
-    downloadMoreInfoButton.managedProperty().bind(downloadMoreInfoButton.visibleProperty());
-    moreInformationPane.managedProperty().bind(moreInformationPane.visibleProperty());
+    JavaFxUtil.bindManagedToVisible(downloadMoreInfoButton, moreInformationPane, teamsInfoBox,
+        reviewsContainer, ratingSeparator, reviewSeparator);
+
     moreInformationPane.setVisible(false);
 
     reviewsController.getRoot().setMaxSize(Integer.MAX_VALUE, Integer.MAX_VALUE);
-
 
     copyButton.setText(i18n.get("replay.copyUrl"));
 
@@ -148,8 +150,6 @@ public class ReplayDetailController implements Controller<Node> {
     qualityLabel.setTooltip(new Tooltip(i18n.get("replay.qualityTooltip")));
     showRatingChangeButton.managedProperty().bind(showRatingChangeButton.visibleProperty());
     notRatedReasonLabel.managedProperty().bind(notRatedReasonLabel.visibleProperty());
-
-    onClosure = () -> ((Pane) replayDetailRoot.getParent()).getChildren().remove(replayDetailRoot);
   }
 
   public void setReplay(Replay replay) {
@@ -163,7 +163,7 @@ public class ReplayDetailController implements Controller<Node> {
     Optional<MapBean> optionalMap = Optional.ofNullable(replay.getMap());
     if (optionalMap.isPresent()) {
       MapBean map = optionalMap.get();
-      Image image = mapService.loadPreview(map, PreviewSize.LARGE);
+      Image image = mapService.loadPreview(map.getFolderName(), PreviewSize.LARGE);
       mapThumbnailImageView.setImage(image);
       onMapLabel.setText(i18n.get("game.onMapFormat", map.getDisplayName()));
     } else {
@@ -190,6 +190,7 @@ public class ReplayDetailController implements Controller<Node> {
             .orElseGet(() -> i18n.get("unknown"))
     );
     playerCountLabel.setText(i18n.number(replay.getTeams().values().stream().mapToInt(List::size).sum()));
+
     double gameQuality = ratingService.calculateQuality(replay);
     if (!Double.isNaN(gameQuality)) {
       qualityLabel.setText(i18n.get("percentage", Math.round(gameQuality * 100)));
@@ -202,39 +203,55 @@ public class ReplayDetailController implements Controller<Node> {
         .flatMapToInt(playerStats -> playerStats.stream()
             .mapToInt(stats -> RatingUtil.getRating(stats.getBeforeMean(), stats.getBeforeDeviation())))
         .average()
-        .ifPresent(averageRating -> ratingLabel.setText(i18n.number((int) averageRating)));
+        .ifPresentOrElse(averageRating -> ratingLabel.setText(i18n.number((int) averageRating)),
+            () -> ratingLabel.setText("-"));
 
-    replayService.getSize(replay.getId())
-        .thenAccept(replaySize -> Platform.runLater(() -> {
-          if (replaySize > -1) {
-            String humanReadableSize = Bytes.formatSize(replaySize, i18n.getUserSpecificLocale());
-            downloadMoreInfoButton.setText(i18n.get("game.downloadMoreInfo", humanReadableSize));
-            watchButton.setText(i18n.get("game.watchButtonFormat", humanReadableSize));
-            downloadMoreInfoButton.setVisible(true);
-          } else {
-            downloadMoreInfoButton.setText(i18n.get("game.replayFileMissing"));
-            downloadMoreInfoButton.setDisable(true);
-            watchButton.setText(i18n.get("game.replayFileMissing"));
-            watchButton.setDisable(true);
-          }
-        }));
+    if (replay.getReplayFile() == null) {
+      replayService.getSize(replay.getId())
+          .thenAccept(replaySize -> Platform.runLater(() -> {
+            if (replaySize > -1) {
+              String humanReadableSize = Bytes.formatSize(replaySize, i18n.getUserSpecificLocale());
+              downloadMoreInfoButton.setText(i18n.get("game.downloadMoreInfo", humanReadableSize));
+              watchButton.setText(i18n.get("game.watchButtonFormat", humanReadableSize));
+              downloadMoreInfoButton.setVisible(true);
+            } else {
+              downloadMoreInfoButton.setText(i18n.get("game.replayFileMissing"));
+              downloadMoreInfoButton.setDisable(true);
+              watchButton.setText(i18n.get("game.replayFileMissing"));
+              watchButton.setDisable(true);
+            }
+          }));
+      Optional<Player> currentPlayer = playerService.getCurrentPlayer();
+      Assert.state(currentPlayer.isPresent(), "No user is logged in");
 
-    Optional<Player> currentPlayer = playerService.getCurrentPlayer();
-    Assert.state(currentPlayer.isPresent(), "No user is logged in");
+      reviewsController.setOnSendReviewListener(this::onSendReview);
+      reviewsController.setOnDeleteReviewListener(this::onDeleteReview);
+      reviewsController.setReviews(replay.getReviews());
+      reviewsController.setOwnReview(replay.getReviews().stream()
+          .filter(review -> review.getPlayer().equals(currentPlayer.get()))
+          .findFirst());
 
-    reviewsController.setOnSendReviewListener(this::onSendReview);
-    reviewsController.setOnDeleteReviewListener(this::onDeleteReview);
-    reviewsController.setReviews(replay.getReviews());
-    reviewsController.setOwnReview(replay.getReviews().stream()
-        .filter(review -> review.getPlayer().equals(currentPlayer.get()))
-        .findFirst());
-
-    // These items are initially empty but will be populated in #onDownloadMoreInfoClicked()
-    moreInformationPane.setVisible(false);
-    optionsTable.setItems(replay.getGameOptions());
-    chatTable.setItems(replay.getChatMessages());
-    teams = replay.getTeamPlayerStats();
-    populateTeamsContainer();
+      // These items are initially empty but will be populated in #onDownloadMoreInfoClicked()
+      moreInformationPane.setVisible(false);
+      optionsTable.setItems(replay.getGameOptions());
+      chatTable.setItems(replay.getChatMessages());
+      teams = replay.getTeamPlayerStats();
+      populateTeamsContainer();
+    } else {
+      watchButton.setText(i18n.get("game.watch"));
+      ratingSeparator.setVisible(false);
+      reviewSeparator.setVisible(false);
+      reviewsContainer.setVisible(false);
+      teamsInfoBox.setVisible(false);
+      downloadMoreInfoButton.setVisible(false);
+      showRatingChangeButton.setVisible(false);
+      optionsTable.setItems(replay.getGameOptions());
+      chatTable.setItems(replay.getChatMessages());
+      replayService.enrich(replay, replay.getReplayFile());
+      chatTable.setItems(replay.getChatMessages());
+      optionsTable.setItems(replay.getGameOptions());
+      moreInformationPane.setVisible(true);
+    }
   }
 
   private void onDeleteReview(Review review) {

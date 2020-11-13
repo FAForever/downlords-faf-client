@@ -75,7 +75,7 @@ public class ReplayCardController implements Controller<Node> {
     Optional<MapBean> optionalMap = Optional.ofNullable(replay.getMap());
     if (optionalMap.isPresent()) {
       MapBean map = optionalMap.get();
-      Image image = mapService.loadPreview(map, PreviewSize.SMALL);
+      Image image = mapService.loadPreview(map.getFolderName(), PreviewSize.SMALL);
       mapThumbnailImageView.setImage(image);
       onMapLabel.setText(i18n.get("game.onMapFormat", map.getDisplayName()));
     } else {
@@ -98,7 +98,8 @@ public class ReplayCardController implements Controller<Node> {
         .flatMapToInt(playerStats -> playerStats.stream()
             .mapToInt(stats -> RatingUtil.getRating(stats.getBeforeMean(), stats.getBeforeDeviation())))
         .average()
-        .ifPresent(averageRating -> ratingLabel.setText(i18n.number((int) averageRating)));
+        .ifPresentOrElse(averageRating -> ratingLabel.setText(i18n.number((int) averageRating)),
+            () -> ratingLabel.setText("-"));
 
     Integer replayTicks = replay.getReplayTicks();
     if (replayTicks != null) {
