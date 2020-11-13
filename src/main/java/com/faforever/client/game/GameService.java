@@ -512,6 +512,7 @@ public class GameService implements InitializingBean {
   public CompletableFuture<Void> startSearchLadder1v1(Faction faction) {
     if (isRunning()) {
       log.debug("Game is running, ignoring 1v1 search request");
+      notificationService.addImmediateErrorNotification(new UnsupportedOperationException("Forged Alliances is already running"), "game.gameRunning");
       return completedFuture(null);
     }
 

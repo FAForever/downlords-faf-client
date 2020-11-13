@@ -233,8 +233,6 @@ public class Ladder1v1Controller extends AbstractViewController<Node> implements
       return;
     }
 
-    setFactionButtonsDisabled(true);
-
     ObservableList<Faction> factions = preferencesService.getPreferences().getLadder1v1Prefs().getFactions();
 
     Faction randomFaction = factions.get(random.nextInt(factions.size()));
