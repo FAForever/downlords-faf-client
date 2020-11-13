@@ -250,13 +250,14 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
     future.join();
     mockStartReplayProcess(replayPath, replayId);
-    instance.runWithReplay(replayPath, replayId, "", null, null, null, "map");
+    future = instance.runWithReplay(replayPath, replayId, "", null, null, null, "map");
+    future.join();
 
     verify(replayService).start(eq(game.getId()), any());
     verify(forgedAllianceService).startGame(
         gameLaunchMessage.getUid(), null, asList(), GLOBAL,
         GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
-    verify(forgedAllianceService).startReplay(any(), anyInt());
+    verify(forgedAllianceService).startReplay(replayPath, replayId);
   }
 
   @Test
@@ -278,7 +279,8 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
     future.join();
     mockStartReplayProcess(replayPath, replayId);
-    instance.runWithReplay(replayPath, replayId, "", null, null, null, "map");
+    future = instance.runWithReplay(replayPath, replayId, "", null, null, null, "map");
+    future.join();
 
     verify(replayService).start(eq(game.getId()), any());
     verify(forgedAllianceService).startGame(
