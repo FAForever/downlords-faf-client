@@ -18,6 +18,8 @@ import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
@@ -44,6 +46,8 @@ import org.springframework.util.ReflectionUtils;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
@@ -77,7 +81,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -128,6 +134,12 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   private ReconnectTimerService reconnectTimerService;
   @Mock
   private DiscordRichPresenceService discordRichPresenceService;
+  @Mock
+  private Preferences preferences;
+  @Mock
+  private Process process;
+  @Mock
+  private ForgedAlliancePrefs forgedAlliancePrefs;
 
   @Captor
   private ArgumentCaptor<Consumer<GameInfoMessage>> gameInfoMessageListenerCaptor;
@@ -142,19 +154,14 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     ClientProperties clientProperties = new ClientProperties();
 
-    instance = new GameService(clientProperties, fafService, forgedAllianceService, mapService,
-        preferencesService, gameUpdater, notificationService, i18n, executorService, playerService,
-        reportingService, eventBus, iceAdapter, modService, platformService, discordRichPresenceService,
-        replayService, reconnectTimerService);
-
-    Preferences preferences = new Preferences();
-
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.isGamePathValid()).thenReturn(true);
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     when(replayService.start(anyInt(), any())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
     when(iceAdapter.start()).thenReturn(completedFuture(GPG_PORT));
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(junitPlayer));
+    when(preferences.getNotification()).thenReturn(new NotificationsPrefs());
+    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
 
     doAnswer(invocation -> {
       try {
@@ -164,6 +171,11 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
       }
       return null;
     }).when(executorService).execute(any());
+
+    instance = new GameService(clientProperties, fafService, forgedAllianceService, mapService,
+        preferencesService, gameUpdater, notificationService, i18n, executorService, playerService,
+        reportingService, eventBus, iceAdapter, modService, platformService, discordRichPresenceService,
+        replayService, reconnectTimerService);
 
     instance.afterPropertiesSet();
 
@@ -177,7 +189,11 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   private void mockStartGameProcess(int uid, RatingMode ratingMode, Faction faction, boolean rehost, String... additionalArgs) throws IOException {
     when(forgedAllianceService.startGame(
         uid, faction, asList(additionalArgs), ratingMode, GPG_PORT, LOCAL_REPLAY_PORT, rehost, junitPlayer)
-    ).thenReturn(mock(Process.class));
+    ).thenReturn(process);
+  }
+
+  private void mockStartReplayProcess(Path path, int id) throws IOException {
+    when(forgedAllianceService.startReplay(path, id)).thenReturn(process);
   }
 
   @Test
@@ -209,10 +225,68 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
     verify(mapService, never()).download(any());
     verify(replayService).start(eq(game.getId()), any());
-    
+
     verify(forgedAllianceService).startGame(
         gameLaunchMessage.getUid(), null, asList(), GLOBAL,
         GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
+  }
+
+  @Test
+  public void testStartReplayWhileInGameAllowed() throws Exception {
+    when(forgedAlliancePrefs.isAllowReplaysWhileInGame()).thenReturn(true);
+    Game game = GameBuilder.create().defaultValues().get();
+
+    GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
+    Path replayPath = Paths.get("temp.scfareplay");
+    int replayId = 1234;
+
+    mockGlobalStartGameProcess(gameLaunchMessage.getUid());
+    when(mapService.isInstalled(anyString())).thenReturn(true);
+    when(fafService.requestJoinGame(anyInt(), isNull())).thenReturn(completedFuture(gameLaunchMessage));
+    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(modService.getFeaturedMod(anyString())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    when(process.isAlive()).thenReturn(true);
+
+    CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
+    future.join();
+    mockStartReplayProcess(replayPath, replayId);
+    future = instance.runWithReplay(replayPath, replayId, "", null, null, null, "map");
+    future.join();
+
+    verify(replayService).start(eq(game.getId()), any());
+    verify(forgedAllianceService).startGame(
+        gameLaunchMessage.getUid(), null, asList(), GLOBAL,
+        GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
+    verify(forgedAllianceService).startReplay(replayPath, replayId);
+  }
+
+  @Test
+  public void testStartReplayWhileInGameNotAllowed() throws Exception {
+    when(forgedAlliancePrefs.isAllowReplaysWhileInGame()).thenReturn(false);
+    Game game = GameBuilder.create().defaultValues().get();
+
+    GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
+    Path replayPath = Paths.get("temp.scfareplay");
+    int replayId = 1234;
+
+    mockGlobalStartGameProcess(gameLaunchMessage.getUid());
+    when(mapService.isInstalled(anyString())).thenReturn(true);
+    when(fafService.requestJoinGame(anyInt(), isNull())).thenReturn(completedFuture(gameLaunchMessage));
+    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(modService.getFeaturedMod(anyString())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    when(process.isAlive()).thenReturn(true);
+
+    CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
+    future.join();
+    mockStartReplayProcess(replayPath, replayId);
+    future = instance.runWithReplay(replayPath, replayId, "", null, null, null, "map");
+    future.join();
+
+    verify(replayService).start(eq(game.getId()), any());
+    verify(forgedAllianceService).startGame(
+        gameLaunchMessage.getUid(), null, asList(), GLOBAL,
+        GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
+    verify(forgedAllianceService, never()).startReplay(replayPath, replayId);
   }
 
   @Test
@@ -596,7 +670,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     when(fafService.requestJoinGame(game.getId(), null)).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
-    when(replayService.start(anyInt(), any(Supplier.class))).thenReturn(CompletableFuture.completedFuture(new Throwable()));
+    when(replayService.start(anyInt(), any(Supplier.class))).thenReturn(completedFuture(new Throwable()));
 
     CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
 

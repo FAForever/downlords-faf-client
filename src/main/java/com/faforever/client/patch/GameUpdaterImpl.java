@@ -18,6 +18,7 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.context.ApplicationContext;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -81,11 +82,6 @@ public class GameUpdaterImpl implements GameUpdater {
 
     return future
         .thenCompose(s -> updateGameBinaries(patchResults.get(patchResults.size() - 1).getVersion()))
-        .exceptionally(throwable -> {
-          log.warn("Game not terminated correctly", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "error.game.notTerminatedCorrectly");
-          return null;
-        })
         .thenRun(() -> {
           if (patchResults.stream().noneMatch(patchResult -> patchResult.getLegacyInitFile() != null)) {
             generateInitFile(patchResults);
@@ -99,6 +95,21 @@ public class GameUpdaterImpl implements GameUpdater {
             createFaPathLuaFile(initFile.getParent().getParent());
             copyLegacyInitFile(initFile);
           }
+        })
+        .exceptionally(throwable -> {
+          boolean allowReplaysWhileInGame = preferencesService.getPreferences().getForgedAlliance().isAllowReplaysWhileInGame();
+          if (throwable.getCause().getCause() instanceof AccessDeniedException && allowReplaysWhileInGame) {
+            log.info("Unable to update files and experimental replay feature is turned on " +
+                "that allows multiple game instances to run in parallel this is most likely the cause.");
+            throw new UnsupportedOperationException("Unable to patch Forged Alliance to the required version " +
+                "due to conflicting version running", throwable);
+          } else if (!allowReplaysWhileInGame) {
+            log.warn("Game files not accessible", throwable);
+            notificationService.addImmediateErrorNotification(throwable, "error.game.filesNotAccessible");
+          } else {
+            log.info("Game files not accessible most likely due to concurrent game instances", throwable);
+          }
+          return null;
         });
   }
 
