@@ -465,7 +465,7 @@ public class FafService {
         .flatMap(mapPool -> mapPool.getMapVersions().stream())
         .distinct()
         .collect(toList());
-    int totalPages = mapVersions.size() / count;
+    int totalPages = (mapVersions.size() - 1) / count + 1;
     return CompletableFuture.completedFuture(new Tuple<>(mapVersions
         .stream()
         .skip((page - 1) * count)
