@@ -256,7 +256,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     verify(forgedAllianceService).startGame(
         gameLaunchMessage.getUid(), null, asList(), GLOBAL,
         GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
-    verify(forgedAllianceService).startReplay(replayPath, replayId);
+    verify(forgedAllianceService).startReplay(any(), anyInt());
   }
 
   @Test
