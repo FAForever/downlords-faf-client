@@ -387,6 +387,8 @@ public class GameService implements InitializingBean {
       return completedFuture(null);
     }
 
+    stopSearchLadder1v1();
+
     return modService.getFeaturedMod(featuredMod)
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, version, modVersions, simMods))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapName).handleAsync((ignoredResult, throwable) -> askWhetherToStartWithOutMap(throwable)))
@@ -460,6 +462,8 @@ public class GameService implements InitializingBean {
       CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
       return gameDirectoryFuture.thenCompose(path -> runWithLiveReplay(replayUrl, gameId, gameType, mapName));
     }
+
+    stopSearchLadder1v1();
 
     Game gameBean = getByUid(gameId);
 
