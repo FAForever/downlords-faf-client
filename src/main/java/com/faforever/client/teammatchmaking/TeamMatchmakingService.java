@@ -74,6 +74,7 @@ public class TeamMatchmakingService implements InitializingBean {
   private final List<ScheduledFuture<?>> leaveQueueTimeouts = new LinkedList<>();
 
   private volatile boolean matchFoundAndWaitingForGameLaunch = false;
+  private boolean queuesAdded = false;
 
   @Override
   public void afterPropertiesSet() throws Exception {
@@ -118,28 +119,34 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   private void onMatchmakerInfo(MatchmakerInfoMessage message) {
-    Platform.runLater(() -> {
-      message.getQueues().forEach(remoteQueue -> {
-        MatchmakingQueue localQueue = matchmakingQueues.stream()
-            .filter(q -> Objects.equals(q.getQueueName(), remoteQueue.getQueueName())).findFirst().orElse(null);
+    message.getQueues().forEach(remoteQueue -> {
+      MatchmakingQueue localQueue = matchmakingQueues.stream()
+          .filter(q -> Objects.equals(q.getQueueName(), remoteQueue.getQueueName())).findFirst().orElse(null);
 
-        if (localQueue == null) {
-          fafService.getMatchmakingQueue(remoteQueue.getQueueName()).thenAccept(result -> result.ifPresent(
-              matchmakingQueue -> {
-                matchmakingQueues.add(matchmakingQueue);
-                matchmakingQueue.setQueuePopTime(OffsetDateTime.parse(remoteQueue.getQueuePopTime()).toInstant());
-                matchmakingQueue.setTeamSize(remoteQueue.getTeamSize());
-                matchmakingQueue.setPartiesInQueue(remoteQueue.getBoundary75s().size());
-                matchmakingQueue.setPlayersInQueue(remoteQueue.getNumPlayers());
-              }));
-        } else {
-          localQueue.setQueuePopTime(OffsetDateTime.parse(remoteQueue.getQueuePopTime()).toInstant());
-          localQueue.setTeamSize(remoteQueue.getTeamSize());
-          localQueue.setPartiesInQueue(remoteQueue.getBoundary75s().size());
-          localQueue.setPlayersInQueue(remoteQueue.getNumPlayers());
-        }
-      });
+      if (localQueue == null) {
+        queuesAdded = true;
+        System.out.println("inner");
+        fafService.getMatchmakingQueue(remoteQueue.getQueueName()).thenAccept(result -> result.ifPresent(
+            matchmakingQueue -> {
+              matchmakingQueues.add(matchmakingQueue);
+              System.out.println("present");
+              matchmakingQueue.setQueuePopTime(OffsetDateTime.parse(remoteQueue.getQueuePopTime()).toInstant());
+              matchmakingQueue.setTeamSize(remoteQueue.getTeamSize());
+              matchmakingQueue.setPartiesInQueue(remoteQueue.getBoundary75s().size());
+              Platform.runLater(() -> matchmakingQueue.setPlayersInQueue(remoteQueue.getNumPlayers()));
+            }));
+      } else {
+        localQueue.setQueuePopTime(OffsetDateTime.parse(remoteQueue.getQueuePopTime()).toInstant());
+        localQueue.setTeamSize(remoteQueue.getTeamSize());
+        localQueue.setPartiesInQueue(remoteQueue.getBoundary75s().size());
+        Platform.runLater(() -> localQueue.setPlayersInQueue(remoteQueue.getNumPlayers()));
+      }
     });
+    if (queuesAdded) {
+      eventBus.post(new QueuesAddedEvent());
+      System.out.println("message posted");
+      queuesAdded = false;
+    }
   }
 
   private void onSearchInfoMessage(SearchInfoMessage message) {

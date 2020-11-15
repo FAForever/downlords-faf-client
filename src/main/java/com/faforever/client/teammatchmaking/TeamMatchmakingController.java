@@ -16,6 +16,7 @@ import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.google.common.base.Strings;
+import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -63,6 +64,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private final UiService uiService;
   private final TeamMatchmakingService teamMatchmakingService;
   private final FafService fafService;
+  private final EventBus eventBus;
 
   public StackPane teamMatchmakingRoot;
   public Button invitePlayerButton;
@@ -94,6 +96,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
+    eventBus.register(this);
     player = playerService.getCurrentPlayer().get();
     JavaFxUtil.fixScrollSpeed(scrollPane);
     initializeUppercaseText();
@@ -126,22 +129,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         else
           partyMemberPane.add(controller.getRoot(), i % 2, i / 2);
       }
-    });
-
-    teamMatchmakingService.getMatchmakingQueues().addListener((Observable o) -> {
-      Platform.runLater(() -> {
-        List<MatchmakingQueue> queues = teamMatchmakingService.getMatchmakingQueues();
-        queueBox.getChildren().clear();
-        // We get concurrency issues here with teamMatchmakingService.onMatchmakerInfo()
-        // I think it is caused by the API taking time. However I don't know why,
-        // because the listener should only trigger after the API has finished
-        // I have no idea how to fix this
-        queues.iterator().forEachRemaining(queue -> {
-          MatchmakingQueueItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml");
-          controller.setQueue(queue);
-          queueBox.getChildren().add(controller.getRoot());
-        });
-      });
     });
 
     invitePlayerButton.disableProperty().bind(createBooleanBinding(
@@ -253,6 +240,21 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       if (message.getSource().equals(String.format("#%s'sParty", teamMatchmakingService.getParty().getOwner().getUsername()))) {
         matchmakingChatController.onChatMessage(message);
       }
+    });
+  }
+
+  @Subscribe
+  public void onQueuesAdded(QueuesAddedEvent event) {
+    System.out.println("message received");
+    Platform.runLater(() -> {
+      List<MatchmakingQueue> queues = teamMatchmakingService.getMatchmakingQueues();
+      System.out.println("length: "+ queues.size());
+      queueBox.getChildren().clear();
+      queues.forEach(queue -> {
+        MatchmakingQueueItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml");
+        controller.setQueue(queue);
+        queueBox.getChildren().add(controller.getRoot());
+      });
     });
   }
 }
