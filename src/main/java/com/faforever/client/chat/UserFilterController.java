@@ -80,13 +80,18 @@ public class UserFilterController implements Controller<Node> {
   }
 
   private boolean filterUser(CategoryOrChatUserListItem userListItem) {
+    if (userListItem.getCategory() != null) {
+
+      // The categories should display in the list independently of a filter
+      return true;
+    }
+
     ChatChannelUser user = userListItem.getUser();
-    return userListItem.getCategory() != null
-        || (channelTabController.isUsernameMatch(user)
+    return channelTabController.isUsernameMatch(user)
         && isInClan(user)
         && isBoundByRating(user)
         && isGameStatusMatch(user)
-        && isCountryMatch(user));
+        && isCountryMatch(user);
   }
 
   private void filterCountry() {
@@ -177,8 +182,12 @@ public class UserFilterController implements Controller<Node> {
   }
 
   boolean isCountryMatch(ChatChannelUser chatUser) {
+    if (countryFilterField.getText().isEmpty()) {
+      return true;
+    }
+
     Optional<Player> playerOptional = chatUser.getPlayer();
-    if (!playerOptional.isPresent()) {
+    if (playerOptional.isEmpty()) {
       return false;
     }
 
