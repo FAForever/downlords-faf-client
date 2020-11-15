@@ -104,7 +104,6 @@ public class MatchmakingChatController extends AbstractChatTabController {
       showNotificationIfNecessary(chatMessage);
       setUnread(true);
       incrementUnreadMessagesCount(1);
-      eventBus.post(new UnreadPrivateMessageEvent(chatMessage));
     }
   }
 
