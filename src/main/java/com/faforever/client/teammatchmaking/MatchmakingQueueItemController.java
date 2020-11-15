@@ -11,6 +11,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -42,6 +43,7 @@ public class MatchmakingQueueItemController implements Controller<Node> {
   public Label matchFoundLabel;
   public Label matchStartingLabel;
   public Label matchCancelledLabel;
+  public Button mapPoolButton;
 
 
   private Timeline queuePopTimeUpdater;
@@ -104,9 +106,10 @@ public class MatchmakingQueueItemController implements Controller<Node> {
             || !teamMatchmakingService.getParty().getOwner().equals(playerService.getCurrentPlayer().orElse(null)),
         teamMatchmakingService.getParty().getMembers(), queue.teamSizeProperty()
     ));
-
     queue.joinedProperty().addListener(observable -> refreshingLabel.setVisible(false));
     queue.joinedProperty().addListener(observable -> joinLeaveQueueButton.setSelected(queue.isJoined()));
+
+    mapPoolButton.setText(i18n.get("teammatchmaking.mapPool").toUpperCase());
 
     queuePopTimeUpdater = new Timeline(1, new KeyFrame(javafx.util.Duration.seconds(0), (ActionEvent event) -> {
       if (queue.getQueuePopTime() != null) {

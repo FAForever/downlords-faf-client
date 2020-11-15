@@ -13,7 +13,7 @@
       spacing="10.0" HBox.hgrow="ALWAYS" alignment="TOP_CENTER">
         <ToggleButton fx:id="joinLeaveQueueButton" styleClass="tmm, queue" alignment="TOP_LEFT" text="&lt;QueueName&gt;"
                       maxWidth="1.7976931348623157E308" onAction="#onJoinLeaveQueueClicked" />
-        <Button text="MAPLIST" styleClass="tmm, player-card-text" alignment="TOP_LEFT" maxWidth="1.7976931348623157E308"
+        <Button fx:id="mapPoolButton" text="%teammatchmaking.mapPool" styleClass="tmm, player-card-text" alignment="TOP_LEFT" maxWidth="1.7976931348623157E308"
         onAction="#showMapPool"/>
     <FlowPane hgap="10">
         <Label fx:id="queuePopTimeLabel" styleClass="player-card-text" text="%teammatchmaking.queuePopTimer"/>
