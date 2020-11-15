@@ -124,14 +124,20 @@ public class TeamMatchmakingService implements InitializingBean {
             .filter(q -> Objects.equals(q.getQueueName(), remoteQueue.getQueueName())).findFirst().orElse(null);
 
         if (localQueue == null) {
-          localQueue = new MatchmakingQueue(remoteQueue.getQueueName());
-          matchmakingQueues.add(localQueue);
+          fafService.getMatchmakingQueue(remoteQueue.getQueueName()).thenAccept(result -> result.ifPresent(
+              matchmakingQueue -> {
+                matchmakingQueues.add(matchmakingQueue);
+                matchmakingQueue.setQueuePopTime(OffsetDateTime.parse(remoteQueue.getQueuePopTime()).toInstant());
+                matchmakingQueue.setTeamSize(remoteQueue.getTeamSize());
+                matchmakingQueue.setPartiesInQueue(remoteQueue.getBoundary75s().size());
+                matchmakingQueue.setPlayersInQueue(remoteQueue.getNumPlayers());
+              }));
+        } else {
+          localQueue.setQueuePopTime(OffsetDateTime.parse(remoteQueue.getQueuePopTime()).toInstant());
+          localQueue.setTeamSize(remoteQueue.getTeamSize());
+          localQueue.setPartiesInQueue(remoteQueue.getBoundary75s().size());
+          localQueue.setPlayersInQueue(remoteQueue.getNumPlayers());
         }
-
-        localQueue.setQueuePopTime(OffsetDateTime.parse(remoteQueue.getQueuePopTime()).toInstant());
-        localQueue.setTeamSize(remoteQueue.getTeamSize());
-        localQueue.setPartiesInQueue(remoteQueue.getBoundary75s().size());
-        localQueue.setPlayersInQueue(remoteQueue.getNumPlayers());
       });
     });
   }

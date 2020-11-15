@@ -15,6 +15,7 @@ import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapStatistics;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
+import com.faforever.client.api.dto.MatchmakerQueue;
 import com.faforever.client.api.dto.MatchmakerQueueMapPool;
 import com.faforever.client.api.dto.MeResult;
 import com.faforever.client.api.dto.Mod;
@@ -430,11 +431,21 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  public List<MatchmakerQueueMapPool> getMatchMakerPoolsWithMeta(int matchmakerQueueId) {
+  public List<MatchmakerQueueMapPool> getMatchmakerPools(int matchmakerQueueId) {
     return getAll("/data/matchmakerQueueMapPool", ImmutableMap.of(
         "include", "matchmakerQueue,mapPool,mapPool.mapVersions," +
             "mapPool.mapVersions.map,mapPool.mapVersions.map.latestVersion,mapPool.mapVersions.map.latestVersion.reviews,mapPool.mapVersions.map.author,mapPool.mapVersions.map.statistics",
         "filter", rsql(qBuilder().string("matchmakerQueue.id").eq(String.valueOf(matchmakerQueueId)))));
+  }
+
+  @Override
+  public Optional<MatchmakerQueue> getMatchmakerQueue(String technicalName) {
+    List<MatchmakerQueue> queue = getAll("/data/matchmakerQueue", ImmutableMap.of(
+        "filter", rsql(qBuilder().string("technicalName").eq(technicalName))));
+    if (queue.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(queue.get(0));
   }
 
   @Override

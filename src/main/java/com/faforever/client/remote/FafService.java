@@ -37,6 +37,7 @@ import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.replay.Replay;
+import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.tournament.TournamentBean;
 import com.faforever.client.tutorial.TutorialCategory;
 import com.faforever.client.util.Tuple;
@@ -459,7 +460,7 @@ public class FafService {
 
   @Async
   public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(int matchmakerQueueId, int count, int page) {
-    List<MapVersion> mapVersions = fafApiAccessor.getMatchMakerPoolsWithMeta(matchmakerQueueId)
+    List<MapVersion> mapVersions = fafApiAccessor.getMatchmakerPools(matchmakerQueueId)
         .stream()
         .map(MatchmakerQueueMapPool::getMapPool)
         .flatMap(mapPool -> mapPool.getMapVersions().stream())
@@ -473,6 +474,12 @@ public class FafService {
         .map(MapBean::fromMapVersionDto)
         .collect(toList()),
         totalPages));
+  }
+
+  @Async
+  public CompletableFuture<Optional<MatchmakingQueue>> getMatchmakingQueue(String technicalName) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getMatchmakerQueue(technicalName)
+    .map(MatchmakingQueue::fromDto));
   }
 
   @Async

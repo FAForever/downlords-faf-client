@@ -129,12 +129,18 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     });
 
     teamMatchmakingService.getMatchmakingQueues().addListener((Observable o) -> {
-      List<MatchmakingQueue> queues = teamMatchmakingService.getMatchmakingQueues();
-      queueBox.getChildren().clear();
-      queues.iterator().forEachRemaining(queue -> {
-        MatchmakingQueueItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml");
-        controller.setQueue(queue);
-        queueBox.getChildren().add(controller.getRoot());
+      Platform.runLater(() -> {
+        List<MatchmakingQueue> queues = teamMatchmakingService.getMatchmakingQueues();
+        queueBox.getChildren().clear();
+        // We get concurrency issues here with teamMatchmakingService.onMatchmakerInfo()
+        // I think it is caused by the API taking time. However I don't know why,
+        // because the listener should only trigger after the API has finished
+        // I have no idea how to fix this
+        queues.iterator().forEachRemaining(queue -> {
+          MatchmakingQueueItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml");
+          controller.setQueue(queue);
+          queueBox.getChildren().add(controller.getRoot());
+        });
       });
     });
 

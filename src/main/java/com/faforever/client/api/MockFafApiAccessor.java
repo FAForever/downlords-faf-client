@@ -15,6 +15,7 @@ import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
 import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
+import com.faforever.client.api.dto.MatchmakerQueue;
 import com.faforever.client.api.dto.MatchmakerQueueMapPool;
 import com.faforever.client.api.dto.MeResult;
 import com.faforever.client.api.dto.Mod;
@@ -279,8 +280,13 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<MatchmakerQueueMapPool> getMatchMakerPoolsWithMeta(int matchmakerQueueId) {
+  public List<MatchmakerQueueMapPool> getMatchmakerPools(int matchmakerQueueId) {
     return Collections.emptyList();
+  }
+
+  @Override
+  public Optional<MatchmakerQueue> getMatchmakerQueue(String technicalName) {
+    return Optional.empty();
   }
 
   @Override

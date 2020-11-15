@@ -146,7 +146,6 @@ public class MatchmakingQueueItemController implements Controller<Node> {
   }
 
   public void showMapPool(ActionEvent actionEvent) {
-    // TODO do this properly and get the id from the api instead of using the teamSize
-    eventBus.post(new ShowMapPoolEvent(queue.getTeamSize()));
+    eventBus.post(new ShowMapPoolEvent(queue.getQueueId()));
   }
 }
