@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.remote.domain.GameStatus;
+import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.remote.domain.VictoryCondition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -29,14 +30,16 @@ public class Game {
   private final IntegerProperty numPlayers;
   private final IntegerProperty maxPlayers;
   private final DoubleProperty averageRating;
-  private final IntegerProperty minRating;
-  private final IntegerProperty maxRating;
+  private final ObjectProperty<Integer> minRating;
+  private final ObjectProperty<Integer> maxRating;
   private final BooleanProperty passwordProtected;
   private final StringProperty password;
   private final ObjectProperty<GameVisibility> visibility;
   private final ObjectProperty<GameStatus> status;
   private final ObjectProperty<VictoryCondition> victoryCondition;
   private final ObjectProperty<Instant> startTime;
+  private final BooleanProperty enforceRating;
+  private final ObjectProperty<GameType> gameType;
   /**
    * Maps a sim mod's UID to its name.
    */
@@ -56,8 +59,8 @@ public class Game {
     numPlayers = new SimpleIntegerProperty();
     maxPlayers = new SimpleIntegerProperty();
     averageRating = new SimpleDoubleProperty(0);
-    minRating = new SimpleIntegerProperty(0);
-    maxRating = new SimpleIntegerProperty(3000);
+    minRating = new SimpleObjectProperty<>(null);
+    maxRating = new SimpleObjectProperty<>(null);
     passwordProtected = new SimpleBooleanProperty();
     password = new SimpleStringProperty();
     victoryCondition = new SimpleObjectProperty<>();
@@ -67,6 +70,8 @@ public class Game {
     featuredModVersions = new SimpleMapProperty<>(FXCollections.observableHashMap());
     status = new SimpleObjectProperty<>();
     startTime = new SimpleObjectProperty<>();
+    enforceRating = new SimpleBooleanProperty(false);
+    gameType = new SimpleObjectProperty<>();
   }
 
   public String getHost() {
@@ -165,28 +170,36 @@ public class Game {
     this.averageRating.set(averageRating);
   }
 
-  public int getMinRating() {
+  public Integer getMinRating() {
     return minRating.get();
   }
 
-  public void setMinRating(int minRating) {
+  public void setMinRating(Integer minRating) {
     this.minRating.set(minRating);
   }
 
-  public IntegerProperty minRatingProperty() {
+  public ObjectProperty<Integer> minRatingProperty() {
     return minRating;
   }
 
-  public int getMaxRating() {
+  public Integer getMaxRating() {
     return maxRating.get();
   }
 
-  public void setMaxRating(int maxRating) {
+  public void setMaxRating(Integer maxRating) {
     this.maxRating.set(maxRating);
   }
 
-  public IntegerProperty maxRatingProperty() {
+  public ObjectProperty<Integer> maxRatingProperty() {
     return maxRating;
+  }
+
+  public void setEnforceRating(boolean enforceRating) {
+    this.enforceRating.set(enforceRating);
+  }
+
+  public boolean getEnforceRating() {
+    return enforceRating.getValue();
   }
 
   public GameStatus getStatus() {
@@ -211,6 +224,18 @@ public class Game {
 
   public ObjectProperty<VictoryCondition> victoryConditionProperty() {
     return victoryCondition;
+  }
+
+  public GameType getGameType() {
+    return gameType.get();
+  }
+
+  public void setGameType(GameType gameType) {
+    this.gameType.set(gameType);
+  }
+
+  public ObjectProperty<GameType> gameTypeProperty() {
+    return gameType;
   }
 
   /**

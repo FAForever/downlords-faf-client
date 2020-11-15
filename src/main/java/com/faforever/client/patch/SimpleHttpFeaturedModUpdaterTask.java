@@ -3,47 +3,51 @@ package com.faforever.client.patch;
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.DownloadService;
+import com.faforever.client.io.FeaturedModFileCacheService;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
-import com.faforever.client.util.UpdaterUtil;
-import com.google.common.hash.Hashing;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
-import java.lang.invoke.MethodHandles;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Slf4j
 public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResult> {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
   private final FafService fafService;
   private final PreferencesService preferencesService;
   private final DownloadService downloadService;
   private final I18n i18n;
+  private final FeaturedModFileCacheService featuredModFileCacheService;
 
   private FeaturedMod featuredMod;
   private Integer version;
 
-  public SimpleHttpFeaturedModUpdaterTask(FafService fafService, PreferencesService preferencesService, DownloadService downloadService, I18n i18n) {
+  public SimpleHttpFeaturedModUpdaterTask(
+      FafService fafService,
+      PreferencesService preferencesService,
+      DownloadService downloadService,
+      I18n i18n,
+      FeaturedModFileCacheService featuredModFileCacheService
+  ) {
     super(Priority.HIGH);
 
     this.fafService = fafService;
     this.preferencesService = preferencesService;
     this.downloadService = downloadService;
     this.i18n = i18n;
+    this.featuredModFileCacheService = featuredModFileCacheService;
   }
 
   @Override
@@ -54,40 +58,58 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
     updateMessage(i18n.get("updater.readingFileList"));
 
     List<FeaturedModFile> featuredModFiles = fafService.getFeaturedModFiles(featuredMod, version).get();
+    Path fafDataDirectory = preferencesService.getFafDataDirectory();
 
-    Path initFile = null;
-    for (FeaturedModFile featuredModFile : featuredModFiles) {
-      Path fafDataDirectory = preferencesService.getFafDataDirectory();
-      Path targetPath = fafDataDirectory
-          .resolve(featuredModFile.getGroup())
-          .resolve(featuredModFile.getName());
+    featuredModFiles
+        .forEach(featuredModFile -> {
+          Path targetPath = fafDataDirectory
+              .resolve(featuredModFile.getGroup())
+              .resolve(featuredModFile.getName());
 
-      if (Files.exists(targetPath)
-          && featuredModFile.getMd5().equals(com.google.common.io.Files.hash(targetPath.toFile(), Hashing.md5()).toString())) {
-        logger.debug("Already up to date: {}", targetPath);
-      } else {
-        Files.createDirectories(targetPath.getParent());
-        updateMessage(i18n.get("updater.downloadingFile", targetPath.getFileName()));
+          try {
+            if (fileAlreadyLoaded(featuredModFile, targetPath)) {
+              log.debug("Featured mod file already prepared: {}", featuredModFile);
+            } else if (featuredModFileCacheService.isCached(featuredModFile)) {
+              featuredModFileCacheService.moveFeaturedModFileFromCache(featuredModFile, targetPath);
+            } else {
+              downloadFeaturedModFile(featuredModFile, featuredModFileCacheService.getCachedFilePath(featuredModFile));
+              featuredModFileCacheService.moveFeaturedModFileFromCache(featuredModFile, targetPath);
+            }
+          } catch (IOException e) {
+            log.error("Error on updating featured mod file: {}", featuredModFile, e);
+            throw new RuntimeException(e);
+          }
+        });
 
-        String url = featuredModFile.getUrl();
-        downloadService.downloadFile(new URL(url), targetPath, this::updateProgress);
-        UpdaterUtil.extractMoviesIfPresent(targetPath, fafDataDirectory);
-      }
-
-
-      if ("bin".equals(featuredModFile.getGroup()) && initFileName.equalsIgnoreCase(featuredModFile.getName())) {
-        initFile = targetPath;
-      }
-    }
-
-    Assert.isTrue(initFile != null && Files.exists(initFile), "'" + initFileName + "' could be found.");
+    Path initFile = featuredModFiles.stream()
+        .filter(featuredModFile -> "bin".equals(featuredModFile.getGroup()) &&
+            initFileName.equalsIgnoreCase(featuredModFile.getName()))
+        .map(featuredModFile -> fafDataDirectory
+            .resolve(featuredModFile.getGroup())
+            .resolve(featuredModFile.getName()))
+        .filter(Files::exists)
+        .findAny()
+        .orElseThrow(() -> new IllegalStateException("No init file found for featured mod: " + featuredMod.getTechnicalName()));
 
     int maxVersion = featuredModFiles.stream()
         .mapToInt(mod -> Integer.parseInt(mod.getVersion()))
         .max()
-        .orElseThrow(() -> new IllegalStateException("No version found"));
+        .orElseThrow(() -> new IllegalStateException("No version found for featured mod: " + featuredMod.getTechnicalName()));
 
     return PatchResult.withLegacyInitFile(new ComparableVersion(String.valueOf(maxVersion)), initFile);
+  }
+
+  private boolean fileAlreadyLoaded(FeaturedModFile featuredModFile, Path targetPath) throws IOException {
+    return Files.exists(targetPath)
+        && Objects.equals(featuredModFile.getMd5(), featuredModFileCacheService.readHashFromFile(targetPath));
+  }
+
+  private void downloadFeaturedModFile(FeaturedModFile featuredModFile, Path targetPath) throws java.io.IOException {
+    Files.createDirectories(targetPath.getParent());
+    updateMessage(i18n.get("updater.downloadingFile", featuredModFile.getName()));
+
+    String url = featuredModFile.getUrl();
+    downloadService.downloadFile(new URL(url), targetPath, this::updateProgress);
   }
 
   public void setFeaturedMod(FeaturedMod featuredMod) {

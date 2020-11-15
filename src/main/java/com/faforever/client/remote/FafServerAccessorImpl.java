@@ -39,6 +39,7 @@ import com.faforever.client.remote.domain.GameAccess;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameMatchmakingMessage;
 import com.faforever.client.remote.domain.GameStatus;
+import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.remote.domain.HostGameMessage;
 import com.faforever.client.remote.domain.IceServersServerMessage;
 import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
@@ -74,6 +75,7 @@ import com.faforever.client.remote.gson.ClientMessageTypeTypeAdapter;
 import com.faforever.client.remote.gson.FactionTypeAdapter;
 import com.faforever.client.remote.gson.GameAccessTypeAdapter;
 import com.faforever.client.remote.gson.GameStateTypeAdapter;
+import com.faforever.client.remote.gson.GameTypeTypeAdapter;
 import com.faforever.client.remote.gson.GpgServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.gson.LobbyModeTypeAdapter;
 import com.faforever.client.remote.gson.MatchmakingStateTypeAdapter;
@@ -138,11 +140,12 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class FafServerAccessorImpl extends AbstractServerAccessor implements FafServerAccessor,
     InitializingBean, DisposableBean {
 
-  private Gson gson = new GsonBuilder()
+  private final Gson gson = new GsonBuilder()
       .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
       .registerTypeAdapter(VictoryCondition.class, VictoryConditionTypeAdapter.INSTANCE)
       .registerTypeAdapter(GameStatus.class, GameStateTypeAdapter.INSTANCE)
       .registerTypeAdapter(GameAccess.class, GameAccessTypeAdapter.INSTANCE)
+      .registerTypeAdapter(GameType.class, GameTypeTypeAdapter.INSTANCE)
       .registerTypeAdapter(ClientMessageType.class, ClientMessageTypeTypeAdapter.INSTANCE)
       .registerTypeAdapter(FafServerMessageType.class, ServerMessageTypeTypeAdapter.INSTANCE)
       .registerTypeAdapter(GpgServerMessageType.class, GpgServerMessageTypeTypeAdapter.INSTANCE)
@@ -172,10 +175,10 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private volatile CompletableFuture<LoginMessage> loginFuture;
   private CompletableFuture<SessionMessage> sessionFuture;
   private CompletableFuture<GameLaunchMessage> gameLaunchFuture;
-  private ObjectProperty<Long> sessionId = new SimpleObjectProperty<>();
+  private final ObjectProperty<Long> sessionId = new SimpleObjectProperty<>();
   private String username;
   private String password;
-  private ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>();
+  private final ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>();
   private Socket fafServerSocket;
   private CompletableFuture<List<Avatar>> avatarsFuture;
   private CompletableFuture<List<IceServer>> iceServersFuture;
@@ -319,7 +322,10 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
         newGameInfo.getFeaturedMod().getTechnicalName(),
         newGameInfo.getPassword(),
         null,
-        newGameInfo.getGameVisibility()
+        newGameInfo.getGameVisibility(),
+        newGameInfo.getRatingMin(),
+        newGameInfo.getRatingMax(),
+        newGameInfo.getEnforceRatingRange()
     );
 
     gameLaunchFuture = new CompletableFuture<>();
@@ -427,7 +433,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  @Cacheable(CacheNames.AVAILABLE_AVATARS)
+  @Cacheable(value = CacheNames.AVAILABLE_AVATARS, sync = true)
   public List<Avatar> getAvailableAvatars() {
     avatarsFuture = new CompletableFuture<>();
     writeToServer(new ListPersonalAvatarsMessage());

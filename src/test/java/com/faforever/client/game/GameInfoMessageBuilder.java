@@ -29,6 +29,9 @@ public class GameInfoMessageBuilder {
     gameInfoMessage.setTitle("Test preferences");
     gameInfoMessage.setTeams(new HashMap<>());
     gameInfoMessage.setPasswordProtected(false);
+    gameInfoMessage.setEnforceRatingRange(false);
+    gameInfoMessage.setRatingMax(3000);
+    gameInfoMessage.setRatingMin(0);
     return this;
   }
 
@@ -71,11 +74,6 @@ public class GameInfoMessageBuilder {
 
   public GameInfoMessageBuilder maxPlayers(int maxPlayers) {
     gameInfoMessage.setMaxPlayers(maxPlayers);
-    return this;
-  }
-
-  public GameInfoMessageBuilder gameType(String gameType) {
-    gameInfoMessage.setGameType(gameType);
     return this;
   }
 

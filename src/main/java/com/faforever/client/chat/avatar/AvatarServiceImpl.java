@@ -25,7 +25,7 @@ public class AvatarServiceImpl implements AvatarService {
   private final AssetService assetService;
 
   @Override
-  @Cacheable(AVATARS)
+  @Cacheable(value = AVATARS, sync = true)
   public Image loadAvatar(String avatarUrl) {
     return assetService.loadAndCacheImage(noCatch(() -> new URL(avatarUrl)), Paths.get("avatars"), null);
   }

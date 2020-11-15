@@ -1,6 +1,8 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.generator.GenerationType;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.map.generator.OutdatedVersionException;
 import com.faforever.client.map.generator.UnsupportedVersionException;
@@ -13,6 +15,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory;
@@ -28,6 +31,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.security.InvalidParameterException;
+import java.util.BitSet;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
@@ -40,10 +44,12 @@ public class GenerateMapController implements Controller<Pane> {
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
   private final MapGeneratorService mapGeneratorService;
+  private final I18n i18n;
   public CreateGameController createGameController;
   public Pane generateMapRoot;
   public Button generateMapButton;
   public TextField previousMapName;
+  public ComboBox<GenerationType> generationTypeComboBox;
   public Spinner<Integer> spawnCountSpinner;
   public Spinner<String> mapSizeSpinner;
   public Slider waterSlider;
@@ -63,16 +69,41 @@ public class GenerateMapController implements Controller<Pane> {
   public HBox rampSliderBox;
   public HBox rampRandomBox;
   private Runnable onCloseButtonClickedListener;
-  private ObservableList<String> validMapSizes = FXCollections.observableArrayList("5km", "10km", "20km");
-  private int[] mapValues = new int[]{256, 512, 1024};
+  private final ObservableList<String> validMapSizes = FXCollections.observableArrayList("5km", "10km", "20km");
+  private final int[] mapValues = new int[]{256, 512, 1024};
 
   public void initialize() {
+    initGenerationTypeSpinner();
     initSpawnCountSpinner();
     initMapSizeSpinner();
     initWaterSlider();
     initPlateauSlider();
     initMountainSlider();
     initRampSlider();
+  }
+
+  private StringConverter<GenerationType> getGenerationTypeConverter() {
+    return new StringConverter<>() {
+      @Override
+      public String toString(GenerationType generationType) {
+        return i18n.get(generationType.getI18nKey());
+      }
+
+      @Override
+      public GenerationType fromString(String s) {
+        throw new UnsupportedOperationException();
+      }
+    };
+  }
+
+  private void initGenerationTypeSpinner() {
+    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGeneratorPrefs();
+    GenerationType generationTypeProperty = generatorPrefs.getGenerationTypeProperty();
+    generationTypeComboBox.setItems(FXCollections.observableArrayList(GenerationType.values()));
+    generationTypeComboBox.setConverter(getGenerationTypeConverter());
+    generationTypeComboBox.setValue(generationTypeProperty);
+    generatorPrefs.generationTypePropertyProperty().bind(generationTypeComboBox.valueProperty());
+    generationTypeComboBox.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty()));
   }
 
   private void initSpawnCountSpinner() {
@@ -119,8 +150,8 @@ public class GenerateMapController implements Controller<Pane> {
     waterSliderBox.visibleProperty().bind(waterRandom.selectedProperty().not());
     generatorPrefs.waterDensityPropertyProperty().bind(waterSlider.valueProperty());
     generatorPrefs.waterRandomPropertyProperty().bind(waterRandom.selectedProperty());
-    waterSliderBox.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty()));
-    waterRandomBox.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty()));
+    waterSliderBox.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
+    waterRandomBox.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
   }
 
   private void initPlateauSlider() {
@@ -133,8 +164,8 @@ public class GenerateMapController implements Controller<Pane> {
     plateauSliderBox.visibleProperty().bind(plateauRandom.selectedProperty().not());
     generatorPrefs.plateauDensityPropertyProperty().bind(plateauSlider.valueProperty());
     generatorPrefs.plateauRandomPropertyProperty().bind(plateauRandom.selectedProperty());
-    plateauSliderBox.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty()));
-    plateauRandomBox.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty()));
+    plateauSliderBox.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
+    plateauRandomBox.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
   }
 
   private void initMountainSlider() {
@@ -147,8 +178,8 @@ public class GenerateMapController implements Controller<Pane> {
     mountainSliderBox.visibleProperty().bind(mountainRandom.selectedProperty().not());
     generatorPrefs.mountainDensityPropertyProperty().bind(mountainSlider.valueProperty());
     generatorPrefs.mountainRandomPropertyProperty().bind(mountainRandom.selectedProperty());
-    mountainSliderBox.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty()));
-    mountainRandomBox.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty()));
+    mountainSliderBox.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
+    mountainRandomBox.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
   }
 
   private void initRampSlider() {
@@ -161,12 +192,12 @@ public class GenerateMapController implements Controller<Pane> {
     rampSliderBox.visibleProperty().bind(rampRandom.selectedProperty().not());
     generatorPrefs.rampDensityPropertyProperty().bind(rampSlider.valueProperty());
     generatorPrefs.rampRandomPropertyProperty().bind(rampRandom.selectedProperty());
-    rampSliderBox.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty()));
-    rampRandomBox.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty()));
+    rampSliderBox.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
+    rampRandomBox.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
   }
 
   private byte getSliderValue(Slider slider, CheckBox checkBox) {
-    if (checkBox.isSelected()) {
+    if (checkBox.isSelected() || generationTypeComboBox.getValue() != GenerationType.CASUAL) {
       return (byte) new Random().nextInt(127);
     }
     return (byte) slider.getValue();
@@ -179,7 +210,18 @@ public class GenerateMapController implements Controller<Pane> {
     byte plateauDensity = getSliderValue(plateauSlider, plateauRandom);
     byte mountainDensity = getSliderValue(mountainSlider, mountainRandom);
     byte rampDensity = getSliderValue(rampSlider, rampRandom);
-    return new byte[]{spawnCount, mapSize, landDensity, plateauDensity, mountainDensity, rampDensity};
+    if (generationTypeComboBox.getValue() == GenerationType.BLIND || generationTypeComboBox.getValue() == GenerationType.TOURNAMENT) {
+      return new byte[]{spawnCount, mapSize};
+    } else {
+      return new byte[]{spawnCount, mapSize, landDensity, plateauDensity, mountainDensity, rampDensity};
+    }
+  }
+
+  protected BitSet getParameters() {
+    BitSet parameters = new BitSet();
+    parameters.set(0, generationTypeComboBox.getValue() == GenerationType.BLIND || generationTypeComboBox.getValue() == GenerationType.TOURNAMENT);
+    parameters.set(1, generationTypeComboBox.getValue() == GenerationType.BLIND);
+    return parameters;
   }
 
   public void onCloseButtonClicked() {
@@ -194,14 +236,15 @@ public class GenerateMapController implements Controller<Pane> {
     CompletableFuture<String> generateFuture;
     if (!previousMapName.getText().isEmpty()) {
       if (!mapGeneratorService.isGeneratedMap(previousMapName.getText())) {
-        notificationService.addImmediateErrorNotification(new IllegalArgumentException(), "mapGenerator.invalidName");
         log.warn("Invalid Generated Map Name", new IllegalArgumentException());
+        notificationService.addImmediateErrorNotification(new IllegalArgumentException(), "mapGenerator.invalidName");
         return;
       }
       generateFuture = mapGeneratorService.generateMap(previousMapName.getText());
     } else {
       byte[] optionArray = getOptionArray();
-      generateFuture = mapGeneratorService.generateMap(optionArray);
+      BitSet parameters = getParameters();
+      generateFuture = mapGeneratorService.generateMap(optionArray, parameters);
     }
     generateFuture.thenAccept(mapName -> Platform.runLater(() -> {
       createGameController.initMapSelection();
@@ -223,17 +266,17 @@ public class GenerateMapController implements Controller<Pane> {
   private void handleGenerationException(Throwable e) {
     Throwable cause = e.getCause();
     if (cause instanceof InvalidParameterException) {
+      log.warn("Map generation failed due to invalid parameter", e);
       notificationService.addImmediateErrorNotification(e, "mapGenerator.invalidName");
-      log.warn("Map generation failed", e);
     } else if (cause instanceof UnsupportedVersionException) {
+      log.warn("Map generation failed due to unsupported version", e);
       notificationService.addImmediateErrorNotification(cause, "mapGenerator.tooNewVersion");
-      log.warn("Map generation failed", e);
     } else if (cause instanceof OutdatedVersionException) {
+      log.warn("Map generation failed due to outdated version", e);
       notificationService.addImmediateErrorNotification(cause, "mapGenerator.tooOldVersion");
-      log.warn("Map generation failed", e);
     } else {
-      notificationService.addImmediateErrorNotification(e, "mapGenerator.generationFailed");
       log.warn("Map generation failed", e);
+      notificationService.addImmediateErrorNotification(e, "mapGenerator.generationFailed");
     }
   }
 

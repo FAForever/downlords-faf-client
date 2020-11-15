@@ -7,6 +7,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.StringListCell;
+import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.notification.Action;
@@ -14,6 +15,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.preferences.DateInfo;
 import com.faforever.client.preferences.LocalizationPrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
@@ -47,6 +49,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
@@ -63,6 +66,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.text.NumberFormat;
 import java.util.Collections;
@@ -87,6 +91,7 @@ public class SettingsController implements Controller<Node> {
   private final PlatformService platformService;
   private final ClientProperties clientProperties;
   private final ClientUpdateService clientUpdateService;
+  private final GameService gameService;
 
   public TextField executableDecoratorField;
   public TextField executionDirectoryField;
@@ -125,6 +130,7 @@ public class SettingsController implements Controller<Node> {
   public PasswordField newPasswordField;
   public PasswordField confirmPasswordField;
   public ComboBox<TimeInfo> timeComboBox;
+  public ComboBox<DateInfo> dateComboBox;
   public ComboBox<ChatFormat> chatComboBox;
   public Label passwordChangeErrorLabel;
   public Label passwordChangeSuccessLabel;
@@ -143,6 +149,11 @@ public class SettingsController implements Controller<Node> {
   public TextField channelTextField;
   public Button addChannelButton;
   public ListView<String> autoChannelListView;
+  public Button clearCacheButton;
+  public CheckBox gameDataCacheCheckBox;
+  public Spinner<Integer> gameDataCacheTimeSpinner;
+  public CheckBox allowReplayWhileInGameCheckBox;
+  public Button allowReplayWhileInGameButton;
 
   private final InvalidationListener availableLanguagesListener;
 
@@ -151,7 +162,8 @@ public class SettingsController implements Controller<Node> {
 
   public SettingsController(UserService userService, PreferencesService preferencesService, UiService uiService,
                             I18n i18n, EventBus eventBus, NotificationService notificationService,
-                            PlatformService platformService, ClientProperties clientProperties, ClientUpdateService clientUpdateService) {
+                            PlatformService platformService, ClientProperties clientProperties,
+                            ClientUpdateService clientUpdateService, GameService gameService) {
     this.userService = userService;
     this.preferencesService = preferencesService;
     this.uiService = uiService;
@@ -161,6 +173,7 @@ public class SettingsController implements Controller<Node> {
     this.platformService = platformService;
     this.clientProperties = clientProperties;
     this.clientUpdateService = clientUpdateService;
+    this.gameService = gameService;
 
     availableLanguagesListener = observable -> {
       LocalizationPrefs localization = preferencesService.getPreferences().getLocalization();
@@ -217,11 +230,12 @@ public class SettingsController implements Controller<Node> {
     toastScreenComboBox.setItems(Screen.getScreens());
     NumberFormat integerNumberFormat = NumberFormat.getIntegerInstance();
     integerNumberFormat.setGroupingUsed(false);
+    NumberStringConverter numberToStringConverter = new NumberStringConverter(integerNumberFormat);
 
     Preferences preferences = preferencesService.getPreferences();
     temporarilyDisableUnsupportedSettings(preferences);
 
-    JavaFxUtil.bindBidirectional(maxMessagesTextField.textProperty(), preferences.getChat().maxMessagesProperty(), new NumberStringConverter(integerNumberFormat));
+    JavaFxUtil.bindBidirectional(maxMessagesTextField.textProperty(), preferences.getChat().maxMessagesProperty(), numberToStringConverter);
     imagePreviewToggle.selectedProperty().bindBidirectional(preferences.getChat().previewImageUrlsProperty());
     enableNotificationsToggle.selectedProperty().bindBidirectional(preferences.getNotification().transientNotificationsEnabledProperty());
 
@@ -271,6 +285,7 @@ public class SettingsController implements Controller<Node> {
       }
     });
     configureTimeSetting(preferences);
+    configureDateSetting(preferences);
     configureChatSetting(preferences);
     configureLanguageSelection();
     configureThemeSelection();
@@ -310,9 +325,9 @@ public class SettingsController implements Controller<Node> {
     autoChannelListView.managedProperty().bind(autoChannelListView.visibleProperty());
     autoChannelListView.visibleProperty().bind(Bindings.createBooleanBinding(() -> !autoChannelListView.getItems().isEmpty(), autoChannelListView.getItems()));
 
-    secondaryVaultLocationToggle.setSelected(preferences.getForgedAlliance().getVaultBaseDirectory().equals(preferencesService.getSecondaryVaultLocation()));
+    secondaryVaultLocationToggle.setSelected(preferences.getForgedAlliance().getVaultBaseDirectory().equals(preferencesService.getFAFVaultLocation()));
     secondaryVaultLocationToggle.selectedProperty().addListener(observable -> {
-      Path vaultBaseDirectory = secondaryVaultLocationToggle.isSelected() ? preferencesService.getSecondaryVaultLocation() : preferencesService.getPrimaryVaultLocation();
+      Path vaultBaseDirectory = secondaryVaultLocationToggle.isSelected() ? preferencesService.getFAFVaultLocation() : preferencesService.getGPGVaultLocation();
       preferences.getForgedAlliance().setVaultBaseDirectory(vaultBaseDirectory);
     });
 
@@ -327,9 +342,37 @@ public class SettingsController implements Controller<Node> {
 
     initUnitDatabaseSelection(preferences);
 
+    initAllowReplaysWhileInGame(preferences);
+
+    initNotifyMeOnAtMention();
+
+    initGameDataCache();
+  }
+
+  private void initGameDataCache() {
+    gameDataCacheCheckBox.selectedProperty().bindBidirectional(preferencesService.getPreferences().gameDataCacheActivatedProperty());
+    //Binding for CacheLifeTimeInDays does not work because of some java fx bug
+    gameDataCacheTimeSpinner.getValueFactory().setValue(preferencesService.getPreferences().getCacheLifeTimeInDays());
+    gameDataCacheTimeSpinner.getValueFactory().valueProperty()
+        .addListener((observable, oldValue, newValue) -> preferencesService.getPreferences().setCacheLifeTimeInDays(newValue));
+  }
+
+  private void initNotifyMeOnAtMention() {
     String username = userService.getUsername();
     notifyAtMentionTitle.setText(i18n.get("settings.chat.notifyOnAtMentionOnly", "@" + username));
     notifyAtMentionDescription.setText(i18n.get("settings.chat.notifyOnAtMentionOnly.description", "@" + username));
+  }
+
+  private void initAllowReplaysWhileInGame(Preferences preferences) {
+    allowReplayWhileInGameCheckBox.setSelected(preferences.getForgedAlliance().isAllowReplaysWhileInGame());
+    JavaFxUtil.bindBidirectional(allowReplayWhileInGameCheckBox.selectedProperty(), preferences.getForgedAlliance().allowReplaysWhileInGameProperty());
+    try {
+      gameService.isGamePrefsPatchedToAllowMultiInstances()
+          .thenAccept(isPatched -> allowReplayWhileInGameButton.setDisable(isPatched));
+    } catch (IOException e) {
+      log.warn("Failed evaluating if game.prefs file is patched for multiple instances.", e);
+      allowReplayWhileInGameButton.setDisable(true);
+    }
   }
 
   private void configureStartTab(Preferences preferences) {
@@ -379,6 +422,22 @@ public class SettingsController implements Controller<Node> {
     log.debug("A new time format was selected: {}", timeComboBox.getValue());
     Preferences preferences = preferencesService.getPreferences();
     preferences.getChat().setTimeFormat(timeComboBox.getValue());
+    preferencesService.storeInBackground();
+  }
+
+  private void configureDateSetting(Preferences preferences) {
+    dateComboBox.setButtonCell(new StringListCell<>(dateInfo -> i18n.get(dateInfo.getDisplayNameKey())));
+    dateComboBox.setCellFactory(param -> new StringListCell<>(dateInfo -> i18n.get(dateInfo.getDisplayNameKey())));
+    dateComboBox.setItems(FXCollections.observableArrayList(DateInfo.values()));
+    dateComboBox.setDisable(false);
+    dateComboBox.setFocusTraversable(true);
+    dateComboBox.getSelectionModel().select(preferences.getChat().getDateFormat());
+  }
+
+  public void onDateFormatSelected() {
+    log.debug("A new date format was selected: {}", dateComboBox.getValue());
+    Preferences preferences = preferencesService.getPreferences();
+    preferences.getChat().setDateFormat(dateComboBox.getValue());
     preferencesService.storeInBackground();
   }
 
@@ -554,6 +613,21 @@ public class SettingsController implements Controller<Node> {
     preferencesService.getPreferences().getChat().getAutoJoinChannels().add(channelTextField.getText());
     preferencesService.storeInBackground();
     channelTextField.clear();
+  }
+
+  public void onPatchGamePrefsForMultipleInstances() {
+    try {
+      gameService.patchGamePrefsForMultiInstances()
+          .thenRun(() -> Platform.runLater(() -> allowReplayWhileInGameButton.setDisable(true)))
+          .exceptionally(throwable -> {
+            log.error("Game.prefs patch failed", throwable);
+            notificationService.addImmediateErrorNotification(throwable, "settings.fa.patchGamePrefsFailed");
+            return null;
+          });
+    } catch (Exception e) {
+      log.error("Game.prefs patch failed", e);
+      notificationService.addImmediateErrorNotification(e, "settings.fa.patchGamePrefsFailed");
+    }
   }
 }
 

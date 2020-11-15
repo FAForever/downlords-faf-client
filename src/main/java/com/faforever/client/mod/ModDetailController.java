@@ -3,11 +3,11 @@ package com.faforever.client.mod;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.ReviewService;
@@ -46,6 +46,7 @@ public class ModDetailController implements Controller<Node> {
   private final TimeService timeService;
   private final ReviewService reviewService;
   private final PlayerService playerService;
+  private final UiService uiService;
 
   public Label updatedLabel;
   public Label sizeLabel;
@@ -58,6 +59,7 @@ public class ModDetailController implements Controller<Node> {
   public Button installButton;
   public ImageView thumbnailImageView;
   public Label nameLabel;
+  public Label idLabel;
   public Label uploaderLabel;
   public ProgressBar progressBar;
   public Label modDescriptionLabel;
@@ -69,6 +71,7 @@ public class ModDetailController implements Controller<Node> {
   private ListChangeListener<ModVersion> installStatusChangeListener;
 
   public void initialize() {
+    JavaFxUtil.addLabelContextMenus(uiService, nameLabel, authorLabel, idLabel, uploaderLabel, versionLabel);
     JavaFxUtil.fixScrollSpeed(scrollPane);
     uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
     installButton.managedProperty().bind(installButton.visibleProperty());
@@ -125,6 +128,7 @@ public class ModDetailController implements Controller<Node> {
     this.modVersion = modVersion;
     thumbnailImageView.setImage(modService.loadThumbnail(modVersion));
     nameLabel.setText(modVersion.getDisplayName());
+    idLabel.setText(i18n.get("mod.idNumber", modVersion.getId()));
 
     setUploaderAndAuthor(modVersion);
 
@@ -205,11 +209,9 @@ public class ModDetailController implements Controller<Node> {
     modService.downloadAndInstallMod(modVersion, progressBar.progressProperty(), progressLabel.textProperty())
         .thenRun(() -> setInstalled(true))
         .exceptionally(throwable -> {
-          notificationService.addNotification(new ImmediateErrorNotification(
-              i18n.get("errorTitle"),
-              i18n.get("modVault.installationFailed", modVersion.getDisplayName(), throwable.getLocalizedMessage()),
-              throwable, i18n, reportingService
-          ));
+          log.error("Could not install mod", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "modVault.installationFailed",
+              modVersion.getDisplayName(), throwable.getLocalizedMessage());
           setInstalled(false);
           return null;
         });
@@ -221,14 +223,12 @@ public class ModDetailController implements Controller<Node> {
 
     modService.uninstallMod(modVersion).thenRun(() -> setInstalled(false))
         .exceptionally(throwable -> {
-      notificationService.addNotification(new ImmediateErrorNotification(
-          i18n.get("errorTitle"),
-          i18n.get("modVault.couldNotDeleteMod", modVersion.getDisplayName(), throwable.getLocalizedMessage()),
-          throwable, i18n, reportingService
-      ));
-      setInstalled(true);
-      return null;
-    });
+          log.error("Could not delete mod", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "modVault.couldNotDeleteMod",
+              modVersion.getDisplayName(), throwable.getLocalizedMessage());
+          setInstalled(true);
+          return null;
+        });
   }
 
   public void onDimmerClicked() {

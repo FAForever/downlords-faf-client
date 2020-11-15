@@ -6,8 +6,10 @@ import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
 import com.faforever.client.main.event.NavigateEvent;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameStatus;
+import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
@@ -37,8 +39,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
@@ -48,22 +48,15 @@ import java.util.function.Predicate;
 @Slf4j
 public class CustomGamesController extends AbstractViewController<Node> {
 
-  private static final Collection<String> HIDDEN_FEATURED_MODS = Arrays.asList(
-      KnownFeaturedMod.COOP.getTechnicalName(),
-      KnownFeaturedMod.LADDER_1V1.getTechnicalName(),
-      KnownFeaturedMod.GALACTIC_WAR.getTechnicalName(),
-      KnownFeaturedMod.MATCHMAKER.getTechnicalName()
-  );
-
   private static final Predicate<Game> OPEN_CUSTOM_GAMES_PREDICATE = gameInfoBean ->
-      gameInfoBean.getStatus() == GameStatus.OPEN
-          && !HIDDEN_FEATURED_MODS.contains(gameInfoBean.getFeaturedMod());
+      gameInfoBean.getStatus() == GameStatus.OPEN && gameInfoBean.getGameType() == GameType.CUSTOM;
 
   private final UiService uiService;
   private final GameService gameService;
   private final PreferencesService preferencesService;
   private final EventBus eventBus;
   private final I18n i18n;
+  private final PlayerService playerService;
 
   @SuppressWarnings("WeakerAccess")
   public GameDetailController gameDetailController;
@@ -90,12 +83,13 @@ public class CustomGamesController extends AbstractViewController<Node> {
   private final ChangeListener<Game> gameChangeListener;
 
   public CustomGamesController(UiService uiService, GameService gameService, PreferencesService preferencesService,
-                               EventBus eventBus, I18n i18n) {
+                               EventBus eventBus, I18n i18n, PlayerService playerService) {
     this.uiService = uiService;
     this.gameService = gameService;
     this.preferencesService = preferencesService;
     this.eventBus = eventBus;
     this.i18n = i18n;
+    this.playerService = playerService;
 
     gameChangeListener = (observable, oldValue, newValue) -> setSelectedGame(newValue);
   }
@@ -121,13 +115,13 @@ public class CustomGamesController extends AbstractViewController<Node> {
       }
     });
 
-    ObservableList<Game> games = gameService.getGames();
-
-    filteredItems = new FilteredList<>(games);
     JavaFxUtil.bindBidirectional(showModdedGamesCheckBox.selectedProperty(), preferencesService.getPreferences().showModdedGamesProperty());
     JavaFxUtil.bindBidirectional(showPasswordProtectedGamesCheckBox.selectedProperty(), preferencesService.getPreferences().showPasswordProtectedGamesProperty());
 
+    ObservableList<Game> games = gameService.getGames();
+    filteredItems = new FilteredList<>(games, getGamePredicate());
     updateFilteredItems();
+
     JavaFxUtil.addListener(preferencesService.getPreferences().showModdedGamesProperty(), new WeakChangeListener<>(filterConditionsChangedListener));
     JavaFxUtil.addListener(preferencesService.getPreferences().showPasswordProtectedGamesProperty(), new WeakChangeListener<>(filterConditionsChangedListener));
 
@@ -175,11 +169,14 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   private void updateFilteredItems() {
     preferencesService.storeInBackground();
+    filteredItems.setPredicate(getGamePredicate());
+  }
 
+  private Predicate<Game> getGamePredicate() {
     boolean showPasswordProtectedGames = showPasswordProtectedGamesCheckBox.isSelected();
     boolean showModdedGames = showModdedGamesCheckBox.isSelected();
 
-    filteredItems.setPredicate(OPEN_CUSTOM_GAMES_PREDICATE.and(gameInfoBean ->
+    return (OPEN_CUSTOM_GAMES_PREDICATE.and(gameInfoBean ->
         (showPasswordProtectedGames || !gameInfoBean.isPasswordProtected())
             && (showModdedGames || gameInfoBean.getSimMods().isEmpty())));
   }

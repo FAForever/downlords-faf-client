@@ -6,11 +6,11 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
 import com.faforever.client.map.MapService.PreviewSize;
-import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
@@ -58,6 +58,7 @@ public class MapDetailController implements Controller<Node> {
   private final ReportingService reportingService;
   private final PlayerService playerService;
   private final ReviewService reviewService;
+  private final UiService uiService;
   private final EventBus eventBus;
 
   public Label progressLabel;
@@ -87,6 +88,7 @@ public class MapDetailController implements Controller<Node> {
   private ListChangeListener<MapBean> installStatusChangeListener;
 
   public void initialize() {
+    JavaFxUtil.addLabelContextMenus(uiService, nameLabel, authorLabel, mapDescriptionLabel, mapIdLabel);
     JavaFxUtil.fixScrollSpeed(scrollPane);
     uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
     installButton.managedProperty().bind(installButton.visibleProperty());
@@ -258,11 +260,9 @@ public class MapDetailController implements Controller<Node> {
     return mapService.downloadAndInstallMap(map, progressBar.progressProperty(), progressLabel.textProperty())
         .thenRun(() -> setInstalled(true))
         .exceptionally(throwable -> {
-          notificationService.addNotification(new ImmediateErrorNotification(
-              i18n.get("errorTitle"),
-              i18n.get("mapVault.installationFailed", map.getDisplayName(), throwable.getLocalizedMessage()),
-              throwable, i18n, reportingService
-          ));
+          log.error("Map installation failed", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "mapVault.installationFailed",
+              map.getDisplayName(), throwable.getLocalizedMessage());
           setInstalled(false);
           return null;
         });
@@ -275,11 +275,9 @@ public class MapDetailController implements Controller<Node> {
     mapService.uninstallMap(map)
         .thenRun(() -> setInstalled(false))
         .exceptionally(throwable -> {
-          notificationService.addNotification(new ImmediateErrorNotification(
-              i18n.get("errorTitle"),
-              i18n.get("mapVault.couldNotDeleteMap", map.getDisplayName(), throwable.getLocalizedMessage()),
-              throwable, i18n, reportingService
-          ));
+          log.error("Could not delete map", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "mapVault.couldNotDeleteMap",
+              map.getDisplayName(), throwable.getLocalizedMessage());
           setInstalled(true);
           return null;
         });
@@ -306,8 +304,8 @@ public class MapDetailController implements Controller<Node> {
       map.setHidden(true);
       renewAuthorControls();
     })).exceptionally(throwable -> {
-      notificationService.addImmediateErrorNotification(throwable, "map.couldNotHide");
       log.error("Could not hide map", throwable);
+      notificationService.addImmediateErrorNotification(throwable, "map.couldNotHide");
       return null;
     });
   }
@@ -319,8 +317,8 @@ public class MapDetailController implements Controller<Node> {
           renewAuthorControls();
         }))
         .exceptionally(throwable -> {
-          notificationService.addImmediateErrorNotification(throwable, "map.couldNotUnrank");
           log.error("Could not unrank map", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "map.couldNotUnrank");
           return null;
         });
   }

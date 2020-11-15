@@ -40,7 +40,6 @@ import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.faforever.client.user.event.LoggedInEvent;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
-import com.faforever.client.vault.VaultFileSystemLocationChecker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -117,7 +116,6 @@ public class MainController implements Controller<Node> {
   private final EventBus eventBus;
   private final GamePathHandler gamePathHandler;
   private final PlatformService platformService;
-  private final VaultFileSystemLocationChecker vaultFileSystemLocationChecker;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final String mainWindowTitle;
   private final int ratingBeta;
@@ -153,7 +151,6 @@ public class MainController implements Controller<Node> {
                         NotificationService notificationService, PlayerService playerService,
                         GameService gameService, UiService uiService, EventBus eventBus,
                         GamePathHandler gamePathHandler, PlatformService platformService,
-                        VaultFileSystemLocationChecker vaultFileSystemLocationChecker,
                         ClientProperties clientProperties, ApplicationEventPublisher applicationEventPublisher) {
     this.preferencesService = preferencesService;
     this.i18n = i18n;
@@ -164,7 +161,6 @@ public class MainController implements Controller<Node> {
     this.eventBus = eventBus;
     this.gamePathHandler = gamePathHandler;
     this.platformService = platformService;
-    this.vaultFileSystemLocationChecker = vaultFileSystemLocationChecker;
     this.applicationEventPublisher = applicationEventPublisher;
     this.viewCache = CacheBuilder.newBuilder().build();
     this.mainWindowTitle = clientProperties.getMainWindowTitle();
@@ -222,7 +218,6 @@ public class MainController implements Controller<Node> {
     // Always load chat immediately so messages or joined channels don't need to be cached until we display them.
     getView(NavigationItem.CHAT);
 
-    vaultFileSystemLocationChecker.checkVaultFileSystemLocation();
     notificationButton.managedProperty().bind(notificationButton.visibleProperty());
 
     navigationDropdown.getItems().setAll(createMenuItemsFromNavigation());

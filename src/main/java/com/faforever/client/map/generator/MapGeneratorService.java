@@ -30,6 +30,8 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.InvalidParameterException;
+import java.time.Instant;
+import java.util.BitSet;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
@@ -52,7 +54,7 @@ public class MapGeneratorService implements InitializingBean {
   public static final BaseEncoding NAME_ENCODER = BaseEncoding.base32().omitPadding().lowerCase();
   @VisibleForTesting
   public static final String GENERATOR_EXECUTABLE_SUB_DIRECTORY = "map_generator";
-  public static final int GENERATION_TIMEOUT_SECONDS = 60;
+  public static final int GENERATION_TIMEOUT_SECONDS = 60 * 3;
   private static final Pattern VERSION_PATTERN = Pattern.compile("\\d\\d?\\d?\\.\\d\\d?\\d?\\.\\d\\d?\\d?");
   private static final Pattern GENERATED_MAP_PATTERN = Pattern.compile("neroxis_map_generator_(" + VERSION_PATTERN + ")_(.*)");
   @Getter
@@ -113,6 +115,8 @@ public class MapGeneratorService implements InitializingBean {
             .forEach(p -> noCatch(() -> FileUtils.deleteRecursively(p)));
       } catch (IOException e) {
         log.error("Could not list custom maps directory for deleting leftover generated maps.", e);
+      } catch (RuntimeException e) {
+        log.error("Could not delete generated map folder");
       }
     }
   }
@@ -124,24 +128,20 @@ public class MapGeneratorService implements InitializingBean {
     return generateMap(generatorVersion, seedString);
   }
 
-  public CompletableFuture<String> generateMap(byte[] optionArray) {
-    return generateMap(generatorVersion, optionArray);
-  }
-
-  public CompletableFuture<String> generateMap(String version, byte[] optionArray) {
-    return generateMap(new ComparableVersion(version), optionArray);
-  }
-
-  public CompletableFuture<String> generateMap(ComparableVersion version, byte[] optionArray) {
+  public CompletableFuture<String> generateMap(byte[] optionArray, BitSet parameters) {
     ByteBuffer seedBuffer = ByteBuffer.allocate(8);
     seedBuffer.putLong(seedGenerator.nextLong());
     String seedString = NAME_ENCODER.encode(seedBuffer.array());
-    String optionString = NAME_ENCODER.encode(optionArray);
-    return generateMap(version, seedString + '_' + optionString);
+    String optionString = NAME_ENCODER.encode(optionArray) + "_" + NAME_ENCODER.encode(parameters.toByteArray());
+    if (parameters.get(0)) {
+      String timeString = NAME_ENCODER.encode(ByteBuffer.allocate(8).putLong(Instant.now().getEpochSecond()).array());
+      optionString += "_" + timeString;
+    }
+    return generateMap(generatorVersion, seedString + '_' + optionString);
   }
 
   @VisibleForTesting
-  @Cacheable(CacheNames.MAP_GENERATOR)
+  @Cacheable(value = CacheNames.MAP_GENERATOR, sync = true)
   public ComparableVersion queryMaxSupportedVersion() {
     ComparableVersion version = new ComparableVersion("");
     ComparableVersion minVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator().getMinSupportedMajorVersion()));
@@ -170,11 +170,7 @@ public class MapGeneratorService implements InitializingBean {
     if (!matcher.find()) {
       return CompletableFuture.failedFuture(new InvalidParameterException("Map name is not a generated map"));
     }
-    return generateMap(matcher.group(1), matcher.group(2));
-  }
-
-  public CompletableFuture<String> generateMap(String version, String seedAndOptions) {
-    return generateMap(new ComparableVersion(version), seedAndOptions);
+    return generateMap(new ComparableVersion(matcher.group(1)), matcher.group(2));
   }
 
   public CompletableFuture<String> generateMap(ComparableVersion version, String seedAndOptions) {

@@ -1,13 +1,13 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.test.FakeTestException;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewController;
 import com.faforever.client.vault.review.ReviewService;
@@ -30,6 +30,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -51,6 +52,8 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private PlayerService playerService;
   @Mock
+  private UiService uiService;
+  @Mock
   private ReviewsController reviewsController;
   @Mock
   private ReviewController reviewController;
@@ -64,7 +67,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ModDetailController(modService, notificationService, i18n, reportingService, timeService, reviewService, playerService);
+    instance = new ModDetailController(modService, notificationService, i18n, reportingService, timeService, reviewService, playerService, uiService);
 
     installedModVersions = FXCollections.observableArrayList();
     when(modService.getInstalledModVersions()).thenReturn(installedModVersions);
@@ -136,7 +139,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnInstallButtonClickedInstallindModThrowsException() {
+  public void testOnInstallButtonClickedInstallingModThrowsException() {
     CompletableFuture<Void> future = new CompletableFuture<>();
     future.completeExceptionally(new FakeTestException());
     when(modService.downloadAndInstallMod(any(ModVersion.class), any(), any())).thenReturn(future);
@@ -146,7 +149,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
     instance.onInstallButtonClicked();
 
     verify(modService).downloadAndInstallMod(any(ModVersion.class), any(), any());
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString(), anyString(), anyString());
   }
 
   @Test
@@ -172,7 +175,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
     instance.onUninstallButtonClicked();
 
     verify(modService).uninstallMod(modVersion);
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString(), anyString(), anyString());
   }
 
   @Test

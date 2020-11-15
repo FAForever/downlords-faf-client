@@ -1,22 +1,15 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.chat.avatar.AvatarBean;
-import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.clan.Clan;
-import com.faforever.client.clan.ClanService;
-import com.faforever.client.clan.ClanTooltipController;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.GameBuilder;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapService;
-import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
@@ -27,7 +20,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.Pane;
 import javafx.stage.Window;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
@@ -37,11 +29,8 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.net.URL;
-import java.nio.file.Paths;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
-import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertFalse;
@@ -49,20 +38,16 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
 
   private ChatUserItemController instance;
-  @Mock
-  private AvatarService avatarService;
-  @Mock
-  private CountryFlagService countryFlagService;
   @Mock
   private PreferencesService preferencesService;
   @Mock
@@ -72,17 +57,12 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private EventBus eventBus;
   @Mock
-  private ClanService clanService;
-  @Mock
   private PlayerService playerService;
   @Mock
   private PlatformService platformService;
   @Mock
   private TimeService timeService;
-  @Mock
-  private MapService mapService;
 
-  private ClanTooltipController clanTooltipControllerMock;
   private Clan testClan;
 
   @Before
@@ -95,30 +75,17 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
     testClan = new Clan();
     testClan.setTag("e");
     testClan.setLeader(PlayerBuilder.create("test_player").defaultValues().id(2).get());
-    when(clanService.getClanByTag(anyString())).thenReturn(CompletableFuture.completedFuture(Optional.of(testClan)));
-    when(countryFlagService.loadCountryFlag("US")).thenReturn(Optional.of(mock(Image.class)));
     when(playerService.isOnline(eq(2))).thenReturn(true);
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(new Player("junit")));
-    clanTooltipControllerMock = mock(ClanTooltipController.class);
-    when(uiService.loadFxml("theme/chat/clan_tooltip.fxml")).thenReturn(clanTooltipControllerMock);
-    when(clanTooltipControllerMock.getRoot()).thenReturn(new Pane());
-    when(uiService.getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING)).thenReturn(new Image(UiService.CHAT_LIST_STATUS_HOSTING));
-    when(uiService.getThemeImage(UiService.CHAT_LIST_STATUS_LOBBYING)).thenReturn(new Image(UiService.CHAT_LIST_STATUS_LOBBYING));
-    when(uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING)).thenReturn(new Image(UiService.CHAT_LIST_STATUS_PLAYING));
-    when(mapService.loadPreview("mapName", PreviewSize.SMALL)).thenReturn(new Image(UiService.UNKNOWN_MAP_IMAGE));
 
     instance = new ChatUserItemController(
         preferencesService,
-        avatarService,
-        countryFlagService,
         i18n,
         uiService,
         eventBus,
-        clanService,
         playerService,
         platformService,
-        timeService,
-        mapService
+        timeService
     );
     loadFxml("theme/chat/chat_user_item.fxml", param -> instance);
   }
@@ -130,28 +97,6 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testSetChatUser() throws Exception {
-    Player player = PlayerBuilder.create("junit")
-        .defaultValues()
-        .clan("e")
-        .avatar(new AvatarBean(new URL("http://example.com/avatar.png"), "dog"))
-        .get();
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
-    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().setPlayer(player).get());
-    WaitForAsyncUtils.waitForFxEvents();
-    instance.clanMenu.getOnMouseClicked().handle(null);
-
-    assertThat(instance.clanMenu.getText(), is("[e]"));
-    assertThat(instance.clanMenu.isVisible(), is(true));
-    verify(countryFlagService).loadCountryFlag("US");
-    assertThat(instance.countryTooltip, CoreMatchers.notNullValue());
-    assertThat(instance.avatarTooltip, CoreMatchers.notNullValue());
-    assertThat(instance.userTooltip, CoreMatchers.notNullValue());
-    instance.clanMenu.getOnMouseEntered().handle(null);
-    verify(clanTooltipControllerMock).setClan(testClan);
-  }
-
-  @Test
   public void testGetPlayer() {
     ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit").defaultValues().get();
     instance.setChatUser(chatUser);
@@ -160,92 +105,39 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOpenGameSetsStatusToWaiting() {
+  public void testNullValuesHidesNodes() {
     Player player = PlayerBuilder.create("junit").defaultValues().get();
     ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
         .defaultValues()
-        .setPlayer(player)
+        .player(player)
         .get();
     instance.setChatUser(chatUser);
     WaitForAsyncUtils.waitForFxEvents();
 
+    assertFalse(instance.avatarImageView.isVisible());
     assertFalse(instance.playerStatusIndicator.isVisible());
     assertFalse(instance.playerMapImage.isVisible());
-
-    player.setGame(GameBuilder.create().defaultValues().get());
-    WaitForAsyncUtils.waitForFxEvents();
-
-    assertTrue(instance.playerStatusIndicator.isVisible());
-    assertThat(instance.playerStatusIndicator.getImage().getUrl(), endsWith(Paths.get(UiService.CHAT_LIST_STATUS_LOBBYING).getFileName().toString()));
-    assertTrue(instance.playerMapImage.isVisible());
-    assertThat(instance.playerMapImage.getImage().getUrl(), endsWith(UiService.UNKNOWN_MAP_IMAGE));
+    assertFalse(instance.countryImageView.isVisible());
   }
 
   @Test
-  public void testHostedGameSetsStatusToHosting() {
+  public void testNotNullValuesShowsNodes() {
     Player player = PlayerBuilder.create("junit").defaultValues().get();
     ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
         .defaultValues()
-        .setPlayer(player)
-        .get();
-
-    instance.setChatUser(chatUser);
-    WaitForAsyncUtils.waitForFxEvents();
-
-    assertFalse(instance.playerStatusIndicator.isVisible());
-    assertFalse(instance.playerMapImage.isVisible());
-
-    player.setGame(GameBuilder.create().defaultValues().host("junit").state(GameStatus.OPEN).get());
-    WaitForAsyncUtils.waitForFxEvents();
-
-    assertTrue(instance.playerStatusIndicator.isVisible());
-    assertThat(instance.playerStatusIndicator.getImage().getUrl(), endsWith(Paths.get(UiService.CHAT_LIST_STATUS_HOSTING).getFileName().toString()));
-    assertTrue(instance.playerMapImage.isVisible());
-    assertThat(instance.playerMapImage.getImage().getUrl(), endsWith(UiService.UNKNOWN_MAP_IMAGE));
-  }
-
-  @Test
-  public void testActiveGameSetsStatusToPlaying() {
-    Player player = PlayerBuilder.create("junit").defaultValues().get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
-        .defaultValues()
-        .setPlayer(player)
+        .player(player)
+        .avatar(new Image(UiService.UNKNOWN_MAP_IMAGE))
+        .countryFlag(new Image(UiService.UNKNOWN_MAP_IMAGE))
+        .mapImage(new Image(UiService.UNKNOWN_MAP_IMAGE))
+        .statusImage(new Image(UiService.UNKNOWN_MAP_IMAGE))
         .get();
     instance.setChatUser(chatUser);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertFalse(instance.playerStatusIndicator.isVisible());
-    assertFalse(instance.playerMapImage.isVisible());
-
-    player.setGame(GameBuilder.create().defaultValues().host("junit").state(GameStatus.PLAYING).get());
-    WaitForAsyncUtils.waitForFxEvents();
-
+    assertTrue(instance.avatarImageView.isVisible());
     assertTrue(instance.playerStatusIndicator.isVisible());
-    assertThat(instance.playerStatusIndicator.getImage().getUrl(), endsWith(Paths.get(UiService.CHAT_LIST_STATUS_PLAYING).getFileName().toString()));
     assertTrue(instance.playerMapImage.isVisible());
-    assertThat(instance.playerMapImage.getImage().getUrl(), endsWith(UiService.UNKNOWN_MAP_IMAGE));
-  }
-
-  @Test
-  public void testNullGameSetsStatusToNothing() {
-    Player player = PlayerBuilder.create("junit").defaultValues().get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
-        .defaultValues()
-        .setPlayer(player)
-        .get();
-    instance.setChatUser(chatUser);
-    player.setGame(GameBuilder.create().defaultValues().host("junit").state(GameStatus.PLAYING).get());
-    WaitForAsyncUtils.waitForFxEvents();
-
-    assertTrue(instance.playerStatusIndicator.isVisible());
-    assertThat(instance.playerStatusIndicator.getImage().getUrl(), endsWith(Paths.get(UiService.CHAT_LIST_STATUS_PLAYING).getFileName().toString()));
-    assertTrue(instance.playerMapImage.isVisible());
-    assertThat(instance.playerMapImage.getImage().getUrl(), endsWith(UiService.UNKNOWN_MAP_IMAGE));
-    player.setGame(null);
-    WaitForAsyncUtils.waitForFxEvents();
-
-    assertFalse(instance.playerStatusIndicator.isVisible());
-    assertFalse(instance.playerMapImage.isVisible());
+    assertTrue(instance.countryImageView.isVisible());
   }
 
   @Test
@@ -263,7 +155,7 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
     instance.onItemClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 2));
 
     ArgumentCaptor<InitiatePrivateChatEvent> captor = ArgumentCaptor.forClass(InitiatePrivateChatEvent.class);
-    verify(eventBus).post(captor.capture());
+    verify(eventBus, times(2)).post(captor.capture());
 
     assertThat(captor.getValue().getUsername(), is("junit"));
   }
@@ -298,7 +190,7 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
         .avatar(new AvatarBean(new URL("http://example.com/avatar.png"), "dog"))
         .get();
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
-    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().setPlayer(player).get());
+    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().player(player).clan(testClan).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     instance.clanMenu.getOnMouseClicked().handle(null);
@@ -323,7 +215,7 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
         .avatar(new AvatarBean(new URL("http://example.com/avatar.png"), "dog"))
         .get();
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(otherClanLeader));
-    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().setPlayer(player).get());
+    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().player(player).clan(testClan).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     instance.clanMenu.getOnMouseClicked().handle(null);
@@ -339,15 +231,13 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
     Player player = PlayerBuilder.create("junit")
         .defaultValues()
         .clan("e")
-        .avatar(new AvatarBean(new URL("http://example.com/avatar.png"), "dog"))
         .get();
     Player otherClanLeader = PlayerBuilder.create("test_player")
         .defaultValues()
         .clan("not")
-        .avatar(new AvatarBean(new URL("http://example.com/avatar.png"), "dog"))
         .get();
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(otherClanLeader));
-    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().setPlayer(player).get());
+    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().player(player).clan(testClan).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     instance.clanMenu.getOnMouseClicked().handle(null);

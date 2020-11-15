@@ -4,7 +4,6 @@ import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
-import com.faforever.client.notification.ImmediateErrorNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
@@ -24,6 +23,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -59,8 +59,10 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   protected final ReportingService reportingService;
   public Pane root;
   public StackPane vaultRoot;
+  public HBox searchBox;
   public VBox searchResultGroup;
   public Pane searchResultPane;
+  public Separator searchSeparator;
   public VBox showRoomGroup;
   public VBox loadingPane;
   public Button backButton;
@@ -109,21 +111,12 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   public void initialize() {
     super.initialize();
     JavaFxUtil.fixScrollSpeed(scrollPane);
-    loadingPane.managedProperty().bind(loadingPane.visibleProperty());
-    searchResultGroup.managedProperty().bind(searchResultGroup.visibleProperty());
-    backButton.managedProperty().bind(backButton.visibleProperty());
-    refreshButton.managedProperty().bind(refreshButton.visibleProperty());
-    pagination.managedProperty().bind(pagination.visibleProperty());
+    JavaFxUtil.bindManagedToVisible(loadingPane, searchResultGroup, backButton, refreshButton, pagination,
+        firstPageButton, lastPageButton, showRoomGroup, manageModsButton, searchBox, searchSeparator);
 
-    firstPageButton.managedProperty().bind(firstPageButton.visibleProperty());
     firstPageButton.disableProperty().bind(pagination.currentPageIndexProperty().isEqualTo(0));
-    lastPageButton.managedProperty().bind(lastPageButton.visibleProperty());
     lastPageButton.disableProperty().bind(pagination.currentPageIndexProperty()
         .isEqualTo(pagination.pageCountProperty().subtract(1)));
-
-    showRoomGroup.managedProperty().bind(showRoomGroup.visibleProperty());
-
-    manageModsButton.managedProperty().bind(manageModsButton.visibleProperty());
 
     backButton.setOnAction((event -> onBackButtonClicked()));
     refreshButton.setOnAction((event -> onRefreshButtonClicked()));
@@ -270,9 +263,8 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
           }
         })
         .exceptionally(throwable -> {
-          notificationService.addNotification(new ImmediateErrorNotification(
-              i18n.get("errorTitle"), i18n.get("vault.searchError"), throwable, i18n, reportingService
-          ));
+          log.error("Vault search error", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "vault.searchError");
           enterResultState();
           return null;
         });

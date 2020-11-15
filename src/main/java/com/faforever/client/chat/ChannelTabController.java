@@ -54,6 +54,7 @@ import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -63,8 +64,10 @@ import org.springframework.util.Assert;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -78,6 +81,7 @@ import static com.faforever.client.fx.PlatformService.URL_REGEX_PATTERN;
 import static com.faforever.client.player.SocialStatus.FOE;
 import static java.util.Locale.US;
 
+@Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ChannelTabController extends AbstractChatTabController {
@@ -296,8 +300,8 @@ public class ChannelTabController extends AbstractChatTabController {
     JavaFxUtil.addListener(preferencesService.getPreferences().getChat().chatColorModeProperty(), chatColorModeChangeListener);
     addUserFilterPopup();
 
-    chatUserListView.setItems(filteredChatUserList);
     chatUserListView.setCellFactory(param -> new ChatUserListCell(uiService));
+    chatUserListView.setItems(filteredChatUserList);
 
     autoCompletionHelper.bindTo(messageTextField());
 
@@ -324,14 +328,14 @@ public class ChannelTabController extends AbstractChatTabController {
   @NotNull
   private List<CategoryOrChatUserListItem> createCategoryTreeObjects() {
     return Arrays.stream(ChatUserCategory.values())
-        .map(chatUserCategory -> new CategoryOrChatUserListItem(chatUserCategory, null))
+        .map(CategoryOrChatUserListItem::new)
         .collect(Collectors.toList());
   }
 
   private void setAllMessageColors() {
     Map<String, String> userToColor = new HashMap<>();
-    channel.getUsers().stream().filter(chatUser -> chatUser.getColor() != null).forEach(chatUser
-        -> userToColor.put(chatUser.getUsername(), JavaFxUtil.toRgbCode(chatUser.getColor())));
+    channel.getUsers().stream().filter(chatUser -> chatUser.getColor().isPresent()).forEach(chatUser
+        -> userToColor.put(chatUser.getUsername(), JavaFxUtil.toRgbCode(chatUser.getColor().get())));
     getJsObject().call("setAllMessageColors", new Gson().toJson(userToColor));
   }
 
@@ -366,6 +370,14 @@ public class ChannelTabController extends AbstractChatTabController {
         && !chatMessage.getMessage().contains("@" + userService.getUsername())) {
       return;
     }
+
+    if (playerService.getPlayerForUsername(chatMessage.getUsername())
+        .filter(player -> player.getSocialStatus() == FOE)
+        .isPresent()) {
+      log.debug("Ignored ping from {}", chatMessage.getUsername());
+      return;
+    }
+
     if (!hasFocus()) {
       audioService.playChatMentionSound();
       showNotificationIfNecessary(chatMessage);
@@ -404,8 +416,8 @@ public class ChannelTabController extends AbstractChatTabController {
 
   private void updateUserMessageColor(ChatChannelUser chatUser) {
     String color = "";
-    if (chatUser.getColor() != null) {
-      color = JavaFxUtil.toRgbCode(chatUser.getColor());
+    if (chatUser.getColor().isPresent()) {
+      color = JavaFxUtil.toRgbCode(chatUser.getColor().get());
     }
     getJsObject().call("updateUserMessageColor", chatUser.getUsername(), color);
   }
@@ -461,7 +473,7 @@ public class ChannelTabController extends AbstractChatTabController {
     JavaFxUtil.addListener(chatPrefs.hideFoeMessagesProperty(), weakHideFoeMessagesListener);
 
     Platform.runLater(() -> {
-      weakColorPropertyListener.changed(chatUser.colorProperty(), null, chatUser.getColor());
+      weakColorPropertyListener.changed(chatUser.colorProperty(), null, chatUser.getColor().orElse(null));
       weakHideFoeMessagesListener.changed(chatPrefs.hideFoeMessagesProperty(), null, chatPrefs.getHideFoeMessages());
     });
   }
@@ -485,10 +497,14 @@ public class ChannelTabController extends AbstractChatTabController {
         .filter(chatUserCategory -> !chatUserCategories.contains(chatUserCategory))
         .map(categoriesToUserListItems::get)
         .flatMap(Collection::stream)
-        .filter(categoryOrChatUserListItem -> categoryOrChatUserListItem.getUser() != null && categoryOrChatUserListItem.getUser().equals(chatUser))
+        .filter(item -> chatUser.equals(item.getUser()))
         .forEach(chatUserListItems::remove);
 
-    CategoryOrChatUserListItem listItem = new CategoryOrChatUserListItem(null, chatUser);
+    Arrays.stream(ChatUserCategory.values())
+        .filter(chatUserCategory -> !chatUserCategories.contains(chatUserCategory))
+        .forEach(category -> categoriesToUserListItems.get(category).removeIf(item -> chatUser.equals(item.getUser())));
+
+    CategoryOrChatUserListItem listItem = new CategoryOrChatUserListItem(chatUser);
     userNamesToListItems.getOrDefault(chatUser.getUsername(), new ArrayList<>()).add(listItem);
 
     chatUserCategories.stream()
@@ -641,8 +657,8 @@ public class ChannelTabController extends AbstractChatTabController {
     } else {
       ChatColorMode chatColorMode = chatPrefs.getChatColorMode();
       if ((chatColorMode == ChatColorMode.CUSTOM || chatColorMode == ChatColorMode.RANDOM)
-          && chatUser.getColor() != null) {
-        color = createInlineStyleFromColor(chatUser.getColor());
+          && chatUser.getColor().isPresent()) {
+        color = createInlineStyleFromColor(chatUser.getColor().get());
       }
     }
 
@@ -660,5 +676,27 @@ public class ChannelTabController extends AbstractChatTabController {
     // listeners which we're trying to avoid.
     ChatChannelUser chatUser = chatService.getChatUser(event.getPlayer().getUsername(), channel.getName());
     associateChatUserWithPlayer(event.getPlayer(), chatUser);
+  }
+
+  @VisibleForTesting
+  protected List<CategoryOrChatUserListItem> getChatUserItemsByCategory(ChatUserCategory category) {
+    CategoryOrChatUserListItem categoryItem = categoriesToCategoryListItems.get(category);
+    if (categoryItem == null) {
+      return Collections.emptyList();
+    }
+    int categoryIndex = chatUserListView.getItems().indexOf(categoryItem);
+    if (categoryIndex == -1) {
+      return Collections.emptyList();
+    }
+    List<CategoryOrChatUserListItem> users = new ArrayList<>();
+    Iterator<CategoryOrChatUserListItem> iterator = chatUserListView.getItems().listIterator(++categoryIndex); // to start with first user of this category
+    while (iterator.hasNext()) {
+      CategoryOrChatUserListItem item = iterator.next();
+      if (item.getCategory() != null) {
+        break;
+      }
+      users.add(item);
+    }
+    return users;
   }
 }

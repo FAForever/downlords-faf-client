@@ -17,20 +17,22 @@ import java.nio.file.Paths;
 
 public class ForgedAlliancePrefs {
 
-  public static final Path GPG_FA_PATH;
+  public static final Path FAF_VAULT_PATH;
+  public static final Path GPG_VAULT_PATH;
   public static final Path STEAM_FA_PATH;
   public static final Path LOCAL_FA_DATA_PATH;
   public static final String INIT_FILE_NAME = "init.lua";
 
   static {
+    FAF_VAULT_PATH = PreferencesService.FAF_DATA_DIRECTORY.resolve(Paths.get("user", "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance"));
     if (org.bridj.Platform.isWindows()) {
-      GPG_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
+      GPG_VAULT_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
       //If steam is every swapped to a 64x client, needs to be updated to proper directory or handling must be put in place.
       STEAM_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PROGRAM_FILESX86), "Steam", "steamapps", "common", "Supreme Commander Forged Alliance");
       LOCAL_FA_DATA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_LOCAL_APPDATA), "Gas Powered Games", "Supreme Commander Forged Alliance");
     } else {
       String userHome = System.getProperty("user.home");
-      GPG_FA_PATH = Paths.get(userHome, "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
+      GPG_VAULT_PATH = Paths.get(userHome, "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
       STEAM_FA_PATH = Paths.get(".");
       LOCAL_FA_DATA_PATH = Paths.get(userHome, ".wine", "drive_c", "users", System.getProperty("user.name"), "Application Data", "Gas Powered Games", "Supreme Commander Forged Alliance");
     }
@@ -50,9 +52,9 @@ public class ForgedAlliancePrefs {
   private final ObjectProperty<Path> modsDirectory;
   private final BooleanProperty forceRelay;
   private final BooleanProperty autoDownloadMaps;
+  private final BooleanProperty allowReplaysWhileInGame;
   /**
    * Saves if the client checked for special cases in which it needs to set the fallback vault location. See {@link
-   * com.faforever.client.vault.VaultFileSystemLocationChecker}
    */
   private final BooleanProperty vaultCheckDone;
 
@@ -75,7 +77,7 @@ public class ForgedAlliancePrefs {
       path = new SimpleObjectProperty<>();
     }
     installationPath = new SimpleObjectProperty<>();
-    vaultBaseDirectory = new SimpleObjectProperty<>(GPG_FA_PATH);
+    vaultBaseDirectory = new SimpleObjectProperty<>(FAF_VAULT_PATH);
     customMapsDirectory = new SimpleObjectProperty<>();
     modsDirectory = new SimpleObjectProperty<>();
     preferencesFile = new SimpleObjectProperty<>(LOCAL_FA_DATA_PATH.resolve("Game.prefs"));
@@ -84,6 +86,7 @@ public class ForgedAlliancePrefs {
     executionDirectory = new SimpleObjectProperty<>();
     vaultCheckDone = new SimpleBooleanProperty(false);
     bindVaultPath();
+    allowReplaysWhileInGame = new SimpleBooleanProperty(false);
   }
 
   /**
@@ -235,5 +238,17 @@ public class ForgedAlliancePrefs {
 
   public BooleanProperty vaultCheckDoneProperty() {
     return vaultCheckDone;
+  }
+
+  public boolean isAllowReplaysWhileInGame() {
+    return allowReplaysWhileInGame.get();
+  }
+
+  public void setAllowReplaysWhileInGame(boolean allowReplaysWhileInGame) {
+    this.allowReplaysWhileInGame.set(allowReplaysWhileInGame);
+  }
+
+  public BooleanProperty allowReplaysWhileInGameProperty() {
+    return allowReplaysWhileInGame;
   }
 }

@@ -1,5 +1,6 @@
 package com.faforever.client.fx;
 
+import com.faforever.client.theme.UiService;
 import com.google.common.base.Strings;
 import com.sun.javafx.stage.PopupWindowHelper;
 import com.sun.jna.Pointer;
@@ -25,6 +26,7 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
@@ -76,15 +78,24 @@ public final class JavaFxUtil {
     throw new AssertionError("Not instantiatable");
   }
 
-  public static void makeNumericTextField(TextField textField, int maxLength) {
+  public static void makeNumericTextField(TextField textField, int maxLength, boolean allowNegative) {
     JavaFxUtil.addListener(textField.textProperty(), (observable, oldValue, newValue) -> {
+      boolean isNegative = newValue.startsWith("-");
       String value = newValue;
-      if (!value.matches("\\d*")) {
-        value = newValue.replaceAll("[^\\d]", "");
+      int maxLengthActual = isNegative && allowNegative ? maxLength + 1 : maxLength;
+
+      if (allowNegative) {
+        if (!value.matches("-?\\d*")) {
+          value = newValue.replaceAll("[^-\\d]", "");
+        }
+      } else {
+        if (!value.matches("\\d*")) {
+          value = newValue.replaceAll("[^\\d]", "");
+        }
       }
 
-      if (maxLength > 0 && value.length() > maxLength) {
-        value = value.substring(0, maxLength);
+      if (maxLengthActual > 0 && value.length() > maxLengthActual) {
+        value = value.substring(0, maxLengthActual);
       }
 
       textField.setText(value);
@@ -120,8 +131,8 @@ public final class JavaFxUtil {
   }
 
   /**
-   * Better version of {@link Tooltip#setGraphic(Node)} that does not add unnecessary space.
-   * Javadoc of {@link Tooltip#setGraphic(Node)} explains that this method is meant for adding icons.
+   * Better version of {@link Tooltip#setGraphic(Node)} that does not add unnecessary space. Javadoc of {@link
+   * Tooltip#setGraphic(Node)} explains that this method is meant for adding icons.
    *
    * @param content - The content of the tooltip.
    * @return New Tooltip with added content.
@@ -142,6 +153,21 @@ public final class JavaFxUtil {
     Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
     stage.setX((screenBounds.getMaxX() - screenBounds.getMinX() - width) / 2);
     stage.setY((screenBounds.getMaxY() - screenBounds.getMinY() - height) / 2);
+  }
+
+  public static void addLabelContextMenus(UiService uiService, Label... labels) {
+    Arrays.stream(labels).forEach(label -> addLabelContextMenuRequest(uiService, label));
+  }
+
+  /**
+   * Adds Label Context Menu Handler to Label
+   */
+  public static void addLabelContextMenuRequest(UiService uiService, Label label) {
+    label.setOnContextMenuRequested(event -> {
+      LabelContextMenuController controller = uiService.loadFxml("theme/label_context_menu.fxml");
+      controller.setLabel(label);
+      controller.getContextMenu().show(label.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+    });
   }
 
   public static void assertApplicationThread() {
@@ -336,6 +362,16 @@ public final class JavaFxUtil {
   public static <T> void bind(Property<T> property, ObservableValue<? extends T> observable) {
     synchronized (property) {
       property.bind(observable);
+    }
+  }
+
+  /**
+   * Since the JavaFX properties API is not thread safe, unbinding a property must be synchronized on the property -
+   * which is what this method does.
+   */
+  public static <T> void unbind(Property<T> property) {
+    synchronized (property) {
+      property.unbind();
     }
   }
 

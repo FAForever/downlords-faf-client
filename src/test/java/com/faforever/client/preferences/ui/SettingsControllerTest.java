@@ -2,6 +2,7 @@ package com.faforever.client.preferences.ui;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -34,12 +35,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -65,6 +65,8 @@ public class SettingsControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private NotificationService notificationService;
   @Mock
+  private GameService gameService;
+  @Mock
   private PlatformService platformService;
   @Mock
   private ClientProperties clientProperties;
@@ -86,11 +88,12 @@ public class SettingsControllerTest extends AbstractPlainJavaFxTest {
             FIRST_THEME,
             SECOND_THEME
         ));
+    when(gameService.isGamePrefsPatchedToAllowMultiInstances()).thenReturn(CompletableFuture.completedFuture(true));
 
     availableLanguages = new SimpleSetProperty<>(FXCollections.observableSet());
     when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlySetWrapper<>(availableLanguages));
 
-    instance = new SettingsController(userService, preferenceService, uiService, i18n, eventBus, notificationService, platformService, clientProperties, clientUpdateService);
+    instance = new SettingsController(userService, preferenceService, uiService, i18n, eventBus, notificationService, platformService, clientProperties, clientUpdateService, gameService);
     loadFxml("theme/settings/settings.fxml", param -> instance);
   }
 

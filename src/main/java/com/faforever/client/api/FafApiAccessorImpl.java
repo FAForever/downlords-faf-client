@@ -145,7 +145,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  @Cacheable(CacheNames.ACHIEVEMENTS)
+  @Cacheable(value = CacheNames.ACHIEVEMENTS, sync = true)
   public List<AchievementDefinition> getAchievementDefinitions() {
     return getAll("/data/achievement", ImmutableMap.of(
         "sort", "order"
@@ -153,26 +153,26 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  @Cacheable(CacheNames.ACHIEVEMENTS)
+  @Cacheable(value = CacheNames.ACHIEVEMENTS, sync = true)
   public AchievementDefinition getAchievementDefinition(String achievementId) {
     return getOne("/data/achievement/" + achievementId, AchievementDefinition.class);
   }
 
   @Override
-  @Cacheable(CacheNames.MODS)
+  @Cacheable(value = CacheNames.MODS, sync = true)
   public List<Mod> getMods() {
     return getAll("/data/mod", ImmutableMap.of(
         "include", "latestVersion,latestVersion.reviewsSummary"));
   }
 
   @Override
-  @Cacheable(CacheNames.FEATURED_MODS)
+  @Cacheable(value = CacheNames.FEATURED_MODS, sync = true)
   public List<com.faforever.client.api.dto.FeaturedMod> getFeaturedMods() {
     return getMany("/data/featuredMod", 1000, ImmutableMap.of());
   }
 
   @Override
-  @Cacheable(CacheNames.GLOBAL_LEADERBOARD)
+  @Cacheable(value = CacheNames.GLOBAL_LEADERBOARD, sync = true)
   @SneakyThrows
   public List<GlobalLeaderboardEntry> getGlobalLeaderboard() {
     // This is not an ordinary JSON-API route and thus doesn't support paging, that's why it's called manually
@@ -187,7 +187,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  @Cacheable(CacheNames.LADDER_1V1_LEADERBOARD)
+  @Cacheable(value = CacheNames.LADDER_1V1_LEADERBOARD, sync = true)
   @SneakyThrows
   public List<Ladder1v1LeaderboardEntry> getLadder1v1Leaderboard() {
     // This is not an ordinary JSON-API route and thus doesn't support paging, that's why it doesn't use getAll()
@@ -207,7 +207,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  @Cacheable(CacheNames.RATING_HISTORY)
+  @Cacheable(value = CacheNames.RATING_HISTORY, sync = true)
   public List<GamePlayerStats> getGamePlayerStats(int playerId, KnownFeaturedMod knownFeaturedMod) {
     return getAll("/data/gamePlayerStats", ImmutableMap.of(
         "filter", rsql(qBuilder()
@@ -218,7 +218,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  @Cacheable(CacheNames.MAPS)
+  @Cacheable(value = CacheNames.MAPS, sync = true)
   public Tuple<List<Map>, java.util.Map<String, ?>> getMostPlayedMapsWithMeta(int count, int page) {
     JSONAPIDocument<List<MapStatistics>> jsonApiDoc = getPageWithMeta("/data/mapStatistics", count, page, ImmutableMap.of(
         "include", "map,map.statistics,map.latestVersion,map.author,map.versions.reviews,map.versions.reviews.player",
@@ -300,7 +300,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  @Cacheable(CacheNames.FEATURED_MOD_FILES)
+  @Cacheable(value = CacheNames.FEATURED_MOD_FILES, sync = true)
   public List<FeaturedModFile> getFeaturedModFiles(FeaturedMod featuredMod, Integer version) {
     String endpoint = String.format("/featuredMods/%s/files/%s", featuredMod.getId(),
         Optional.ofNullable(version).map(String::valueOf).orElse("latest"));
@@ -457,7 +457,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  @Cacheable(CacheNames.CLAN)
+  @Cacheable(value = CacheNames.CLAN, sync = true)
   public Optional<Clan> getClanByTag(String tag) {
     List<Clan> clans = getMany("/data/clan", 1, ImmutableMap.of(
         "include", "leader,founder,memberships,memberships.player",
@@ -489,13 +489,13 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  @Cacheable(CacheNames.COOP_MAPS)
+  @Cacheable(value = CacheNames.COOP_MAPS, sync = true)
   public List<CoopMission> getCoopMissions() {
     return getAll("/data/coopMission");
   }
 
   @Override
-  @Cacheable(CacheNames.COOP_LEADERBOARD)
+  @Cacheable(value = CacheNames.COOP_LEADERBOARD, sync = true)
   public List<CoopResult> getCoopLeaderboard(String missionId, int numberOfPlayers) {
     Condition<?> filterCondition = qBuilder().string("mission").eq(missionId);
 

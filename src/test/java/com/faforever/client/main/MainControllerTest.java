@@ -27,7 +27,6 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.user.event.LoginSuccessEvent;
-import com.faforever.client.vault.VaultFileSystemLocationChecker;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -107,8 +106,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private ChatController chatController;
   @Mock
   private ApplicationEventPublisher applicationEventPublisher;
-  @Mock
-  private VaultFileSystemLocationChecker vaultFileSystemLocationChecker;
   private MainController instance;
   private BooleanProperty gameRunningProperty;
   private final Preferences preferences = new Preferences();
@@ -130,7 +127,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
         .setInitialStandardDeviation(500);
 
     instance = new MainController(preferencesService, i18n, notificationService, playerService, gameService,
-        uiService, eventBus, gamePathHandler, platformService, vaultFileSystemLocationChecker, clientProperties, applicationEventPublisher);
+        uiService, eventBus, gamePathHandler, platformService, clientProperties, applicationEventPublisher);
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(loginController.getRoot()).thenReturn(new Pane());
@@ -298,12 +295,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getFafLogDirectory()).thenReturn(expectedPath);
     instance.onRevealLogFolder();
     verify(platformService).reveal(expectedPath);
-  }
-
-  @Test
-  public void testVaultCheckerCalled() {
-    WaitForAsyncUtils.waitForFxEvents();
-    verify(vaultFileSystemLocationChecker).checkVaultFileSystemLocation();
   }
 
   @Test

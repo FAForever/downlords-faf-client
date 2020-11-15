@@ -5,16 +5,17 @@ import com.faforever.client.chat.ChatUserCreatedEvent;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.chat.event.ChatMessageEvent;
+import com.faforever.client.chat.event.ChatUserGameChangeEvent;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameAddedEvent;
 import com.faforever.client.game.GameRemovedEvent;
 import com.faforever.client.game.GameUpdatedEvent;
-import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.player.event.CurrentPlayerInfo;
 import com.faforever.client.player.event.FriendJoinedGameEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameStatus;
+import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.remote.domain.PlayersMessage;
 import com.faforever.client.remote.domain.SocialMessage;
 import com.faforever.client.user.UserService;
@@ -167,21 +168,34 @@ public class PlayerService implements InitializingBean {
         if (!currentPlayers.contains(player.getUsername())) {
           player.setGame(null);
           playersThatLeftTheGame.add(player);
+          updatePlayerChatUsers(player);
         }
       }
       previousPlayersFromGame.removeAll(playersThatLeftTheGame);
+    }
+
+    //Game is closed remove players
+    if (game != null && game.getStatus() == GameStatus.CLOSED && playersByGame.get(game.getId()) != null) {
+      List<Player> previousPlayersFromGame = playersByGame.get(game.getId());
+      for (Player player : previousPlayersFromGame) {
+        player.setGame(null);
+        updatePlayerChatUsers(player);
+      }
+      previousPlayersFromGame.clear();
     }
   }
 
   private void updateGameDataForPlayer(Game game, Player player) {
     if (game == null) {
       player.setGame(null);
+      updatePlayerChatUsers(player);
       return;
     }
 
     if (game.getStatus() == GameStatus.CLOSED) {
       playersByGame.remove(game.getId());
       player.setGame(null);
+      updatePlayerChatUsers(player);
       return;
     }
 
@@ -191,10 +205,11 @@ public class PlayerService implements InitializingBean {
 
     if (!playersByGame.get(game.getId()).contains(player)) {
       player.setGame(game);
+      updatePlayerChatUsers(player);
       playersByGame.get(game.getId()).add(player);
       if (player.getSocialStatus() == FRIEND
           && game.getStatus() == GameStatus.OPEN
-          && !game.getFeaturedMod().equals(KnownFeaturedMod.LADDER_1V1.getTechnicalName())) {
+          && game.getGameType() != GameType.MATCHMAKER) {
         eventBus.post(new FriendJoinedGameEvent(player, game));
       }
     }
@@ -236,6 +251,15 @@ public class PlayerService implements InitializingBean {
 
   public Set<String> getPlayerNames() {
     return new HashSet<>(playersByName.keySet());
+  }
+
+  public void updatePlayerChatUsers(Player player) {
+    player.getChatChannelUsers().forEach(chatChannelUser -> {
+      if (chatChannelUser.isDisplayed()
+          && chatChannelUser.getStatus().filter(playerStatus -> playerStatus != player.getStatus()).isPresent()) {
+        eventBus.post(new ChatUserGameChangeEvent(chatChannelUser));
+      }
+    });
   }
 
   public void addFriend(Player player) {
