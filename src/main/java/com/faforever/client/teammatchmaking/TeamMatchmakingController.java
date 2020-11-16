@@ -245,10 +245,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
   @Subscribe
   public void onQueuesAdded(QueuesAddedEvent event) {
-    System.out.println("message received");
     Platform.runLater(() -> {
       List<MatchmakingQueue> queues = teamMatchmakingService.getMatchmakingQueues();
-      System.out.println("length: "+ queues.size());
       queueBox.getChildren().clear();
       queues.forEach(queue -> {
         MatchmakingQueueItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml");

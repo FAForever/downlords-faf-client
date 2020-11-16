@@ -45,11 +45,13 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 
 @Lazy
@@ -119,17 +121,17 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   private void onMatchmakerInfo(MatchmakerInfoMessage message) {
+    List<CompletableFuture<?>> futures = new ArrayList<>();
     message.getQueues().forEach(remoteQueue -> {
       MatchmakingQueue localQueue = matchmakingQueues.stream()
           .filter(q -> Objects.equals(q.getQueueName(), remoteQueue.getQueueName())).findFirst().orElse(null);
-
       if (localQueue == null) {
         queuesAdded = true;
-        System.out.println("inner");
-        fafService.getMatchmakingQueue(remoteQueue.getQueueName()).thenAccept(result -> result.ifPresent(
+        CompletableFuture<Optional<MatchmakingQueue>> future = fafService.getMatchmakingQueue(remoteQueue.getQueueName());
+        futures.add(future);
+        future.thenAccept(result -> result.ifPresent(
             matchmakingQueue -> {
               matchmakingQueues.add(matchmakingQueue);
-              System.out.println("present");
               matchmakingQueue.setQueuePopTime(OffsetDateTime.parse(remoteQueue.getQueuePopTime()).toInstant());
               matchmakingQueue.setTeamSize(remoteQueue.getTeamSize());
               matchmakingQueue.setPartiesInQueue(remoteQueue.getBoundary75s().size());
@@ -142,11 +144,13 @@ public class TeamMatchmakingService implements InitializingBean {
         Platform.runLater(() -> localQueue.setPlayersInQueue(remoteQueue.getNumPlayers()));
       }
     });
-    if (queuesAdded) {
-      eventBus.post(new QueuesAddedEvent());
-      System.out.println("message posted");
-      queuesAdded = false;
-    }
+
+    CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[futures.size()])).thenRun(() -> {
+      if (queuesAdded) {
+        eventBus.post(new QueuesAddedEvent());
+        queuesAdded = false;
+      }
+    });
   }
 
   private void onSearchInfoMessage(SearchInfoMessage message) {
