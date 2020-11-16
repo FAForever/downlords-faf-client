@@ -81,7 +81,6 @@ public class UserFilterController implements Controller<Node> {
 
   private boolean filterUser(CategoryOrChatUserListItem userListItem) {
     if (userListItem.getCategory() != null) {
-
       // The categories should display in the list independently of a filter
       return true;
     }
@@ -182,6 +181,7 @@ public class UserFilterController implements Controller<Node> {
   }
 
   boolean isCountryMatch(ChatChannelUser chatUser) {
+    // Users of  'chat only' group have no country so that need to check it for empty string
     if (countryFilterField.getText().isEmpty()) {
       return true;
     }
