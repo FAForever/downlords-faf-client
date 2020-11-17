@@ -5,7 +5,6 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -17,9 +16,18 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.RowConstraints?>
 <StackPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/11.0.1"
            fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingController" fx:id="teamMatchmakingRoot">
-    <SplitPane dividerPositions="0.7" styleClass="tmm-splitpane">
+    <GridPane fx:id="contentPane">
+        <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="710.0"/>
+            <ColumnConstraints hgrow="ALWAYS" fx:id="column2" />
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints vgrow="SOMETIMES" />
+            <RowConstraints vgrow="ALWAYS" fx:id="row2"/>
+        </rowConstraints>
         <ScrollPane fx:id="scrollPane" fitToWidth="true" >
             <VBox fx:id="preparationArea" spacing="25.0" >
                 <children>
@@ -136,6 +144,7 @@
                 </padding>
             </VBox>
         </ScrollPane>
-        <TabPane fx:id="chatTabPane" styleClass="chat-tab-pane" />
-    </SplitPane>
+        <TabPane fx:id="chatTabPane" styleClass="chat-tab-pane"
+                 GridPane.columnIndex="1" GridPane.fillWidth="true" GridPane.rowSpan="2" />
+    </GridPane>
 </StackPane>

@@ -31,9 +31,11 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +59,7 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 public class TeamMatchmakingController extends AbstractViewController<Node> {
 
   private static final PseudoClass LEADER_PSEUDO_CLASS = PseudoClass.getPseudoClass("leader");
+  private static final PseudoClass CHAT_AT_BOTTOM_PSEUDO_CLASS = PseudoClass.getPseudoClass("bottom");
 
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
@@ -92,16 +95,20 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public HBox playerCard;
   public Label crownLabel;
   public TabPane chatTabPane;
+  public GridPane contentPane;
+  public ColumnConstraints column2;
+  public RowConstraints row2;
   private Player player;
   private MatchmakingChatController matchmakingChatController;
 
   @Override
   public void initialize() {
     eventBus.register(this);
-    player = playerService.getCurrentPlayer().get();
     JavaFxUtil.fixScrollSpeed(scrollPane);
-    initializeUppercaseText();
+    initializeDynamicChatPosition();
 
+    player = playerService.getCurrentPlayer().get();
+    initializeUppercaseText();
     countryImageView.imageProperty().bind(createObjectBinding(() -> countryFlagService.loadCountryFlag(
         StringUtils.isEmpty(player.getCountry()) ? "" : player.getCountry()).orElse(null), player.countryProperty()));
     avatarImageView.visibleProperty().bind(player.avatarUrlProperty().isNotNull().and(player.avatarUrlProperty().isNotEmpty()));
@@ -163,6 +170,28 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     createChannelTab(String.format("#%s'sParty", teamMatchmakingService.getParty().getOwner().getUsername()));
 
     fafService.requestMatchmakerInfo();
+  }
+
+  private void initializeDynamicChatPosition() {
+    contentPane.widthProperty().addListener((observable, oldValue, newValue) -> {
+      if ((double) newValue < 1115.0) {
+        GridPane.setColumnIndex(chatTabPane, 0);
+        GridPane.setRowIndex(chatTabPane, 1);
+        GridPane.setColumnSpan(chatTabPane, 2);
+        GridPane.setColumnSpan(scrollPane, 2);
+        column2.setMinWidth(0);
+        row2.setMinHeight(200);
+        chatTabPane.pseudoClassStateChanged(CHAT_AT_BOTTOM_PSEUDO_CLASS, true);
+      } else {
+        GridPane.setColumnIndex(chatTabPane, 1);
+        GridPane.setRowIndex(chatTabPane, 0);
+        GridPane.setColumnSpan(chatTabPane, 1);
+        GridPane.setColumnSpan(scrollPane, 1);
+        column2.setMinWidth(400);
+        row2.setMinHeight(0);
+        chatTabPane.pseudoClassStateChanged(CHAT_AT_BOTTOM_PSEUDO_CLASS, false);
+      }
+    });
   }
 
   private void initializeUppercaseText() {

@@ -714,11 +714,6 @@
   -fx-border-color: #424242;
 }
 
-.tmm-splitpane > .split-pane-divider {
-  -fx-background-color: -divider-color;
-  -fx-padding: 0 1 0 0;
-}
-
 .tmm-chat {
   -fx-background-color: transparent;
   -fx-border-width: 2 0 0 0;
@@ -727,7 +722,14 @@
 
 .chat-tab-pane {
     -fx-tab-max-height: 0 ;
+      -fx-border-width: 0 0 0 2;
+      -fx-border-color: #424242;
 }
+
+.chat-tab-pane:bottom {
+      -fx-border-width: 2 0 0 0;
+}
+
 .chat-tab-pane .tab-header-area {
     visibility: hidden ;
 }
