@@ -9,7 +9,6 @@ import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Faction;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.main.event.ShowLadderMapsEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.FafService;
@@ -67,8 +66,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private final I18n i18n;
   private final UiService uiService;
   private final TeamMatchmakingService teamMatchmakingService;
-  private final EventBus eventBus;
   private final FafService fafService;
+  private final EventBus eventBus;
 
   public StackPane teamMatchmakingRoot;
   public Button invitePlayerButton;
@@ -139,16 +138,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       }
     });
 
-    teamMatchmakingService.getMatchmakingQueues().addListener((Observable o) -> {
-      List<MatchmakingQueue> queues = teamMatchmakingService.getMatchmakingQueues();
-      queueBox.getChildren().clear();
-      queues.iterator().forEachRemaining(queue -> {
-        MatchmakingQueueItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml");
-        controller.setQueue(queue);
-        queueBox.getChildren().add(controller.getRoot());
-      });
-    });
-
     invitePlayerButton.disableProperty().bind(createBooleanBinding(
         () -> teamMatchmakingService.getParty().getOwner().getId() != playerService.getCurrentPlayer().map(Player::getId).orElse(-1),
         teamMatchmakingService.getParty().ownerProperty(),
@@ -217,11 +206,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     return teamMatchmakingRoot;
   }
 
-  // TODO: use
-  public void showMatchmakingMaps(ActionEvent actionEvent) {
-    eventBus.post(new ShowLadderMapsEvent());//TODO show team matchmaking maps and not ladder maps
-  }
-
   public void onInvitePlayerButtonClicked(ActionEvent actionEvent) {
     InvitePlayerController invitePlayerController = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_invite_player.fxml");
     Pane root = invitePlayerController.getRoot();
@@ -285,6 +269,19 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       if (message.getSource().equals(String.format("#%s'sParty", teamMatchmakingService.getParty().getOwner().getUsername()))) {
         matchmakingChatController.onChatMessage(message);
       }
+    });
+  }
+
+  @Subscribe
+  public void onQueuesAdded(QueuesAddedEvent event) {
+    Platform.runLater(() -> {
+      List<MatchmakingQueue> queues = teamMatchmakingService.getMatchmakingQueues();
+      queueBox.getChildren().clear();
+      queues.forEach(queue -> {
+        MatchmakingQueueItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml");
+        controller.setQueue(queue);
+        queueBox.getChildren().add(controller.getRoot());
+      });
     });
   }
 }

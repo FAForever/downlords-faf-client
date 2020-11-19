@@ -45,11 +45,13 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 
 @Lazy
@@ -74,6 +76,7 @@ public class TeamMatchmakingService implements InitializingBean {
   private final List<ScheduledFuture<?>> leaveQueueTimeouts = new LinkedList<>();
 
   private volatile boolean matchFoundAndWaitingForGameLaunch = false;
+  private boolean queuesAdded = false;
 
   @Override
   public void afterPropertiesSet() throws Exception {
@@ -118,21 +121,35 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   private void onMatchmakerInfo(MatchmakerInfoMessage message) {
-    Platform.runLater(() -> {
-      message.getQueues().forEach(remoteQueue -> {
-        MatchmakingQueue localQueue = matchmakingQueues.stream()
-            .filter(q -> Objects.equals(q.getQueueName(), remoteQueue.getQueueName())).findFirst().orElse(null);
-
-        if (localQueue == null) {
-          localQueue = new MatchmakingQueue(remoteQueue.getQueueName());
-          matchmakingQueues.add(localQueue);
-        }
-
+    List<CompletableFuture<?>> futures = new ArrayList<>();
+    message.getQueues().forEach(remoteQueue -> {
+      MatchmakingQueue localQueue = matchmakingQueues.stream()
+          .filter(q -> Objects.equals(q.getQueueName(), remoteQueue.getQueueName())).findFirst().orElse(null);
+      if (localQueue == null) {
+        queuesAdded = true;
+        CompletableFuture<Optional<MatchmakingQueue>> future = fafService.getMatchmakingQueue(remoteQueue.getQueueName());
+        futures.add(future);
+        future.thenAccept(result -> result.ifPresent(
+            matchmakingQueue -> {
+              matchmakingQueues.add(matchmakingQueue);
+              matchmakingQueue.setQueuePopTime(OffsetDateTime.parse(remoteQueue.getQueuePopTime()).toInstant());
+              matchmakingQueue.setTeamSize(remoteQueue.getTeamSize());
+              matchmakingQueue.setPartiesInQueue(remoteQueue.getBoundary75s().size());
+              Platform.runLater(() -> matchmakingQueue.setPlayersInQueue(remoteQueue.getNumPlayers()));
+            }));
+      } else {
         localQueue.setQueuePopTime(OffsetDateTime.parse(remoteQueue.getQueuePopTime()).toInstant());
         localQueue.setTeamSize(remoteQueue.getTeamSize());
         localQueue.setPartiesInQueue(remoteQueue.getBoundary75s().size());
-        localQueue.setPlayersInQueue(remoteQueue.getNumPlayers());
-      });
+        Platform.runLater(() -> localQueue.setPlayersInQueue(remoteQueue.getNumPlayers()));
+      }
+    });
+
+    CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[futures.size()])).thenRun(() -> {
+      if (queuesAdded) {
+        eventBus.post(new QueuesAddedEvent());
+        queuesAdded = false;
+      }
     });
   }
 

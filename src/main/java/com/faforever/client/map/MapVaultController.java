@@ -4,7 +4,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenMapVaultEvent;
-import com.faforever.client.main.event.ShowLadderMapsEvent;
+import com.faforever.client.main.event.ShowMapPoolEvent;
 import com.faforever.client.map.event.MapUploadedEvent;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
@@ -43,6 +43,7 @@ public class MapVaultController extends VaultEntityController<MapBean> {
 
   private MapDetailController mapDetailController;
   private Integer recommendedShowRoomPageCount;
+  private Integer matchmakerQueueId;
 
   public MapVaultController(MapService mapService, I18n i18n, EventBus eventBus, PreferencesService preferencesService,
                             UiService uiService, NotificationService notificationService, ReportingService reportingService) {
@@ -86,7 +87,7 @@ public class MapVaultController extends VaultEntityController<MapBean> {
       case NEWEST -> currentSupplier = mapService.getNewestMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
       case HIGHEST_RATED -> currentSupplier = mapService.getHighestRatedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
       case PLAYED -> currentSupplier = mapService.getMostPlayedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-      case LADDER -> currentSupplier = mapService.getLadderMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
+      case MAP_POOL -> currentSupplier = mapService.getMatchmakerMapsWithPageCount(matchmakerQueueId, pageSize, pagination.getCurrentPageIndex() + 1);
       case OWN -> currentSupplier = mapService.getOwnedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
     }
   }
@@ -143,8 +144,9 @@ public class MapVaultController extends VaultEntityController<MapBean> {
 
   @Override
   protected void handleSpecialNavigateEvent(NavigateEvent navigateEvent) {
-    if (navigateEvent instanceof ShowLadderMapsEvent) {
-      searchType = SearchType.LADDER;
+    if (navigateEvent instanceof ShowMapPoolEvent) {
+      matchmakerQueueId = ((ShowMapPoolEvent) navigateEvent).getQueueId();
+      searchType = SearchType.MAP_POOL;
       onPageChange(null, true);
     } else {
       log.warn("No such NavigateEvent for this Controller: {}", navigateEvent.getClass());

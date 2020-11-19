@@ -7,10 +7,10 @@ import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
-import com.faforever.client.api.dto.Ladder1v1Map;
 import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
+import com.faforever.client.api.dto.MatchmakerQueueMapPool;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.PlayerAchievement;
@@ -37,6 +37,7 @@ import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.replay.Replay;
+import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.tournament.TournamentBean;
 import com.faforever.client.tutorial.TutorialCategory;
 import com.faforever.client.util.Tuple;
@@ -458,13 +459,27 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getLadder1v1MapsWithPageCount(int count, int page) {
-    Tuple<List<Ladder1v1Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.getLadder1v1MapsWithMeta(count, page);
-    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
-        .parallelStream()
-        .map(ladder1v1Map -> MapBean.fromMapVersionDto(ladder1v1Map.getMapVersion()))
+  public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(int matchmakerQueueId, int count, int page) {
+    List<MapVersion> mapVersions = fafApiAccessor.getMatchmakerPools(matchmakerQueueId)
+        .stream()
+        .map(MatchmakerQueueMapPool::getMapPool)
+        .flatMap(mapPool -> mapPool.getMapVersions().stream())
+        .distinct()
+        .collect(toList());
+    int totalPages = (mapVersions.size() - 1) / count + 1;
+    return CompletableFuture.completedFuture(new Tuple<>(mapVersions
+        .stream()
+        .skip((page - 1) * count)
+        .limit(count)
+        .map(MapBean::fromMapVersionDto)
         .collect(toList()),
-        ((HashMap<String,Integer>) tuple.getSecond().get("page")).get("totalPages")));
+        totalPages));
+  }
+
+  @Async
+  public CompletableFuture<Optional<MatchmakingQueue>> getMatchmakingQueue(String technicalName) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getMatchmakerQueue(technicalName)
+    .map(MatchmakingQueue::fromDto));
   }
 
   @Async

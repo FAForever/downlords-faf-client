@@ -2,13 +2,16 @@ package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.ShowMapPoolEvent;
 import com.faforever.client.player.PlayerService;
+import com.google.common.eventbus.EventBus;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -30,6 +33,7 @@ public class MatchmakingQueueItemController implements Controller<Node> {
   private final PlayerService playerService;
   private final TeamMatchmakingService teamMatchmakingService;
   private final I18n i18n;
+  private final EventBus eventBus;
 
   public Node queueItemRoot;
   public Label playersInQueueLabel;
@@ -39,20 +43,23 @@ public class MatchmakingQueueItemController implements Controller<Node> {
   public Label matchFoundLabel;
   public Label matchStartingLabel;
   public Label matchCancelledLabel;
+  public Button mapPoolButton;
 
 
   private Timeline queuePopTimeUpdater;
 
   private MatchmakingQueue queue;
 
-  public MatchmakingQueueItemController(PlayerService playerService, TeamMatchmakingService teamMatchmakingService, I18n i18n) {
+  public MatchmakingQueueItemController(PlayerService playerService, TeamMatchmakingService teamMatchmakingService, I18n i18n, EventBus eventBus) {
     this.playerService = playerService;
     this.teamMatchmakingService = teamMatchmakingService;
     this.i18n = i18n;
+    this.eventBus = eventBus;
   }
 
   @Override
   public void initialize() {
+    eventBus.register(this);
     joinLeaveQueueButton.widthProperty().addListener(new ChangeListener<Number>() {
       @Override
       public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -99,9 +106,10 @@ public class MatchmakingQueueItemController implements Controller<Node> {
             || !teamMatchmakingService.getParty().getOwner().equals(playerService.getCurrentPlayer().orElse(null)),
         teamMatchmakingService.getParty().getMembers(), queue.teamSizeProperty()
     ));
-
     queue.joinedProperty().addListener(observable -> refreshingLabel.setVisible(false));
     queue.joinedProperty().addListener(observable -> joinLeaveQueueButton.setSelected(queue.isJoined()));
+
+    mapPoolButton.setText(i18n.get("teammatchmaking.mapPool").toUpperCase());
 
     queuePopTimeUpdater = new Timeline(1, new KeyFrame(javafx.util.Duration.seconds(0), (ActionEvent event) -> {
       if (queue.getQueuePopTime() != null) {
@@ -135,5 +143,9 @@ public class MatchmakingQueueItemController implements Controller<Node> {
       }
     }
     refreshingLabel.setVisible(true);
+  }
+
+  public void showMapPool(ActionEvent actionEvent) {
+    eventBus.post(new ShowMapPoolEvent(queue.getQueueId()));
   }
 }

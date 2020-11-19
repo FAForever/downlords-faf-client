@@ -103,7 +103,6 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     when(mapService.getNewestMapsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
     when(mapService.getMostPlayedMapsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
     when(mapService.getRecommendedMapsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
-    when(mapService.getLadderMapsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
     when(mapService.getOwnedMapsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
   }
 
@@ -121,8 +120,6 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     instance.setSupplier(null);
     instance.searchType = SearchType.OWN;
     instance.setSupplier(null);
-    instance.searchType = SearchType.LADDER;
-    instance.setSupplier(null);
 
     verify(mapService).findByQueryWithPageCount(standardSearchConfig, instance.pageSize, 1);
     verify(mapService).getHighestRatedMapsWithPageCount(instance.pageSize, 1);
@@ -130,7 +127,6 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     verify(mapService).getNewestMapsWithPageCount(instance.pageSize, 1);
     verify(mapService).getMostPlayedMapsWithPageCount(instance.pageSize, 1);
     verify(mapService).getOwnedMapsWithPageCount(instance.pageSize, 1);
-    verify(mapService).getLadderMapsWithPageCount(instance.pageSize, 1);
   }
 
   @Test

@@ -1,5 +1,6 @@
 package com.faforever.client.teammatchmaking;
 
+import com.faforever.client.api.dto.MatchmakerQueue;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -14,6 +15,7 @@ import java.time.Duration;
 import java.time.Instant;
 
 public class MatchmakingQueue {
+  private IntegerProperty queueId;
   private StringProperty queueName;
   private ObjectProperty<Instant> queuePopTime;
   private IntegerProperty teamSize;
@@ -22,14 +24,22 @@ public class MatchmakingQueue {
   private BooleanProperty joined;
   private ObjectProperty<MatchingStatus> matchingStatus;
 
-  public MatchmakingQueue(String queueName) {
-    this.queueName = new SimpleStringProperty(queueName);
+  public MatchmakingQueue() {
+    this.queueId = new SimpleIntegerProperty();
+    this.queueName = new SimpleStringProperty();
     this.queuePopTime = new SimpleObjectProperty<>(Instant.now().plus(Duration.ofDays(1)));
     this.teamSize = new SimpleIntegerProperty(0);
     this.partiesInQueue = new SimpleIntegerProperty(0);
     this.playersInQueue = new SimpleIntegerProperty(0);
     this.joined = new SimpleBooleanProperty(false);
     this.matchingStatus = new SimpleObjectProperty<>(null);
+  }
+
+  public static MatchmakingQueue fromDto(MatchmakerQueue dto) {
+    MatchmakingQueue queue = new MatchmakingQueue();
+    queue.setQueueId(Integer.parseInt(dto.getId()));
+    queue.setQueueName(dto.getTechnicalName());
+    return queue;
   }
 
   public void setTimedOutMatchingStatus(MatchingStatus status, Duration timeout, TaskScheduler taskScheduler) {
@@ -41,7 +51,7 @@ public class MatchmakingQueue {
     }, Instant.now().plus(timeout));
   }
 
-  public static enum MatchingStatus {
+  public enum MatchingStatus {
     MATCH_FOUND, GAME_LAUNCHING, MATCH_CANCELLED
   }
 
@@ -55,6 +65,18 @@ public class MatchmakingQueue {
 
   public void setMatchingStatus(MatchingStatus matchingStatus) {
     this.matchingStatus.set(matchingStatus);
+  }
+
+  public int getQueueId() {
+    return queueId.get();
+  }
+
+  public void setQueueId(int queueId) {
+    this.queueId.set(queueId);
+  }
+
+  public IntegerProperty queueIdProperty() {
+    return queueId;
   }
 
   public String getQueueName() {
