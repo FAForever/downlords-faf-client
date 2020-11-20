@@ -112,7 +112,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         StringUtils.isEmpty(player.getCountry()) ? "" : player.getCountry()).orElse(null), player.countryProperty()));
     avatarImageView.visibleProperty().bind(player.avatarUrlProperty().isNotNull().and(player.avatarUrlProperty().isNotEmpty()));
     avatarImageView.imageProperty().bind(createObjectBinding(() -> Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));
-    leagueImageView.setImage(avatarService.loadAvatar("https://content.faforever.com/divisions/icons/Medium/Diamond-2_medium.png"));
+    leagueImageView.setManaged(false);
     clanLabel.managedProperty().bind(clanLabel.visibleProperty());
     clanLabel.visibleProperty().bind(player.clanProperty().isNotEmpty().and(player.clanProperty().isNotNull()));
     clanLabel.textProperty().bind(createStringBinding(() ->

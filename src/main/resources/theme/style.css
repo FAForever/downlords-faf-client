@@ -823,6 +823,10 @@
   -fx-font-size: 24px;
 }
 
+.map-pool:hover {
+  -fx-background-color: #42424230;
+}
+
 .kickbutton {
   -fx-background-color: transparent;
 }
