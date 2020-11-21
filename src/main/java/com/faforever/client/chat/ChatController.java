@@ -178,7 +178,7 @@ public class ChatController extends AbstractViewController<Node> {
   public void onChatMessage(ChatMessageEvent event) {
     Platform.runLater(() -> {
       ChatMessage message = event.getMessage();
-      if (message.getSource().endsWith("'sParty"))
+      if (message.getSource() != null && message.getSource().endsWith("'sParty"))
         return;
       if (!message.isPrivate()) {
         getOrCreateChannelTab(message.getSource()).onChatMessage(message);

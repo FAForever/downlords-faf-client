@@ -133,11 +133,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(loginController.getRoot()).thenReturn(new Pane());
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
-    gameRunningProperty = new SimpleBooleanProperty();
-    BooleanProperty searching1v1Property = new SimpleBooleanProperty();
-    when(gameService.gameRunningProperty()).thenReturn(gameRunningProperty);
-    when(gameService.inMatchmakerQueueProperty()).thenReturn(searching1v1Property);
-
     when(uiService.loadFxml("theme/persistent_notifications.fxml")).thenReturn(persistentNotificationsController);
     when(uiService.loadFxml("theme/transient_notifications.fxml")).thenReturn(transientNotificationsController);
     when(uiService.loadFxml("theme/settings/settings.fxml")).thenReturn(settingsController);
