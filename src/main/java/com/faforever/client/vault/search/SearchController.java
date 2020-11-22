@@ -1,12 +1,21 @@
 package com.faforever.client.vault.search;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.query.BinaryFilterController;
+import com.faforever.client.query.CategoryFilterController;
+import com.faforever.client.query.DateRangeFilterController;
+import com.faforever.client.query.FilterNodeController;
 import com.faforever.client.query.LogicalNodeController;
+import com.faforever.client.query.RangeFilterController;
 import com.faforever.client.query.SearchablePropertyMappings.Property;
 import com.faforever.client.query.SpecificationController;
+import com.faforever.client.query.TextFilterController;
+import com.faforever.client.query.ToggleFilterController;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.dialog.Dialog;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
@@ -14,13 +23,16 @@ import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
+import javafx.collections.ObservableMap;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.util.StringConverter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,6 +43,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,6 +56,8 @@ public class SearchController implements Controller<Pane> {
   private final UiService uiService;
   private final I18n i18n;
   private final PreferencesService preferencesService;
+  private final List<FilterNodeController> filterNodes;
+  private final List<LogicalNodeController> queryNodes;
   /**
    * The first query element.
    */
@@ -51,13 +66,16 @@ public class SearchController implements Controller<Pane> {
   public TextField queryTextField;
   public CheckBox displayQueryCheckBox;
   public Button searchButton;
+  public Button saveQueryButton;
+  public Button savedQueriesButton;
+  public Button searchTypeButton;
+  public Button addCriteriaButton;
   public Pane searchRoot;
   public ComboBox<Property> sortPropertyComboBox;
   public ComboBox<SortOrder> sortOrderChoiceBox;
   public HBox sortBox;
+  public FlowPane filterPane;
   public CheckBox onlyShowLastYearCheckBox;
-
-  private final List<LogicalNodeController> queryNodes;
   private InvalidationListener queryInvalidationListener;
   /**
    * Called with the query string when the user hits "search".
@@ -69,33 +87,39 @@ public class SearchController implements Controller<Pane> {
    */
   private Class<?> rootType;
   private SearchConfig lastSearchConfig;
+  private boolean showLastYearCheckBox;
+  public StackPane vaultRoot;
+  private ObservableMap<String, String> savedQueries;
 
   public SearchController(UiService uiService, I18n i18n, PreferencesService preferencesService) {
     this.uiService = uiService;
     this.i18n = i18n;
     this.preferencesService = preferencesService;
     queryNodes = new ArrayList<>();
+    filterNodes = new ArrayList<>();
   }
 
   @Override
   public void initialize() {
-    queryTextField.managedProperty().bind(queryTextField.visibleProperty());
+    JavaFxUtil.bindManagedToVisible(queryTextField, criteriaPane, filterPane, onlyShowLastYearCheckBox,
+        initialLogicalNodeController.logicalOperatorField, initialLogicalNodeController.removeCriteriaButton,
+        addCriteriaButton);
+
+    saveQueryButton.disableProperty().bind(queryTextField.textProperty().isEmpty());
     queryTextField.visibleProperty().bind(displayQueryCheckBox.selectedProperty());
-
-    onlyShowLastYearCheckBox.managedProperty().bind(onlyShowLastYearCheckBox.visibleProperty());
-    onlyShowLastYearCheckBox.setVisible(false);
-
-    initialLogicalNodeController.logicalOperatorField.managedProperty()
-        .bind(initialLogicalNodeController.logicalOperatorField.visibleProperty());
-    initialLogicalNodeController.removeCriteriaButton.managedProperty()
-        .bind(initialLogicalNodeController.removeCriteriaButton.visibleProperty());
 
     initialLogicalNodeController.logicalOperatorField.setValue(null);
     initialLogicalNodeController.logicalOperatorField.setDisable(true);
     initialLogicalNodeController.logicalOperatorField.setVisible(false);
     initialLogicalNodeController.removeCriteriaButton.setVisible(false);
 
-    queryInvalidationListener = observable -> queryTextField.setText(buildQuery(initialLogicalNodeController.specificationController, queryNodes));
+    queryInvalidationListener = observable -> {
+      if (filterPane.isVisible()) {
+        queryTextField.setText(buildQuery(filterNodes));
+      } else {
+        queryTextField.setText(buildQuery(initialLogicalNodeController.specificationController, queryNodes));
+      }
+    };
     onlyShowLastYearCheckBox.selectedProperty().addListener(queryInvalidationListener);
     addInvalidationListener(initialLogicalNodeController);
     initSorting();
@@ -174,9 +198,11 @@ public class SearchController implements Controller<Pane> {
   }
 
   public void onSearchButtonClicked() {
-    String sortPropertyKey = getCurrentEntityKey();
-    lastSearchConfig = new SearchConfig(new SortConfig(sortPropertyKey, sortOrderChoiceBox.getValue()), queryTextField.getText());
-    searchListener.accept(lastSearchConfig);
+    if (!searchButton.isDisabled()) {
+      String sortPropertyKey = getCurrentEntityKey();
+      lastSearchConfig = new SearchConfig(new SortConfig(sortPropertyKey, sortOrderChoiceBox.getValue()), queryTextField.getText());
+      searchListener.accept(lastSearchConfig);
+    }
   }
 
   public SearchConfig getLastSearchConfig() {
@@ -211,17 +237,142 @@ public class SearchController implements Controller<Pane> {
     initialLogicalNodeController.logicalOperatorField.setVisible(true);
   }
 
+  public void onSavedQueriesButtonClicked() {
+    SavedQueriesController savedQueriesController = uiService.loadFxml("theme/vault/search/saved_queries.fxml");
+    savedQueriesController.setQueries(savedQueries);
+    savedQueriesController.setSearchController(this);
+    savedQueriesController.setQueryTextField(queryTextField);
+    Dialog dialog = uiService.showInDialog(vaultRoot, savedQueriesController.getRoot(), i18n.get("vault.savedQueries"));
+    savedQueriesController.setOnCloseButtonClickedListener(dialog::close);
+  }
+
+  public void onSaveQueryButtonClicked() {
+    SaveQueryController saveQueryController = uiService.loadFxml("theme/vault/search/save_query.fxml");
+    saveQueryController.setQueries(savedQueries);
+    saveQueryController.setQuery(queryTextField.getText());
+    Dialog dialog = uiService.showInDialog(vaultRoot, saveQueryController.getRoot(), i18n.get("vault.saveQuery"));
+    saveQueryController.setOnCloseButtonClickedListener(() -> {
+      dialog.close();
+      preferencesService.storeInBackground();
+    });
+  }
+
+  public void onSearchTypeButtonClicked() {
+    if (filterPane.isVisible()) {
+      filterPane.setVisible(false);
+      criteriaPane.setVisible(true);
+      onlyShowLastYearCheckBox.setVisible(showLastYearCheckBox);
+      addCriteriaButton.setVisible(true);
+      searchTypeButton.setText(i18n.get("filter"));
+    } else {
+      filterPane.setVisible(true);
+      criteriaPane.setVisible(false);
+      onlyShowLastYearCheckBox.setVisible(false);
+      addCriteriaButton.setVisible(false);
+      searchTypeButton.setText(i18n.get("logical"));
+    }
+    queryInvalidationListener.invalidated(null);
+  }
+
   public void onResetButtonClicked() {
+    new ArrayList<>(filterNodes).forEach(FilterNodeController::clear);
+
     new ArrayList<>(queryNodes).forEach(logicalNodeController -> logicalNodeController.removeCriteriaButton.fire());
     initialLogicalNodeController.specificationController.propertyField.getSelectionModel().select(0);
     initialLogicalNodeController.specificationController.operationField.getSelectionModel().select(0);
     initialLogicalNodeController.specificationController.valueField.setValue(null);
   }
 
+  public void addFilterNode(FilterNodeController filterNodeController) {
+    filterNodes.add(filterNodeController);
+    filterPane.getChildren().add(filterNodeController.getRoot());
+    filterNodeController.addQueryListener(queryInvalidationListener);
+    queryInvalidationListener.invalidated(null);
+  }
+
+  public void addTextFilter(String propertyName, String title) {
+    TextFilterController textFilterController = uiService.loadFxml("theme/vault/search/textFilter.fxml");
+    textFilterController.setPropertyName(propertyName);
+    textFilterController.setTitle(title);
+    textFilterController.setOnAction(this::onSearchButtonClicked);
+    addFilterNode(textFilterController);
+  }
+
+  public void addCategoryFilter(String propertyName, String title, List<String> items) {
+    CategoryFilterController categoryFilterController = uiService.loadFxml("theme/vault/search/categoryFilter.fxml");
+    categoryFilterController.setPropertyName(propertyName);
+    categoryFilterController.setTitle(title);
+    categoryFilterController.setItems(items);
+    addFilterNode(categoryFilterController);
+  }
+
+  public void addCategoryFilter(String propertyName, String title, LinkedHashMap<String, String> items) {
+    CategoryFilterController categoryFilterController = uiService.loadFxml("theme/vault/search/categoryFilter.fxml");
+    categoryFilterController.setPropertyName(propertyName);
+    categoryFilterController.setTitle(title);
+    categoryFilterController.setItems(items);
+    addFilterNode(categoryFilterController);
+  }
+
+  public void addRangeFilter(String propertyName, String title, double min, double max, double tickUnit) {
+    RangeFilterController rangeFilterController = uiService.loadFxml("theme/vault/search/rangeFilter.fxml");
+    rangeFilterController.setTitle(title);
+    rangeFilterController.setPropertyName(propertyName);
+    rangeFilterController.setMin(min);
+    rangeFilterController.setMax(max);
+    rangeFilterController.setIncrement(tickUnit);
+    rangeFilterController.setTickUnit(tickUnit);
+    rangeFilterController.setSnapToTicks(true);
+    addFilterNode(rangeFilterController);
+  }
+
+  public void addDateRangeFilter(String propertyName, String title, int initialYearsBefore) {
+    DateRangeFilterController dateRangeFilterController = uiService.loadFxml("theme/vault/search/dateRangeFilter.fxml");
+    dateRangeFilterController.setTitle(title);
+    dateRangeFilterController.setPropertyName(propertyName);
+    if (initialYearsBefore != 0) {
+      dateRangeFilterController.setInitialYearsBefore(initialYearsBefore);
+    }
+    addFilterNode(dateRangeFilterController);
+  }
+
+  public void addToggleFilter(String propertyName, String title, String value) {
+    ToggleFilterController toggleFilterController = uiService.loadFxml("theme/vault/search/toggleFilter.fxml");
+    toggleFilterController.setTitle(title);
+    toggleFilterController.setPropertyName(propertyName);
+    toggleFilterController.setValue(value);
+    addFilterNode(toggleFilterController);
+  }
+
+  public void addBinaryFilter(String propertyName, String title, String firstValue, String secondValue, String firstLabel, String secondLabel) {
+    BinaryFilterController binaryFilterController = uiService.loadFxml("theme/vault/search/binaryFilter.fxml");
+    binaryFilterController.setTitle(title);
+    binaryFilterController.setPropertyName(propertyName);
+    binaryFilterController.setOptions(firstLabel, firstValue, secondLabel, secondValue);
+    addFilterNode(binaryFilterController);
+  }
+
   /**
    * Builds the query string if possible, returns empty string if not. A query string can not be built if the user
    * selected no or invalid values.
    */
+  private String buildQuery(List<? extends FilterNodeController> queryNodes) {
+    QBuilder qBuilder = new QBuilder<>();
+    ArrayList<Condition> conditions = new ArrayList<>();
+
+    for (FilterNodeController queryNode : queryNodes) {
+      Optional<List<Condition>> currentCondition = queryNode.getCondition();
+      currentCondition.ifPresent(conditions::addAll);
+    }
+
+    if (!conditions.isEmpty()) {
+      Condition toQuery = qBuilder.and(conditions);
+      return (String) toQuery.query(new RSQLVisitor());
+    } else {
+      return "";
+    }
+  }
+
   private String buildQuery(SpecificationController initialSpecification, List<LogicalNodeController> queryNodes) {
     QBuilder qBuilder = new QBuilder<>();
     boolean isLastYearChecked = onlyShowLastYearCheckBox.isVisible() && onlyShowLastYearCheckBox.isSelected();
@@ -265,9 +416,17 @@ public class SearchController implements Controller<Pane> {
     searchButton.disableProperty().bind(queryTextField.textProperty().isEmpty().or(inSearchableState.not()));
   }
 
-  public void setOnlyShowLastYearCheckBoxVisible(boolean visible, boolean selectedBaseValue) {
-    onlyShowLastYearCheckBox.setVisible(visible);
-    onlyShowLastYearCheckBox.setSelected(selectedBaseValue);
+  public void setOnlyShowLastYearCheckBoxVisible(boolean visible) {
+    showLastYearCheckBox = visible;
+    onlyShowLastYearCheckBox.setSelected(visible);
+  }
+
+  public void setVaultRoot(StackPane root) {
+    vaultRoot = root;
+  }
+
+  public void setSavedQueries(ObservableMap<String, String> queries) {
+    savedQueries = queries;
   }
 
   @Getter

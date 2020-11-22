@@ -7,10 +7,13 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenOnlineReplayVaultEvent;
 import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
+import com.faforever.client.mod.FeaturedMod;
+import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.query.CategoryFilterController;
 import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
@@ -27,6 +30,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -35,25 +39,22 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
 
   private static final int TOP_ELEMENT_COUNT = 6;
 
+  private final ModService modService;
   private final ReplayService replayService;
 
   private int playerId;
   private ReplayDetailController replayDetailController;
 
-  public OnlineReplayVaultController(ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, PreferencesService preferencesService, ReportingService reportingService) {
+  public OnlineReplayVaultController(ModService modService, ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, PreferencesService preferencesService, ReportingService reportingService) {
     super(uiService, notificationService, i18n, preferencesService, reportingService);
     this.replayService = replayService;
+    this.modService = modService;
   }
 
   @Override
   public void initialize() {
     super.initialize();
     uploadButton.setVisible(false);
-
-    searchController.setRootType(Game.class);
-    searchController.setSearchableProperties(SearchablePropertyMappings.GAME_PROPERTY_MAPPING);
-    searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().onlineReplaySortConfigProperty());
-    searchController.setOnlyShowLastYearCheckBoxVisible(true, true);
   }
 
   @Override
@@ -108,6 +109,39 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
   protected Node getDetailView() {
     replayDetailController = uiService.loadFxml("theme/vault/replay/replay_detail.fxml");
     return replayDetailController.getRoot();
+  }
+
+  protected void initSearchController() {
+    searchController.setRootType(Game.class);
+    searchController.setSearchableProperties(SearchablePropertyMappings.GAME_PROPERTY_MAPPING);
+    searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().onlineReplaySortConfigProperty());
+    searchController.setOnlyShowLastYearCheckBoxVisible(true);
+    searchController.setVaultRoot(vaultRoot);
+    searchController.setSavedQueries(preferencesService.getPreferences().getVaultPrefs().getSavedReplayQueries());
+
+    searchController.addTextFilter("playerStats.player.login", i18n.get("game.player.username"));
+    searchController.addTextFilter("mapVersion.map.displayName", i18n.get("game.map.displayName"));
+    searchController.addTextFilter("mapVersion.map.author.login", i18n.get("game.map.author"));
+    searchController.addTextFilter("name", i18n.get("game.title"));
+    searchController.addTextFilter("id", i18n.get("game.id"));
+
+    CategoryFilterController featuredModFilterController = uiService.loadFxml("theme/vault/search/categoryFilter.fxml");
+    featuredModFilterController.setTitle(i18n.get("featuredMod.displayName"));
+    featuredModFilterController.setPropertyName("featuredMod.displayName");
+    searchController.addFilterNode(featuredModFilterController);
+
+    modService.getFeaturedMods().thenAccept(featuredMods ->
+        Platform.runLater(() ->
+            featuredModFilterController.setItems(featuredMods.stream().map(FeaturedMod::getDisplayName)
+                .collect(Collectors.toList()))));
+
+    searchController.addRangeFilter("playerStats.player.ladder1v1Rating.rating", i18n.get("game.ladderRating"),
+        0, 3000, 100);
+    searchController.addRangeFilter("playerStats.player.globalRating.rating", i18n.get("game.globalRating"),
+        0, 3000, 100);
+    searchController.addDateRangeFilter("endTime", i18n.get("game.date"), 1);
+    searchController.addToggleFilter("validity", i18n.get("game.onlyRanked"), "VALID");
+
   }
 
   @Override

@@ -4,6 +4,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenModVaultEvent;
+import com.faforever.client.mod.ModVersion.ModType;
 import com.faforever.client.mod.event.ModUploadedEvent;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
@@ -51,11 +52,6 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
     JavaFxUtil.fixScrollSpeed(scrollPane);
 
     eventBus.register(this);
-
-    searchController.setRootType(com.faforever.client.api.dto.Mod.class);
-    searchController.setSearchableProperties(SearchablePropertyMappings.MOD_PROPERTY_MAPPING);
-    searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().modVaultConfigProperty());
-    searchController.setOnlyShowLastYearCheckBoxVisible(false, false);
 
     manageModsButton.setVisible(true);
     manageModsButton.setOnAction(event -> manageMods());
@@ -120,6 +116,23 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
   protected Node getDetailView() {
     modDetailController = uiService.loadFxml("theme/vault/mod/mod_detail.fxml");
     return modDetailController.getRoot();
+  }
+
+  protected void initSearchController() {
+    searchController.setRootType(com.faforever.client.api.dto.Mod.class);
+    searchController.setSearchableProperties(SearchablePropertyMappings.MOD_PROPERTY_MAPPING);
+    searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().mapSortConfigProperty());
+    searchController.setOnlyShowLastYearCheckBoxVisible(false);
+    searchController.setVaultRoot(vaultRoot);
+    searchController.setSavedQueries(preferencesService.getPreferences().getVaultPrefs().getSavedModQueries());
+
+    searchController.addTextFilter("displayName", i18n.get("mod.displayName"));
+    searchController.addTextFilter("author", i18n.get("mod.author"));
+    searchController.addDateRangeFilter("latestVersion.updateTime", i18n.get("mod.uploadedDateTime"), 0);
+
+    searchController.addBinaryFilter("latestVersion.width", i18n.get("map.width"),
+        ModType.UI.toString(), ModType.SIM.toString(), i18n.get("modType.ui"), i18n.get("modType.sim"));
+    searchController.addToggleFilter("latestVersion.ranked", i18n.get("mod.onlyRanked"), "true");
   }
 
   @Override

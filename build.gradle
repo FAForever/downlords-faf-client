@@ -286,6 +286,7 @@ dependencies {
   compile("org.openjfx:javafx-web:${javafxVersion}:${javafxPlatform}")
   compile("org.openjfx:javafx-media:${javafxVersion}:${javafxPlatform}")
   compile ("com.github.axel1200:discord-rpc:${discordRpcVersion}")
+  compile("org.controlsfx:controlsfx:${controlsfxVersion}")
 
   compile project(":webview-patch")
   compile("org.javassist:javassist:${project.ext['javassist.version']}")

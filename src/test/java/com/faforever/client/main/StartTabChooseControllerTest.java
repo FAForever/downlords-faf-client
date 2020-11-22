@@ -26,7 +26,7 @@ public class StartTabChooseControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testGetSelection() {
-    instance.tabItemChoiceBox.getSelectionModel().select(NavigationItem.VAULT);
-    assertThat(instance.getSelected(), is(NavigationItem.VAULT));
+    instance.tabItemChoiceBox.getSelectionModel().select(NavigationItem.MAP);
+    assertThat(instance.getSelected(), is(NavigationItem.MAP));
   }
 }

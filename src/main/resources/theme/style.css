@@ -58,6 +58,31 @@
   -icon-paint: white;
 }
 
+.query-filter {
+    -fx-pref-width: 250;
+    -fx-pref-height: 35;
+}
+
+.query-filter-selected {
+    -fx-background-color: -fx-accent;
+}
+
+.query-item:focused {
+    -fx-background-color: black;
+}
+
+.query-item {
+    -fx-background-color: black;
+}
+
+.query-filter .context-menu:focused {
+    -fx-background-color: -fx-background;
+}
+
+.query-filter .context-menu {
+    -fx-background-color: -fx-background;
+}
+
 .bad {
   -fx-text-fill: -bad;
 }
