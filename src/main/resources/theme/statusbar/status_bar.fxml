@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXProgressBar?>
 <?import com.jfoenix.controls.JFXSpinner?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.Region?>
-
 <HBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" styleClass="status-bar" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.ui.statusbar.StatusBarController">
 
     <children>
@@ -23,7 +22,7 @@
                         <JFXSpinner maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="20.0" />
                     </graphic>
                 </Label>
-                <JFXProgressBar fx:id="taskProgressBar" minWidth="80.0" prefWidth="160.0" />
+                <ProgressBar fx:id="taskProgressBar" minWidth="80.0" prefWidth="160.0"/>
             </children>
         </HBox>
         <Separator orientation="VERTICAL" />
