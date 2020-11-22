@@ -8,7 +8,6 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.StarController;
 import com.faforever.client.vault.review.StarsController;
-import com.jfoenix.controls.JFXRippler;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
@@ -21,7 +20,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -110,9 +108,8 @@ public class ModCardControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testGetRoot() throws Exception {
-    assertThat(instance.getRoot(), is(instanceOf(JFXRippler.class)));
     assertThat(instance.getRoot().getParent(), is(nullValue()));
-    assertThat(((JFXRippler) instance.getRoot()).getControl(), is(instance.modTileRoot));
+    assertThat((instance.getRoot()), is(instance.modTileRoot));
   }
 
   @Test

@@ -12,7 +12,6 @@ import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.client.vault.review.StarController;
 import com.faforever.client.vault.review.StarsController;
 import com.google.common.eventbus.EventBus;
-import com.jfoenix.controls.JFXRippler;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.junit.Before;
@@ -23,7 +22,6 @@ import org.testfx.util.WaitForAsyncUtils;
 import java.net.URL;
 import java.util.concurrent.CompletableFuture;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -147,9 +145,8 @@ public class MapCardControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testGetRoot() throws Exception {
-    assertThat(instance.getRoot(), is(instanceOf(JFXRippler.class)));
     assertThat(instance.getRoot().getParent(), is(nullValue()));
-    assertThat(((JFXRippler) instance.getRoot()).getControl(), is(instance.mapTileRoot));
+    assertThat((instance.getRoot()), is(instance.mapTileRoot));
   }
 }
 
