@@ -30,12 +30,11 @@ Post a bounty on Issue Hunt. You can reward and financially help developers that
 1. Compile and start the application by pressing the play button
 
 A video tutorial is available [here](https://www.youtube.com/watch?v=_kJoRehdBcM). Don't forget step 5.
-If you want to use the Scene Builder, please import [jfoenix](https://www.youtube.com/watch?v=Di9f_eP_x9I).
 
 ### Linux
 Learn how to install the client on Linux [here](https://github.com/FAForever/downlords-faf-client/wiki/Install-on-Linux)
 
-## Open Source licenses 
+## Open Source licenses
 |                |                               |
 |----------------|-------------------------------|
 |<img src="https://www.ej-technologies.com/images/product_banners/install4j_large.png" width="128">|Thanks to [ej-technologies](https://www.ej-technologies.com) for their [open source license](https://www.ej-technologies.com/buy/install4j/openSource). We use Install4j to build installers.|
