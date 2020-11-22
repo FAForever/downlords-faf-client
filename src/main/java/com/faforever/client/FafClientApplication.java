@@ -54,6 +54,11 @@ import static java.util.Arrays.asList;
 public class FafClientApplication extends Application {
   public static final String PROFILE_PROD = "prod";
   public static final String PROFILE_TEST = "test";
+  /**
+   * Does always reload root tabs in the MainController. This is useful if you do hot swap and you want to see your
+   * changes.
+   */
+  public static final String PROFILE_RELOAD = "reload";
   public static final String PROFILE_LOCAL = "local";
   public static final String PROFILE_OFFLINE = "offline";
   public static final String PROFILE_WINDOWS = "windows";
