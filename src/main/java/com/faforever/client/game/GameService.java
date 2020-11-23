@@ -549,7 +549,7 @@ public class GameService implements InitializingBean {
               startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), NONE); // TODO: rating mode
             }))
         .exceptionally(throwable -> {
-          if (throwable instanceof CancellationException) {
+          if (throwable.getCause() instanceof CancellationException) {
             log.info("Matchmaking search has been cancelled");
           } else {
             log.warn("Matchmade game could not be started", throwable);
