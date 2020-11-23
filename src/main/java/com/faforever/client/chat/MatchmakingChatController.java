@@ -1,7 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
-import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
+import com.faforever.client.chat.event.UnreadPartyMessageEvent;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -100,10 +100,7 @@ public class MatchmakingChatController extends AbstractChatTabController {
     super.onChatMessage(chatMessage);
 
     if (!hasFocus()) {
-      audioService.playPrivateMessageSound();
-      showNotificationIfNecessary(chatMessage);
-      setUnread(true);
-      incrementUnreadMessagesCount(1);
+      eventBus.post(new UnreadPartyMessageEvent(chatMessage));
     }
   }
 

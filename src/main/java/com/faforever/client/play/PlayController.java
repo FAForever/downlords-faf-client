@@ -1,5 +1,6 @@
 package com.faforever.client.play;
 
+import com.faforever.client.chat.event.UnreadPartyMessageEvent;
 import com.faforever.client.coop.CoopController;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.game.CustomGamesController;
@@ -9,9 +10,13 @@ import com.faforever.client.main.event.OpenCustomGamesEvent;
 import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
 import com.faforever.client.teammatchmaking.TeamMatchmakingController;
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
+import javafx.css.PseudoClass;
+import javafx.scene.AccessibleAttribute;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.skin.TabPaneSkin;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -19,8 +24,10 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class PlayController extends AbstractViewController<Node> {
-  public Node playRoot;
+  private static final PseudoClass UNREAD_PSEUDO_STATE = PseudoClass.getPseudoClass("unread");
+
   private final EventBus eventBus;
+  public Node playRoot;
   public Tab teamMatchmakingTab;
   public Tab customGamesTab;
   public Tab coopTab;
@@ -38,6 +45,7 @@ public class PlayController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
+    eventBus.register(this);
     lastTab = teamMatchmakingTab;
     lastTabController = teamMatchmakingController;
     playRootTabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -46,6 +54,7 @@ public class PlayController extends AbstractViewController<Node> {
       }
 
       if (newValue == teamMatchmakingTab) {
+        setMatchmakingTabUnread(false);
         eventBus.post(new OpenTeamMatchmakingEvent());
       } else if (newValue == customGamesTab) {
         eventBus.post(new OpenCustomGamesEvent());
@@ -89,4 +98,17 @@ public class PlayController extends AbstractViewController<Node> {
     return playRoot;
   }
 
+  protected void setMatchmakingTabUnread(boolean unread) {
+    TabPaneSkin skin = (TabPaneSkin) playRootTabPane.getSkin();
+    if (skin == null) {
+      return;
+    }
+    Node tab = (Node) skin.queryAccessibleAttribute(AccessibleAttribute.ITEM_AT_INDEX, 0);
+    tab.pseudoClassStateChanged(UNREAD_PSEUDO_STATE, unread);
+  }
+
+  @Subscribe
+  public void onUnreadPartyMessage(UnreadPartyMessageEvent event) {
+    setMatchmakingTabUnread(true);
+  }
 }

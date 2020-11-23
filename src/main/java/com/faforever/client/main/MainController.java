@@ -1,6 +1,7 @@
 package com.faforever.client.main;
 
 import ch.micheljung.fxwindow.FxStage;
+import com.faforever.client.chat.event.UnreadPartyMessageEvent;
 import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.discord.JoinDiscordEvent;
@@ -265,7 +266,12 @@ public class MainController implements Controller<Node> {
   }
 
   @Subscribe
-  public void onUnreadMessage(UnreadPrivateMessageEvent event) {
+  public void onUnreadPartyMessage(UnreadPartyMessageEvent event) {
+    runLater(() -> playButton.pseudoClassStateChanged(HIGHLIGHTED, !currentItem.equals(NavigationItem.PLAY)));
+  }
+
+  @Subscribe
+  public void onUnreadPrivateMessage(UnreadPrivateMessageEvent event) {
     runLater(() -> chatButton.pseudoClassStateChanged(HIGHLIGHTED, !currentItem.equals(NavigationItem.CHAT)));
   }
 
@@ -557,6 +563,11 @@ public class MainController implements Controller<Node> {
 
   public void onChat(ActionEvent actionEvent) {
     chatButton.pseudoClassStateChanged(HIGHLIGHTED, false);
+    onNavigateButtonClicked(actionEvent);
+  }
+
+  public void onPlay(ActionEvent actionEvent) {
+    playButton.pseudoClassStateChanged(HIGHLIGHTED, false);
     onNavigateButtonClicked(actionEvent);
   }
 
