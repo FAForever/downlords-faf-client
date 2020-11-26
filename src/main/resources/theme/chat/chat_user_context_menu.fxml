@@ -5,6 +5,7 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.CustomMenuItem?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.layout.HBox?>
@@ -22,9 +23,10 @@
         <content>
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                 <children>
-                    <ColorPicker fx:id="colorPicker" styleClass="split-button" HBox.hgrow="ALWAYS"/>
+                    <Label text="%chat.userColor"/>
+                    <ColorPicker fx:id="colorPicker" styleClass="button" HBox.hgrow="ALWAYS"/>
                     <Button fx:id="removeCustomColorButton" onAction="#onRemoveCustomColor" styleClass="icon,small"
-                               text="" HBox.hgrow="NEVER"/>
+                            text="" HBox.hgrow="NEVER"/>
                 </children>
             </HBox>
         </content>
