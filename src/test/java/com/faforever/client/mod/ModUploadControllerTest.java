@@ -1,5 +1,7 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.config.ClientProperties;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
@@ -7,6 +9,7 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.eventbus.EventBus;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -23,6 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
@@ -42,6 +46,10 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
   private ReportingService reportingService;
   @Mock
   private ExecutorService executorService;
+  @Mock
+  private PlatformService platformService;
+  @Mock
+  private ClientProperties cLientProperties;
 
   @Mock
   private I18n i18n;
@@ -54,7 +62,7 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ModUploadController(modService, executorService, notificationService, reportingService, i18n, eventBus);
+    instance = new ModUploadController(modService, executorService, notificationService, reportingService, i18n, platformService, cLientProperties, eventBus);
 
     doAnswer(invocation -> {
       ((Runnable) invocation.getArgument(0)).run();
@@ -87,6 +95,7 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
 
     modUploadTask.getFuture().complete(null);
 
+    instance.rulesCheckBox.setSelected(true);
     instance.onUploadClicked();
     instance.onCancelUploadClicked();
 
@@ -98,6 +107,7 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
     when(modService.uploadMod(any())).thenReturn(modUploadTask);
     modUploadTask.getFuture().complete(null);
 
+    instance.rulesCheckBox.setSelected(true);
     instance.onUploadClicked();
 
     verify(modService).uploadMod(any());
@@ -107,5 +117,12 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
   public void testGetRoot() throws Exception {
     assertThat(instance.getRoot(), is(instance.modUploadRoot));
     assertThat(instance.getRoot().getParent(), is(nullValue()));
+  }
+
+  @Test
+  public void testNoUploadIfRulesNotChecked() {
+    instance.onUploadClicked();
+    verifyNoMoreInteractions(modService);
+    assertThat(instance.rulesLabel.getStyleClass().contains("bad"), Matchers.is(true));
   }
 }

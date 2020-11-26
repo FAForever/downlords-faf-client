@@ -230,7 +230,7 @@ public class MapUploadController implements Controller<Node> {
   }
 
   public void onShowRulesClicked() {
-    platformService.showDocument(clientProperties.getVault().getRulesUrl());
+    platformService.showDocument(clientProperties.getVault().getMapRulesUrl());
   }
 
   public void onShowValidationClicked() {
