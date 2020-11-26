@@ -22,7 +22,7 @@
         <content>
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                 <children>
-                    <ColorPicker fx:id="colorPicker" HBox.hgrow="ALWAYS"/>
+                    <ColorPicker fx:id="colorPicker" styleClass="split-button" HBox.hgrow="ALWAYS"/>
                     <Button fx:id="removeCustomColorButton" onAction="#onRemoveCustomColor" styleClass="icon,small"
                                text="" HBox.hgrow="NEVER"/>
                 </children>
