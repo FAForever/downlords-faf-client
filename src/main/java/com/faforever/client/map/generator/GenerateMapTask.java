@@ -4,10 +4,12 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.os.OsUtils;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.google.common.eventbus.EventBus;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -16,16 +18,15 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-
+@Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class GenerateMapTask extends CompletableTask<Void> {
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final Logger logger = LoggerFactory.getLogger("faf-map-generator");
 
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
@@ -60,23 +61,25 @@ public class GenerateMapTask extends CompletableTask<Void> {
     Path workingDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
 
     ProcessBuilder processBuilder = new ProcessBuilder();
-    processBuilder.inheritIO();
     processBuilder.directory(workingDirectory.toFile());
     processBuilder.command("java", "-jar", generatorExecutableFile.toAbsolutePath().toString(), ".", String.valueOf(seed), version, mapFilename);
+    processBuilder.environment().put("LOG_DIR", preferencesService.getFafLogDirectory().toAbsolutePath().toString());
 
-    logger.info("Starting map generator in directory: {} with command: {}", processBuilder.directory(), processBuilder.command().stream().reduce((l, r) -> l + " " + r).get());
+    log.info("Starting map generator in directory: {} with command: {}", processBuilder.directory(), processBuilder.command().stream().reduce((l, r) -> l + " " + r).get());
     try {
       Process process = processBuilder.start();
+      OsUtils.gobbleLines(process.getInputStream(), logger::info);
+      OsUtils.gobbleLines(process.getErrorStream(), logger::error);
       process.waitFor(MapGeneratorService.GENERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       if (process.isAlive()) {
-        logger.warn("Map generation timed out, killing process...");
+        log.warn("Map generation timed out, killing process...");
         process.destroyForcibly();
         notificationService.addNotification(new ImmediateNotification(i18n.get("game.mapGeneration.failed.title"), i18n.get("game.mapGeneration.failed.message"), Severity.ERROR));
       } else {
         eventBus.post(new MapGeneratedEvent(mapFilename));
       }
     } catch (IOException | InterruptedException e) {
-      logger.error("Could not start map generator.", e);
+      log.error("Could not start map generator.", e);
       throw new RuntimeException(e);
     }
 
