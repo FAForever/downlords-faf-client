@@ -30,7 +30,6 @@ script:
   - java -version
   - chmod +x ./ci/build.sh && ./ci/build.sh
   - chmod +x ./ci/test.sh && ./ci/test.sh
-  - chmod +x ./ci/test-report.sh && ./ci/test-report.sh
 
 after_success:
   - if [ -n "${TRAVIS_TAG}" ]; then chmod +x ./ci/github-release.sh && ./ci/github-release.sh; fi
