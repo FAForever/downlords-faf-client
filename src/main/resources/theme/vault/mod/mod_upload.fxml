@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import com.jfoenix.controls.JFXProgressBar?>
-<?import com.jfoenix.controls.JFXSpinner?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.Region?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="modUploadRoot" minHeight="100.0" minWidth="100.0" styleClass="dialog-window" xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.mod.ModUploadController">
   <children>
       <VBox fx:id="modInfoPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="500.0" minWidth="480.0" prefWidth="560.0" spacing="20.0" VBox.vgrow="ALWAYS">
@@ -71,7 +71,7 @@
       <children>
         <Label contentDisplay="TOP" styleClass="h2" text="%mapVault.upload.reading">
           <graphic>
-              <JFXSpinner prefHeight="100.0" prefWidth="100.0" />
+              <ProgressIndicator prefHeight="100.0" prefWidth="100.0"/>
           </graphic>
         </Label>
       </children>
@@ -79,7 +79,7 @@
       <VBox fx:id="uploadProgressPane" alignment="CENTER" layoutX="20.0" layoutY="520.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="20.0" VBox.vgrow="ALWAYS">
       <children>
           <Label fx:id="uploadTaskTitleLabel" contentDisplay="TOP" layoutX="108.0" layoutY="30.0" styleClass="h2" text="%mapVault.upload.uploading" />
-          <JFXProgressBar fx:id="uploadProgressBar" maxWidth="1.7976931348623157E308" progress="0.0" />
+          <ProgressBar fx:id="uploadProgressBar" maxWidth="1.7976931348623157E308" progress="0.0"/>
           <Label fx:id="uploadTaskMessageLabel" text="&lt;bytes&gt;" />
           <Button mnemonicParsing="false" onAction="#onCancelUploadClicked" text="%cancel" />
       </children>

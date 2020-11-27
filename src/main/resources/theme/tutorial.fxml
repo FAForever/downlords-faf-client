@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXSpinner?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -12,7 +12,7 @@
            maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/8.0.40"
            fx:controller="com.faforever.client.tutorial.TutorialController">
     <VBox fx:id="loadingSpinner" maxHeight="100" maxWidth="100" spacing="10">
-        <JFXSpinner/>
+        <ProgressIndicator/>
         <Label text="%tutorial.loading"/>
     </VBox>
     <VBox fx:id="nothingToShow" maxHeight="100" maxWidth="100" spacing="10">

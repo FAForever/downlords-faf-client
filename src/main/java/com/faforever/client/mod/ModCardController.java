@@ -8,7 +8,6 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.StarsController;
-import com.jfoenix.controls.JFXRippler;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -53,7 +52,6 @@ public class ModCardController implements Controller<Node> {
   private ListChangeListener<ModVersion> installStatusChangeListener;
   public StarsController starsController;
   private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
-  private JFXRippler jfxRippler;
 
   private void populateReviews() {
     ObservableList<Review> reviews = modVersion.getReviews();
@@ -64,7 +62,6 @@ public class ModCardController implements Controller<Node> {
   }
 
   public void initialize() {
-    jfxRippler = new JFXRippler(modTileRoot);
     installButton.managedProperty().bind(installButton.visibleProperty());
     uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
     installStatusChangeListener = change -> {
@@ -134,7 +131,7 @@ public class ModCardController implements Controller<Node> {
   }
 
   public Node getRoot() {
-    return jfxRippler;
+    return modTileRoot;
   }
 
   public void setOnOpenDetailListener(Consumer<ModVersion> onOpenDetailListener) {

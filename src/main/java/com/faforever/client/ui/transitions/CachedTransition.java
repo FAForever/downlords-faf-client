@@ -1,6 +1,5 @@
 package com.faforever.client.ui.transitions;
 
-import com.jfoenix.transitions.CacheMemento;
 import javafx.animation.Timeline;
 import javafx.animation.Transition;
 import javafx.beans.property.ObjectProperty;

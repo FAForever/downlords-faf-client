@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXSpinner?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextField?>
@@ -33,7 +33,7 @@
               AnchorPane.leftAnchor="0.0"
               AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <children>
-                <JFXSpinner prefHeight="80.0" prefWidth="80.0"/>
+                <ProgressIndicator prefHeight="80.0" prefWidth="80.0"/>
                 <Label text="%chat.connecting.message">
                     <VBox.margin>
                         <Insets bottom="28.0" top="14.0"/>
