@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 if test -d "~/$JDK"; then
-    echo "already installed"
-    exit 0
+  echo "already installed"
+  exit 0
 fi
 
 mkdir -p ~/bin
@@ -13,4 +13,4 @@ wget "$url" -P ~/bin/ || {
 }
 chmod +x ~/bin/install-jdk.sh
 export JAVA_HOME="~/$JDK"
-~/bin/install-jdk.sh --url "https://github.com/AdoptOpenJDK/openjdk14-binaries/releases/download/jdk-14%2B36/OpenJDK14U-jdk_x64_linux_hotspot_14_36.tar.gz" --target "$JAVA_HOME" --workspace "$TRAVIS_HOME/.cache/install-jdk" --cacerts
+~/bin/install-jdk.sh --url "https://github.com/AdoptOpenJDK/openjdk15-binaries/releases/download/jdk-15.0.1%2B9/OpenJDK15U-jdk_x64_linux_hotspot_15.0.1_9.tar.gz" --target "$JAVA_HOME" --workspace "$TRAVIS_HOME/.cache/install-jdk" --cacerts

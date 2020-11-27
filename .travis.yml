@@ -12,7 +12,7 @@ env:
     - secure: "UVIbeoJpx9n0KSWHbpdWZuR4zeZfXw3JQBq2Zb1h0/j4uREfXWiGFuNVQBPjsdtYi2+LkecjJ/MgKWo+SS0SjsvTa/ZPkOXt4408H1qYgwVnvWoeL/g1QQ6T8ADNysl/4ZtJLnSp0WXYEBkfHYZJD++vgDwkpVhnCLVzSFVAHls="
 
 before_install:
-  - export JDK="openjdk14"
+  - export JDK="openjdk15"
   #Installs the normal openjdk as this is not supported by travis itself
   - chmod +x ./ci/installjdk.sh && ./ci/installjdk.sh
   - export JAVA_HOME="~/$JDK"

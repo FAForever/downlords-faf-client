@@ -26,7 +26,6 @@ plugins {
   id "co.riiid.gradle" version "0.4.2"
   id "de.undercouch.download" version "3.4.3"
   id 'net.ltgt.apt' version '0.19'
-  id 'jacoco'
   id 'com.github.kt3k.coveralls' version "${coverallsGradlePluginVersion}"
 }
 
@@ -37,8 +36,8 @@ apply plugin: 'propdeps'
 apply plugin: 'distribution'
 
 
-sourceCompatibility = JavaVersion.VERSION_14
-targetCompatibility = JavaVersion.VERSION_14
+sourceCompatibility = JavaVersion.VERSION_15
+targetCompatibility = JavaVersion.VERSION_15
 
 // These are read from gradle.properties
 version "${version}"
@@ -106,12 +105,6 @@ def httpRequest(Method method, String url, onSuccess) {
       def errorDetails = json && json.errors ? "Details: " + json.errors.collect { it }.join('\n') : ''
       throw new GradleScriptException("$errorMessage. $ref. $errorDetails", null)
     }
-  }
-}
-
-jacocoTestReport {
-  reports {
-    xml.enabled = true
   }
 }
 
@@ -223,12 +216,6 @@ task downloadNativeDependencies(dependsOn: [downloadUnixUid, downloadWindowsUid,
 
 compileJava.dependsOn 'downloadNativeDependencies'
 compileJava.dependsOn ':webview-patch:build'
-
-task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
-  main = "com.codacy.CodacyCoverageReporter"
-  classpath = configurations.codacy
-  args = ["-l", "Java", "-r", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"]
-}
 
 repositories {
   jcenter()
