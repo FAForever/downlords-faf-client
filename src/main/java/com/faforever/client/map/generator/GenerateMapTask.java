@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class GenerateMapTask extends CompletableTask<Void> {
-  private static final Logger logger = LoggerFactory.getLogger("faf-map-generator");
+  private static final Logger generatorLogger = LoggerFactory.getLogger("faf-map-generator");
 
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
@@ -65,16 +65,18 @@ public class GenerateMapTask extends CompletableTask<Void> {
     processBuilder.command("java", "-jar", generatorExecutableFile.toAbsolutePath().toString(), ".", String.valueOf(seed), version, mapFilename);
     processBuilder.environment().put("LOG_DIR", preferencesService.getFafLogDirectory().toAbsolutePath().toString());
 
-    log.info("Starting map generator in directory: {} with command: {}", processBuilder.directory(), processBuilder.command().stream().reduce((l, r) -> l + " " + r).get());
+    log.info("Starting map generator in directory: {} with command: {}",
+        processBuilder.directory(), processBuilder.command().stream().reduce((l, r) -> l + " " + r).get());
     try {
       Process process = processBuilder.start();
-      OsUtils.gobbleLines(process.getInputStream(), logger::info);
-      OsUtils.gobbleLines(process.getErrorStream(), logger::error);
+      OsUtils.gobbleLines(process.getInputStream(), generatorLogger::info);
+      OsUtils.gobbleLines(process.getErrorStream(), generatorLogger::error);
       process.waitFor(MapGeneratorService.GENERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       if (process.isAlive()) {
         log.warn("Map generation timed out, killing process...");
         process.destroyForcibly();
-        notificationService.addNotification(new ImmediateNotification(i18n.get("game.mapGeneration.failed.title"), i18n.get("game.mapGeneration.failed.message"), Severity.ERROR));
+        notificationService.addNotification(new ImmediateNotification(i18n.get("game.mapGeneration.failed.title"),
+            i18n.get("game.mapGeneration.failed.message"), Severity.ERROR));
       } else {
         eventBus.post(new MapGeneratedEvent(mapFilename));
       }
