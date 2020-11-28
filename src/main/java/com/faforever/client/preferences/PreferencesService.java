@@ -112,6 +112,11 @@ public class PreferencesService implements InitializingBean {
         .toString());
     // duplicated, see getIceAdapterLogDirectory; make getIceAdapterLogDirectory or ice log dir static?
 
+    System.setProperty("MAP_GENERATOR_LOG", PreferencesService.FAF_DATA_DIRECTORY
+        .resolve("logs")
+        .resolve("map-generator.log")
+        .toString());
+
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
 
