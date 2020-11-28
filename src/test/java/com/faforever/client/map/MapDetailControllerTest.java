@@ -18,6 +18,7 @@ import com.google.common.eventbus.EventBus;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -113,6 +114,7 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
     mapBean.setId("23");
     mapBean.setSize(MapSize.valueOf(1, 1));
     mapBean.setDownloadUrl(new URL("http://google.com"));
+    mapBean.setVersion(new ComparableVersion("1"));
 
     instance.setMap(mapBean);
 
@@ -140,6 +142,7 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
     mapBean.setHidden(false);
     mapBean.setId("23");
     mapBean.setSize(MapSize.valueOf(1, 1));
+    mapBean.setVersion(new ComparableVersion("1"));
     mapBean.setDownloadUrl(new URL("http://google.com"));
 
     instance.setMap(mapBean);
@@ -173,6 +176,7 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
     mapBean.setId("23");
     mapBean.setSize(MapSize.valueOf(1, 1));
     mapBean.setDownloadUrl(new URL("http://google.com"));
+    mapBean.setVersion(new ComparableVersion("1"));
     instance.setMap(mapBean);
 
     assertThat(instance.hideRow.getPrefHeight(), not(is(0)));
@@ -192,6 +196,7 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
     mapBean.setId("23");
     mapBean.setSize(MapSize.valueOf(1, 1));
     mapBean.setDownloadUrl(new URL("http://google.com"));
+    mapBean.setVersion(new ComparableVersion("1"));
     instance.setMap(mapBean);
 
     assertThat(instance.hideRow.getPrefHeight(), is(0.0));
