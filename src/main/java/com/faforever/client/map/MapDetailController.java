@@ -69,6 +69,7 @@ public class MapDetailController implements Controller<Node> {
   public Label authorLabel;
   public ProgressBar progressBar;
   public Label mapDescriptionLabel;
+  public Label mapVersionLabel;
   public Node mapDetailRoot;
   public ScrollPane scrollPane;
   public Label dimensionsLabel;
@@ -208,6 +209,7 @@ public class MapDetailController implements Controller<Node> {
         .map(Strings::emptyToNull)
         .map(FaStrings::removeLocalizationTag)
         .orElseGet(() -> i18n.get("map.noDescriptionAvailable")));
+    mapVersionLabel.setText(map.getVersion().toString());
 
 
     if (mapService.isOfficialMap(map.getFolderName())) {

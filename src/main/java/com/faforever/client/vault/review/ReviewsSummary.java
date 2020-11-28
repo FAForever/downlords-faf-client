@@ -1,4 +1,4 @@
-package com.faforever.client.mod;
+package com.faforever.client.vault.review;
 
 import javafx.beans.property.FloatProperty;
 import javafx.beans.property.IntegerProperty;
@@ -31,6 +31,7 @@ public class ReviewsSummary {
       reviewsSummary.setPositive(dto.getPositive());
       reviewsSummary.setNegative(dto.getNegative());
       reviewsSummary.setScore(dto.getScore());
+      reviewsSummary.setReviews(dto.getReviews());
       reviewsSummary.setLowerBound(dto.getLowerBound());
     }
     return reviewsSummary;

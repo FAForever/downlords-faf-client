@@ -2,6 +2,7 @@ package com.faforever.client.map;
 
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.vault.review.Review;
+import com.faforever.client.vault.review.ReviewsSummary;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -24,7 +25,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class MapBean implements Comparable<MapBean> {
 
@@ -45,6 +45,7 @@ public class MapBean implements Comparable<MapBean> {
   private final ObjectProperty<URL> largeThumbnailUrl;
   private final ObjectProperty<LocalDateTime> createTime;
   private final ObjectProperty<Type> type;
+  private final ObjectProperty<ReviewsSummary> reviewsSummary;
   private final ListProperty<Review> reviews;
 
   public MapBean() {
@@ -63,6 +64,7 @@ public class MapBean implements Comparable<MapBean> {
     author = new SimpleStringProperty();
     createTime = new SimpleObjectProperty<>();
     type = new SimpleObjectProperty<>();
+    reviewsSummary = new SimpleObjectProperty<>();
     reviews = new SimpleListProperty<>(FXCollections.observableArrayList(param
         -> new Observable[]{param.scoreProperty(), param.textProperty()}));
     hidden = new SimpleBooleanProperty();
@@ -89,12 +91,16 @@ public class MapBean implements Comparable<MapBean> {
     mapBean.setNumberOfPlays(map.getStatistics().getPlays());
     mapBean.setRanked(mapVersion.getRanked());
     mapBean.setHidden(mapVersion.getHidden());
-    mapBean.getReviews().setAll(
-        map.getVersions().stream()
-            .filter(v -> v.getReviews() != null)
-            .flatMap(v -> v.getReviews().parallelStream())
-            .map(Review::fromDto)
-            .collect(Collectors.toList()));
+    mapBean.setReviewsSummary(ReviewsSummary.fromDto(map.getMapReviewsSummary()));
+    map.getVersions().forEach(v -> {
+      if (v.getReviews() != null) {
+        v.getReviews().forEach(mapVersionReview -> {
+          Review review = Review.fromDto(mapVersionReview);
+          review.setVersion(mapVersion.getVersion());
+          mapBean.getReviews().add(review);
+        });
+      }
+    });
     return mapBean;
   }
 
@@ -114,9 +120,16 @@ public class MapBean implements Comparable<MapBean> {
     mapBean.setLargeThumbnailUrl(mapVersion.getThumbnailUrlLarge());
     mapBean.setCreateTime(mapVersion.getCreateTime().toLocalDateTime());
     mapBean.setNumberOfPlays(mapVersion.getMap().getStatistics().getPlays());
-    mapBean.getReviews().setAll(mapVersion.getReviews().parallelStream()
-        .map(Review::fromDto)
-        .collect(Collectors.toList()));
+    mapBean.setReviewsSummary(ReviewsSummary.fromDto(mapVersion.getMap().getMapReviewsSummary()));
+    mapVersion.getMap().getVersions().forEach(v -> {
+      if (v.getReviews() != null) {
+        v.getReviews().forEach(mapVersionReview -> {
+          Review review = Review.fromDto(mapVersionReview);
+          review.setVersion(v.getVersion());
+          mapBean.getReviews().add(review);
+        });
+      }
+    });
     mapBean.setHidden(mapVersion.getHidden());
     mapBean.setRanked(mapVersion.getRanked());
     return mapBean;
@@ -308,6 +321,18 @@ public class MapBean implements Comparable<MapBean> {
     return type;
   }
 
+  public ReviewsSummary getReviewsSummary() {
+    return reviewsSummary.get();
+  }
+
+  public void setReviewsSummary(ReviewsSummary reviewsSummary) {
+    this.reviewsSummary.set(reviewsSummary);
+  }
+
+  public ObjectProperty<ReviewsSummary> reviewsSummaryProperty() {
+    return reviewsSummary;
+  }
+
   public ObservableList<Review> getReviews() {
     return reviews.get();
   }
@@ -354,7 +379,7 @@ public class MapBean implements Comparable<MapBean> {
       }
     }
 
-    private String string;
+    private final String string;
 
     Type(String string) {
       this.string = string;

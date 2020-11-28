@@ -54,10 +54,9 @@ public class ModCardController implements Controller<Node> {
   private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
 
   private void populateReviews() {
-    ObservableList<Review> reviews = modVersion.getReviews();
     Platform.runLater(() -> {
-      numberOfReviewsLabel.setText(i18n.number(reviews.size()));
-      starsController.setValue((float) reviews.stream().mapToInt(Review::getScore).average().orElse(0d));
+      numberOfReviewsLabel.setText(i18n.number(modVersion.getReviewsSummary().getReviews()));
+      starsController.setValue(modVersion.getReviewsSummary().getScore() / modVersion.getReviewsSummary().getReviews());
     });
   }
 

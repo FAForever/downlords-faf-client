@@ -5,20 +5,26 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 
+import java.sql.Timestamp;
 import java.util.Optional;
 
 public class Review {
   private final ObjectProperty<String> id;
   private final StringProperty text;
+  private final ObjectProperty<ComparableVersion> version;
   private final ObjectProperty<Player> player;
   private final ObjectProperty<Integer> score;
+  private final ObjectProperty<Timestamp> updateTime;
 
   public Review() {
     id = new SimpleObjectProperty<>();
     text = new SimpleStringProperty();
     score = new SimpleObjectProperty<>();
     player = new SimpleObjectProperty<>();
+    version = new SimpleObjectProperty<>();
+    updateTime = new SimpleObjectProperty<>();
   }
 
   public static Review fromDto(com.faforever.client.api.dto.Review dto) {
@@ -57,6 +63,18 @@ public class Review {
     return text;
   }
 
+  public ComparableVersion getVersion() {
+    return version.get();
+  }
+
+  public void setVersion(ComparableVersion version) {
+    this.version.set(version);
+  }
+
+  public ObjectProperty<ComparableVersion> versionProperty() {
+    return version;
+  }
+
   public Player getPlayer() {
     return player.get();
   }
@@ -79,5 +97,17 @@ public class Review {
 
   public ObjectProperty<Integer> scoreProperty() {
     return score;
+  }
+
+  public Timestamp getUpdateTime() {
+    return updateTime.get();
+  }
+
+  public void setUpdateTime(Timestamp updateTime) {
+    this.updateTime.set(updateTime);
+  }
+
+  public ObjectProperty<Timestamp> updateTimeProperty() {
+    return updateTime;
   }
 }
