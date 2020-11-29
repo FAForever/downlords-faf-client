@@ -251,7 +251,6 @@ public class ChatUserItemController implements Controller<Node> {
           chatUser.colorProperty()));
       JavaFxUtil.bind(avatarImageView.imageProperty(), this.chatUser.avatarProperty());
       JavaFxUtil.bind(clanMenu.textProperty(), this.chatUser.clanTagProperty());
-      JavaFxUtil.bind(clanMenu.textFillProperty(), chatUser.colorProperty());
       JavaFxUtil.bind(countryImageView.imageProperty(), this.chatUser.countryFlagProperty());
       JavaFxUtil.bind(countryTooltip.textProperty(), this.chatUser.countryNameProperty());
       JavaFxUtil.bind(playerMapImage.imageProperty(), this.chatUser.mapImageProperty());

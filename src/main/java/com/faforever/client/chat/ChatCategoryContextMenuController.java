@@ -14,7 +14,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import static com.faforever.client.chat.ChatColorMode.DEFAULT;
+import static com.faforever.client.chat.ChatColorMode.RANDOM;
 
 @Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -54,9 +54,9 @@ public class ChatCategoryContextMenuController implements Controller<ContextMenu
       }
     });
 
-    removeCustomColorButton.visibleProperty().bind(chatPrefs.chatColorModeProperty().isEqualTo(DEFAULT)
+    removeCustomColorButton.visibleProperty().bind(chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM)
         .and(colorPicker.valueProperty().isNotNull()));
-    colorPickerMenuItem.visibleProperty().bind(chatPrefs.chatColorModeProperty().isEqualTo(DEFAULT));
+    colorPickerMenuItem.visibleProperty().bind(chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM));
   }
 
   public void onRemoveCustomColor() {

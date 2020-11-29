@@ -54,7 +54,7 @@ import java.net.URL;
 import java.util.Objects;
 import java.util.Set;
 
-import static com.faforever.client.chat.ChatColorMode.DEFAULT;
+import static com.faforever.client.chat.ChatColorMode.RANDOM;
 import static com.faforever.client.player.SocialStatus.FOE;
 import static com.faforever.client.player.SocialStatus.FRIEND;
 import static com.faforever.client.player.SocialStatus.SELF;
@@ -180,9 +180,9 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
       }
     });
 
-    removeCustomColorButton.visibleProperty().bind(chatPrefs.chatColorModeProperty().isEqualTo(DEFAULT)
+    removeCustomColorButton.visibleProperty().bind(chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM)
         .and(colorPicker.valueProperty().isNotNull()));
-    colorPickerMenuItem.visibleProperty().bind(chatPrefs.chatColorModeProperty().isEqualTo(DEFAULT));
+    colorPickerMenuItem.visibleProperty().bind(chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM));
 
 
     playerChangeListener = (observable, oldValue, newValue) -> {
