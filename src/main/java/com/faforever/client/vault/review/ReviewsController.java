@@ -147,6 +147,7 @@ public class ReviewsController implements Controller<Pane> {
 
   public void setCanWriteReview(boolean canWriteReview) {
     createReviewButton.setVisible(canWriteReview);
+    createReviewButton.setDisable(!canWriteReview);
   }
 
   private void displayReviewsPage(int page) {
