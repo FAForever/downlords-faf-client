@@ -185,7 +185,8 @@ public class MapDetailController implements Controller<Node> {
 
     reviewsController.setCanWriteReview(false);
     mapService.hasPlayedMap(player.getId(), map.getId())
-        .thenAccept(hasPlayed -> reviewsController.setCanWriteReview(hasPlayed));
+        .thenAccept(hasPlayed -> reviewsController.setCanWriteReview(hasPlayed
+            && !map.getAuthor().equals(player.getUsername())));
 
     reviewsController.setOnSendReviewListener(this::onSendReview);
     reviewsController.setOnDeleteReviewListener(this::onDeleteReview);
