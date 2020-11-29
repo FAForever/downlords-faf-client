@@ -23,6 +23,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import lombok.Data;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -110,7 +111,11 @@ public class Replay {
 
   private static ObservableList<Review> reviews(Game dto) {
     return FXCollections.observableList(dto.getReviews().stream()
-        .map(Review::fromDto)
+        .map(gameReview -> {
+          Review review = Review.fromDto(gameReview);
+          review.setVersion(new ComparableVersion(""));
+          return review;
+        })
         .collect(Collectors.toList()));
   }
 

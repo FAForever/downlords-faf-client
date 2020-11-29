@@ -23,6 +23,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
 import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +64,7 @@ public class ReviewsController implements Controller<Pane> {
   private Pane ownReviewRoot;
   private Consumer<Review> onDeleteReviewListener;
   private ObservableList<Review> reviews;
-  private InvalidationListener onReviewsChangedListener;
+  private final InvalidationListener onReviewsChangedListener;
   private Optional<Review> ownReview;
   private List<List<Review>> reviewPages;
   private int currentReviewPage;
@@ -122,13 +123,13 @@ public class ReviewsController implements Controller<Pane> {
   }
 
   public void setReviews(ObservableList<Review> reviews) {
-    this.reviews = reviews;
+    this.reviews = reviews.sorted(Comparator.comparing(Review::getVersion).reversed());
 
     Player currentPlayer = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("No current player available"));
 
-    JavaFxUtil.addListener(reviews, onReviewsChangedListener);
-    FilteredList<Review> onlyOtherNonEmptyReviews = reviews
+    JavaFxUtil.addListener(this.reviews, onReviewsChangedListener);
+    FilteredList<Review> onlyOtherNonEmptyReviews = this.reviews
         .filtered(review -> review.getPlayer().getId() != currentPlayer.getId() && !Strings.isNullOrEmpty(review.getText()));
 
     reviewPages = Lists.newArrayList(Iterables.partition(onlyOtherNonEmptyReviews, REVIEWS_PER_PAGE));
@@ -146,6 +147,7 @@ public class ReviewsController implements Controller<Pane> {
 
   public void setCanWriteReview(boolean canWriteReview) {
     createReviewButton.setVisible(canWriteReview);
+    createReviewButton.setDisable(!canWriteReview);
   }
 
   private void displayReviewsPage(int page) {

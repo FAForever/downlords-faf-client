@@ -69,6 +69,7 @@ public class MapDetailController implements Controller<Node> {
   public Label authorLabel;
   public ProgressBar progressBar;
   public Label mapDescriptionLabel;
+  public Label mapVersionLabel;
   public Node mapDetailRoot;
   public ScrollPane scrollPane;
   public Label dimensionsLabel;
@@ -184,7 +185,8 @@ public class MapDetailController implements Controller<Node> {
 
     reviewsController.setCanWriteReview(false);
     mapService.hasPlayedMap(player.getId(), map.getId())
-        .thenAccept(hasPlayed -> reviewsController.setCanWriteReview(hasPlayed));
+        .thenAccept(hasPlayed -> reviewsController.setCanWriteReview(hasPlayed
+            && !map.getAuthor().equals(player.getUsername())));
 
     reviewsController.setOnSendReviewListener(this::onSendReview);
     reviewsController.setOnDeleteReviewListener(this::onDeleteReview);
@@ -208,6 +210,9 @@ public class MapDetailController implements Controller<Node> {
         .map(Strings::emptyToNull)
         .map(FaStrings::removeLocalizationTag)
         .orElseGet(() -> i18n.get("map.noDescriptionAvailable")));
+    if (map.getVersion() != null) {
+      mapVersionLabel.setText(map.getVersion().toString());
+    }
 
 
     if (mapService.isOfficialMap(map.getFolderName())) {

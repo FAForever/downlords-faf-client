@@ -110,10 +110,9 @@ public class MapCardController implements Controller<Node> {
   }
 
   private void populateReviews() {
-    ObservableList<Review> reviews = map.getReviews();
     Platform.runLater(() -> {
-      numberOfReviewsLabel.setText(i18n.number(reviews.size()));
-      starsController.setValue((float) reviews.stream().mapToInt(Review::getScore).average().orElse(0d));
+      numberOfReviewsLabel.setText(i18n.number(map.getReviewsSummary().getReviews()));
+      starsController.setValue(map.getReviewsSummary().getScore() / map.getReviewsSummary().getReviews());
     });
   }
 

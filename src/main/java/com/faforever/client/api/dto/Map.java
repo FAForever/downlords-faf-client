@@ -37,5 +37,5 @@ public class Map {
   private List<MapVersion> versions;
 
   @Relationship("reviewsSummary")
-  private MapVersionReviewsSummary mapVersionReviewsSummary;
+  private MapReviewsSummary mapReviewsSummary;
 }
