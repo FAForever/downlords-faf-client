@@ -97,6 +97,7 @@ public class MapBean implements Comparable<MapBean> {
         v.getReviews().forEach(mapVersionReview -> {
           Review review = Review.fromDto(mapVersionReview);
           review.setVersion(mapVersion.getVersion());
+          review.setLatestVersion(map.getLatestVersion().getVersion());
           mapBean.getReviews().add(review);
         });
       }
@@ -126,6 +127,7 @@ public class MapBean implements Comparable<MapBean> {
         v.getReviews().forEach(mapVersionReview -> {
           Review review = Review.fromDto(mapVersionReview);
           review.setVersion(v.getVersion());
+          review.setLatestVersion(mapVersion.getMap().getLatestVersion().getVersion());
           mapBean.getReviews().add(review);
         });
       }

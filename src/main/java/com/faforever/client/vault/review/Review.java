@@ -14,6 +14,7 @@ public class Review {
   private final ObjectProperty<String> id;
   private final StringProperty text;
   private final ObjectProperty<ComparableVersion> version;
+  private final ObjectProperty<ComparableVersion> latestVersion;
   private final ObjectProperty<Player> player;
   private final ObjectProperty<Integer> score;
   private final ObjectProperty<Timestamp> updateTime;
@@ -24,6 +25,7 @@ public class Review {
     score = new SimpleObjectProperty<>();
     player = new SimpleObjectProperty<>();
     version = new SimpleObjectProperty<>();
+    latestVersion = new SimpleObjectProperty<>();
     updateTime = new SimpleObjectProperty<>();
   }
 
@@ -73,6 +75,18 @@ public class Review {
 
   public ObjectProperty<ComparableVersion> versionProperty() {
     return version;
+  }
+
+  public ComparableVersion getLatestVersion() {
+    return latestVersion.get();
+  }
+
+  public void setLatestVersion(ComparableVersion latestVersion) {
+    this.latestVersion.set(latestVersion);
+  }
+
+  public ObjectProperty<ComparableVersion> latestVersionProperty() {
+    return latestVersion;
   }
 
   public Player getPlayer() {

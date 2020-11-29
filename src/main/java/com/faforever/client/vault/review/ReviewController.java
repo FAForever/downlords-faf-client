@@ -94,7 +94,11 @@ public class ReviewController implements Controller<Pane> {
     usernameLabel.setText(definiteReview.getPlayer().getUsername());
     reviewTextLabel.setText(definiteReview.getText());
     if (!definiteReview.getVersion().toString().isBlank()) {
-      versionLabel.setText(i18n.get("review.version", definiteReview.getVersion().toString()));
+      if (definiteReview.getVersion() == definiteReview.getLatestVersion()) {
+        versionLabel.setText(i18n.get("review.currentVersion"));
+      } else {
+        versionLabel.setText(i18n.get("review.version", definiteReview.getVersion().toString()));
+      }
     }
     displayReviewPane.setVisible(true);
     editReviewPane.setVisible(false);

@@ -174,6 +174,7 @@ public class ModVersion {
         v.getReviews().forEach(modVersionReview -> {
           Review review = Review.fromDto(modVersionReview);
           review.setVersion(v.getVersion());
+          review.setLatestVersion(dto.getLatestVersion().getVersion());
           modVersion.getReviews().add(review);
         });
       }
