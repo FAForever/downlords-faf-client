@@ -86,6 +86,7 @@ import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.ChatColorMode.DEFAULT;
 import static com.faforever.client.chat.ChatColorMode.RANDOM;
+import static com.faforever.client.chat.ChatUserCategory.MODERATOR;
 import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -203,6 +204,9 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
   }
 
   private void updateUserColors(ChatColorMode chatColorMode) {
+    if (chatColorMode == null) {
+      chatColorMode = DEFAULT;
+    }
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     synchronized (chatChannelUsersByChannelAndName) {
       switch (chatColorMode) {
@@ -214,8 +218,8 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
               if (chatPrefs.getUserToColor().containsKey(userToColorKey(chatUser.getUsername()))) {
                 chatUser.setColor(chatPrefs.getUserToColor().get(userToColorKey(chatUser.getUsername())));
               } else {
-                if (chatUser.isModerator() && chatPrefs.getGroupToColor().containsKey(ChatUserCategory.MODERATOR)) {
-                  chatUser.setColor(chatPrefs.getGroupToColor().get(ChatUserCategory.MODERATOR));
+                if (chatUser.isModerator() && chatPrefs.getGroupToColor().containsKey(MODERATOR)) {
+                  chatUser.setColor(chatPrefs.getGroupToColor().get(MODERATOR));
                 } else {
                   chatUser.setColor(chatUser.getSocialStatus()
                       .map(status -> chatPrefs.getGroupToColor().getOrDefault(groupToColorKey(status), null))
@@ -548,8 +552,8 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
 
         if (chatPrefs.getChatColorMode() == DEFAULT && chatPrefs.getUserToColor().containsKey(userToColorKey(username))) {
           color = chatPrefs.getUserToColor().get(userToColorKey(username));
-        } else if (chatPrefs.getChatColorMode() == DEFAULT && isModerator) {
-          color = chatPrefs.getGroupToColor().get(ChatUserCategory.MODERATOR);
+        } else if (chatPrefs.getChatColorMode() == DEFAULT && isModerator && chatPrefs.getGroupToColor().containsKey(MODERATOR)) {
+          color = chatPrefs.getGroupToColor().get(MODERATOR);
         } else if (chatPrefs.getChatColorMode() == DEFAULT && optionalPlayer.isPresent()) {
           ChatUserCategory chatUserCategory = optionalPlayer.map(player -> switch (player.getSocialStatus()) {
             case FRIEND -> ChatUserCategory.FRIEND;
