@@ -80,7 +80,8 @@ public class ClientProperties {
   @Data
   public static class Vault {
     private String baseUrl;
-    private String rulesUrl;
+    private String mapRulesUrl;
+    private String modRulesUrl;
     private String mapValidationUrl;
     private String mapDownloadUrlFormat;
     private String mapPreviewUrlFormat;

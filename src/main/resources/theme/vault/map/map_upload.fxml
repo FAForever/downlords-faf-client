@@ -66,10 +66,8 @@
               </graphic>
           </Label>
           <HBox spacing="10.0">
-              <children>
-                  <Button text="%mapVault.upload.openRules" onMouseClicked="#onShowRulesClicked"/>
-                  <Button text="%mapVault.upload.openValidation" onMouseClicked="#onShowValidationClicked"/>
-              </children>
+              <Button text="%mapVault.upload.openRules" onMouseClicked="#onShowRulesClicked"/>
+              <Button text="%mapVault.upload.openValidation" onMouseClicked="#onShowValidationClicked"/>
           </HBox>
         <ButtonBar prefHeight="40.0" prefWidth="200.0">
           <buttons>
