@@ -85,7 +85,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   private static final String MAP_ENDPOINT = "/data/map";
   private static final String TOURNAMENT_LIST_ENDPOINT = "/challonge/v1/tournaments.json";
-  private static final String REPLAY_INCLUDES = "featuredMod,playerStats,playerStats.player,reviews,reviews.player,mapVersion,mapVersion.map,mapVersion.reviews,reviewsSummary";
+  private static final String REPLAY_INCLUDES = "featuredMod,playerStats,playerStats.player,reviews,reviews.player,mapVersion,mapVersion.map,reviewsSummary";
   private static final String COOP_RESULT_INCLUDES = "game.playerStats.player";
   private static final String PLAYER_INCLUDES = "globalRating,ladder1v1Rating,names";
   private static final String MOD_ENDPOINT = "/data/mod";
@@ -162,7 +162,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Cacheable(value = CacheNames.MODS, sync = true)
   public List<Mod> getMods() {
     return getAll("/data/mod", ImmutableMap.of(
-        "include", "latestVersion,reviewsSummary"));
+        "include", "latestVersion,reviewsSummary,versions,versions.reviews"));
   }
 
   @Override
@@ -322,7 +322,8 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     JSONAPIDocument<List<GameReviewsSummary>> pageWithPageCount = getPageWithMeta("/data/gameReviewsSummary", count, page, ImmutableMap.of(
         "sort", "-lowerBound",
         // TODO this was done in a rush, check what is actually needed
-        "include", "game,game.featuredMod,game.playerStats,game.playerStats.player,game.reviews,game.reviews.player,game.mapVersion,game.mapVersion.map,game.mapVersion.reviews",
+        "include", "game,game.featuredMod,game.playerStats,game.playerStats.player,game.reviews,game.reviews.player," +
+            "game.mapVersion,game.mapVersion.map",
         "filter", "game.endTime=isnull=false"
     ));
     return new Tuple<>(pageWithPageCount.get().stream()
@@ -345,7 +346,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   public Optional<MapVersion> findMapByFolderName(String folderName) {
     List<MapVersion> maps = getMany("/data/mapVersion", 1, ImmutableMap.of(
         "filter", String.format("filename==\"*%s*\"", folderName),
-        "include", "map,map.statistics,reviews"));
+        "include", "map,map.statistics,map.versions,map.versions.reviews"));
     if (maps.isEmpty()) {
       return Optional.empty();
     }
@@ -413,7 +414,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     if (searchConfig.hasQuery()) {
       parameterMap.add("filter", searchConfig.getSearchQuery() + ";latestVersion.hidden==\"false\"");
     }
-    parameterMap.add("include", "latestVersion,latestVersion.reviews,latestVersion.reviews.player,reviewsSummary,versions,versions.reviews");
+    parameterMap.add("include", "latestVersion,reviewsSummary,versions,versions.reviews");
     parameterMap.add("sort", searchConfig.getSortConfig().toQuery());
     JSONAPIDocument<List<Mod>> jsonApiDoc = getPageWithMeta(MOD_ENDPOINT, count, page, parameterMap);
     return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
@@ -432,22 +433,24 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   public Tuple<List<Ladder1v1Map>, java.util.Map<String, ?>> getLadder1v1MapsWithMeta(int count, int page) {
     JSONAPIDocument<List<Ladder1v1Map>> jsonApiDoc = getPageWithMeta("/data/ladder1v1Map", count, page, ImmutableMap.of(
-        "include", "mapVersion,mapVersion.map,mapVersion.map.latestVersion,mapVersion.map.latestVersion.reviews," +
-            "mapVersion.map.author,mapVersion.map.statistics,mapVerison.map.reviewsSummary,map.versions.reviews"));
+        "include", "mapVersion,mapVersion.map,mapVersion.map.latestVersion,mapVersion.map.author," +
+            "mapVersion.map.statistics,mapVersion.map.reviewsSummary,mapVersion.map.versions.reviews," +
+            "mapVersion.map.versions.reviews.player"));
     return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
   }
 
   @Override
   public List<TutorialCategory> getTutorialCategories() {
     return getAll("/data/tutorialCategory",
-        ImmutableMap.of("include", "tutorials,tutorials.mapVersion.map,tutorials.mapVersion.map.latestVersion,tutorials.mapVersion.map.author,tutorials.mapVersion.map.statistics"));
+        ImmutableMap.of("include", "tutorials,tutorials.mapVersion.map,tutorials.mapVersion.map.latestVersion," +
+            "tutorials.mapVersion.map.author,tutorials.mapVersion.map.statistics"));
   }
 
   @Override
   public Tuple<List<MapVersion>, java.util.Map<String, ?>> getOwnedMapsWithMeta(int playerId, int loadMoreCount, int page) {
     JSONAPIDocument<List<MapVersion>> jsonApiDoc = getPageWithMeta("/data/mapVersion", loadMoreCount, page, ImmutableMap.of(
-        "include", "map,map.latestVersion,map.latestVersion.reviews,map.author,map.statistics,map.reviewsSummary," +
-            "map.versions.reviews",
+        "include", "map,map.latestVersion,map.author,map.statistics,map.reviewsSummary," +
+            "map.versions.reviews,map.versions.reviews.player",
         "filter", rsql(qBuilder().string("map.author.id").eq(String.valueOf(playerId)))
     ));
     return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
@@ -477,8 +480,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     if (searchConfig.hasQuery()) {
       parameterMap.add("filter", searchConfig.getSearchQuery() + ";latestVersion.hidden==\"false\"");
     }
-    parameterMap.add("include", "latestVersion,latestVersion.reviews,latestVersion.reviews.player,author,statistics,reviewsSummary," +
-        "versions.reviews");
+    parameterMap.add("include", "latestVersion,author,statistics,reviewsSummary,versions.reviews,versions.reviews.player");
     parameterMap.add("sort", searchConfig.getSortConfig().toQuery());
     JSONAPIDocument<List<Map>> jsonApiDoc = getPageWithMeta(MAP_ENDPOINT, count, page, parameterMap);
     return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
