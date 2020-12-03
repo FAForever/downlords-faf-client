@@ -153,7 +153,7 @@ public class TeamMatchmakingService implements InitializingBean {
     });
   }
 
-  private void onSearchInfoMessage(SearchInfoMessage message) {
+  protected void onSearchInfoMessage(SearchInfoMessage message) {
     matchmakingQueues.stream().filter(q -> Objects.equals(q.getQueueName(), message.getQueueName())).forEach(q -> {
           Platform.runLater(() -> {
             q.setJoined(message.getState() == MatchmakingState.START);
