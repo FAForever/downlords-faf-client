@@ -1,6 +1,6 @@
 package com.faforever.client.ui.alert.animation;
 
-import com.jfoenix.transitions.CachedTransition;
+import com.faforever.client.ui.transitions.CachedTransition;
 import javafx.animation.Animation;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;

@@ -205,7 +205,6 @@ public class PlayerService implements InitializingBean {
 
     if (!playersByGame.get(game.getId()).contains(player)) {
       player.setGame(game);
-      updatePlayerChatUsers(player);
       playersByGame.get(game.getId()).add(player);
       if (player.getSocialStatus() == FRIEND
           && game.getStatus() == GameStatus.OPEN
@@ -213,6 +212,7 @@ public class PlayerService implements InitializingBean {
         eventBus.post(new FriendJoinedGameEvent(player, game));
       }
     }
+    updatePlayerChatUsers(player);
   }
 
 

@@ -1,6 +1,7 @@
 package com.faforever.client.main;
 
 import ch.micheljung.fxwindow.FxStage;
+import com.faforever.client.FafClientApplication;
 import com.faforever.client.chat.event.UnreadPartyMessageEvent;
 import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
 import com.faforever.client.config.ClientProperties;
@@ -79,6 +80,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -86,6 +88,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -120,6 +123,8 @@ public class MainController implements Controller<Node> {
   private final ApplicationEventPublisher applicationEventPublisher;
   private final String mainWindowTitle;
   private final int ratingBeta;
+  private final boolean alwaysReloadTabs;
+  private final Environment environment;
 
   public Pane mainHeaderPane;
   public Pane contentPane;
@@ -152,7 +157,7 @@ public class MainController implements Controller<Node> {
                         NotificationService notificationService, PlayerService playerService,
                         GameService gameService, UiService uiService, EventBus eventBus,
                         GamePathHandler gamePathHandler, PlatformService platformService,
-                        ClientProperties clientProperties, ApplicationEventPublisher applicationEventPublisher) {
+                        ClientProperties clientProperties, ApplicationEventPublisher applicationEventPublisher, Environment environment) {
     this.preferencesService = preferencesService;
     this.i18n = i18n;
     this.notificationService = notificationService;
@@ -163,9 +168,11 @@ public class MainController implements Controller<Node> {
     this.gamePathHandler = gamePathHandler;
     this.platformService = platformService;
     this.applicationEventPublisher = applicationEventPublisher;
+    this.environment = environment;
     this.viewCache = CacheBuilder.newBuilder().build();
     this.mainWindowTitle = clientProperties.getMainWindowTitle();
     this.ratingBeta = clientProperties.getTrueSkill().getBeta();
+    alwaysReloadTabs = Arrays.asList(environment.getActiveProfiles()).contains(FafClientApplication.PROFILE_RELOAD);
   }
 
   /**
@@ -279,12 +286,18 @@ public class MainController implements Controller<Node> {
     Node node = controller.getRoot();
     ObservableList<Node> children = contentPane.getChildren();
 
+    if (alwaysReloadTabs) {
+      children.clear();
+    }
+
     if (!children.contains(node)) {
       children.add(node);
       JavaFxUtil.setAnchors(node, 0d);
     }
 
-    Optional.ofNullable(currentItem).ifPresent(item -> getView(item).hide());
+    if (!alwaysReloadTabs) {
+      Optional.ofNullable(currentItem).ifPresent(item -> getView(item).hide());
+    }
     controller.display(navigateEvent);
   }
 
@@ -533,6 +546,9 @@ public class MainController implements Controller<Node> {
   }
 
   private AbstractViewController<?> getView(NavigationItem item) {
+    if (alwaysReloadTabs) {
+      return uiService.loadFxml(item.getFxmlFile());
+    }
     return noCatch(() -> viewCache.get(item, () -> uiService.loadFxml(item.getFxmlFile())));
   }
 

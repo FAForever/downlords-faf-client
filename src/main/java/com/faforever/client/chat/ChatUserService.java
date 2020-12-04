@@ -63,34 +63,36 @@ public class ChatUserService implements InitializingBean {
   public void populateAvatar(ChatChannelUser chatChannelUser) {
     if (chatChannelUser.getAvatar().isEmpty()) {
       chatChannelUser.getPlayer()
-          .ifPresent(player -> Platform.runLater(() -> {
+          .ifPresent(player -> {
+            Image avatar;
             if (!Strings.isNullOrEmpty(player.getAvatarUrl())) {
-              chatChannelUser.setAvatar(avatarService.loadAvatar(player.getAvatarUrl()));
+              avatar = avatarService.loadAvatar(player.getAvatarUrl());
             } else {
-              chatChannelUser.setAvatar(null);
+              avatar = null;
             }
-          }));
+            Platform.runLater(() -> {
+              chatChannelUser.setAvatar(avatar);
+            });
+          });
     }
   }
 
   public void populateCountry(ChatChannelUser chatChannelUser) {
     if (chatChannelUser.getCountryFlag().isEmpty()) {
       chatChannelUser.getPlayer()
-          .ifPresent(player -> Platform.runLater(() -> {
+          .ifPresent(player -> {
             Optional<Image> countryFlag = countryFlagService.loadCountryFlag(player.getCountry());
-            if (countryFlag.isPresent()) {
-              chatChannelUser.setCountryFlag(countryFlag.get());
-            } else {
-              chatChannelUser.setCountryFlag(null);
-            }
-            chatChannelUser.setCountryName(i18n.getCountryNameLocalized(player.getCountry()));
-          }));
+            Platform.runLater(() -> {
+              chatChannelUser.setCountryFlag(countryFlag.orElse(null));
+              chatChannelUser.setCountryName(i18n.getCountryNameLocalized(player.getCountry()));
+            });
+          });
     }
   }
 
   public void populateGameStatus(ChatChannelUser chatChannelUser) {
     chatChannelUser.getPlayer()
-        .ifPresent(player -> Platform.runLater(() -> {
+        .ifPresent(player -> {
           PlayerStatus status = player.getStatus();
           Image playerStatusImage = switch (status) {
             case HOSTING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING);
@@ -98,17 +100,19 @@ public class ChatUserService implements InitializingBean {
             case PLAYING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING);
             default -> null;
           };
-          chatChannelUser.setStatusTooltipText(i18n.get(status.getI18nKey()));
-          chatChannelUser.setStatusImage(playerStatusImage);
-
+          Image mapImage;
           if (status != PlayerStatus.IDLE) {
-            chatChannelUser.setMapImage(mapService.loadPreview(player.getGame().getMapFolderName(), PreviewSize.SMALL));
+            mapImage = mapService.loadPreview(player.getGame().getMapFolderName(), PreviewSize.SMALL);
           } else {
-            chatChannelUser.setMapImage(null);
+            mapImage = null;
           }
-
-          chatChannelUser.setStatus(status);
-        }));
+          Platform.runLater(() -> {
+            chatChannelUser.setStatusTooltipText(i18n.get(status.getI18nKey()));
+            chatChannelUser.setStatusImage(playerStatusImage);
+            chatChannelUser.setMapImage(mapImage);
+            chatChannelUser.setStatus(status);
+          });
+        });
   }
 
   @Subscribe

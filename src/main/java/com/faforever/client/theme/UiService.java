@@ -261,7 +261,12 @@ public class UiService implements InitializingBean, DisposableBean {
         watchKeys.remove(path);
       }
     }
-
+    try {
+      //When replacing a theme file sometimes it is deleted and added again a few milli seconds later.
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {
+      logger.info("Watch thread was interrupted");
+    }
     reloadStylesheet();
   }
 

@@ -26,6 +26,7 @@ public class ModInfoBeanBuilder {
   public ModInfoBeanBuilder defaultValues() {
     modVersionInfo.setCreateTime(LocalDateTime.now());
     Mod mod = new Mod();
+    mod.setAuthor("test");
     modVersionInfo.setMod(mod);
     name("ModVersion");
     uid(UUID.randomUUID().toString());

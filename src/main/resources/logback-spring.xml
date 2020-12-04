@@ -30,7 +30,29 @@
 		</rollingPolicy>
 	</appender>
 	<logger name="faf-ice-adapter-advanced" additivity="false" level="debug">
-		<appender-ref ref="FILE_ICE_ADVANCED" />
+		<appender-ref ref="FILE_ICE_ADVANCED"/>
+	</logger>
+
+	<!-- Map Generator Logs -->
+	<appender name="FILE_MAP_GENERATOR"
+			  class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<encoder
+				class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<Pattern>
+				%msg%n
+			</Pattern>
+		</encoder>
+		<file>${MAP_GENERATOR_LOG:-${java.io.tmpdir:-/tmp}/map_generator.log}</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<cleanHistoryOnStart>true</cleanHistoryOnStart>
+			<fileNamePattern>${MAP_GENERATOR_LOG:-${java.io.tmpdir:-/tmp}/map_generator.log}.%d{yyyy-MM-dd}.gz
+			</fileNamePattern>
+			<maxHistory>1</maxHistory>
+			<totalSizeCap>1MB</totalSizeCap>
+		</rollingPolicy>
+	</appender>
+	<logger name="faf-map-generator" additivity="false" level="debug">
+		<appender-ref ref="FILE_MAP_GENERATOR"/>
 	</logger>
 
 </configuration>

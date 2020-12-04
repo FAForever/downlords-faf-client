@@ -42,6 +42,7 @@ import javafx.scene.layout.Region;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import org.apache.commons.lang3.ArrayUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -49,6 +50,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Path;
@@ -106,6 +108,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private ChatController chatController;
   @Mock
   private ApplicationEventPublisher applicationEventPublisher;
+  @Mock
+  private Environment environment;
   private MainController instance;
   private BooleanProperty gameRunningProperty;
   private final Preferences preferences = new Preferences();
@@ -126,8 +130,10 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
         .setInitialMean(1500)
         .setInitialStandardDeviation(500);
 
+    when(environment.getActiveProfiles()).thenReturn(ArrayUtils.EMPTY_STRING_ARRAY);
+
     instance = new MainController(preferencesService, i18n, notificationService, playerService, gameService,
-        uiService, eventBus, gamePathHandler, platformService, clientProperties, applicationEventPublisher);
+        uiService, eventBus, gamePathHandler, platformService, clientProperties, applicationEventPublisher, environment);
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(loginController.getRoot()).thenReturn(new Pane());

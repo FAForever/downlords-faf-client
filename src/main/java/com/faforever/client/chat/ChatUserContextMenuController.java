@@ -130,10 +130,6 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     removeCustomColorButton.managedProperty().bind(removeCustomColorButton.visibleProperty());
 
     avatarPickerMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() -> !avatarComboBox.getItems().isEmpty(), avatarComboBox.getItems()));
-
-    // Workaround for the issue that the popup gets closed when the "custom color" button is clicked, causing an NPE
-    // in the custom color popup window.
-    colorPicker.focusedProperty().addListener((observable, oldValue, newValue) -> chatUserContextMenuRoot.setAutoHide(!newValue));
   }
 
   @NotNull
@@ -171,7 +167,6 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
         chatPrefs.getUserToColor().put(lowerUsername, newValue);
       }
       chatUser.setColor(newValue);
-      chatUserContextMenuRoot.hide();
     });
 
     removeCustomColorButton.visibleProperty().bind(chatPrefs.chatColorModeProperty().isEqualTo(CUSTOM)

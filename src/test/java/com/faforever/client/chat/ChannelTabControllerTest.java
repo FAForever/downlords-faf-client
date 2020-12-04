@@ -17,7 +17,6 @@ import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.MapChangeListener.Change;
@@ -34,9 +33,12 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.faforever.client.player.SocialStatus.FOE;
 import static com.faforever.client.player.SocialStatus.FRIEND;
@@ -62,6 +64,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   private static final String CHANNEL_NAME = "#testChannel";
 
   private ChannelTabController instance;
+  private UserFilterController userFilterController;
 
   @Mock
   private ChatService chatService;
@@ -81,8 +84,6 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   private NotificationService notificationService;
   @Mock
   private UiService uiService;
-  @Mock
-  private UserFilterController userFilterController;
   @Mock
   private ChatUserItemController chatUserItemController;
   @Mock
@@ -110,6 +111,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
         notificationService, reportingService,
         uiService, eventBus, webViewConfigurer, countryFlagService,
         platformService);
+    userFilterController = new UserFilterController(i18n, countryFlagService);
 
     defaultChannel = new Channel(CHANNEL_NAME);
     preferences = new Preferences();
@@ -118,11 +120,10 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     when(uiService.loadFxml("theme/chat/user_filter.fxml")).thenReturn(userFilterController);
     when(uiService.loadFxml("theme/chat/chat_user_item.fxml")).thenReturn(chatUserItemController);
     when(uiService.loadFxml("theme/chat/chat_user_category.fxml")).thenReturn(chatUserItemCategoryController);
-    when(userFilterController.getRoot()).thenReturn(new Pane());
-    when(userFilterController.filterAppliedProperty()).thenReturn(new SimpleBooleanProperty(false));
     when(chatUserItemController.getRoot()).thenReturn(new Pane());
     when(uiService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
 
+    loadFxml("theme/chat/user_filter.fxml", clazz -> userFilterController);
     loadFxml("theme/chat/channel_tab.fxml", clazz -> instance);
 
     TabPane tabPane = new TabPane();
@@ -669,5 +670,121 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     assertTrue(otherUsers.stream().anyMatch(userItem -> userItem.getUser().equals(user1)));
     assertEquals(0, enemies.size());
     assertEquals(2, otherUsers.size());
+  }
+
+  @Test
+  public void testFindModeratorByName() {
+    defaultChannel.addUsers(createUserList(Map.of(
+        ChatUserCategory.MODERATOR, Arrays.asList("1Moderator", "12Moderator", "123Moderator")
+    )));
+
+    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> instance.setChannel(defaultChannel));
+
+    runOnFxThreadAndWait(() -> instance.userSearchTextField.setText("12"));
+    assertTrue(instance.checkUsersAreInList(ChatUserCategory.MODERATOR, "12Moderator", "123Moderator"));
+
+    runOnFxThreadAndWait(() -> instance.userSearchTextField.setText("123"));
+    assertTrue(instance.checkUsersAreInList(ChatUserCategory.MODERATOR, "123Moderator"));
+
+    runOnFxThreadAndWait(() -> instance.userSearchTextField.setText(""));
+    assertTrue(instance.checkUsersAreInList(ChatUserCategory.MODERATOR, "1Moderator", "12Moderator", "123Moderator"));
+  }
+
+  @Test
+  public void testFindOtherUserByName() {
+    defaultChannel.addUsers(createUserList(Map.of(
+        ChatUserCategory.OTHER, Arrays.asList("MarcSpector", "Lenkin")
+    )));
+
+    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> instance.setChannel(defaultChannel));
+
+    runOnFxThreadAndWait(() -> instance.userSearchTextField.setText("Marc"));
+    assertTrue(instance.checkUsersAreInList(ChatUserCategory.OTHER, "MarcSpector"));
+
+    runOnFxThreadAndWait(() -> instance.userSearchTextField.setText("Lenkin"));
+    assertTrue(instance.checkUsersAreInList(ChatUserCategory.OTHER, "Lenkin"));
+
+    runOnFxThreadAndWait(() -> instance.userSearchTextField.setText(""));
+    assertTrue(instance.checkUsersAreInList(ChatUserCategory.OTHER, "MarcSpector", "Lenkin"));
+  }
+
+  @Test
+  public void testFindEnemyUserByName() {
+    defaultChannel.addUsers(createUserList(Map.of(
+        ChatUserCategory.FOE, Arrays.asList("EnemyPlayer", "RandomFoePlayer")
+    )));
+
+    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> instance.setChannel(defaultChannel));
+
+    runOnFxThreadAndWait(() -> instance.userSearchTextField.setText("Random"));
+    assertTrue(instance.checkUsersAreInList(ChatUserCategory.FOE, "RandomFoePlayer"));
+
+    runOnFxThreadAndWait(() -> instance.userSearchTextField.setText(""));
+    assertTrue(instance.checkUsersAreInList(ChatUserCategory.FOE, "EnemyPlayer", "RandomFoePlayer"));
+  }
+
+  @Test
+  public void testFindChatOnlyUserByName() {
+    defaultChannel.addUsers(createUserList(Map.of(
+        ChatUserCategory.CHAT_ONLY, Arrays.asList("ChatOnlyPlayer", "ExamplePlayer")
+    )));
+
+    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> instance.setChannel(defaultChannel));
+
+    runOnFxThreadAndWait(() -> instance.userSearchTextField.setText("Only"));
+    assertTrue(instance.checkUsersAreInList(ChatUserCategory.CHAT_ONLY, "ChatOnlyPlayer"));
+
+    runOnFxThreadAndWait(() -> instance.userSearchTextField.setText(""));
+    assertTrue(instance.checkUsersAreInList(ChatUserCategory.CHAT_ONLY, "ChatOnlyPlayer", "ExamplePlayer"));
+  }
+
+  @Test
+  public void testFindSimilarNamesOfUsersInList() {
+    defaultChannel.addUsers(createUserList(Map.of(
+        ChatUserCategory.MODERATOR, Arrays.asList("1_NAme_1", "Moderator"),
+        ChatUserCategory.CHAT_ONLY, Arrays.asList("ChatOnlyNameOlolo", "Bingo"),
+        ChatUserCategory.OTHER, Arrays.asList("Player", "PlayerNamEEE"),
+        ChatUserCategory.FRIEND, Arrays.asList("Friend", "NaMeFriend"),
+        ChatUserCategory.FOE, Arrays.asList("FOE", "For______NAME")
+    )));
+
+    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> instance.setChannel(defaultChannel));
+
+    runOnFxThreadAndWait(() -> instance.userSearchTextField.setText("name"));
+    assertTrue(instance.checkUsersAreInList(ChatUserCategory.MODERATOR, "1_NAme_1"));
+    assertTrue(instance.checkUsersAreInList(ChatUserCategory.CHAT_ONLY, "ChatOnlyNameOlolo"));
+    assertTrue(instance.checkUsersAreInList(ChatUserCategory.OTHER, "PlayerNamEEE"));
+    assertTrue(instance.checkUsersAreInList(ChatUserCategory.FRIEND, "NaMeFriend"));
+    assertTrue(instance.checkUsersAreInList(ChatUserCategory.FOE, "For______NAME"));
+  }
+
+  private List<ChatChannelUser> createUserList(Map<ChatUserCategory, List<String>> map) {
+    List<ChatChannelUser> list = new ArrayList<>();
+    map.forEach((category, usernames) -> list.addAll(prepareUserList(category, usernames)));
+    return list;
+  }
+
+  private List<ChatChannelUser> prepareUserList(ChatUserCategory category, List<String> usernames) {
+    return usernames.stream().map(name -> {
+      ChatChannelUserBuilder builder = ChatChannelUserBuilder.create(name);
+      PlayerBuilder playerBuilder = PlayerBuilder.create(name);
+      switch (category) {
+        case OTHER -> builder.player(playerBuilder.socialStatus(OTHER).get());
+        case FRIEND -> builder.player(playerBuilder.socialStatus(FRIEND).get());
+        case FOE -> builder.player(playerBuilder.socialStatus(FOE).get());
+        case MODERATOR -> builder.player(playerBuilder.socialStatus(OTHER).get()).moderator(true);
+        case CHAT_ONLY -> builder.player(null);
+      }
+      return builder.get();
+    }).peek(user -> {
+      if (user.getPlayer().isPresent()) {
+        when(playerService.getPlayerForUsername(user.getUsername())).thenReturn(user.getPlayer());
+      }
+    }).collect(Collectors.toList());
   }
 }

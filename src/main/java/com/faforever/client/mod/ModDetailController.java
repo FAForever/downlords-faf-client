@@ -147,7 +147,8 @@ public class ModDetailController implements Controller<Node> {
     Player player = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("No current player is available"));
 
-    reviewsController.setCanWriteReview(modService.isModInstalled(modVersion.getUid()));
+    reviewsController.setCanWriteReview(modService.isModInstalled(modVersion.getUid())
+        && !modVersion.getMod().getAuthor().equals(player.getUsername()));
     reviewsController.setOnSendReviewListener(this::onSendReview);
     reviewsController.setOnDeleteReviewListener(this::onDeleteReview);
     reviewsController.setReviews(modVersion.getReviews());

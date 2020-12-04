@@ -12,7 +12,7 @@ env:
     - secure: "UVIbeoJpx9n0KSWHbpdWZuR4zeZfXw3JQBq2Zb1h0/j4uREfXWiGFuNVQBPjsdtYi2+LkecjJ/MgKWo+SS0SjsvTa/ZPkOXt4408H1qYgwVnvWoeL/g1QQ6T8ADNysl/4ZtJLnSp0WXYEBkfHYZJD++vgDwkpVhnCLVzSFVAHls="
 
 before_install:
-  - export JDK="openjdk14"
+  - export JDK="openjdk15"
   #Installs the normal openjdk as this is not supported by travis itself
   - chmod +x ./ci/installjdk.sh && ./ci/installjdk.sh
   - export JAVA_HOME="~/$JDK"
@@ -30,13 +30,14 @@ script:
   - java -version
   - chmod +x ./ci/build.sh && ./ci/build.sh
   - chmod +x ./ci/test.sh && ./ci/test.sh
-  - chmod +x ./ci/test-report.sh && ./ci/test-report.sh
+#  Jacoco does not currently support javafx
+#  - chmod +x ./ci/test-report.sh && ./ci/test-report.sh
 
 after_success:
   - if [ -n "${TRAVIS_TAG}" ]; then chmod +x ./ci/github-release.sh && ./ci/github-release.sh; fi
 
 after_failure:
-- cat /home/travis/build/FAForever/downlords-faf-client/hs_err_pid*.log
+  - cat /home/travis/build/FAForever/downlords-faf-client/hs_err_pid*.log
 
 deploy:
   provider: releases

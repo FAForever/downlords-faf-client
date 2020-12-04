@@ -699,4 +699,12 @@ public class ChannelTabController extends AbstractChatTabController {
     }
     return users;
   }
+
+  @VisibleForTesting
+  protected boolean checkUsersAreInList(ChatUserCategory category, String... usernames) {
+    List<String> names = Arrays.asList(usernames);
+    long foundItems = getChatUserItemsByCategory(category).stream()
+        .map(userItem -> userItem.getUser().getUsername()).filter(names::contains).count();
+    return foundItems == names.size();
+  }
 }
