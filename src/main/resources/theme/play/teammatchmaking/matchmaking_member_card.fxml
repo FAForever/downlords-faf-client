@@ -32,11 +32,7 @@
                             <Insets top="2.0" />
                         </padding>
                     </HBox>
-                    <Button fx:id="kickPlayerButton" onAction="#onKickPlayerButtonClicked" styleClass="kickbutton" >
-                        <graphic>
-                            <Region styleClass="icon, close-icon"/>
-                        </graphic>
-                    </Button>
+                    <ImageView fx:id="playerStatusImageView" HBox.hgrow="ALWAYS" visible="false"/>
                     <Label fx:id="uefLabel" styleClass="faction-indicator" alignment="BOTTOM_CENTER" >
                         <graphic>
                             <Region styleClass="icon, uef-icon" />
@@ -75,6 +71,12 @@
                 <Insets bottom="8.0" left="12.0" right="14.0" top="12.0" />
             </padding>
         </HBox>
+        <Button fx:id="kickPlayerButton" onAction="#onKickPlayerButtonClicked" styleClass="kickbutton"
+                AnchorPane.topAnchor="2.0" AnchorPane.rightAnchor="0.0">
+            <graphic>
+                <Region styleClass="icon, close-icon"/>
+            </graphic>
+        </Button>
         <Label fx:id="crownLabel" AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="15.0" >
             <graphic>
                 <Region styleClass="icon, crown-icon" />

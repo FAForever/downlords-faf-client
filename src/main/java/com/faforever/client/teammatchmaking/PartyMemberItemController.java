@@ -7,6 +7,7 @@ import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.game.Faction;
+import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
@@ -14,6 +15,7 @@ import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Strings;
+import javafx.application.Platform;
 import javafx.beans.binding.BooleanBinding;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
@@ -38,6 +40,7 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 public class PartyMemberItemController implements Controller<Node> {
 
   private static final PseudoClass LEADER_PSEUDO_CLASS = PseudoClass.getPseudoClass("leader");
+  private static final PseudoClass PLAYING_PSEUDO_CLASS = PseudoClass.getPseudoClass("playing");
 
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
@@ -62,6 +65,7 @@ public class PartyMemberItemController implements Controller<Node> {
   public Label seraphimLabel;
   public Label crownLabel;
   public HBox playerCard;
+  public ImageView playerStatusImageView;
 
   private Player player;
   //TODO: this is a bit hacky
@@ -116,8 +120,24 @@ public class PartyMemberItemController implements Controller<Node> {
     BooleanBinding isDifferentPlayerBinding = playerService.currentPlayerProperty().isNotEqualTo(player);
     kickPlayerButton.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(playerService.currentPlayerProperty()).and(isDifferentPlayerBinding));
     kickPlayerButton.managedProperty().bind(kickPlayerButton.visibleProperty());
+    playerStatusImageView.managedProperty().bind(playerStatusImageView.visibleProperty());
     crownLabel.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(player));
     playerCard.pseudoClassStateChanged(LEADER_PSEUDO_CLASS, teamMatchmakingService.getParty().getOwner().equals(player));
+
+    playerStatusImageView.setImage(uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING));
+    playerService.getPlayerForUsername(player.getUsername()).get().statusProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue == PlayerStatus.IDLE) {
+        Platform.runLater(() -> {
+          playerStatusImageView.setVisible(false);
+          playerCard.pseudoClassStateChanged(PLAYING_PSEUDO_CLASS, false);
+        });
+      } else {
+        Platform.runLater(() -> {
+          playerStatusImageView.setVisible(true);
+          playerCard.pseudoClassStateChanged(PLAYING_PSEUDO_CLASS, true);
+        });
+      }
+    });
 
     selectFactionsBasedOnParty();
   }

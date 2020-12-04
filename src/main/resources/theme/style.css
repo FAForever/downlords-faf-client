@@ -746,6 +746,10 @@
   -fx-border-color: #dddddd;
 }
 
+.player-card:playing {
+  -fx-border-color: #dd2020;
+}
+
 .h1-tmm {
   -fx-font-size: 24px;
   -fx-padding: -9 0 -9 16;
