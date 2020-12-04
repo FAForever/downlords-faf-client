@@ -1,5 +1,10 @@
 package com.faforever.client.remote.domain;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class PartyInviteMessage extends FafServerMessage {
 
   private Integer sender;
@@ -8,11 +13,4 @@ public class PartyInviteMessage extends FafServerMessage {
     super(FafServerMessageType.PARTY_INVITE);
   }
 
-  public Integer getSender() {
-    return sender;
-  }
-
-  public void setSender(Integer sender) {
-    this.sender = sender;
-  }
 }

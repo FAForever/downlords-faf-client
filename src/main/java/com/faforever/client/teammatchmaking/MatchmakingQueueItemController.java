@@ -1,14 +1,13 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowMapPoolEvent;
 import com.faforever.client.player.PlayerService;
 import com.google.common.eventbus.EventBus;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -45,9 +44,6 @@ public class MatchmakingQueueItemController implements Controller<Node> {
   public Label matchCancelledLabel;
   public Button mapPoolButton;
 
-
-  private Timeline queuePopTimeUpdater;
-
   private MatchmakingQueue queue;
 
   public MatchmakingQueueItemController(PlayerService playerService, TeamMatchmakingService teamMatchmakingService, I18n i18n, EventBus eventBus) {
@@ -60,16 +56,13 @@ public class MatchmakingQueueItemController implements Controller<Node> {
   @Override
   public void initialize() {
     eventBus.register(this);
-    joinLeaveQueueButton.widthProperty().addListener(new ChangeListener<Number>() {
-      @Override
-      public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-        if ((double) newValue > 150.0) {
-          joinLeaveQueueButton.setText(
-              i18n.get(String.format(QUEUE_I18N_PATTERN, queue.getQueueName(), "fullName")));
-        } else {
-          joinLeaveQueueButton.setText(
-              i18n.get(String.format(QUEUE_I18N_PATTERN, queue.getQueueName(), "shortName")));
-        }
+    joinLeaveQueueButton.widthProperty().addListener((observable, oldValue, newValue) -> {
+      if ((double) newValue > 150.0) {
+        joinLeaveQueueButton.setText(
+            i18n.get(String.format(QUEUE_I18N_PATTERN, queue.getQueueName(), "fullName")));
+      } else {
+        joinLeaveQueueButton.setText(
+            i18n.get(String.format(QUEUE_I18N_PATTERN, queue.getQueueName(), "shortName")));
       }
     });
   }
@@ -79,25 +72,23 @@ public class MatchmakingQueueItemController implements Controller<Node> {
     return queueItemRoot;
   }
 
-  void setQueue(MatchmakingQueue queue) {
+  public void setQueue(MatchmakingQueue queue) {
     this.queue = queue;
 
     playersInQueueLabel.textProperty().bind(createStringBinding(
         () -> i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue()).toUpperCase(),
         queue.playersInQueueProperty()));
 
-    matchFoundLabel.visibleProperty().bind(matchFoundLabel.managedProperty());
-    matchStartingLabel.visibleProperty().bind(matchStartingLabel.managedProperty());
-    matchCancelledLabel.visibleProperty().bind(matchCancelledLabel.managedProperty());
+    JavaFxUtil.bindManagedToVisible(matchFoundLabel, matchStartingLabel, matchCancelledLabel);
     queue.matchingStatusProperty().addListener((observable, oldValue, newValue) -> {
       disableMatchStatus();
       if (newValue == null) {
         return;
       }
       switch (newValue) {
-        case MATCH_FOUND -> matchFoundLabel.setManaged(true);
-        case GAME_LAUNCHING -> matchStartingLabel.setManaged(true);
-        case MATCH_CANCELLED -> matchCancelledLabel.setManaged(true);
+        case MATCH_FOUND -> matchFoundLabel.setVisible(true);
+        case GAME_LAUNCHING -> matchStartingLabel.setVisible(true);
+        case MATCH_CANCELLED -> matchCancelledLabel.setVisible(true);
       }
     });
 
@@ -111,7 +102,7 @@ public class MatchmakingQueueItemController implements Controller<Node> {
 
     mapPoolButton.setText(i18n.get("teammatchmaking.mapPool").toUpperCase());
 
-    queuePopTimeUpdater = new Timeline(1, new KeyFrame(javafx.util.Duration.seconds(0), (ActionEvent event) -> {
+    Timeline queuePopTimeUpdater = new Timeline(1, new KeyFrame(javafx.util.Duration.seconds(0), (ActionEvent event) -> {
       if (queue.getQueuePopTime() != null) {
         Instant now = Instant.now();
         Duration timeUntilPopQueue = Duration.between(now, queue.getQueuePopTime());
@@ -127,9 +118,9 @@ public class MatchmakingQueueItemController implements Controller<Node> {
   }
 
   public void disableMatchStatus() {
-    matchFoundLabel.setManaged(false);
-    matchStartingLabel.setManaged(false);
-    matchCancelledLabel.setManaged(false);
+    matchFoundLabel.setVisible(false);
+    matchStartingLabel.setVisible(false);
+    matchCancelledLabel.setVisible(false);
   }
 
   public void onJoinLeaveQueueClicked(ActionEvent actionEvent) {

@@ -4,13 +4,15 @@ import com.faforever.client.remote.domain.FafServerMessage;
 import com.faforever.client.remote.domain.FafServerMessageType;
 import com.faforever.client.remote.domain.RatingRange;
 import com.google.gson.annotations.SerializedName;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
 public class MatchmakerInfoMessage extends FafServerMessage {
 
-  private String action; // TODO: doesn't exist anymore
-
+  @Data
   public static class MatchmakerQueue {
 
     private String queueName;
@@ -36,74 +38,13 @@ public class MatchmakerInfoMessage extends FafServerMessage {
       this.boundary80s = boundary80s;
     }
 
-    public String getQueueName() {
-      return queueName;
-    }
-
-    public void setQueueName(String queueName) {
-      this.queueName = queueName;
-    }
-
-    public String getQueuePopTime() {
-      return queuePopTime;
-    }
-
-    public void setQueuePopTime(String queuePopTime) {
-      this.queuePopTime = queuePopTime;
-    }
-
-    public List<RatingRange> getBoundary75s() {
-      return boundary75s;
-    }
-
-    public void setBoundary75s(List<RatingRange> boundary75s) {
-      this.boundary75s = boundary75s;
-    }
-
-    public List<RatingRange> getBoundary80s() {
-      return boundary80s;
-    }
-
-    public void setBoundary80s(List<RatingRange> boundary80s) {
-      this.boundary80s = boundary80s;
-    }
-
-    public int getTeamSize() {
-      return teamSize;
-    }
-
-    public void setTeamSize(int team_size) {
-      this.teamSize = team_size;
-    }
-
-    public int getNumPlayers() {
-      return numPlayers;
-    }
-
-    public void setNumPlayers(int numPlayers) {
-      this.numPlayers = numPlayers;
-    }
   }
+  @Getter
+  @Setter
   private List<MatchmakerQueue> queues;
 
   public MatchmakerInfoMessage() {
     super(FafServerMessageType.MATCHMAKER_INFO);
   }
 
-
-  public String getAction() {
-    return action;
-  }
-
-  public void setAction(String action) {
-    this.action = action;
-  }
-
-  public List<MatchmakerQueue> getQueues() {
-    return queues;
-  }
-
-  public void setQueues(List<MatchmakerQueue> queues) {
-    this.queues = queues;
-  }
 }

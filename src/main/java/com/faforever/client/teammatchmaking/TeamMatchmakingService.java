@@ -57,7 +57,7 @@ import java.util.concurrent.ScheduledFuture;
 @Lazy
 @Service
 @Slf4j
-public class TeamMatchmakingService implements InitializingBean {
+public class TeamMatchmakingService {
 
   private final FafServerAccessor fafServerAccessor;
   private final PlayerService playerService;
@@ -77,11 +77,6 @@ public class TeamMatchmakingService implements InitializingBean {
 
   private volatile boolean matchFoundAndWaitingForGameLaunch = false;
   private boolean queuesAdded = false;
-
-  @Override
-  public void afterPropertiesSet() throws Exception {
-
-  }
 
   public TeamMatchmakingService(FafServerAccessor fafServerAccessor, PlayerService playerService, NotificationService notificationService, PreferencesService preferencesService, FafService fafService, EventBus eventBus, I18n i18n, TaskScheduler taskScheduler, GameService gameService) {
     this.fafServerAccessor = fafServerAccessor;
@@ -124,7 +119,9 @@ public class TeamMatchmakingService implements InitializingBean {
     List<CompletableFuture<?>> futures = new ArrayList<>();
     message.getQueues().forEach(remoteQueue -> {
       MatchmakingQueue localQueue = matchmakingQueues.stream()
-          .filter(q -> Objects.equals(q.getQueueName(), remoteQueue.getQueueName())).findFirst().orElse(null);
+          .filter(q -> Objects.equals(q.getQueueName(), remoteQueue.getQueueName()))
+          .findFirst()
+          .orElse(null);
       if (localQueue == null) {
         queuesAdded = true;
         CompletableFuture<Optional<MatchmakingQueue>> future = fafService.getMatchmakingQueue(remoteQueue.getQueueName());
@@ -154,7 +151,9 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   protected void onSearchInfoMessage(SearchInfoMessage message) {
-    matchmakingQueues.stream().filter(q -> Objects.equals(q.getQueueName(), message.getQueueName())).forEach(q -> {
+    matchmakingQueues.stream()
+        .filter(q -> Objects.equals(q.getQueueName(), message.getQueueName()))
+        .forEach(q -> {
           Platform.runLater(() -> {
             q.setJoined(message.getState() == MatchmakingState.START);
             leaveQueueTimeouts.forEach(f -> f.cancel(false));
@@ -173,7 +172,8 @@ public class TeamMatchmakingService implements InitializingBean {
         }
     );
 
-    if (matchmakingQueues.stream().noneMatch(q -> q.isJoined() && !q.getQueueName().equals(message.getQueueName())) // filter catches a race condition due MatchmakingQueue::isJoined being set on UI thread
+    if (matchmakingQueues.stream()
+        .noneMatch(q -> q.isJoined() && !q.getQueueName().equals(message.getQueueName())) // filter catches a race condition due MatchmakingQueue::isJoined being set on UI thread
         && message.getState() != MatchmakingState.START // catches same race condition
         && !matchFoundAndWaitingForGameLaunch) {
       gameService.onMatchmakerSearchStopped();
@@ -187,17 +187,17 @@ public class TeamMatchmakingService implements InitializingBean {
         i18n.get("teammatchmaking.notification.matchFound.title"),
         i18n.get("teammatchmaking.notification.matchFound.message")
     ));
-    matchmakingQueues.stream().filter(q -> Objects.equals(q.getQueueName(), message.getQueue())).forEach(q -> {
-      q.setTimedOutMatchingStatus(MatchingStatus.MATCH_FOUND, Duration.ofSeconds(15), taskScheduler);
-    });
+    matchmakingQueues.stream()
+        .filter(q -> Objects.equals(q.getQueueName(), message.getQueue()))
+        .forEach(q -> q.setTimedOutMatchingStatus(MatchingStatus.MATCH_FOUND, Duration.ofSeconds(15), taskScheduler));
 
     matchmakingQueues.forEach(q -> q.setJoined(false));
   }
 
   private void onMatchCancelledMessage(MatchCancelledMessage message) {
-    matchmakingQueues.stream().filter(q -> q.getMatchingStatus() != null).forEach(q -> {
-      q.setTimedOutMatchingStatus(MatchingStatus.MATCH_CANCELLED, Duration.ofSeconds(15), taskScheduler);
-    });
+    matchmakingQueues.stream()
+        .filter(q -> q.getMatchingStatus() != null)
+        .forEach(q -> q.setTimedOutMatchingStatus(MatchingStatus.MATCH_CANCELLED, Duration.ofSeconds(15), taskScheduler));
 
     matchFoundAndWaitingForGameLaunch = false;
     gameService.onMatchmakerSearchStopped(); // joining custom games is still blocked till match is cancelled or launched
@@ -208,9 +208,9 @@ public class TeamMatchmakingService implements InitializingBean {
       return;
     }
 
-    matchmakingQueues.stream().filter(q -> q.getMatchingStatus() != null).forEach(q -> {
-      q.setTimedOutMatchingStatus(MatchingStatus.GAME_LAUNCHING, Duration.ofSeconds(15), taskScheduler);
-    });
+    matchmakingQueues.stream()
+        .filter(q -> q.getMatchingStatus() != null)
+        .forEach(q -> q.setTimedOutMatchingStatus(MatchingStatus.GAME_LAUNCHING, Duration.ofSeconds(15), taskScheduler));
 
     matchFoundAndWaitingForGameLaunch = false;
     gameService.onMatchmakerSearchStopped(); // joining custom games is still blocked till match is cancelled or launched
@@ -245,11 +245,10 @@ public class TeamMatchmakingService implements InitializingBean {
 
   public void onPartyInfo(PartyInfoMessage message) {
     Optional<Player> currentPlayer = playerService.getCurrentPlayer();
-    if (currentPlayer.isPresent()) {
-      if (message.getMembers().stream().noneMatch(m -> m.getPlayer() == currentPlayer.get().getId())) {
-        Platform.runLater(() -> initParty(currentPlayer.get()));
-        return;
-      }
+    if (currentPlayer.isPresent() &&
+        message.getMembers().stream().noneMatch(m -> m.getPlayer() == currentPlayer.get().getId())) {
+      Platform.runLater(() -> initParty(currentPlayer.get()));
+      return;
     }
     party.fromInfoMessage(message, playerService);
   }

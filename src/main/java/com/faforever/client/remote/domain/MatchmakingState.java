@@ -5,14 +5,17 @@ import java.util.Arrays;
 public enum MatchmakingState {
   START("start"), STOP("stop");
 
-  private String string;
+  private final String string;
 
   MatchmakingState(String string) {
     this.string = string;
   }
 
   public static MatchmakingState fromString(String string) {
-    return Arrays.stream(MatchmakingState.values()).filter(s -> s.getString().equals(string)).findFirst().orElse(null);
+    return Arrays.stream(MatchmakingState.values())
+        .filter(s -> s.getString().equals(string))
+        .findFirst()
+        .orElse(null);
   }
 
   public String getString() {

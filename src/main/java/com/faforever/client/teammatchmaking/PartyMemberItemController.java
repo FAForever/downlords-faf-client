@@ -6,6 +6,7 @@ import com.faforever.client.chat.ChatUserContextMenuController;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
@@ -25,10 +26,10 @@ import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.layout.HBox;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.lang.ref.WeakReference;
 
@@ -37,6 +38,7 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class PartyMemberItemController implements Controller<Node> {
 
   private static final PseudoClass LEADER_PSEUDO_CLASS = PseudoClass.getPseudoClass("leader");
@@ -68,6 +70,7 @@ public class PartyMemberItemController implements Controller<Node> {
   public ImageView playerStatusImageView;
 
   private Player player;
+  private ChatChannelUser chatUser;
   //TODO: this is a bit hacky
   private WeakReference<ChatUserContextMenuController> contextMenuController = null;
 
@@ -81,47 +84,12 @@ public class PartyMemberItemController implements Controller<Node> {
     return playerItemRoot;
   }
 
-  private ChatChannelUser chatUser;
-
-  public PartyMemberItemController(CountryFlagService countryFlagService, AvatarService avatarService, PlayerService playerService, TeamMatchmakingService teamMatchmakingService, UiService uiService, ChatService chatService, I18n i18n) {
-    this.countryFlagService = countryFlagService;
-    this.avatarService = avatarService;
-    this.playerService = playerService;
-    this.teamMatchmakingService = teamMatchmakingService;
-    this.uiService = uiService;
-    this.chatService = chatService;
-    this.i18n = i18n;
-  }
-
-  void setMember(PartyMember member) {
+  public void setMember(PartyMember member) {
     this.player = member.getPlayer();
     //TODO: this is a bit hacky, a chat channel user is required to create a context menu as in the chat tab (for foeing/befriending/messaging people...)
     chatUser = new ChatChannelUser(player.getUsername(), chatService.getChatUserColor(player.getUsername()), false, player);
 
-    countryImageView.imageProperty().bind(createObjectBinding(() -> countryFlagService.loadCountryFlag(
-        StringUtils.isEmpty(player.getCountry()) ? "" : player.getCountry()).orElse(null), player.countryProperty()));
-
-    avatarImageView.visibleProperty().bind(player.avatarUrlProperty().isNotNull().and(player.avatarUrlProperty().isNotEmpty()));
-    avatarImageView.imageProperty().bind(createObjectBinding(() -> Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));
-    leagueImageView.setManaged(false);
-
-    clanLabel.visibleProperty().bind(player.clanProperty().isNotEmpty().and(player.clanProperty().isNotNull()));
-    clanLabel.textProperty().bind(createStringBinding(() -> Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan()), player.clanProperty()));
-
-    usernameLabel.textProperty().bind(player.usernameProperty());
-
-    leagueLabel.textProperty().bind(createStringBinding(
-        () -> i18n.get("leaderboard.divisionName", RatingUtil.getLeaderboardRating(player)).toUpperCase(),
-        player.globalRatingMeanProperty())); // TODO: replace this with divisionproperty once it is available
-    gameCountLabel.textProperty().bind(createStringBinding(
-        () -> i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase(),
-        player.numberOfGamesProperty()));
-
-    BooleanBinding isDifferentPlayerBinding = playerService.currentPlayerProperty().isNotEqualTo(player);
-    kickPlayerButton.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(playerService.currentPlayerProperty()).and(isDifferentPlayerBinding));
-    kickPlayerButton.managedProperty().bind(kickPlayerButton.visibleProperty());
-    playerStatusImageView.managedProperty().bind(playerStatusImageView.visibleProperty());
-    crownLabel.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(player));
+    initializeBindings();
     playerCard.pseudoClassStateChanged(LEADER_PSEUDO_CLASS, teamMatchmakingService.getParty().getOwner().equals(player));
 
     playerStatusImageView.setImage(uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING));
@@ -140,6 +108,30 @@ public class PartyMemberItemController implements Controller<Node> {
     });
 
     selectFactionsBasedOnParty();
+  }
+
+  private void initializeBindings() {
+    countryImageView.imageProperty().bind(createObjectBinding(() ->
+        countryFlagService.loadCountryFlag(player.getCountry()).orElse(null), player.countryProperty()));
+    avatarImageView.visibleProperty().bind(player.avatarUrlProperty().isNotNull().and(player.avatarUrlProperty().isNotEmpty()));
+    avatarImageView.imageProperty().bind(createObjectBinding(() -> Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));
+    leagueImageView.setManaged(false);
+    JavaFxUtil.bindManagedToVisible(clanLabel, avatarImageView, playerStatusImageView);
+
+    clanLabel.visibleProperty().bind(player.clanProperty().isNotEmpty().and(player.clanProperty().isNotNull()));
+    clanLabel.textProperty().bind(createStringBinding(() -> Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan()), player.clanProperty()));
+    usernameLabel.textProperty().bind(player.usernameProperty());
+    leagueLabel.textProperty().bind(createStringBinding(
+        () -> i18n.get("leaderboard.divisionName", RatingUtil.getLeaderboardRating(player)).toUpperCase(),
+        player.globalRatingMeanProperty())); // TODO: replace this with divisionproperty once it is available
+    gameCountLabel.textProperty().bind(createStringBinding(
+        () -> i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase(),
+        player.numberOfGamesProperty()));
+    crownLabel.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(player));
+
+    BooleanBinding isDifferentPlayerBinding = playerService.currentPlayerProperty().isNotEqualTo(player);
+    kickPlayerButton.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(playerService.currentPlayerProperty()).and(isDifferentPlayerBinding));
+    JavaFxUtil.bindManagedToVisible(kickPlayerButton);
   }
 
   private void selectFactionsBasedOnParty() {

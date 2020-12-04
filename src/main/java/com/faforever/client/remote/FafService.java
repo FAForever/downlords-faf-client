@@ -104,7 +104,6 @@ public class FafService {
     fafServerAccessor.stopSearchMatchmaker();
   }
 
-  //TODO: use for TMM or remove
   public void requestMatchmakerInfo() {
     fafServerAccessor.requestMatchmakerInfo();
   }

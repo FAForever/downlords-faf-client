@@ -49,24 +49,22 @@ public class InvitePlayerController implements Controller<Pane> {
 
     //TODO: use longest common subsequence instead and sort list
     filteredPlayerList.predicateProperty().bind(Bindings.createObjectBinding(() -> p -> {
-          if (playerService.getCurrentPlayer().map(Player::getUsername).map(n -> n.equals(p)).orElse(true)) {
+          if (playerService.getCurrentPlayer()
+              .map(Player::getUsername)
+              .map(n -> n.equals(p))
+              .orElse(true)) {
             return false;
           }
 
-          if (playerTextField.getText().trim().equals("")) {
-            return playerService.getPlayerForUsername(p).map(player -> player.getSocialStatus() == SocialStatus.FRIEND).orElse(false);
+          if (playerTextField.getText().isBlank()) {
+            return playerService.getPlayerForUsername(p)
+                .map(player -> player.getSocialStatus() == SocialStatus.FRIEND)
+                .orElse(false);
           } else {
             return p.toLowerCase().contains(playerTextField.getText().toLowerCase());
           }
         }, playerTextField.textProperty()
     ));
-
-    //TODO
-//    sortedPlayerList.comparatorProperty().bind(Bindings.createObjectBinding(() -> Comparator.comparingDouble(p -> {
-//      if(playerService.get) {
-//
-//      }
-//    })));
 
     playersListView.setItems(sortedPlayerList);
     playerTextField.setText(""); // TODO doesn't show friends on first open

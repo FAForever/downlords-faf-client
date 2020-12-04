@@ -3,15 +3,11 @@ package com.faforever.client.api.dto;
 import com.github.jasminb.jsonapi.annotations.Id;
 import com.github.jasminb.jsonapi.annotations.Relationship;
 import com.github.jasminb.jsonapi.annotations.Type;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.time.OffsetDateTime;
 
-@Getter
-@Setter
-@EqualsAndHashCode(of = "id")
+@Data
 @Type("matchmakerQueueMapPool")
 public class MatchmakerQueueMapPool {
   @Id

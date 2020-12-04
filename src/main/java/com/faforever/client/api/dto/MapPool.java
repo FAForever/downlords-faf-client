@@ -3,16 +3,12 @@ package com.faforever.client.api.dto;
 import com.github.jasminb.jsonapi.annotations.Id;
 import com.github.jasminb.jsonapi.annotations.Relationship;
 import com.github.jasminb.jsonapi.annotations.Type;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 
-@Getter
-@Setter
-@EqualsAndHashCode(of = "id")
+@Data
 @Type("mapPool")
 public class MapPool {
   @Id
