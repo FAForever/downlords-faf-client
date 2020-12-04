@@ -5,12 +5,12 @@ import lombok.Getter;
 @Getter
 public class GameMatchmakingMessage extends ClientMessage {
 
-  private final String queue_name;
+  private final String queueName;
   private final MatchmakingState state;
 
-  public GameMatchmakingMessage(String queue_name, MatchmakingState state) {
+  public GameMatchmakingMessage(String queueName, MatchmakingState state) {
     super(ClientMessageType.GAME_MATCHMAKING);
-    this.queue_name = queue_name;
+    this.queueName = queueName;
     this.state = state;
   }
 

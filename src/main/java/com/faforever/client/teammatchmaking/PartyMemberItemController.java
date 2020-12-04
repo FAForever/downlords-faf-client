@@ -25,6 +25,7 @@ import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.layout.HBox;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -37,6 +38,7 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class PartyMemberItemController implements Controller<Node> {
 
   private static final PseudoClass LEADER_PSEUDO_CLASS = PseudoClass.getPseudoClass("leader");
@@ -68,6 +70,7 @@ public class PartyMemberItemController implements Controller<Node> {
   public ImageView playerStatusImageView;
 
   private Player player;
+  private ChatChannelUser chatUser;
   //TODO: this is a bit hacky
   private WeakReference<ChatUserContextMenuController> contextMenuController = null;
 
@@ -81,25 +84,13 @@ public class PartyMemberItemController implements Controller<Node> {
     return playerItemRoot;
   }
 
-  private ChatChannelUser chatUser;
-
-  public PartyMemberItemController(CountryFlagService countryFlagService, AvatarService avatarService, PlayerService playerService, TeamMatchmakingService teamMatchmakingService, UiService uiService, ChatService chatService, I18n i18n) {
-    this.countryFlagService = countryFlagService;
-    this.avatarService = avatarService;
-    this.playerService = playerService;
-    this.teamMatchmakingService = teamMatchmakingService;
-    this.uiService = uiService;
-    this.chatService = chatService;
-    this.i18n = i18n;
-  }
-
-  void setMember(PartyMember member) {
+  public void setMember(PartyMember member) {
     this.player = member.getPlayer();
     //TODO: this is a bit hacky, a chat channel user is required to create a context menu as in the chat tab (for foeing/befriending/messaging people...)
     chatUser = new ChatChannelUser(player.getUsername(), chatService.getChatUserColor(player.getUsername()), false, player);
 
     countryImageView.imageProperty().bind(createObjectBinding(() -> countryFlagService.loadCountryFlag(
-        StringUtils.isEmpty(player.getCountry()) ? "" : player.getCountry()).orElse(null), player.countryProperty()));
+        StringUtils.hasText(player.getCountry()) ? "" : player.getCountry()).orElse(null), player.countryProperty()));
 
     avatarImageView.visibleProperty().bind(player.avatarUrlProperty().isNotNull().and(player.avatarUrlProperty().isNotEmpty()));
     avatarImageView.imageProperty().bind(createObjectBinding(() -> Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));

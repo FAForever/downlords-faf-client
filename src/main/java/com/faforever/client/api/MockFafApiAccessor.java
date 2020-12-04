@@ -53,7 +53,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public List<PlayerAchievement> getPlayerAchievements(int playerId) {
-    return Collections.emptyList();
+    return List.of();
   }
 
   @Override
@@ -63,7 +63,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public List<AchievementDefinition> getAchievementDefinitions() {
-    return Collections.emptyList();
+    return List.of();
   }
 
   @Override
@@ -84,14 +84,14 @@ public class MockFafApiAccessor implements FafApiAccessor {
   public List<Mod> getMods() {
     Player uploader = new Player();
     return Arrays.asList(
-        new com.faforever.client.api.dto.Mod("1", "Mod Number One", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, Collections.emptyList(), mod(), modReviewsSummary()),
-        new com.faforever.client.api.dto.Mod("2", "Mod Number Two", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, Collections.emptyList(), mod(), modReviewsSummary()),
-        new com.faforever.client.api.dto.Mod("3", "Mod Number Three", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, Collections.emptyList(), mod(), modReviewsSummary()),
-        new com.faforever.client.api.dto.Mod("4", "Mod Number Four", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, Collections.emptyList(), mod(), modReviewsSummary()),
-        new com.faforever.client.api.dto.Mod("5", "Mod Number Five", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, Collections.emptyList(), mod(), modReviewsSummary()),
-        new com.faforever.client.api.dto.Mod("6", "Mod Number Six", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, Collections.emptyList(), mod(), modReviewsSummary()),
-        new com.faforever.client.api.dto.Mod("7", "Mod Number Seven", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, Collections.emptyList(), mod(), modReviewsSummary()),
-        new com.faforever.client.api.dto.Mod("8", "Mod Number Eight", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, Collections.emptyList(), mod(), modReviewsSummary())
+        new com.faforever.client.api.dto.Mod("1", "Mod Number One", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, List.of(), mod(), modReviewsSummary()),
+        new com.faforever.client.api.dto.Mod("2", "Mod Number Two", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, List.of(), mod(), modReviewsSummary()),
+        new com.faforever.client.api.dto.Mod("3", "Mod Number Three", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, List.of(), mod(), modReviewsSummary()),
+        new com.faforever.client.api.dto.Mod("4", "Mod Number Four", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, List.of(), mod(), modReviewsSummary()),
+        new com.faforever.client.api.dto.Mod("5", "Mod Number Five", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, List.of(), mod(), modReviewsSummary()),
+        new com.faforever.client.api.dto.Mod("6", "Mod Number Six", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, List.of(), mod(), modReviewsSummary()),
+        new com.faforever.client.api.dto.Mod("7", "Mod Number Seven", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, List.of(), mod(), modReviewsSummary()),
+        new com.faforever.client.api.dto.Mod("8", "Mod Number Eight", "Mock", OffsetDateTime.now(), OffsetDateTime.now(), uploader, List.of(), mod(), modReviewsSummary())
     );
   }
 
@@ -116,12 +116,12 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public List<Ladder1v1LeaderboardEntry> getLadder1v1Leaderboard() {
-    return Collections.emptyList();
+    return List.of();
   }
 
   @Override
   public List<GlobalLeaderboardEntry> getGlobalLeaderboard() {
-    return Collections.emptyList();
+    return List.of();
   }
 
   @Override
@@ -131,32 +131,32 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public List<GamePlayerStats> getGamePlayerStats(int playerId, KnownFeaturedMod knownFeaturedMod) {
-    return Collections.emptyList();
+    return List.of();
   }
 
   @Override
   public Tuple<List<Map>, java.util.Map<String, ?>> getMapsByIdWithMeta(List<Integer> mapIdList, int count, int page) {
-    return new Tuple(Collections.emptyList(), Collections.emptyMap());
+    return new Tuple(List.of(), Collections.emptyMap());
   }
 
   @Override
   public Tuple<List<Map>, java.util.Map<String, ?>> getMostPlayedMapsWithMeta(int count, int page) {
-    return new Tuple(Collections.emptyList(), Collections.emptyMap());
+    return new Tuple(List.of(), Collections.emptyMap());
   }
 
   @Override
   public Tuple<List<Map>, java.util.Map<String, ?>> getHighestRatedMapsWithMeta(int count, int page) {
-    return new Tuple(Collections.emptyList(), Collections.emptyMap());
+    return new Tuple(List.of(), Collections.emptyMap());
   }
 
   @Override
   public Tuple<List<Map>, java.util.Map<String, ?>> getNewestMapsWithMeta(int count, int page) {
-    return new Tuple(Collections.emptyList(), Collections.emptyMap());
+    return new Tuple(List.of(), Collections.emptyMap());
   }
 
   @Override
   public List<Game> getLastGamesOnMap(int playerId, String mapVersionId, int count) {
-    return Collections.emptyList();
+    return List.of();
   }
 
   @Override
@@ -171,7 +171,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public List<CoopMission> getCoopMissions() {
-    return Collections.emptyList();
+    return List.of();
   }
 
   @Override
@@ -181,22 +181,22 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public List<FeaturedModFile> getFeaturedModFiles(FeaturedMod featuredMod, Integer version) {
-    return Collections.emptyList();
+    return List.of();
   }
 
   @Override
   public Tuple<List<Game>, java.util.Map<String, ?>> getNewestReplaysWithMeta(int count, int page) {
-    return new Tuple(Collections.emptyList(), Collections.emptyMap());
+    return new Tuple(List.of(), Collections.emptyMap());
   }
 
   @Override
   public Tuple<List<Game>, java.util.Map<String, ?>> getHighestRatedReplaysWithMeta(int count, int page) {
-    return new Tuple(Collections.emptyList(), Collections.emptyMap());
+    return new Tuple(List.of(), Collections.emptyMap());
   }
 
   @Override
   public Tuple<List<Game>, java.util.Map<String, ?>> findReplaysByQueryWithMeta(String query, int maxResults, int page, SortConfig sortConfig) {
-    return new Tuple(Collections.emptyList(), Collections.emptyMap());
+    return new Tuple(List.of(), Collections.emptyMap());
   }
 
   @Override
@@ -206,7 +206,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public List<com.faforever.client.api.dto.Player> getPlayersByIds(Collection<Integer> playerIds) {
-    return Collections.emptyList();
+    return List.of();
   }
 
   @Override
@@ -246,7 +246,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public List<TutorialCategory> getTutorialCategories() {
-    return Collections.emptyList();
+    return List.of();
   }
 
   @Override
@@ -256,7 +256,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public Tuple<List<Map>, java.util.Map<String, ?>> findMapsByQueryWithMeta(SearchConfig searchConfig, int page, int count) {
-    return new Tuple(Collections.emptyList(), Collections.emptyMap());
+    return new Tuple(List.of(), Collections.emptyMap());
   }
 
   @Override
@@ -281,12 +281,12 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public Tuple<List<Mod>, java.util.Map<String, ?>> findModsByQueryWithMeta(SearchConfig query, int maxResults, int page) {
-    return new Tuple(Collections.emptyList(), Collections.emptyMap());
+    return new Tuple(List.of(), Collections.emptyMap());
   }
 
   @Override
   public List<MatchmakerQueueMapPool> getMatchmakerPools(int matchmakerQueueId) {
-    return Collections.emptyList();
+    return List.of();
   }
 
   @Override
@@ -296,12 +296,12 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public List<Tournament> getAllTournaments() {
-    return Collections.emptyList();
+    return List.of();
   }
 
   @Override
   public Tuple<List<MapVersion>, java.util.Map<String, ?>> getOwnedMapsWithMeta(int playerId, int loadMoreCount, int page) {
-    return new Tuple(Collections.emptyList(), Collections.emptyMap());
+    return new Tuple(List.of(), Collections.emptyMap());
   }
 
   @Override
@@ -320,6 +320,6 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public List<CoopResult> getCoopLeaderboard(String missionId, int numberOfPlayers) {
-    return Collections.emptyList();
+    return List.of();
   }
 }

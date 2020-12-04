@@ -79,7 +79,7 @@ public class MatchmakingQueueItemController implements Controller<Node> {
     return queueItemRoot;
   }
 
-  void setQueue(MatchmakingQueue queue) {
+  public void setQueue(MatchmakingQueue queue) {
     this.queue = queue;
 
     playersInQueueLabel.textProperty().bind(createStringBinding(

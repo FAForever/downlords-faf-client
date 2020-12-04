@@ -1,19 +1,15 @@
 package com.faforever.client.remote.domain;
 
+import lombok.Getter;
+
+@Getter
 public class AcceptPartyInviteMessage extends ClientMessage {
 
-  private Integer sender_id;
+  private final Integer senderId;
 
-  public AcceptPartyInviteMessage(Integer sender_id) {
+  public AcceptPartyInviteMessage(Integer senderId) {
     super(ClientMessageType.ACCEPT_PARTY_INVITE);
-    this.sender_id = sender_id;
+    this.senderId = senderId;
   }
 
-  public Integer getSender_id() {
-    return sender_id;
-  }
-
-  public void setSender_id(Integer sender_id) {
-    this.sender_id = sender_id;
-  }
 }

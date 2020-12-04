@@ -27,7 +27,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.ReconnectTimerService;
 import com.faforever.client.remote.domain.GameInfoMessage;
@@ -88,7 +87,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 import static com.faforever.client.fa.RatingMode.NONE;
@@ -312,12 +310,7 @@ public class GameService implements InitializingBean {
     }
 
     if (inMatchmakerQueue.get()) {
-      notificationService.addNotification(new ImmediateNotification(
-          i18n.get("teammatchmaking.notification.customAlreadyInQueue.title"),
-          i18n.get("teammatchmaking.notification.customAlreadyInQueue.message"),
-          Severity.WARN,
-          Collections.singletonList(new Action(i18n.get("dismiss")))
-      ));
+      addAlreadyInQueueNotification();
       return completedFuture(null);
     }
 
@@ -325,6 +318,15 @@ public class GameService implements InitializingBean {
         .thenCompose(aVoid -> downloadMapIfNecessary(newGameInfo.getMap()))
         .thenCompose(aVoid -> fafService.requestHostGame(newGameInfo))
         .thenAccept(gameLaunchMessage -> startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), RatingMode.GLOBAL));
+  }
+
+  private void addAlreadyInQueueNotification() {
+    notificationService.addNotification(new ImmediateNotification(
+        i18n.get("teammatchmaking.notification.customAlreadyInQueue.title"),
+        i18n.get("teammatchmaking.notification.customAlreadyInQueue.message"),
+        Severity.WARN,
+        singletonList(new Action(i18n.get("dismiss")))
+    ));
   }
 
   public CompletableFuture<Void> joinGame(Game game, String password) {
@@ -340,12 +342,7 @@ public class GameService implements InitializingBean {
     }
 
     if (inMatchmakerQueue.get()) {
-      notificationService.addNotification(new ImmediateNotification(
-          i18n.get("teammatchmaking.notification.customAlreadyInQueue.title"),
-          i18n.get("teammatchmaking.notification.customAlreadyInQueue.message"),
-          Severity.WARN,
-          Collections.singletonList(new Action(i18n.get("dismiss")))
-      ));
+      addAlreadyInQueueNotification();
       return completedFuture(null);
     }
 

@@ -37,7 +37,6 @@ public class MatchmakingChatController extends AbstractChatTabController {
   private Channel channel;
   private MapChangeListener<String, ChatChannelUser> usersChangeListener;
 
-  @Inject
   // TODO cut dependencies
   public MatchmakingChatController(UserService userService,
                                    PreferencesService preferencesService,

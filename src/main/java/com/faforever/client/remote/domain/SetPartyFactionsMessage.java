@@ -1,10 +1,14 @@
 package com.faforever.client.remote.domain;
 
 import com.faforever.client.game.Faction;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Getter
+@Setter
 public class SetPartyFactionsMessage extends ClientMessage {
 
   private List<String> factions;
@@ -14,11 +18,4 @@ public class SetPartyFactionsMessage extends ClientMessage {
     this.factions = factions.stream().map(Faction::getString).collect(Collectors.toList());
   }
 
-  public List<String> getFactions() {
-    return factions;
-  }
-
-  public void setFactions(List<String> factions) {
-    this.factions = factions;
-  }
 }
