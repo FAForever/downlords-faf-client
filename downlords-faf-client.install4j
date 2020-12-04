@@ -46,6 +46,9 @@
 
 # Adjust maximum memory usage to 712MiB
 -Xmx712m
+-XX:ConcGCThreads=1
+-XX:ParallelGCThreads=1
+-XX:+UseG1GC
 -Djava.library.path=.</content>
       </vmOptionsFile>
       <iconImageFiles>
