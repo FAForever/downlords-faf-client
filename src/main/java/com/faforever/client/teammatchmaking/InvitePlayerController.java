@@ -4,8 +4,6 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
-import com.jfoenix.controls.JFXListView;
-import com.jfoenix.controls.JFXTextField;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -13,6 +11,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
@@ -36,8 +35,8 @@ public class InvitePlayerController implements Controller<Pane> {
   private final SortedList<String> sortedPlayerList = new SortedList<>(filteredPlayerList, Comparator.naturalOrder());
 
   public Pane root;
-  public JFXTextField playerTextField;
-  public JFXListView<String> playersListView;
+  public TextField playerTextField;
+  public ListView<String> playersListView;
   public ListView<String> invitedPlayersListView;
 
   @Override

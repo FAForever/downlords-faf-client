@@ -434,11 +434,11 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   public List<MatchmakerQueueMapPool> getMatchmakerPools(int matchmakerQueueId) {
     return getAll("/data/matchmakerQueueMapPool", ImmutableMap.of(
-        "include", "matchmakerQueue,mapPool,mapPool.mapVersion," +
-            "mapPool.mapVersion.map,mapPool.mapVersion.map.latestVersion," +
-            "mapPool.mapVersion.map.author,mapPool.mapVersion.map.statistics," +
-            "mapPool.mapVersion.map.reviewsSummary,mapPool.mapVersion.map.versions.reviews," +
-            "mapPool.mapVersion.map.versions.reviews.player",
+        "include", "matchmakerQueue,mapPool,mapPool.mapVersions," +
+            "mapPool.mapVersions.map,mapPool.mapVersions.map.latestVersion," +
+            "mapPool.mapVersions.map.author,mapPool.mapVersions.map.statistics," +
+            "mapPool.mapVersions.map.reviewsSummary,mapPool.mapVersions.map.versions.reviews," +
+            "mapPool.mapVersions.map.versions.reviews.player",
         "filter", rsql(qBuilder().string("matchmakerQueue.id").eq(String.valueOf(matchmakerQueueId)))));
   }
 
