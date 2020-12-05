@@ -19,6 +19,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
+import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameLaunchMessage;
@@ -81,7 +82,7 @@ public class TeamMatchmakingService {
   private final List<ScheduledFuture<?>> leaveQueueTimeouts = new LinkedList<>();
 
   private volatile boolean matchFoundAndWaitingForGameLaunch = false;
-  private boolean queuesAdded = false;
+  private final BooleanProperty queuesAdded = new SimpleBooleanProperty(false);
   private final BooleanProperty currentlyInQueue = new SimpleBooleanProperty();
 
   public TeamMatchmakingService(FafServerAccessor fafServerAccessor, PlayerService playerService, NotificationService notificationService, PreferencesService preferencesService, FafService fafService, EventBus eventBus, I18n i18n, TaskScheduler taskScheduler, GameService gameService) {
@@ -124,40 +125,41 @@ public class TeamMatchmakingService {
   @VisibleForTesting
   protected void onMatchmakerInfo(MatchmakerInfoMessage message) {
     List<CompletableFuture<?>> futures = new ArrayList<>();
-    message.getQueues().forEach(remoteQueue -> {
-      MatchmakingQueue localQueue = matchmakingQueues.stream()
-          .filter(q -> Objects.equals(q.getQueueName(), remoteQueue.getQueueName()))
-          .findFirst()
-          .orElse(null);
-      if (localQueue == null) {
-        queuesAdded = true;
-        CompletableFuture<Optional<MatchmakingQueue>> future = fafService.getMatchmakingQueue(remoteQueue.getQueueName());
-        futures.add(future);
-        future.thenAccept(result -> result.ifPresent(
-            matchmakingQueue -> {
-              matchmakingQueues.add(matchmakingQueue);
-              matchmakingQueue.setQueuePopTime(OffsetDateTime.parse(remoteQueue.getQueuePopTime()).toInstant());
-              matchmakingQueue.setTeamSize(remoteQueue.getTeamSize());
-              matchmakingQueue.setPartiesInQueue(remoteQueue.getBoundary75s().size());
-              matchmakingQueue.joinedProperty().addListener((observable, oldValue, newValue) -> {
-                currentlyInQueue.set(matchmakingQueues.stream().anyMatch(MatchmakingQueue::isJoined));
-              });
-              Platform.runLater(() -> matchmakingQueue.setPlayersInQueue(remoteQueue.getNumPlayers()));
-            }));
-      } else {
-        localQueue.setQueuePopTime(OffsetDateTime.parse(remoteQueue.getQueuePopTime()).toInstant());
-        localQueue.setTeamSize(remoteQueue.getTeamSize());
-        localQueue.setPartiesInQueue(remoteQueue.getBoundary75s().size());
-        Platform.runLater(() -> localQueue.setPlayersInQueue(remoteQueue.getNumPlayers()));
-      }
+
+    message.getQueues().forEach(messageQueue -> {
+      CompletableFuture<Optional<MatchmakingQueue>> future = fafService.getMatchmakingQueue(messageQueue.getQueueName());
+      futures.add(future);
+      future.thenAccept(result -> result.ifPresent(
+          matchmakingQueueFromApi -> copyInfoAndAddQueueIfNecessary(matchmakingQueueFromApi, messageQueue)));
     });
 
     CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[futures.size()])).thenRun(() -> {
-      if (queuesAdded) {
-        eventBus.post(new QueuesAddedEvent());
-        queuesAdded = false;
-      }
+      queuesAdded.set(false);
     });
+  }
+
+  private synchronized void copyInfoAndAddQueueIfNecessary(MatchmakingQueue matchmakingQueueFromApi, MatchmakerQueue messageQueue) {
+    MatchmakingQueue localQueue = matchmakingQueues.stream()
+        .filter(q -> Objects.equals(q.getQueueName(), messageQueue.getQueueName()))
+        .findFirst()
+        .orElse(null);
+    if (localQueue == null) {
+      queuesAdded.set(true);
+      matchmakingQueues.add(matchmakingQueueFromApi);
+      matchmakingQueueFromApi.joinedProperty().addListener((observable, oldValue, newValue) -> {
+        currentlyInQueue.set(matchmakingQueues.stream().anyMatch(MatchmakingQueue::isJoined));
+      });
+      copyQueueInfo(matchmakingQueueFromApi, messageQueue);
+    } else {
+      copyQueueInfo(localQueue, messageQueue);
+    }
+  }
+
+  private void copyQueueInfo(MatchmakingQueue queue, MatchmakerQueue messageQueue) {
+    queue.setQueuePopTime(OffsetDateTime.parse(messageQueue.getQueuePopTime()).toInstant());
+    queue.setTeamSize(messageQueue.getTeamSize());
+    queue.setPartiesInQueue(messageQueue.getBoundary75s().size());
+    Platform.runLater(() -> queue.setPlayersInQueue(messageQueue.getNumPlayers()));
   }
 
   @VisibleForTesting
@@ -390,6 +392,10 @@ public class TeamMatchmakingService {
 
   public BooleanProperty currentlyInQueueProperty() {
     return currentlyInQueue;
+  }
+
+  public BooleanProperty queuesAddedProperty() {
+    return queuesAdded;
   }
 
   private void setPartyFromInfoMessage(PartyInfoMessage message) {

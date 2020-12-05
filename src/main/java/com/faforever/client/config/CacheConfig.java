@@ -31,6 +31,7 @@ import static com.faforever.client.config.CacheNames.LADDER_1V1_LEADERBOARD;
 import static com.faforever.client.config.CacheNames.MAPS;
 import static com.faforever.client.config.CacheNames.MAP_GENERATOR;
 import static com.faforever.client.config.CacheNames.MAP_PREVIEW;
+import static com.faforever.client.config.CacheNames.MATCHMAKER_QUEUES;
 import static com.faforever.client.config.CacheNames.MODS;
 import static com.faforever.client.config.CacheNames.MOD_THUMBNAIL;
 import static com.faforever.client.config.CacheNames.NEWS;
@@ -66,6 +67,7 @@ public class CacheConfig extends CachingConfigurerSupport {
         new CaffeineCache(CLAN, newBuilder().expireAfterWrite(1, HOURS).build()),
         new CaffeineCache(FEATURED_MODS, newBuilder().build()),
         new CaffeineCache(FEATURED_MOD_FILES, newBuilder().expireAfterWrite(10, MINUTES).build()),
+        new CaffeineCache(MATCHMAKER_QUEUES, newBuilder().expireAfterWrite(1, MINUTES).build()),
 
         // Images should only be cached as long as they are in use. This avoids loading an image multiple times, while
         // at the same time it doesn't prevent unused images from being garbage collected.

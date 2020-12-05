@@ -113,6 +113,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     initializeBindings();
 
     teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> renderPartyMembers());
+    teamMatchmakingService.queuesAddedProperty().addListener(observable -> renderQueues());
 
     player.statusProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue != PlayerStatus.IDLE) {
@@ -299,11 +300,11 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     });
   }
 
-  @Subscribe
-  public void onQueuesAdded(QueuesAddedEvent event) {
+  private synchronized void renderQueues() {
     Platform.runLater(() -> {
       List<MatchmakingQueue> queues = teamMatchmakingService.getMatchmakingQueues();
       queueBox.getChildren().clear();
+      queues.sort(Comparator.comparing(MatchmakingQueue::getQueueId));
       queues.forEach(queue -> {
         MatchmakingQueueItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml");
         controller.setQueue(queue);

@@ -42,7 +42,6 @@ import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import lombok.RequiredArgsConstructor;
@@ -443,6 +442,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
+  @Cacheable(value = CacheNames.MATCHMAKER_QUEUES, sync = true)
   public Optional<MatchmakerQueue> getMatchmakerQueue(String technicalName) {
     List<MatchmakerQueue> queue = getAll("/data/matchmakerQueue", java.util.Map.of(
         "filter", rsql(qBuilder().string("technicalName").eq(technicalName))));

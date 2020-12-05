@@ -48,6 +48,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.faforever.client.notification.Severity.INFO;
 import static com.faforever.client.notification.Severity.WARN;
@@ -272,14 +273,20 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
     MatchmakingQueue queue1 = new MatchmakingQueue();
     queue1.setQueueName("queue1");
     instance.getMatchmakingQueues().add(queue1);
+    when(fafService.getMatchmakingQueue("queue1")).thenReturn(CompletableFuture.completedFuture(Optional.of(new MatchmakingQueue())));
     when(fafService.getMatchmakingQueue("queue2")).thenReturn(CompletableFuture.completedFuture(Optional.of(new MatchmakingQueue())));
 
+    AtomicInteger propertyChanged = new AtomicInteger(0);
+    instance.queuesAddedProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue)
+        propertyChanged.getAndIncrement();
+    });
     instance.onMatchmakerInfo(createMatchmakerInfoMessage());
 
-    ArgumentCaptor<QueuesAddedEvent> captor = ArgumentCaptor.forClass(QueuesAddedEvent.class);
-    verify(eventBus).post(captor.capture());
+    verify(fafService).getMatchmakingQueue("queue1");
     verify(fafService).getMatchmakingQueue("queue2");
     assertThat(instance.getMatchmakingQueues().size(), is(2));
+    assertThat((propertyChanged.get()), is(1));
   }
 
   @NotNull
@@ -304,17 +311,14 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testInvitePlayer() {
     when(playerService.getPlayerForUsername("invitee")).thenReturn(Optional.of(otherPlayer));
-    instance.getMatchmakingQueues().clear();
-    MatchmakingQueue queue = new MatchmakingQueue();
-    queue.setJoined(false);
-    instance.getMatchmakingQueues().add(queue);
+    instance.currentlyInQueueProperty().set(false);
 
     instance.invitePlayer("invitee");
 
     verify(fafServerAccessor).inviteToParty(otherPlayer);
 
 
-    instance.getMatchmakingQueues().get(0).setJoined(true);
+    instance.currentlyInQueueProperty().set(true);
 
     instance.invitePlayer("invitee");
 
@@ -325,10 +329,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testAcceptInvite() {
-    instance.getMatchmakingQueues().clear();
-    MatchmakingQueue queue = new MatchmakingQueue();
-    queue.setJoined(false);
-    instance.getMatchmakingQueues().add(queue);
+    instance.currentlyInQueueProperty().set(false);
 
     instance.acceptPartyInvite(player);
 
@@ -336,7 +337,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
     verify(eventBus).post(new OpenTeamMatchmakingEvent());
 
 
-    instance.getMatchmakingQueues().get(0).setJoined(true);
+    instance.currentlyInQueueProperty().set(true);
 
     instance.acceptPartyInvite(player);
 
