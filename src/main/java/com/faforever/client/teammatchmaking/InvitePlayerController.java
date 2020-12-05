@@ -4,6 +4,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -42,12 +43,10 @@ public class InvitePlayerController implements Controller<Pane> {
   @Override
   public void initialize() {
     playerTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      playerList.setAll(getPlayerNames());
       playersListView.getSelectionModel().selectFirst();
     });
+    playerList.setAll(getPlayerNames());
 
-
-    //TODO: use longest common subsequence instead and sort list
     filteredPlayerList.predicateProperty().bind(Bindings.createObjectBinding(() -> p -> {
           if (playerService.getCurrentPlayer()
               .map(Player::getUsername)
@@ -67,12 +66,21 @@ public class InvitePlayerController implements Controller<Pane> {
     ));
 
     playersListView.setItems(sortedPlayerList);
-    playerTextField.setText(""); // TODO doesn't show friends on first open
-    playerTextField.requestFocus();
+    playersListView.getSelectionModel().selectFirst();
+    requestFocus();
+  }
+
+  public void requestFocus() {
+    Platform.runLater(() -> {
+      if (!playerTextField.isFocused()) {
+        playerTextField.requestFocus();
+        requestFocus(); // Yes, this is a loop, because it often fails on the first try
+      }
+    });
   }
 
   private Collection<String> getPlayerNames() {
-    return playerService.getPlayerNames(); //TODO: filter for online players
+    return playerService.getPlayerNames();
   }
 
   @Override
@@ -90,11 +98,18 @@ public class InvitePlayerController implements Controller<Pane> {
       invitedPlayersListView.getItems().add(player);
     });
     playerTextField.setText("");
+    Platform.runLater(() -> playersListView.getSelectionModel().selectFirst());
   }
 
   public void onKeyPressed(KeyEvent keyEvent) {
     if (keyEvent.getCode() == KeyCode.ENTER) {
       invite();
+    }
+    if (keyEvent.getCode() == KeyCode.UP) {
+      playersListView.getSelectionModel().selectPrevious();
+    }
+    if (keyEvent.getCode() == KeyCode.DOWN) {
+      playersListView.getSelectionModel().selectNext();
     }
   }
 }

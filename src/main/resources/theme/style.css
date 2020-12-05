@@ -844,6 +844,10 @@
   -fx-opacity: 0.2;
 }
 
+.empty-cells-transparent .list-cell:empty {
+    -fx-opacity: 0;
+}
+
 
 /***************** Faction buttons *****************/
 

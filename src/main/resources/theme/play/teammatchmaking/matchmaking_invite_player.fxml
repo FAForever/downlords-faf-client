@@ -15,18 +15,19 @@
 
     <children>
         <HBox spacing="20">
-            <TextField fx:id="playerTextField" HBox.hgrow="ALWAYS" onAction="#onInviteButtonClicked"/>
+            <TextField fx:id="playerTextField" prefWidth="190.0" onAction="#onInviteButtonClicked"
+                       onKeyPressed="#onKeyPressed"/>
             <Button text="%teammatchmaking.invite" onAction="#onInviteButtonClicked"/>
         </HBox>
         <StackPane alignment="TOP_LEFT">
             <VBox spacing="20">
                 <Label text="%teammatchmaking.invitedPlayers" />
-                <ListView fx:id="invitedPlayersListView" />
+                <ListView fx:id="invitedPlayersListView" styleClass="empty-cells-transparent" prefWidth="190.0"/>
                 <padding>
-                    <Insets top="20.0" />
+                    <Insets top="20.0" left="200.0"/>
                 </padding>
             </VBox>
-            <ListView fx:id="playersListView" styleClass="party-player-invite-list-view" onKeyPressed="#onKeyPressed"/>
+            <ListView fx:id="playersListView" styleClass="empty-cells-transparent" maxWidth="190.0"/>
         </StackPane>
     </children>
 
