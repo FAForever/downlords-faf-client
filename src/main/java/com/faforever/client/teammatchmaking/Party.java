@@ -14,7 +14,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -32,44 +31,44 @@ public class Party {
   }
 
   public void fromInfoMessage(PartyInfoMessage message, PlayerService playerService) {
-    playerService.getPlayersByIds(List.of(message.getOwner()))
-        .thenAccept(players -> {
-          if (!players.isEmpty()) {
-            Platform.runLater(() -> owner.set(players.get(0)));
-          }
-        });
+    setOwnerFromMessage(message, playerService);
+    setMembersFromMessage(message, playerService);
+  }
 
-    playerService
-        .getPlayersByIds(message.getMembers().stream()
-            .map(PartyInfoMessage.PartyMember::getPlayer)
-            .collect(Collectors.toList()))
-        .thenAccept(players -> {
-          List<PartyMember> members = message.getMembers().stream()
-              .map(member -> {
-                Optional<Player> player;
-                if (playerService.getCurrentPlayer()
-                    .map(Player::getId)
-                    .map(id -> id.equals(member.getPlayer()))
-                    .orElse(false)) {
-                  player = playerService.getCurrentPlayer(); // The player found by the search below might contain less information (e.g. a missing flag)
-                } else {
-                  player = players.stream()
-                      .filter(playerToBeFiltered -> playerToBeFiltered.getId() == member.getPlayer())
-                      .findFirst();
-                }
+  private void setOwnerFromMessage(PartyInfoMessage message, PlayerService playerService) {
+    List<Player> players =  playerService.getOnlinePlayersByIds(List.of(message.getOwner()));
+    if (!players.isEmpty()) {
+      Platform.runLater(() -> owner.set(players.get(0)));
+    }
+  }
 
-                if (player.isEmpty()) {
-                  log.warn("Could not find party member {}", member.getPlayer());
-                  return null;
-                } else {
-                  return new PartyMember(player.get(), member.getFactions());
-                }
-              })
-              .filter(Objects::nonNull)
-              .collect(Collectors.toList());
-          //TODO: this is a race condition. The api might answer with big delay and then server message order might be changed.
-          Platform.runLater(() -> this.members.setAll(members));
-        });
+  private void setMembersFromMessage(PartyInfoMessage message, PlayerService playerService) {
+    List<Player> players = playerService.getOnlinePlayersByIds(
+        message.getMembers()
+            .stream()
+        .map(PartyInfoMessage.PartyMember::getPlayer)
+        .collect(Collectors.toList()));
+
+    List<PartyMember> partyMembers = message.getMembers()
+        .stream()
+        .map(member -> pickRightPlayerToCreatePartyMember(players, member))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+
+    Platform.runLater(() -> this.members.setAll(partyMembers));
+  }
+
+  private PartyMember pickRightPlayerToCreatePartyMember(List<Player> players, PartyInfoMessage.PartyMember member) {
+    Optional<Player> player = players.stream()
+          .filter(playerToBeFiltered -> playerToBeFiltered.getId() == member.getPlayer())
+          .findFirst();
+
+    if (player.isEmpty()) {
+      log.warn("Could not find party member {}", member.getPlayer());
+      return null;
+    } else {
+      return new PartyMember(player.get(), member.getFactions());
+    }
   }
 
   public Player getOwner() {

@@ -304,6 +304,12 @@ public class PlayerService implements InitializingBean {
     return fafService.getPlayersByIds(playerIds);
   }
 
+  public List<Player> getOnlinePlayersByIds(Collection<Integer> playerIds) {
+    return playerIds.stream()
+        .map(playersById::get)
+        .collect(Collectors.toList());
+  }
+
   @Subscribe
   public void onChatUserCreated(ChatUserCreatedEvent event) {
     ChatChannelUser chatChannelUser = event.getChatChannelUser();
