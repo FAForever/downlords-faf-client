@@ -532,7 +532,7 @@ public class GameService implements InitializingBean {
 
     inMatchmakerQueue.set(true);
 
-    return modService.getFeaturedMod(FAF.getTechnicalName())//TODO: use matchmaking featured mod
+    return modService.getFeaturedMod(FAF.getTechnicalName())
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
         .thenCompose(aVoid -> fafService.startSearchMatchmaker())
         .thenAccept((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapname())
@@ -543,7 +543,7 @@ public class GameService implements InitializingBean {
               gameLaunchMessage.getArgs().add("/players " + gameLaunchMessage.getExpectedPlayers());
               gameLaunchMessage.getArgs().add("/startspot " + gameLaunchMessage.getMapPosition());
 
-              startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), NONE); // TODO: rating mode
+              startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), NONE); // TODO: use leaderboard information from queue to display right rating
             }))
         .exceptionally(throwable -> {
           if (throwable.getCause() instanceof CancellationException) {

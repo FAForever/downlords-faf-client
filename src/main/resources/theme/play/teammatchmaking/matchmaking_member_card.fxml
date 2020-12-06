@@ -13,7 +13,7 @@
             fx:controller="com.faforever.client.teammatchmaking.PartyMemberItemController">
     <children>
         <HBox fx:id="playerCard" prefHeight="75.0" spacing="10.0" styleClass="player-card" alignment="CENTER_LEFT"
-              AnchorPane.topAnchor="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+              AnchorPane.topAnchor="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="10.0">
             <ImageView fx:id="leagueImageView" fitHeight="40.0" fitWidth="80.0" pickOnBounds="true"
                        preserveRatio="true"/>
             <VBox HBox.hgrow="ALWAYS">
@@ -72,7 +72,7 @@
             </padding>
         </HBox>
         <Button fx:id="kickPlayerButton" onAction="#onKickPlayerButtonClicked" styleClass="kickbutton"
-                AnchorPane.topAnchor="2.0" AnchorPane.rightAnchor="0.0">
+                AnchorPane.topAnchor="5.0" AnchorPane.rightAnchor="0.0">
             <graphic>
                 <Region styleClass="icon, close-icon"/>
             </graphic>
@@ -84,7 +84,7 @@
         </Label>
     </children>
     <padding>
-        <Insets top="-10.0" />
+        <Insets top="-10.0" right="-10.0"/>
     </padding>
 </AnchorPane>
 

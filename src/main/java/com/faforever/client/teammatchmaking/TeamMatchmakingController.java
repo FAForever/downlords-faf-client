@@ -274,7 +274,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public void onChatMessage(ChatMessageEvent event) {
     Platform.runLater(() -> {
       ChatMessage message = event.getMessage();
-      if (message.getSource().equals(String.format("#%s'sParty", teamMatchmakingService.getParty().getOwner().getUsername()))) {
+      if (message.getSource().equals(matchmakingChatController.getReceiver())) {
         matchmakingChatController.onChatMessage(message);
       }
     });

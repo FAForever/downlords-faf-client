@@ -52,6 +52,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -253,7 +254,7 @@ public class TeamMatchmakingService {
       Platform.runLater(() -> initParty(currentPlayer.get()));
       return;
     }
-    party.fromInfoMessage(message, playerService);
+    setPartyFromInfoMessage(message);
   }
 
   public void onPartyInvite(PartyInviteMessage message) {
@@ -362,5 +363,46 @@ public class TeamMatchmakingService {
 
   public boolean isCurrentlyInQueue() {
     return matchmakingQueues.stream().anyMatch(MatchmakingQueue::isJoined);
+  }
+
+  private void setPartyFromInfoMessage(PartyInfoMessage message) {
+    setOwnerFromInfoMessage(message);
+    setMembersFromInfoMessage(message);
+  }
+
+  private void setOwnerFromInfoMessage(PartyInfoMessage message) {
+    List<Player> players =  playerService.getOnlinePlayersByIds(List.of(message.getOwner()));
+    if (!players.isEmpty()) {
+      Platform.runLater(() -> party.setOwner(players.get(0)));
+    }
+  }
+
+  private void setMembersFromInfoMessage(PartyInfoMessage message) {
+    List<Player> players = playerService.getOnlinePlayersByIds(
+        message.getMembers()
+            .stream()
+            .map(PartyInfoMessage.PartyMember::getPlayer)
+            .collect(Collectors.toList()));
+
+    ObservableList<PartyMember> partyMembers = message.getMembers()
+        .stream()
+        .map(member -> pickRightPlayerToCreatePartyMember(players, member))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toCollection(FXCollections::observableArrayList));
+
+    Platform.runLater(() -> party.setMembers(partyMembers));
+  }
+
+  private PartyMember pickRightPlayerToCreatePartyMember(List<Player> players, PartyInfoMessage.PartyMember member) {
+    Optional<Player> player = players.stream()
+        .filter(playerToBeFiltered -> playerToBeFiltered.getId() == member.getPlayer())
+        .findFirst();
+
+    if (player.isEmpty()) {
+      log.warn("Could not find party member {}", member.getPlayer());
+      return null;
+    } else {
+      return new PartyMember(player.get(), member.getFactions());
+    }
   }
 }

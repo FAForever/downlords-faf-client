@@ -238,7 +238,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
     logger.debug("Starting matchmaker game");
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setUid(123);
-    gameLaunchMessage.setMod(KnownFeaturedMod.DEFAULT.getTechnicalName()); // TODO
+    gameLaunchMessage.setMod(KnownFeaturedMod.DEFAULT.getTechnicalName());
     return CompletableFuture.completedFuture(gameLaunchMessage);
   }
 

@@ -144,7 +144,7 @@
                 </padding>
             </VBox>
         </ScrollPane>
-        <TabPane fx:id="chatTabPane" styleClass="chat-tab-pane"
+        <TabPane fx:id="chatTabPane" styleClass="chat-tab-pane" tabClosingPolicy="UNAVAILABLE"
                  GridPane.columnIndex="1" GridPane.fillWidth="true" GridPane.rowSpan="2" />
     </GridPane>
 </StackPane>

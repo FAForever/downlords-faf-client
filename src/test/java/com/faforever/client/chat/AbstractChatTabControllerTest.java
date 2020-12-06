@@ -234,7 +234,6 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  @Ignore // TODO: REVERT
   public void testHasFocus() {
     assertThat(instance.hasFocus(), is(true));
   }

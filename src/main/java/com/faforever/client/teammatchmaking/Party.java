@@ -23,52 +23,11 @@ import java.util.stream.Collectors;
 public class Party {
 
   private final ObjectProperty<Player> owner;
-  private ObservableList<PartyMember> members;
+  private final ObservableList<PartyMember> members;
 
   public Party() {
     owner = new SimpleObjectProperty<>();
     members = FXCollections.observableArrayList();
-  }
-
-  public void fromInfoMessage(PartyInfoMessage message, PlayerService playerService) {
-    setOwnerFromMessage(message, playerService);
-    setMembersFromMessage(message, playerService);
-  }
-
-  private void setOwnerFromMessage(PartyInfoMessage message, PlayerService playerService) {
-    List<Player> players =  playerService.getOnlinePlayersByIds(List.of(message.getOwner()));
-    if (!players.isEmpty()) {
-      Platform.runLater(() -> owner.set(players.get(0)));
-    }
-  }
-
-  private void setMembersFromMessage(PartyInfoMessage message, PlayerService playerService) {
-    List<Player> players = playerService.getOnlinePlayersByIds(
-        message.getMembers()
-            .stream()
-        .map(PartyInfoMessage.PartyMember::getPlayer)
-        .collect(Collectors.toList()));
-
-    List<PartyMember> partyMembers = message.getMembers()
-        .stream()
-        .map(member -> pickRightPlayerToCreatePartyMember(players, member))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-
-    Platform.runLater(() -> this.members.setAll(partyMembers));
-  }
-
-  private PartyMember pickRightPlayerToCreatePartyMember(List<Player> players, PartyInfoMessage.PartyMember member) {
-    Optional<Player> player = players.stream()
-          .filter(playerToBeFiltered -> playerToBeFiltered.getId() == member.getPlayer())
-          .findFirst();
-
-    if (player.isEmpty()) {
-      log.warn("Could not find party member {}", member.getPlayer());
-      return null;
-    } else {
-      return new PartyMember(player.get(), member.getFactions());
-    }
   }
 
   public Player getOwner() {
@@ -88,7 +47,7 @@ public class Party {
   }
 
   public void setMembers(ObservableList<PartyMember> members) {
-    this.members = members;
+    this.members.setAll(members);
   }
 
   @Data
