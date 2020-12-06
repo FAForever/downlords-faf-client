@@ -178,7 +178,7 @@ public class ChatController extends AbstractViewController<Node> {
   public void onChatMessage(ChatMessageEvent event) {
     Platform.runLater(() -> {
       ChatMessage message = event.getMessage();
-      if (message.getSource() != null && message.getSource().endsWith("'sParty"))
+      if (isMatchmakerPartyMessage(message))
         return;
       if (!message.isPrivate()) {
         getOrCreateChannelTab(message.getSource()).onChatMessage(message);
@@ -186,6 +186,10 @@ public class ChatController extends AbstractViewController<Node> {
         addAndGetPrivateMessageTab(message.getSource()).onChatMessage(message);
       }
     });
+  }
+
+  private boolean isMatchmakerPartyMessage(ChatMessage message) {
+    return message.getSource() != null && message.getSource().endsWith("'sParty");
   }
 
   private AbstractChatTabController addAndGetPrivateMessageTab(String username) {

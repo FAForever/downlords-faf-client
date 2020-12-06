@@ -33,6 +33,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -136,14 +137,27 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnChatMessage() {
+  public void testOnPartyChatMessage() {
     ChatMessage message = mock(ChatMessage.class);
     when(message.getSource()).thenReturn("#tester'sParty");
+    when(instance.matchmakingChatController.getReceiver()).thenReturn("#tester'sParty");
 
     instance.onChatMessage(new ChatMessageEvent(message));
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(instance.matchmakingChatController).onChatMessage(message);
+  }
+
+  @Test
+  public void testOnOtherChatMessage() {
+    ChatMessage message = mock(ChatMessage.class);
+    when(message.getSource()).thenReturn("#other'sParty");
+    when(instance.matchmakingChatController.getReceiver()).thenReturn("#tester'sParty");
+
+    instance.onChatMessage(new ChatMessageEvent(message));
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(instance.matchmakingChatController, never()).onChatMessage(message);
   }
 
   @Test
