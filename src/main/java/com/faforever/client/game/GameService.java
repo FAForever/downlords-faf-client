@@ -559,6 +559,9 @@ public class GameService implements InitializingBean {
     if (inMatchmakerQueue.get()) {
       fafService.stopSearchMatchmaker();
       inMatchmakerQueue.set(false);
+      log.debug("Matchmaker search stopped");
+    } else {
+      log.debug("Matchmaker search has already been stopped, ignoring call");
     }
   }
 
