@@ -42,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -105,22 +104,9 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     eventBus.register(this);
     JavaFxUtil.fixScrollSpeed(scrollPane);
     initializeDynamicChatPosition();
-
     player = playerService.getCurrentPlayer().get();
     initializeUppercaseText();
-    countryImageView.imageProperty().bind(createObjectBinding(() -> countryFlagService.loadCountryFlag(
-        StringUtils.isEmpty(player.getCountry()) ? "" : player.getCountry()).orElse(null), player.countryProperty()));
-    avatarImageView.visibleProperty().bind(player.avatarUrlProperty().isNotNull().and(player.avatarUrlProperty().isNotEmpty()));
-    avatarImageView.imageProperty().bind(createObjectBinding(() -> Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));
-    leagueImageView.setManaged(false);
-    clanLabel.managedProperty().bind(clanLabel.visibleProperty());
-    clanLabel.visibleProperty().bind(player.clanProperty().isNotEmpty().and(player.clanProperty().isNotNull()));
-    clanLabel.textProperty().bind(createStringBinding(() ->
-        Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan()), player.clanProperty()));
-    usernameLabel.textProperty().bind(player.usernameProperty());
-    crownLabel.visibleProperty().bind(createBooleanBinding(() ->
-        teamMatchmakingService.getParty().getMembers().size() > 1 && teamMatchmakingService.getParty().getOwner().equals(player),
-        teamMatchmakingService.getParty().ownerProperty(), teamMatchmakingService.getParty().getMembers()));
+    initializeBindings();
 
     teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> {
       playerCard.pseudoClassStateChanged(LEADER_PSEUDO_CLASS,
@@ -131,19 +117,13 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       for(int i = 0; i < members.size(); i++) {
         PartyMemberItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_member_card.fxml");
         controller.setMember(members.get(i));
-        if (members.size() == 1)
+        if (members.size() == 1) {
           partyMemberPane.add(controller.getRoot(), 0, 0, 2, 1);
-        else
+        } else {
           partyMemberPane.add(controller.getRoot(), i % 2, i / 2);
+        }
       }
     });
-
-    invitePlayerButton.disableProperty().bind(createBooleanBinding(
-        () -> teamMatchmakingService.getParty().getOwner().getId() != playerService.getCurrentPlayer().map(Player::getId).orElse(-1),
-        teamMatchmakingService.getParty().ownerProperty(),
-        playerService.currentPlayerProperty()
-    ));
-    leavePartyButton.disableProperty().bind(createBooleanBinding(() -> teamMatchmakingService.getParty().getMembers().size() <= 1, teamMatchmakingService.getParty().getMembers()));
 
     teamMatchmakingService.getParty().getMembers().addListener((InvalidationListener) c -> {
       refreshingLabel.setVisible(false);
@@ -199,6 +179,30 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       else
         return i18n.get("teammatchmaking.queueTitle.inParty").toUpperCase();
     }, teamMatchmakingService.getParty().ownerProperty()));
+  }
+
+  private void initializeBindings() {
+    countryImageView.imageProperty().bind(createObjectBinding(() ->
+        countryFlagService.loadCountryFlag(player.getCountry()).orElse(null), player.countryProperty()));
+    avatarImageView.visibleProperty().bind(player.avatarUrlProperty().isNotNull().and(player.avatarUrlProperty().isNotEmpty()));
+    avatarImageView.imageProperty().bind(createObjectBinding(() -> Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));
+    leagueImageView.setManaged(false);
+    JavaFxUtil.bindManagedToVisible(clanLabel, avatarImageView);
+
+    clanLabel.visibleProperty().bind(player.clanProperty().isNotEmpty().and(player.clanProperty().isNotNull()));
+    clanLabel.textProperty().bind(createStringBinding(() ->
+        Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan()), player.clanProperty()));
+    usernameLabel.textProperty().bind(player.usernameProperty());
+    crownLabel.visibleProperty().bind(createBooleanBinding(() ->
+            teamMatchmakingService.getParty().getMembers().size() > 1 && teamMatchmakingService.getParty().getOwner().equals(player),
+        teamMatchmakingService.getParty().ownerProperty(), teamMatchmakingService.getParty().getMembers()));
+
+    invitePlayerButton.disableProperty().bind(createBooleanBinding(
+        () -> teamMatchmakingService.getParty().getOwner().getId() != playerService.getCurrentPlayer().map(Player::getId).orElse(-1),
+        teamMatchmakingService.getParty().ownerProperty(),
+        playerService.currentPlayerProperty()
+    ));
+    leavePartyButton.disableProperty().bind(createBooleanBinding(() -> teamMatchmakingService.getParty().getMembers().size() <= 1, teamMatchmakingService.getParty().getMembers()));
   }
 
   @Override
