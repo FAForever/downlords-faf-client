@@ -375,31 +375,14 @@ public class CreateGameController implements Controller<Pane> {
   private void onGenerateMap() {
     try {
       mapGeneratorService.setGeneratorVersion(mapGeneratorService.queryMaxSupportedVersion());
-      // Check if generated map is major version 0 which does not support options
-      if (mapGeneratorService.getGeneratorVersion().compareTo(new ComparableVersion("1")) < 0) {
-        mapGeneratorService.generateMap().thenAccept(mapName -> {
-          Platform.runLater(() -> {
-            initMapSelection();
-            mapListView.getItems().stream()
-                .filter(mapBean -> mapBean.getFolderName().equalsIgnoreCase(mapName))
-                .findAny()
-                .ifPresent(mapBean -> {
-                  mapListView.getSelectionModel().select(mapBean);
-                  mapListView.scrollTo(mapBean);
-                  setSelectedMap(mapBean);
-                });
-          });
-        });
-      } else {
-        GenerateMapController generateMapController = uiService.loadFxml("theme/play/generate_map.fxml");
+      GenerateMapController generateMapController = uiService.loadFxml("theme/play/generate_map.fxml");
 
-        Pane root = generateMapController.getRoot();
-        generateMapController.setCreateGameController(this);
-        Dialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("game.generateMap.dialog"));
-        generateMapController.setOnCloseButtonClickedListener(dialog::close);
+      Pane root = generateMapController.getRoot();
+      generateMapController.setCreateGameController(this);
+      Dialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("game.generateMap.dialog"));
+      generateMapController.setOnCloseButtonClickedListener(dialog::close);
 
-        root.requestFocus();
-      }
+      root.requestFocus();
     } catch (Exception e) {
       log.error("Map generation failed", e);
       notificationService.addImmediateErrorNotification(e, "mapGenerator.generationFailed");
@@ -458,7 +441,7 @@ public class CreateGameController implements Controller<Pane> {
    */
   boolean selectMap(String mapFolderName) {
     Optional<MapBean> mapBeanOptional = mapListView.getItems().stream().filter(mapBean -> mapBean.getFolderName().equalsIgnoreCase(mapFolderName)).findAny();
-    if (!mapBeanOptional.isPresent()) {
+    if (mapBeanOptional.isEmpty()) {
       return false;
     }
     mapListView.getSelectionModel().select(mapBeanOptional.get());

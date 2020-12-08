@@ -26,13 +26,11 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.InvalidParameterException;
-import java.time.Instant;
-import java.util.BitSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
@@ -56,7 +54,7 @@ public class MapGeneratorService implements InitializingBean {
   public static final String GENERATOR_EXECUTABLE_SUB_DIRECTORY = "map_generator";
   public static final int GENERATION_TIMEOUT_SECONDS = 60 * 3;
   private static final Pattern VERSION_PATTERN = Pattern.compile("\\d\\d?\\d?\\.\\d\\d?\\d?\\.\\d\\d?\\d?");
-  private static final Pattern GENERATED_MAP_PATTERN = Pattern.compile("neroxis_map_generator_(" + VERSION_PATTERN + ")_(.*)");
+  protected static final Pattern GENERATED_MAP_PATTERN = Pattern.compile("neroxis_map_generator_(" + VERSION_PATTERN + ")_(.*)");
   @Getter
   private final Path generatorExecutablePath;
   private final ApplicationContext applicationContext;
@@ -121,25 +119,6 @@ public class MapGeneratorService implements InitializingBean {
     }
   }
 
-  public CompletableFuture<String> generateMap() {
-    ByteBuffer seedBuffer = ByteBuffer.allocate(8);
-    seedBuffer.putLong(seedGenerator.nextLong());
-    String seedString = NAME_ENCODER.encode(seedBuffer.array());
-    return generateMap(generatorVersion, seedString);
-  }
-
-  public CompletableFuture<String> generateMap(byte[] optionArray, BitSet parameters) {
-    ByteBuffer seedBuffer = ByteBuffer.allocate(8);
-    seedBuffer.putLong(seedGenerator.nextLong());
-    String seedString = NAME_ENCODER.encode(seedBuffer.array());
-    String optionString = NAME_ENCODER.encode(optionArray) + "_" + NAME_ENCODER.encode(parameters.toByteArray());
-    if (parameters.get(0)) {
-      String timeString = NAME_ENCODER.encode(ByteBuffer.allocate(8).putLong(Instant.now().getEpochSecond()).array());
-      optionString += "_" + timeString;
-    }
-    return generateMap(generatorVersion, seedString + '_' + optionString);
-  }
-
   @VisibleForTesting
   @Cacheable(value = CacheNames.MAP_GENERATOR, sync = true)
   public ComparableVersion queryMaxSupportedVersion() {
@@ -170,11 +149,60 @@ public class MapGeneratorService implements InitializingBean {
     if (!matcher.find()) {
       return CompletableFuture.failedFuture(new InvalidParameterException("Map name is not a generated map"));
     }
-    return generateMap(new ComparableVersion(matcher.group(1)), matcher.group(2));
+
+    ComparableVersion version = new ComparableVersion(matcher.group(1));
+    String seed = matcher.group(2);
+
+    String generatorExecutableFileName = String.format(GENERATOR_EXECUTABLE_FILENAME, version);
+    Path generatorExecutablePath = this.generatorExecutablePath.resolve(generatorExecutableFileName);
+
+    CompletableFuture<Void> downloadGeneratorFuture = downloadGeneratorIfNecessary(version);
+
+    GenerateMapTask generateMapTask = applicationContext.getBean(GenerateMapTask.class);
+    generateMapTask.setVersion(version);
+    generateMapTask.setSeed(seed);
+    generateMapTask.setMapFilename(mapName);
+    generateMapTask.setGeneratorExecutableFile(generatorExecutablePath);
+
+    return downloadGeneratorFuture.thenApplyAsync((aVoid) -> {
+      CompletableFuture<String> generateMapFuture = taskService.submitTask(generateMapTask).getFuture();
+      return generateMapFuture.join();
+    });
   }
 
-  public CompletableFuture<String> generateMap(ComparableVersion version, String seedAndOptions) {
+  public CompletableFuture<String> generateMap(int spawnCount, int mapSize, Map<String, Float> optionMap, GenerationType generationType) {
 
+    String generatorExecutableFileName = String.format(GENERATOR_EXECUTABLE_FILENAME, generatorVersion);
+    Path generatorExecutablePath = this.generatorExecutablePath.resolve(generatorExecutableFileName);
+
+    CompletableFuture<Void> downloadGeneratorFuture = downloadGeneratorIfNecessary(generatorVersion);
+
+    GenerateMapTask generateMapTask = applicationContext.getBean(GenerateMapTask.class);
+    generateMapTask.setVersion(generatorVersion);
+    generateMapTask.setSpawnCount(spawnCount);
+    generateMapTask.setMapSize(mapSize);
+    generateMapTask.setGenerationType(generationType);
+    generateMapTask.setGeneratorExecutableFile(generatorExecutablePath);
+    if (optionMap.containsKey("landDensity")) {
+      generateMapTask.setLandDensity(optionMap.get("landDensity"));
+    }
+    if (optionMap.containsKey("plateauDensity")) {
+      generateMapTask.setPlateauDensity(optionMap.get("plateauDensity"));
+    }
+    if (optionMap.containsKey("mountainDensity")) {
+      generateMapTask.setMountainDensity(optionMap.get("mountainDensity"));
+    }
+    if (optionMap.containsKey("rampDensity")) {
+      generateMapTask.setRampDensity(optionMap.get("rampDensity"));
+    }
+
+    return downloadGeneratorFuture.thenApplyAsync((aVoid) -> {
+      CompletableFuture<String> generateMapFuture = taskService.submitTask(generateMapTask).getFuture();
+      return generateMapFuture.join();
+    });
+  }
+
+  public CompletableFuture<Void> downloadGeneratorIfNecessary(ComparableVersion version) {
     ComparableVersion minVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator().getMinSupportedMajorVersion()));
     ComparableVersion maxVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator().getMaxSupportedMajorVersion() + 1));
     if (version.compareTo(maxVersion) >= 0) {
@@ -186,7 +214,6 @@ public class MapGeneratorService implements InitializingBean {
     String generatorExecutableFileName = String.format(GENERATOR_EXECUTABLE_FILENAME, version);
     Path generatorExecutablePath = this.generatorExecutablePath.resolve(generatorExecutableFileName);
 
-    CompletableFuture<Void> downloadGeneratorFuture;
     if (!Files.exists(generatorExecutablePath)) {
       if (!VERSION_PATTERN.matcher(version.toString()).matches()) {
         log.warn("Unsupported generator version: {}", version);
@@ -196,46 +223,12 @@ public class MapGeneratorService implements InitializingBean {
       log.info("Downloading MapGenerator version: {}", version);
       DownloadMapGeneratorTask downloadMapGeneratorTask = applicationContext.getBean(DownloadMapGeneratorTask.class);
       downloadMapGeneratorTask.setVersion(version.toString());
-      downloadGeneratorFuture = taskService.submitTask(downloadMapGeneratorTask).getFuture();
+      return taskService.submitTask(downloadMapGeneratorTask).getFuture();
     } else {
       log.info("Found MapGenerator version: {}", version);
-      downloadGeneratorFuture = CompletableFuture.completedFuture(null);
+      return CompletableFuture.completedFuture(null);
     }
-
-    String[] seedParts = seedAndOptions.split("_");
-    String seedString = seedParts[0];
-
-    String mapFilename;
-    String seed;
-
-    try {
-      seed = Long.toString(Long.parseLong(seedString));
-    } catch (NumberFormatException nfe) {
-      byte[] seedBytes = NAME_ENCODER.decode(seedString);
-      ByteBuffer seedWrapper = ByteBuffer.wrap(seedBytes);
-      seed = Long.toString(seedWrapper.getLong());
-    }
-
-    // Check if major version 0 which requires numeric seed
-    if (version.compareTo(new ComparableVersion("1")) < 0) {
-      mapFilename = String.format(GENERATED_MAP_NAME, version, seed).replace('/', '^');
-    } else {
-      mapFilename = String.format(GENERATED_MAP_NAME, version, seedAndOptions).replace('/', '^');
-    }
-
-    GenerateMapTask generateMapTask = applicationContext.getBean(GenerateMapTask.class);
-    generateMapTask.setVersion(version.toString());
-    generateMapTask.setSeed(seed);
-    generateMapTask.setGeneratorExecutableFile(generatorExecutablePath);
-    generateMapTask.setMapFilename(mapFilename);
-
-    return downloadGeneratorFuture.thenApplyAsync((aVoid) -> {
-      CompletableFuture<Void> generateMapFuture = taskService.submitTask(generateMapTask).getFuture();
-      generateMapFuture.join();
-      return mapFilename;
-    });
   }
-
 
   public boolean isGeneratedMap(String mapName) {
     return GENERATED_MAP_PATTERN.matcher(mapName).matches();

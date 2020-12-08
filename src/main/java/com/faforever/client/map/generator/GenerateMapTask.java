@@ -10,6 +10,7 @@ import com.faforever.client.task.CompletableTask;
 import com.google.common.eventbus.EventBus;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -17,15 +18,16 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class GenerateMapTask extends CompletableTask<Void> {
+public class GenerateMapTask extends CompletableTask<String> {
   private static final Logger generatorLogger = LoggerFactory.getLogger("faf-map-generator");
 
   private final PreferencesService preferencesService;
@@ -34,13 +36,27 @@ public class GenerateMapTask extends CompletableTask<Void> {
   private final EventBus eventBus;
 
   @Setter
-  private String version;
-  @Setter
-  private String seed;
+  private ComparableVersion version;
   @Setter
   private Path generatorExecutableFile;
   @Setter
   private String mapFilename;
+  @Setter
+  private Integer spawnCount;
+  @Setter
+  private Integer mapSize;
+  @Setter
+  private String seed;
+  @Setter
+  private Float landDensity;
+  @Setter
+  private Float plateauDensity;
+  @Setter
+  private Float mountainDensity;
+  @Setter
+  private Float rampDensity;
+  @Setter
+  private GenerationType generationType;
 
   @Inject
   public GenerateMapTask(PreferencesService preferencesService, NotificationService notificationService, I18n i18n, EventBus eventBus) {
@@ -53,23 +69,47 @@ public class GenerateMapTask extends CompletableTask<Void> {
   }
 
   @Override
-  protected Void call() throws Exception {
+  protected String call() throws Exception {
     Objects.requireNonNull(version, "Version hasn't been set.");
 
-    updateTitle(i18n.get("game.mapGeneration.generateMap.title", version, String.valueOf(seed)));
+    updateTitle(i18n.get("game.mapGeneration.generateMap.title", version));
+
+    GeneratorCommandBuilder generatorCommandBuilder = GeneratorCommandBuilder.create()
+        .version(version)
+        .spawnCount(spawnCount)
+        .mapSize(mapSize)
+        .seed(seed)
+        .generatorExecutableFilePath(generatorExecutableFile)
+        .generationType(generationType)
+        .landDensity(landDensity)
+        .plateauDensity(plateauDensity)
+        .mountainDensity(mountainDensity)
+        .rampDensity(rampDensity)
+        .mapFilename(mapFilename);
 
     Path workingDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
 
-    ProcessBuilder processBuilder = new ProcessBuilder();
-    processBuilder.directory(workingDirectory.toFile());
-    processBuilder.command("java", "-jar", generatorExecutableFile.toAbsolutePath().toString(), ".", String.valueOf(seed), version, mapFilename);
-    processBuilder.environment().put("LOG_DIR", preferencesService.getFafLogDirectory().toAbsolutePath().toString());
-
-    log.info("Starting map generator in directory: {} with command: {}",
-        processBuilder.directory(), processBuilder.command().stream().reduce((l, r) -> l + " " + r).get());
     try {
+      List<String> command = generatorCommandBuilder.build();
+
+      ProcessBuilder processBuilder = new ProcessBuilder();
+      processBuilder.directory(workingDirectory.toFile());
+      processBuilder.command(command);
+      processBuilder.environment().put("LOG_DIR", preferencesService.getFafLogDirectory().toAbsolutePath().toString());
+
+      log.info("Starting map generator in directory: {} with command: {}",
+          processBuilder.directory(), processBuilder.command().stream().reduce((l, r) -> l + " " + r).get());
+
       Process process = processBuilder.start();
-      OsUtils.gobbleLines(process.getInputStream(), generatorLogger::info);
+      OsUtils.gobbleLines(process.getInputStream(), msg -> {
+        generatorLogger.info(msg);
+        if (mapFilename == null || mapFilename.isBlank()) {
+          Matcher mapNameMatcher = MapGeneratorService.GENERATED_MAP_PATTERN.matcher(msg);
+          if (mapNameMatcher.find()) {
+            mapFilename = mapNameMatcher.group();
+          }
+        }
+      });
       OsUtils.gobbleLines(process.getErrorStream(), generatorLogger::error);
       process.waitFor(MapGeneratorService.GENERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       if (process.isAlive()) {
@@ -80,11 +120,11 @@ public class GenerateMapTask extends CompletableTask<Void> {
       } else {
         eventBus.post(new MapGeneratedEvent(mapFilename));
       }
-    } catch (IOException | InterruptedException e) {
+    } catch (Exception e) {
       log.error("Could not start map generator.", e);
       throw new RuntimeException(e);
     }
 
-    return null;
+    return mapFilename;
   }
 }
