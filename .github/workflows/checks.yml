@@ -25,7 +25,7 @@ jobs:
       run: chmod +x gradlew
       
     - name: Build Jar
-      run: ./gradlew --stacktrace -Pversion=${{ GITHUB_SHA }} -PjavafxPlatform=linux jar
+      run: ./gradlew --stacktrace -Pversion=${{ github.sha }} -PjavafxPlatform=linux jar
 
     - name: Run Checks
       run: ./gradlew --stacktrace -PjavafxPlatform=linux check
