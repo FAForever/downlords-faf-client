@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.CustomMenuItem?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.layout.HBox?>
+<MenuButton xmlns:fx="http://javafx.com/fxml/1" fx:id="menu"
+            xmlns="http://javafx.com/javafx/8.0.121"
+            fx:controller="com.faforever.client.query.DateRangeFilterController" styleClass="query-filter">
+    <items>
+        <CustomMenuItem hideOnClick="false" styleClass="query-item">
+            <content>
+                <HBox>
+                    <DatePicker fx:id="afterDate" HBox.hgrow="ALWAYS" promptText="%search.afterDate"/>
+                    <DatePicker fx:id="beforeDate" HBox.hgrow="ALWAYS" promptText="%search.beforeDate"/>
+                </HBox>
+            </content>
+        </CustomMenuItem>
+    </items>
+</MenuButton>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="textBox"
+      xmlns="http://javafx.com/javafx/8.0.121"
+      fx:controller="com.faforever.client.query.TextFilterController" styleClass="query-filter"/>

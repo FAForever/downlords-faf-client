@@ -3,11 +3,7 @@ package com.faforever.client.vault;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenLocalReplayVaultEvent;
-import com.faforever.client.main.event.OpenMapVaultEvent;
-import com.faforever.client.main.event.OpenModVaultEvent;
 import com.faforever.client.main.event.OpenOnlineReplayVaultEvent;
-import com.faforever.client.map.MapVaultController;
-import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.replay.LocalReplayVaultController;
 import com.faforever.client.replay.OnlineReplayVaultController;
 import com.faforever.client.theme.UiService;
@@ -21,15 +17,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class VaultController extends AbstractViewController<Node> {
+public class ReplayController extends AbstractViewController<Node> {
   // TODO change to spring event bus
   private final EventBus eventBus;
   private final UiService uiService;
   public TabPane vaultRoot;
-  public Tab mapVaultTab;
-  public Tab modVaultTab;
-  public MapVaultController mapVaultController;
-  public ModVaultController modVaultController;
 
   public OnlineReplayVaultController onlineReplayVaultController;
   public LocalReplayVaultController localReplayVaultController;
@@ -39,7 +31,7 @@ public class VaultController extends AbstractViewController<Node> {
   private AbstractViewController<?> lastTabController;
   private Tab lastTab;
 
-  public VaultController(EventBus eventBus, UiService uiService) {
+  public ReplayController(EventBus eventBus, UiService uiService) {
     this.eventBus = eventBus;
     this.uiService = uiService;
   }
@@ -53,10 +45,6 @@ public class VaultController extends AbstractViewController<Node> {
   public void initialize() {
     onlineReplayVaultController = uiService.loadFxml("theme/vault/vault_entity.fxml", OnlineReplayVaultController.class);
     onlineReplayVaultTab.setContent(onlineReplayVaultController.getRoot());
-    mapVaultController = uiService.loadFxml("theme/vault/vault_entity.fxml", MapVaultController.class);
-    mapVaultTab.setContent(mapVaultController.getRoot());
-    modVaultController = uiService.loadFxml("theme/vault/vault_entity.fxml", ModVaultController.class);
-    modVaultTab.setContent(modVaultController.getRoot());
     localReplayVaultController = uiService.loadFxml("theme/vault/vault_entity.fxml", LocalReplayVaultController.class);
     localReplayVaultTab.setContent(localReplayVaultController.getRoot());
     lastTab = onlineReplayVaultTab;
@@ -66,11 +54,7 @@ public class VaultController extends AbstractViewController<Node> {
         return;
       }
 
-      if (newValue == mapVaultTab) {
-        eventBus.post(new OpenMapVaultEvent());
-      } else if (newValue == modVaultTab) {
-        eventBus.post(new OpenModVaultEvent());
-      } else if (newValue == onlineReplayVaultTab) {
+      if (newValue == onlineReplayVaultTab) {
         eventBus.post(new OpenOnlineReplayVaultEvent());
       } else if (newValue == localReplayVaultTab) {
         eventBus.post(new OpenLocalReplayVaultEvent());
@@ -84,13 +68,7 @@ public class VaultController extends AbstractViewController<Node> {
     isHandlingEvent = true;
 
     try {
-      if (navigateEvent instanceof OpenMapVaultEvent) {
-        lastTab = mapVaultTab;
-        lastTabController = mapVaultController;
-      } else if (navigateEvent instanceof OpenModVaultEvent) {
-        lastTab = modVaultTab;
-        lastTabController = modVaultController;
-      } else if (navigateEvent instanceof OpenOnlineReplayVaultEvent) {
+      if (navigateEvent instanceof OpenOnlineReplayVaultEvent) {
         lastTab = onlineReplayVaultTab;
         lastTabController = onlineReplayVaultController;
       } else if (navigateEvent instanceof OpenLocalReplayVaultEvent) {

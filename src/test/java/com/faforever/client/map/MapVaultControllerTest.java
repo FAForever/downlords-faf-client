@@ -2,7 +2,6 @@ package com.faforever.client.map;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.LogicalNodeController;
@@ -33,6 +32,7 @@ import java.util.concurrent.CompletableFuture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -59,8 +59,6 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private SpecificationController specificationController;
   @Mock
-  private PlayerService playerService;
-  @Mock
   private ReportingService reportingService;
   @Mock
   private ClientConfiguration clientConfiguration;
@@ -75,6 +73,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
     when(clientConfiguration.getRecommendedMaps()).thenReturn(Collections.emptyList());
+    when(i18n.get(anyString())).thenReturn("test");
 
     doAnswer(invocation -> {
       mapDetailController = mock(MapDetailController.class);

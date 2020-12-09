@@ -2,6 +2,7 @@ package com.faforever.client.replay;
 
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
+import com.faforever.client.api.dto.GameReviewsSummary;
 import com.faforever.client.api.dto.Validity;
 import com.faforever.client.game.Faction;
 import com.faforever.client.map.MapBean;
@@ -53,6 +54,7 @@ public class Replay {
   private final ListProperty<GameOption> gameOptions;
   private final ListProperty<Review> reviews;
   private final ObjectProperty<Validity> validity;
+  private final ObjectProperty<GameReviewsSummary> reviewsSummary;
 
   public Replay(String title) {
     this();
@@ -76,6 +78,7 @@ public class Replay {
     reviews = new SimpleListProperty<>(FXCollections.observableArrayList(param
         -> new Observable[]{param.scoreProperty(), param.textProperty()}));
     validity = new SimpleObjectProperty<>();
+    reviewsSummary = new SimpleObjectProperty<>();
   }
 
   public Replay(LocalReplayInfo replayInfo, Path replayFile, FeaturedMod featuredMod, MapBean mapBean) {
@@ -106,6 +109,7 @@ public class Replay {
     replay.setTeamPlayerStats(teamPlayerStats(dto));
     replay.getReviews().setAll(reviews(dto));
     replay.setValidity(dto.getValidity());
+    replay.setReviewsSummary(dto.getGameReviewsSummary());
     return replay;
   }
 
@@ -316,6 +320,18 @@ public class Replay {
 
   public ObservableList<Review> getReviews() {
     return reviews.get();
+  }
+
+  public GameReviewsSummary getReviewsSummary() {
+    return reviewsSummary.get();
+  }
+
+  public void setReviewsSummary(GameReviewsSummary reviewsSummary) {
+    this.reviewsSummary.set(reviewsSummary);
+  }
+
+  public ObjectProperty<GameReviewsSummary> reviewsSummaryProperty() {
+    return reviewsSummary;
   }
 
   public static class ChatMessage {

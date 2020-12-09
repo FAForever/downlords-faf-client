@@ -7,43 +7,43 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="searchRoot" maxHeight="-Infinity" maxWidth="-Infinity"
       minHeight="-Infinity" minWidth="-Infinity" spacing="10.0" xmlns="http://javafx.com/javafx/8.0.121"
       fx:controller="com.faforever.client.vault.search.SearchController">
-    <VBox fx:id="criteriaPane">
+    <FlowPane fx:id="filterPane" hgap="10.0" vgap="10.0" prefWidth="800"/>
+    <VBox fx:id="criteriaPane" visible="false">
         <HBox alignment="CENTER_LEFT" spacing="10.0">
             <fx:include fx:id="initialLogicalNode" source="logical_node.fxml"/>
         </HBox>
     </VBox>
     <HBox alignment="CENTER_LEFT" spacing="10.0">
-        <Button maxHeight="1.7976931348623157E308" mnemonicParsing="false"
-                onAction="#onAddCriteriaButtonClicked" text="%query.addCriteria"/>
         <Button layoutX="10.0" layoutY="10.0" maxHeight="1.7976931348623157E308" mnemonicParsing="false"
                 onAction="#onResetButtonClicked" text="%reset"/>
+        <Button fx:id="addCriteriaButton" maxHeight="1.7976931348623157E308" mnemonicParsing="false"
+                onAction="#onAddCriteriaButtonClicked" text="%query.addCriteria" visible="false"/>
+        <Button fx:id="searchTypeButton" layoutX="10.0" layoutY="10.0" maxHeight="1.7976931348623157E308"
+                mnemonicParsing="false"
+                onAction="#onSearchTypeButtonClicked" text="%logical"/>
         <HBox fx:id="sortBox" alignment="CENTER_LEFT" spacing="5">
             <padding>
-                <Insets>
-                    <left>
-                        20
-                    </left>
-                    <right>
-                        20
-                    </right>
-                </Insets>
+                <Insets left="20" right="20"/>
             </padding>
             <Label text="%search.sort"/>
             <ComboBox fx:id="sortPropertyComboBox"/>
             <ComboBox fx:id="sortOrderChoiceBox"/>
         </HBox>
         <CheckBox fx:id="onlyShowLastYearCheckBox" mnemonicParsing="false"
-                  text="%vault.replays.onlyShowLastYear"/>
+                  text="%vault.replays.onlyShowLastYear" visible="false"/>
         <Button fx:id="searchButton" defaultButton="true" mnemonicParsing="false"
-                onAction="#onSearchButtonClicked" text="%search">
-            <graphic>
-            </graphic>
-        </Button>
+                onAction="#onSearchButtonClicked" text="%search"/>
+        <Button fx:id="saveQueryButton" defaultButton="true" mnemonicParsing="false"
+                onAction="#onSaveQueryButtonClicked" text="%saveQuery"/>
+        <Button fx:id="savedQueriesButton" layoutX="10.0" layoutY="10.0" maxHeight="1.7976931348623157E308"
+                mnemonicParsing="false"
+                onAction="#onSavedQueriesButtonClicked" text="%vault.savedQueries"/>
         <CheckBox fx:id="displayQueryCheckBox" mnemonicParsing="false" text="%vault.replays.displayQuery"/>
     </HBox>
     <TextField fx:id="queryTextField" onAction="#onSearchButtonClicked" maxWidth="1.7976931348623157E308"

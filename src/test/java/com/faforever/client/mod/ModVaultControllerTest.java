@@ -28,6 +28,7 @@ import java.util.concurrent.CompletableFuture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -67,7 +68,8 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
     when(modService.getNewestModsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
     when(modService.getHighestRatedModsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
-    when(modService.getHighestRatedUiModsWithPageCount(anyInt(),anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
+    when(modService.getHighestRatedUiModsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
+    when(i18n.get(anyString())).thenReturn("test");
 
     sortOrder = preferencesService.getPreferences().getVaultPrefs().getMapSortConfig();
     standardSearchConfig = new SearchConfig(sortOrder, "query");
