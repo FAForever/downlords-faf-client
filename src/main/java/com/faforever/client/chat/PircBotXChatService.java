@@ -84,8 +84,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
-import static com.faforever.client.chat.ChatColorMode.CUSTOM;
+import static com.faforever.client.chat.ChatColorMode.DEFAULT;
 import static com.faforever.client.chat.ChatColorMode.RANDOM;
+import static com.faforever.client.chat.ChatUserCategory.MODERATOR;
 import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -101,10 +102,10 @@ import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 @RequiredArgsConstructor
 public class PircBotXChatService implements ChatService, InitializingBean, DisposableBean {
 
+  public static final int MAX_GAMES_FOR_NEWBIE_CHANNEL = 50;
   private static final List<UserLevel> MODERATOR_USER_LEVELS = Arrays.asList(UserLevel.OP, UserLevel.HALFOP, UserLevel.SUPEROP, UserLevel.OWNER);
   private static final int SOCKET_TIMEOUT = 10000;
   private static final String NEWBIE_CHANNEL_NAME = "#newbie";
-  public static final int MAX_GAMES_FOR_NEWBIE_CHANNEL = 50;
 
   private final PreferencesService preferencesService;
   private final UserService userService;
@@ -116,18 +117,17 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
   private final EventBus eventBus;
   private final ClientProperties clientProperties;
   private final PlayerService playerService;
-  private String defaultChannelName;
-
+  /** Key is the result of {@link #mapKey(String, String)}. */
+  private final ObservableMap<String, ChatChannelUser> chatChannelUsersByChannelAndName = observableMap(new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
   @VisibleForTesting
   ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
-  private Map<Class<? extends GenericEvent>, ArrayList<ChatEventListener>> eventListeners = new ConcurrentHashMap<>();
+  private final Map<Class<? extends GenericEvent>, ArrayList<ChatEventListener>> eventListeners = new ConcurrentHashMap<>();
   /**
    * Maps channels by name.
    */
-  private ObservableMap<String, Channel> channels = observableHashMap();
-  /** Key is the result of {@link #mapKey(String, String)}. */
-  private ObservableMap<String, ChatChannelUser> chatChannelUsersByChannelAndName = observableMap(new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
-  private SimpleIntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
+  private final ObservableMap<String, Channel> channels = observableHashMap();
+  private final SimpleIntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
+  private String defaultChannelName;
 
   private Configuration configuration;
   private PircBotX pircBotX;
@@ -151,10 +151,7 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
     fafService.addOnMessageListener(SocialMessage.class, this::onSocialMessage);
     connectionState.addListener((observable, oldValue, newValue) -> {
       switch (newValue) {
-        case DISCONNECTED:
-        case CONNECTING:
-          onDisconnected();
-          break;
+        case DISCONNECTED, CONNECTING -> onDisconnected();
       }
     });
 
@@ -176,28 +173,13 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
     JavaFxUtil.addListener(chatPrefs.userToColorProperty(),
         (MapChangeListener<? super String, ? super Color>) change -> preferencesService.store()
     );
-    JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), (observable, oldValue, newValue) -> {
-      synchronized (chatChannelUsersByChannelAndName) {
-        switch (newValue) {
-          case CUSTOM:
-            chatChannelUsersByChannelAndName.values().stream()
-                .filter(chatUser -> chatPrefs.getUserToColor().containsKey(userToColorKey(chatUser.getUsername())))
-                .forEach(chatUser -> chatUser.setColor(chatPrefs.getUserToColor().get(userToColorKey(chatUser.getUsername()))));
-            break;
-
-          case RANDOM:
-            for (ChatChannelUser chatUser : chatChannelUsersByChannelAndName.values()) {
-              chatUser.setColor(ColorGeneratorUtil.generateRandomColor(chatUser.getUsername().hashCode()));
-            }
-            break;
-
-          default:
-            for (ChatChannelUser chatUser : chatChannelUsersByChannelAndName.values()) {
-              chatUser.setColor(null);
-            }
+    JavaFxUtil.addListener(chatPrefs.groupToColorProperty(),
+        (MapChangeListener<? super ChatUserCategory, ? super Color>) change -> {
+          preferencesService.store();
+          updateUserColors(chatPrefs.getChatColorMode());
         }
-      }
-    });
+    );
+    JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), (observable, oldValue, newValue) -> updateUserColors(newValue));
   }
 
   private void onOp(OpEvent event) {
@@ -210,6 +192,43 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
   @NotNull
   private String userToColorKey(String username) {
     return username.toLowerCase(US);
+  }
+
+  @NotNull
+  private ChatUserCategory groupToColorKey(SocialStatus socialStatus) {
+    return switch (socialStatus) {
+      case FRIEND -> ChatUserCategory.FRIEND;
+      case FOE -> ChatUserCategory.FOE;
+      default -> ChatUserCategory.OTHER;
+    };
+  }
+
+  private void updateUserColors(ChatColorMode chatColorMode) {
+    if (chatColorMode == null) {
+      chatColorMode = DEFAULT;
+    }
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+    synchronized (chatChannelUsersByChannelAndName) {
+      switch (chatColorMode) {
+        case RANDOM -> chatChannelUsersByChannelAndName.values()
+            .forEach(chatUser -> chatUser.setColor(ColorGeneratorUtil.generateRandomColor(chatUser.getUsername().hashCode())));
+
+        default -> chatChannelUsersByChannelAndName.values()
+            .forEach(chatUser -> {
+              if (chatPrefs.getUserToColor().containsKey(userToColorKey(chatUser.getUsername()))) {
+                chatUser.setColor(chatPrefs.getUserToColor().get(userToColorKey(chatUser.getUsername())));
+              } else {
+                if (chatUser.isModerator() && chatPrefs.getGroupToColor().containsKey(MODERATOR)) {
+                  chatUser.setColor(chatPrefs.getGroupToColor().get(MODERATOR));
+                } else {
+                  chatUser.setColor(chatUser.getSocialStatus()
+                      .map(status -> chatPrefs.getGroupToColor().getOrDefault(groupToColorKey(status), null))
+                      .orElse(null));
+                }
+              }
+            });
+      }
+    }
   }
 
   private void onJoinEvent(JoinEvent event) {
@@ -527,16 +546,26 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
       String key = mapKey(username, channel);
       if (!chatChannelUsersByChannelAndName.containsKey(key)) {
         ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+        Optional<Player> optionalPlayer = playerService.getPlayerForUsername(username);
+
         Color color = null;
 
-        if (chatPrefs.getChatColorMode() == CUSTOM && chatPrefs.getUserToColor().containsKey(userToColorKey(username))) {
+        if (chatPrefs.getChatColorMode() == DEFAULT && chatPrefs.getUserToColor().containsKey(userToColorKey(username))) {
           color = chatPrefs.getUserToColor().get(userToColorKey(username));
+        } else if (chatPrefs.getChatColorMode() == DEFAULT && isModerator && chatPrefs.getGroupToColor().containsKey(MODERATOR)) {
+          color = chatPrefs.getGroupToColor().get(MODERATOR);
+        } else if (chatPrefs.getChatColorMode() == DEFAULT && optionalPlayer.isPresent()) {
+          ChatUserCategory chatUserCategory = optionalPlayer.map(player -> switch (player.getSocialStatus()) {
+            case FRIEND -> ChatUserCategory.FRIEND;
+            case FOE -> ChatUserCategory.FOE;
+            default -> ChatUserCategory.OTHER;
+          }).orElse(ChatUserCategory.CHAT_ONLY);
+          color = chatPrefs.getGroupToColor().get(chatUserCategory);
         } else if (chatPrefs.getChatColorMode() == RANDOM) {
           color = ColorGeneratorUtil.generateRandomColor(userToColorKey(username).hashCode());
         }
 
-        ChatChannelUser chatChannelUser = new ChatChannelUser(username, color, isModerator);
-        eventBus.post(new ChatUserCreatedEvent(chatChannelUser));
+        ChatChannelUser chatChannelUser = new ChatChannelUser(username, color, isModerator, optionalPlayer.orElse(null));
         chatChannelUsersByChannelAndName.put(key, chatChannelUser);
       }
       return chatChannelUsersByChannelAndName.get(key);

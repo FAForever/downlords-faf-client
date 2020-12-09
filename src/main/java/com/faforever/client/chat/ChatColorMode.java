@@ -2,7 +2,6 @@ package com.faforever.client.chat;
 
 public enum ChatColorMode {
   DEFAULT("settings.chat.colorMode.default"),
-  CUSTOM("settings.chat.colorMode.custom"),
   RANDOM("settings.chat.colorMode.random");
 
   private final String i18nKey;

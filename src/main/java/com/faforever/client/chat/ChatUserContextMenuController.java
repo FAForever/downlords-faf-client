@@ -54,7 +54,7 @@ import java.net.URL;
 import java.util.Objects;
 import java.util.Set;
 
-import static com.faforever.client.chat.ChatColorMode.CUSTOM;
+import static com.faforever.client.chat.ChatColorMode.RANDOM;
 import static com.faforever.client.player.SocialStatus.FOE;
 import static com.faforever.client.player.SocialStatus.FRIEND;
 import static com.faforever.client.player.SocialStatus.SELF;
@@ -161,18 +161,28 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
     colorPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
       String lowerUsername = chatUser.getUsername().toLowerCase(US);
+      ChatUserCategory userCategory;
+      if (chatUser.isModerator()) {
+        userCategory = ChatUserCategory.MODERATOR;
+      } else {
+        userCategory = chatUser.getSocialStatus().map(status -> switch (status) {
+          case FRIEND -> ChatUserCategory.FRIEND;
+          case FOE -> ChatUserCategory.FOE;
+          default -> ChatUserCategory.OTHER;
+        }).orElse(ChatUserCategory.OTHER);
+      }
       if (newValue == null) {
         chatPrefs.getUserToColor().remove(lowerUsername);
+        chatUser.setColor(chatPrefs.getGroupToColor().getOrDefault(userCategory, null));
       } else {
         chatPrefs.getUserToColor().put(lowerUsername, newValue);
+        chatUser.setColor(newValue);
       }
-      chatUser.setColor(newValue);
     });
 
-    removeCustomColorButton.visibleProperty().bind(chatPrefs.chatColorModeProperty().isEqualTo(CUSTOM)
+    removeCustomColorButton.visibleProperty().bind(chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM)
         .and(colorPicker.valueProperty().isNotNull()));
-    colorPickerMenuItem.visibleProperty().bind(chatPrefs.chatColorModeProperty()
-        .isEqualTo(CUSTOM));
+    colorPickerMenuItem.visibleProperty().bind(chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM));
 
 
     playerChangeListener = (observable, oldValue, newValue) -> {

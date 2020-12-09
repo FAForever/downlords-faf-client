@@ -108,9 +108,9 @@ public class ChatUserService implements InitializingBean {
           }
           Platform.runLater(() -> {
             chatChannelUser.setStatusTooltipText(i18n.get(status.getI18nKey()));
-            chatChannelUser.setStatusImage(playerStatusImage);
+            chatChannelUser.setGameStatusImage(playerStatusImage);
             chatChannelUser.setMapImage(mapImage);
-            chatChannelUser.setStatus(status);
+            chatChannelUser.setGameStatus(status);
           });
         });
   }
@@ -130,9 +130,9 @@ public class ChatUserService implements InitializingBean {
       chatChannelUser.setAvatar(null);
       chatChannelUser.setCountryFlag(null);
       chatChannelUser.setCountryName(null);
-      chatChannelUser.setStatus(null);
+      chatChannelUser.setGameStatus(null);
       chatChannelUser.setMapImage(null);
-      chatChannelUser.setStatusImage(null);
+      chatChannelUser.setGameStatusImage(null);
       chatChannelUser.setPopulated(false);
     }
   }
@@ -143,9 +143,9 @@ public class ChatUserService implements InitializingBean {
     if (chatChannelUser.isDisplayed()) {
       populateGameStatus(chatChannelUser);
     } else if (!chatChannelUser.isDisplayed()) {
-      chatChannelUser.setStatus(null);
+      chatChannelUser.setGameStatus(null);
       chatChannelUser.setMapImage(null);
-      chatChannelUser.setStatusImage(null);
+      chatChannelUser.setGameStatusImage(null);
     }
   }
 }

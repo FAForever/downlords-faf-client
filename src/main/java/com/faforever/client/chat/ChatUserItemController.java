@@ -31,7 +31,6 @@ import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
 import javafx.stage.PopupWindow;
 import javafx.util.Duration;
 import lombok.extern.slf4j.Slf4j;
@@ -42,11 +41,8 @@ import org.springframework.stereotype.Component;
 
 import java.lang.ref.WeakReference;
 
-import static com.faforever.client.chat.ChatColorMode.CUSTOM;
-import static com.faforever.client.player.SocialStatus.SELF;
 import static com.faforever.client.util.RatingUtil.getGlobalRating;
 import static com.faforever.client.util.RatingUtil.getLeaderboardRating;
-import static java.util.Locale.US;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -65,32 +61,27 @@ public class ChatUserItemController implements Controller<Node> {
   private final TimeService timeService;
   private final ChatPrefs chatPrefs;
 
-  private final InvalidationListener colorChangeListener;
   private final InvalidationListener formatChangeListener;
-  private final InvalidationListener colorPerUserInvalidationListener;
-  private final WeakInvalidationListener weakColorInvalidationListener;
   private final WeakInvalidationListener weakFormatInvalidationListener;
-  private final WeakInvalidationListener weakColorPerUserInvalidationListener;
 
   public ImageView playerMapImage;
   public ImageView playerStatusIndicator;
-  protected Tooltip statusGameTooltip;
-  protected Tooltip gameInfoTooltip;
-  private GameTooltipController gameInfoController;
-
   public Pane chatUserItemRoot;
   public ImageView countryImageView;
   public ImageView avatarImageView;
   public Label usernameLabel;
   public MenuButton clanMenu;
-
-  private ChatChannelUser chatUser;
+  protected Tooltip statusGameTooltip;
+  protected Tooltip gameInfoTooltip;
   @VisibleForTesting
   protected Tooltip countryTooltip;
   @VisibleForTesting
   protected Tooltip avatarTooltip;
   @VisibleForTesting
   protected Tooltip userTooltip;
+  private GameTooltipController gameInfoController;
+  private ChatChannelUser chatUser;
+  private WeakReference<ChatUserContextMenuController> contextMenuController = null;
 
   // TODO reduce dependencies, rely on eventBus instead
   public ChatUserItemController(PreferencesService preferencesService,
@@ -105,28 +96,14 @@ public class ChatUserItemController implements Controller<Node> {
     this.timeService = timeService;
     this.chatPrefs = preferencesService.getPreferences().getChat();
 
-    colorPerUserInvalidationListener = change -> {
-      if (chatUser != null) {
-        updateColor();
-      }
-    };
-
-    colorChangeListener = observable -> updateColor();
     formatChangeListener = observable -> updateFormat();
-    weakColorInvalidationListener = new WeakInvalidationListener(colorChangeListener);
     weakFormatInvalidationListener = new WeakInvalidationListener(formatChangeListener);
-    weakColorPerUserInvalidationListener = new WeakInvalidationListener(colorPerUserInvalidationListener);
 
-    JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), weakColorInvalidationListener);
     JavaFxUtil.addListener(chatPrefs.chatFormatProperty(), weakFormatInvalidationListener);
   }
 
   private void updateFormat() {
     ChatFormat chatFormat = preferencesService.getPreferences().getChat().getChatFormat();
-    if (chatFormat == ChatFormat.COMPACT) {
-      JavaFxUtil.removeListener(preferencesService.getPreferences().getChat().getUserToColor(), weakColorPerUserInvalidationListener);
-      JavaFxUtil.addListener(preferencesService.getPreferences().getChat().getUserToColor(), weakColorPerUserInvalidationListener);
-    }
     getRoot().pseudoClassStateChanged(
         COMPACT,
         chatFormat == ChatFormat.COMPACT
@@ -138,7 +115,6 @@ public class ChatUserItemController implements Controller<Node> {
 
     initializeTooltips();
 
-    weakColorInvalidationListener.invalidated(chatPrefs.chatColorModeProperty());
     weakFormatInvalidationListener.invalidated(chatPrefs.chatFormatProperty());
 
     JavaFxUtil.bindManagedToVisible(countryImageView, clanMenu, playerStatusIndicator, playerMapImage);
@@ -214,10 +190,6 @@ public class ChatUserItemController implements Controller<Node> {
     };
   }
 
-
-
-  private WeakReference<ChatUserContextMenuController> contextMenuController = null;
-
   public void onContextMenuRequested(ContextMenuEvent event) {
     if (contextMenuController != null) {
       ChatUserContextMenuController controller = contextMenuController.get();
@@ -240,44 +212,6 @@ public class ChatUserItemController implements Controller<Node> {
     }
   }
 
-  private void updateColor() {
-    if (chatUser == null) {
-      assignColor(null);
-      return;
-    }
-
-    chatUser.getPlayer().ifPresent(player -> {
-      if (player.getSocialStatus() == SELF) {
-        usernameLabel.getStyleClass().add(SELF.getCssClass());
-        clanMenu.getStyleClass().add(SELF.getCssClass());
-      }
-    });
-
-    Color color = null;
-    String lowerUsername = chatUser.getUsername().toLowerCase(US);
-
-    if (chatPrefs.getChatColorMode() == CUSTOM) {
-      if (chatPrefs.getUserToColor().containsKey(lowerUsername)) {
-        color = chatPrefs.getUserToColor().get(lowerUsername);
-      }
-    } else if (chatPrefs.getChatColorMode() == ChatColorMode.RANDOM) {
-      color = ColorGeneratorUtil.generateRandomColor(chatUser.getUsername().hashCode());
-    }
-
-    chatUser.setColor(color);
-    assignColor(color);
-  }
-
-  private void assignColor(Color color) {
-    if (color != null) {
-      usernameLabel.setStyle(String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)));
-      clanMenu.setStyle(String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)));
-    } else {
-      usernameLabel.setStyle("");
-      clanMenu.setStyle("");
-    }
-  }
-
   public Pane getRoot() {
     return chatUserItemRoot;
   }
@@ -292,8 +226,10 @@ public class ChatUserItemController implements Controller<Node> {
     }
 
     JavaFxUtil.unbind(usernameLabel.textProperty());
+    JavaFxUtil.unbind(usernameLabel.styleProperty());
     JavaFxUtil.unbind(avatarImageView.imageProperty());
     JavaFxUtil.unbind(clanMenu.textProperty());
+    JavaFxUtil.unbind(clanMenu.styleProperty());
     JavaFxUtil.unbind(countryImageView.imageProperty());
     JavaFxUtil.unbind(playerMapImage.imageProperty());
     JavaFxUtil.unbind(playerStatusIndicator.imageProperty());
@@ -310,12 +246,15 @@ public class ChatUserItemController implements Controller<Node> {
     if (this.chatUser != null) {
       this.chatUser.setDisplayed(true);
       JavaFxUtil.bind(usernameLabel.textProperty(), this.chatUser.usernameProperty());
+      JavaFxUtil.bind(usernameLabel.styleProperty(), Bindings.createStringBinding(() ->
+              chatUser.getColor().map(color -> String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color))).orElse(""),
+          chatUser.colorProperty()));
       JavaFxUtil.bind(avatarImageView.imageProperty(), this.chatUser.avatarProperty());
       JavaFxUtil.bind(clanMenu.textProperty(), this.chatUser.clanTagProperty());
       JavaFxUtil.bind(countryImageView.imageProperty(), this.chatUser.countryFlagProperty());
       JavaFxUtil.bind(countryTooltip.textProperty(), this.chatUser.countryNameProperty());
       JavaFxUtil.bind(playerMapImage.imageProperty(), this.chatUser.mapImageProperty());
-      JavaFxUtil.bind(playerStatusIndicator.imageProperty(), this.chatUser.statusImageProperty());
+      JavaFxUtil.bind(playerStatusIndicator.imageProperty(), this.chatUser.gameStatusImageProperty());
       JavaFxUtil.bind(statusGameTooltip.textProperty(), this.chatUser.statusTooltipTextProperty());
       if (this.chatUser.getPlayer().isPresent()) {
         JavaFxUtil.bind(avatarTooltip.textProperty(), this.chatUser.getPlayer().get().avatarTooltipProperty());
@@ -324,8 +263,6 @@ public class ChatUserItemController implements Controller<Node> {
         eventBus.post(new ChatUserPopulateEvent(this.chatUser));
       }
     }
-
-    updateColor();
   }
 
   private void updateNameLabelText(Player player) {

@@ -96,7 +96,6 @@ public class SettingsController implements Controller<Node> {
   public TextField executableDecoratorField;
   public TextField executionDirectoryField;
   public ToggleGroup colorModeToggleGroup;
-  public Toggle customColorsToggle;
   public Toggle randomColorsToggle;
   public Toggle defaultColorsToggle;
   public CheckBox hideFoeToggle;
@@ -250,9 +249,6 @@ public class SettingsController implements Controller<Node> {
     colorModeToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == defaultColorsToggle) {
         preferences.getChat().setChatColorMode(ChatColorMode.DEFAULT);
-      }
-      if (newValue == customColorsToggle) {
-        preferences.getChat().setChatColorMode(ChatColorMode.CUSTOM);
       }
       if (newValue == randomColorsToggle) {
         preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
@@ -463,16 +459,13 @@ public class SettingsController implements Controller<Node> {
   }
 
   private void setSelectedColorMode(ChatColorMode newValue) {
-    switch (newValue) {
-      case DEFAULT:
-        colorModeToggleGroup.selectToggle(defaultColorsToggle);
-        break;
-      case CUSTOM:
-        colorModeToggleGroup.selectToggle(customColorsToggle);
-        break;
-      case RANDOM:
-        colorModeToggleGroup.selectToggle(randomColorsToggle);
-        break;
+    if (newValue != null) {
+      switch (newValue) {
+        case DEFAULT -> colorModeToggleGroup.selectToggle(defaultColorsToggle);
+        case RANDOM -> colorModeToggleGroup.selectToggle(randomColorsToggle);
+      }
+    } else {
+      colorModeToggleGroup.selectToggle(defaultColorsToggle);
     }
   }
 

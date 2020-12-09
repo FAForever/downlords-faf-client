@@ -1,7 +1,5 @@
 package com.faforever.client.player;
 
-import com.faforever.client.chat.ChatChannelUser;
-import com.faforever.client.chat.ChatUserCreatedEvent;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.chat.event.ChatMessageEvent;
@@ -23,7 +21,6 @@ import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.client.util.Assert;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -257,7 +254,7 @@ public class PlayerService implements InitializingBean {
   public void updatePlayerChatUsers(Player player) {
     player.getChatChannelUsers().forEach(chatChannelUser -> {
       if (chatChannelUser.isDisplayed()
-          && chatChannelUser.getStatus().filter(playerStatus -> playerStatus != player.getStatus()).isPresent()) {
+          && chatChannelUser.getGameStatus().filter(playerStatus -> playerStatus != player.getStatus()).isPresent()) {
         eventBus.post(new ChatUserGameChangeEvent(chatChannelUser));
       }
     });
@@ -303,16 +300,6 @@ public class PlayerService implements InitializingBean {
 
   public CompletableFuture<List<Player>> getPlayersByIds(Collection<Integer> playerIds) {
     return fafService.getPlayersByIds(playerIds);
-  }
-
-  @Subscribe
-  public void onChatUserCreated(ChatUserCreatedEvent event) {
-    ChatChannelUser chatChannelUser = event.getChatChannelUser();
-    Optional.ofNullable(playersByName.get(chatChannelUser.getUsername()))
-        .ifPresent(player -> Platform.runLater(() -> {
-          chatChannelUser.setPlayer(player);
-          player.getChatChannelUsers().add(chatChannelUser);
-        }));
   }
 
   private void onPlayersInfo(PlayersMessage playersMessage) {
