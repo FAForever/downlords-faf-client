@@ -120,13 +120,11 @@ jacocoTestReport {
   }
 }
 
-// hangs github actions
-
-//test {
-//  testLogging {
-//    showStandardStreams = true
-//  }
-//}
+test {
+  testLogging {
+    showStandardStreams = true
+  }
+}
 
 configurations {
   codacy

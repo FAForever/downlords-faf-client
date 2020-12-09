@@ -110,12 +110,10 @@ public class MapCardController implements Controller<Node> {
   }
 
   private void populateReviews() {
-    if (map.getReviewsSummary() != null) {
-      Platform.runLater(() -> {
-        numberOfReviewsLabel.setText(i18n.number(map.getReviewsSummary().getReviews()));
-        starsController.setValue(map.getReviewsSummary().getScore() / map.getReviewsSummary().getReviews());
-      });
-    }
+    Platform.runLater(() -> {
+      numberOfReviewsLabel.setText(i18n.number(map.getReviewsSummary().getReviews()));
+      starsController.setValue(map.getReviewsSummary().getScore() / map.getReviewsSummary().getReviews());
+    });
   }
 
   public void onInstallButtonClicked() {

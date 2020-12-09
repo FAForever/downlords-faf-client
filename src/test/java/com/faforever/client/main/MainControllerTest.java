@@ -37,7 +37,9 @@ import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -65,6 +67,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -142,8 +145,10 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
     when(uiService.loadFxml("theme/persistent_notifications.fxml")).thenReturn(persistentNotificationsController);
     when(uiService.loadFxml("theme/transient_notifications.fxml")).thenReturn(transientNotificationsController);
+    when(uiService.loadFxml("theme/settings/settings.fxml")).thenReturn(settingsController);
     when(uiService.loadFxml("theme/login.fxml")).thenReturn(loginController);
     when(uiService.loadFxml("theme/chat/chat.fxml")).thenReturn(chatController);
+    when(uiService.createScene(any())).thenAnswer(invocation -> new Scene(invocation.getArgument(0)));
 
     loadFxml("theme/main.fxml", clazz -> {
       if (clazz == instance.getClass()) {
@@ -153,7 +158,11 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     });
     when(fxStage.getStage()).thenReturn(getStage());
     when(fxStage.getNonCaptionNodes()).thenReturn(FXCollections.observableArrayList());
-    when(fxStage.setContent(any())).thenReturn(fxStage);
+    doAnswer(invocation -> {
+      Region root = invocation.getArgument(0);
+      getScene().setRoot(root);
+      return fxStage;
+    }).when(fxStage).setContent(any());
     instance.setFxStage(fxStage);
     WaitForAsyncUtils.asyncFx(() -> instance.display());
     WaitForAsyncUtils.waitForFxEvents();
@@ -190,7 +199,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForFxEvents();
   }
 
-  @Ignore
   @Test
   public void testOnNotificationsButtonClicked() throws Exception {
     fakeLogin();
@@ -200,7 +208,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.persistentNotificationsPopup.isShowing(), is(true));
   }
 
-  @Ignore
   @Test
   public void testOnSettingsItemSelected() throws Exception {
     fakeLogin();
@@ -317,7 +324,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     verify(notificationService, never()).addNotification(any(TransientNotification.class));
   }
 
-  @Ignore
   @Test
   /**
    * Test fails in certain 2 Screen setups

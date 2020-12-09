@@ -70,8 +70,8 @@ public class GamesTableController implements Controller<Node> {
   public TableColumn<Game, String> hostColumn;
   public TableColumn<Game, Boolean> passwordProtectionColumn;
   public TableColumn<Game, String> coopMissionName;
-  private final ChangeListener<Boolean> showModdedGamesChangedListener = (observable, oldValue, newValue) -> Platform.runLater(() -> modsColumn.setVisible(newValue));
-  private final ChangeListener<Boolean> showPasswordProtectedGamesChangedListener = (observable, oldValue, newValue) -> Platform.runLater(() -> passwordProtectionColumn.setVisible(newValue));
+  private final ChangeListener<Boolean> showModdedGamesChangedListener = (observable, oldValue, newValue) -> modsColumn.setVisible(newValue);
+  private final ChangeListener<Boolean> showPasswordProtectedGamesChangedListener = (observable, oldValue, newValue) -> passwordProtectionColumn.setVisible(newValue);
   private GameTooltipController gameTooltipController;
   private Tooltip tooltip;
 
