@@ -26,10 +26,10 @@ jobs:
       run: chmod +x gradlew
       
     - name: Build Jar
-      run: ./gradlew --stacktrace -Pversion=${{ github.sha }} -PjavafxPlatform=linux jar
+      run: ./gradlew -Pversion=${{ github.sha }} -PjavafxPlatform=linux jar
 
     - name: Run Checks
-      run: ./gradlew --stacktrace -PjavafxPlatform=linux check
+      run: ./gradlew -PjavafxPlatform=linux check
       
     - name: Run Coverage Report
       run: ./gradlew jacocoTestReport
