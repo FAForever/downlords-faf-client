@@ -20,14 +20,19 @@ buildscript {
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
   }
 }
-// jacoco does not currently support java15
+
 plugins {
   id "com.install4j.gradle" version "7.0.7"
   id "co.riiid.gradle" version "0.4.2"
   id "de.undercouch.download" version "3.4.3"
   id 'net.ltgt.apt' version '0.19'
-  // id 'jacoco'
+  id 'jacoco'
   id 'com.github.kt3k.coveralls' version "${coverallsGradlePluginVersion}"
+}
+
+//Specify jacoco version to work with java15
+jacoco {
+  toolVersion = "0.8.6"
 }
 
 apply plugin: 'java'
@@ -109,11 +114,11 @@ def httpRequest(Method method, String url, onSuccess) {
   }
 }
 
-//jacocoTestReport {
-//  reports {
-//    xml.enabled = true
-//  }
-//}
+jacocoTestReport {
+  reports {
+    xml.enabled = true
+  }
+}
 
 test {
   testLogging {
@@ -224,11 +229,11 @@ task downloadNativeDependencies(dependsOn: [downloadUnixUid, downloadWindowsUid,
 compileJava.dependsOn 'downloadNativeDependencies'
 compileJava.dependsOn ':webview-patch:build'
 
-//task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
-//  main = "com.codacy.CodacyCoverageReporter"
-//  classpath = configurations.codacy
-//  args = ["-l", "Java", "-r", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"]
-//}
+task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
+  main = "com.codacy.CodacyCoverageReporter"
+  classpath = configurations.codacy
+  args = ["-l", "Java", "-r", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"]
+}
 
 repositories {
   jcenter()
