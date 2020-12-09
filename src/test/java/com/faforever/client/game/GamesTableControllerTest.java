@@ -103,7 +103,7 @@ public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
     });
     WaitForAsyncUtils.waitForFxEvents();
     assertFalse(instance.modsColumn.isVisible());
-    preferences.setShowModdedGames(true);
+    runOnFxThreadAndWait(() -> preferences.setShowModdedGames(true));
     WaitForAsyncUtils.waitForFxEvents();
     assertTrue(instance.modsColumn.isVisible());
   }

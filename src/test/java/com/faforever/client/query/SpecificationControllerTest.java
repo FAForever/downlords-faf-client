@@ -58,6 +58,7 @@ public class SpecificationControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSomething() {
+    instance.setRootType(Game.class);
     try {
       instance.setProperties(ImmutableMap.of(
           "name", new Property("i18n.name", true),
@@ -74,8 +75,9 @@ public class SpecificationControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void dontBuildIfComparisonOperatorIsNull() {
+    instance.setRootType(Game.class);
     try {
-      instance.propertyField.setValue("Something");
+      instance.propertyField.setValue("name");
     } catch (IllegalStateException e) {}
     assertThat(instance.appendTo(qBuilder), is(Optional.empty()));
   }
@@ -84,8 +86,9 @@ public class SpecificationControllerTest extends AbstractPlainJavaFxTest {
   public void dontBuildIfValueIsNull() {
     instance.operationField.setItems(FXCollections.observableArrayList(ComparisonOperator.EQ));
     instance.operationField.getSelectionModel().select(0);
+    instance.setRootType(Game.class);
     try {
-      instance.propertyField.setValue("Something");
+      instance.propertyField.setValue("name");
     } catch (IllegalStateException e) {}
     assertThat(instance.appendTo(qBuilder), is(Optional.empty()));
   }

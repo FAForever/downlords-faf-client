@@ -678,7 +678,6 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
         ChatUserCategory.MODERATOR, Arrays.asList("1Moderator", "12Moderator", "123Moderator")
     )));
 
-    runOnFxThreadAndWait(() -> instance.initialize());
     runOnFxThreadAndWait(() -> instance.setChannel(defaultChannel));
 
     runOnFxThreadAndWait(() -> instance.userSearchTextField.setText("12"));
@@ -697,7 +696,6 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
         ChatUserCategory.OTHER, Arrays.asList("MarcSpector", "Lenkin")
     )));
 
-    runOnFxThreadAndWait(() -> instance.initialize());
     runOnFxThreadAndWait(() -> instance.setChannel(defaultChannel));
 
     runOnFxThreadAndWait(() -> instance.userSearchTextField.setText("Marc"));
@@ -716,7 +714,6 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
         ChatUserCategory.FOE, Arrays.asList("EnemyPlayer", "RandomFoePlayer")
     )));
 
-    runOnFxThreadAndWait(() -> instance.initialize());
     runOnFxThreadAndWait(() -> instance.setChannel(defaultChannel));
 
     runOnFxThreadAndWait(() -> instance.userSearchTextField.setText("Random"));
@@ -732,7 +729,6 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
         ChatUserCategory.CHAT_ONLY, Arrays.asList("ChatOnlyPlayer", "ExamplePlayer")
     )));
 
-    runOnFxThreadAndWait(() -> instance.initialize());
     runOnFxThreadAndWait(() -> instance.setChannel(defaultChannel));
 
     runOnFxThreadAndWait(() -> instance.userSearchTextField.setText("Only"));
@@ -752,7 +748,6 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
         ChatUserCategory.FOE, Arrays.asList("FOE", "For______NAME")
     )));
 
-    runOnFxThreadAndWait(() -> instance.initialize());
     runOnFxThreadAndWait(() -> instance.setChannel(defaultChannel));
 
     runOnFxThreadAndWait(() -> instance.userSearchTextField.setText("name"));

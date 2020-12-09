@@ -13,6 +13,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardEntry;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.stats.StatisticsService;
@@ -29,9 +30,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -117,18 +118,17 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetPlayerInfoBean() throws Exception {
-    when(achievementService.getAchievementDefinitions()).thenReturn(CompletableFuture.completedFuture(asList(
-        AchievementDefinitionBuilder.create().id("foo-bar").get(),
-        AchievementDefinitionBuilder.create().defaultValues().get()
+    Player testPlayer = PlayerBuilder.create(PLAYER_NAME).id(PLAYER_ID).get();
+    when(achievementService.getAchievementDefinitions()).thenReturn(CompletableFuture.completedFuture(singletonList(
+        AchievementDefinitionBuilder.create().id("foo-bar").get()
     )));
-    when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
-    when(achievementService.getPlayerAchievements(PLAYER_ID)).thenReturn(CompletableFuture.completedFuture(asList(
-        PlayerAchievementBuilder.create().defaultValues().achievementId("foo-bar").state(AchievementState.UNLOCKED).get(),
-        PlayerAchievementBuilder.create().defaultValues().get()
+    when(achievementService.getPlayerAchievements(PLAYER_ID)).thenReturn(CompletableFuture.completedFuture(singletonList(
+        PlayerAchievementBuilder.create().defaultValues().achievementId("foo-bar").state(AchievementState.UNLOCKED).get()
     )));
     when(eventService.getPlayerEvents(PLAYER_ID)).thenReturn(CompletableFuture.completedFuture(new HashMap<>()));
+    when(playerService.getPlayersByIds(any())).thenReturn(CompletableFuture.completedFuture(List.of(testPlayer)));
 
-    instance.setPlayer(PlayerBuilder.create(PLAYER_NAME).id(PLAYER_ID).get());
+    instance.setPlayer(testPlayer);
 
     verify(achievementService).getAchievementDefinitions();
     verify(achievementService).getPlayerAchievements(PLAYER_ID);
