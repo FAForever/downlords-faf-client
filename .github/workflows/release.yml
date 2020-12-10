@@ -39,17 +39,17 @@ jobs:
 
       - name: Download Install4j
         run: |
-            mkdir -p "install4j"
-            curl https://download-gcdn.ej-technologies.com/install4j/install4j_unix_8_0_8.tar.gz -o "install4j/install4j8.tar.gz"
-            mkdir -p ".install4j8/jres/"
-            curl https://content.faforever.com/jre/windows-amd64-15.0.1.tar.gz -o ".install4j8/jres/windows-amd64-15.0.1.tar.gz"
-            tar xzf "install4j/install4j8.tar.gz" -C "install4j"
+            mkdir -p "$HOME/install4j"
+            curl https://download-gcdn.ej-technologies.com/install4j/install4j_unix_8_0_8.tar.gz -o "$HOME/install4j/install4j8.tar.gz"
+            mkdir -p "$HOME/.install4j8/jres/"
+            curl https://content.faforever.com/jre/windows-amd64-15.0.1.tar.gz -o "$HOME/.install4j8/jres/windows-amd64-15.0.1.tar.gz"
+            tar xzf "$HOME/install4j/install4j8.tar.gz" -C "$HOME/install4j"
 
       - name: Build Windows Files
         run: |
           ./gradlew -Pversion=${{ github.event.inputs.version }} \
           -PjavafxPlatform=win \
-          -Pinstall4jHomeDir=$INSTALL4J_DIR \
+          -Pinstall4jHomeDir=$HOME/$INSTALL4J_DIR \
           -Pinstall4jLicense=${{ secrets.INSTALL4J_LICENSE }} \
           --info \
           --stacktrace \
@@ -59,7 +59,7 @@ jobs:
         run: |
           ./gradlew -Pversion=${{ github.event.inputs.version }} \
           -PjavafxPlatform=linux \
-          -Pinstall4jHomeDir=$INSTALL4J_DIR \
+          -Pinstall4jHomeDir=$HOME/$INSTALL4J_DIR \
           -Pinstall4jLicense=${{ secrets.INSTALL4J_LICENSE }} \
           --stacktrace \
           buildInstall4jMediaFiles
