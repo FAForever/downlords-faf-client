@@ -58,17 +58,19 @@ jobs:
           fi
 
       - name: Build Linux Files
-        run: ./gradlew -Pversion=${{ github.event.inputs.version }} \
+        run: |
+          ./gradlew -Pversion=${{ github.event.inputs.version }} \
           -PjavafxPlatform=linux \
-          -Pinstall4jHomeDir=$INSTALL4J_DIR \
-          -Pinstall4jLicense=${{ secrets.INSTAL4J_LICENSE }} \
+          -Pinstall4jHomeDir="$INSTALL4J_DIR" \
+          -Pinstall4jLicense=${{ secrets.INSTALL4J_LICENSE }} \
           buildInstall4jMediaFiles
 
       - name: Build Windows Files
-        run: ./gradlew -Pversion=${{ github.event.inputs.version }} \
+        run: |
+          ./gradlew -Pversion=${{ github.event.inputs.version }} \
           -PjavafxPlatform=win \
-          -Pinstall4jHomeDir=$INSTALL4J_DIR \
-          -Pinstall4jLicense=${{ secrets.INSTAL4J_LICENSE }} \
+          -Pinstall4jHomeDir="$INSTALL4J_DIR" \
+          -Pinstall4jLicense=${{ secrets.INSTALL4J_LICENSE }} \
           --info \
           --stacktrace \
           buildInstall4jMediaFiles
