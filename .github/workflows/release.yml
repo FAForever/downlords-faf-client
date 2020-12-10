@@ -1,0 +1,118 @@
+# This workflow will build a Java project with Gradle
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
+
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release Version'
+        required: true
+
+jobs:
+  release:
+
+    runs-on: ubuntu-latest
+    env:
+      INSTALL4J_DIR: "$HOME/install4j/install4j8.0.8"
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache Install4j
+        id: cache-install4j
+        uses: actions/cache@v2
+        with:
+          path: |
+            $HOME/install4j/
+            ~/.install4j8
+          key: ${{ runner.os }}-install4j
+
+      - name: Set up JDK 15
+        uses: actions/setup-java@v1
+        with:
+          java-version: 15.0.1
+          java-package: jdk+fx
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Jar
+        run: ./gradlew --stacktrace -Pversion=${{ github.event.inputs.version }} -PjavafxPlatform=linux jar
+
+      - name: Run Checks
+        run: xvfb-run --auto-servernum ./gradlew --stacktrace -PjavafxPlatform=linux check
+        env:
+          JAVA_TOOL_OPTIONS: "-Dprism.verbose=true -Dprism.order=sw"
+
+      - name: Download Install4j
+        run: |
+          if [ ! -d "$INSTALL4J_DIR" ] || [ ! -d "$HOME/.install4j8/jres/windows-amd64-15.0.1.tar.gz" ]; then
+            rm -rf "$HOME/install4j"
+            mkdir -p "$HOME/install4j"
+            curl https://download-gcdn.ej-technologies.com/install4j/install4j_unix_8_0_8.tar.gz -o "$HOME/install4j/install4j8.tar.gz"
+            mkdir -p "$HOME/.install4j8/jres/"
+            curl https://content.faforever.com/jre/windows-amd64-15.0.1.tar.gz -o "$HOME/.install4j8/jres/windows-amd64-15.0.1.tar.gz"
+            tar xzf "$HOME/install4j/install4j8.tar.gz" -C "$HOME/install4j"
+          fi
+
+      - name: Build Linux Files
+        run: ./gradlew -Pversion=${{ github.event.inputs.version }} \
+          -PjavafxPlatform=linux \
+          -Pinstall4jHomeDir=$INSTALL4J_DIR \
+          -Pinstall4jLicense=${{ secrets.INSTAL4J_LICENSE }} \
+          buildInstall4jMediaFiles
+
+      - name: Build Windows Files
+        run: ./gradlew -Pversion=${{ github.event.inputs.version }} \
+          -PjavafxPlatform=win \
+          -Pinstall4jHomeDir=$INSTALL4J_DIR \
+          -Pinstall4jLicense=${{ secrets.INSTAL4J_LICENSE }} \
+          --info \
+          --stacktrace \
+          buildInstall4jMediaFiles
+
+      - name: Create Draft Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          release_name: v${{ github.event.inputs.version }}
+          draft: true
+          prerelease: true
+
+      - name: Upload Linux Files
+        id: upload-linux
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/install4j/dfc_unix_${{ github.event.inputs.version }}.tar.gz
+          asset_name: dfc_unix_${{ github.event.inputs.version }}.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Upload Windows exe
+        id: upload-exe
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/install4j/dfc_windows-x64_${{ github.event.inputs.version }}.exe
+          asset_name: dfc_windows-x64_${{ github.event.inputs.version }}.exe
+          asset_content_type: application/vnd.microsoft.portable-executable
+
+      - name: Upload Windows zip
+        id: upload-zip
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/install4j/dfc_windows-x64_${{ github.event.inputs.version }}.zip
+          asset_name: dfc_windows-x64_${{ github.event.inputs.version }}.zip
+          asset_content_type: application/zip
