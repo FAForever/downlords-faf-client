@@ -29,6 +29,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Build Jar
+        run: ./gradlew --stacktrace -Pversion=${{ github.event.inputs.version }} -PjavafxPlatform=linux jar
+
       - name: Run Checks
         run: xvfb-run --auto-servernum ./gradlew --stacktrace -PjavafxPlatform=linux check
         env:
