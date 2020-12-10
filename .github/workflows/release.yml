@@ -38,9 +38,6 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build Jar
-        run: ./gradlew --stacktrace -Pversion=${{ github.event.inputs.version }} -PjavafxPlatform=linux jar
-
       - name: Run Checks
         run: xvfb-run --auto-servernum ./gradlew --stacktrace -PjavafxPlatform=linux check
         env:
@@ -57,14 +54,6 @@ jobs:
             tar xzf "$HOME/install4j/install4j8.tar.gz" -C "$HOME/install4j"
           fi
 
-      - name: Build Linux Files
-        run: |
-          ./gradlew -Pversion=${{ github.event.inputs.version }} \
-          -PjavafxPlatform=linux \
-          -Pinstall4jHomeDir="$INSTALL4J_DIR" \
-          -Pinstall4jLicense=${{ secrets.INSTALL4J_LICENSE }} \
-          buildInstall4jMediaFiles
-
       - name: Build Windows Files
         run: |
           ./gradlew -Pversion=${{ github.event.inputs.version }} \
@@ -72,6 +61,15 @@ jobs:
           -Pinstall4jHomeDir="$INSTALL4J_DIR" \
           -Pinstall4jLicense=${{ secrets.INSTALL4J_LICENSE }} \
           --info \
+          --stacktrace \
+          buildInstall4jMediaFiles
+
+      - name: Build Linux Files
+        run: |
+          ./gradlew -Pversion=${{ github.event.inputs.version }} \
+          -PjavafxPlatform=linux \
+          -Pinstall4jHomeDir="$INSTALL4J_DIR" \
+          -Pinstall4jLicense=${{ secrets.INSTALL4J_LICENSE }} \
           --stacktrace \
           buildInstall4jMediaFiles
 
