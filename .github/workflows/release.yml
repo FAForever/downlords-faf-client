@@ -40,10 +40,10 @@ jobs:
       - name: Download Install4j
         run: |
             mkdir -p "install4j"
-            curl https://download-gcdn.ej-technologies.com/install4j/install4j_unix_8_0_8.tar.gz -o "$HOME/install4j/install4j8.tar.gz"
+            curl https://download-gcdn.ej-technologies.com/install4j/install4j_unix_8_0_8.tar.gz -o "install4j/install4j8.tar.gz"
             mkdir -p ".install4j8/jres/"
             curl https://content.faforever.com/jre/windows-amd64-15.0.1.tar.gz -o ".install4j8/jres/windows-amd64-15.0.1.tar.gz"
-            tar xzf "$HOME/install4j/install4j8.tar.gz" -C "install4j"
+            tar xzf "install4j/install4j8.tar.gz" -C "install4j"
 
       - name: Build Windows Files
         run: |
