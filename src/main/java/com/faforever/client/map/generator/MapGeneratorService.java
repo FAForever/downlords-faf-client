@@ -6,7 +6,6 @@ import com.faforever.client.io.FileUtils;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.io.BaseEncoding;
 import javafx.scene.image.Image;
 import lombok.Getter;
 import lombok.Setter;
@@ -49,7 +48,6 @@ public class MapGeneratorService implements InitializingBean {
    */
   public static final String GENERATED_MAP_NAME = "neroxis_map_generator_%s_%s";
   public static final String GENERATOR_EXECUTABLE_FILENAME = "MapGenerator_%s.jar";
-  public static final BaseEncoding NAME_ENCODER = BaseEncoding.base32().omitPadding().lowerCase();
   @VisibleForTesting
   public static final String GENERATOR_EXECUTABLE_SUB_DIRECTORY = "map_generator";
   public static final int GENERATION_TIMEOUT_SECONDS = 60 * 3;
