@@ -442,6 +442,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     });
     instance.setCreateGameController(createGameController);
     instance.onGenerateMap();
+    WaitForAsyncUtils.waitForFxEvents();
 
     verify(mapGeneratorService).generateMap(eq(10), eq(512), eq(new HashMap<>()), eq(GenerationType.CASUAL));
   }

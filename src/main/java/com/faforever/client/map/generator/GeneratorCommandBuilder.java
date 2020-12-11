@@ -98,6 +98,8 @@ public class GeneratorCommandBuilder {
         switch (generationType) {
           case BLIND -> command.add("--blind");
           case TOURNAMENT -> command.add("--tournament-style");
+          default -> {
+          }
         }
 
         if (landDensity != null) {

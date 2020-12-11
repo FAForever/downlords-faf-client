@@ -84,8 +84,6 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   private MapGeneratorService mapGeneratorService;
   @Mock
   private ModManagerController modManagerController;
-  @Mock
-  private GenerateMapController generateMapController;
 
   private Preferences preferences;
   private CreateGameController instance;
