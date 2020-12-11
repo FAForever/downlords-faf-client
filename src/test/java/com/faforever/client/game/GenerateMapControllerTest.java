@@ -13,12 +13,15 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -36,6 +39,8 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
   private MapGeneratorService mapGeneratorService;
   @Mock
   private I18n i18n;
+  @Mock
+  private CreateGameController createGameController;
 
   private Preferences preferences;
   private GenerateMapController instance;
@@ -415,6 +420,30 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     assertFalse(optionMap.containsKey("mountainDensity"));
     assertFalse(optionMap.containsKey("plateauDensity"));
     assertFalse(optionMap.containsKey("rampDensity"));
+  }
+
+  @Test
+  public void testOnGenerateMapNoName() {
+    preferences.getGeneratorPrefs().setWaterRandomProperty(true);
+    preferences.getGeneratorPrefs().setMountainRandomProperty(true);
+    preferences.getGeneratorPrefs().setPlateauRandomProperty(true);
+    preferences.getGeneratorPrefs().setRampRandomProperty(true);
+    preferences.getGeneratorPrefs().setSpawnCountProperty(10);
+    preferences.getGeneratorPrefs().setMapSizeProperty("10km");
+    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+
+    when(mapGeneratorService.generateMap(anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture("testname"));
+
+
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+
+    instance.setOnCloseButtonClickedListener(() -> {
+    });
+    instance.setCreateGameController(createGameController);
+    instance.onGenerateMap();
+
+    verify(mapGeneratorService).generateMap(eq(10), eq(512), eq(new HashMap<>()), eq(GenerationType.CASUAL));
   }
 }
 

@@ -31,7 +31,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.security.InvalidParameterException;
-import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -214,13 +213,6 @@ public class GenerateMapController implements Controller<Pane> {
       getSliderValue(rampSlider, rampRandom).ifPresent(value -> optionMap.put("rampDensity", value));
     }
     return optionMap;
-  }
-
-  protected BitSet getParameters() {
-    BitSet parameters = new BitSet();
-    parameters.set(0, generationTypeComboBox.getValue() == GenerationType.BLIND || generationTypeComboBox.getValue() == GenerationType.TOURNAMENT);
-    parameters.set(1, generationTypeComboBox.getValue() == GenerationType.BLIND);
-    return parameters;
   }
 
   public void onCloseButtonClicked() {

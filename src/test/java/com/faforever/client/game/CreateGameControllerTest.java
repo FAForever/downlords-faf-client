@@ -24,6 +24,7 @@ import javafx.css.PseudoClass;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -84,6 +85,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   private MapGeneratorService mapGeneratorService;
   @Mock
   private ModManagerController modManagerController;
+  @Mock
+  private GenerateMapController generateMapController;
 
   private Preferences preferences;
   private CreateGameController instance;
@@ -104,6 +107,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
     when(i18n.number(anyInt())).then(invocation -> invocation.getArgument(0).toString());
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
+    when(uiService.loadFxml("theme/play/generate_map.fxml")).thenReturn(generateMapController);
+    when(generateMapController.getRoot()).thenReturn(new Pane());
 
     loadFxml("theme/play/create_game.fxml", clazz -> {
       if (clazz.equals(ModManagerController.class)) {
