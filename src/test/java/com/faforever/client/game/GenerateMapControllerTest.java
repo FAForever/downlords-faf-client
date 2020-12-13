@@ -13,11 +13,15 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -35,6 +39,8 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
   private MapGeneratorService mapGeneratorService;
   @Mock
   private I18n i18n;
+  @Mock
+  private CreateGameController createGameController;
 
   private Preferences preferences;
   private GenerateMapController instance;
@@ -374,9 +380,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testGetOptionArray() {
-    preferences.getGeneratorPrefs().setSpawnCountProperty(6);
-    preferences.getGeneratorPrefs().setMapSizeProperty("10km");
+  public void testGetOptionMap() {
     preferences.getGeneratorPrefs().setWaterRandomProperty(false);
     preferences.getGeneratorPrefs().setMountainRandomProperty(false);
     preferences.getGeneratorPrefs().setPlateauRandomProperty(false);
@@ -387,23 +391,19 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     preferences.getGeneratorPrefs().setRampDensityProperty(4);
     preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
 
-    byte[] optionArray = {6, 8, 126, 2, 3, 4};
-
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertEquals(instance.getOptionArray()[0], optionArray[0]);
-    assertEquals(instance.getOptionArray()[1], optionArray[1]);
-    assertEquals(instance.getOptionArray()[2], optionArray[2]);
-    assertEquals(instance.getOptionArray()[3], optionArray[3]);
-    assertEquals(instance.getOptionArray()[4], optionArray[4]);
-    assertEquals(instance.getOptionArray()[5], optionArray[5]);
+    Map<String, Float> optionMap = instance.getOptionMap();
+
+    assertEquals(optionMap.get("landDensity"), 1 - 1 / 127f, 1 / 127f / 2);
+    assertEquals(optionMap.get("plateauDensity"), 2 / 127f, 1 / 127f / 2);
+    assertEquals(optionMap.get("mountainDensity"), 3 / 127f, 1 / 127f / 2);
+    assertEquals(optionMap.get("rampDensity"), 4 / 127f, 1 / 127f / 2);
   }
 
   @Test
-  public void testGetOptionArrayRandom() {
-    preferences.getGeneratorPrefs().setSpawnCountProperty(6);
-    preferences.getGeneratorPrefs().setMapSizeProperty("10km");
+  public void testGetOptionMapRandom() {
     preferences.getGeneratorPrefs().setWaterRandomProperty(true);
     preferences.getGeneratorPrefs().setMountainRandomProperty(true);
     preferences.getGeneratorPrefs().setPlateauRandomProperty(true);
@@ -414,12 +414,37 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertEquals(instance.getOptionArray()[0], 6);
-    assertEquals(instance.getOptionArray()[1], 512 / 64);
-    assertTrue(instance.getOptionArray()[2] >= 0);
-    assertTrue(instance.getOptionArray()[3] >= 0);
-    assertTrue(instance.getOptionArray()[4] >= 0);
-    assertTrue(instance.getOptionArray()[5] >= 0);
+    Map<String, Float> optionMap = instance.getOptionMap();
+
+    assertFalse(optionMap.containsKey("landDensity"));
+    assertFalse(optionMap.containsKey("mountainDensity"));
+    assertFalse(optionMap.containsKey("plateauDensity"));
+    assertFalse(optionMap.containsKey("rampDensity"));
+  }
+
+  @Test
+  public void testOnGenerateMapNoName() {
+    preferences.getGeneratorPrefs().setWaterRandomProperty(true);
+    preferences.getGeneratorPrefs().setMountainRandomProperty(true);
+    preferences.getGeneratorPrefs().setPlateauRandomProperty(true);
+    preferences.getGeneratorPrefs().setRampRandomProperty(true);
+    preferences.getGeneratorPrefs().setSpawnCountProperty(10);
+    preferences.getGeneratorPrefs().setMapSizeProperty("10km");
+    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+
+    when(mapGeneratorService.generateMap(anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture("testname"));
+
+
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+
+    instance.setOnCloseButtonClickedListener(() -> {
+    });
+    instance.setCreateGameController(createGameController);
+    instance.onGenerateMap();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(mapGeneratorService).generateMap(eq(10), eq(512), eq(new HashMap<>()), eq(GenerationType.CASUAL));
   }
 }
 

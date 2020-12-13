@@ -31,8 +31,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.security.InvalidParameterException;
-import java.util.BitSet;
-import java.util.Random;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Component
@@ -196,32 +197,22 @@ public class GenerateMapController implements Controller<Pane> {
     rampRandomBox.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
   }
 
-  private byte getSliderValue(Slider slider, CheckBox checkBox) {
+  private Optional<Float> getSliderValue(Slider slider, CheckBox checkBox) {
     if (checkBox.isSelected() || generationTypeComboBox.getValue() != GenerationType.CASUAL) {
-      return (byte) new Random().nextInt(127);
+      return Optional.empty();
     }
-    return (byte) slider.getValue();
+    return Optional.of(((byte) slider.getValue()) / 127f);
   }
 
-  protected byte[] getOptionArray() {
-    byte spawnCount = spawnCountSpinner.getValue().byteValue();
-    byte mapSize = (byte) (mapValues[validMapSizes.indexOf(mapSizeSpinner.getValue())] / 64);
-    byte landDensity = (byte) (Byte.MAX_VALUE - getSliderValue(waterSlider, waterRandom));
-    byte plateauDensity = getSliderValue(plateauSlider, plateauRandom);
-    byte mountainDensity = getSliderValue(mountainSlider, mountainRandom);
-    byte rampDensity = getSliderValue(rampSlider, rampRandom);
-    if (generationTypeComboBox.getValue() == GenerationType.BLIND || generationTypeComboBox.getValue() == GenerationType.TOURNAMENT) {
-      return new byte[]{spawnCount, mapSize};
-    } else {
-      return new byte[]{spawnCount, mapSize, landDensity, plateauDensity, mountainDensity, rampDensity};
+  protected Map<String, Float> getOptionMap() {
+    Map<String, Float> optionMap = new HashMap<>();
+    if (generationTypeComboBox.getValue() == GenerationType.CASUAL) {
+      getSliderValue(waterSlider, waterRandom).ifPresent(value -> optionMap.put("landDensity", 1 - value));
+      getSliderValue(plateauSlider, plateauRandom).ifPresent(value -> optionMap.put("plateauDensity", value));
+      getSliderValue(mountainSlider, mountainRandom).ifPresent(value -> optionMap.put("mountainDensity", value));
+      getSliderValue(rampSlider, rampRandom).ifPresent(value -> optionMap.put("rampDensity", value));
     }
-  }
-
-  protected BitSet getParameters() {
-    BitSet parameters = new BitSet();
-    parameters.set(0, generationTypeComboBox.getValue() == GenerationType.BLIND || generationTypeComboBox.getValue() == GenerationType.TOURNAMENT);
-    parameters.set(1, generationTypeComboBox.getValue() == GenerationType.BLIND);
-    return parameters;
+    return optionMap;
   }
 
   public void onCloseButtonClicked() {
@@ -242,9 +233,10 @@ public class GenerateMapController implements Controller<Pane> {
       }
       generateFuture = mapGeneratorService.generateMap(previousMapName.getText());
     } else {
-      byte[] optionArray = getOptionArray();
-      BitSet parameters = getParameters();
-      generateFuture = mapGeneratorService.generateMap(optionArray, parameters);
+      int spawnCount = spawnCountSpinner.getValue();
+      int mapSize = mapValues[validMapSizes.indexOf(mapSizeSpinner.getValue())];
+      GenerationType generationType = generationTypeComboBox.getValue();
+      generateFuture = mapGeneratorService.generateMap(spawnCount, mapSize, getOptionMap(), generationType);
     }
     generateFuture.thenAccept(mapName -> Platform.runLater(() -> {
       createGameController.initMapSelection();
