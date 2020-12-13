@@ -11,12 +11,13 @@ import com.faforever.client.preferences.GeneratorPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory;
 import javafx.scene.control.SpinnerValueFactory.ListSpinnerValueFactory;
@@ -26,6 +27,7 @@ import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.controlsfx.control.RangeSlider;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -34,6 +36,7 @@ import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
 @Component
@@ -53,19 +56,19 @@ public class GenerateMapController implements Controller<Pane> {
   public ComboBox<GenerationType> generationTypeComboBox;
   public Spinner<Integer> spawnCountSpinner;
   public Spinner<String> mapSizeSpinner;
-  public Slider waterSlider;
+  public RangeSlider waterSlider;
   public CheckBox waterRandom;
   public HBox waterSliderBox;
   public HBox waterRandomBox;
-  public Slider mountainSlider;
+  public RangeSlider mountainSlider;
   public CheckBox mountainRandom;
   public HBox mountainSliderBox;
   public HBox mountainRandomBox;
-  public Slider plateauSlider;
+  public RangeSlider plateauSlider;
   public CheckBox plateauRandom;
   public HBox plateauSliderBox;
   public HBox plateauRandomBox;
-  public Slider rampSlider;
+  public RangeSlider rampSlider;
   public CheckBox rampRandom;
   public HBox rampSliderBox;
   public HBox rampRandomBox;
@@ -77,10 +80,15 @@ public class GenerateMapController implements Controller<Pane> {
     initGenerationTypeSpinner();
     initSpawnCountSpinner();
     initMapSizeSpinner();
-    initWaterSlider();
-    initPlateauSlider();
-    initMountainSlider();
-    initRampSlider();
+    GeneratorPrefs genPrefs = preferencesService.getPreferences().getGeneratorPrefs();
+    initOptionSlider(genPrefs.waterLowProperty(), genPrefs.waterHighProperty(), genPrefs.waterRandomProperty(),
+        waterSlider, waterSliderBox, waterRandom, waterRandomBox);
+    initOptionSlider(genPrefs.plateauLowProperty(), genPrefs.plateauHighProperty(), genPrefs.plateauRandomProperty(),
+        plateauSlider, plateauSliderBox, plateauRandom, plateauRandomBox);
+    initOptionSlider(genPrefs.mountainLowProperty(), genPrefs.mountainHighProperty(), genPrefs.mountainRandomProperty(),
+        mountainSlider, mountainSliderBox, mountainRandom, mountainRandomBox);
+    initOptionSlider(genPrefs.rampLowProperty(), genPrefs.rampHighProperty(), genPrefs.rampRandomProperty(),
+        rampSlider, rampSliderBox, rampRandom, rampRandomBox);
   }
 
   private StringConverter<GenerationType> getGenerationTypeConverter() {
@@ -99,109 +107,53 @@ public class GenerateMapController implements Controller<Pane> {
 
   private void initGenerationTypeSpinner() {
     GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGeneratorPrefs();
-    GenerationType generationTypeProperty = generatorPrefs.getGenerationTypeProperty();
+    GenerationType generationTypeProperty = generatorPrefs.getGenerationType();
     generationTypeComboBox.setItems(FXCollections.observableArrayList(GenerationType.values()));
     generationTypeComboBox.setConverter(getGenerationTypeConverter());
     generationTypeComboBox.setValue(generationTypeProperty);
-    generatorPrefs.generationTypePropertyProperty().bind(generationTypeComboBox.valueProperty());
+    generatorPrefs.generationTypeProperty().bind(generationTypeComboBox.valueProperty());
     generationTypeComboBox.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty()));
   }
 
   private void initSpawnCountSpinner() {
     GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGeneratorPrefs();
-    int spawnCountProperty = generatorPrefs.getSpawnCountProperty();
+    int spawnCountProperty = generatorPrefs.getSpawnCount();
     spawnCountSpinner.setValueFactory(new IntegerSpinnerValueFactory(2, 16, spawnCountProperty, 2));
-    generatorPrefs.spawnCountPropertyProperty().bind(spawnCountSpinner.getValueFactory().valueProperty());
+    generatorPrefs.spawnCountProperty().bind(spawnCountSpinner.getValueFactory().valueProperty());
     spawnCountSpinner.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty()));
   }
 
   private void initMapSizeSpinner() {
     GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGeneratorPrefs();
-    String mapSizeProperty = generatorPrefs.getMapSizeProperty();
+    String mapSizeProperty = generatorPrefs.getMapSize();
     mapSizeSpinner.setValueFactory(new ListSpinnerValueFactory<>(validMapSizes));
     mapSizeSpinner.increment(validMapSizes.indexOf(mapSizeProperty));
-    generatorPrefs.mapSizePropertyProperty().bind(mapSizeSpinner.getValueFactory().valueProperty());
+    generatorPrefs.mapSizeProperty().bind(mapSizeSpinner.getValueFactory().valueProperty());
     mapSizeSpinner.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty()));
   }
 
-  private StringConverter<Double> getLabelConverter() {
-    return new StringConverter<>() {
-      @Override
-      public String toString(Double n) {
-        if (n < 127) {
-          return "%game.generate.none";
-        }
-        return "%game.generate.lots";
-      }
-
-      @Override
-      public Double fromString(String s) {
-        throw new UnsupportedOperationException();
-      }
-    };
+  private void initOptionSlider(IntegerProperty lowProperty, IntegerProperty highProperty, BooleanProperty randomProperty,
+                                RangeSlider slider, HBox sliderContainer, CheckBox randomBox, HBox randomContainer) {
+    sliderContainer.visibleProperty().bind(randomBox.selectedProperty().not());
+    slider.lowValueProperty().bindBidirectional(lowProperty);
+    slider.highValueProperty().bindBidirectional(highProperty);
+    randomBox.selectedProperty().bindBidirectional(randomProperty);
+    sliderContainer.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
+    randomContainer.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
   }
 
-  private void initWaterSlider() {
-    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGeneratorPrefs();
-    double waterDensityProperty = generatorPrefs.getWaterDensityProperty();
-    boolean waterRandomProperty = generatorPrefs.getWaterRandomProperty();
-    waterSlider.setLabelFormatter(getLabelConverter());
-    waterRandom.setSelected(waterRandomProperty);
-    waterSlider.setValue(waterDensityProperty);
-    waterSliderBox.visibleProperty().bind(waterRandom.selectedProperty().not());
-    generatorPrefs.waterDensityPropertyProperty().bind(waterSlider.valueProperty());
-    generatorPrefs.waterRandomPropertyProperty().bind(waterRandom.selectedProperty());
-    waterSliderBox.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
-    waterRandomBox.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
-  }
-
-  private void initPlateauSlider() {
-    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGeneratorPrefs();
-    double plateauDensityProperty = generatorPrefs.getPlateauDensityProperty();
-    boolean plateauRandomProperty = generatorPrefs.getPlateauRandomProperty();
-    plateauSlider.setLabelFormatter(getLabelConverter());
-    plateauRandom.setSelected(plateauRandomProperty);
-    plateauSlider.setValue(plateauDensityProperty);
-    plateauSliderBox.visibleProperty().bind(plateauRandom.selectedProperty().not());
-    generatorPrefs.plateauDensityPropertyProperty().bind(plateauSlider.valueProperty());
-    generatorPrefs.plateauRandomPropertyProperty().bind(plateauRandom.selectedProperty());
-    plateauSliderBox.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
-    plateauRandomBox.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
-  }
-
-  private void initMountainSlider() {
-    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGeneratorPrefs();
-    double mountainDensityProperty = generatorPrefs.getMountainDensityProperty();
-    boolean mountainRandomProperty = generatorPrefs.getMountainRandomProperty();
-    mountainSlider.setLabelFormatter(getLabelConverter());
-    mountainRandom.setSelected(mountainRandomProperty);
-    mountainSlider.setValue(mountainDensityProperty);
-    mountainSliderBox.visibleProperty().bind(mountainRandom.selectedProperty().not());
-    generatorPrefs.mountainDensityPropertyProperty().bind(mountainSlider.valueProperty());
-    generatorPrefs.mountainRandomPropertyProperty().bind(mountainRandom.selectedProperty());
-    mountainSliderBox.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
-    mountainRandomBox.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
-  }
-
-  private void initRampSlider() {
-    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGeneratorPrefs();
-    double rampDensityProperty = generatorPrefs.getRampDensityProperty();
-    boolean rampRandomProperty = generatorPrefs.getRampRandomProperty();
-    rampSlider.setLabelFormatter(getLabelConverter());
-    rampRandom.setSelected(rampRandomProperty);
-    rampSlider.setValue(rampDensityProperty);
-    rampSliderBox.visibleProperty().bind(rampRandom.selectedProperty().not());
-    generatorPrefs.rampDensityPropertyProperty().bind(rampSlider.valueProperty());
-    generatorPrefs.rampRandomPropertyProperty().bind(rampRandom.selectedProperty());
-    rampSliderBox.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
-    rampRandomBox.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
-  }
-
-  private Optional<Float> getSliderValue(Slider slider, CheckBox checkBox) {
+  private Optional<Float> getSliderValue(RangeSlider slider, CheckBox checkBox) {
     if (checkBox.isSelected() || generationTypeComboBox.getValue() != GenerationType.CASUAL) {
       return Optional.empty();
     }
-    return Optional.of(((byte) slider.getValue()) / 127f);
+    int lowValue = (int) slider.getLowValue();
+    int highValue = (int) slider.getHighValue();
+    int range = highValue - lowValue;
+    if (range > 0) {
+      return Optional.of((new Random().nextInt(range) + lowValue) / 127f);
+    } else {
+      return Optional.of(lowValue / 127f);
+    }
   }
 
   protected Map<String, Float> getOptionMap() {

@@ -6,7 +6,6 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.Tooltip?>
@@ -14,6 +13,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import org.controlsfx.control.RangeSlider?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="generateMapRoot" hgap="10.0" styleClass="create-game-root"
           vgap="10.0" xmlns="http://javafx.com/javafx/11.0.1"
           fx:controller="com.faforever.client.game.GenerateMapController">
@@ -77,7 +77,8 @@
         <HBox fx:id="waterSliderBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="2"
               GridPane.rowIndex="7">
             <Label text="%game.generateMap.less"/>
-            <Slider fx:id="waterSlider" max="127" maxHeight="Infinity" HBox.hgrow="ALWAYS"/>
+            <RangeSlider fx:id="waterSlider" max="127" min="0" majorTickUnit="1" snapToTicks="true" maxHeight="Infinity"
+                         HBox.hgrow="ALWAYS"/>
             <Label text="%game.generateMap.more"/>
         </HBox>
         <Label text="%game.generateMap.plateauSlider" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
@@ -89,7 +90,8 @@
         <HBox fx:id="plateauSliderBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="2"
               GridPane.rowIndex="8">
             <Label text="%game.generateMap.less"/>
-            <Slider fx:id="plateauSlider" max="127" maxHeight="Infinity" HBox.hgrow="ALWAYS"/>
+            <RangeSlider fx:id="plateauSlider" max="127" min="0" majorTickUnit="1" snapToTicks="true"
+                         maxHeight="Infinity" HBox.hgrow="ALWAYS"/>
             <Label text="%game.generateMap.more"/>
         </HBox>
         <Label text="%game.generateMap.mountainSlider" GridPane.columnIndex="0" GridPane.rowIndex="9"/>
@@ -101,7 +103,8 @@
         <HBox fx:id="mountainSliderBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="2"
               GridPane.rowIndex="9">
             <Label text="%game.generateMap.less"/>
-            <Slider fx:id="mountainSlider" max="127" maxHeight="Infinity" HBox.hgrow="ALWAYS"/>
+            <RangeSlider fx:id="mountainSlider" max="127" min="0" majorTickUnit="1" snapToTicks="true"
+                         maxHeight="Infinity" HBox.hgrow="ALWAYS"/>
             <Label text="%game.generateMap.more"/>
         </HBox>
         <Label text="%game.generateMap.rampSlider" GridPane.columnIndex="0" GridPane.rowIndex="10"/>
@@ -113,7 +116,8 @@
         <HBox fx:id="rampSliderBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="2"
               GridPane.rowIndex="10">
             <Label text="%game.generateMap.less"/>
-            <Slider fx:id="rampSlider" max="127" maxHeight="Infinity" HBox.hgrow="ALWAYS"/>
+            <RangeSlider fx:id="rampSlider" max="127" min="0" majorTickUnit="1" snapToTicks="true" maxHeight="Infinity"
+                         HBox.hgrow="ALWAYS"/>
             <Label text="%game.generateMap.more"/>
         </HBox>
 

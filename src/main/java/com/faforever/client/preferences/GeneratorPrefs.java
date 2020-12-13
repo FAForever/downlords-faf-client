@@ -11,161 +11,217 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class GeneratorPrefs {
-  private final ObjectProperty<GenerationType> generationTypeProperty;
-  private final IntegerProperty spawnCountProperty;
-  private final StringProperty mapSizeProperty;
-  private final IntegerProperty waterDensityProperty;
-  private final BooleanProperty waterRandomProperty;
-  private final IntegerProperty plateauDensityProperty;
-  private final BooleanProperty plateauRandomProperty;
-  private final IntegerProperty mountainDensityProperty;
-  private final BooleanProperty mountainRandomProperty;
-  private final IntegerProperty rampDensityProperty;
-  private final BooleanProperty rampRandomProperty;
+  private final ObjectProperty<GenerationType> generationType;
+  private final IntegerProperty spawnCount;
+  private final StringProperty mapSize;
+  private final IntegerProperty waterLow;
+  private final IntegerProperty waterHigh;
+  private final BooleanProperty waterRandom;
+  private final IntegerProperty plateauLow;
+  private final IntegerProperty plateauHigh;
+  private final BooleanProperty plateauRandom;
+  private final IntegerProperty mountainLow;
+  private final IntegerProperty mountainHigh;
+  private final BooleanProperty mountainRandom;
+  private final IntegerProperty rampLow;
+  private final IntegerProperty rampHigh;
+  private final BooleanProperty rampRandom;
 
   public GeneratorPrefs() {
-    spawnCountProperty = new SimpleIntegerProperty(6);
-    mapSizeProperty = new SimpleStringProperty("10km");
-    generationTypeProperty = new SimpleObjectProperty<>(GenerationType.CASUAL);
-    waterDensityProperty = new SimpleIntegerProperty(0);
-    waterRandomProperty = new SimpleBooleanProperty(true);
-    plateauDensityProperty = new SimpleIntegerProperty(0);
-    plateauRandomProperty = new SimpleBooleanProperty(true);
-    mountainDensityProperty = new SimpleIntegerProperty(0);
-    mountainRandomProperty = new SimpleBooleanProperty(true);
-    rampDensityProperty = new SimpleIntegerProperty(0);
-    rampRandomProperty = new SimpleBooleanProperty(true);
+    spawnCount = new SimpleIntegerProperty(6);
+    mapSize = new SimpleStringProperty("10km");
+    generationType = new SimpleObjectProperty<>(GenerationType.CASUAL);
+    waterLow = new SimpleIntegerProperty(0);
+    waterHigh = new SimpleIntegerProperty(127);
+    waterRandom = new SimpleBooleanProperty(true);
+    plateauLow = new SimpleIntegerProperty(0);
+    plateauHigh = new SimpleIntegerProperty(127);
+    plateauRandom = new SimpleBooleanProperty(true);
+    mountainLow = new SimpleIntegerProperty(0);
+    mountainHigh = new SimpleIntegerProperty(127);
+    mountainRandom = new SimpleBooleanProperty(true);
+    rampLow = new SimpleIntegerProperty(0);
+    rampHigh = new SimpleIntegerProperty(127);
+    rampRandom = new SimpleBooleanProperty(true);
   }
 
-  public int getSpawnCountProperty() {
-    return spawnCountProperty.get();
+  public int getSpawnCount() {
+    return spawnCount.get();
   }
 
-  public void setSpawnCountProperty(int spawnCountProperty) {
-    this.spawnCountProperty.set(spawnCountProperty);
+  public void setSpawnCount(int spawnCount) {
+    this.spawnCount.set(spawnCount);
   }
 
-  public IntegerProperty spawnCountPropertyProperty() {
-    return spawnCountProperty;
+  public IntegerProperty spawnCountProperty() {
+    return spawnCount;
   }
 
-  public String getMapSizeProperty() {
-    return mapSizeProperty.get();
+  public String getMapSize() {
+    return mapSize.get();
   }
 
-  public void setMapSizeProperty(String mapSizeProperty) {
-    this.mapSizeProperty.set(mapSizeProperty);
+  public void setMapSize(String mapSize) {
+    this.mapSize.set(mapSize);
   }
 
-  public StringProperty mapSizePropertyProperty() {
-    return mapSizeProperty;
+  public StringProperty mapSizeProperty() {
+    return mapSize;
   }
 
-  public GenerationType getGenerationTypeProperty() {
-    return generationTypeProperty.get();
+  public GenerationType getGenerationType() {
+    return generationType.get();
   }
 
-  public void setGenerationTypeProperty(GenerationType generationTypeProperty) {
-    this.generationTypeProperty.set(generationTypeProperty);
+  public void setGenerationType(GenerationType generationType) {
+    this.generationType.set(generationType);
   }
 
-  public ObjectProperty<GenerationType> generationTypePropertyProperty() {
-    return generationTypeProperty;
+  public ObjectProperty<GenerationType> generationTypeProperty() {
+    return generationType;
   }
 
-  public int getWaterDensityProperty() {
-    return waterDensityProperty.get();
+  public int getWaterLow() {
+    return waterLow.get();
   }
 
-  public void setWaterDensityProperty(int waterDensityProperty) {
-    this.waterDensityProperty.set(waterDensityProperty);
+  public void setWaterLow(int waterLow) {
+    this.waterLow.set(waterLow);
   }
 
-  public IntegerProperty waterDensityPropertyProperty() {
-    return waterDensityProperty;
+  public IntegerProperty waterLowProperty() {
+    return waterLow;
   }
 
-  public int getPlateauDensityProperty() {
-    return plateauDensityProperty.get();
+  public int getWaterHigh() {
+    return waterHigh.get();
   }
 
-  public void setPlateauDensityProperty(int plateauDensityProperty) {
-    this.plateauDensityProperty.set(plateauDensityProperty);
+  public void setWaterHigh(int waterHigh) {
+    this.waterHigh.set(waterHigh);
   }
 
-  public IntegerProperty plateauDensityPropertyProperty() {
-    return plateauDensityProperty;
+  public IntegerProperty waterHighProperty() {
+    return waterHigh;
   }
 
-  public int getMountainDensityProperty() {
-    return mountainDensityProperty.get();
+  public int getPlateauLow() {
+    return plateauLow.get();
   }
 
-  public void setMountainDensityProperty(int mountainDensityProperty) {
-    this.mountainDensityProperty.set(mountainDensityProperty);
+  public void setPlateauLow(int plateauLow) {
+    this.plateauLow.set(plateauLow);
   }
 
-  public IntegerProperty mountainDensityPropertyProperty() {
-    return mountainDensityProperty;
+  public IntegerProperty plateauLowProperty() {
+    return plateauLow;
   }
 
-  public int getRampDensityProperty() {
-    return rampDensityProperty.get();
+  public int getPlateauHigh() {
+    return plateauHigh.get();
   }
 
-  public void setRampDensityProperty(int rampDensityProperty) {
-    this.rampDensityProperty.set(rampDensityProperty);
+  public void setPlateauHigh(int plateauHigh) {
+    this.plateauHigh.set(plateauHigh);
   }
 
-  public IntegerProperty rampDensityPropertyProperty() {
-    return rampDensityProperty;
+  public IntegerProperty plateauHighProperty() {
+    return plateauHigh;
   }
 
-  public boolean getWaterRandomProperty() {
-    return waterRandomProperty.get();
+  public int getMountainLow() {
+    return mountainLow.get();
   }
 
-  public void setWaterRandomProperty(boolean waterRandomProperty) {
-    this.waterRandomProperty.set(waterRandomProperty);
+  public void setMountainLow(int mountainLow) {
+    this.mountainLow.set(mountainLow);
   }
 
-  public BooleanProperty waterRandomPropertyProperty() {
-    return waterRandomProperty;
+  public IntegerProperty mountainLowProperty() {
+    return mountainLow;
   }
 
-  public boolean getMountainRandomProperty() {
-    return mountainRandomProperty.get();
+  public int getMountainHigh() {
+    return mountainHigh.get();
   }
 
-  public void setMountainRandomProperty(boolean mountainRandomProperty) {
-    this.mountainRandomProperty.set(mountainRandomProperty);
+  public void setMountainHigh(int mountainHigh) {
+    this.mountainHigh.set(mountainHigh);
   }
 
-  public BooleanProperty mountainRandomPropertyProperty() {
-    return mountainRandomProperty;
+  public IntegerProperty mountainHighProperty() {
+    return mountainHigh;
   }
 
-  public boolean getPlateauRandomProperty() {
-    return plateauRandomProperty.get();
+  public int getRampLow() {
+    return rampLow.get();
   }
 
-  public void setPlateauRandomProperty(boolean plateauRandomProperty) {
-    this.plateauRandomProperty.set(plateauRandomProperty);
+  public void setRampLow(int rampLow) {
+    this.rampLow.set(rampLow);
   }
 
-  public BooleanProperty plateauRandomPropertyProperty() {
-    return plateauRandomProperty;
+  public IntegerProperty rampLowProperty() {
+    return rampLow;
   }
 
-  public boolean getRampRandomProperty() {
-    return rampRandomProperty.get();
+  public int getRampHigh() {
+    return rampHigh.get();
   }
 
-  public void setRampRandomProperty(boolean rampRandomProperty) {
-    this.rampRandomProperty.set(rampRandomProperty);
+  public void setRampHigh(int rampHigh) {
+    this.rampHigh.set(rampHigh);
   }
 
-  public BooleanProperty rampRandomPropertyProperty() {
-    return rampRandomProperty;
+  public IntegerProperty rampHighProperty() {
+    return rampHigh;
+  }
+
+  public boolean getWaterRandom() {
+    return waterRandom.get();
+  }
+
+  public void setWaterRandom(boolean waterRandom) {
+    this.waterRandom.set(waterRandom);
+  }
+
+  public BooleanProperty waterRandomProperty() {
+    return waterRandom;
+  }
+
+  public boolean getMountainRandom() {
+    return mountainRandom.get();
+  }
+
+  public void setMountainRandom(boolean mountainRandom) {
+    this.mountainRandom.set(mountainRandom);
+  }
+
+  public BooleanProperty mountainRandomProperty() {
+    return mountainRandom;
+  }
+
+  public boolean getPlateauRandom() {
+    return plateauRandom.get();
+  }
+
+  public void setPlateauRandom(boolean plateauRandom) {
+    this.plateauRandom.set(plateauRandom);
+  }
+
+  public BooleanProperty plateauRandomProperty() {
+    return plateauRandom;
+  }
+
+  public boolean getRampRandom() {
+    return rampRandom.get();
+  }
+
+  public void setRampRandom(boolean rampRandom) {
+    this.rampRandom.set(rampRandom);
+  }
+
+  public BooleanProperty rampRandomProperty() {
+    return rampRandom;
   }
 }
