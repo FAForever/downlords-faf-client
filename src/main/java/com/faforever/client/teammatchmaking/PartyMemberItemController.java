@@ -18,6 +18,7 @@ import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Strings;
 import javafx.application.Platform;
 import javafx.beans.binding.BooleanBinding;
+import javafx.beans.value.WeakChangeListener;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
@@ -93,21 +94,26 @@ public class PartyMemberItemController implements Controller<Node> {
     playerCard.pseudoClassStateChanged(LEADER_PSEUDO_CLASS, teamMatchmakingService.getParty().getOwner().equals(player));
 
     playerStatusImageView.setImage(uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING));
-    playerService.getPlayerForUsername(player.getUsername()).get().statusProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue == PlayerStatus.IDLE) {
-        Platform.runLater(() -> {
-          playerStatusImageView.setVisible(false);
-          playerCard.pseudoClassStateChanged(PLAYING_PSEUDO_CLASS, false);
-        });
-      } else {
-        Platform.runLater(() -> {
-          playerStatusImageView.setVisible(true);
-          playerCard.pseudoClassStateChanged(PLAYING_PSEUDO_CLASS, true);
-        });
-      }
-    });
+    player.statusProperty().addListener(new WeakChangeListener<>((observable, oldValue, newValue) -> markMemberBusy(newValue)));
+    markMemberBusy(player.statusProperty().get());
 
     selectFactionsBasedOnParty();
+  }
+
+  private void markMemberBusy(PlayerStatus status) {
+    if (status != PlayerStatus.IDLE) {
+      Platform.runLater(() -> {
+        playerStatusImageView.setVisible(true);
+        playerCard.pseudoClassStateChanged(PLAYING_PSEUDO_CLASS, true);
+        teamMatchmakingService.getPlayersInGame().add(player);
+      });
+    } else {
+      Platform.runLater(() -> {
+        playerStatusImageView.setVisible(false);
+        playerCard.pseudoClassStateChanged(PLAYING_PSEUDO_CLASS, false);
+        teamMatchmakingService.getPlayersInGame().remove(player);
+      });
+    }
   }
 
   private void initializeBindings() {

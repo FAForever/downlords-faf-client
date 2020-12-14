@@ -31,6 +31,7 @@ import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -63,7 +64,10 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
     Player player = new Player("tester");
     player.setId(1);
     prepareParty(player);
-    when(i18n.get("teammatchmaking.gameCount", player.getNumberOfGames())).thenReturn("Games played: 0");
+    when(i18n.get(anyString(), any(Object.class))).thenReturn("");
+    when(teamMatchmakingService.currentlyInQueueProperty()).thenReturn(new SimpleBooleanProperty(false));
+    when(teamMatchmakingService.queuesAddedProperty()).thenReturn(new SimpleBooleanProperty(false));
+    when(teamMatchmakingService.getPlayersInGame()).thenReturn(FXCollections.observableSet());
     when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<Player>());
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
     when(i18n.get(anyString())).thenReturn("");
@@ -171,7 +175,7 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
       return controller;
     });
 
-    instance.onQueuesAdded(new QueuesAddedEvent());
+    teamMatchmakingService.queuesAddedProperty().set(true);
     WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.queueBox.getChildren().size(), is(2));

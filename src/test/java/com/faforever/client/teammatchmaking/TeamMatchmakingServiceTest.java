@@ -3,6 +3,7 @@ package com.faforever.client.teammatchmaking;
 import com.faforever.client.fa.relay.LobbyMode;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
+import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
 import com.faforever.client.net.ConnectionState;
@@ -91,6 +92,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     List<Player> playerList = new ArrayList<>();
     playerList.add(player);
+    when(player.getStatus()).thenReturn(PlayerStatus.IDLE);
     when(playerService.getPlayersByIds(Collections.singletonList(1))).thenReturn(CompletableFuture.completedFuture(playerList));
     ReadOnlyObjectProperty<ConnectionState> state = new SimpleObjectProperty<>();
     when(fafService.connectionStateProperty()).thenReturn(state);
@@ -147,6 +149,22 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
 
     assertThat(instance.getParty().getMembers().size(), is(1));
     assertThat(instance.getParty().getOwner(), is(player));
+    assertThat(instance.getPlayersInGame().isEmpty(), is(true));
+  }
+
+  @Test
+  public void testOnKickedFromPartyMessageWhenInGame() {
+    setPartyMembers();
+    setOwnerByName("member2");
+    when(player.getStatus()).thenReturn(PlayerStatus.PLAYING);
+
+    instance.onPartyKicked(new PartyKickedMessage());
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertThat(instance.getParty().getMembers().size(), is(1));
+    assertThat(instance.getParty().getOwner(), is(player));
+    assertThat(instance.getPlayersInGame().size(), is(1));
+    assertThat(instance.getPlayersInGame().contains(player), is(true));
   }
 
   @Test
@@ -338,12 +356,14 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testLeaveParty() {
+
     instance.leaveParty();
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(fafServerAccessor).leaveParty();
     assertThat(instance.getParty().getMembers().size(), is(1));
     assertThat(instance.getParty().getOwner(), is(player));
+    assertThat(instance.getPlayersInGame().isEmpty(), is(true));
   }
 
   @Test

@@ -2,10 +2,9 @@ package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.game.Faction;
 import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerService;
-import com.faforever.client.remote.domain.PartyInfoMessage;
-import javafx.application.Platform;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -15,9 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class Party {

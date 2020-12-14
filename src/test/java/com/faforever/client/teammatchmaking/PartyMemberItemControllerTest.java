@@ -50,7 +50,6 @@ public class PartyMemberItemControllerTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception{
     player = new Player("tester");
-    when(playerService.getPlayerForUsername("tester")).thenReturn(Optional.of(player));
     when(partyMember.getPlayer()).thenReturn(player);
     when(i18n.get("leaderboard.divisionName", RatingUtil.getLeaderboardRating(player))).thenReturn("In Placement");
     when(i18n.get("teammatchmaking.gameCount", player.getNumberOfGames())).thenReturn("Games played: 0");

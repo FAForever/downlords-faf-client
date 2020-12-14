@@ -8,6 +8,7 @@ import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Faction;
+import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
@@ -128,6 +129,14 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       }
     });
 
+    player.statusProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue != PlayerStatus.IDLE) {
+        teamMatchmakingService.getPlayersInGame().add(player);
+      } else {
+        teamMatchmakingService.getPlayersInGame().remove(player);
+      }
+    });
+
     teamMatchmakingService.getParty().getMembers().addListener((InvalidationListener) c -> {
       refreshingLabel.setVisible(false);
       selectFactionsBasedOnParty();
@@ -177,11 +186,16 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     gameCountLabel.textProperty().bind(createStringBinding(() ->
         i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase(), player.numberOfGamesProperty()));
     queueHeadingLabel.textProperty().bind(createStringBinding(() -> {
-      if (teamMatchmakingService.getParty().getOwner().equals(player))
-        return i18n.get("teammatchmaking.queueTitle").toUpperCase();
-      else
+          if (!teamMatchmakingService.getParty().getOwner().equals(player))
         return i18n.get("teammatchmaking.queueTitle.inParty").toUpperCase();
-    }, teamMatchmakingService.getParty().ownerProperty()));
+      else if (teamMatchmakingService.getPlayersInGame().contains(player))
+        return i18n.get("teammatchmaking.queueTitle.inGame").toUpperCase();
+      else if (!teamMatchmakingService.getPlayersInGame().isEmpty())
+        return i18n.get("teammatchmaking.queueTitle.memberInGame").toUpperCase();
+      else
+        return i18n.get("teammatchmaking.queueTitle").toUpperCase();
+    },  teamMatchmakingService.getParty().ownerProperty(),
+        teamMatchmakingService.getPlayersInGame()));
   }
 
   private void initializeBindings() {

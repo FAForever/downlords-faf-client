@@ -49,6 +49,7 @@ public class MatchmakingQueueItemControllerTest extends AbstractPlainJavaFxTest 
     prepareParty();
 
     instance = new MatchmakingQueueItemController(playerService, teamMatchmakingService, i18n, eventBus);
+    when(teamMatchmakingService.getPlayersInGame()).thenReturn(FXCollections.observableSet());
     loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml", clazz -> instance);
     MatchmakingQueue queue = new MatchmakingQueue();
     queue.setQueueName("1");

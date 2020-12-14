@@ -3,6 +3,7 @@ package com.faforever.client.teammatchmaking;
 import com.faforever.client.fa.relay.LobbyMode;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
+import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
 import com.faforever.client.net.ConnectionState;
@@ -35,6 +36,7 @@ import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -72,6 +74,8 @@ public class TeamMatchmakingService {
   private final Party party;
   @Getter
   private final ObservableList<MatchmakingQueue> matchmakingQueues = FXCollections.observableArrayList();
+  @Getter
+  private final ObservableSet<Player> playersInGame = FXCollections.observableSet();
   private final List<ScheduledFuture<?>> leaveQueueTimeouts = new LinkedList<>();
 
   private volatile boolean matchFoundAndWaitingForGameLaunch = false;
@@ -329,6 +333,7 @@ public class TeamMatchmakingService {
 
   public void kickPlayerFromParty(Player player) {
     fafServerAccessor.kickPlayerFromParty(player);
+    playersInGame.remove(player);
   }
 
   public void leaveParty() {
@@ -339,6 +344,10 @@ public class TeamMatchmakingService {
   private void initParty(Player owner) {
     party.setOwner(owner);
     party.getMembers().setAll(new PartyMember(owner));
+    playersInGame.clear();
+    if (!playerService.getCurrentPlayer().get().getStatus().equals(PlayerStatus.IDLE)) {
+      playersInGame.add(owner);
+    }
   }
 
   public void readyParty() {
