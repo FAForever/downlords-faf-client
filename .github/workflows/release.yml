@@ -92,6 +92,7 @@ jobs:
           prerelease: true
           
       - name: Get Artifact Paths
+        id: artifact_paths
         run: |
           LINUX_TAR=$(ls build/install4j/dfc_unix_*.tar.gz | head -n 1)
           LINUX_TAR_NAME=$(basename $LINUX_TAR)
@@ -99,12 +100,12 @@ jobs:
           WINDOWS_EXE_NAME=$(basename $WINDOWS_EXE)
           WINDOWS_ZIP=$(ls build/install4j/dfc_windows-x64_*.zip | head -n 1)
           WINDOWS_ZIP_NAME=$(basename $WINDOWS_ZIP)
-          echo ::set-env name=LINUX_TAR::${LINUX_TAR}
-          echo ::set-env name=LINUX_TAR_NAME::${LINUX_TAR_NAME}
-          echo ::set-env name=WINDOWS_EXE::${WINDOWS_EXE}
-          echo ::set-env name=WINDOWS_EXE_NAME::${WINDOWS_EXE_NAME}
-          echo ::set-env name=WINDOWS_ZIP::${WINDOWS_ZIP}
-          echo ::set-env name=WINDOWS_ZIP_NAME::${WINDOWS_ZIP_NAME}
+          echo ::set-output name=LINUX_TAR::${LINUX_TAR}
+          echo ::set-output name=LINUX_TAR_NAME::${LINUX_TAR_NAME}
+          echo ::set-output name=WINDOWS_EXE::${WINDOWS_EXE}
+          echo ::set-output name=WINDOWS_EXE_NAME::${WINDOWS_EXE_NAME}
+          echo ::set-output name=WINDOWS_ZIP::${WINDOWS_ZIP}
+          echo ::set-output name=WINDOWS_ZIP_NAME::${WINDOWS_ZIP_NAME}
           
       - name: Upload Linux Files
         id: upload-linux
@@ -113,8 +114,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ env.LINUX_TAR }}
-          asset_name: ${{ env.LINUX_TAR_NAME }}
+          asset_path: ${{ steps.artifact_paths.outputs.LINUX_TAR }}
+          asset_name: ${{ steps.artifact_paths.outputs.LINUX_TAR_NAME }}
           asset_content_type: application/gzip
 
       - name: Upload Windows exe
@@ -124,8 +125,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ env.WINDOWS_EXE }}
-          asset_name: ${{ env.WINDOWS_EXE_NAME }}
+          asset_path: ${{ steps.artifact_paths.outputs.WINDOWS_EXE }}
+          asset_name: ${{ steps.artifact_paths.outputs.WINDOWS_EXE_NAME }}
           asset_content_type: application/vnd.microsoft.portable-executable
 
       - name: Upload Windows zip
@@ -135,6 +136,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ env.WINDOWS_ZIP }}
-          asset_name: ${{ env.WINDOWS_ZIP_NAME }}
+          asset_path: ${{ steps.artifact_paths.outputs.WINDOWS_ZIP }}
+          asset_name: ${{ steps.artifact_paths.outputs.WINDOWS_ZIP_NAME }}
           asset_content_type: application/zip
