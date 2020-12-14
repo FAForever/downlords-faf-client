@@ -34,6 +34,8 @@ import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.util.IdenticonUtil;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
@@ -80,6 +82,7 @@ public class TeamMatchmakingService {
 
   private volatile boolean matchFoundAndWaitingForGameLaunch = false;
   private boolean queuesAdded = false;
+  private final BooleanProperty currentlyInQueue = new SimpleBooleanProperty();
 
   public TeamMatchmakingService(FafServerAccessor fafServerAccessor, PlayerService playerService, NotificationService notificationService, PreferencesService preferencesService, FafService fafService, EventBus eventBus, I18n i18n, TaskScheduler taskScheduler, GameService gameService) {
     this.fafServerAccessor = fafServerAccessor;
@@ -136,6 +139,9 @@ public class TeamMatchmakingService {
               matchmakingQueue.setQueuePopTime(OffsetDateTime.parse(remoteQueue.getQueuePopTime()).toInstant());
               matchmakingQueue.setTeamSize(remoteQueue.getTeamSize());
               matchmakingQueue.setPartiesInQueue(remoteQueue.getBoundary75s().size());
+              matchmakingQueue.joinedProperty().addListener((observable, oldValue, newValue) -> {
+                currentlyInQueue.set(matchmakingQueues.stream().anyMatch(MatchmakingQueue::isJoined));
+              });
               Platform.runLater(() -> matchmakingQueue.setPlayersInQueue(remoteQueue.getNumPlayers()));
             }));
       } else {
@@ -371,7 +377,11 @@ public class TeamMatchmakingService {
   }
 
   public boolean isCurrentlyInQueue() {
-    return matchmakingQueues.stream().anyMatch(MatchmakingQueue::isJoined);
+    return currentlyInQueue.get();
+  }
+
+  public BooleanProperty currentlyInQueueProperty() {
+    return currentlyInQueue;
   }
 
   private void setPartyFromInfoMessage(PartyInfoMessage message) {

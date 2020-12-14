@@ -186,7 +186,9 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     gameCountLabel.textProperty().bind(createStringBinding(() ->
         i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase(), player.numberOfGamesProperty()));
     queueHeadingLabel.textProperty().bind(createStringBinding(() -> {
-          if (!teamMatchmakingService.getParty().getOwner().equals(player))
+      if (teamMatchmakingService.isCurrentlyInQueue())
+        return i18n.get("teammatchmaking.queueTitle.inQueue").toUpperCase();
+      else if (!teamMatchmakingService.getParty().getOwner().equals(player))
         return i18n.get("teammatchmaking.queueTitle.inParty").toUpperCase();
       else if (teamMatchmakingService.getPlayersInGame().contains(player))
         return i18n.get("teammatchmaking.queueTitle.inGame").toUpperCase();
@@ -194,7 +196,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         return i18n.get("teammatchmaking.queueTitle.memberInGame").toUpperCase();
       else
         return i18n.get("teammatchmaking.queueTitle").toUpperCase();
-    },  teamMatchmakingService.getParty().ownerProperty(),
+    },  teamMatchmakingService.currentlyInQueueProperty(),
+        teamMatchmakingService.getParty().ownerProperty(),
         teamMatchmakingService.getPlayersInGame()));
   }
 
