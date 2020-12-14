@@ -63,7 +63,7 @@ jobs:
 
       - name: Build Windows Files
         run: |
-          ./gradlew -Pversion=${{ github.event.inputs.version }} \
+          ./gradlew -Pversion="${{ github.event.inputs.version }}" \
           -PjavafxPlatform=win \
           -Pinstall4jHomeDir=$HOME/$INSTALL4J_DIR \
           -Pinstall4jLicense=${{ secrets.INSTALL4J_LICENSE }} \
@@ -73,7 +73,7 @@ jobs:
 
       - name: Build Linux Files
         run: |
-          ./gradlew -Pversion=${{ github.event.inputs.version }} \
+          ./gradlew -Pversion="${{ github.event.inputs.version }}" \
           -PjavafxPlatform=linux \
           -Pinstall4jHomeDir=$HOME/$INSTALL4J_DIR \
           -Pinstall4jLicense=${{ secrets.INSTALL4J_LICENSE }} \
