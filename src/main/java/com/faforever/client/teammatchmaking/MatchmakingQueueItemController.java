@@ -11,6 +11,7 @@ import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -28,7 +29,7 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class MatchmakingQueueItemController implements Controller<VBox> {
 
-  private final static String QUEUE_I18N_PATTERN = "teammatchmaking.queue.%s.%s";
+  private final static String QUEUE_I18N_PATTERN = "teammatchmaking.queue.%s";
 
   private final PlayerService playerService;
   private final TeamMatchmakingService teamMatchmakingService;
@@ -58,15 +59,9 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
   @Override
   public void initialize() {
     eventBus.register(this);
-    joinLeaveQueueButton.widthProperty().addListener((observable, oldValue, newValue) -> {
-      if ((double) newValue > 150.0) {
-        joinLeaveQueueButton.setText(
-            i18n.get(String.format(QUEUE_I18N_PATTERN, queue.getQueueName(), "fullName")));
-      } else {
-        joinLeaveQueueButton.setText(
-            i18n.get(String.format(QUEUE_I18N_PATTERN, queue.getQueueName(), "shortName")));
-      }
-    });
+    joinLeaveQueueButton.setTextOverrun(OverrunStyle.WORD_ELLIPSIS);
+    joinLeaveQueueButton.setEllipsisString("");
+    mapPoolButton.setText(i18n.get("teammatchmaking.mapPool").toUpperCase());
   }
 
   @Override
@@ -76,6 +71,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
 
   public void setQueue(MatchmakingQueue queue) {
     this.queue = queue;
+    joinLeaveQueueButton.setText(i18n.get(String.format(QUEUE_I18N_PATTERN, queue.getQueueName())));
 
     playersInQueueLabel.textProperty().bind(createStringBinding(
         () -> i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue()).toUpperCase(),
@@ -104,8 +100,10 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
     queue.joinedProperty().addListener(observable -> refreshingLabel.setVisible(false));
     queue.joinedProperty().addListener(observable -> joinLeaveQueueButton.setSelected(queue.isJoined()));
 
-    mapPoolButton.setText(i18n.get("teammatchmaking.mapPool").toUpperCase());
+    setQueuePopTimeUpdater(queue);
+  }
 
+  private void setQueuePopTimeUpdater(MatchmakingQueue queue) {
     Timeline queuePopTimeUpdater = new Timeline(1, new KeyFrame(javafx.util.Duration.seconds(0), (ActionEvent event) -> {
       if (queue.getQueuePopTime() != null) {
         Instant now = Instant.now();

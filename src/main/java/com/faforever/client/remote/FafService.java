@@ -48,6 +48,7 @@ import com.faforever.commons.io.ByteCountListener;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
@@ -459,18 +460,23 @@ public class FafService {
 
   @Async
   public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(int matchmakerQueueId, int count, int page) {
-    List<MapVersion> mapVersions = fafApiAccessor.getMatchmakerPools(matchmakerQueueId)
+    List<MapBean> mapVersions = fafApiAccessor.getMatchmakerPools(matchmakerQueueId)
         .stream()
         .map(MatchmakerQueueMapPool::getMapPool)
         .flatMap(mapPool -> mapPool.getMapVersions().stream())
         .distinct()
-        .collect(toList());
-    int totalPages = (mapVersions.size() - 1) / count + 1;
-    return CompletableFuture.completedFuture(new Tuple<>(mapVersions
-        .stream()
-        .skip((page - 1) * count)
-        .limit(count)
         .map(MapBean::fromMapVersionDto)
+        .collect(toList());
+    return paginateResult(count, page, mapVersions);
+  }
+
+  @NotNull
+  private <T> CompletableFuture<Tuple<List<T>, Integer>> paginateResult(int count, int page, List<T> results) {
+    int totalPages = (results.size() - 1) / count + 1;
+    return CompletableFuture.completedFuture(new Tuple<>(results
+        .stream()
+        .skip((long) (page - 1) * count)
+        .limit(count)
         .collect(toList()),
         totalPages));
   }

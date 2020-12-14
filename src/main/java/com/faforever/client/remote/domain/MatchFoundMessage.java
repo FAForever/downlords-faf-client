@@ -1,5 +1,6 @@
 package com.faforever.client.remote.domain;
 
+import com.google.gson.annotations.SerializedName;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,7 +8,8 @@ import lombok.Setter;
 @Setter
 public class MatchFoundMessage extends FafServerMessage {
 
-  private String queue;
+  @SerializedName("queue_name")
+  private String queueName;
 
   public MatchFoundMessage() {
     super(FafServerMessageType.MATCH_FOUND);

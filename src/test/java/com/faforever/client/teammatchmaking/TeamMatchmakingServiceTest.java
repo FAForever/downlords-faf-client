@@ -220,7 +220,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
   public void testOnMatchFoundMessage() {
     setTwoQueues();
     MatchFoundMessage message = new MatchFoundMessage();
-    message.setQueue("queue1");
+    message.setQueueName("queue1");
 
     instance.onMatchFoundMessage(message);
 

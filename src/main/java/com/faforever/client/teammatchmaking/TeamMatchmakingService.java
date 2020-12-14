@@ -199,7 +199,7 @@ public class TeamMatchmakingService {
         i18n.get("teammatchmaking.notification.matchFound.message")
     ));
     matchmakingQueues.stream()
-        .filter(q -> Objects.equals(q.getQueueName(), message.getQueue()))
+        .filter(q -> Objects.equals(q.getQueueName(), message.getQueueName()))
         .forEach(q -> q.setTimedOutMatchingStatus(MatchingStatus.MATCH_FOUND, Duration.ofSeconds(15), taskScheduler));
 
     matchmakingQueues.forEach(q -> q.setJoined(false));

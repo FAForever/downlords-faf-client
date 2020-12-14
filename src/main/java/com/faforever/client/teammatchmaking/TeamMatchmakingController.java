@@ -112,22 +112,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     initializeUppercaseText();
     initializeBindings();
 
-    teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> {
-      playerCard.pseudoClassStateChanged(LEADER_PSEUDO_CLASS,
-          (teamMatchmakingService.getParty().getOwner().equals(player) && teamMatchmakingService.getParty().getMembers().size() > 1));
-      List<PartyMember> members = new ArrayList<>(teamMatchmakingService.getParty().getMembers());
-      partyMemberPane.getChildren().clear();
-      members.removeIf(partyMember -> partyMember.getPlayer().equals(player));
-      for(int i = 0; i < members.size(); i++) {
-        PartyMemberItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_member_card.fxml");
-        controller.setMember(members.get(i));
-        if (members.size() == 1) {
-          partyMemberPane.add(controller.getRoot(), 0, 0, 2, 1);
-        } else {
-          partyMemberPane.add(controller.getRoot(), i % 2, i / 2);
-        }
-      }
-    });
+    teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> renderPartyMembers());
 
     player.statusProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue != PlayerStatus.IDLE) {
@@ -223,6 +208,23 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         playerService.currentPlayerProperty()
     ));
     leavePartyButton.disableProperty().bind(createBooleanBinding(() -> teamMatchmakingService.getParty().getMembers().size() <= 1, teamMatchmakingService.getParty().getMembers()));
+  }
+
+  private void renderPartyMembers() {
+    playerCard.pseudoClassStateChanged(LEADER_PSEUDO_CLASS,
+        (teamMatchmakingService.getParty().getOwner().equals(player) && teamMatchmakingService.getParty().getMembers().size() > 1));
+    List<PartyMember> members = new ArrayList<>(teamMatchmakingService.getParty().getMembers());
+    partyMemberPane.getChildren().clear();
+    members.removeIf(partyMember -> partyMember.getPlayer().equals(player));
+    for(int i = 0; i < members.size(); i++) {
+      PartyMemberItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_member_card.fxml");
+      controller.setMember(members.get(i));
+      if (members.size() == 1) {
+        partyMemberPane.add(controller.getRoot(), 0, 0, 2, 1);
+      } else {
+        partyMemberPane.add(controller.getRoot(), i % 2, i / 2);
+      }
+    }
   }
 
   @Override
