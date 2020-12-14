@@ -98,7 +98,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/install4j/dfc_unix_${{ github.event.inputs.version }}.tar.gz
+          asset_path: $HOME/build/install4j/dfc_unix_${{ github.event.inputs.version }}.tar.gz
           asset_name: dfc_unix_${{ github.event.inputs.version }}.tar.gz
           asset_content_type: application/gzip
 
@@ -109,7 +109,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/install4j/dfc_windows-x64_${{ github.event.inputs.version }}.exe
+          asset_path: $HOME/build/install4j/dfc_windows-x64_${{ github.event.inputs.version }}.exe
           asset_name: dfc_windows-x64_${{ github.event.inputs.version }}.exe
           asset_content_type: application/vnd.microsoft.portable-executable
 
