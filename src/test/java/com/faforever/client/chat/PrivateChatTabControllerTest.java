@@ -76,6 +76,8 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   private GameDetailController gameDetailController;
   @Mock
   private WatchButtonController watchButtonController;
+  @Mock
+  private ChatUserService chatUserService;
 
   private PrivateChatTabController instance;
   private String playerName;
@@ -87,7 +89,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
 
     instance = new PrivateChatTabController(userService, preferencesService, playerService, timeService,
         i18n, imageUploadService, notificationService, reportingService, uiService, eventBus,
-        audioService, chatService, webViewConfigurer, countryFlagService);
+        audioService, chatService, webViewConfigurer, countryFlagService, chatUserService);
 
 
     playerName = "testUser";

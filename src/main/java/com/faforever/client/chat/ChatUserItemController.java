@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.chat.event.ChatUserPopulateEvent;
 import com.faforever.client.clan.Clan;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
@@ -81,6 +80,7 @@ public class ChatUserItemController implements Controller<Node> {
   protected Tooltip userTooltip;
   private GameTooltipController gameInfoController;
   private ChatChannelUser chatUser;
+  private ChatChannelUser oldChatUser;
   private WeakReference<ChatUserContextMenuController> contextMenuController = null;
 
   // TODO reduce dependencies, rely on eventBus instead
@@ -237,6 +237,11 @@ public class ChatUserItemController implements Controller<Node> {
     JavaFxUtil.unbind(countryTooltip.textProperty());
     JavaFxUtil.unbind(statusGameTooltip.textProperty());
 
+    if (oldChatUser != null && oldChatUser != chatUser
+        && !oldChatUser.isDisplayed() && chatUser != null) {
+      oldChatUser.setPopulated(false);
+    }
+
     if (this.chatUser != null) {
       this.chatUser.setDisplayed(false);
     }
@@ -245,6 +250,8 @@ public class ChatUserItemController implements Controller<Node> {
 
     if (this.chatUser != null) {
       this.chatUser.setDisplayed(true);
+      this.chatUser.setPopulated(true);
+      oldChatUser = this.chatUser;
       JavaFxUtil.bind(usernameLabel.textProperty(), this.chatUser.usernameProperty());
       JavaFxUtil.bind(usernameLabel.styleProperty(), Bindings.createStringBinding(() ->
               chatUser.getColor().map(color -> String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color))).orElse(""),
@@ -258,9 +265,6 @@ public class ChatUserItemController implements Controller<Node> {
       JavaFxUtil.bind(statusGameTooltip.textProperty(), this.chatUser.statusTooltipTextProperty());
       if (this.chatUser.getPlayer().isPresent()) {
         JavaFxUtil.bind(avatarTooltip.textProperty(), this.chatUser.getPlayer().get().avatarTooltipProperty());
-      }
-      if (!this.chatUser.isPopulated()) {
-        eventBus.post(new ChatUserPopulateEvent(this.chatUser));
       }
     }
   }
