@@ -133,14 +133,16 @@ public class ModVersion {
     modVersionVersion.setIcon(dto.getIcon());
     modVersionVersion.setRanked(dto.isRanked());
     modVersionVersion.setHidden(dto.isHidden());
-    modVersionVersion.setReviewsSummary(ReviewsSummary.fromDto(parent.getReviewsSummary()));
-    parent.getVersions().forEach(v -> {
-      if (v.getReviews() != null) {
-        v.getReviews().forEach(modVersionReview -> {
-          modVersionVersion.getReviews().add(modVersionReview);
-        });
-      }
-    });
+    if (parent != null) {
+      modVersionVersion.setReviewsSummary(ReviewsSummary.fromDto(parent.getReviewsSummary()));
+      parent.getVersions().forEach(v -> {
+        if (v.getReviews() != null) {
+          v.getReviews().forEach(modVersionReview -> {
+            modVersionVersion.getReviews().add(modVersionReview);
+          });
+        }
+      });
+    }
     Optional.ofNullable(dto.getCreateTime())
         .ifPresent(offsetDateTime -> modVersionVersion.setCreateTime(offsetDateTime.toLocalDateTime()));
     Optional.ofNullable(dto.getUpdateTime())
