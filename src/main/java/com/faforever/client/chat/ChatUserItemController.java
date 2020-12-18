@@ -237,7 +237,7 @@ public class ChatUserItemController implements Controller<Node> {
     JavaFxUtil.unbind(countryTooltip.textProperty());
     JavaFxUtil.unbind(statusGameTooltip.textProperty());
 
-    if (oldChatUser != null && oldChatUser != chatUser
+    if (oldChatUser != null && !oldChatUser.equals(chatUser)
         && !oldChatUser.isDisplayed() && chatUser != null) {
       oldChatUser.setPopulated(false);
     }
