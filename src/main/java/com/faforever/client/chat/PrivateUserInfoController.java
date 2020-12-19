@@ -35,6 +35,7 @@ public class PrivateUserInfoController implements Controller<Node> {
   private final I18n i18n;
   private final AchievementService achievementService;
   private final EventBus eventBus;
+  private final ChatUserService chatUserService;
   private ChatChannelUser chatUser;
 
   public ImageView userImageView;
@@ -60,11 +61,12 @@ public class PrivateUserInfoController implements Controller<Node> {
   @SuppressWarnings("FieldCanBeLocal")
   private InvalidationListener gameInvalidationListener;
 
-  public PrivateUserInfoController(CountryFlagService countryFlagService, I18n i18n, AchievementService achievementService, EventBus eventBus) {
+  public PrivateUserInfoController(CountryFlagService countryFlagService, I18n i18n, AchievementService achievementService, EventBus eventBus, ChatUserService chatUserService) {
     this.countryFlagService = countryFlagService;
     this.i18n = i18n;
     this.achievementService = achievementService;
     this.eventBus = eventBus;
+    this.chatUserService = chatUserService;
   }
 
   @Override
@@ -126,6 +128,7 @@ public class PrivateUserInfoController implements Controller<Node> {
   }
 
   private void displayPlayerInfo(Player player) {
+    chatUserService.associatePlayerToChatUser(chatUser, player);
     setPlayerInfoVisible(true);
 
     userImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));

@@ -155,7 +155,7 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
     instance.onItemClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 2));
 
     ArgumentCaptor<InitiatePrivateChatEvent> captor = ArgumentCaptor.forClass(InitiatePrivateChatEvent.class);
-    verify(eventBus, times(2)).post(captor.capture());
+    verify(eventBus, times(1)).post(captor.capture());
 
     assertThat(captor.getValue().getUsername(), is("junit"));
   }

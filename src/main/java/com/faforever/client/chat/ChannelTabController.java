@@ -164,11 +164,12 @@ public class ChannelTabController extends AbstractChatTabController {
                               NotificationService notificationService, ReportingService reportingService,
                               UiService uiService, EventBus eventBus,
                               WebViewConfigurer webViewConfigurer,
-                              CountryFlagService countryFlagService, PlatformService platformService) {
+                              CountryFlagService countryFlagService, PlatformService platformService,
+                              ChatUserService chatUserService) {
 
     super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService,
         timeService, i18n, imageUploadService, notificationService, reportingService, uiService,
-        eventBus, countryFlagService);
+        eventBus, countryFlagService, chatUserService);
     this.platformService = platformService;
 
     hideFoeMessagesListeners = new HashMap<>();
@@ -230,7 +231,7 @@ public class ChannelTabController extends AbstractChatTabController {
     chatService.addUsersListener(channelName, usersChangeListener);
 
     // Maybe there already were some users; fetch them
-    channel.getUsers().forEach(ChannelTabController.this::onUserJoinedChannel);
+    channel.getUsers().forEach(this::onUserJoinedChannel);
 
     channelTabRoot.setOnCloseRequest(event -> {
       chatService.leaveChannel(channel.getName());
@@ -433,14 +434,13 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   private void associateChatUserWithPlayer(Player player, ChatChannelUser chatUser) {
-    chatUser.setPlayer(player);
-    player.getChatChannelUsers().add(chatUser);
+    chatUserService.associatePlayerToChatUser(chatUser, player);
 
     updateCssClass(chatUser);
     updateInChatUserList(chatUser);
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    JavaFxUtil.addListener(player.socialStatusProperty(), createWeakSocialStatusListener(chatPrefs, chatUser, player));
+    JavaFxUtil.addListener(chatUser.socialStatusProperty(), createWeakSocialStatusListener(chatPrefs, chatUser, player));
   }
 
   private void onUserJoinedChannel(ChatChannelUser chatUser) {

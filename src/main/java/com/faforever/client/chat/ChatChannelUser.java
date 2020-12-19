@@ -4,6 +4,7 @@ import com.faforever.client.clan.Clan;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.SocialStatus;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -18,6 +19,7 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+
 /**
  * Represents a chat user within a channel. If a user is in multiple channels, one instance per channel needs to be
  * created since e.g. the {@code isModerator} flag is specific to the channel.
@@ -78,9 +80,20 @@ public class ChatChannelUser {
   public void setPlayer(Player player) {
     if (this.player.get() != null) {
       this.player.get().getChatChannelUsers().remove(this);
+      socialStatus.unbind();
+      gameStatus.unbind();
+      clanTag.unbind();
     }
     if (player != null) {
       player.getChatChannelUsers().add(this);
+      socialStatus.bind(player.socialStatusProperty());
+      gameStatus.bind(player.statusProperty());
+      clanTag.bind(Bindings.createStringBinding(() -> {
+        if (player.getClan() != null && !player.getClan().isBlank()) {
+          return String.format("[%s]", player.getClan());
+        }
+        return null;
+      }, player.clanProperty()));
     }
     this.player.set(player);
   }
@@ -292,11 +305,10 @@ public class ChatChannelUser {
   Set<ChatUserCategory> getChatUserCategories() {
     Set<ChatUserCategory> userCategories = new HashSet<>();
 
-    Optional<Player> playerOptional = Optional.ofNullable(player.get());
-    if (playerOptional.isEmpty()) {
+    if (socialStatus.get() == null) {
       userCategories.add(ChatUserCategory.CHAT_ONLY);
     } else {
-      ChatUserCategory category = switch (playerOptional.get().getSocialStatus()) {
+      ChatUserCategory category = switch (socialStatus.get()) {
         case FRIEND -> ChatUserCategory.FRIEND;
         case FOE -> ChatUserCategory.FOE;
         case OTHER, SELF -> ChatUserCategory.OTHER;

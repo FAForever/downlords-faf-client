@@ -92,6 +92,8 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   private EventBus eventBus;
   @Mock
   private CountryFlagService countryFlagService;
+  @Mock
+  private ChatUserService chatUserService;
 
   private Preferences preferences;
   private AbstractChatTabController instance;
@@ -111,7 +113,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
     instance = new AbstractChatTabController(webViewConfigurer, userService, chatService, preferencesService,
         playerService, audioService, timeService, i18n, imageUploadService, notificationService, reportingService,
-        uiService, eventBus, countryFlagService) {
+        uiService, eventBus, countryFlagService, chatUserService) {
       private final Tab root = new Tab();
       private final WebView webView = new WebView();
       private final TextInputControl messageTextField = new TextField();

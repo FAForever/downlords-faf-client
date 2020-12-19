@@ -8,7 +8,6 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerOnlineEvent;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.player.UserOfflineEvent;
@@ -680,21 +679,6 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
 
   private String mapKey(String username, String channelName) {
     return username + channelName;
-  }
-
-  @Subscribe
-  public void onPlayerOnline(PlayerOnlineEvent event) {
-    Player player = event.getPlayer();
-
-    synchronized (channels) {
-      List<ChatChannelUser> channelUsers = channels.values().stream()
-          .map(channel -> chatChannelUsersByChannelAndName.get(mapKey(player.getUsername(), channel.getName())))
-          .filter(Objects::nonNull)
-          .peek(chatChannelUser -> chatChannelUser.setPlayer(player))
-          .collect(Collectors.toList());
-
-      player.getChatChannelUsers().addAll(channelUsers);
-    }
   }
 
   interface ChatEventListener<T> {
