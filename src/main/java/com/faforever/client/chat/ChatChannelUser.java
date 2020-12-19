@@ -45,7 +45,7 @@ public class ChatChannelUser {
     this(username, color, moderator, null);
   }
 
-  public ChatChannelUser(String username, Color color, boolean moderator, Player player) {
+  ChatChannelUser(String username, Color color, boolean moderator, Player player) {
     this.username = new SimpleStringProperty(username);
     this.moderator = new SimpleBooleanProperty(moderator);
     this.color = new SimpleObjectProperty<>(color);

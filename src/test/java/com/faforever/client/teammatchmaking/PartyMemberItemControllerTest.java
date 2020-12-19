@@ -1,6 +1,5 @@
 package com.faforever.client.teammatchmaking;
 
-import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.game.Game;
@@ -18,8 +17,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.util.Optional;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
@@ -36,8 +33,6 @@ public class PartyMemberItemControllerTest extends AbstractPlainJavaFxTest {
   private TeamMatchmakingService teamMatchmakingService;
   @Mock
   private UiService uiService;
-  @Mock
-  private ChatService chatService;
   @Mock
   private I18n i18n;
   @Mock
@@ -59,7 +54,7 @@ public class PartyMemberItemControllerTest extends AbstractPlainJavaFxTest {
     when(teamMatchmakingService.getParty()).thenReturn(party);
 
     instance = new PartyMemberItemController(countryFlagService, avatarService, playerService, teamMatchmakingService,
-        uiService, chatService, i18n);
+        uiService, i18n);
     loadFxml("theme/play/teammatchmaking/matchmaking_member_card.fxml", clazz -> instance);
     instance.setMember(partyMember);
   }

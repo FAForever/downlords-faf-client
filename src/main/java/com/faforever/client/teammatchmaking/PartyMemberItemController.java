@@ -50,7 +50,6 @@ public class PartyMemberItemController implements Controller<Node> {
   private final PlayerService playerService;
   private final TeamMatchmakingService teamMatchmakingService;
   private final UiService uiService;
-  private final ChatService chatService;
   private final I18n i18n;
 
   public Node playerItemRoot;
@@ -71,9 +70,7 @@ public class PartyMemberItemController implements Controller<Node> {
   public ImageView playerStatusImageView;
 
   private Player player;
-  private ChatChannelUser chatUser;
-  //TODO: this is a bit hacky
-  private WeakReference<ChatUserContextMenuController> contextMenuController = null;
+  private WeakReference<PartyMemberContextMenuController> contextMenuController = null;
 
   @Override
   public void initialize() {
@@ -87,8 +84,6 @@ public class PartyMemberItemController implements Controller<Node> {
 
   public void setMember(PartyMember member) {
     this.player = member.getPlayer();
-    //TODO: this is a bit hacky, a chat channel user is required to create a context menu as in the chat tab (for foeing/befriending/messaging people...)
-    chatUser = new ChatChannelUser(player.getUsername(), chatService.getChatUserColor(player.getUsername()), false, player);
 
     initializeBindings();
     playerCard.pseudoClassStateChanged(LEADER_PSEUDO_CLASS, teamMatchmakingService.getParty().getOwner().equals(player));
@@ -158,15 +153,15 @@ public class PartyMemberItemController implements Controller<Node> {
 
   public void onContextMenuRequested(ContextMenuEvent event) {
     if (contextMenuController != null) {
-      ChatUserContextMenuController controller = contextMenuController.get();
+      PartyMemberContextMenuController controller = contextMenuController.get();
       if (controller != null) {
         controller.getContextMenu().show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         return;
       }
     }
 
-    ChatUserContextMenuController controller = uiService.loadFxml("theme/chat/chat_user_context_menu.fxml");
-    controller.setChatUser(chatUser);
+    PartyMemberContextMenuController controller = uiService.loadFxml("theme/play/teammatchmaking/party_member_context_menu.fxml");
+    controller.setPlayer(player);
     controller.getContextMenu().show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
 
     contextMenuController = new WeakReference<>(controller);

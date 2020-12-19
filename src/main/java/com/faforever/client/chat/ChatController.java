@@ -5,6 +5,7 @@ import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.main.event.JoinChannelEvent;
 import com.faforever.client.main.event.NavigateEvent;
+import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.theme.UiService;
@@ -218,6 +219,7 @@ public class ChatController extends AbstractViewController<Node> {
     }
     AbstractChatTabController controller = addAndGetPrivateMessageTab(username);
     Tab tab = controller.getRoot();
+    eventBus.post(new NavigateEvent(NavigationItem.CHAT));
     tabPane.getSelectionModel().select(tab);
     nameToChatTabController.get(tab.getId()).onDisplay();
   }

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<ContextMenu xmlns:fx="http://javafx.com/fxml/1" fx:id="partyMemberContextMenuRoot"
+             xmlns="http://javafx.com/javafx/8.0.141"
+             fx:controller="com.faforever.client.teammatchmaking.PartyMemberContextMenuController">
+  <items>
+      <MenuItem fx:id="showUserInfo" mnemonicParsing="false" onAction="#onShowUserInfoSelected"
+                text="%chat.userContext.userInfo"/>
+      <MenuItem fx:id="sendPrivateMessageItem" mnemonicParsing="false" onAction="#onSendPrivateMessageSelected"
+                text="%chat.userContext.privateMessage"/>
+      <MenuItem fx:id="copyUsernameItem" mnemonicParsing="false" onAction="#onCopyUsernameSelected"
+                text="%chat.userContext.copyUsername"/>
+      <SeparatorMenuItem fx:id="socialSeparator" mnemonicParsing="false"/>
+      <MenuItem fx:id="addFriendItem" mnemonicParsing="false" onAction="#onAddFriendSelected"
+                text="%chat.userContext.addFriend"/>
+      <MenuItem fx:id="removeFriendItem" mnemonicParsing="false" onAction="#onRemoveFriendSelected"
+                text="%chat.userContext.removeFriend"/>
+      <MenuItem fx:id="addFoeItem" mnemonicParsing="false" onAction="#onAddFoeSelected"
+                text="%chat.userContext.addFoe"/>
+      <MenuItem fx:id="removeFoeItem" mnemonicParsing="false" onAction="#onRemoveFoeSelected"
+                text="%chat.userContext.removeFoe"/>
+      <MenuItem fx:id="reportItem" mnemonicParsing="false" onAction="#onReport" text="%chat.userContext.report"
+                visible="false"/>
+    <SeparatorMenuItem mnemonicParsing="false" />
+      <MenuItem fx:id="viewReplaysItem" mnemonicParsing="false" onAction="#onViewReplaysSelected"
+                text="%chat.userContext.viewReplays"/>
+  </items>
+</ContextMenu>
