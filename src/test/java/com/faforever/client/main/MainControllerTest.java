@@ -121,8 +121,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
     when(environment.getActiveProfiles()).thenReturn(ArrayUtils.EMPTY_STRING_ARRAY);
 
-    instance = new MainController(preferencesService, i18n, notificationService, playerService, gameService,
-        uiService, eventBus, gamePathHandler, platformService, clientProperties, applicationEventPublisher, environment);
+    instance = new MainController(preferencesService, i18n, notificationService, uiService, eventBus,
+        gamePathHandler, platformService, clientProperties, applicationEventPublisher, environment);
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(loginController.getRoot()).thenReturn(new Pane());

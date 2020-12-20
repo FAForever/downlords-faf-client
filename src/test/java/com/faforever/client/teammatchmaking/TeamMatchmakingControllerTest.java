@@ -114,7 +114,7 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void TestOnFactionButtonClicked() {
+  public void testOnFactionButtonClicked() {
     instance.uefButton.setSelected(true);
     instance.aeonButton.setSelected(true);
     instance.cybranButton.setSelected(false);
@@ -127,7 +127,7 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void TestOnFactionButtonClickedWhileNoFactionsSelected() {
+  public void testOnFactionButtonClickedWhileNoFactionsSelected() {
     instance.uefButton.setSelected(false);
     instance.aeonButton.setSelected(false);
     instance.cybranButton.setSelected(false);

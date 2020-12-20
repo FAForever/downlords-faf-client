@@ -8,7 +8,6 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ClipboardUtil;
 import com.google.common.eventbus.EventBus;
@@ -61,10 +60,6 @@ public class PartyMemberContextMenuController implements Controller<ContextMenu>
     this.uiService = uiService;
     this.platformService = platformService;
   }
-
-  public void initialize() {
-  }
-
 
   public ContextMenu getContextMenu() {
     return partyMemberContextMenuRoot;

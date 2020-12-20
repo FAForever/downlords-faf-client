@@ -1,8 +1,5 @@
 package com.faforever.client.teammatchmaking;
 
-import com.faforever.client.chat.ChatChannelUser;
-import com.faforever.client.chat.ChatService;
-import com.faforever.client.chat.ChatUserContextMenuController;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.fx.Controller;

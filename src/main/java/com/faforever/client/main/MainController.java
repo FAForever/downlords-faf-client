@@ -11,7 +11,6 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GamePathHandler;
-import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.event.NavigateEvent;
@@ -25,7 +24,6 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotificationsController;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.preferences.ui.SettingsController;
@@ -107,17 +105,13 @@ public class MainController implements Controller<Node> {
   private final PreferencesService preferencesService;
   private final I18n i18n;
   private final NotificationService notificationService;
-  private final PlayerService playerService;
-  private final GameService gameService;
   private final UiService uiService;
   private final EventBus eventBus;
   private final GamePathHandler gamePathHandler;
   private final PlatformService platformService;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final String mainWindowTitle;
-  private final int ratingBeta;
   private final boolean alwaysReloadTabs;
-  private final Environment environment;
 
   public Pane mainHeaderPane;
   public Pane contentPane;
@@ -149,24 +143,20 @@ public class MainController implements Controller<Node> {
 
   @Inject
   public MainController(PreferencesService preferencesService, I18n i18n,
-                        NotificationService notificationService, PlayerService playerService,
-                        GameService gameService, UiService uiService, EventBus eventBus,
+                        NotificationService notificationService,
+                        UiService uiService, EventBus eventBus,
                         GamePathHandler gamePathHandler, PlatformService platformService,
                         ClientProperties clientProperties, ApplicationEventPublisher applicationEventPublisher, Environment environment) {
     this.preferencesService = preferencesService;
     this.i18n = i18n;
     this.notificationService = notificationService;
-    this.playerService = playerService;
-    this.gameService = gameService;
     this.uiService = uiService;
     this.eventBus = eventBus;
     this.gamePathHandler = gamePathHandler;
     this.platformService = platformService;
     this.applicationEventPublisher = applicationEventPublisher;
-    this.environment = environment;
     this.viewCache = CacheBuilder.newBuilder().build();
     this.mainWindowTitle = clientProperties.getMainWindowTitle();
-    this.ratingBeta = clientProperties.getTrueSkill().getBeta();
     alwaysReloadTabs = Arrays.asList(environment.getActiveProfiles()).contains(FafClientApplication.PROFILE_RELOAD);
   }
 
