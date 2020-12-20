@@ -174,11 +174,10 @@ public class TeamMatchmakingService {
           if (message.getState() == MatchmakingState.START) {
             gameService.startSearchMatchmaker();
 
-            // Send own factions to server upon joining a queue
             Optional<PartyMember> ownPartyMember = party.getMembers().stream()
                 .filter(m -> m.getPlayer().getId() == playerService.getCurrentPlayer().map(Player::getId).orElse(-1))
                 .findFirst();
-            ownPartyMember.ifPresent(m -> setPartyFactions(m.getFactions()));
+            ownPartyMember.ifPresent(m -> sendFactionSelection(m.getFactions()));
           }
         }
     );
@@ -348,8 +347,17 @@ public class TeamMatchmakingService {
   }
 
   private void initParty(Player owner) {
+    PartyMember newPartyMember = new PartyMember(owner);
+    party.getMembers().stream()
+        .filter(partyMember -> partyMember.getPlayer().equals(owner))
+        .findFirst().
+        ifPresent(partyMember -> {
+          newPartyMember.setFactions(partyMember.getFactions());
+          sendFactionSelection(partyMember.getFactions());
+        });
+
     party.setOwner(owner);
-    party.getMembers().setAll(new PartyMember(owner));
+    party.getMembers().setAll(newPartyMember);
     playersInGame.clear();
     if (!playerService.getCurrentPlayer().get().getStatus().equals(PlayerStatus.IDLE)) {
       playersInGame.add(owner);
@@ -364,7 +372,7 @@ public class TeamMatchmakingService {
     fafServerAccessor.unreadyParty();
   }
 
-  public void setPartyFactions(List<Faction> factions) {
+  public void sendFactionSelection(List<Faction> factions) {
     fafServerAccessor.setPartyFactions(factions);
   }
 

@@ -261,7 +261,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       factions.add(Faction.SERAPHIM);
     }
 
-    teamMatchmakingService.setPartyFactions(factions);
+    teamMatchmakingService.sendFactionSelection(factions);
 
     refreshingLabel.setVisible(true);
   }

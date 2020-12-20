@@ -122,7 +122,7 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
     instance.onFactionButtonClicked(new ActionEvent());
 
     List<Faction> factions = Arrays.asList(Faction.UEF, Faction.AEON);
-    verify(teamMatchmakingService).setPartyFactions(factions);
+    verify(teamMatchmakingService).sendFactionSelection(factions);
   }
 
   @Test
