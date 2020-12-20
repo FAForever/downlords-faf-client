@@ -43,10 +43,6 @@ public class LocalReplayVaultController extends VaultEntityController<Replay> {
     searchBox.setVisible(false);
     searchSeparator.setVisible(false);
 
-    searchController.setRootType(Game.class);
-    searchController.setSearchableProperties(SearchablePropertyMappings.GAME_PROPERTY_MAPPING);
-    searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().onlineReplaySortConfigProperty());
-    searchController.setOnlyShowLastYearCheckBoxVisible(true, true);
   }
 
   @Override
@@ -101,6 +97,13 @@ public class LocalReplayVaultController extends VaultEntityController<Replay> {
   protected Node getDetailView() {
     replayDetailController = uiService.loadFxml("theme/vault/replay/replay_detail.fxml");
     return replayDetailController.getRoot();
+  }
+
+  protected void initSearchController() {
+    searchController.setRootType(Game.class);
+    searchController.setSearchableProperties(SearchablePropertyMappings.GAME_PROPERTY_MAPPING);
+    searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().onlineReplaySortConfigProperty());
+    searchController.setOnlyShowLastYearCheckBoxVisible(true);
   }
 
   @Override

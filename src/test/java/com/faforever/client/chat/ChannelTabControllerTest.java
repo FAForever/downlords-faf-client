@@ -87,7 +87,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ChatUserItemController chatUserItemController;
   @Mock
-  private ChatUserItemCategoryController chatUserItemCategoryController;
+  private ChatCategoryItemController chatCategoryItemController;
   @Mock
   private WebViewConfigurer webViewConfigurer;
   @Mock
@@ -100,6 +100,9 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   private CountryFlagService countryFlagService;
   @Mock
   private PlatformService platformService;
+  @Mock
+  private ChatUserService chatUserService;
+
   private Preferences preferences;
   private Channel defaultChannel;
 
@@ -110,7 +113,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
         audioService, timeService, i18n, imageUploadService,
         notificationService, reportingService,
         uiService, eventBus, webViewConfigurer, countryFlagService,
-        platformService);
+        platformService, chatUserService);
     userFilterController = new UserFilterController(i18n, countryFlagService);
 
     defaultChannel = new Channel(CHANNEL_NAME);
@@ -119,7 +122,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     when(userService.getUsername()).thenReturn(USER_NAME);
     when(uiService.loadFxml("theme/chat/user_filter.fxml")).thenReturn(userFilterController);
     when(uiService.loadFxml("theme/chat/chat_user_item.fxml")).thenReturn(chatUserItemController);
-    when(uiService.loadFxml("theme/chat/chat_user_category.fxml")).thenReturn(chatUserItemCategoryController);
+    when(uiService.loadFxml("theme/chat/chat_user_category.fxml")).thenReturn(chatCategoryItemController);
     when(chatUserItemController.getRoot()).thenReturn(new Pane());
     when(uiService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
 
@@ -206,12 +209,12 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   public void testOnUserJoinsChannel() {
     String username1 = "player";
     Player player = PlayerBuilder.create(username1).socialStatus(OTHER).get();
-    ChatChannelUser userInList = ChatChannelUserBuilder.create(username1).get();
+    ChatChannelUser userInList = ChatChannelUserBuilder.create(username1).socialStatus(OTHER).get();
     when(playerService.getPlayerForUsername(username1)).thenReturn(Optional.of(player));
 
     String username2 = "player joins";
     Player newPlayer = PlayerBuilder.create(username2).socialStatus(OTHER).get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create(username2).get();
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create(username2).socialStatus(OTHER).get();
     ObservableMap<String, ChatChannelUser> userMap = FXCollections.observableHashMap();
     userMap.put(username2, chatUser);
 
@@ -240,12 +243,12 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   public void testOnUserLeaveFromChannel() {
     String username1 = "player";
     Player player = PlayerBuilder.create(username1).socialStatus(OTHER).get();
-    ChatChannelUser userInList = ChatChannelUserBuilder.create(username1).get();
+    ChatChannelUser userInList = ChatChannelUserBuilder.create(username1).socialStatus(OTHER).get();
     when(playerService.getPlayerForUsername(username1)).thenReturn(Optional.of(player));
 
     String username2 = "leaving player";
     Player leavingPlayer = PlayerBuilder.create(username2).socialStatus(OTHER).get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create(username2).get();
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create(username2).socialStatus(OTHER).get();
     ObservableMap<String, ChatChannelUser> userMap = FXCollections.observableHashMap();
     userMap.put(username2, chatUser);
 
@@ -326,25 +329,6 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
     String expected = instance.createInlineStyleFromColor(color);
     String result = instance.getInlineStyle(somePlayer);
-    assertEquals(expected, result);
-  }
-
-  @Test
-  public void getInlineStyleCustom() {
-    Color color = ColorGeneratorUtil.generateRandomColor();
-    String colorStyle = instance.createInlineStyleFromColor(color);
-    String username = "somePlayer";
-    ChatChannelUser chatUser = new ChatChannelUser(username, color, false);
-
-    when(chatService.getChatUser(username, CHANNEL_NAME)).thenReturn(chatUser);
-    runOnFxThreadAndWait(() -> {
-      instance.setChannel(defaultChannel);
-      preferences.getChat().setChatColorMode(ChatColorMode.CUSTOM);
-      preferences.getChat().setHideFoeMessages(false);
-    });
-
-    String expected = String.format("%s%s", colorStyle, "");
-    String result = instance.getInlineStyle(username);
     assertEquals(expected, result);
   }
 
@@ -471,7 +455,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   public void testFriendlyPlayerIsInFriendList() {
     String username = "friend";
     Player player = PlayerBuilder.create(username).socialStatus(FRIEND).get();
-    ChatChannelUser friendUser = ChatChannelUserBuilder.create(username).get();
+    ChatChannelUser friendUser = ChatChannelUserBuilder.create(username).socialStatus(FRIEND).get();
     defaultChannel.addUser(friendUser);
 
     when(playerService.getPlayerForUsername(username)).thenReturn(Optional.of(player));
@@ -486,7 +470,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   public void testEnemyPlayerIsInFoeList() {
     String username = "foe";
     Player player = PlayerBuilder.create(username).socialStatus(FOE).get();
-    ChatChannelUser enemyUser = ChatChannelUserBuilder.create(username).get();
+    ChatChannelUser enemyUser = ChatChannelUserBuilder.create(username).socialStatus(FOE).get();
     defaultChannel.addUser(enemyUser);
 
     when(playerService.getPlayerForUsername(username)).thenReturn(Optional.of(player));
@@ -501,10 +485,10 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   public void testOtherPlayersIsInOtherList() {
     String username1 = "player1";
     Player player1 = PlayerBuilder.create(username1).socialStatus(OTHER).get();
-    ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).get();
+    ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).socialStatus(OTHER).get();
     String username2 = "player2";
     Player player2 = PlayerBuilder.create(username2).socialStatus(SELF).get();
-    ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).get();
+    ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).socialStatus(SELF).get();
     defaultChannel.addUsers(Arrays.asList(user1, user2));
 
     when(playerService.getPlayerForUsername(username1)).thenReturn(Optional.of(player1));
@@ -534,17 +518,17 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   public void testPlayerBecomesFriendly() {
     String username1 = "player1";
     Player player1 = PlayerBuilder.create(username1).socialStatus(OTHER).get();
-    ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).get();
+    ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).socialStatus(OTHER).get();
     String username2 = "player2";
     Player player2 = PlayerBuilder.create(username2).socialStatus(OTHER).get();
-    ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).get();
+    ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).socialStatus(OTHER).get();
     defaultChannel.addUsers(Arrays.asList(user1, user2));
 
     when(playerService.getPlayerForUsername(username1)).thenReturn(Optional.of(player1));
     when(playerService.getPlayerForUsername(username2)).thenReturn(Optional.of(player2));
     runOnFxThreadAndWait(() -> instance.setChannel(defaultChannel));
 
-    runOnFxThreadAndWait(() -> player1.setSocialStatus(FRIEND));
+    runOnFxThreadAndWait(() -> user1.setSocialStatus(FRIEND));
 
     List<CategoryOrChatUserListItem> friends = instance.getChatUserItemsByCategory(ChatUserCategory.FRIEND);
     List<CategoryOrChatUserListItem> otherUsers = instance.getChatUserItemsByCategory(ChatUserCategory.OTHER);
@@ -558,17 +542,17 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   public void testPlayerBecomesEnemy() {
     String username1 = "player1";
     Player player1 = PlayerBuilder.create(username1).socialStatus(OTHER).get();
-    ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).get();
+    ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).socialStatus(OTHER).get();
     String username2 = "player2";
     Player player2 = PlayerBuilder.create(username2).socialStatus(OTHER).get();
-    ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).get();
+    ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).socialStatus(OTHER).get();
     defaultChannel.addUsers(Arrays.asList(user1, user2));
 
     when(playerService.getPlayerForUsername(username1)).thenReturn(Optional.of(player1));
     when(playerService.getPlayerForUsername(username2)).thenReturn(Optional.of(player2));
     runOnFxThreadAndWait(() -> instance.setChannel(defaultChannel));
 
-    runOnFxThreadAndWait(() -> player1.setSocialStatus(FOE));
+    runOnFxThreadAndWait(() -> user1.setSocialStatus(FOE));
 
     List<CategoryOrChatUserListItem> enemies = instance.getChatUserItemsByCategory(ChatUserCategory.FOE);
     List<CategoryOrChatUserListItem> otherUsers = instance.getChatUserItemsByCategory(ChatUserCategory.OTHER);
@@ -582,17 +566,17 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   public void testFriendlyPlayerBecomesOther() {
     String username1 = "player1";
     Player player1 = PlayerBuilder.create(username1).socialStatus(FRIEND).get();
-    ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).get();
+    ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).socialStatus(FRIEND).get();
     String username2 = "player2";
     Player player2 = PlayerBuilder.create(username2).socialStatus(OTHER).get();
-    ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).get();
+    ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).socialStatus(OTHER).get();
     defaultChannel.addUsers(Arrays.asList(user1, user2));
 
     when(playerService.getPlayerForUsername(username1)).thenReturn(Optional.of(player1));
     when(playerService.getPlayerForUsername(username2)).thenReturn(Optional.of(player2));
     runOnFxThreadAndWait(() -> instance.setChannel(defaultChannel));
 
-    runOnFxThreadAndWait(() -> player1.setSocialStatus(OTHER));
+    runOnFxThreadAndWait(() -> user1.setSocialStatus(OTHER));
 
     List<CategoryOrChatUserListItem> friends = instance.getChatUserItemsByCategory(ChatUserCategory.FRIEND);
     List<CategoryOrChatUserListItem> otherUsers = instance.getChatUserItemsByCategory(ChatUserCategory.OTHER);
@@ -605,17 +589,17 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   public void testEnemyPlayerBecomesOther() {
     String username1 = "player1";
     Player player1 = PlayerBuilder.create(username1).socialStatus(FOE).get();
-    ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).get();
+    ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).socialStatus(FOE).get();
     String username2 = "player2";
     Player player2 = PlayerBuilder.create(username2).socialStatus(OTHER).get();
-    ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).get();
+    ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).socialStatus(OTHER).get();
     defaultChannel.addUsers(Arrays.asList(user1, user2));
 
     when(playerService.getPlayerForUsername(username1)).thenReturn(Optional.of(player1));
     when(playerService.getPlayerForUsername(username2)).thenReturn(Optional.of(player2));
     runOnFxThreadAndWait(() -> instance.setChannel(defaultChannel));
 
-    runOnFxThreadAndWait(() -> player1.setSocialStatus(OTHER));
+    runOnFxThreadAndWait(() -> user1.setSocialStatus(OTHER));
 
     List<CategoryOrChatUserListItem> enemies = instance.getChatUserItemsByCategory(ChatUserCategory.FOE);
     List<CategoryOrChatUserListItem> otherUsers = instance.getChatUserItemsByCategory(ChatUserCategory.OTHER);
@@ -628,18 +612,18 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   public void testWhenUserAddPlayerToFriendlyListByAccidentallyAndCancelsActionImmediately() {
     String username1 = "player1";
     Player player1 = PlayerBuilder.create(username1).socialStatus(OTHER).get();
-    ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).get();
+    ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).socialStatus(OTHER).get();
     String username2 = "player2";
     Player player2 = PlayerBuilder.create(username2).socialStatus(OTHER).get();
-    ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).get();
+    ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).socialStatus(OTHER).get();
     defaultChannel.addUsers(Arrays.asList(user1, user2));
 
     when(playerService.getPlayerForUsername(username1)).thenReturn(Optional.of(player1));
     when(playerService.getPlayerForUsername(username2)).thenReturn(Optional.of(player2));
     runOnFxThreadAndWait(() -> instance.setChannel(defaultChannel));
 
-    runOnFxThreadAndWait(() -> player1.setSocialStatus(FRIEND));
-    runOnFxThreadAndWait(() -> player1.setSocialStatus(OTHER));
+    runOnFxThreadAndWait(() -> user1.setSocialStatus(FRIEND));
+    runOnFxThreadAndWait(() -> user1.setSocialStatus(OTHER));
 
     List<CategoryOrChatUserListItem> friends = instance.getChatUserItemsByCategory(ChatUserCategory.FRIEND);
     List<CategoryOrChatUserListItem> otherUsers = instance.getChatUserItemsByCategory(ChatUserCategory.OTHER);
@@ -652,18 +636,18 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   public void testWhenUserAddPlayerToFoeListByAccidentallyAndCancelsActionImmediately() {
     String username1 = "player1";
     Player player1 = PlayerBuilder.create(username1).socialStatus(OTHER).get();
-    ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).get();
+    ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).socialStatus(OTHER).get();
     String username2 = "player2";
     Player player2 = PlayerBuilder.create(username2).socialStatus(OTHER).get();
-    ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).get();
+    ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).socialStatus(OTHER).get();
     defaultChannel.addUsers(Arrays.asList(user1, user2));
 
     when(playerService.getPlayerForUsername(username1)).thenReturn(Optional.of(player1));
     when(playerService.getPlayerForUsername(username2)).thenReturn(Optional.of(player2));
     runOnFxThreadAndWait(() -> instance.setChannel(defaultChannel));
 
-    runOnFxThreadAndWait(() -> player1.setSocialStatus(FOE));
-    runOnFxThreadAndWait(() -> player1.setSocialStatus(OTHER));
+    runOnFxThreadAndWait(() -> user1.setSocialStatus(FOE));
+    runOnFxThreadAndWait(() -> user1.setSocialStatus(OTHER));
 
     List<CategoryOrChatUserListItem> enemies = instance.getChatUserItemsByCategory(ChatUserCategory.FOE);
     List<CategoryOrChatUserListItem> otherUsers = instance.getChatUserItemsByCategory(ChatUserCategory.OTHER);

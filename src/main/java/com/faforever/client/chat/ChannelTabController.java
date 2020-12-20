@@ -76,7 +76,6 @@ import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static com.faforever.client.chat.ChatColorMode.DEFAULT;
 import static com.faforever.client.fx.PlatformService.URL_REGEX_PATTERN;
 import static com.faforever.client.player.SocialStatus.FOE;
 import static java.util.Locale.US;
@@ -105,9 +104,6 @@ public class ChannelTabController extends AbstractChatTabController {
 
   @VisibleForTesting
   static final String CSS_CLASS_MODERATOR = "moderator";
-
-  /** Prevents garbage collection of listener. Key is the username. */
-  private final ChangeListener<ChatColorMode> chatColorModeChangeListener;
 
   /** Prevents garbage collection of listeners. Key is the username. */
   private final Map<String, Collection<ChangeListener<Boolean>>> hideFoeMessagesListeners;
@@ -168,11 +164,12 @@ public class ChannelTabController extends AbstractChatTabController {
                               NotificationService notificationService, ReportingService reportingService,
                               UiService uiService, EventBus eventBus,
                               WebViewConfigurer webViewConfigurer,
-                              CountryFlagService countryFlagService, PlatformService platformService) {
+                              CountryFlagService countryFlagService, PlatformService platformService,
+                              ChatUserService chatUserService) {
 
     super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService,
         timeService, i18n, imageUploadService, notificationService, reportingService, uiService,
-        eventBus, countryFlagService);
+        eventBus, countryFlagService, chatUserService);
     this.platformService = platformService;
 
     hideFoeMessagesListeners = new HashMap<>();
@@ -190,14 +187,6 @@ public class ChannelTabController extends AbstractChatTabController {
             .sorted()
             .collect(Collectors.toList())
     );
-
-    chatColorModeChangeListener = (observable, oldValue, newValue) -> {
-      if (newValue != DEFAULT) {
-        setAllMessageColors();
-      } else {
-        removeAllMessageColors();
-      }
-    };
 
     List<CategoryOrChatUserListItem> categoryObjects = createCategoryTreeObjects();
     categoryObjects.forEach(categoryItem -> {
@@ -242,7 +231,7 @@ public class ChannelTabController extends AbstractChatTabController {
     chatService.addUsersListener(channelName, usersChangeListener);
 
     // Maybe there already were some users; fetch them
-    channel.getUsers().forEach(ChannelTabController.this::onUserJoinedChannel);
+    channel.getUsers().forEach(this::onUserJoinedChannel);
 
     channelTabRoot.setOnCloseRequest(event -> {
       chatService.leaveChannel(channel.getName());
@@ -297,7 +286,6 @@ public class ChannelTabController extends AbstractChatTabController {
 
     channelTabScrollPaneVBox.setMinWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
     channelTabScrollPaneVBox.setPrefWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
-    JavaFxUtil.addListener(preferencesService.getPreferences().getChat().chatColorModeProperty(), chatColorModeChangeListener);
     addUserFilterPopup();
 
     chatUserListView.setCellFactory(param -> new ChatUserListCell(uiService));
@@ -322,7 +310,6 @@ public class ChannelTabController extends AbstractChatTabController {
   @Override
   protected void onClosed(Event event) {
     super.onClosed(event);
-    JavaFxUtil.removeListener(preferencesService.getPreferences().getChat().chatColorModeProperty(), chatColorModeChangeListener);
   }
 
   @NotNull
@@ -447,14 +434,13 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   private void associateChatUserWithPlayer(Player player, ChatChannelUser chatUser) {
-    chatUser.setPlayer(player);
-    player.getChatChannelUsers().add(chatUser);
+    chatUserService.associatePlayerToChatUser(chatUser, player);
 
     updateCssClass(chatUser);
     updateInChatUserList(chatUser);
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    JavaFxUtil.addListener(player.socialStatusProperty(), createWeakSocialStatusListener(chatPrefs, chatUser, player));
+    JavaFxUtil.addListener(chatUser.socialStatusProperty(), createWeakSocialStatusListener(chatPrefs, chatUser, player));
   }
 
   private void onUserJoinedChannel(ChatChannelUser chatUser) {
@@ -655,9 +641,7 @@ public class ChannelTabController extends AbstractChatTabController {
     if (chatPrefs.getHideFoeMessages() && playerOptional.isPresent() && playerOptional.get().getSocialStatus() == FOE) {
       display = "display: none;";
     } else {
-      ChatColorMode chatColorMode = chatPrefs.getChatColorMode();
-      if ((chatColorMode == ChatColorMode.CUSTOM || chatColorMode == ChatColorMode.RANDOM)
-          && chatUser.getColor().isPresent()) {
+      if (chatUser.getColor().isPresent()) {
         color = createInlineStyleFromColor(chatUser.getColor().get());
       }
     }

@@ -30,8 +30,11 @@
                                         <ColumnConstraints />
                                     </columnConstraints>
                                     <rowConstraints>
-                                        <RowConstraints minHeight="10.0" vgrow="NEVER" />
-                                        <RowConstraints minHeight="10.0" vgrow="NEVER" />
+                                        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+                                        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+                                        <RowConstraints fillHeight="false" minHeight="10.0" vgrow="ALWAYS"/>
+                                        <RowConstraints fillHeight="false" minHeight="10.0" vgrow="ALWAYS"/>
+                                        <RowConstraints fillHeight="false" minHeight="10.0" vgrow="ALWAYS"/>
                                     </rowConstraints>
                                     <children>
                                         <Label fx:id="nameLabel" maxWidth="1.7976931348623157E308" styleClass="h1"
@@ -64,15 +67,17 @@
                                         </VBox>
                                     </children>
                                 </GridPane>
-                                <Label fx:id="modDescriptionLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="&lt;Description&gt;" wrapText="true" />
-                                <Separator layoutX="10.0" layoutY="251.0" maxWidth="1.7976931348623157E308" />
+                                <Label fx:id="modDescriptionLabel" maxHeight="1.7976931348623157E308"
+                                       maxWidth="1.7976931348623157E308" text="&lt;Description&gt;" wrapText="true"
+                                       GridPane.vgrow="ALWAYS"/>
+                                <Separator layoutX="10.0" layoutY="251.0" maxWidth="1.7976931348623157E308"/>
                                 <VBox alignment="TOP_CENTER" maxWidth="640.0">
                                     <children>
-                                        <fx:include fx:id="reviews" source="../review/reviews.fxml" />
+                                        <fx:include fx:id="reviews" source="../review/reviews.fxml"/>
                                     </children>
                                 </VBox>
-                                <Separator prefWidth="200.0" />
-                                <Label layoutX="10.0" layoutY="204.0" styleClass="h2" text="%mod.detail.moreInfo" />
+                                <Separator prefWidth="200.0"/>
+                                <Label layoutX="10.0" layoutY="204.0" styleClass="h2" text="%mod.detail.moreInfo"/>
                                 <GridPane hgap="20.0" maxWidth="640.0">
                                     <columnConstraints>
                                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />

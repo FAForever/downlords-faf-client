@@ -11,7 +11,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
-import com.google.common.collect.Iterators;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -48,10 +47,6 @@ import java.util.stream.Collectors;
 public abstract class VaultEntityController<T> extends AbstractViewController<Node> {
 
   protected static final int TOP_ELEMENT_COUNT = 7;
-  /**
-   * How many cards should be badged into one UI thread runnable.
-   */
-  private static final int BATCH_SIZE = 10;
   protected final UiService uiService;
   protected final NotificationService notificationService;
   protected final I18n i18n;
@@ -91,6 +86,8 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
     state = new SimpleObjectProperty<>(State.UNINITIALIZED);
   }
 
+  protected abstract void initSearchController();
+
   protected abstract Node getEntityCard(T t);
 
   protected abstract List<ShowRoomCategory> getShowRoomCategories();
@@ -128,15 +125,17 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
     perPageComboBox.setOnAction((event -> changePerPageCount()));
     pageSize = perPageComboBox.getValue();
 
+    initSearchController();
+
     BooleanBinding inSearchableState = Bindings.createBooleanBinding(() -> state.get() != State.SEARCHING, state);
     searchController.setSearchButtonDisabledCondition(inSearchableState);
 
     pagination.currentPageIndexProperty().addListener((observable, oldValue, newValue) -> {
-          if (!oldValue.equals(newValue)) {
-            SearchConfig searchConfig = searchController.getLastSearchConfig();
-            onPageChange(searchConfig, false);
-            pagination.setMaxPageIndicatorCount(10);
-          }
+      if (!oldValue.equals(newValue)) {
+        SearchConfig searchConfig = searchController.getLastSearchConfig();
+        onPageChange(searchConfig, false);
+        pagination.setMaxPageIndicatorCount(10);
+      }
         }
     );
     paginationGroup.managedProperty().bind(paginationGroup.visibleProperty());
@@ -276,17 +275,15 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
         .map(this::getEntityCard)
         .collect(Collectors.toList());
 
-    Platform.runLater(children::clear);
-
-    Iterators.partition(childrenToAdd.iterator(), BATCH_SIZE).forEachRemaining(newChildren -> Platform.runLater(() -> {
-      children.addAll(newChildren);
-      // The more button is referenced by the panes user data
+    Platform.runLater(() -> {
+      children.clear();
+      children.addAll(childrenToAdd);
       Object userData = pane.getUserData();
       if (userData == null) {
         return;
       }
       pane.getChildren().add((Node) userData);
-    }));
+    });
   }
 
   protected void onFirstPageOpened(SearchConfig searchConfig) {

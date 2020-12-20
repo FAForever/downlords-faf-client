@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -56,11 +57,6 @@ public class MapVaultController extends VaultEntityController<MapBean> {
   public void initialize() {
     super.initialize();
 
-    searchController.setRootType(com.faforever.client.api.dto.Map.class);
-    searchController.setSearchableProperties(SearchablePropertyMappings.MAP_PROPERTY_MAPPING);
-    searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().mapSortConfigProperty());
-    searchController.setOnlyShowLastYearCheckBoxVisible(false, false);
-
     preferencesService.getRemotePreferencesAsync().thenAccept(clientConfiguration ->
         recommendedShowRoomPageCount = clientConfiguration.getRecommendedMaps().size() / TOP_ELEMENT_COUNT)
         .exceptionally(throwable -> {
@@ -70,6 +66,33 @@ public class MapVaultController extends VaultEntityController<MapBean> {
         });
 
     eventBus.register(this);
+  }
+
+  protected void initSearchController() {
+    searchController.setRootType(com.faforever.client.api.dto.Map.class);
+    searchController.setSearchableProperties(SearchablePropertyMappings.MAP_PROPERTY_MAPPING);
+    searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().mapSortConfigProperty());
+    searchController.setOnlyShowLastYearCheckBoxVisible(false);
+    searchController.setVaultRoot(vaultRoot);
+    searchController.setSavedQueries(preferencesService.getPreferences().getVaultPrefs().getSavedMapQueries());
+
+    searchController.addTextFilter("displayName", i18n.get("map.name"));
+    searchController.addTextFilter("author.login", i18n.get("map.author"));
+    searchController.addDateRangeFilter("latestVersion.updateTime", i18n.get("map.uploadedDateTime"), 0);
+
+    LinkedHashMap<String, String> mapSizeMap = new LinkedHashMap<>();
+    mapSizeMap.put("1km", "64");
+    mapSizeMap.put("2km", "128");
+    mapSizeMap.put("5km", "256");
+    mapSizeMap.put("10km", "512");
+    mapSizeMap.put("20km", "1024");
+    mapSizeMap.put("40km", "2048");
+    mapSizeMap.put("80km", "4096");
+
+    searchController.addCategoryFilter("latestVersion.width", i18n.get("map.width"), mapSizeMap);
+    searchController.addCategoryFilter("latestVersion.height", i18n.get("map.height"), mapSizeMap);
+    searchController.addRangeFilter("latestVersion.maxPlayers", i18n.get("map.maxPlayers"), 0, 16, 1);
+    searchController.addToggleFilter("latestVersion.ranked", i18n.get("map.onlyRanked"), "true");
   }
 
   @Override

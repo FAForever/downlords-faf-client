@@ -1,10 +1,4 @@
 import com.install4j.gradle.Install4jTask
-import de.undercouch.gradle.tasks.download.Download
-import groovy.json.JsonSlurper
-import groovyx.net.http.ContentType
-import groovyx.net.http.HTTPBuilder
-import groovyx.net.http.Method
-import groovyx.net.http.ParserRegistry
 import org.gradle.internal.os.OperatingSystem
 
 buildscript {
@@ -20,14 +14,19 @@ buildscript {
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
   }
 }
-// jacoco does not currently support java15
+
 plugins {
   id "com.install4j.gradle" version "7.0.7"
   id "co.riiid.gradle" version "0.4.2"
   id "de.undercouch.download" version "3.4.3"
   id 'net.ltgt.apt' version '0.19'
-  // id 'jacoco'
+  id 'jacoco'
   id 'com.github.kt3k.coveralls' version "${coverallsGradlePluginVersion}"
+}
+
+//Specify jacoco version to work with java15
+jacoco {
+  toolVersion = "0.8.6"
 }
 
 apply plugin: 'java'
@@ -75,49 +74,15 @@ configurations {
   compile.exclude module: "assertj-core"
 }
 
-class HttpBuilder extends HTTPBuilder {
-
-  HttpBuilder(String url) {
-    super(url)
-    this.parser.'text/json' = { resp ->
-      def bufferedText = resp.entity.content.getText(ParserRegistry.getCharset(resp)).trim()
-      return new JsonSlurper().parseText(bufferedText)
-    }
-    this.parser.'application/json' = this.parser.'text/json'
+jacocoTestReport {
+  reports {
+    xml.enabled = true
   }
 }
-
-def httpRequest(Method method, String url, onSuccess) {
-  def http = new HttpBuilder(url)
-
-  http.request(method) {
-    requestContentType = ContentType.JSON
-
-    headers.'User-Agent' = 'downlords-faf-client-gradle'
-    headers.'Authorization' = "token ${project.github.token}"
-    headers.'Accept' = 'application/vnd.github.v3+json'
-
-    response.success = onSuccess
-
-    response.failure = { resp, json ->
-      logger.debug 'Response headers: \n' + resp.headers.collect { "< $it" }.join('\n')
-      def errorMessage = json ? json.message : resp.statusLine
-      def ref = json ? "See $json.documentation_url" : ''
-      def errorDetails = json && json.errors ? "Details: " + json.errors.collect { it }.join('\n') : ''
-      throw new GradleScriptException("$errorMessage. $ref. $errorDetails", null)
-    }
-  }
-}
-
-//jacocoTestReport {
-//  reports {
-//    xml.enabled = true
-//  }
-//}
 
 test {
   testLogging {
-    showStandardStreams = true
+    events("failed")
   }
 }
 
@@ -224,11 +189,11 @@ task downloadNativeDependencies(dependsOn: [downloadUnixUid, downloadWindowsUid,
 compileJava.dependsOn 'downloadNativeDependencies'
 compileJava.dependsOn ':webview-patch:build'
 
-//task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
-//  main = "com.codacy.CodacyCoverageReporter"
-//  classpath = configurations.codacy
-//  args = ["-l", "Java", "-r", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"]
-//}
+task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
+  main = "com.codacy.CodacyCoverageReporter"
+  classpath = configurations.codacy
+  args = ["-l", "Java", "-r", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"]
+}
 
 repositories {
   jcenter()
@@ -286,6 +251,7 @@ dependencies {
   compile("org.openjfx:javafx-web:${javafxVersion}:${javafxPlatform}")
   compile("org.openjfx:javafx-media:${javafxVersion}:${javafxPlatform}")
   compile ("com.github.axel1200:discord-rpc:${discordRpcVersion}")
+  compile("org.controlsfx:controlsfx:${controlsfxVersion}")
 
   compile project(":webview-patch")
   compile("org.javassist:javassist:${project.ext['javassist.version']}")

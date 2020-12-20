@@ -217,12 +217,7 @@ public class MockChatService implements ChatService, InitializingBean {
 
   @Override
   public ChatChannelUser getChatUser(String username, String channelName) {
-    return new ChatChannelUser(username, getChatUserColor(username), false);
-  }
-
-  @Override
-  public Color getChatUserColor(String username) {
-    return Color.ALICEBLUE;
+    return new ChatChannelUser(username, Color.ALICEBLUE, false);
   }
 
   @Override

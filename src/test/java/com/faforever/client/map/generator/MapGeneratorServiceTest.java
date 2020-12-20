@@ -21,19 +21,16 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.InvalidParameterException;
-import java.util.BitSet;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.matches;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -43,22 +40,24 @@ import static org.mockito.Mockito.when;
 public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
 
   private final String generatedMapFormat = "neroxis_map_generator_%s_%s";
-  private final String versionGeneratorPresent = "2.0.0";
-  private final String versionNoGeneratorPresent = "1.0.0";
-  private final String versionGeneratorTooOld = "0.1.0";
-  private final String versionNoGeneratorTooNew = "3.0.0";
-  private final String unsupportedVersion = "3.0";
-  private final byte[] optionArray = {6, 512 / 64, 0, 0, 0, 0};
-  private final BitSet parameters = new BitSet();
+  private final ComparableVersion versionGeneratorPresent = new ComparableVersion("2.0.0");
+  private final ComparableVersion versionNoGeneratorPresent = new ComparableVersion("1.0.0");
+  private final ComparableVersion versionGeneratorTooOld = new ComparableVersion("0.1.0");
+  private final ComparableVersion versionNoGeneratorTooNew = new ComparableVersion("3.0.0");
+  private final ComparableVersion unsupportedVersion = new ComparableVersion("3.0");
+  private final Integer spawnCount = 6;
+  private final Integer mapSize = 512;
+  private final Map<String, Float> optionMap = Map.of("landDensity", .5f, "plateauDensity", .25f,
+      "mountainDensity", .125f, "rampDensity", .75f);
   private final long numericalSeed = -123456789;
-  private final String optionString = MapGeneratorService.NAME_ENCODER.encode(optionArray);
   private final int minVersion = 1;
   private final int maxVersion = 2;
-  private final String seedAndOptions = MapGeneratorService.NAME_ENCODER.encode(ByteBuffer.allocate(8).putLong(numericalSeed).array());
   private final String seed = Long.toString(numericalSeed);
   private final String testMapNameNoGenerator = String.format(MapGeneratorService.GENERATED_MAP_NAME, versionNoGeneratorPresent, seed);
   private final String testMapNameGenerator = String.format(MapGeneratorService.GENERATED_MAP_NAME, versionGeneratorPresent, seed);
   private final String testMapNameUnsupportedVersion = String.format(MapGeneratorService.GENERATED_MAP_NAME, unsupportedVersion, seed);
+  private final String testMapNameTooOldVersion = String.format(MapGeneratorService.GENERATED_MAP_NAME, versionGeneratorTooOld, seed);
+  private final String testMapNameTooNewVersion = String.format(MapGeneratorService.GENERATED_MAP_NAME, versionNoGeneratorTooNew, seed);
   @Rule
   public TemporaryFolder vaultBaseDir = new TemporaryFolder();
   @Rule
@@ -112,7 +111,6 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
     when(downloadMapGeneratorTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
     when(generateMapTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
     doAnswer(invocation -> {
-      @SuppressWarnings("unchecked")
       CompletableTask<Void> task = invocation.getArgument(0);
       task.getFuture().get();
       return task;
@@ -124,7 +122,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
     instance.generateMap(testMapNameNoGenerator).join();
 
     verify(taskService).submitTask(downloadMapGeneratorTask);
-    verify(downloadMapGeneratorTask).setVersion(versionNoGeneratorPresent);
+    verify(downloadMapGeneratorTask).setVersion(versionNoGeneratorPresent.toString());
 
     //See test below
     verify(taskService).submitTask(generateMapTask);
@@ -132,8 +130,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testGenerateMapGeneratorPresent() throws Exception {
-    String mapName = instance.generateMap(testMapNameGenerator).get();
-    assertThat(mapName, equalTo(testMapNameGenerator));
+    instance.generateMap(testMapNameGenerator).get();
 
     verify(taskService).submitTask(generateMapTask);
 
@@ -152,16 +149,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
     expectedException.expect(CompletionException.class);
     expectedException.expectCause(IsInstanceOf.instanceOf(InvalidParameterException.class));
 
-    CompletableFuture<String> future = instance.generateMap(testMapNameUnsupportedVersion);
-    future.join();
-  }
-
-  @Test
-  public void testWrongVersionThrowsException() {
-    expectedException.expect(CompletionException.class);
-    expectedException.expectCause(IsInstanceOf.instanceOf(UnsupportedVersionException.class));
-
-    CompletableFuture<String> future = instance.generateMap(new ComparableVersion(unsupportedVersion), seed);
+    CompletableFuture<String> future = instance.generateMap("neroxis_no_map");
     future.join();
   }
 
@@ -170,7 +158,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
     expectedException.expect(CompletionException.class);
     expectedException.expectCause(IsInstanceOf.instanceOf(UnsupportedVersionException.class));
 
-    CompletableFuture<String> future = instance.generateMap(new ComparableVersion(versionNoGeneratorTooNew), seed);
+    CompletableFuture<String> future = instance.generateMap(testMapNameTooNewVersion);
     future.join();
   }
 
@@ -179,89 +167,22 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
     expectedException.expect(CompletionException.class);
     expectedException.expectCause(IsInstanceOf.instanceOf(OutdatedVersionException.class));
 
-    CompletableFuture<String> future = instance.generateMap(new ComparableVersion(versionGeneratorTooOld), seed);
+    CompletableFuture<String> future = instance.generateMap(testMapNameTooOldVersion);
     future.join();
   }
 
   @Test
-  public void testGenerateMapNoVersionSet() {
-    expectedException.expect(NullPointerException.class);
-    CompletableFuture<String> future = instance.generateMap();
-    future.join();
-  }
-
-  @Test
-  public void testGenerateMapNoInputs() {
-    instance.setGeneratorVersion(new ComparableVersion(versionGeneratorPresent));
-    CompletableFuture<String> future = instance.generateMap();
+  public void testGenerateMapOptionMap() {
+    instance.setGeneratorVersion(versionGeneratorPresent);
+    CompletableFuture<String> future = instance.generateMap(spawnCount, mapSize, optionMap, GenerationType.CASUAL);
     future.join();
 
-    verify(generateMapTask).setMapFilename(matches(String.format(generatedMapFormat,versionGeneratorPresent,".*")));
+    verify(generateMapTask).setSpawnCount(eq(spawnCount));
+    verify(generateMapTask).setMapSize(eq(mapSize));
+    verify(generateMapTask).setLandDensity(eq(optionMap.get("landDensity")));
+    verify(generateMapTask).setMountainDensity(eq(optionMap.get("mountainDensity")));
+    verify(generateMapTask).setPlateauDensity(eq(optionMap.get("plateauDensity")));
+    verify(generateMapTask).setRampDensity(eq(optionMap.get("rampDensity")));
+    verify(generateMapTask).setGenerationType(eq(GenerationType.CASUAL));
   }
-
-  @Test
-  public void testGenerateMapOptionArray() {
-    instance.setGeneratorVersion(new ComparableVersion(versionGeneratorPresent));
-    CompletableFuture<String> future = instance.generateMap(optionArray, parameters);
-    future.join();
-
-    verify(generateMapTask).setMapFilename(matches(String.format(generatedMapFormat, versionGeneratorPresent, ".*")));
-  }
-
-  @Test
-  public void testGenerateMapComparableAndOptionArrayTournament() {
-    parameters.set(0);
-    instance.setGeneratorVersion(new ComparableVersion(versionGeneratorPresent));
-    CompletableFuture<String> future = instance.generateMap(optionArray, parameters);
-    future.join();
-
-    verify(generateMapTask).setMapFilename(matches(String.format(generatedMapFormat, versionGeneratorPresent, ".*_.*_" + MapGeneratorService.NAME_ENCODER.encode(parameters.toByteArray()) + "_.*")));
-  }
-
-  @Test
-  public void testGenerateMapComparableAndOptionArrayBlind() {
-    parameters.set(1);
-    instance.setGeneratorVersion(new ComparableVersion(versionGeneratorPresent));
-    CompletableFuture<String> future = instance.generateMap(optionArray, parameters);
-    future.join();
-
-    verify(generateMapTask).setMapFilename(matches(String.format(generatedMapFormat, versionGeneratorPresent, ".*_.*_" + MapGeneratorService.NAME_ENCODER.encode(parameters.toByteArray()))));
-  }
-
-  @Test
-  public void testNumericSeedNoOption() {
-    CompletableFuture<String> future = instance.generateMap(new ComparableVersion(versionGeneratorPresent), seed);
-    future.join();
-
-    verify(generateMapTask).setMapFilename(String.format(generatedMapFormat, versionGeneratorPresent, seed));
-  }
-
-  @Test
-  public void testBase32SeedAndOption() {
-    CompletableFuture<String> future = instance.generateMap(new ComparableVersion(versionGeneratorPresent), seedAndOptions);
-    future.join();
-
-    verify(generateMapTask).setMapFilename(String.format(generatedMapFormat, versionGeneratorPresent, seedAndOptions));
-  }
-
-  @Test
-  public void testGeneratorVersion0() {
-    when(mapGenerator.getMinSupportedMajorVersion()).thenReturn(0);
-    CompletableFuture<String> future = instance.generateMap(new ComparableVersion(versionGeneratorTooOld), seed);
-    future.join();
-
-    verify(generateMapTask).setSeed(seed);
-    verify(generateMapTask).setMapFilename(String.format(generatedMapFormat,versionGeneratorTooOld,seed));
-  }
-
-  @Test
-  public void testGeneratorVersion0WithOptions() {
-    when(mapGenerator.getMinSupportedMajorVersion()).thenReturn(0);
-    CompletableFuture<String> future = instance.generateMap(new ComparableVersion(versionGeneratorTooOld), seedAndOptions);
-    future.join();
-
-    verify(generateMapTask).setSeed(seed);
-    verify(generateMapTask).setMapFilename(String.format(generatedMapFormat,versionGeneratorTooOld,seed));
-  }
-
 }

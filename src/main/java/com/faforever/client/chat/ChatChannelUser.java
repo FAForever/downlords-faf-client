@@ -3,6 +3,8 @@ package com.faforever.client.chat;
 import com.faforever.client.clan.Clan;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.player.Player;
+import com.faforever.client.player.SocialStatus;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -17,6 +19,7 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+
 /**
  * Represents a chat user within a channel. If a user is in multiple channels, one instance per channel needs to be
  * created since e.g. the {@code isModerator} flag is specific to the channel.
@@ -29,14 +32,15 @@ public class ChatChannelUser {
   private final ObjectProperty<Color> color;
   private final ObjectProperty<Player> player;
   private final ObjectProperty<Instant> lastActive;
-  private final ObjectProperty<PlayerStatus> status;
+  private final ObjectProperty<PlayerStatus> gameStatus;
+  private final ObjectProperty<SocialStatus> socialStatus;
   private final ObjectProperty<Image> avatar;
   private final ObjectProperty<Clan> clan;
   private final StringProperty clanTag;
   private final ObjectProperty<Image> countryFlag;
   private final StringProperty countryName;
   private final ObjectProperty<Image> mapImage;
-  private final ObjectProperty<Image> statusImage;
+  private final ObjectProperty<Image> gameStatusImage;
   private final StringProperty statusTooltipText;
   private final BooleanProperty displayed;
   private final BooleanProperty populated;
@@ -51,17 +55,22 @@ public class ChatChannelUser {
     this.color = new SimpleObjectProperty<>(color);
     this.player = new SimpleObjectProperty<>(player);
     this.lastActive = new SimpleObjectProperty<>();
-    this.status = new SimpleObjectProperty<>();
+    this.gameStatus = new SimpleObjectProperty<>();
+    this.socialStatus = new SimpleObjectProperty<>();
     this.avatar = new SimpleObjectProperty<>();
     this.clan = new SimpleObjectProperty<>();
     this.clanTag = new SimpleStringProperty();
     this.countryFlag = new SimpleObjectProperty<>();
     this.countryName = new SimpleStringProperty();
     this.mapImage = new SimpleObjectProperty<>();
-    this.statusImage = new SimpleObjectProperty<>();
+    this.gameStatusImage = new SimpleObjectProperty<>();
     this.statusTooltipText = new SimpleStringProperty();
     this.displayed = new SimpleBooleanProperty(false);
     this.populated = new SimpleBooleanProperty(false);
+    if (player != null) {
+      player.getChatChannelUsers().add(this);
+      socialStatus.setValue(player.getSocialStatus());
+    }
   }
 
   public Optional<Player> getPlayer() {
@@ -69,6 +78,23 @@ public class ChatChannelUser {
   }
 
   public void setPlayer(Player player) {
+    if (this.player.get() != null) {
+      this.player.get().getChatChannelUsers().remove(this);
+      socialStatus.unbind();
+      gameStatus.unbind();
+      clanTag.unbind();
+    }
+    if (player != null) {
+      player.getChatChannelUsers().add(this);
+      socialStatus.bind(player.socialStatusProperty());
+      gameStatus.bind(player.statusProperty());
+      clanTag.bind(Bindings.createStringBinding(() -> {
+        if (player.getClan() != null && !player.getClan().isBlank()) {
+          return String.format("[%s]", player.getClan());
+        }
+        return null;
+      }, player.clanProperty()));
+    }
     this.player.set(player);
   }
 
@@ -125,16 +151,28 @@ public class ChatChannelUser {
     return lastActive;
   }
 
-  public Optional<PlayerStatus> getStatus() {
-    return Optional.ofNullable(status.get());
+  public Optional<PlayerStatus> getGameStatus() {
+    return Optional.ofNullable(gameStatus.get());
   }
 
-  public void setStatus(PlayerStatus status) {
-    this.status.set(status);
+  public void setGameStatus(PlayerStatus gameStatus) {
+    this.gameStatus.set(gameStatus);
   }
 
-  public ObjectProperty<PlayerStatus> statusProperty() {
-    return status;
+  public ObjectProperty<PlayerStatus> gameStatusProperty() {
+    return gameStatus;
+  }
+
+  public Optional<SocialStatus> getSocialStatus() {
+    return Optional.ofNullable(socialStatus.get());
+  }
+
+  public void setSocialStatus(SocialStatus socialStatus) {
+    this.socialStatus.set(socialStatus);
+  }
+
+  public ObjectProperty<SocialStatus> socialStatusProperty() {
+    return socialStatus;
   }
 
   public Optional<Image> getAvatar() {
@@ -209,16 +247,16 @@ public class ChatChannelUser {
     return mapImage;
   }
 
-  public Optional<Image> getStatusImage() {
-    return Optional.ofNullable(statusImage.get());
+  public Optional<Image> getGameStatusImage() {
+    return Optional.ofNullable(gameStatusImage.get());
   }
 
-  public void setStatusImage(Image statusImage) {
-    this.statusImage.set(statusImage);
+  public void setGameStatusImage(Image gameStatusImage) {
+    this.gameStatusImage.set(gameStatusImage);
   }
 
-  public ObjectProperty<Image> statusImageProperty() {
-    return statusImage;
+  public ObjectProperty<Image> gameStatusImageProperty() {
+    return gameStatusImage;
   }
 
   public Optional<String> getStatusTooltipText() {
@@ -267,11 +305,10 @@ public class ChatChannelUser {
   Set<ChatUserCategory> getChatUserCategories() {
     Set<ChatUserCategory> userCategories = new HashSet<>();
 
-    Optional<Player> playerOptional = Optional.ofNullable(player.get());
-    if (playerOptional.isEmpty()) {
+    if (socialStatus.get() == null) {
       userCategories.add(ChatUserCategory.CHAT_ONLY);
     } else {
-      ChatUserCategory category = switch (playerOptional.get().getSocialStatus()) {
+      ChatUserCategory category = switch (socialStatus.get()) {
         case FRIEND -> ChatUserCategory.FRIEND;
         case FOE -> ChatUserCategory.FOE;
         case OTHER, SELF -> ChatUserCategory.OTHER;

@@ -4,7 +4,6 @@ import com.faforever.client.net.ConnectionState;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.MapChangeListener;
-import javafx.scene.paint.Color;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -23,8 +22,6 @@ public interface ChatService {
   Channel getOrCreateChannel(String channelName);
 
   ChatChannelUser getOrCreateChatUser(String username, String channel, boolean isModerator);
-
-  Color getChatUserColor(String username);
 
   void addUsersListener(String channelName, MapChangeListener<String, ChatChannelUser> listener);
 

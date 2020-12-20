@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.clan.Clan;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.player.Player;
+import com.faforever.client.player.SocialStatus;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
@@ -49,7 +50,12 @@ public final class ChatChannelUserBuilder {
   }
 
   public ChatChannelUserBuilder status(PlayerStatus status) {
-    chatChannelUser.setStatus(status);
+    chatChannelUser.setGameStatus(status);
+    return this;
+  }
+
+  public ChatChannelUserBuilder socialStatus(SocialStatus status) {
+    chatChannelUser.setSocialStatus(status);
     return this;
   }
 
@@ -84,7 +90,7 @@ public final class ChatChannelUserBuilder {
   }
 
   public ChatChannelUserBuilder statusImage(Image statusImage) {
-    chatChannelUser.setStatusImage(statusImage);
+    chatChannelUser.setGameStatusImage(statusImage);
     return this;
   }
 
