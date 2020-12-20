@@ -4,11 +4,13 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.discord.DiscordRichPresenceService;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
+import com.faforever.client.fa.relay.LobbyMode;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
+import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -46,6 +48,7 @@ import org.testfx.util.WaitForAsyncUtils;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -56,6 +59,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static com.faforever.client.fa.RatingMode.GLOBAL;
+import static com.faforever.client.game.Faction.CYBRAN;
+import static com.faforever.client.game.KnownFeaturedMod.FAF;
 import static com.faforever.client.remote.domain.GameStatus.CLOSED;
 import static com.faforever.client.remote.domain.GameStatus.OPEN;
 import static com.faforever.client.remote.domain.GameStatus.PLAYING;
@@ -478,68 +483,65 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     assertThat(instance.getGames(), empty());
   }
 
-  //TODO: remove/reimplement TMM
-//  @Test
-//  public void testStartSearchLadder1v1() throws Exception {
-//    int uid = 123;
-//    String map = "scmp_037";
-//    GameLaunchMessage gameLaunchMessage = new GameLaunchMessageBuilder().defaultValues()
-//        .uid(uid).mod("ladder1v1").mapname(map)
-//        .expectedPlayers(2)
-//        .faction(CYBRAN)
-//        .initMode(LobbyMode.AUTO_LOBBY)
-//        .mapPosition(4)
-//        .team(1)
-//        .get();
-//
-//    FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
-//
-//    String[] additionalArgs = {"/team", "1", "/players", "2", "/startspot", "4"};
-//    mockStartGameProcess(uid, RatingMode.LADDER_1V1, CYBRAN, false, additionalArgs);
-//    when(fafService.startSearchLadder1v1(CYBRAN)).thenReturn(completedFuture(gameLaunchMessage));
-//    when(gameUpdater.update(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(completedFuture(null));
-//    when(mapService.isInstalled(map)).thenReturn(false);
-//    when(mapService.download(map)).thenReturn(completedFuture(null));
-//    when(modService.getFeaturedMod(LADDER_1V1.getTechnicalName())).thenReturn(completedFuture(featuredMod));
-//
-//    instance.startSearchLadder1v1(CYBRAN).toCompletableFuture();
-//
-//    verify(fafService).startSearchLadder1v1(CYBRAN);
-//    verify(mapService).download(map);
-//    verify(replayService).start(eq(uid), any());
-//    verify(forgedAllianceService).startGame(
-//        uid, CYBRAN, asList(additionalArgs), RatingMode.LADDER_1V1, GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
-//  }
+  @Test
+  public void testStartSearchLadder1v1() throws Exception {
+    int uid = 123;
+    String map = "scmp_037";
+    GameLaunchMessage gameLaunchMessage = new GameLaunchMessageBuilder().defaultValues()
+        .uid(uid).mod("FAF").mapname(map)
+        .expectedPlayers(2)
+        .faction(CYBRAN)
+        .initMode(LobbyMode.AUTO_LOBBY)
+        .mapPosition(4)
+        .team(1)
+        .get();
 
+    FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
 
-  //TODO: remove/reimplement TMM
-//  @Test
-//  public void testStartSearchLadder1v1GameRunningDoesNothing() throws Exception {
-//    Process process = mock(Process.class);
-//    when(process.isAlive()).thenReturn(true);
-//
-//    NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
-//    GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
-//
-//    when(forgedAllianceService.startGame(anyInt(), any(), any(), any(), anyInt(), eq(LOCAL_REPLAY_PORT), eq(false), eq(junitPlayer))).thenReturn(process);
-//    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
-//    when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
-//    when(mapService.download(newGameInfo.getMap())).thenReturn(completedFuture(null));
-//
-//    CountDownLatch gameRunningLatch = new CountDownLatch(1);
-//    instance.gameRunningProperty().addListener((observable, oldValue, newValue) -> {
-//      if (newValue) {
-//        gameRunningLatch.countDown();
-//      }
-//    });
-//
-//    instance.hostGame(newGameInfo);
-//    gameRunningLatch.await(TIMEOUT, TIME_UNIT);
-//
-//    instance.startSearchLadder1v1(AEON);
-//
-//    assertThat(instance.inMatchmakerQueueProperty().get(), is(false));
-//  }
+    String[] additionalArgs = {"/team", "1", "/players", "2", "/startspot", "4"};
+    mockStartGameProcess(uid, RatingMode.NONE, CYBRAN, false, additionalArgs);
+    when(fafService.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
+    when(gameUpdater.update(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(completedFuture(null));
+    when(mapService.isInstalled(map)).thenReturn(false);
+    when(mapService.download(map)).thenReturn(completedFuture(null));
+    when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(completedFuture(featuredMod));
+
+    instance.startSearchMatchmaker().toCompletableFuture();
+
+    verify(fafService).startSearchMatchmaker();
+    verify(mapService).download(map);
+    verify(replayService).start(eq(uid), any());
+    verify(forgedAllianceService).startGame(
+        uid, CYBRAN, asList(additionalArgs), RatingMode.NONE, GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
+  }
+
+  @Test
+  public void testStartSearchMatchmakerGameRunningDoesNothing() throws Exception {
+    Process process = mock(Process.class);
+    when(process.isAlive()).thenReturn(true);
+
+    NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
+    GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
+
+    when(forgedAllianceService.startGame(anyInt(), any(), any(), any(), anyInt(), eq(LOCAL_REPLAY_PORT), eq(false), eq(junitPlayer))).thenReturn(process);
+    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
+    when(mapService.download(newGameInfo.getMap())).thenReturn(completedFuture(null));
+
+    CountDownLatch gameRunningLatch = new CountDownLatch(1);
+    instance.gameRunningProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue) {
+        gameRunningLatch.countDown();
+      }
+    });
+
+    instance.hostGame(newGameInfo);
+    gameRunningLatch.await(TIMEOUT, TIME_UNIT);
+
+    instance.startSearchMatchmaker();
+
+    assertThat(instance.inMatchmakerQueueProperty().get(), is(false));
+  }
 
   @Test
   public void testStopSearchMatchmaker() {
@@ -626,13 +628,12 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     verify(eventBus).post(any(GameDirectoryChooseEvent.class));
   }
 
-  //TODO: remove/reimplement TMM
-//  @Test
-//  public void startSearchLadder1v1IfNoGameSet() {
-//    when(preferencesService.isGamePathValid()).thenReturn(false);
-//    instance.startSearchLadder1v1(null);
-//    verify(eventBus).post(any(GameDirectoryChooseEvent.class));
-//  }
+  @Test
+  public void startSearchMatchmakerIfNoGameSet() {
+    when(preferencesService.isGamePathValid()).thenReturn(false);
+    instance.startSearchMatchmaker();
+    verify(eventBus).post(any(GameDirectoryChooseEvent.class));
+  }
 
   @Test
   public void joinGameIfNoGameSet() {

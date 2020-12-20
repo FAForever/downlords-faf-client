@@ -37,7 +37,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
@@ -113,7 +113,8 @@ public class TeamMatchmakingService {
     playerService.getCurrentPlayer().ifPresent(this::initParty);
   }
 
-  private void onMatchmakerInfo(MatchmakerInfoMessage message) {
+  @VisibleForTesting
+  protected void onMatchmakerInfo(MatchmakerInfoMessage message) {
     List<CompletableFuture<?>> futures = new ArrayList<>();
     message.getQueues().forEach(remoteQueue -> {
       MatchmakingQueue localQueue = matchmakingQueues.stream()
@@ -148,6 +149,7 @@ public class TeamMatchmakingService {
     });
   }
 
+  @VisibleForTesting
   protected void onSearchInfoMessage(SearchInfoMessage message) {
     matchmakingQueues.stream()
         .filter(q -> Objects.equals(q.getQueueName(), message.getQueueName()))
@@ -178,7 +180,8 @@ public class TeamMatchmakingService {
     }
   }
 
-  private void onMatchFoundMessage(MatchFoundMessage message) {
+  @VisibleForTesting
+  protected void onMatchFoundMessage(MatchFoundMessage message) {
     matchFoundAndWaitingForGameLaunch = true; // messages from server: match found -> STOP all queues that you are in that haven't found a match -> game launch
 
     notificationService.addNotification(new TransientNotification(
@@ -192,7 +195,8 @@ public class TeamMatchmakingService {
     matchmakingQueues.forEach(q -> q.setJoined(false));
   }
 
-  private void onMatchCancelledMessage(MatchCancelledMessage message) {
+  @VisibleForTesting
+  protected void onMatchCancelledMessage(MatchCancelledMessage message) {
     matchmakingQueues.stream()
         .filter(q -> q.getMatchingStatus() != null)
         .forEach(q -> q.setTimedOutMatchingStatus(MatchingStatus.MATCH_CANCELLED, Duration.ofSeconds(15), taskScheduler));
@@ -201,7 +205,8 @@ public class TeamMatchmakingService {
     gameService.onMatchmakerSearchStopped(); // joining custom games is still blocked till match is cancelled or launched
   }
 
-  private void onGameLaunchMessage(GameLaunchMessage message) {
+  @VisibleForTesting
+  protected void onGameLaunchMessage(GameLaunchMessage message) {
     if (message.getInitMode() != LobbyMode.AUTO_LOBBY) {
       return;
     }
@@ -279,7 +284,8 @@ public class TeamMatchmakingService {
         });
   }
 
-  private void acceptPartyInvite(Player player) {
+  @VisibleForTesting
+  protected void acceptPartyInvite(Player player) {
     if (isCurrentlyInQueue()) {
       notificationService.addNotification(new ImmediateNotification(
           i18n.get("teammatchmaking.notification.joinAlreadyInQueue.title"),

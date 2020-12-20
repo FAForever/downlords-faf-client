@@ -39,11 +39,13 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static javafx.beans.binding.Bindings.createBooleanBinding;
@@ -97,7 +99,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public ColumnConstraints column2;
   public RowConstraints row2;
   private Player player;
-  private MatchmakingChatController matchmakingChatController;
+  @VisibleForTesting
+  protected MatchmakingChatController matchmakingChatController;
 
   @Override
   public void initialize() {
@@ -259,11 +262,12 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   }
 
   private void createChannelTab(String channelName) {
-    JavaFxUtil.assertApplicationThread();
     matchmakingChatController = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml");
     matchmakingChatController.setChannel(channelName);
-    chatTabPane.getTabs().clear();
-    chatTabPane.getTabs().add(matchmakingChatController.getRoot());
+    Platform.runLater(() -> {
+      chatTabPane.getTabs().clear();
+      chatTabPane.getTabs().add(matchmakingChatController.getRoot());
+    });
   }
 
   @Subscribe

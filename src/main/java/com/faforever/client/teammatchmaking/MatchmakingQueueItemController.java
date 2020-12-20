@@ -9,10 +9,11 @@ import com.google.common.eventbus.EventBus;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.VBox;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -25,7 +26,7 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class MatchmakingQueueItemController implements Controller<Node> {
+public class MatchmakingQueueItemController implements Controller<VBox> {
 
   private final static String QUEUE_I18N_PATTERN = "teammatchmaking.queue.%s.%s";
 
@@ -34,7 +35,7 @@ public class MatchmakingQueueItemController implements Controller<Node> {
   private final I18n i18n;
   private final EventBus eventBus;
 
-  public Node queueItemRoot;
+  public VBox queueItemRoot;
   public Label playersInQueueLabel;
   public Label queuePopTimeLabel;
   public ToggleButton joinLeaveQueueButton;
@@ -44,7 +45,8 @@ public class MatchmakingQueueItemController implements Controller<Node> {
   public Label matchCancelledLabel;
   public Button mapPoolButton;
 
-  private MatchmakingQueue queue;
+  @VisibleForTesting
+  protected MatchmakingQueue queue;
 
   public MatchmakingQueueItemController(PlayerService playerService, TeamMatchmakingService teamMatchmakingService, I18n i18n, EventBus eventBus) {
     this.playerService = playerService;
@@ -68,7 +70,7 @@ public class MatchmakingQueueItemController implements Controller<Node> {
   }
 
   @Override
-  public Node getRoot() {
+  public VBox getRoot() {
     return queueItemRoot;
   }
 
