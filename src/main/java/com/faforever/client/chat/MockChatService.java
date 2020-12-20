@@ -17,7 +17,6 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.MapChangeListener;
 import javafx.concurrent.Task;
-import javafx.scene.paint.Color;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
@@ -51,11 +50,11 @@ public class MockChatService implements ChatService, InitializingBean {
   private final I18n i18n;
   private final EventBus eventBus;
 
-  private Timer timer = new Timer(true);
-  private Collection<Consumer<ChatMessage>> onChatMessageListeners = new ArrayList<>();
-  private Map<String, Channel> channelUserListListeners = new HashMap<>();
-  private ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
-  private IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
+  private final Timer timer = new Timer(true);
+  private final Collection<Consumer<ChatMessage>> onChatMessageListeners = new ArrayList<>();
+  private final Map<String, Channel> channelUserListListeners = new HashMap<>();
+  private final ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
+  private final IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
 
   @Override
   public void afterPropertiesSet() {
@@ -146,9 +145,9 @@ public class MockChatService implements ChatService, InitializingBean {
     ConcurrentUtil.executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
-        ChatChannelUser chatUser = new ChatChannelUser(userService.getUsername(), null, false);
-        ChatChannelUser mockUser = new ChatChannelUser("MockUser", null, false);
-        ChatChannelUser moderatorUser = new ChatChannelUser("MockModerator", null, true);
+        ChatChannelUser chatUser = new ChatChannelUser(userService.getUsername(), false);
+        ChatChannelUser mockUser = new ChatChannelUser("MockUser", false);
+        ChatChannelUser moderatorUser = new ChatChannelUser("MockModerator", true);
 
         Channel channel = getOrCreateChannel(channelName);
         channel.addUser(chatUser);
@@ -217,7 +216,7 @@ public class MockChatService implements ChatService, InitializingBean {
 
   @Override
   public ChatChannelUser getChatUser(String username, String channelName) {
-    return new ChatChannelUser(username, Color.ALICEBLUE, false);
+    return new ChatChannelUser(username, false);
   }
 
   @Override

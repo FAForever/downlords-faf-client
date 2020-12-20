@@ -318,7 +318,8 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   public void getInlineStyleRandom() {
     String somePlayer = "somePlayer";
     Color color = ColorGeneratorUtil.generateRandomColor();
-    ChatChannelUser chatUser = new ChatChannelUser(somePlayer, color, false);
+    ChatChannelUser chatUser = new ChatChannelUser(somePlayer, false);
+    chatUser.setColor(color);
 
     when(chatService.getChatUser(somePlayer, CHANNEL_NAME)).thenReturn(chatUser);
     runOnFxThreadAndWait(() -> {
@@ -335,7 +336,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void getInlineStyleRandomFoeHide() {
     String playerName = "playerName";
-    ChatChannelUser chatUser = new ChatChannelUser(playerName, null, false);
+    ChatChannelUser chatUser = new ChatChannelUser(playerName, false);
 
     when(playerService.getPlayerForUsername(playerName)).thenReturn(Optional.of(PlayerBuilder.create(playerName).socialStatus(FOE).get()));
     when(chatService.getChatUser(playerName, CHANNEL_NAME)).thenReturn(chatUser);
@@ -352,7 +353,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void getInlineStyleRandomFoeShow() {
     String playerName = "somePlayer";
-    ChatChannelUser chatUser = new ChatChannelUser(playerName, null, false);
+    ChatChannelUser chatUser = new ChatChannelUser(playerName, false);
     when(playerService.getPlayerForUsername(playerName)).thenReturn(Optional.of(PlayerBuilder.create(playerName).socialStatus(FOE).get()));
 
     when(chatService.getChatUser(playerName, CHANNEL_NAME)).thenReturn(chatUser);
@@ -373,7 +374,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     ArgumentCaptor<MapChangeListener<String, ChatChannelUser>> captor = ArgumentCaptor.forClass(MapChangeListener.class);
     verify(chatService).addUsersListener(anyString(), captor.capture());
 
-    ChatChannelUser chatUser = new ChatChannelUser("junit", null, false);
+    ChatChannelUser chatUser = new ChatChannelUser("junit", false);
     ObservableMap<String, ChatChannelUser> userMap = FXCollections.observableHashMap();
     userMap.put("junit", chatUser);
 
