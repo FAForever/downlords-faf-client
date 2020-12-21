@@ -94,6 +94,8 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
     List<Player> playerList = new ArrayList<>();
     playerList.add(player);
     when(player.getStatus()).thenReturn(PlayerStatus.IDLE);
+    when(player.getId()).thenReturn(1);
+    when(otherPlayer.getId()).thenReturn(2);
     when(playerService.getPlayersByIds(Collections.singletonList(1))).thenReturn(CompletableFuture.completedFuture(playerList));
     ReadOnlyObjectProperty<ConnectionState> state = new SimpleObjectProperty<>();
     when(fafService.connectionStateProperty()).thenReturn(state);
@@ -168,13 +170,22 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
     assertThat(instance.getPlayersInGame().contains(player), is(true));
   }
 
+  @NotNull
+  private List<PartyInfoMessage.PartyMember> generatePartyMembers(List<Integer> idList) {
+    List<PartyInfoMessage.PartyMember> testMembers = FXCollections.observableArrayList();
+    idList.forEach(id -> {
+      PartyInfoMessage.PartyMember member = new PartyInfoMessage.PartyMember();
+      member.setPlayer(id);
+      member.setFactions(Collections.emptyList());
+      testMembers.add(member);
+    });
+
+    return testMembers;
+  }
+
   @Test
   public void testOnPartyInfoMessagePlayerNotInParty() {
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
-    List<PartyInfoMessage.PartyMember> testMembers = FXCollections.observableArrayList();
-    PartyInfoMessage.PartyMember member = new PartyInfoMessage.PartyMember();
-    member.setPlayer(2);
-    testMembers.add(member);
+    List<PartyInfoMessage.PartyMember> testMembers = generatePartyMembers(List.of(2));
     PartyInfoMessage message = new PartyInfoMessage();
     message.setMembers(testMembers);
 
@@ -187,7 +198,18 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnPartyInfoMessage() {
+    when(playerService.getOnlinePlayersByIds(List.of(2))).thenReturn(List.of(otherPlayer));
+    when(playerService.getOnlinePlayersByIds(List.of(1, 2))).thenReturn(List.of(player, otherPlayer));
+    List<PartyInfoMessage.PartyMember> testMembers = generatePartyMembers(List.of(1, 2));
+    PartyInfoMessage message = new PartyInfoMessage();
+    message.setMembers(testMembers);
+    message.setOwner(2);
 
+    instance.onPartyInfo(message);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertThat(instance.getParty().getMembers().size(), is(2));
+    assertThat(instance.getParty().getOwner(), is(otherPlayer));
   }
 
   @Test
