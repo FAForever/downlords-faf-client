@@ -49,7 +49,7 @@
                 text="%chat.userContext.viewLiveReplay"/>
       <MenuItem fx:id="viewReplaysItem" mnemonicParsing="false" onAction="#onViewReplaysSelected"
                 text="%chat.userContext.viewReplays"/>
-      <MenuItem fx:id="inviteItem" disable="true" mnemonicParsing="false" onAction="#onInviteToGameSelected"
+      <MenuItem fx:id="inviteItem" mnemonicParsing="false" onAction="#onInviteToGameSelected"
                 text="%chat.userContext.inviteToGame"/>
     <SeparatorMenuItem fx:id="moderatorActionSeparator" mnemonicParsing="false" />
       <MenuItem fx:id="kickGameItem" mnemonicParsing="false" onAction="#onKickGame" text="%chat.userContext.kickGame"

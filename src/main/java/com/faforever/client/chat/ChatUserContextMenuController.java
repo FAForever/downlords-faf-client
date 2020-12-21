@@ -23,6 +23,7 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.replay.ReplayService;
+import com.faforever.client.teammatchmaking.TeamMatchmakingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.alert.Alert;
 import com.faforever.client.ui.alert.animation.AlertAnimation;
@@ -77,6 +78,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   private final UiService uiService;
   private final PlatformService platformService;
   private final ModeratorService moderatorService;
+  private final TeamMatchmakingService teamMatchmakingService;
   public ComboBox<AvatarBean> avatarComboBox;
   public CustomMenuItem avatarPickerMenuItem;
   public MenuItem sendPrivateMessageItem;
@@ -109,7 +111,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
                                        PlayerService playerService, ReplayService replayService,
                                        NotificationService notificationService, I18n i18n, EventBus eventBus,
                                        JoinGameHelper joinGameHelper, AvatarService avatarService, UiService uiService,
-                                       PlatformService platformService, ModeratorService moderatorService) {
+                                       PlatformService platformService, ModeratorService moderatorService, TeamMatchmakingService teamMatchmakingService) {
     this.preferencesService = preferencesService;
     this.clientProperties = clientProperties;
     this.playerService = playerService;
@@ -122,6 +124,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     this.uiService = uiService;
     this.platformService = platformService;
     this.moderatorService = moderatorService;
+    this.teamMatchmakingService = teamMatchmakingService;
   }
 
   public void initialize() {
@@ -215,8 +218,10 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
               }, newValue.gameProperty())
           ));
       watchGameItem.visibleProperty().bind(newValue.statusProperty().isEqualTo(PlayerStatus.PLAYING));
-      inviteItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF)
-          .and(newValue.statusProperty().isNotEqualTo(PlayerStatus.PLAYING)));
+      inviteItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+              newValue.socialStatusProperty().get() != SELF &&
+              newValue.statusProperty().get() == PlayerStatus.IDLE,
+          newValue.statusProperty()));
 
     };
     JavaFxUtil.addListener(chatUser.playerProperty(), new WeakChangeListener<>(playerChangeListener));
@@ -325,7 +330,8 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   }
 
   public void onInviteToGameSelected() {
-    //FIXME implement
+    Player player = getPlayer();
+    teamMatchmakingService.invitePlayer(player.getUsername());
   }
 
   public void onBan(ActionEvent actionEvent) {
