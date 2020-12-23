@@ -9,6 +9,7 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -117,8 +118,8 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     userFilterController = new UserFilterController(i18n, countryFlagService);
 
     defaultChannel = new Channel(CHANNEL_NAME);
-    preferences = new Preferences();
-    when(preferencesService.getPreferences()).thenReturn(this.preferences);
+    preferences = PreferencesBuilder.create().defaultValues().get();
+    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(userService.getUsername()).thenReturn(USER_NAME);
     when(uiService.loadFxml("theme/chat/user_filter.fxml")).thenReturn(userFilterController);
     when(uiService.loadFxml("theme/chat/chat_user_item.fxml")).thenReturn(chatUserItemController);
@@ -276,7 +277,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testAtMentionTriggersNotification() {
     this.getRoot().setVisible(false);
-    preferencesService.getPreferences().getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(false);
+    preferences.getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(false);
     instance.onMention(new ChatMessage("junit", Instant.now(), "junit", "hello @" + USER_NAME + "!!"));
     verify(audioService).playChatMentionSound();
   }
@@ -284,7 +285,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testAtMentionTriggersNotificationWhenFlagIsEnabled() {
     this.getRoot().setVisible(false);
-    preferencesService.getPreferences().getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(true);
+    preferences.getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(true);
     instance.onMention(new ChatMessage("junit", Instant.now(), "junit", "hello @" + USER_NAME + "!!"));
     verify(audioService).playChatMentionSound();
   }
@@ -292,7 +293,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testNormalMentionTriggersNotification() {
     this.getRoot().setVisible(false);
-    preferencesService.getPreferences().getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(false);
+    preferences.getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(false);
     instance.onMention(new ChatMessage("junit", Instant.now(), "junit", "hello " + USER_NAME + "!!"));
     verify(audioService).playChatMentionSound();
   }
@@ -300,7 +301,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testNormalMentionDoesNotTriggerNotificationWhenFlagIsEnabled() {
     this.getRoot().setVisible(false);
-    preferencesService.getPreferences().getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(true);
+    preferences.getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(true);
     instance.onMention(new ChatMessage("junit", Instant.now(), "junit", "hello " + USER_NAME + "!!"));
     verify(audioService, never()).playChatMentionSound();
   }
@@ -308,7 +309,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testNormalMentionDoesNotTriggerNotificationFromFoe() {
     this.getRoot().setVisible(false);
-    preferencesService.getPreferences().getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(false);
+    preferences.getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(false);
     when(playerService.getPlayerForUsername("junit")).thenReturn(Optional.ofNullable(PlayerBuilder.create("junit").defaultValues().socialStatus(FOE).get()));
     instance.onMention(new ChatMessage("junit", Instant.now(), "junit", "hello " + USER_NAME + "!!"));
     verify(audioService, never()).playChatMentionSound();
@@ -430,7 +431,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   public void testHideSidePane() {
     runOnFxThreadAndWait(() -> instance.toggleSidePaneButton.fire());
 
-    assertFalse(preferencesService.getPreferences().getChat().isPlayerListShown());
+    assertFalse(preferences.getChat().isPlayerListShown());
     verify(preferencesService, atLeast(1)).storeInBackground();
 
     assertFalse(instance.channelTabScrollPaneVBox.isManaged());

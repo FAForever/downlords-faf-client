@@ -2,6 +2,7 @@ package com.faforever.client.notification;
 
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.ToastPosition;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -34,7 +35,7 @@ public class TransientNotificationsControllerTest extends AbstractPlainJavaFxTes
   public void setUp() throws Exception {
     instance = new TransientNotificationsController(uiService, preferencesService);
 
-    Preferences preferences = new Preferences();
+    Preferences preferences = PreferencesBuilder.create().defaultValues().get();
     notificationPrefs = preferences.getNotification();
     when(preferencesService.getPreferences()).thenReturn(preferences);
 

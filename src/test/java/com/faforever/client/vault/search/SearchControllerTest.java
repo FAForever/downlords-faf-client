@@ -99,7 +99,7 @@ public class SearchControllerTest extends AbstractPlainJavaFxTest {
     });
 
     instance.setSearchableProperties(SearchablePropertyMappings.GAME_PROPERTY_MAPPING);
-    instance.setSortConfig(preferencesService.getPreferences().getVaultPrefs().onlineReplaySortConfigProperty());
+    instance.setSortConfig(preferencesService.getPreferences().getVault().onlineReplaySortConfigProperty());
   }
 
   @Test
@@ -202,7 +202,7 @@ public class SearchControllerTest extends AbstractPlainJavaFxTest {
 
     instance.onSearchButtonClicked();
 
-    SortConfig mapSortConfig = preferencesService.getPreferences().getVaultPrefs().getOnlineReplaySortConfig();
+    SortConfig mapSortConfig = preferencesService.getPreferences().getVault().getOnlineReplaySortConfig();
     assertEquals(mapSortConfig.getSortOrder(), SortOrder.ASC);
     verify(searchListener).accept(new SearchConfig(mapSortConfig, "query"));
   }

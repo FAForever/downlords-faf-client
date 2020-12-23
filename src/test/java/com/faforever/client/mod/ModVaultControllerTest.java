@@ -3,6 +3,7 @@ package com.faforever.client.mod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.LogicalNodeController;
 import com.faforever.client.query.SpecificationController;
@@ -59,20 +60,19 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ReportingService reportingService;
 
-  private SortConfig sortOrder;
-  private SearchConfig standardSearchConfig;
+  private Preferences preferences;
   private ModDetailController modDetailController;
 
   @Before
   public void setUp() throws Exception {
-    when(preferencesService.getPreferences()).thenReturn(new Preferences());
+    preferences = PreferencesBuilder.create().defaultValues().get();
+
+    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(modService.getNewestModsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
     when(modService.getHighestRatedModsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
     when(modService.getHighestRatedUiModsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
     when(i18n.get(anyString())).thenReturn("test");
 
-    sortOrder = preferencesService.getPreferences().getVaultPrefs().getMapSortConfig();
-    standardSearchConfig = new SearchConfig(sortOrder, "query");
     instance = new ModVaultController(modService, i18n, eventBus, preferencesService, uiService, notificationService, reportingService);
 
     doAnswer(invocation -> {
@@ -97,6 +97,8 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetSupplier() {
+    SortConfig sortOrder = preferences.getVault().getMapSortConfig();
+    SearchConfig standardSearchConfig = new SearchConfig(sortOrder, "query");
     instance.searchType = SearchType.SEARCH;
     instance.setSupplier(standardSearchConfig);
     instance.searchType = SearchType.NEWEST;

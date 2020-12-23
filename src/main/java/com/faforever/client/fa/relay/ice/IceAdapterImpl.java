@@ -73,7 +73,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private final FafService fafService;
   private final PreferencesService preferencesService;
 
-  private IceAdapterApi iceAdapterProxy = newIceAdapterProxy();
+  private final IceAdapterApi iceAdapterProxy = newIceAdapterProxy();
   private CompletableFuture<Integer> iceAdapterClientFuture;
   private Process process;
   private LobbyMode lobbyInitMode;

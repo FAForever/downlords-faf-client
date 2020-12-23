@@ -3,6 +3,7 @@ package com.faforever.client.map.generator;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.MapGenerator;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
@@ -94,9 +95,12 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
 
     when(preferencesService.getFafDataDirectory()).thenReturn(fafDataDirectory.getRoot().toPath());
 
-    Preferences preferences = new Preferences();
+    Preferences preferences = PreferencesBuilder.create().defaultValues()
+        .forgedAlliancePrefs()
+        .vaultBaseDirectory(Paths.get(vaultBaseDir.getRoot().getAbsolutePath()))
+        .then()
+        .get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    preferences.getForgedAlliance().setVaultBaseDirectory(Paths.get(vaultBaseDir.getRoot().getAbsolutePath()));
 
     when(applicationContext.getBean(DownloadMapGeneratorTask.class)).thenReturn(downloadMapGeneratorTask);
     when(applicationContext.getBean(GenerateMapTask.class)).thenReturn(generateMapTask);

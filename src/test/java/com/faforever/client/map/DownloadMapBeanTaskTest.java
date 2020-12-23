@@ -1,11 +1,10 @@
 package com.faforever.client.map;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,18 +34,20 @@ public class DownloadMapBeanTaskTest extends AbstractPlainJavaFxTest {
   private PreferencesService preferencesService;
   @Mock
   private I18n i18n;
-  @Mock
-  private Preferences preferences;
-  @Mock
-  private ForgedAlliancePrefs forgedAlliance;
+
 
   @Before
   public void setUp() throws Exception {
+    Preferences preferences = PreferencesBuilder.create().defaultValues()
+        .forgedAlliancePrefs()
+        .customMapsDirectory(customMapsDirectory.getRoot().toPath())
+        .then()
+        .get();
+
     instance = new DownloadMapTask(preferencesService, i18n);
 
+
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.getForgedAlliance()).thenReturn(forgedAlliance);
-    when(forgedAlliance.getCustomMapsDirectory()).thenReturn(customMapsDirectory.getRoot().toPath());
   }
 
   @Test

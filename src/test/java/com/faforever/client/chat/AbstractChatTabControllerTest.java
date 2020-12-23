@@ -9,6 +9,7 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -95,7 +96,6 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ChatUserService chatUserService;
 
-  private Preferences preferences;
   private AbstractChatTabController instance;
   private CountDownLatch chatReadyLatch;
 
@@ -104,7 +104,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void start(Stage stage) throws Exception {
     super.start(stage);
 
-    preferences = new Preferences();
+    Preferences preferences = PreferencesBuilder.create().defaultValues().get();
 
     when(uiService.getThemeFileUrl(any())).thenReturn(getClass().getResource("/" + UiService.CHAT_SECTION_EXTENDED));
     when(timeService.asShortTime(any())).thenReturn("123");

@@ -8,8 +8,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.event.FriendJoinedGameEvent;
-import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -42,11 +42,9 @@ public class FriendJoinedGameNotifierTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private Preferences preferences;
-  @Mock
-  private NotificationsPrefs notification;
-  @Mock
   private AudioService audioService;
+
+  private Preferences preferences;
 
   @Before
   public void setUp() throws Exception {
@@ -54,8 +52,9 @@ public class FriendJoinedGameNotifierTest {
 
     instance = new FriendJoinedGameNotifier(notificationService, i18n, eventBus, joinGameHelper, preferencesService, audioService);
 
+    preferences = PreferencesBuilder.create().defaultValues().get();
+
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.getNotification()).thenReturn(notification);
 
     instance.afterPropertiesSet();
     verify(eventBus).register(instance);
@@ -71,8 +70,7 @@ public class FriendJoinedGameNotifierTest {
   public void onFriendJoinedGame() throws Exception {
     Game game = GameBuilder.create().defaultValues().title("My Game").get();
     Player player = PlayerBuilder.create("junit").id(1).game(game).get();
-
-    when(notification.isFriendJoinsGameToastEnabled()).thenReturn(true);
+    preferences.getNotification().setFriendJoinsGameToastEnabled(true);
     when(i18n.get("friend.joinedGameNotification.title", "junit", "My Game")).thenReturn("junit joined My Game");
     when(i18n.get("friend.joinedGameNotification.action")).thenReturn("Click to join");
 
@@ -89,7 +87,7 @@ public class FriendJoinedGameNotifierTest {
 
   @Test
   public void testNoNotificationIfDisabledInPreferences() throws Exception {
-    when(notification.isFriendJoinsGameToastEnabled()).thenReturn(false);
+    preferences.getNotification().setFriendJoinsGameToastEnabled(false);
 
     instance.onFriendJoinedGame(new FriendJoinedGameEvent(PlayerBuilder.create("junit").get(), GameBuilder.create().get()));
 

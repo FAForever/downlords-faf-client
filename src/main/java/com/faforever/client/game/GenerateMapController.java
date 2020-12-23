@@ -79,14 +79,14 @@ public class GenerateMapController implements Controller<Pane> {
     initGenerationTypeSpinner();
     initSpawnCountSpinner();
     initMapSizeSpinner();
-    GeneratorPrefs genPrefs = preferencesService.getPreferences().getGeneratorPrefs();
-    initOptionSlider(genPrefs.waterDensityPropertyProperty(), genPrefs.waterRandomPropertyProperty(),
+    GeneratorPrefs genPrefs = preferencesService.getPreferences().getGenerator();
+    initOptionSlider(genPrefs.waterDensityProperty(), genPrefs.waterRandomProperty(),
         waterSlider, waterSliderBox, waterRandom, waterRandomBox);
-    initOptionSlider(genPrefs.plateauDensityPropertyProperty(), genPrefs.plateauRandomPropertyProperty(),
+    initOptionSlider(genPrefs.plateauDensityProperty(), genPrefs.plateauRandomProperty(),
         plateauSlider, plateauSliderBox, plateauRandom, plateauRandomBox);
-    initOptionSlider(genPrefs.mountainDensityPropertyProperty(), genPrefs.mountainRandomPropertyProperty(),
+    initOptionSlider(genPrefs.mountainDensityProperty(), genPrefs.mountainRandomProperty(),
         mountainSlider, mountainSliderBox, mountainRandom, mountainRandomBox);
-    initOptionSlider(genPrefs.rampDensityPropertyProperty(), genPrefs.rampRandomPropertyProperty(),
+    initOptionSlider(genPrefs.rampDensityProperty(), genPrefs.rampRandomProperty(),
         rampSlider, rampSliderBox, rampRandom, rampRandomBox);
   }
 
@@ -105,29 +105,29 @@ public class GenerateMapController implements Controller<Pane> {
   }
 
   private void initGenerationTypeSpinner() {
-    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGeneratorPrefs();
-    GenerationType generationTypeProperty = generatorPrefs.getGenerationTypeProperty();
+    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGenerator();
+    GenerationType generationTypeProperty = generatorPrefs.getGenerationType();
     generationTypeComboBox.setItems(FXCollections.observableArrayList(GenerationType.values()));
     generationTypeComboBox.setConverter(getGenerationTypeConverter());
     generationTypeComboBox.setValue(generationTypeProperty);
-    generatorPrefs.generationTypePropertyProperty().bind(generationTypeComboBox.valueProperty());
+    generatorPrefs.generationTypeProperty().bind(generationTypeComboBox.valueProperty());
     generationTypeComboBox.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty()));
   }
 
   private void initSpawnCountSpinner() {
-    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGeneratorPrefs();
-    int spawnCountProperty = generatorPrefs.getSpawnCountProperty();
+    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGenerator();
+    int spawnCountProperty = generatorPrefs.getSpawnCount();
     spawnCountSpinner.setValueFactory(new IntegerSpinnerValueFactory(2, 16, spawnCountProperty, 2));
-    generatorPrefs.spawnCountPropertyProperty().bind(spawnCountSpinner.getValueFactory().valueProperty());
+    generatorPrefs.spawnCountProperty().bind(spawnCountSpinner.getValueFactory().valueProperty());
     spawnCountSpinner.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty()));
   }
 
   private void initMapSizeSpinner() {
-    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGeneratorPrefs();
-    String mapSizeProperty = generatorPrefs.getMapSizeProperty();
+    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGenerator();
+    String mapSizeProperty = generatorPrefs.getMapSize();
     mapSizeSpinner.setValueFactory(new ListSpinnerValueFactory<>(validMapSizes));
     mapSizeSpinner.increment(validMapSizes.indexOf(mapSizeProperty));
-    generatorPrefs.mapSizePropertyProperty().bind(mapSizeSpinner.getValueFactory().valueProperty());
+    generatorPrefs.mapSizeProperty().bind(mapSizeSpinner.getValueFactory().valueProperty());
     mapSizeSpinner.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty()));
   }
 

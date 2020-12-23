@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
@@ -51,7 +52,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
     when(uiService.loadFxml("theme/play/game_card.fxml")).thenReturn(gameTileController);
     when(uiService.loadFxml("theme/play/game_tooltip.fxml")).thenReturn(gameTooltipController);
     when(gameTooltipController.getRoot()).thenReturn(new Pane());
-    preferences = new Preferences();
+    preferences = PreferencesBuilder.create().defaultValues().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(gameTileController.getRoot()).thenReturn(new Pane()).thenReturn(new FlowPane()).thenReturn(new StackPane());
 

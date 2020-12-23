@@ -31,23 +31,23 @@ public class Preferences {
   public static final String DEFAULT_THEME_NAME = "default";
 
   private final WindowPrefs mainWindow;
-  private final GeneratorPrefs generatorPrefs;
+  private final GeneratorPrefs generator;
   private final ForgedAlliancePrefs forgedAlliance;
   private final LoginPrefs login;
   private final ChatPrefs chat;
   private final NotificationsPrefs notification;
-  private final StringProperty themeName;
   private final LocalizationPrefs localization;
-  private final LastGamePrefs lastGamePrefs;
-  private final BooleanProperty prereleaseCheckEnabled;
+  private final LastGamePrefs lastGame;
+  private final Ladder1v1Prefs ladder1v1;
+  private final NewsPrefs news;
+  private final DeveloperPrefs developer;
+  private final VaultPrefs vault;
+  private final StringProperty themeName;
+  private final BooleanProperty preReleaseCheckEnabled;
   private final BooleanProperty showPasswordProtectedGames;
   private final BooleanProperty showModdedGames;
   private final ListProperty<String> ignoredNotifications;
   private final StringProperty gamesViewMode;
-  private final Ladder1v1Prefs ladder1v1;
-  private final NewsPrefs news;
-  private final DeveloperPrefs developer;
-  private final VaultPrefs vaultPrefs;
   private final ListProperty<Pair<String, SortType>> gameListSorting;
   private final ObjectProperty<TilesSortingOrder> gameTileSortingOrder;
   private final ObjectProperty<UnitDataBaseType> unitDataBaseType;
@@ -62,10 +62,10 @@ public class Preferences {
     gameTileSortingOrder = new SimpleObjectProperty<>(TilesSortingOrder.PLAYER_DES);
     chat = new ChatPrefs();
     login = new LoginPrefs();
-    generatorPrefs = new GeneratorPrefs();
+    generator = new GeneratorPrefs();
 
     localization = new LocalizationPrefs();
-    lastGamePrefs = new LastGamePrefs();
+    lastGame = new LastGamePrefs();
     mainWindow = new WindowPrefs();
     forgedAlliance = new ForgedAlliancePrefs();
     themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
@@ -76,7 +76,7 @@ public class Preferences {
     news = new NewsPrefs();
     developer = new DeveloperPrefs();
     gameListSorting = new SimpleListProperty<>(observableArrayList());
-    vaultPrefs = new VaultPrefs();
+    vault = new VaultPrefs();
     unitDataBaseType = new SimpleObjectProperty<>(UnitDataBaseType.SPOOKY);
     storedCookies = new SimpleMapProperty<>(FXCollections.observableHashMap());
     showPasswordProtectedGames = new SimpleBooleanProperty(true);
@@ -84,13 +84,13 @@ public class Preferences {
     disallowJoinsViaDiscord = new SimpleBooleanProperty();
     showGameDetailsSidePane = new SimpleBooleanProperty(false);
     advancedIceLogEnabled = new SimpleBooleanProperty(false);
-    prereleaseCheckEnabled = new SimpleBooleanProperty(false);
+    preReleaseCheckEnabled = new SimpleBooleanProperty(false);
     cacheLifeTimeInDays = new SimpleIntegerProperty(30);
     gameDataCacheActivated = new SimpleBooleanProperty(false);
   }
 
-  public VaultPrefs getVaultPrefs() {
-    return vaultPrefs;
+  public VaultPrefs getVault() {
+    return vault;
   }
 
   public TilesSortingOrder getGameTileSortingOrder() {
@@ -173,7 +173,7 @@ public class Preferences {
     return ignoredNotifications;
   }
 
-  public Ladder1v1Prefs getLadder1v1Prefs() {
+  public Ladder1v1Prefs getLadder1v1() {
     return ladder1v1;
   }
 
@@ -241,20 +241,20 @@ public class Preferences {
     return showGameDetailsSidePane;
   }
 
-  public boolean isPrereleaseCheckEnabled() {
-    return prereleaseCheckEnabled.get();
+  public boolean getPreReleaseCheckEnabled() {
+    return preReleaseCheckEnabled.get();
   }
 
-  public void setPrereleaseCheckEnabled(boolean prereleaseCheckEnabled) {
-    this.prereleaseCheckEnabled.set(prereleaseCheckEnabled);
+  public void setPreReleaseCheckEnabled(boolean preReleaseCheckEnabled) {
+    this.preReleaseCheckEnabled.set(preReleaseCheckEnabled);
   }
 
-  public LastGamePrefs getLastGamePrefs() {
-    return lastGamePrefs;
+  public LastGamePrefs getLastGame() {
+    return lastGame;
   }
 
-  public BooleanProperty prereleaseCheckEnabledProperty() {
-    return prereleaseCheckEnabled;
+  public BooleanProperty preReleaseCheckEnabledProperty() {
+    return preReleaseCheckEnabled;
   }
 
   public boolean isShowPasswordProtectedGames() {
@@ -273,8 +273,8 @@ public class Preferences {
     this.showModdedGames.set(showModdedGames);
   }
 
-  public GeneratorPrefs getGeneratorPrefs() {
-    return generatorPrefs;
+  public GeneratorPrefs getGenerator() {
+    return generator;
   }
 
   public enum UnitDataBaseType {

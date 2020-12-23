@@ -9,6 +9,7 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
@@ -67,7 +68,7 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    Preferences preferences = new Preferences();
+    Preferences preferences = PreferencesBuilder.create().defaultValues().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
     when(i18n.get(eq("clan.messageLeader"))).thenReturn("Message clan leader");

@@ -88,7 +88,7 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     when(uiService.loadFxml("theme/vault/search/categoryFilter.fxml")).thenReturn(categoryFilterController);
     when(i18n.get(anyString())).thenReturn("test");
 
-    sortOrder = preferencesService.getPreferences().getVaultPrefs().getOnlineReplaySortConfig();
+    sortOrder = preferencesService.getPreferences().getVault().getOnlineReplaySortConfig();
     standardSearchConfig = new SearchConfig(sortOrder, "query");
 
     instance = new OnlineReplayVaultController(modService, replayService, uiService, notificationService, i18n, preferencesService, reportingService);

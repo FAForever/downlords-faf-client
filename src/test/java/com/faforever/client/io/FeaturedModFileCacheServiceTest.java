@@ -2,6 +2,7 @@ package com.faforever.client.io;
 
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -31,11 +32,10 @@ public class FeaturedModFileCacheServiceTest {
   @Mock
   private PreferencesService preferenceService;
   private FeaturedModFileCacheService instance;
-  private Preferences preferences;
 
   @Before
   public void setUp() throws Exception {
-    preferences = new Preferences();
+    Preferences preferences = PreferencesBuilder.create().defaultValues().gameDataCacheActivated(true).get();
     when(preferenceService.getPreferences()).thenReturn(preferences);
     when(preferenceService.getFeaturedModCachePath()).thenReturn(cacheDirectory.getRoot().toPath());
     instance = new FeaturedModFileCacheService(preferenceService);
@@ -43,7 +43,6 @@ public class FeaturedModFileCacheServiceTest {
 
   @Test
   public void testMoveFeaturedModFileFromCacheWithExistingOldFile() throws IOException {
-    preferences.setGameDataCacheActivated(true);
     final FeaturedModFile featuredModFile = new FeaturedModFile();
     featuredModFile.setId("1");
     final String fakeHashOfNewFile = "ksadduhoashaodiw";

@@ -287,6 +287,10 @@ public class NotificationsPrefs {
     return notifyOnAtMentionOnlyEnabled.get();
   }
 
+  public void setNotifyOnAtMentionOnlyEnabled(boolean notifyOnAtMentionOnlyEnabled) {
+    this.notifyOnAtMentionOnlyEnabled.set(notifyOnAtMentionOnlyEnabled);
+  }
+
   public BooleanProperty notifyOnAtMentionOnlyEnabledProperty() {
     return notifyOnAtMentionOnlyEnabled;
   }

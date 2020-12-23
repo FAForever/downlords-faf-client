@@ -114,10 +114,10 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
   protected void initSearchController() {
     searchController.setRootType(Game.class);
     searchController.setSearchableProperties(SearchablePropertyMappings.GAME_PROPERTY_MAPPING);
-    searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().onlineReplaySortConfigProperty());
+    searchController.setSortConfig(preferencesService.getPreferences().getVault().onlineReplaySortConfigProperty());
     searchController.setOnlyShowLastYearCheckBoxVisible(true);
     searchController.setVaultRoot(vaultRoot);
-    searchController.setSavedQueries(preferencesService.getPreferences().getVaultPrefs().getSavedReplayQueries());
+    searchController.setSavedQueries(preferencesService.getPreferences().getVault().getSavedReplayQueries());
 
     searchController.addTextFilter("playerStats.player.login", i18n.get("game.player.username"));
     searchController.addTextFilter("mapVersion.map.displayName", i18n.get("game.map.displayName"));

@@ -121,10 +121,10 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
   protected void initSearchController() {
     searchController.setRootType(com.faforever.client.api.dto.Mod.class);
     searchController.setSearchableProperties(SearchablePropertyMappings.MOD_PROPERTY_MAPPING);
-    searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().mapSortConfigProperty());
+    searchController.setSortConfig(preferencesService.getPreferences().getVault().mapSortConfigProperty());
     searchController.setOnlyShowLastYearCheckBoxVisible(false);
     searchController.setVaultRoot(vaultRoot);
-    searchController.setSavedQueries(preferencesService.getPreferences().getVaultPrefs().getSavedModQueries());
+    searchController.setSavedQueries(preferencesService.getPreferences().getVault().getSavedModQueries());
 
     searchController.addTextFilter("displayName", i18n.get("mod.displayName"));
     searchController.addTextFilter("author", i18n.get("mod.author"));
