@@ -173,7 +173,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   @Cacheable(value = CacheNames.ACHIEVEMENTS, sync = true)
   public AchievementDefinition getAchievementDefinition(String achievementId) {
-    return getOne(ACHIEVEMENT_ENDPOINT + achievementId, AchievementDefinition.class);
+    return getOne(ACHIEVEMENT_ENDPOINT + "/" + achievementId, AchievementDefinition.class);
   }
 
   @Override
@@ -389,7 +389,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public GameReview createGameReview(GameReview review) {
-    return post(REPLAY_ENDPOINT + review.getGame().getId() + "/reviews", review, GameReview.class);
+    return post(REPLAY_ENDPOINT + "/" + review.getGame().getId() + "/reviews", review, GameReview.class);
   }
 
   @Override
@@ -409,7 +409,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public MapVersionReview createMapVersionReview(MapVersionReview review) {
-    return post(MAP_VERSION_ENDPOINT + review.getMapVersion().getId() + "/reviews", review, MapVersionReview.class);
+    return post(MAP_VERSION_ENDPOINT + "/" + review.getMapVersion().getId() + "/reviews", review, MapVersionReview.class);
   }
 
   @Override
