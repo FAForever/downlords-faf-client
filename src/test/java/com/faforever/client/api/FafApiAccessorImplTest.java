@@ -47,6 +47,7 @@ import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.verify;
@@ -341,6 +342,6 @@ public class FafApiAccessorImplTest {
 
     instance.getLastGamesOnMap(4, "42", 3);
 
-    verify(restOperations).getForObject("/data/game?filter=mapVersion.id==\"42\";playerStats.player.id==\"4\"&sort=-endTime&page[size]=3&page[number]=1", List.class);
+    verify(restOperations).getForObject(contains("filter=mapVersion.id==\"42\";playerStats.player.id==\"4\""), eq(List.class));
   }
 }
