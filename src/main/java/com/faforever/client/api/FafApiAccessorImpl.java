@@ -265,6 +265,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
             .string("mapVersion.id").eq(mapVersionId)
             .and()
             .intNum("playerStats.player.id").eq(playerId)),
+        "include", REPLAY_INCLUDES,
         "sort", "-endTime"
     ));
   }
