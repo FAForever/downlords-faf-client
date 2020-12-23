@@ -80,7 +80,7 @@ public class ReviewsController implements Controller<Pane> {
   public void initialize() {
     ownReviewRoot = ownReviewPaneController.getRoot();
     JavaFxUtil.setAnchors(ownReviewRoot, 0d);
-    ownReviewRoot.managedProperty().bind(ownReviewRoot.visibleProperty());
+
     ownReviewRoot.setVisible(false);
     ownReviewPaneController.setOnDeleteReviewListener(this::onDeleteReview);
     ownReviewPaneController.setOnCancelListener(this::onCancelReview);
@@ -88,15 +88,11 @@ public class ReviewsController implements Controller<Pane> {
 
     // Prevent flickering
     setReviews(FXCollections.emptyObservableList());
-    createReviewButton.managedProperty().bind(createReviewButton.visibleProperty());
     createReviewButton.setVisible(false);
-
-    ownReviewLabel.managedProperty().bind(ownReviewLabel.visibleProperty());
     ownReviewLabel.setVisible(false);
 
-    pageLeftButton.managedProperty().bind(pageLeftButton.visibleProperty());
-    reviewsPagination.managedProperty().bind(reviewsPagination.visibleProperty());
-    pageRightButton.managedProperty().bind(pageRightButton.visibleProperty());
+    JavaFxUtil.bindManagedToVisible(createReviewButton, ownReviewLabel, ownReviewRoot, pageLeftButton,
+        reviewsPagination, pageRightButton);
   }
 
   private void onDeleteReview(Review review) {
@@ -146,7 +142,6 @@ public class ReviewsController implements Controller<Pane> {
   }
 
   public void setCanWriteReview(boolean canWriteReview) {
-    createReviewButton.setVisible(canWriteReview);
     createReviewButton.setDisable(!canWriteReview);
   }
 
