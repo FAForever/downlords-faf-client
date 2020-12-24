@@ -17,6 +17,7 @@ import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.commons.io.Bytes;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
@@ -225,20 +226,22 @@ public class MapDetailController implements Controller<Node> {
     }
   }
 
-  private void onDeleteReview(Review review) {
+  @VisibleForTesting
+  void onDeleteReview(Review review) {
     reviewService.deleteMapVersionReview(review)
         .thenRun(() -> Platform.runLater(() -> {
           map.getReviews().remove(review);
           reviewsController.setOwnReview(Optional.empty());
         }))
-        // TODO display error to user
         .exceptionally(throwable -> {
           log.warn("Review could not be deleted", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "review.delete.error");
           return null;
         });
   }
 
-  private void onSendReview(Review review) {
+  @VisibleForTesting
+  void onSendReview(Review review) {
     boolean isNew = review.getId() == null;
     Player player = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("No current player is available"));
@@ -250,9 +253,9 @@ public class MapDetailController implements Controller<Node> {
           }
           reviewsController.setOwnReview(Optional.of(review));
         })
-        // TODO display error to user
         .exceptionally(throwable -> {
           log.warn("Review could not be saved", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "review.save.error");
           return null;
         });
   }
@@ -261,7 +264,7 @@ public class MapDetailController implements Controller<Node> {
     installMap();
   }
 
-  public CompletableFuture<Void> installMap(){
+  public CompletableFuture<Void> installMap() {
     return mapService.downloadAndInstallMap(map, progressBar.progressProperty(), progressLabel.textProperty())
         .thenRun(() -> setInstalled(true))
         .exceptionally(throwable -> {

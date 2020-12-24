@@ -13,6 +13,7 @@ import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.commons.io.Bytes;
+import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.WeakListChangeListener;
@@ -159,10 +160,10 @@ public class ModDetailController implements Controller<Node> {
 
   private void setUploaderAndAuthor(ModVersion modVersion) {
     if (modVersion.getMod() != null) {
-      com.faforever.client.api.dto.Player uploader = modVersion.getMod().getUploader();
+      String uploader = modVersion.getMod().getUploader();
 
-      if (uploader != null && uploader.getLogin() != null) {
-        uploaderLabel.setText(i18n.get("modVault.details.uploader", uploader.getLogin()));
+      if (uploader != null) {
+        uploaderLabel.setText(i18n.get("modVault.details.uploader", uploader));
       } else {
         uploaderLabel.setText(null);
       }
@@ -170,20 +171,22 @@ public class ModDetailController implements Controller<Node> {
     }
   }
 
-  private void onDeleteReview(Review review) {
+  @VisibleForTesting
+  void onDeleteReview(Review review) {
     reviewService.deleteModVersionReview(review)
         .thenRun(() -> Platform.runLater(() -> {
           modVersion.getReviews().remove(review);
           reviewsController.setOwnReview(Optional.empty());
         }))
-        // TODO display error to user
         .exceptionally(throwable -> {
           log.warn("Review could not be deleted", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "review.delete.error");
           return null;
         });
   }
 
-  private void onSendReview(Review review) {
+  @VisibleForTesting
+  void onSendReview(Review review) {
     boolean isNew = review.getId() == null;
     Player player = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("No current player is available"));
@@ -195,9 +198,9 @@ public class ModDetailController implements Controller<Node> {
           }
           reviewsController.setOwnReview(Optional.of(review));
         })
-        // TODO display error to user
         .exceptionally(throwable -> {
           log.warn("Review could not be saved", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "review.save.error");
           return null;
         });
   }

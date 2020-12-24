@@ -1,6 +1,5 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.ReviewsSummary;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -19,7 +18,7 @@ public class Mod {
   private final StringProperty author;
   private final ObjectProperty<OffsetDateTime> createTime;
   private final ObjectProperty<OffsetDateTime> updateTime;
-  private final ObjectProperty<Player> uploader;
+  private final StringProperty uploader;
   private final ObjectProperty<ReviewsSummary> reviewsSummary;
   private final ObservableList<ModVersion> versions;
   private final ObjectProperty<ModVersion> latestVersion;
@@ -32,7 +31,7 @@ public class Mod {
     createTime = new SimpleObjectProperty<>();
     updateTime = new SimpleObjectProperty<>();
     reviewsSummary = new SimpleObjectProperty<>();
-    uploader = new SimpleObjectProperty<>();
+    uploader = new SimpleStringProperty();
     versions = FXCollections.observableArrayList();
   }
 
@@ -44,7 +43,7 @@ public class Mod {
     mod.setCreateTime(dto.getCreateTime());
     mod.setUpdateTime(dto.getUpdateTime());
     if (dto.getUploader() != null) {
-      mod.setUploader(dto.getUploader());
+      mod.setUploader(dto.getUploader().getLogin());
     }
     mod.setReviewsSummary(dto.getModReviewsSummary());
     mod.addVersions(dto.getVersions().stream().map(modVersion -> ModVersion.fromDto(modVersion, mod)).collect(Collectors.toList()));
@@ -124,15 +123,15 @@ public class Mod {
     return reviewsSummary;
   }
 
-  public Player getUploader() {
+  public String getUploader() {
     return uploader.get();
   }
 
-  public void setUploader(Player uploader) {
+  public void setUploader(String uploader) {
     this.uploader.set(uploader);
   }
 
-  public ObjectProperty<Player> uploaderProperty() {
+  public StringProperty uploaderProperty() {
     return uploader;
   }
 

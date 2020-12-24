@@ -25,12 +25,12 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.net.MalformedURLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -129,13 +129,13 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testShowMapDetail() {
+  public void testShowMapDetail() throws MalformedURLException {
     MapBean mapBean = MapBeanBuilder.create().defaultValues().get();
     Platform.runLater(() -> instance.onDisplayDetails(mapBean));
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(mapDetailController).setMap(mapBean);
-    assertThat(mapDetailController.getRoot().isVisible(), is(true));
+    assertTrue(mapDetailController.getRoot().isVisible());
   }
 
   @Test

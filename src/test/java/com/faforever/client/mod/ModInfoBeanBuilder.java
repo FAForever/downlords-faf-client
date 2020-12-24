@@ -66,6 +66,14 @@ public class ModInfoBeanBuilder {
     return this;
   }
 
+  public ModInfoBeanBuilder uploader(String uploader) {
+    if (modVersionInfo.getMod() == null) {
+      modVersionInfo.setMod(new Mod());
+    }
+    modVersionInfo.getMod().setUploader(uploader);
+    return this;
+  }
+
   public ModInfoBeanBuilder thumbnailUrl(String thumbnailUrl) {
     modVersionInfo.setThumbnailUrl(noCatch(() -> thumbnailUrl == null ? null : new URL(thumbnailUrl)));
     return this;

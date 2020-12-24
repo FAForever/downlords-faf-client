@@ -12,6 +12,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
+import com.faforever.client.mod.FeaturedMod;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.rating.RatingService;
@@ -27,6 +29,7 @@ import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.commons.io.Bytes;
+import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Platform;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
@@ -74,6 +77,7 @@ public class ReplayDetailController implements Controller<Node> {
   private final MapService mapService;
   private final PlayerService playerService;
   private final ClientProperties clientProperties;
+  private final NotificationService notificationService;
   private final ReviewService reviewService;
   private final ArrayList<TeamCardController> teamCardControllers = new ArrayList<>();
   public Pane replayDetailRoot;
@@ -186,7 +190,7 @@ public class ReplayDetailController implements Controller<Node> {
 
     modLabel.setText(
         Optional.ofNullable(replay.getFeaturedMod())
-            .map(mod -> mod.getDisplayName())
+            .map(FeaturedMod::getDisplayName)
             .orElseGet(() -> i18n.get("unknown"))
     );
     playerCountLabel.setText(i18n.number(replay.getTeams().values().stream().mapToInt(List::size).sum()));
@@ -254,20 +258,22 @@ public class ReplayDetailController implements Controller<Node> {
     }
   }
 
-  private void onDeleteReview(Review review) {
+  @VisibleForTesting
+  void onDeleteReview(Review review) {
     reviewService.deleteGameReview(review)
         .thenRun(() -> Platform.runLater(() -> {
           replay.getReviews().remove(review);
           reviewsController.setOwnReview(Optional.empty());
         }))
-        // TODO display error to user
         .exceptionally(throwable -> {
           log.warn("Review could not be saved", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "review.delete.error");
           return null;
         });
   }
 
-  private void onSendReview(Review review) {
+  @VisibleForTesting
+  void onSendReview(Review review) {
     boolean isNew = review.getId() == null;
     Player player = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("No current player is available"));
@@ -279,9 +285,9 @@ public class ReplayDetailController implements Controller<Node> {
           }
           reviewsController.setOwnReview(Optional.of(review));
         })
-        // TODO display error to user
         .exceptionally(throwable -> {
           log.warn("Review could not be saved", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "review.save.error");
           return null;
         });
   }
