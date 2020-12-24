@@ -395,6 +395,7 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
     when(reviewService.deleteMapVersionReview(review)).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.onDeleteReview(review);
+    WaitForAsyncUtils.waitForFxEvents();
 
     verify(reviewService).deleteMapVersionReview(review);
     assertFalse(mapBean.getReviews().contains(review));
@@ -415,6 +416,7 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
     when(reviewService.deleteMapVersionReview(review)).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
 
     instance.onDeleteReview(review);
+    WaitForAsyncUtils.waitForFxEvents();
 
     verify(notificationService).addImmediateErrorNotification(any(), eq("review.delete.error"));
     assertTrue(mapBean.getReviews().contains(review));
@@ -434,6 +436,7 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
     when(reviewService.saveMapVersionReview(review, mapBean.getId())).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.onSendReview(review);
+    WaitForAsyncUtils.waitForFxEvents();
 
     verify(reviewService).saveMapVersionReview(review, mapBean.getId());
     assertTrue(mapBean.getReviews().contains(review));
@@ -455,6 +458,7 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
     when(reviewService.saveMapVersionReview(review, mapBean.getId())).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.onSendReview(review);
+    WaitForAsyncUtils.waitForFxEvents();
 
     verify(reviewService).saveMapVersionReview(review, mapBean.getId());
     assertTrue(mapBean.getReviews().contains(review));

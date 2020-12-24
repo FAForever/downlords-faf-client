@@ -111,9 +111,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(new Player("junit")));
     when(replayService.getSize(onlineReplay.getId())).thenReturn(CompletableFuture.completedFuture(12));
     when(timeService.asDate(LocalDateTime.MIN)).thenReturn("Min Date");
-    when(timeService.asDate(LocalDateTime.MAX)).thenReturn("Max Date");
     when(timeService.asShortTime(LocalDateTime.MIN)).thenReturn("Min Time");
-    when(timeService.asShortTime(LocalDateTime.MAX)).thenReturn("Max Time");
     when(timeService.shortDuration(any(Duration.class))).thenReturn("Forever");
     when(i18n.get("game.onUnknownMap")).thenReturn("unknown map");
     when(i18n.get("unknown")).thenReturn("unknown");
