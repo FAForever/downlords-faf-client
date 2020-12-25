@@ -29,7 +29,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -83,12 +82,14 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
   private MapBean testMap;
   private MapBean ownedMap;
   private ObservableList<MapBean> installedMaps;
+  private Review review;
 
   @Before
   public void setUp() throws Exception {
     currentPlayer = PlayerBuilder.create("junit").defaultValues().get();
     testMap = MapBeanBuilder.create().defaultValues().get();
-    ownedMap = MapBeanBuilder.create().defaultValues().author("junit").get();
+    ownedMap = MapBeanBuilder.create().defaultValues().author(currentPlayer.getUsername()).get();
+    review = ReviewBuilder.create().defaultValues().player(currentPlayer).get();
 
     installedMaps = FXCollections.observableArrayList();
     installedMaps.add(testMap);
@@ -215,13 +216,10 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testSetMapNoThumbnailLoadsDefault() throws MalformedURLException {
-    MapBean mapBean = MapBeanBuilder.create()
-        .defaultValues()
-        .largeThumbnailUrl(null)
-        .get();
+  public void testSetMapNoThumbnailLoadsDefault() {
+    testMap.setLargeThumbnailUrl(null);
 
-    instance.setMap(mapBean);
+    instance.setMap(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
     WaitForAsyncUtils.waitForFxEvents();
@@ -381,16 +379,13 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnDeleteReview() throws MalformedURLException {
-    Review review = ReviewBuilder.create().defaultValues().player(currentPlayer).get();
+  public void testOnDeleteReview() {
+    testMap.getReviews().add(review);
 
-    MapBean mapBean = MapBeanBuilder.create().defaultValues().get();
-    mapBean.getReviews().add(review);
-
-    instance.setMap(mapBean);
+    instance.setMap(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertTrue(mapBean.getReviews().contains(review));
+    assertTrue(testMap.getReviews().contains(review));
 
     when(reviewService.deleteMapVersionReview(review)).thenReturn(CompletableFuture.completedFuture(null));
 
@@ -398,20 +393,17 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(reviewService).deleteMapVersionReview(review);
-    assertFalse(mapBean.getReviews().contains(review));
+    assertFalse(testMap.getReviews().contains(review));
   }
 
   @Test
-  public void testOnDeleteReviewThrowsException() throws MalformedURLException {
-    Review review = ReviewBuilder.create().defaultValues().player(currentPlayer).get();
+  public void testOnDeleteReviewThrowsException() {
+    testMap.getReviews().add(review);
 
-    MapBean mapBean = MapBeanBuilder.create().defaultValues().get();
-    mapBean.getReviews().add(review);
-
-    instance.setMap(mapBean);
+    instance.setMap(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertTrue(mapBean.getReviews().contains(review));
+    assertTrue(testMap.getReviews().contains(review));
 
     when(reviewService.deleteMapVersionReview(review)).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
 
@@ -419,72 +411,63 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(notificationService).addImmediateErrorNotification(any(), eq("review.delete.error"));
-    assertTrue(mapBean.getReviews().contains(review));
+    assertTrue(testMap.getReviews().contains(review));
   }
 
   @Test
-  public void testOnSendReviewNew() throws MalformedURLException {
-    Review review = ReviewBuilder.create().defaultValues().id(null).get();
+  public void testOnSendReviewNew() {
+    review.setId(null);
+    assertFalse(testMap.getReviews().contains(review));
 
-    MapBean mapBean = MapBeanBuilder.create().defaultValues().get();
-
-    assertFalse(mapBean.getReviews().contains(review));
-
-    instance.setMap(mapBean);
+    instance.setMap(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
-    when(reviewService.saveMapVersionReview(review, mapBean.getId())).thenReturn(CompletableFuture.completedFuture(null));
+    when(reviewService.saveMapVersionReview(review, testMap.getId())).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(reviewService).saveMapVersionReview(review, mapBean.getId());
-    assertTrue(mapBean.getReviews().contains(review));
+    verify(reviewService).saveMapVersionReview(review, testMap.getId());
+    assertTrue(testMap.getReviews().contains(review));
     assertEquals(review.getPlayer(), currentPlayer);
   }
 
   @Test
-  public void testOnSendReviewUpdate() throws MalformedURLException {
-    Review review = ReviewBuilder.create().defaultValues().get();
+  public void testOnSendReviewUpdate() {
+    testMap.getReviews().add(review);
 
-    MapBean mapBean = MapBeanBuilder.create().defaultValues().get();
-    mapBean.getReviews().add(review);
+    assertTrue(testMap.getReviews().contains(review));
 
-    assertTrue(mapBean.getReviews().contains(review));
-
-    instance.setMap(mapBean);
+    instance.setMap(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
-    when(reviewService.saveMapVersionReview(review, mapBean.getId())).thenReturn(CompletableFuture.completedFuture(null));
+    when(reviewService.saveMapVersionReview(review, testMap.getId())).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(reviewService).saveMapVersionReview(review, mapBean.getId());
-    assertTrue(mapBean.getReviews().contains(review));
+    verify(reviewService).saveMapVersionReview(review, testMap.getId());
+    assertTrue(testMap.getReviews().contains(review));
     assertEquals(review.getPlayer(), currentPlayer);
-    assertEquals(mapBean.getReviews().size(), 1);
+    assertEquals(testMap.getReviews().size(), 1);
   }
 
   @Test
-  public void testOnSendReviewThrowsException() throws MalformedURLException {
-    Review review = ReviewBuilder.create().defaultValues().player(currentPlayer).get();
+  public void testOnSendReviewThrowsException() {
+    testMap.getReviews().add(review);
 
-    MapBean mapBean = MapBeanBuilder.create().defaultValues().get();
-    mapBean.getReviews().add(review);
-
-    instance.setMap(mapBean);
+    instance.setMap(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertTrue(mapBean.getReviews().contains(review));
+    assertTrue(testMap.getReviews().contains(review));
 
-    when(reviewService.saveMapVersionReview(review, mapBean.getId())).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+    when(reviewService.saveMapVersionReview(review, testMap.getId())).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(notificationService).addImmediateErrorNotification(any(), eq("review.save.error"));
-    assertTrue(mapBean.getReviews().contains(review));
+    assertTrue(testMap.getReviews().contains(review));
   }
 
   @Test
@@ -524,6 +507,7 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
   public void testOnDimmerClicked() {
     instance.onDimmerClicked();
 
+    WaitForAsyncUtils.waitForFxEvents();
     assertFalse(instance.getRoot().isVisible());
   }
 
@@ -532,6 +516,7 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
     MouseEvent event = mock(MouseEvent.class);
     instance.onContentPaneClicked(event);
 
+    WaitForAsyncUtils.waitForFxEvents();
     verify(event).consume();
   }
 }

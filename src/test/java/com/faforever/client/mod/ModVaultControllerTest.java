@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.net.MalformedURLException;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
@@ -113,9 +114,9 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testShowModDetail() {
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().get();
-    Platform.runLater(()-> instance.onDisplayDetails(modVersion));
+  public void testShowModDetail() throws MalformedURLException {
+    ModVersion modVersion = ModVersionBuilder.create().defaultValues().get();
+    Platform.runLater(() -> instance.onDisplayDetails(modVersion));
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(modDetailController).setModVersion(modVersion);

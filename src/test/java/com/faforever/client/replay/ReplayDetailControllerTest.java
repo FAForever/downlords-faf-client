@@ -3,7 +3,10 @@ package com.faforever.client.replay;
 import com.faforever.client.api.dto.Validity;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapBean;
+import com.faforever.client.map.MapBeanBuilder;
 import com.faforever.client.map.MapService;
+import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
@@ -22,6 +25,7 @@ import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.client.vault.review.StarController;
 import com.faforever.client.vault.review.StarsController;
 import javafx.collections.FXCollections;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import org.junit.Before;
@@ -45,6 +49,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -86,18 +91,21 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   private Player currentPlayer;
   private Replay onlineReplay;
   private Replay localReplay;
+  private MapBean mapBean;
 
   @Before
   public void setUp() throws Exception {
     currentPlayer = PlayerBuilder.create("junit").defaultValues().get();
-    onlineReplay = ReplayInfoBeanBuilder.create().defaultValues()
+    mapBean = MapBeanBuilder.create().defaultValues().get();
+    onlineReplay = ReplayBuilder.create().defaultValues()
         .validity(Validity.VALID)
         .featuredMod(new FeaturedMod())
         .reviews(FXCollections.emptyObservableList())
         .title("test")
+        .map(mapBean)
         .get();
 
-    localReplay = ReplayInfoBeanBuilder.create().defaultValues()
+    localReplay = ReplayBuilder.create().defaultValues()
         .validity(Validity.VALID)
         .featuredMod(new FeaturedMod())
         .reviews(FXCollections.emptyObservableList())
@@ -108,6 +116,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     instance = new ReplayDetailController(timeService, i18n, uiService, replayService, ratingService, mapService, playerService, clientProperties, notificationService, reviewService);
 
     when(reviewsController.getRoot()).thenReturn(new Pane());
+    when(mapService.loadPreview(anyString(), eq(PreviewSize.LARGE))).thenReturn(mock(Image.class));
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(new Player("junit")));
     when(replayService.getSize(onlineReplay.getId())).thenReturn(CompletableFuture.completedFuture(12));
     when(timeService.asDate(LocalDateTime.MIN)).thenReturn("Min Date");
@@ -117,6 +126,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     when(i18n.get("unknown")).thenReturn("unknown");
     when(i18n.number(anyInt())).thenReturn("1234");
     when(i18n.get("game.idFormat", onlineReplay.getId())).thenReturn(String.valueOf(onlineReplay.getId()));
+    when(i18n.get("game.onMapFormat", mapBean.getDisplayName())).thenReturn(mapBean.getDisplayName());
 
     loadFxml("theme/vault/replay/replay_detail.fxml", param -> {
       if (param == ReviewsController.class) {
@@ -146,12 +156,12 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
 
     instance.setReplay(onlineReplay);
 
+    verify(mapService).loadPreview(mapBean.getFolderName(), PreviewSize.LARGE);
     assertTrue(instance.ratingSeparator.isVisible());
     assertTrue(instance.reviewSeparator.isVisible());
     assertTrue(instance.reviewsContainer.isVisible());
     assertTrue(instance.teamsInfoBox.isVisible());
     assertTrue(instance.downloadMoreInfoButton.isVisible());
-    assertEquals(instance.onMapLabel.getText(), "unknown map");
     assertEquals(instance.dateLabel.getText(), "Min Date");
     assertEquals(instance.timeLabel.getText(), "Min Time");
     assertEquals(instance.durationLabel.getText(), "Forever");
@@ -160,6 +170,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     assertEquals(instance.titleLabel.getText(), "test");
     assertEquals(instance.playerCountLabel.getText(), "1234");
     assertEquals(instance.qualityLabel.getText(), "42");
+    assertEquals(instance.onMapLabel.getText(), mapBean.getDisplayName());
   }
 
   @Test
@@ -183,7 +194,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testReasonShownNotRated() {
-    Replay replay = ReplayInfoBeanBuilder.create().defaultValues()
+    Replay replay = ReplayBuilder.create().defaultValues()
         .validity(Validity.HAS_AI)
         .get();
 
@@ -201,7 +212,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   public void tickTimeDisplayed() {
     when(replayService.getSize(anyInt())).thenReturn(CompletableFuture.completedFuture(1024));
     when(timeService.shortDuration(any())).thenReturn("16min 40s");
-    Replay replay = ReplayInfoBeanBuilder.create().defaultValues().replayTicks(10_000).get();
+    Replay replay = ReplayBuilder.create().defaultValues().replayTicks(10_000).get();
 
     instance.setReplay(replay);
 
@@ -216,7 +227,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void onDownloadMoreInfoClicked() {
     when(replayService.getSize(anyInt())).thenReturn(CompletableFuture.completedFuture(1024));
-    Replay replay = ReplayInfoBeanBuilder.create().defaultValues().get();
+    Replay replay = ReplayBuilder.create().defaultValues().get();
     Review review = ReviewBuilder.create().defaultValues().player(new Player("junit")).get();
     replay.getReviews().add(review);
 
@@ -265,7 +276,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   public void testOnDeleteReview() {
     Review review = ReviewBuilder.create().defaultValues().player(currentPlayer).get();
 
-    Replay replay = ReplayInfoBeanBuilder.create().defaultValues().get();
+    Replay replay = ReplayBuilder.create().defaultValues().get();
     replay.getReviews().add(review);
 
     instance.setReplay(replay);
@@ -283,7 +294,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   public void testOnDeleteReviewThrowsException() {
     Review review = ReviewBuilder.create().defaultValues().player(currentPlayer).get();
 
-    Replay replay = ReplayInfoBeanBuilder.create().defaultValues().get();
+    Replay replay = ReplayBuilder.create().defaultValues().get();
     replay.getReviews().add(review);
 
     instance.setReplay(replay);
@@ -301,7 +312,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   public void testOnSendReviewNew() {
     Review review = ReviewBuilder.create().defaultValues().id(null).get();
 
-    Replay replay = ReplayInfoBeanBuilder.create().defaultValues().get();
+    Replay replay = ReplayBuilder.create().defaultValues().get();
 
     instance.setReplay(replay);
 
@@ -319,7 +330,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   public void testOnSendReviewUpdate() {
     Review review = ReviewBuilder.create().defaultValues().get();
 
-    Replay replay = ReplayInfoBeanBuilder.create().defaultValues().get();
+    Replay replay = ReplayBuilder.create().defaultValues().get();
     replay.getReviews().add(review);
 
     instance.setReplay(replay);
@@ -339,7 +350,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   public void testOnSendReviewThrowsException() {
     Review review = ReviewBuilder.create().defaultValues().player(currentPlayer).get();
 
-    Replay replay = ReplayInfoBeanBuilder.create().defaultValues().get();
+    Replay replay = ReplayBuilder.create().defaultValues().get();
     replay.getReviews().add(review);
 
     instance.setReplay(replay);

@@ -1,6 +1,6 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.api.dto.ReviewsSummary;
+import com.faforever.client.vault.review.ReviewsSummary;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -45,7 +45,7 @@ public class Mod {
     if (dto.getUploader() != null) {
       mod.setUploader(dto.getUploader().getLogin());
     }
-    mod.setReviewsSummary(dto.getModReviewsSummary());
+    mod.setReviewsSummary(ReviewsSummary.fromDto(dto.getModReviewsSummary()));
     mod.addVersions(dto.getVersions().stream().map(modVersion -> ModVersion.fromDto(modVersion, mod)).collect(Collectors.toList()));
     mod.setLatestVersion(ModVersion.fromDto(dto.getLatestVersion(), mod));
     return mod;

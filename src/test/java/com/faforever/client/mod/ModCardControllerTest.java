@@ -61,13 +61,7 @@ public class ModCardControllerTest extends AbstractPlainJavaFxTest {
     when(modService.getInstalledModVersions()).thenReturn(installedModVersions);
     when(i18n.get(ModType.UI.getI18nKey())).thenReturn(ModType.UI.name());
 
-    modVersion = ModInfoBeanBuilder.create()
-        .defaultValues()
-        .name("ModVersion name")
-        .modType(ModType.UI)
-        .author("ModVersion author")
-        .thumbnailUrl(getClass().getResource("/theme/images/default_achievement.png").toExternalForm())
-        .get();
+    modVersion = ModVersionBuilder.create().defaultValues().get();
 
     when(modService.uninstallMod(any())).thenReturn(CompletableFuture.runAsync(() -> {
     }));
@@ -123,7 +117,6 @@ public class ModCardControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testUiModLabel() {
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().modType(ModType.UI).get();
     instance.setModVersion(modVersion);
     assertThat(instance.typeLabel.getText(), equalTo(ModType.UI.name()));
   }

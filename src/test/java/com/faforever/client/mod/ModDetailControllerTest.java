@@ -72,10 +72,12 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   private ModDetailController instance;
   private ObservableList<ModVersion> installedModVersions;
   private Player currentPlayer;
+  private ModVersion modVersion;
 
   @Before
   public void setUp() throws Exception {
     currentPlayer = PlayerBuilder.create("junit").defaultValues().get();
+    modVersion = ModVersionBuilder.create().defaultValues().get();
     instance = new ModDetailController(modService, notificationService, i18n, reportingService, timeService, reviewService, playerService, uiService);
 
     installedModVersions = FXCollections.observableArrayList();
@@ -101,17 +103,10 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testSetModWithAuthorAndUploader() {
+  public void testSetMod() {
     when(i18n.get("modVault.details.author", "ModVersion author")).thenReturn("ModVersion author");
     when(i18n.get("modVault.details.uploader", "ModVersion uploader")).thenReturn("ModVersion uploader");
     Review review = ReviewBuilder.create().defaultValues().player(currentPlayer).get();
-    ModVersion modVersion = ModInfoBeanBuilder.create()
-        .defaultValues()
-        .name("ModVersion name")
-        .author("ModVersion author")
-        .uploader("ModVersion uploader")
-        .thumbnailUrl(getClass().getResource("/theme/images/default_achievement.png").toExternalForm())
-        .get();
     modVersion.getReviews().add(review);
 
     when(modService.loadThumbnail(modVersion)).thenReturn(new Image("/theme/images/default_achievement.png"));
@@ -123,19 +118,15 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
     assertEquals(instance.authorLabel.getText(), "ModVersion author");
     assertEquals(instance.uploaderLabel.getText(), "ModVersion uploader");
     assertNotNull(instance.thumbnailImageView.getImage());
+    verify(modService).getModSize(modVersion);
     verify(modService).loadThumbnail(modVersion);
     verify(reviewsController).setOwnReview(Optional.of(review));
   }
 
   @Test
-  public void testSetModWithAuthorAndNoUploader() {
+  public void testSetModWithNoUploader() {
     when(i18n.get("modVault.details.author", "ModVersion author")).thenReturn("ModVersion author");
-    ModVersion modVersion = ModInfoBeanBuilder.create()
-        .defaultValues()
-        .name("ModVersion name")
-        .author("ModVersion author")
-        .thumbnailUrl(getClass().getResource("/theme/images/default_achievement.png").toExternalForm())
-        .get();
+    modVersion.getMod().setUploader(null);
 
     when(modService.loadThumbnail(modVersion)).thenReturn(new Image("/theme/images/default_achievement.png"));
     instance.setModVersion(modVersion);
@@ -151,10 +142,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetModNoThumbnailLoadsDefault() {
-    ModVersion modVersion = ModInfoBeanBuilder.create()
-        .defaultValues()
-        .thumbnailUrl(null)
-        .get();
+    modVersion.setThumbnailUrl(null);
     Image image = mock(Image.class);
     when(modService.loadThumbnail(modVersion)).thenReturn(image);
 
@@ -169,7 +157,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   public void testOnInstallButtonClicked() {
     when(modService.downloadAndInstallMod(any(ModVersion.class), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
-    instance.setModVersion(ModInfoBeanBuilder.create().defaultValues().get());
+    instance.setModVersion(modVersion);
     instance.onInstallButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -182,7 +170,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
     future.completeExceptionally(new FakeTestException());
     when(modService.downloadAndInstallMod(any(ModVersion.class), any(), any())).thenReturn(future);
 
-    instance.setModVersion(ModInfoBeanBuilder.create().defaultValues().get());
+    instance.setModVersion(modVersion);
 
     instance.onInstallButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
@@ -193,7 +181,6 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnUninstallButtonClicked() {
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().get();
     instance.setModVersion(modVersion);
     when(modService.uninstallMod(modVersion)).thenReturn(CompletableFuture.completedFuture(null));
 
@@ -205,7 +192,6 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnUninstallButtonClickedThrowsException() {
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().get();
     instance.setModVersion(modVersion);
 
     CompletableFuture<Void> future = new CompletableFuture<>();
@@ -239,8 +225,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetInstalledMod() {
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().uid("1").get();
-    when(modService.isModInstalled("1")).thenReturn(true);
+    when(modService.isModInstalled(modVersion.getUid())).thenReturn(true);
     instance.setModVersion(modVersion);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -251,8 +236,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetUninstalledMod() {
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().uid("1").get();
-    when(modService.isModInstalled("1")).thenReturn(false);
+    when(modService.isModInstalled(modVersion.getUid())).thenReturn(false);
     instance.setModVersion(modVersion);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -263,8 +247,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetOwnedMod() {
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().author(currentPlayer.getUsername()).uid("1").get();
-    when(modService.isModInstalled("1")).thenReturn(true);
+    when(modService.isModInstalled(modVersion.getUid())).thenReturn(true);
     instance.setModVersion(modVersion);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -275,8 +258,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testChangeInstalledStateWhenModIsUninstalled() {
-    when(modService.isModInstalled("1")).thenReturn(true);
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().uid("1").get();
+    when(modService.isModInstalled(modVersion.getUid())).thenReturn(true);
     instance.setModVersion(modVersion);
     installedModVersions.add(modVersion);
     WaitForAsyncUtils.waitForFxEvents();
@@ -292,8 +274,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testChangeInstalledStateWhenModIsInstalled() {
-    when(modService.isModInstalled("1")).thenReturn(false);
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().uid("1").get();
+    when(modService.isModInstalled(modVersion.getUid())).thenReturn(false);
     instance.setModVersion(modVersion);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -310,7 +291,6 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   public void testOnDeleteReview() {
     Review review = ReviewBuilder.create().defaultValues().player(currentPlayer).get();
 
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().get();
     modVersion.getReviews().add(review);
 
     instance.setModVersion(modVersion);
@@ -328,7 +308,6 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   public void testOnDeleteReviewThrowsException() {
     Review review = ReviewBuilder.create().defaultValues().player(currentPlayer).get();
 
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().get();
     modVersion.getReviews().add(review);
 
     instance.setModVersion(modVersion);
@@ -346,8 +325,6 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   public void testOnSendReviewNew() {
     Review review = ReviewBuilder.create().defaultValues().id(null).get();
 
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().get();
-
     instance.setModVersion(modVersion);
 
     when(reviewService.saveModVersionReview(review, modVersion.getId())).thenReturn(CompletableFuture.completedFuture(null));
@@ -364,7 +341,6 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   public void testOnSendReviewUpdate() {
     Review review = ReviewBuilder.create().defaultValues().get();
 
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().get();
     modVersion.getReviews().add(review);
 
     instance.setModVersion(modVersion);
@@ -384,7 +360,6 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   public void testOnSendReviewThrowsException() {
     Review review = ReviewBuilder.create().defaultValues().player(currentPlayer).get();
 
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().get();
     modVersion.getReviews().add(review);
 
     instance.setModVersion(modVersion);
@@ -396,16 +371,6 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
     verify(notificationService).addImmediateErrorNotification(any(), eq("review.save.error"));
     assertTrue(modVersion.getReviews().contains(review));
-  }
-
-  @Test
-  public void testGetModSize() {
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().get();
-
-    instance.setModVersion(modVersion);
-    WaitForAsyncUtils.waitForFxEvents();
-
-    verify(modService).getModSize(modVersion);
   }
 
   @Test

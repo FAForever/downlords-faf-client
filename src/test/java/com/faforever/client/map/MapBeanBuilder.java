@@ -19,20 +19,19 @@ public class MapBeanBuilder {
   }
 
   public MapBeanBuilder defaultValues() throws MalformedURLException {
-    uid("test")
-        .displayName("test Map")
-        .folderName("testMap")
-        .author("nobody")
-        .players(4)
-        .ranked(true)
-        .hidden(false)
-        .size(MapSize.valueOf(512, 512))
-        .createTime(LocalDateTime.MIN)
-        .description("this is a test map")
-        .downloadUrl(new URL("http://www.google.com"))
-        .largeThumbnailUrl(new URL("http://www.google.com"))
-        .version(new ComparableVersion("1"))
-        .displayName("Map Name");
+    uid("test");
+    displayName("Test Map");
+    folderName("testMap");
+    author("tester");
+    players(4);
+    ranked(true);
+    hidden(false);
+    size(MapSize.valueOf(512, 512));
+    createTime(LocalDateTime.MIN);
+    description("This is a test map");
+    downloadUrl(new URL("http://www.google.com"));
+    largeThumbnailUrl(new URL("http://www.google.com"));
+    version(new ComparableVersion("1"));
     return this;
   }
 

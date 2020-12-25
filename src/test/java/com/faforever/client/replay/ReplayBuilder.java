@@ -14,19 +14,19 @@ import java.time.LocalDateTime;
 import java.time.temporal.Temporal;
 import java.util.List;
 
-public class ReplayInfoBeanBuilder {
+public class ReplayBuilder {
 
   private final Replay replay;
 
-  private ReplayInfoBeanBuilder() {
+  private ReplayBuilder() {
     replay = new Replay();
   }
 
-  public static ReplayInfoBeanBuilder create() {
-    return new ReplayInfoBeanBuilder();
+  public static ReplayBuilder create() {
+    return new ReplayBuilder();
   }
 
-  public ReplayInfoBeanBuilder defaultValues() {
+  public ReplayBuilder defaultValues() {
     id(1).title("test")
         .startTime(LocalDateTime.MIN)
         .endTime(LocalDateTime.MAX)
@@ -36,82 +36,82 @@ public class ReplayInfoBeanBuilder {
     return this;
   }
 
-  public ReplayInfoBeanBuilder id(int id) {
+  public ReplayBuilder id(int id) {
     replay.setId(id);
     return this;
   }
 
-  public ReplayInfoBeanBuilder title(String title) {
+  public ReplayBuilder title(String title) {
     replay.setTitle(title);
     return this;
   }
 
-  public ReplayInfoBeanBuilder teams(ObservableMap<String, List<String>> teams) {
+  public ReplayBuilder teams(ObservableMap<String, List<String>> teams) {
     replay.setTeams(teams);
     return this;
   }
 
-  public ReplayInfoBeanBuilder teamPlayerStats(ObservableMap<String, List<Replay.PlayerStats>> teamPlayerStats) {
+  public ReplayBuilder teamPlayerStats(ObservableMap<String, List<Replay.PlayerStats>> teamPlayerStats) {
     replay.setTeamPlayerStats(teamPlayerStats);
     return this;
   }
 
-  public ReplayInfoBeanBuilder startTime(Temporal startTime) {
+  public ReplayBuilder startTime(Temporal startTime) {
     replay.setStartTime(startTime);
     return this;
   }
 
-  public ReplayInfoBeanBuilder endTime(Temporal endTime) {
+  public ReplayBuilder endTime(Temporal endTime) {
     replay.setEndTime(endTime);
     return this;
   }
 
-  public ReplayInfoBeanBuilder featuredMod(FeaturedMod featuredMod) {
+  public ReplayBuilder featuredMod(FeaturedMod featuredMod) {
     replay.setFeaturedMod(featuredMod);
     return this;
   }
 
-  public ReplayInfoBeanBuilder map(MapBean map) {
+  public ReplayBuilder map(MapBean map) {
     replay.setMap(map);
     return this;
   }
 
-  public ReplayInfoBeanBuilder replayFile(Path replayFile) {
+  public ReplayBuilder replayFile(Path replayFile) {
     replay.setReplayFile(replayFile);
     return this;
   }
 
-  public ReplayInfoBeanBuilder replayTicks(int replayTicks) {
+  public ReplayBuilder replayTicks(int replayTicks) {
     replay.setReplayTicks(replayTicks);
     return this;
   }
 
-  public ReplayInfoBeanBuilder views(int views) {
+  public ReplayBuilder views(int views) {
     replay.setViews(views);
     return this;
   }
 
-  public ReplayInfoBeanBuilder chatMessages(ObservableList<Replay.ChatMessage> chatMessages) {
+  public ReplayBuilder chatMessages(ObservableList<Replay.ChatMessage> chatMessages) {
     replay.setChatMessages(chatMessages);
     return this;
   }
 
-  public ReplayInfoBeanBuilder gameOptions(ObservableList<Replay.GameOption> gameOptions) {
+  public ReplayBuilder gameOptions(ObservableList<Replay.GameOption> gameOptions) {
     replay.setGameOptions(gameOptions);
     return this;
   }
 
-  public ReplayInfoBeanBuilder reviews(List<Review> reviews) {
+  public ReplayBuilder reviews(List<Review> reviews) {
     replay.getReviews().setAll(reviews);
     return this;
   }
 
-  public ReplayInfoBeanBuilder validity(Validity validity) {
+  public ReplayBuilder validity(Validity validity) {
     replay.setValidity(validity);
     return this;
   }
 
-  public ReplayInfoBeanBuilder reviewsSummary(GameReviewsSummary reviewsSummary) {
+  public ReplayBuilder reviewsSummary(GameReviewsSummary reviewsSummary) {
     replay.setReviewsSummary(reviewsSummary);
     return this;
   }
