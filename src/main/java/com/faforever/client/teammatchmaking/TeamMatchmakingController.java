@@ -46,6 +46,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -113,7 +114,14 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     initializeBindings();
 
     teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> renderPartyMembers());
-    teamMatchmakingService.queuesAddedProperty().addListener(observable -> renderQueues());
+    if (teamMatchmakingService.isQueuesReadyForUpdate()) {
+      renderQueues(); // The teamMatchmakingService may already have all queues collected
+    }                 // so we won't get any updates on the following change listener
+    teamMatchmakingService.queuesReadyForUpdateProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue) {
+        renderQueues();
+      }
+    });
 
     player.statusProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue != PlayerStatus.IDLE) {
@@ -302,14 +310,16 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
   private synchronized void renderQueues() {
     Platform.runLater(() -> {
-      List<MatchmakingQueue> queues = teamMatchmakingService.getMatchmakingQueues();
-      queueBox.getChildren().clear();
-      queues.sort(Comparator.comparing(MatchmakingQueue::getQueueId));
-      queues.forEach(queue -> {
-        MatchmakingQueueItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml");
-        controller.setQueue(queue);
-        queueBox.getChildren().add(controller.getRoot());
-      });
+      List<MatchmakingQueue> queues = Collections.synchronizedList(teamMatchmakingService.getMatchmakingQueues());
+      synchronized (queues) {
+        queueBox.getChildren().clear();
+        queues.sort(Comparator.comparing(MatchmakingQueue::getQueueId));
+        queues.forEach(queue -> {
+          MatchmakingQueueItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml");
+          controller.setQueue(queue);
+          queueBox.getChildren().add(controller.getRoot());
+        });
+      }
     });
   }
 }

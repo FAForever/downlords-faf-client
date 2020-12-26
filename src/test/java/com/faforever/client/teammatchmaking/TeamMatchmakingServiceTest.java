@@ -299,7 +299,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
     when(fafService.getMatchmakingQueue("queue2")).thenReturn(CompletableFuture.completedFuture(Optional.of(new MatchmakingQueue())));
 
     AtomicInteger propertyChanged = new AtomicInteger(0);
-    instance.queuesAddedProperty().addListener((observable, oldValue, newValue) -> {
+    instance.queuesReadyForUpdateProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue)
         propertyChanged.getAndIncrement();
     });

@@ -67,7 +67,7 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
     prepareParty(player);
     when(i18n.get(anyString(), any(Object.class))).thenReturn("");
     when(teamMatchmakingService.currentlyInQueueProperty()).thenReturn(new SimpleBooleanProperty(false));
-    when(teamMatchmakingService.queuesAddedProperty()).thenReturn(new SimpleBooleanProperty(false));
+    when(teamMatchmakingService.queuesReadyForUpdateProperty()).thenReturn(new SimpleBooleanProperty(false));
     when(teamMatchmakingService.getPlayersInGame()).thenReturn(FXCollections.observableSet());
     when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<Player>());
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
@@ -176,7 +176,7 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
       return controller;
     });
 
-    teamMatchmakingService.queuesAddedProperty().set(true);
+    teamMatchmakingService.queuesReadyForUpdateProperty().set(true);
     WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.queueBox.getChildren().size(), is(2));
