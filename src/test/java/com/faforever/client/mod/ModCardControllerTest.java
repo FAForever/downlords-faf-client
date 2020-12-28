@@ -59,7 +59,7 @@ public class ModCardControllerTest extends AbstractPlainJavaFxTest {
     when(modService.getInstalledModVersions()).thenReturn(installedModVersions);
     when(i18n.get(ModType.UI.getI18nKey())).thenReturn(ModType.UI.name());
 
-    modVersion = ModVersionBuilder.create().defaultValues().get();
+    modVersion = ModVersionBuilder.create().defaultValues().mod(ModBuilder.create().defaultValues().get()).get();
 
     when(modService.uninstallMod(any())).thenReturn(CompletableFuture.runAsync(() -> {
     }));
@@ -136,7 +136,7 @@ public class ModCardControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void onMapInstalled() {
+  public void onModInstalled() {
     instance.setModVersion(modVersion);
     installedModVersions.add(modVersion);
     WaitForAsyncUtils.waitForFxEvents();
@@ -145,7 +145,7 @@ public class ModCardControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void onMapUninstalled() {
+  public void onModUninstalled() {
     instance.setModVersion(modVersion);
     installedModVersions.add(modVersion);
     installedModVersions.remove(modVersion);
