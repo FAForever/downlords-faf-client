@@ -30,6 +30,7 @@ public class Game {
   private final IntegerProperty numPlayers;
   private final IntegerProperty maxPlayers;
   private final DoubleProperty averageRating;
+  private final StringProperty ratingType;
   private final ObjectProperty<Integer> minRating;
   private final ObjectProperty<Integer> maxRating;
   private final BooleanProperty passwordProtected;
@@ -59,6 +60,7 @@ public class Game {
     numPlayers = new SimpleIntegerProperty();
     maxPlayers = new SimpleIntegerProperty();
     averageRating = new SimpleDoubleProperty(0);
+    ratingType = new SimpleStringProperty();
     minRating = new SimpleObjectProperty<>(null);
     maxRating = new SimpleObjectProperty<>(null);
     passwordProtected = new SimpleBooleanProperty();
@@ -168,6 +170,18 @@ public class Game {
 
   public void setAverageRating(double averageRating) {
     this.averageRating.set(averageRating);
+  }
+
+  public String getRatingType() {
+    return ratingType.get();
+  }
+
+  public void setRatingType(String ratingType) {
+    this.ratingType.set(ratingType);
+  }
+
+  public StringProperty ratingTypeProperty() {
+    return ratingType;
   }
 
   public Integer getMinRating() {
@@ -290,6 +304,10 @@ public class Game {
   public boolean equals(Object obj) {
     return obj instanceof Game
         && id.getValue().equals(((Game) obj).id.getValue());
+  }
+
+  public void setVisibility(GameVisibility visibility) {
+    this.visibility.setValue(visibility);
   }
 
   public GameVisibility getVisibility() {

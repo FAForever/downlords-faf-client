@@ -120,8 +120,8 @@ public class PartyMemberItemController implements Controller<Node> {
     clanLabel.textProperty().bind(createStringBinding(() -> Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan()), player.clanProperty()));
     usernameLabel.textProperty().bind(player.usernameProperty());
     leagueLabel.textProperty().bind(createStringBinding(
-        () -> i18n.get("leaderboard.divisionName", RatingUtil.getLeaderboardRating(player)).toUpperCase(),
-        player.globalRatingMeanProperty())); // TODO: replace this with divisionproperty once it is available
+        () -> i18n.get("leaderboard.divisionName", RatingUtil.getLeaderboardRating(player, "")).toUpperCase(),
+        player.leaderboardRatingMapProperty())); // TODO: replace this with divisionproperty once it is available
     gameCountLabel.textProperty().bind(createStringBinding(
         () -> i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase(),
         player.numberOfGamesProperty()));

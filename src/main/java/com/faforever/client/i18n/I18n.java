@@ -96,6 +96,14 @@ public class I18n implements InitializingBean {
     return messageSource.getMessage(key, args, locale);
   }
 
+  public String getWithDefault(String defaultMessage, String key, Object... args) {
+    return getWithDefault(userSpecificLocale, defaultMessage, key, args);
+  }
+
+  public String getWithDefault(Locale locale, String defaultMessage, String key, Object... args) {
+    return messageSource.getMessage(key, args, defaultMessage, locale);
+  }
+
   public Locale getUserSpecificLocale() {
     return this.userSpecificLocale;
   }

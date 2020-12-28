@@ -19,7 +19,7 @@ public class NewGameInfoBuilder {
     newGameInfo.setFeaturedMod(FeaturedModBeanBuilder.create().defaultValues().get());
     newGameInfo.setPassword("password");
     newGameInfo.setTitle("title");
-    newGameInfo.setSimMods(new HashSet<String>() {{
+    newGameInfo.setSimMods(new HashSet<>() {{
       add("111-456-789");
       add("222-456-789");
       add("333-456-789");

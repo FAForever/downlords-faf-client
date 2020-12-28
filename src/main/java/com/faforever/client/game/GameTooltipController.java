@@ -66,9 +66,9 @@ public class GameTooltipController implements Controller<Node> {
     if (game == null) {
       return;
     }
-    teamChangedListener = change -> createTeams(game.getTeams());
+    teamChangedListener = change -> createTeams(game.getTeams(), game.getRatingType());
     lastTeams = game.getTeams();
-    createTeams(game.getTeams());
+    createTeams(game.getTeams(), game.getRatingType());
     weakTeamChangeListener = new WeakInvalidationListener(teamChangedListener);
     JavaFxUtil.addListener(game.getTeams(), weakTeamChangeListener);
     if (showMods) {
@@ -82,12 +82,12 @@ public class GameTooltipController implements Controller<Node> {
     }
   }
 
-  private void createTeams(ObservableMap<? extends String, ? extends List<String>> teamsList) {
+  private void createTeams(ObservableMap<? extends String, ? extends List<String>> teamsList, String ratingType) {
     Platform.runLater(() -> {
       synchronized (teamsList) {
         teamsPane.getChildren().clear();
-        TeamCardController.createAndAdd(teamsList, playerService, uiService, teamsPane);
-        teamsPane.setPrefColumns(teamsList.size() < maxPrefColumns ? teamsList.size() : maxPrefColumns);
+        TeamCardController.createAndAdd(teamsList, ratingType, playerService, uiService, teamsPane);
+        teamsPane.setPrefColumns(Math.min(teamsList.size(), maxPrefColumns));
       }
     });
   }

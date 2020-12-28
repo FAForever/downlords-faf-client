@@ -9,7 +9,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.JoinChannelEvent;
 import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.theme.UiService;
@@ -17,23 +16,16 @@ import com.faforever.client.ui.StageHolder;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.stage.Popup;
-import javafx.stage.PopupWindow;
 import javafx.stage.PopupWindow.AnchorLocation;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.faforever.client.util.RatingUtil.getGlobalRating;
-import static com.faforever.client.util.RatingUtil.getLeaderboardRating;
 
 @SuppressWarnings("WeakerAccess")
 @Component
@@ -177,49 +169,6 @@ public class BrowserCallback {
         return;
       }
       platformService.showDocument(clan.get().getWebsiteUrl());
-    });
-  }
-
-  /**
-   * Called from JavaScript when user hovers over a user name.
-   */
-  @SuppressWarnings("unused")
-  public void showPlayerInfo(String username) {
-    Optional<Player> playerOptional = playerService.getPlayerForUsername(username);
-
-    if (!playerOptional.isPresent()) {
-      return;
-    }
-
-    Player player = playerOptional.get();
-
-    playerInfoPopup = new Popup();
-    Label label = new Label();
-    label.getStyleClass().add("tooltip");
-    playerInfoPopup.getContent().setAll(label);
-
-    label.textProperty().bind(Bindings.createStringBinding(
-        () -> i18n.get("userInfo.ratingFormat", getGlobalRating(player), getLeaderboardRating(player)),
-        player.leaderboardRatingMeanProperty(), player.leaderboardRatingDeviationProperty(),
-        player.globalRatingMeanProperty(), player.globalRatingDeviationProperty()
-    ));
-
-    playerInfoPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
-
-    Platform.runLater(() -> playerInfoPopup.show(StageHolder.getStage(), lastMouseX, lastMouseY - 10));
-  }
-
-  /**
-   * Called from JavaScript when user no longer hovers over a user name.
-   */
-  @SuppressWarnings("unused")
-  public void hidePlayerInfo() {
-    if (playerInfoPopup == null) {
-      return;
-    }
-    Platform.runLater(() -> {
-      playerInfoPopup.hide();
-      playerInfoPopup = null;
     });
   }
 

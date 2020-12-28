@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class JSkillsRatingService implements RatingService {
-  private GameInfo gameInfo;
+  private final GameInfo gameInfo;
 
   public JSkillsRatingService(ClientProperties clientProperties) {
     TrueSkill trueSkill = clientProperties.getTrueSkill();
@@ -27,7 +27,10 @@ public class JSkillsRatingService implements RatingService {
   @Override
   public double calculateQuality(Replay replay) {
     Collection<List<PlayerStats>> teams = replay.getTeamPlayerStats().values();
-    if (teams.size() < 2) {
+    if (teams.size() != 2) {
+      return Double.NaN;
+    }
+    if (!teams.stream().allMatch(playerStats -> playerStats.stream().allMatch(stats -> stats.getBeforeDeviation() != null && stats.getBeforeMean() != null))) {
       return Double.NaN;
     }
     return TrueSkillCalculator.calculateMatchQuality(gameInfo, teams.stream()

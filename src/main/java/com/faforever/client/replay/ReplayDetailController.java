@@ -6,7 +6,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.game.Faction;
-import com.faforever.client.game.RatingType;
+import com.faforever.client.game.RatingPrecision;
 import com.faforever.client.game.TeamCardController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean;
@@ -22,7 +22,6 @@ import com.faforever.client.replay.Replay.GameOption;
 import com.faforever.client.replay.Replay.PlayerStats;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ClipboardUtil;
-import com.faforever.client.util.Rating;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
@@ -213,7 +212,7 @@ public class ReplayDetailController implements Controller<Node> {
 
 
     replay.getTeamPlayerStats().values().stream()
-        .flatMapToInt(playerStats -> playerStats.stream()
+        .flatMapToInt(playerStats -> playerStats.stream().filter(stats -> stats.getBeforeMean() != null && stats.getBeforeDeviation() != null)
             .mapToInt(stats -> RatingUtil.getRating(stats.getBeforeMean(), stats.getBeforeDeviation())))
         .average()
         .ifPresentOrElse(averageRating -> ratingLabel.setText(i18n.number((int) averageRating)),
@@ -335,13 +334,13 @@ public class ReplayDetailController implements Controller<Node> {
       TeamCardController controller = uiService.loadFxml("theme/team_card.fxml");
       teamCardControllers.add(controller);
 
-      Function<Player, Rating> playerRatingFunction = player -> getPlayerRating(player, statsByPlayerId);
+      Function<Player, Integer> playerRatingFunction = player -> getPlayerRating(player, statsByPlayerId);
 
       Function<Player, Faction> playerFactionFunction = player -> getPlayerFaction(player, statsByPlayerId);
 
       playerService.getPlayersByIds(playerIds)
           .thenAccept(players ->
-              controller.setPlayersInTeam(team, players, playerRatingFunction, playerFactionFunction, RatingType.EXACT)
+              controller.setPlayersInTeam(team, players, playerRatingFunction, playerFactionFunction, RatingPrecision.EXACT)
           );
 
       teamsContainer.getChildren().add(controller.getRoot());
@@ -354,22 +353,20 @@ public class ReplayDetailController implements Controller<Node> {
   }
 
   @VisibleForTesting
-  Rating getPlayerRating(Player player, Map<Integer, PlayerStats> statsByPlayerId) {
+  Integer getPlayerRating(Player player, Map<Integer, PlayerStats> statsByPlayerId) {
     PlayerStats playerStats = statsByPlayerId.get(player.getId());
-    return new Rating(playerStats.getBeforeMean(), playerStats.getBeforeDeviation());
+    if (playerStats.getBeforeDeviation() != null && playerStats.getBeforeMean() != null) {
+      return RatingUtil.getRating(playerStats.getBeforeMean(), playerStats.getBeforeDeviation());
+    } else {
+      return null;
+    }
   }
 
   private void configureRatingControls() {
     if (!replay.getValidity().equals(Validity.VALID)) {
       showRatingChangeButton.setVisible(false);
       notRatedReasonLabel.setVisible(true);
-      //TODO use option to get default message in i18n
-      String reasonText;
-      try {
-        reasonText = i18n.get("game.reasonNotValid", i18n.get(replay.getValidity().getI18nKey()));
-      } catch (NoSuchMessageException e) {
-        reasonText = replay.getValidity().toString();
-      }
+      String reasonText = i18n.getWithDefault(replay.getValidity().toString(), "game.reasonNotValid", i18n.get(replay.getValidity().getI18nKey()));
       notRatedReasonLabel.setText(reasonText);
     } else if (!replayService.replayChangedRating(replay)) {
       showRatingChangeButton.setVisible(false);

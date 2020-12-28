@@ -16,8 +16,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -34,14 +34,14 @@ public class CategoryFilterController implements FilterNodeController {
   public CheckListView<String> checkListView;
   public MenuButton menu;
   private String propertyName;
-  private LinkedHashMap<String, String> itemMap;
+  private Map<String, String> itemMap;
 
   public void setItems(List<String> items) {
     itemMap = null;
     checkListView.getItems().setAll(items);
   }
 
-  public void setItems(LinkedHashMap<String, String> items) {
+  public void setItems(Map<String, String> items) {
     itemMap = items;
     checkListView.getItems().setAll(items.keySet());
   }

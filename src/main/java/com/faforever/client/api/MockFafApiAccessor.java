@@ -8,10 +8,10 @@ import com.faforever.client.api.dto.CoopMission;
 import com.faforever.client.api.dto.CoopResult;
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
-import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
-import com.faforever.client.api.dto.GlobalLeaderboardEntry;
-import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
+import com.faforever.client.api.dto.Leaderboard;
+import com.faforever.client.api.dto.LeaderboardEntry;
+import com.faforever.client.api.dto.LeaderboardRatingJournal;
 import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
@@ -27,7 +27,6 @@ import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.api.dto.Tournament;
 import com.faforever.client.api.dto.TutorialCategory;
-import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
@@ -95,6 +94,28 @@ public class MockFafApiAccessor implements FafApiAccessor {
     );
   }
 
+  @Override
+  public List<Leaderboard> getLeaderboards() {
+    return List.of(
+        new Leaderboard("1", OffsetDateTime.now(), OffsetDateTime.now(), "mock", "mock", "mock")
+    );
+  }
+
+  @Override
+  public List<LeaderboardEntry> getAllLeaderboardEntries(String leaderboardTechnicalName) {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public Tuple<List<LeaderboardEntry>, java.util.Map<String, ?>> getLeaderboardEntriesWithMeta(String leaderboardTechnicalName, int count, int page) {
+    return new Tuple<>(Collections.emptyList(), Collections.emptyMap());
+  }
+
+  @Override
+  public List<LeaderboardEntry> getLeaderboardEntriesForPlayer(int playerId) {
+    return Collections.emptyList();
+  }
+
   private ModVersion mod() {
     return new ModVersion();
   }
@@ -115,43 +136,28 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<Ladder1v1LeaderboardEntry> getLadder1v1Leaderboard() {
-    return List.of();
-  }
-
-  @Override
-  public List<GlobalLeaderboardEntry> getGlobalLeaderboard() {
-    return List.of();
-  }
-
-  @Override
-  public Ladder1v1LeaderboardEntry getLadder1v1EntryForPlayer(int playerId) {
-    return null;
-  }
-
-  @Override
-  public List<GamePlayerStats> getGamePlayerStats(int playerId, KnownFeaturedMod knownFeaturedMod) {
+  public List<LeaderboardRatingJournal> getRatingJournal(int playerId, String leaderboardTechnicalName) {
     return List.of();
   }
 
   @Override
   public Tuple<List<Map>, java.util.Map<String, ?>> getMapsByIdWithMeta(List<Integer> mapIdList, int count, int page) {
-    return new Tuple(List.of(), Collections.emptyMap());
+    return new Tuple<>(List.of(), Collections.emptyMap());
   }
 
   @Override
   public Tuple<List<Map>, java.util.Map<String, ?>> getMostPlayedMapsWithMeta(int count, int page) {
-    return new Tuple(List.of(), Collections.emptyMap());
+    return new Tuple<>(List.of(), Collections.emptyMap());
   }
 
   @Override
   public Tuple<List<Map>, java.util.Map<String, ?>> getHighestRatedMapsWithMeta(int count, int page) {
-    return new Tuple(List.of(), Collections.emptyMap());
+    return new Tuple<>(List.of(), Collections.emptyMap());
   }
 
   @Override
   public Tuple<List<Map>, java.util.Map<String, ?>> getNewestMapsWithMeta(int count, int page) {
-    return new Tuple(List.of(), Collections.emptyMap());
+    return new Tuple<>(List.of(), Collections.emptyMap());
   }
 
   @Override
@@ -186,17 +192,17 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public Tuple<List<Game>, java.util.Map<String, ?>> getNewestReplaysWithMeta(int count, int page) {
-    return new Tuple(List.of(), Collections.emptyMap());
+    return new Tuple<>(List.of(), Collections.emptyMap());
   }
 
   @Override
   public Tuple<List<Game>, java.util.Map<String, ?>> getHighestRatedReplaysWithMeta(int count, int page) {
-    return new Tuple(List.of(), Collections.emptyMap());
+    return new Tuple<>(List.of(), Collections.emptyMap());
   }
 
   @Override
   public Tuple<List<Game>, java.util.Map<String, ?>> findReplaysByQueryWithMeta(String query, int maxResults, int page, SortConfig sortConfig) {
-    return new Tuple(List.of(), Collections.emptyMap());
+    return new Tuple<>(List.of(), Collections.emptyMap());
   }
 
   @Override
@@ -256,7 +262,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public Tuple<List<Map>, java.util.Map<String, ?>> findMapsByQueryWithMeta(SearchConfig searchConfig, int page, int count) {
-    return new Tuple(List.of(), Collections.emptyMap());
+    return new Tuple<>(List.of(), Collections.emptyMap());
   }
 
   @Override
@@ -281,7 +287,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public Tuple<List<Mod>, java.util.Map<String, ?>> findModsByQueryWithMeta(SearchConfig query, int maxResults, int page) {
-    return new Tuple(List.of(), Collections.emptyMap());
+    return new Tuple<>(List.of(), Collections.emptyMap());
   }
 
   @Override
@@ -301,7 +307,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public Tuple<List<MapVersion>, java.util.Map<String, ?>> getOwnedMapsWithMeta(int playerId, int loadMoreCount, int page) {
-    return new Tuple(List.of(), Collections.emptyMap());
+    return new Tuple<>(List.of(), Collections.emptyMap());
   }
 
   @Override

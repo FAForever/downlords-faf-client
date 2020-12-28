@@ -26,6 +26,7 @@ public class GameInfoMessage extends FafServerMessage {
   private Map<String, String> simMods;
   private String mapname;
   private Double launchedAt;
+  private String ratingType;
   private Integer ratingMin;
   private Integer ratingMax;
   private Boolean enforceRatingRange;

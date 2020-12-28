@@ -273,7 +273,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testStatusToPlaying() {
-    Game game = GameBuilder.create().defaultValues().state(GameStatus.PLAYING).get();
+    Game game = GameBuilder.create().defaultValues().status(GameStatus.PLAYING).get();
     Player player = PlayerBuilder.create("junit").defaultValues().game(game).get();
     when(i18n.get("game.gameStatus.playing")).thenReturn("Playing");
     instance.associatePlayerToChatUser(chatUser, player);
@@ -287,7 +287,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testStatusToHosting() {
-    Game game = GameBuilder.create().defaultValues().state(GameStatus.OPEN).host("junit").get();
+    Game game = GameBuilder.create().defaultValues().status(GameStatus.OPEN).host("junit").get();
     Player player = PlayerBuilder.create("junit").defaultValues().game(game).get();
     when(i18n.get("game.gameStatus.hosting")).thenReturn("Hosting");
     instance.associatePlayerToChatUser(chatUser, player);
@@ -301,7 +301,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testStatusToLobbying() {
-    Game game = GameBuilder.create().defaultValues().state(GameStatus.OPEN).get();
+    Game game = GameBuilder.create().defaultValues().status(GameStatus.OPEN).get();
     Player player = PlayerBuilder.create("junit").defaultValues().game(game).get();
     when(i18n.get("game.gameStatus.lobby")).thenReturn("Waiting for game to start");
     instance.associatePlayerToChatUser(chatUser, player);

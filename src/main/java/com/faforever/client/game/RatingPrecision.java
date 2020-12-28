@@ -1,7 +1,7 @@
 package com.faforever.client.game;
 
 
-public enum RatingType {
+public enum RatingPrecision {
   EXACT,
   ROUNDED
 }

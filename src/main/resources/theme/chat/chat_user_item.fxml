@@ -14,7 +14,7 @@
                     onMouseClicked="#onClanMenuRequested"
                     styleClass="chat-user-control-clan" text="[CLAN]"/>
         <Label fx:id="usernameLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" onMouseClicked="#onItemClicked"
-               onMouseEntered="#onMouseEnteredUserNameLabel" styleClass="chat-user-item-username"
+               styleClass="chat-user-item-username"
                text="&lt;Username&gt;" HBox.hgrow="ALWAYS"/>
         <ImageView fx:id="playerStatusIndicator"/>
         <ImageView fx:id="playerMapImage" fitHeight="16.0" fitWidth="16.0"/>

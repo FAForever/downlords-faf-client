@@ -6,11 +6,11 @@ import com.faforever.client.api.dto.CoopMission;
 import com.faforever.client.api.dto.CoopResult;
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
-import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.GameReviewsSummary;
-import com.faforever.client.api.dto.GlobalLeaderboardEntry;
-import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
+import com.faforever.client.api.dto.Leaderboard;
+import com.faforever.client.api.dto.LeaderboardEntry;
+import com.faforever.client.api.dto.LeaderboardRatingJournal;
 import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapStatistics;
 import com.faforever.client.api.dto.MapVersion;
@@ -29,7 +29,6 @@ import com.faforever.client.api.dto.TutorialCategory;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Api;
-import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.io.CountingFileSystemResource;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.user.event.LoggedOutEvent;
@@ -42,6 +41,7 @@ import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import lombok.RequiredArgsConstructor;
@@ -67,6 +67,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.Serializable;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -90,8 +92,10 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   private static final String MOD_ENDPOINT = "/data/mod";
   private static final String MOD_VERSION_ENDPOINT = "/data/modVersion";
   private static final String ACHIEVEMENT_ENDPOINT = "/data/achievement";
+  private static final String LEADERBOARD_ENDPOINT = "/data/leaderboard";
+  private static final String LEADERBOARD_ENTRY_ENDPOINT = "/data/leaderboardRating";
   private static final String TOURNAMENT_LIST_ENDPOINT = "/challonge/v1/tournaments.json";
-  private static final String REPLAY_INCLUDES = "featuredMod,playerStats,playerStats.player,reviews," +
+  private static final String REPLAY_INCLUDES = "featuredMod,playerStats,playerStats.player,playerStats.ratingChanges,reviews," +
       "reviews.player,mapVersion,mapVersion.map,reviewsSummary";
   private static final String MAP_INCLUDES = "latestVersion,author,statistics,reviewsSummary," +
       "versions.reviews,versions.reviews.player";
@@ -101,6 +105,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
       "map.versions.reviews,map.versions.reviews.player,map.reviewsSummary";
   private static final String MOD_INCLUDES = "latestVersion,reviewsSummary,versions,versions.reviews," +
       "versions.reviews.player";
+  private static final String LEADERBOARD_ENTRY_INCLUDES = "player,leaderboard";
   private static final String COOP_RESULT_INCLUDES = "game.playerStats.player";
   private static final String PLAYER_INCLUDES = "globalRating,ladder1v1Rating,names";
   private static final String OAUTH_TOKEN_PATH = "/oauth/token";
@@ -191,49 +196,47 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  @Cacheable(value = CacheNames.GLOBAL_LEADERBOARD, sync = true)
-  @SneakyThrows
-  public List<GlobalLeaderboardEntry> getGlobalLeaderboard() {
-    // This is not an ordinary JSON-API route and thus doesn't support paging, that's why it's called manually
-    authorizedLatch.await();
-    return restOperations.getForObject("/leaderboards/global", List.class,
-        java.util.Map.of(
-            SORT, "-rating",
-            INCLUDE, "player",
-            "fields[globalRating]", "rating,numGames",
-            "fields[player]", "login"
-        ));
+  @Cacheable(value = CacheNames.LEADERBOARD, sync = true)
+  public List<Leaderboard> getLeaderboards() {
+    return getAll(LEADERBOARD_ENDPOINT);
   }
 
   @Override
-  @Cacheable(value = CacheNames.LADDER_1V1_LEADERBOARD, sync = true)
-  @SneakyThrows
-  public List<Ladder1v1LeaderboardEntry> getLadder1v1Leaderboard() {
-    // This is not an ordinary JSON-API route and thus doesn't support paging, that's why it doesn't use getAll()
-    authorizedLatch.await();
-    return restOperations.getForObject("/leaderboards/ladder1v1", List.class,
-        java.util.Map.of(
-            SORT, "-rating",
-            INCLUDE, "player",
-            "fields[ladder1v1Rating]", "rating,numGames,winGames",
-            "fields[player]", "login"
-        ));
+  public List<LeaderboardEntry> getLeaderboardEntriesForPlayer(int playerId) {
+    return getAll(LEADERBOARD_ENTRY_ENDPOINT, java.util.Map.of(
+        FILTER, rsql(qBuilder().intNum("player.id").eq(playerId)),
+        INCLUDE, LEADERBOARD_ENTRY_INCLUDES,
+        SORT, "-rating"));
   }
 
   @Override
-  public Ladder1v1LeaderboardEntry getLadder1v1EntryForPlayer(int playerId) {
-    return getOne("/leaderboards/ladder1v1/" + playerId, Ladder1v1LeaderboardEntry.class);
+  @Cacheable(value = CacheNames.LEADERBOARD, sync = true)
+  public List<LeaderboardEntry> getAllLeaderboardEntries(String leaderboardTechnicalName) {
+    return getAll(LEADERBOARD_ENTRY_ENDPOINT, java.util.Map.of(
+        FILTER, rsql(qBuilder().string("leaderboard.technical_name").eq(leaderboardTechnicalName)
+            .and().instant("updateTime").after(LocalDateTime.now().minusMonths(1).toInstant(ZoneOffset.UTC), false)),
+        INCLUDE, LEADERBOARD_ENTRY_INCLUDES,
+        SORT, "-rating"));
+  }
+
+  @Override
+  @Cacheable(value = CacheNames.LEADERBOARD, sync = true)
+  public Tuple<List<LeaderboardEntry>, java.util.Map<String, ?>> getLeaderboardEntriesWithMeta(String leaderboardId, int count, int page) {
+    JSONAPIDocument<List<LeaderboardEntry>> jsonApiDoc = getPageWithMeta(LEADERBOARD_ENTRY_ENDPOINT, count, page, ImmutableMap.of(
+        INCLUDE, LEADERBOARD_ENTRY_INCLUDES,
+        SORT, "-rating"));
+    return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
   }
 
   @Override
   @Cacheable(value = CacheNames.RATING_HISTORY, sync = true)
-  public List<GamePlayerStats> getGamePlayerStats(int playerId, KnownFeaturedMod knownFeaturedMod) {
-    return getAll("/data/gamePlayerStats", java.util.Map.of(
+  public List<LeaderboardRatingJournal> getRatingJournal(int playerId, String leaderboardTechnicalName) {
+    return getAll("/data/leaderboardRatingJournal", java.util.Map.of(
         FILTER, rsql(qBuilder()
-            .intNum("player.id").eq(playerId)
+            .intNum("gamePlayerStats.player.id").eq(playerId)
             .and()
-            .string("game.featuredMod.technicalName").eq(knownFeaturedMod.getTechnicalName())
-        )));
+            .string("leaderboard.technical_name").eq(leaderboardTechnicalName)),
+        SORT, "createTime"));
   }
 
   @Override
@@ -342,7 +345,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     JSONAPIDocument<List<GameReviewsSummary>> pageWithPageCount = getPageWithMeta("/data/gameReviewsSummary", count, page, java.util.Map.of(
         SORT, "-lowerBound",
         // TODO this was done in a rush, check what is actually needed
-        INCLUDE, "game,game.featuredMod,game.playerStats,game.playerStats.player,game.reviews,game.reviews.player," +
+        INCLUDE, "game,game.featuredMod,game.playerStats,game.playerStats.player,game.playerStats.ratingChanges,game.reviews,game.reviews.player," +
             "game.mapVersion,game.mapVersion.map",
         FILTER, "game.endTime=isnull=false"
     ));
@@ -447,7 +450,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public Optional<Game> findReplayById(int id) {
-    return Optional.ofNullable(getOne(REPLAY_ENDPOINT + "/"+ id, Game.class, java.util.Map.of(INCLUDE, REPLAY_INCLUDES)));
+    return Optional.ofNullable(getOne(REPLAY_ENDPOINT + "/" + id, Game.class, java.util.Map.of(INCLUDE, REPLAY_INCLUDES)));
   }
 
   @Override
