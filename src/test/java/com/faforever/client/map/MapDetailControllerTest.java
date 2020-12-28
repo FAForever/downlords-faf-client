@@ -172,8 +172,8 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
     assertNotEquals(instance.hideRow.getPrefHeight(), 0);
     assertTrue(instance.unrankButton.isVisible());
     assertTrue(instance.hideButton.isVisible());
-    assertEquals(instance.isHiddenLabel.getText(), "no");
-    assertEquals(instance.isRankedLabel.getText(), "yes");
+    assertEquals("no", instance.isHiddenLabel.getText());
+    assertEquals("yes", instance.isRankedLabel.getText());
     verify(reviewsController, times(3)).setCanWriteReview(false);
   }
 
@@ -190,8 +190,8 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
     assertNotEquals(instance.hideRow.getPrefHeight(), 0);
     assertFalse(instance.unrankButton.isVisible());
     assertFalse(instance.hideButton.isVisible());
-    assertEquals(instance.isHiddenLabel.getText(), "yes");
-    assertEquals(instance.isRankedLabel.getText(), "no");
+    assertEquals("yes", instance.isHiddenLabel.getText());
+    assertEquals("no", instance.isRankedLabel.getText());
     verify(reviewsController, times(3)).setCanWriteReview(false);
   }
 
@@ -201,14 +201,14 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(reviewsController).setCanWriteReview(true);
-    assertEquals(instance.nameLabel.getText(), testMap.getDisplayName());
-    assertEquals(instance.authorLabel.getText(), testMap.getAuthor());
-    assertEquals(instance.maxPlayersLabel.getText(), String.valueOf(testMap.getPlayers()));
-    assertEquals(instance.mapIdLabel.getText(), testMap.getId());
-    assertEquals(instance.dimensionsLabel.getText(), "map size");
-    assertEquals(instance.dateLabel.getText(), "test date");
-    assertEquals(instance.mapDescriptionLabel.getText(), testMap.getDescription());
-    assertEquals(instance.hideRow.getPrefHeight(), 0.0, 0);
+    assertEquals(testMap.getDisplayName(), instance.nameLabel.getText());
+    assertEquals(testMap.getAuthor(), instance.authorLabel.getText());
+    assertEquals(String.valueOf(testMap.getPlayers()), instance.maxPlayersLabel.getText());
+    assertEquals(testMap.getId(), instance.mapIdLabel.getText());
+    assertEquals("map size", instance.dimensionsLabel.getText());
+    assertEquals("test date", instance.dateLabel.getText());
+    assertEquals(testMap.getDescription(), instance.mapDescriptionLabel.getText());
+    assertEquals(0.0, instance.hideRow.getPrefHeight(), 0);
     assertTrue(instance.uninstallButton.isVisible());
     assertFalse(instance.installButton.isVisible());
     assertFalse(instance.unrankButton.isVisible());
@@ -375,7 +375,7 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.installButton.isDisabled());
-    assertEquals(instance.installButton.getText(), "notAvailable");
+    assertEquals("notAvailable", instance.installButton.getText());
   }
 
   @Test
@@ -429,7 +429,7 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
 
     verify(reviewService).saveMapVersionReview(review, testMap.getId());
     assertTrue(testMap.getReviews().contains(review));
-    assertEquals(review.getPlayer(), currentPlayer);
+    assertEquals(currentPlayer, review.getPlayer());
   }
 
   @Test
@@ -448,8 +448,8 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
 
     verify(reviewService).saveMapVersionReview(review, testMap.getId());
     assertTrue(testMap.getReviews().contains(review));
-    assertEquals(review.getPlayer(), currentPlayer);
-    assertEquals(testMap.getReviews().size(), 1);
+    assertEquals(currentPlayer, review.getPlayer());
+    assertEquals(1, testMap.getReviews().size());
   }
 
   @Test
