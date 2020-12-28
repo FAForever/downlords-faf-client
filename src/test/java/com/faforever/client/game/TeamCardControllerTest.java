@@ -54,20 +54,29 @@ public class TeamCardControllerTest extends AbstractPlainJavaFxTest {
     when(ratingChangeLabelController.getRoot()).thenReturn(new Label());
     when(player.getId()).thenReturn(1);
 
-    playerStats = new PlayerStats(1, 1000, 0, 1100d, 0d, 0, null);
+    playerStats = PlayerStats.builder()
+        .playerId(1)
+        .beforeMean(1000)
+        .beforeDeviation(0)
+        .afterMean(1100.0)
+        .afterMean(0.0)
+        .score(0)
+        .faction(null)
+        .build();
+
     teams.put("2", Collections.singletonList(playerStats));
 
     loadFxml("theme/team_card.fxml", param -> instance);
   }
 
   @Test
-  public void setPlayersInTeam() throws Exception {
+  public void setPlayersInTeam() {
     instance.setPlayersInTeam("2", playerList, player -> new Rating(1000, 0), null, RatingType.ROUNDED);
     verify(i18n).get("game.tooltip.teamTitle", 1, 1000);
   }
 
   @Test
-  public void showRatingChange() throws Exception {
+  public void showRatingChange() {
     instance.setPlayersInTeam("2", playerList, player -> new Rating(1000, 0), null, RatingType.EXACT);
     instance.showRatingChange(teams);
     verify(ratingChangeLabelController).setRatingChange(playerStats);

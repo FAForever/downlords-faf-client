@@ -90,18 +90,13 @@ public class MapDetailController implements Controller<Node> {
   private ListChangeListener<MapBean> installStatusChangeListener;
 
   public void initialize() {
+    JavaFxUtil.bindManagedToVisible(uninstallButton, installButton, progressBar, progressLabel, hideButton,
+        unrankButton, loadingContainer, hideBox, getRoot());
     JavaFxUtil.addLabelContextMenus(uiService, nameLabel, authorLabel, mapDescriptionLabel, mapIdLabel);
     JavaFxUtil.fixScrollSpeed(scrollPane);
-    uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
-    installButton.managedProperty().bind(installButton.visibleProperty());
-    progressBar.managedProperty().bind(progressBar.visibleProperty());
     progressBar.visibleProperty().bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
-    progressLabel.managedProperty().bind(progressLabel.visibleProperty());
     progressLabel.visibleProperty().bind(progressBar.visibleProperty());
     loadingContainer.visibleProperty().bind(progressBar.visibleProperty());
-    hideButton.managedProperty().bind(hideButton.visibleProperty());
-    unrankButton.managedProperty().bind(unrankButton.visibleProperty());
-    hideBox.managedProperty().bind(hideBox.visibleProperty());
 
     reviewsController.setCanWriteReview(false);
 

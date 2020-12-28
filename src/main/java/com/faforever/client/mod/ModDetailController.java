@@ -72,15 +72,12 @@ public class ModDetailController implements Controller<Node> {
   private ListChangeListener<ModVersion> installStatusChangeListener;
 
   public void initialize() {
+    JavaFxUtil.bindManagedToVisible(uninstallButton, installButton, progressBar, progressLabel, getRoot());
     JavaFxUtil.addLabelContextMenus(uiService, nameLabel, authorLabel, idLabel, uploaderLabel, versionLabel);
     JavaFxUtil.fixScrollSpeed(scrollPane);
-    uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
-    installButton.managedProperty().bind(installButton.visibleProperty());
-    progressBar.managedProperty().bind(progressBar.visibleProperty());
     progressBar.visibleProperty().bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
-    progressLabel.managedProperty().bind(progressLabel.visibleProperty());
     progressLabel.visibleProperty().bind(progressBar.visibleProperty());
-    getRoot().managedProperty().bind(getRoot().visibleProperty());
+
 
     modDetailRoot.setOnKeyPressed(keyEvent -> {
       if (keyEvent.getCode() == KeyCode.ESCAPE) {

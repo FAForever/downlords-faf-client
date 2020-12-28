@@ -43,6 +43,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import lombok.RequiredArgsConstructor;
@@ -136,7 +137,13 @@ public class ReplayDetailController implements Controller<Node> {
     optionValueColumn.setCellFactory(param -> new StringCell<>(String::toString));
 
     JavaFxUtil.bindManagedToVisible(downloadMoreInfoButton, moreInformationPane, teamsInfoBox,
-        reviewsContainer, ratingSeparator, reviewSeparator);
+        reviewsContainer, ratingSeparator, reviewSeparator, getRoot());
+
+    replayDetailRoot.setOnKeyPressed(keyEvent -> {
+      if (keyEvent.getCode() == KeyCode.ESCAPE) {
+        onCloseButtonClicked();
+      }
+    });
 
     moreInformationPane.setVisible(false);
 
@@ -158,6 +165,8 @@ public class ReplayDetailController implements Controller<Node> {
 
   public void setReplay(Replay replay) {
     this.replay = replay;
+    watchButton.setDisable(false);
+    downloadMoreInfoButton.setDisable(false);
 
     replayIdField.setText(i18n.get("game.idFormat", replay.getId()));
     titleLabel.setText(replay.getTitle());
@@ -304,6 +313,7 @@ public class ReplayDetailController implements Controller<Node> {
         })
         .exceptionally(throwable -> {
           log.error("Replay could not be enriched", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "replay.enrich.error");
           return null;
         });
   }
@@ -325,12 +335,9 @@ public class ReplayDetailController implements Controller<Node> {
       TeamCardController controller = uiService.loadFxml("theme/team_card.fxml");
       teamCardControllers.add(controller);
 
-      Function<Player, Rating> playerRatingFunction = player -> {
-        PlayerStats playerStats = statsByPlayerId.get(player.getId());
-        return new Rating(playerStats.getBeforeMean(), playerStats.getBeforeDeviation());
-      };
+      Function<Player, Rating> playerRatingFunction = player -> getPlayerRating(player, statsByPlayerId);
 
-      Function<Player, Faction> playerFactionFunction = player -> statsByPlayerId.get(player.getId()).getFaction();
+      Function<Player, Faction> playerFactionFunction = player -> getPlayerFaction(player, statsByPlayerId);
 
       playerService.getPlayersByIds(playerIds)
           .thenAccept(players ->
@@ -341,10 +348,22 @@ public class ReplayDetailController implements Controller<Node> {
     }));
   }
 
+  @VisibleForTesting
+  Faction getPlayerFaction(Player player, Map<Integer, PlayerStats> statsByPlayerId) {
+    return statsByPlayerId.get(player.getId()).getFaction();
+  }
+
+  @VisibleForTesting
+  Rating getPlayerRating(Player player, Map<Integer, PlayerStats> statsByPlayerId) {
+    PlayerStats playerStats = statsByPlayerId.get(player.getId());
+    return new Rating(playerStats.getBeforeMean(), playerStats.getBeforeDeviation());
+  }
+
   private void configureRatingControls() {
     if (!replay.getValidity().equals(Validity.VALID)) {
       showRatingChangeButton.setVisible(false);
       notRatedReasonLabel.setVisible(true);
+      //TODO use option to get default message in i18n
       String reasonText;
       try {
         reasonText = i18n.get("game.reasonNotValid", i18n.get(replay.getValidity().getI18nKey()));

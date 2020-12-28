@@ -1,10 +1,10 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.api.dto.GameReviewsSummary;
 import com.faforever.client.api.dto.Validity;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.vault.review.Review;
+import com.faforever.client.vault.review.ReviewsSummary;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.temporal.Temporal;
 import java.util.List;
+import java.util.Map;
 
 public class ReplayBuilder {
 
@@ -27,12 +28,17 @@ public class ReplayBuilder {
   }
 
   public ReplayBuilder defaultValues() {
-    id(1).title("test")
-        .startTime(LocalDateTime.MIN)
-        .endTime(LocalDateTime.MAX)
-        .validity(Validity.VALID)
-        .featuredMod(new FeaturedMod())
-        .reviews(FXCollections.emptyObservableList());
+    id(1);
+    title("test");
+    startTime(LocalDateTime.MIN);
+    endTime(LocalDateTime.MAX);
+    validity(Validity.VALID);
+    featuredMod(new FeaturedMod());
+    teams(FXCollections.observableMap(Map.of("2", List.of("junit1"), "3", List.of("junit2"))));
+    views(100);
+    chatMessages(FXCollections.observableArrayList(ReplayChatMessageListBuilder.create().defaultValues().get()));
+    teamPlayerStats(FXCollections.observableMap(PlayerStatsMapBuilder.create().defaultValues().get()));
+    gameOptions(FXCollections.observableArrayList(GameOptionListBuilder.create().defaultValues().get()));
     return this;
   }
 
@@ -111,7 +117,7 @@ public class ReplayBuilder {
     return this;
   }
 
-  public ReplayBuilder reviewsSummary(GameReviewsSummary reviewsSummary) {
+  public ReplayBuilder reviewsSummary(ReviewsSummary reviewsSummary) {
     replay.setReviewsSummary(reviewsSummary);
     return this;
   }

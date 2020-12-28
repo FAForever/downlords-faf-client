@@ -13,9 +13,11 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.rating.RatingService;
+import com.faforever.client.replay.Replay.PlayerStats;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.Rating;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.ReviewBuilder;
@@ -25,6 +27,7 @@ import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.client.vault.review.StarController;
 import com.faforever.client.vault.review.StarsController;
 import javafx.collections.FXCollections;
+import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -39,16 +42,21 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -118,7 +126,9 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     when(reviewsController.getRoot()).thenReturn(new Pane());
     when(mapService.loadPreview(anyString(), eq(PreviewSize.LARGE))).thenReturn(mock(Image.class));
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(new Player("junit")));
+    when(playerService.getPlayersByIds(any())).thenReturn(CompletableFuture.completedFuture(List.of(PlayerBuilder.create("junit").defaultValues().get())));
     when(replayService.getSize(onlineReplay.getId())).thenReturn(CompletableFuture.completedFuture(12));
+    when(replayService.replayChangedRating(onlineReplay)).thenReturn(true);
     when(timeService.asDate(LocalDateTime.MIN)).thenReturn("Min Date");
     when(timeService.asShortTime(LocalDateTime.MIN)).thenReturn("Min Time");
     when(timeService.shortDuration(any(Duration.class))).thenReturn("Forever");
@@ -152,9 +162,10 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   public void setReplayOnline() {
     when(replayService.getSize(onlineReplay.getId())).thenReturn(CompletableFuture.completedFuture(1024));
     when(ratingService.calculateQuality(onlineReplay)).thenReturn(0.427);
-    when(i18n.get(eq("percentage"), anyLong())).thenReturn("42");
+    when(i18n.get(eq("percentage"), eq(Math.round(0.427 * 100)))).thenReturn("42");
 
     instance.setReplay(onlineReplay);
+    WaitForAsyncUtils.waitForFxEvents();
 
     verify(mapService).loadPreview(mapBean.getFolderName(), PreviewSize.LARGE);
     assertTrue(instance.ratingSeparator.isVisible());
@@ -162,15 +173,18 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     assertTrue(instance.reviewsContainer.isVisible());
     assertTrue(instance.teamsInfoBox.isVisible());
     assertTrue(instance.downloadMoreInfoButton.isVisible());
-    assertEquals(instance.dateLabel.getText(), "Min Date");
-    assertEquals(instance.timeLabel.getText(), "Min Time");
-    assertEquals(instance.durationLabel.getText(), "Forever");
-    assertEquals(instance.replayIdField.getText(), String.valueOf(onlineReplay.getId()));
-    assertEquals(instance.modLabel.getText(), "unknown");
-    assertEquals(instance.titleLabel.getText(), "test");
-    assertEquals(instance.playerCountLabel.getText(), "1234");
-    assertEquals(instance.qualityLabel.getText(), "42");
-    assertEquals(instance.onMapLabel.getText(), mapBean.getDisplayName());
+    assertTrue(instance.showRatingChangeButton.isVisible());
+    assertFalse(instance.showRatingChangeButton.isDisabled());
+    assertNotEquals("-", instance.ratingLabel.getText());
+    assertEquals("Min Date", instance.dateLabel.getText());
+    assertEquals("Min Time", instance.timeLabel.getText());
+    assertEquals("Forever", instance.durationLabel.getText());
+    assertEquals(String.valueOf(onlineReplay.getId()), instance.replayIdField.getText());
+    assertEquals("unknown", instance.modLabel.getText());
+    assertEquals("test", instance.titleLabel.getText());
+    assertEquals("1234", instance.playerCountLabel.getText());
+    assertEquals("42", instance.qualityLabel.getText());
+    assertEquals(mapBean.getDisplayName(), instance.onMapLabel.getText());
   }
 
   @Test
@@ -178,8 +192,10 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     when(ratingService.calculateQuality(localReplay)).thenReturn(Double.NaN);
 
     instance.setReplay(localReplay);
+    WaitForAsyncUtils.waitForFxEvents();
+
     verify(replayService).enrich(localReplay, localReplay.getReplayFile());
-    assertEquals(instance.replayIdField.getText(), String.valueOf(localReplay.getId()));
+    assertEquals(String.valueOf(localReplay.getId()), instance.replayIdField.getText());
     assertFalse(instance.ratingSeparator.isVisible());
     assertFalse(instance.reviewSeparator.isVisible());
     assertFalse(instance.reviewsContainer.isVisible());
@@ -189,7 +205,54 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     assertTrue(instance.optionsTable.isVisible());
     assertTrue(instance.chatTable.isVisible());
     assertTrue(instance.moreInformationPane.isVisible());
-    assertEquals(instance.titleLabel.textProperty().get(), "test");
+    assertEquals("test", instance.titleLabel.textProperty().get());
+  }
+
+  @Test
+  public void setReplayNoEndTime() {
+    onlineReplay.setEndTime(null);
+
+    instance.setReplay(onlineReplay);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertFalse(instance.durationLabel.isVisible());
+  }
+
+  @Test
+  public void setReplayNoTeamStats() {
+    onlineReplay.setTeamPlayerStats(FXCollections.emptyObservableMap());
+
+    instance.setReplay(onlineReplay);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertEquals("-", instance.ratingLabel.getText());
+  }
+
+  @Test
+  public void setReplayNoOnlineFile() {
+    when(replayService.getSize(onlineReplay.getId())).thenReturn(CompletableFuture.completedFuture(-1));
+    when(i18n.get("game.replayFileMissing")).thenReturn("file missing");
+
+    instance.setReplay(onlineReplay);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertEquals("file missing", instance.watchButton.getText());
+    assertEquals("file missing", instance.downloadMoreInfoButton.getText());
+    assertTrue(instance.watchButton.isDisabled());
+    assertTrue(instance.downloadMoreInfoButton.isDisabled());
+  }
+
+  @Test
+  public void setReplayNoRatingChange() {
+    when(replayService.replayChangedRating(onlineReplay)).thenReturn(false);
+    when(i18n.get("game.notRatedYet")).thenReturn("not rated yet");
+
+    instance.setReplay(onlineReplay);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertFalse(instance.showRatingChangeButton.isVisible());
+    assertTrue(instance.notRatedReasonLabel.isVisible());
+    assertEquals("not rated yet", instance.notRatedReasonLabel.getText());
   }
 
   @Test
@@ -203,6 +266,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     when(i18n.get("game.reasonNotValid", i18n.get(replay.getValidity().getI18nKey()))).thenReturn("Reason: HAS_AI");
 
     instance.setReplay(replay);
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.notRatedReasonLabel.isVisible());
     assertEquals("Reason: HAS_AI", instance.notRatedReasonLabel.getText());
@@ -215,7 +279,6 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     Replay replay = ReplayBuilder.create().defaultValues().replayTicks(10_000).get();
 
     instance.setReplay(replay);
-
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.replayDurationLabel.isVisible());
@@ -232,27 +295,76 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     replay.getReviews().add(review);
 
     instance.setReplay(replay);
+    WaitForAsyncUtils.waitForFxEvents();
+
     Path tmpPath = Paths.get("foo.tmp");
     when(replayService.downloadReplay(replay.getId())).thenReturn(CompletableFuture.completedFuture(tmpPath));
 
     instance.onDownloadMoreInfoClicked();
-
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(replayService).enrich(replay, tmpPath);
     assertTrue(instance.optionsTable.isVisible());
     assertTrue(instance.chatTable.isVisible());
+    assertFalse(instance.downloadMoreInfoButton.isVisible());
+  }
+
+  @Test
+  public void onDownloadMoreInfoClickedException() {
+    when(replayService.downloadReplay(anyInt())).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+
+    instance.setReplay(onlineReplay);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    instance.onDownloadMoreInfoClicked();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(notificationService).addImmediateErrorNotification(any(), eq("replay.enrich.error"));
+    assertFalse(instance.downloadMoreInfoButton.isVisible());
+  }
+
+  @Test
+  public void testGetPlayerFaction() {
+    Map<Integer, PlayerStats> statsByPlayerId = onlineReplay.getTeamPlayerStats().values().stream()
+        .flatMap(Collection::stream)
+        .collect(Collectors.toMap(PlayerStats::getPlayerId, Function.identity()));
+    int id = statsByPlayerId.keySet().stream().findFirst().orElseThrow();
+    PlayerStats playerStats = statsByPlayerId.get(id);
+    Player player = PlayerBuilder.create("junit").defaultValues().id(id).get();
+    assertEquals(playerStats.getFaction(), instance.getPlayerFaction(player, statsByPlayerId));
+  }
+
+  @Test
+  public void testGetPlayerRating() {
+    Map<Integer, PlayerStats> statsByPlayerId = onlineReplay.getTeamPlayerStats().values().stream()
+        .flatMap(Collection::stream)
+        .collect(Collectors.toMap(PlayerStats::getPlayerId, Function.identity()));
+    int id = statsByPlayerId.keySet().stream().findFirst().orElseThrow();
+    PlayerStats playerStats = statsByPlayerId.get(id);
+    Player player = PlayerBuilder.create("junit").defaultValues().id(id).get();
+    assertEquals(new Rating(playerStats.getBeforeMean(), playerStats.getBeforeDeviation()), instance.getPlayerRating(player, statsByPlayerId));
   }
 
   @Test
   public void testGetRoot() {
-    assertEquals(instance.getRoot(), instance.replayDetailRoot);
-    assertNull(instance.getRoot().getParent());
+    Node root = instance.getRoot();
+    assertEquals(instance.replayDetailRoot, root);
+    assertNull(root.getParent());
   }
 
   @Test
-  public void onCloseButtonClicked() {
+  public void testOnWatchButtonClicked() {
+    instance.setReplay(onlineReplay);
+    instance.onWatchButtonClicked();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(replayService).runReplay(onlineReplay);
+  }
+
+  @Test
+  public void testOnCloseButtonClicked() {
     instance.onCloseButtonClicked();
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.getRoot().isVisible());
   }
@@ -260,6 +372,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnDimmerClicked() {
     instance.onDimmerClicked();
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.getRoot().isVisible());
   }
@@ -268,8 +381,17 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   public void testOnContentPaneClicked() {
     MouseEvent event = mock(MouseEvent.class);
     instance.onContentPaneClicked(event);
+    WaitForAsyncUtils.waitForFxEvents();
 
     verify(event).consume();
+  }
+
+  @Test
+  public void testShowRatingChange() {
+    instance.showRatingChange();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertTrue(instance.showRatingChangeButton.isDisabled());
   }
 
   @Test
@@ -299,6 +421,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
 
     instance.setReplay(replay);
 
+
     when(reviewService.deleteGameReview(review)).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
 
     instance.onDeleteReview(review);
@@ -323,7 +446,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
 
     verify(reviewService).saveGameReview(review, replay.getId());
     assertTrue(replay.getReviews().contains(review));
-    assertEquals(review.getPlayer(), currentPlayer);
+    assertEquals(currentPlayer, review.getPlayer());
   }
 
   @Test
@@ -342,8 +465,8 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
 
     verify(reviewService).saveGameReview(review, replay.getId());
     assertTrue(replay.getReviews().contains(review));
-    assertEquals(review.getPlayer(), currentPlayer);
-    assertEquals(replay.getReviews().size(), 1);
+    assertEquals(currentPlayer, review.getPlayer());
+    assertEquals(1, replay.getReviews().size());
   }
 
   @Test
