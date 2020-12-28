@@ -46,7 +46,6 @@ public class ModVersionBuilder {
     icon("testIcon");
     ranked(true);
     hidden(false);
-    mod(ModBuilder.create().defaultValues().get());
     return this;
   }
 

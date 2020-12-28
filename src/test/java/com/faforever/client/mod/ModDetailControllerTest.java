@@ -77,12 +77,13 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     currentPlayer = PlayerBuilder.create("junit").defaultValues().get();
-    modVersion = ModVersionBuilder.create().defaultValues().get();
+    modVersion = ModVersionBuilder.create().defaultValues().mod(ModBuilder.create().defaultValues().get()).get();
     instance = new ModDetailController(modService, notificationService, i18n, reportingService, timeService, reviewService, playerService, uiService);
 
     installedModVersions = FXCollections.observableArrayList();
     when(modService.getInstalledModVersions()).thenReturn(installedModVersions);
-
+    when(i18n.get("modVault.details.author", modVersion.getMod().getAuthor())).thenReturn(modVersion.getMod().getAuthor());
+    when(i18n.get("modVault.details.uploader", modVersion.getMod().getUploader())).thenReturn(modVersion.getMod().getUploader());
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(currentPlayer));
 
     loadFxml("theme/vault/mod/mod_detail.fxml", clazz -> {
@@ -104,8 +105,6 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetMod() {
-    when(i18n.get("modVault.details.author", "ModVersion author")).thenReturn("ModVersion author");
-    when(i18n.get("modVault.details.uploader", "ModVersion uploader")).thenReturn("ModVersion uploader");
     Review review = ReviewBuilder.create().defaultValues().player(currentPlayer).get();
     modVersion.getReviews().add(review);
 
@@ -114,9 +113,9 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertEquals(instance.nameLabel.getText(), "ModVersion name");
-    assertEquals(instance.authorLabel.getText(), "ModVersion author");
-    assertEquals(instance.uploaderLabel.getText(), "ModVersion uploader");
+    assertEquals(modVersion.getDisplayName(), instance.nameLabel.getText());
+    assertEquals(modVersion.getMod().getAuthor(), instance.authorLabel.getText());
+    assertEquals(modVersion.getMod().getUploader(), instance.uploaderLabel.getText());
     assertNotNull(instance.thumbnailImageView.getImage());
     verify(modService).getModSize(modVersion);
     verify(modService).loadThumbnail(modVersion);
@@ -125,7 +124,6 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetModWithNoUploader() {
-    when(i18n.get("modVault.details.author", "ModVersion author")).thenReturn("ModVersion author");
     modVersion.getMod().setUploader(null);
 
     when(modService.loadThumbnail(modVersion)).thenReturn(new Image("/theme/images/default_achievement.png"));
@@ -133,8 +131,8 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertEquals(instance.nameLabel.getText(), "ModVersion name");
-    assertEquals(instance.authorLabel.getText(), "ModVersion author");
+    assertEquals(modVersion.getDisplayName(), instance.nameLabel.getText());
+    assertEquals(modVersion.getMod().getAuthor(), instance.authorLabel.getText());
     assertNull(instance.uploaderLabel.getText());
     assertNotNull(instance.thumbnailImageView.getImage());
     verify(modService).loadThumbnail(modVersion);
@@ -150,7 +148,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertEquals(instance.thumbnailImageView.getImage(), image);
+    assertEquals(image, instance.thumbnailImageView.getImage());
   }
 
   @Test
@@ -219,12 +217,13 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testGetRoot() throws Exception {
-    assertEquals(instance.getRoot(), instance.modDetailRoot);
+    assertEquals(instance.modDetailRoot, instance.getRoot());
     assertNull(instance.getRoot().getParent());
   }
 
   @Test
   public void testSetInstalledMod() {
+    modVersion.getMod().setAuthor("nobody");
     when(modService.isModInstalled(modVersion.getUid())).thenReturn(true);
     instance.setModVersion(modVersion);
     WaitForAsyncUtils.waitForFxEvents();
@@ -334,7 +333,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
     verify(reviewService).saveModVersionReview(review, modVersion.getId());
     assertTrue(modVersion.getReviews().contains(review));
-    assertEquals(review.getPlayer(), currentPlayer);
+    assertEquals(currentPlayer, review.getPlayer());
   }
 
   @Test
@@ -352,7 +351,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
     verify(reviewService).saveModVersionReview(review, modVersion.getId());
     assertTrue(modVersion.getReviews().contains(review));
-    assertEquals(review.getPlayer(), currentPlayer);
+    assertEquals(currentPlayer, review.getPlayer());
     assertEquals(modVersion.getReviews().size(), 1);
   }
 
