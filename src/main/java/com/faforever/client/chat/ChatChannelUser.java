@@ -45,14 +45,14 @@ public class ChatChannelUser {
   private final BooleanProperty displayed;
   private final BooleanProperty populated;
 
-  ChatChannelUser(String username, Color color, boolean moderator) {
-    this(username, color, moderator, null);
+  ChatChannelUser(String username, boolean moderator) {
+    this(username, moderator, null);
   }
 
-  ChatChannelUser(String username, Color color, boolean moderator, Player player) {
+  ChatChannelUser(String username, boolean moderator, Player player) {
     this.username = new SimpleStringProperty(username);
     this.moderator = new SimpleBooleanProperty(moderator);
-    this.color = new SimpleObjectProperty<>(color);
+    this.color = new SimpleObjectProperty<>();
     this.player = new SimpleObjectProperty<>(player);
     this.lastActive = new SimpleObjectProperty<>();
     this.gameStatus = new SimpleObjectProperty<>();

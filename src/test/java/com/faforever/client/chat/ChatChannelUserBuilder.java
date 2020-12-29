@@ -13,7 +13,7 @@ public final class ChatChannelUserBuilder {
   private final ChatChannelUser chatChannelUser;
 
   private ChatChannelUserBuilder(String username) {
-    chatChannelUser = new ChatChannelUser(username, Color.WHITE, false);
+    chatChannelUser = new ChatChannelUser(username, false);
   }
 
   public static ChatChannelUserBuilder create(String username) {

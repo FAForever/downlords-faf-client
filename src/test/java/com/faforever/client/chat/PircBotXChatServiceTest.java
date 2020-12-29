@@ -132,6 +132,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private UserService userService;
   @Mock
+  private ChatUserService chatUserService;
+  @Mock
   private TaskService taskService;
   @Mock
   private PreferencesService preferencesService;
@@ -170,7 +172,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
         .setDefaultChannel(DEFAULT_CHANNEL_NAME)
         .setReconnectDelay(100);
 
-    instance = new PircBotXChatService(preferencesService, userService, taskService, fafService, i18n, pircBotXFactory,
+    instance = new PircBotXChatService(preferencesService, chatUserService, userService, taskService, fafService, i18n, pircBotXFactory,
         executorService, eventBus, clientProperties, playerService);
 
     botShutdownLatch = new CountDownLatch(1);

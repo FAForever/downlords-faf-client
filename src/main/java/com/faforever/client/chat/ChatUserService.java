@@ -9,17 +9,25 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.player.Player;
+import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.WeakInvalidationListener;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+
+import static com.faforever.client.chat.ChatColorMode.DEFAULT;
+import static com.faforever.client.chat.ChatColorMode.RANDOM;
+import static com.faforever.client.chat.ChatUserCategory.MODERATOR;
+import static java.util.Locale.US;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +38,7 @@ public class ChatUserService implements InitializingBean {
   private final AvatarService avatarService;
   private final ClanService clanService;
   private final CountryFlagService countryFlagService;
+  private final PreferencesService preferencesService;
   private final I18n i18n;
   private final EventBus eventBus;
 
@@ -114,6 +123,34 @@ public class ChatUserService implements InitializingBean {
     }
   }
 
+  public void populateColor(ChatChannelUser chatChannelUser) {
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+    Optional<Player> optionalPlayer = chatChannelUser.getPlayer();
+    String lowercaseUsername = chatChannelUser.getUsername().toLowerCase(US);
+
+    Color color = null;
+    if (chatPrefs.getChatColorMode() == null) {
+      chatPrefs.setChatColorMode(DEFAULT);
+    }
+
+    if (chatPrefs.getChatColorMode() == DEFAULT && chatPrefs.getUserToColor().containsKey(lowercaseUsername)) {
+      color = chatPrefs.getUserToColor().get(lowercaseUsername);
+    } else if (chatPrefs.getChatColorMode() == DEFAULT && chatChannelUser.isModerator() && chatPrefs.getGroupToColor().containsKey(MODERATOR)) {
+      color = chatPrefs.getGroupToColor().get(MODERATOR);
+    } else if (chatPrefs.getChatColorMode() == DEFAULT && optionalPlayer.isPresent()) {
+      ChatUserCategory chatUserCategory = optionalPlayer.map(player -> switch (player.getSocialStatus()) {
+        case FRIEND -> ChatUserCategory.FRIEND;
+        case FOE -> ChatUserCategory.FOE;
+        default -> ChatUserCategory.OTHER;
+      }).orElse(ChatUserCategory.CHAT_ONLY);
+      color = chatPrefs.getGroupToColor().get(chatUserCategory);
+    } else if (chatPrefs.getChatColorMode() == RANDOM) {
+      color = ColorGeneratorUtil.generateRandomColor(lowercaseUsername.hashCode());
+    }
+
+    chatChannelUser.setColor(color);
+  }
+
   private void setGamesImages(ChatChannelUser chatChannelUser, Player player) {
     PlayerStatus status = player.getStatus();
     Image playerStatusImage = switch (status) {
@@ -143,17 +180,21 @@ public class ChatUserService implements InitializingBean {
       populateClan(chatChannelUser);
       populateCountry(chatChannelUser);
       populateAvatar(chatChannelUser);
+      populateColor(chatChannelUser);
       JavaFxUtil.addListener(chatChannelUser.populatedProperty(),
           (observable) -> {
             populateGameImages(chatChannelUser);
             populateClan(chatChannelUser);
             populateCountry(chatChannelUser);
             populateAvatar(chatChannelUser);
+            populateColor(chatChannelUser);
           });
       JavaFxUtil.addListener(chatChannelUser.gameStatusProperty(),
           new WeakInvalidationListener((observable) -> populateGameImages(chatChannelUser)));
       JavaFxUtil.addListener(chatChannelUser.clanTagProperty(),
           new WeakInvalidationListener((observable) -> populateClan(chatChannelUser)));
+      JavaFxUtil.addListener(chatChannelUser.socialStatusProperty(),
+          new WeakInvalidationListener((observable) -> populateColor(chatChannelUser)));
       JavaFxUtil.addListener(player.avatarUrlProperty(),
           new WeakInvalidationListener((observable) -> populateAvatar(chatChannelUser)));
       JavaFxUtil.addListener(player.countryProperty(),

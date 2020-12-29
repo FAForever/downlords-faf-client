@@ -176,7 +176,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
     MapChangeListener.Change<? extends String, ? extends ChatChannelUser> change = mock(MapChangeListener.Change.class);
     when(change.wasAdded()).thenReturn(true);
-    doReturn(new ChatChannelUser(TEST_USER_NAME, null, false)).when(change).getValueAdded();
+    doReturn(new ChatChannelUser(TEST_USER_NAME, false)).when(change).getValueAdded();
     onUsersListenerCaptor.getValue().onChanged(change);
 
     CountDownLatch tabAddedLatch = new CountDownLatch(1);

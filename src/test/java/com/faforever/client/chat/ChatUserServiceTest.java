@@ -12,17 +12,24 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
+import com.faforever.client.player.SocialStatus;
+import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
+import javafx.collections.FXCollections;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.net.URL;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -44,6 +51,8 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private CountryFlagService countryFlagService;
   @Mock
+  private PreferencesService preferencesService;
+  @Mock
   private I18n i18n;
   @Mock
   private UiService uiService;
@@ -55,6 +64,10 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   private MapService mapService;
   @Mock
   private AvatarBean avatar;
+  @Mock
+  private Preferences preferences;
+  @Mock
+  private ChatPrefs chatPrefs;
   private URL avatarURL;
 
   private Clan testClan;
@@ -72,6 +85,11 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     when(avatar.getUrl()).thenReturn(avatarURL);
     when(avatar.getDescription()).thenReturn("fancy");
     when(i18n.getCountryNameLocalized("US")).thenReturn("United States");
+    when(preferencesService.getPreferences()).thenReturn(preferences);
+    when(preferences.getChat()).thenReturn(chatPrefs);
+    when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.DEFAULT);
+    when(chatPrefs.getUserToColor()).thenReturn(FXCollections.observableHashMap());
+    when(chatPrefs.getGroupToColor()).thenReturn(FXCollections.observableHashMap());
 
     instance = new ChatUserService(
         uiService,
@@ -79,6 +97,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
         avatarService,
         clanService,
         countryFlagService,
+        preferencesService,
         i18n,
         eventBus
     );
@@ -263,5 +282,64 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     assertTrue(chatUser.getMapImage().isPresent());
     assertEquals(PlayerStatus.LOBBYING, chatUser.getGameStatus().orElse(null));
     assertEquals("Waiting for game to start", chatUser.getStatusTooltipText().orElse(null));
+  }
+
+  @Test
+  public void testUserColorNotSet() {
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
+        .defaultValues()
+        .get();
+    instance.populateColor(chatUser);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertTrue(chatUser.getColor().isEmpty());
+  }
+
+  @Test
+  public void testUserColorSetNoPlayer() {
+    when(chatPrefs.getUserToColor()).thenReturn(FXCollections.observableMap(Map.of("junit", Color.AQUA)));
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
+        .defaultValues()
+        .get();
+    instance.populateColor(chatUser);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertTrue(chatUser.getColor().isPresent());
+    assertEquals(chatUser.getColor().get(), Color.AQUA);
+  }
+
+  @Test
+  public void testGroupColorSet() {
+    when(chatPrefs.getGroupToColor()).thenReturn(FXCollections.observableMap(Map.of(ChatUserCategory.FRIEND, Color.AQUA)));
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
+        .defaultValues()
+        .get();
+    Player player = PlayerBuilder.create("junit")
+        .defaultValues()
+        .socialStatus(SocialStatus.FRIEND)
+        .get();
+    instance.associatePlayerToChatUser(chatUser, player);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertTrue(chatUser.getColor().isPresent());
+    assertEquals(chatUser.getColor().get(), Color.AQUA);
+  }
+
+  @Test
+  public void testModeratorColorOverGroup() {
+    when(chatPrefs.getGroupToColor()).thenReturn(FXCollections.observableMap(Map.of(ChatUserCategory.MODERATOR, Color.RED, ChatUserCategory.FRIEND, Color.AQUA)));
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
+        .defaultValues()
+        .moderator(true)
+        .get();
+    Player player = PlayerBuilder.create("junit")
+        .defaultValues()
+        .socialStatus(SocialStatus.FRIEND)
+        .get();
+    instance.associatePlayerToChatUser(chatUser, player);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertTrue(chatUser.getColor().isPresent());
+    assertEquals(chatUser.getColor().get(), Color.RED);
   }
 }

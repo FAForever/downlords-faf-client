@@ -44,7 +44,6 @@ public interface FafApiAccessor {
 
   List<PlayerAchievement> getPlayerAchievements(int playerId);
 
-  @SuppressWarnings("unchecked")
   List<PlayerEvent> getPlayerEvents(int playerId);
 
   List<AchievementDefinition> getAchievementDefinitions();
