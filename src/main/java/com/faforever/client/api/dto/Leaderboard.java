@@ -3,6 +3,7 @@ package com.faforever.client.api.dto;
 import com.github.jasminb.jsonapi.annotations.Id;
 import com.github.jasminb.jsonapi.annotations.Type;
 import lombok.Data;
+
 import java.time.OffsetDateTime;
 
 @Data
@@ -12,7 +13,7 @@ public class Leaderboard {
   private String id;
   private OffsetDateTime createTime;
   private OffsetDateTime updateTime;
-  private String description_key;
-  private String name_key;
-  private String technical_name;
+  private String descriptionKey;
+  private String nameKey;
+  private String technicalName;
 }
