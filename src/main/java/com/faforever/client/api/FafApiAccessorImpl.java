@@ -465,6 +465,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Cacheable(value = CacheNames.MATCHMAKER_QUEUES, sync = true)
   public Optional<MatchmakerQueue> getMatchmakerQueue(String technicalName) {
     List<MatchmakerQueue> queue = getAll("/data/matchmakerQueue", java.util.Map.of(
+        INCLUDE, "leaderboard",
         FILTER, rsql(qBuilder().string("technicalName").eq(technicalName))));
     if (queue.isEmpty()) {
       return Optional.empty();
