@@ -431,6 +431,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
+  @Cacheable(value = CacheNames.MATCHMAKER_POOLS, sync = true)
   public List<MatchmakerQueueMapPool> getMatchmakerPools(int matchmakerQueueId) {
     return getAll("/data/matchmakerQueueMapPool", java.util.Map.of(
         "include", "matchmakerQueue,mapPool,mapPool.mapVersions," +
