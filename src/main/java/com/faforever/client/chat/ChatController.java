@@ -31,6 +31,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.faforever.client.chat.ChatService.PARTY_CHANNEL_SUFFIX;
+
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -194,7 +196,7 @@ public class ChatController extends AbstractViewController<Node> {
   }
 
   private boolean isMatchmakerPartyMessage(String channelName) {
-    return channelName.endsWith("'sParty");
+    return channelName.endsWith(PARTY_CHANNEL_SUFFIX);
   }
 
   private AbstractChatTabController addAndGetPrivateMessageTab(String username) {

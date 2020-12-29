@@ -49,6 +49,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import static com.faforever.client.chat.ChatService.PARTY_CHANNEL_SUFFIX;
 import static javafx.beans.binding.Bindings.createBooleanBinding;
 import static javafx.beans.binding.Bindings.createObjectBinding;
 import static javafx.beans.binding.Bindings.createStringBinding;
@@ -139,9 +140,9 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       if (matchmakingChatController != null) {
         matchmakingChatController.closeChannel();
       }
-      createChannelTab(String.format("#%s'sParty", newValue.getUsername()));
+      createChannelTab("#" + newValue.getUsername() + PARTY_CHANNEL_SUFFIX);
     });
-    createChannelTab(String.format("#%s'sParty", teamMatchmakingService.getParty().getOwner().getUsername()));
+    createChannelTab("#" + teamMatchmakingService.getParty().getOwner().getUsername() + PARTY_CHANNEL_SUFFIX);
 
     fafService.requestMatchmakerInfo();
   }
