@@ -136,10 +136,10 @@ public class ChatController extends AbstractViewController<Node> {
     eventBus.register(this);
 
     chatService.addChannelsListener(change -> {
-      if (change.wasRemoved() && !change.getValueRemoved().getName().endsWith("'sParty")) {
+      if (change.wasRemoved() && !isMatchmakerPartyMessage(change.getValueRemoved().getName())) {
         onChannelLeft(change.getValueRemoved());
       }
-      if (change.wasAdded() && !change.getValueAdded().getName().endsWith("'sParty")) {
+      if (change.wasAdded() && !isMatchmakerPartyMessage(change.getValueAdded().getName())) {
         onChannelJoined(change.getValueAdded());
       }
     });
@@ -190,7 +190,11 @@ public class ChatController extends AbstractViewController<Node> {
   }
 
   private boolean isMatchmakerPartyMessage(ChatMessage message) {
-    return message.getSource() != null && message.getSource().endsWith("'sParty");
+    return message.getSource() != null && isMatchmakerPartyMessage(message.getSource());
+  }
+
+  private boolean isMatchmakerPartyMessage(String channelName) {
+    return channelName.endsWith("'sParty");
   }
 
   private AbstractChatTabController addAndGetPrivateMessageTab(String username) {

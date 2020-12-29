@@ -14,6 +14,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.VBox;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -25,6 +26,7 @@ import java.time.Instant;
 import static javafx.beans.binding.Bindings.createBooleanBinding;
 import static javafx.beans.binding.Bindings.createStringBinding;
 
+@Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class MatchmakingQueueItemController implements Controller<VBox> {
@@ -87,6 +89,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
         case MATCH_FOUND -> matchFoundLabel.setVisible(true);
         case GAME_LAUNCHING -> matchStartingLabel.setVisible(true);
         case MATCH_CANCELLED -> matchCancelledLabel.setVisible(true);
+        default -> log.warn("Unexpected matching status: " + newValue);
       }
     });
 

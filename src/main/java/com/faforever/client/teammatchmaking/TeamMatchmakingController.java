@@ -15,7 +15,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.ui.dialog.Dialog;
 import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -244,7 +243,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public void onInvitePlayerButtonClicked(ActionEvent actionEvent) {
     InvitePlayerController invitePlayerController = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_invite_player.fxml");
     Pane root = invitePlayerController.getRoot();
-    Dialog dialog = uiService.showInDialog(teamMatchmakingRoot, root, i18n.get("teammatchmaking.invitePlayer"));
+    uiService.showInDialog(teamMatchmakingRoot, root, i18n.get("teammatchmaking.invitePlayer"));
   }
 
   public void onLeavePartyButtonClicked(ActionEvent actionEvent) {
