@@ -252,7 +252,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   }
 
   public void onFactionButtonClicked(ActionEvent actionEvent) {
-
     if (!uefButton.isSelected() && !aeonButton.isSelected() && !cybranButton.isSelected() && !seraphimButton.isSelected()) {
       selectFactionsBasedOnParty();
       return;
@@ -300,15 +299,13 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
   @Subscribe
   public void onChatMessage(ChatMessageEvent event) {
-    Platform.runLater(() -> {
-      ChatMessage message = event.getMessage();
-      if (message.getSource().equals(matchmakingChatController.getReceiver())) {
-        matchmakingChatController.onChatMessage(message);
-      }
-    });
+    ChatMessage message = event.getMessage();
+    if (message.getSource().equals(matchmakingChatController.getReceiver())) {
+      Platform.runLater(() -> matchmakingChatController.onChatMessage(message));
+    }
   }
 
-  private synchronized void renderQueues() {
+  private void renderQueues() {
     Platform.runLater(() -> {
       List<MatchmakingQueue> queues = Collections.synchronizedList(teamMatchmakingService.getMatchmakingQueues());
       synchronized (queues) {
