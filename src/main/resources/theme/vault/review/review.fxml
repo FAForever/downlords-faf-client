@@ -37,8 +37,8 @@
                         <fx:include fx:id="displayStars" source="stars.fxml"/>
                     </children>
                 </HBox>
-                <Label fx:id="versionLabel" styleClass="h3" GridPane.columnIndex="1" GridPane.rowIndex="2"
-                       GridPane.valignment="TOP" GridPane.vgrow="ALWAYS"/>
+                <Label fx:id="versionLabel" styleClass="h3" text="&lt;VersionLabel&gt;" GridPane.columnIndex="1"
+                       GridPane.rowIndex="2" GridPane.valignment="TOP" GridPane.vgrow="ALWAYS"/>
                 <Label fx:id="reviewTextLabel" alignment="TOP_LEFT" maxHeight="1.7976931348623157E308"
                        maxWidth="1.7976931348623157E308"
                        text="Long texts should be wrapped but as it turns out, this is not too easy to do. The final problem was that the minimum width of the parents had to be changed from USE_COMPUTED_SIZE to 0 (or just any value that is appropriate)."

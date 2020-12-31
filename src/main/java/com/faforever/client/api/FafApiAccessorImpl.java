@@ -99,7 +99,8 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
       "map.reviewsSummary,map.versions.reviews,map.versions.reviews.player";
   private static final String MAP_STATISTICS_INCLUDES = "map,map.statistics,map.latestVersion,map.author," +
       "map.versions.reviews,map.versions.reviews.player,map.reviewsSummary";
-  private static final String MOD_INCLUDES = "latestVersion,reviewsSummary,versions,versions.reviews";
+  private static final String MOD_INCLUDES = "latestVersion,reviewsSummary,versions,versions.reviews," +
+      "versions.reviews.player";
   private static final String COOP_RESULT_INCLUDES = "game.playerStats.player";
   private static final String PLAYER_INCLUDES = "globalRating,ladder1v1Rating,names";
   private static final String OAUTH_TOKEN_PATH = "/oauth/token";
