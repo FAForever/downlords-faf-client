@@ -2,6 +2,7 @@ package com.faforever.client.main;
 
 import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.FafClientApplication;
+import com.faforever.client.chat.event.UnreadPartyMessageEvent;
 import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.discord.JoinDiscordEvent;
@@ -10,12 +11,10 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GamePathHandler;
-import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
-import com.faforever.client.main.event.Open1v1Event;
 import com.faforever.client.news.UnreadNewsEvent;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
@@ -24,16 +23,10 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.notification.TransientNotificationsController;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.preferences.ui.SettingsController;
-import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
-import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue.QueueName;
-import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.alert.Alert;
@@ -92,9 +85,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.github.nocatch.NoCatch.noCatch;
@@ -114,17 +105,13 @@ public class MainController implements Controller<Node> {
   private final PreferencesService preferencesService;
   private final I18n i18n;
   private final NotificationService notificationService;
-  private final PlayerService playerService;
-  private final GameService gameService;
   private final UiService uiService;
   private final EventBus eventBus;
   private final GamePathHandler gamePathHandler;
   private final PlatformService platformService;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final String mainWindowTitle;
-  private final int ratingBeta;
   private final boolean alwaysReloadTabs;
-  private final Environment environment;
 
   public Pane mainHeaderPane;
   public Pane contentPane;
@@ -156,24 +143,20 @@ public class MainController implements Controller<Node> {
 
   @Inject
   public MainController(PreferencesService preferencesService, I18n i18n,
-                        NotificationService notificationService, PlayerService playerService,
-                        GameService gameService, UiService uiService, EventBus eventBus,
+                        NotificationService notificationService,
+                        UiService uiService, EventBus eventBus,
                         GamePathHandler gamePathHandler, PlatformService platformService,
                         ClientProperties clientProperties, ApplicationEventPublisher applicationEventPublisher, Environment environment) {
     this.preferencesService = preferencesService;
     this.i18n = i18n;
     this.notificationService = notificationService;
-    this.playerService = playerService;
-    this.gameService = gameService;
     this.uiService = uiService;
     this.eventBus = eventBus;
     this.gamePathHandler = gamePathHandler;
     this.platformService = platformService;
     this.applicationEventPublisher = applicationEventPublisher;
-    this.environment = environment;
     this.viewCache = CacheBuilder.newBuilder().build();
     this.mainWindowTitle = clientProperties.getMainWindowTitle();
-    this.ratingBeta = clientProperties.getTrueSkill().getBeta();
     alwaysReloadTabs = Arrays.asList(environment.getActiveProfiles()).contains(FafClientApplication.PROFILE_RELOAD);
   }
 
@@ -227,7 +210,6 @@ public class MainController implements Controller<Node> {
     notificationService.addPersistentNotificationListener(change -> runLater(() -> updateNotificationsButton(change.getSet())));
     notificationService.addImmediateNotificationListener(notification -> runLater(() -> displayImmediateNotification(notification)));
     notificationService.addTransientNotificationListener(notification -> runLater(() -> transientNotificationsController.addNotification(notification)));
-    gameService.addOnRankedMatchNotificationListener(this::onMatchmakerMessage);
     // Always load chat immediately so messages or joined channels don't need to be cached until we display them.
     getView(NavigationItem.CHAT);
 
@@ -278,7 +260,12 @@ public class MainController implements Controller<Node> {
   }
 
   @Subscribe
-  public void onUnreadMessage(UnreadPrivateMessageEvent event) {
+  public void onUnreadPartyMessage(UnreadPartyMessageEvent event) {
+    runLater(() -> playButton.pseudoClassStateChanged(HIGHLIGHTED, !currentItem.equals(NavigationItem.PLAY)));
+  }
+
+  @Subscribe
+  public void onUnreadPrivateMessage(UnreadPrivateMessageEvent event) {
     runLater(() -> chatButton.pseudoClassStateChanged(HIGHLIGHTED, !currentItem.equals(NavigationItem.CHAT)));
   }
 
@@ -332,58 +319,6 @@ public class MainController implements Controller<Node> {
     notificationButton.pseudoClassStateChanged(NOTIFICATION_INFO_PSEUDO_CLASS, highestSeverity == Severity.INFO);
     notificationButton.pseudoClassStateChanged(NOTIFICATION_WARN_PSEUDO_CLASS, highestSeverity == Severity.WARN);
     notificationButton.pseudoClassStateChanged(NOTIFICATION_ERROR_PSEUDO_CLASS, highestSeverity == Severity.ERROR);
-  }
-
-  private void onMatchmakerMessage(MatchmakerInfoMessage message) {
-    if (message.getQueues() == null
-        || gameService.gameRunningProperty().get()
-        || gameService.searching1v1Property().get()
-        || !preferencesService.getPreferences().getNotification().getLadder1v1ToastEnabled()
-        || !playerService.getCurrentPlayer().isPresent()) {
-      return;
-    }
-
-    Player currentPlayer = playerService.getCurrentPlayer().get();
-
-    int deviationFor80PercentQuality = (int) (ratingBeta / 2.5f);
-    int deviationFor75PercentQuality = (int) (ratingBeta / 1.25f);
-    float leaderboardRatingDeviation = currentPlayer.getLeaderboardRatingDeviation();
-
-    Function<MatchmakerInfoMessage.MatchmakerQueue, List<RatingRange>> ratingRangesSupplier;
-    if (leaderboardRatingDeviation <= deviationFor80PercentQuality) {
-      ratingRangesSupplier = MatchmakerInfoMessage.MatchmakerQueue::getBoundary80s;
-    } else if (leaderboardRatingDeviation <= deviationFor75PercentQuality) {
-      ratingRangesSupplier = MatchmakerInfoMessage.MatchmakerQueue::getBoundary75s;
-    } else {
-      return;
-    }
-
-    float leaderboardRatingMean = currentPlayer.getLeaderboardRatingMean();
-    boolean showNotification = false;
-    for (MatchmakerInfoMessage.MatchmakerQueue matchmakerQueue : message.getQueues()) {
-      if (!Objects.equals(QueueName.LADDER_1V1, matchmakerQueue.getQueueName())) {
-        continue;
-      }
-      List<RatingRange> ratingRanges = ratingRangesSupplier.apply(matchmakerQueue);
-
-      for (RatingRange ratingRange : ratingRanges) {
-        if (ratingRange.getMin() <= leaderboardRatingMean && leaderboardRatingMean <= ratingRange.getMax()) {
-          showNotification = true;
-          break;
-        }
-      }
-    }
-
-    if (!showNotification) {
-      return;
-    }
-
-    notificationService.addNotification(new TransientNotification(
-        i18n.get("ranked1v1.notification.title"),
-        i18n.get("ranked1v1.notification.message"),
-        uiService.getThemeImage(UiService.LADDER_1V1_IMAGE),
-        event -> eventBus.post(new Open1v1Event())
-    ));
   }
 
   public void display() {
@@ -631,6 +566,11 @@ public class MainController implements Controller<Node> {
 
   public void onChat(ActionEvent actionEvent) {
     chatButton.pseudoClassStateChanged(HIGHLIGHTED, false);
+    onNavigateButtonClicked(actionEvent);
+  }
+
+  public void onPlay(ActionEvent actionEvent) {
+    playButton.pseudoClassStateChanged(HIGHLIGHTED, false);
     onNavigateButtonClicked(actionEvent);
   }
 

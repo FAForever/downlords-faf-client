@@ -302,6 +302,12 @@ public class PlayerService implements InitializingBean {
     return fafService.getPlayersByIds(playerIds);
   }
 
+  public List<Player> getOnlinePlayersByIds(Collection<Integer> playerIds) {
+    return playerIds.stream()
+        .map(playersById::get)
+        .collect(Collectors.toList());
+  }
+
   private void onPlayersInfo(PlayersMessage playersMessage) {
     playersMessage.getPlayers().forEach(dto -> JavaFxUtil.assureRunOnMainThread(() -> onPlayerInfo(dto)));
   }

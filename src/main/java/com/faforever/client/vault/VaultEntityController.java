@@ -330,7 +330,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   }
 
   public enum SearchType {
-    SEARCH, OWN, NEWEST, HIGHEST_RATED, PLAYER, RECOMMENDED, LADDER, PLAYED, HIGHEST_RATED_UI
+    SEARCH, OWN, NEWEST, HIGHEST_RATED, PLAYER, RECOMMENDED, MAP_POOL, PLAYED, HIGHEST_RATED_UI
   }
 
   @Value

@@ -1,3 +1,13 @@
+@font-face {
+  src: url("../font/SourceSansPro-Light.ttf"),
+}
+@font-face {
+  src: url("../font/SourceSansPro-Regular.ttf"),
+}
+@font-face {
+  src: url("../font/SourceSansPro-SemiBold.ttf"),
+}
+
 .secondary {
   -fx-text-fill: derive(-fx-text-background-color, -30%);
 }
@@ -719,26 +729,192 @@
   -fx-graphic-text-gap: 1em;
 }
 
-/***************** Faction buttons *****************/
+/***************** Match maker *****************/
 
-.toggle-button.faction-button {
-  -fx-background-radius: 3;
-  -fx-border-radius: 3;
-  -fx-border-color: -fx-box-border;
-  -fx-border-width: 1;
-  -fx-padding: 1em;
-  -fx-min-width: 6em;
-  -fx-min-height: 6em;
-  -fx-max-width: 6em;
-  -fx-max-height: 6em;
-  -fx-background-color: -fx-background;
-  -fx-background: -fx-control-inner-background;
+.tmm {
+  -fx-background-color: transparent;
+  -fx-background-radius: 10;
+  -fx-border-radius: 10;
+  -fx-border-width: 2;
+  -fx-border-color: #424242;
 }
 
-.toggle-button.faction-button .aeon-icon,
-.toggle-button.faction-button .seraphim-icon {
-  -fx-max-width: 3em;
-  -fx-max-height: 4em;
+.tmm-chat {
+  -fx-background-color: transparent;
+  -fx-border-width: 2 0 0 0;
+  -fx-border-color: #424242;
+}
+
+.chat-tab-pane {
+    -fx-tab-max-height: 0 ;
+      -fx-border-width: 0 0 0 2;
+      -fx-border-color: #424242;
+}
+
+.chat-tab-pane:bottom {
+      -fx-border-width: 2 0 0 0;
+}
+
+.chat-tab-pane .tab-header-area {
+    visibility: hidden ;
+}
+
+.player-card {
+  -fx-background-color: #1d1d1d99;
+  -fx-border-color: #636363;
+  -fx-background-radius: 9;
+  -fx-border-radius: 9;
+  -fx-border-width: 1;
+}
+
+.player-card:leader {
+  -fx-border-color: #dddddd;
+}
+
+.player-card:playing {
+  -fx-border-color: #dd2020;
+}
+
+.h1-tmm {
+  -fx-font-size: 24px;
+  -fx-padding: -9 0 -9 16;
+  -fx-text-fill: #5f5f5f;
+  -fx-font-family: 'Source Sans Pro Semibold';
+}
+
+.name {
+  -fx-font-size: 24px;
+  -fx-font-family: 'Source Sans Pro Semibold';
+  -fx-text-fill: #e19e3b;
+}
+
+.member-name {
+  -fx-font-size: 20px;
+  -fx-font-family: 'Source Sans Pro Semibold';
+  -fx-text-fill: -fx-text-color;
+}
+
+.clan {
+  -fx-font-size: 12px;
+  -fx-font-family: 'Source Sans Pro Light';
+  -fx-text-fill: -fx-text-color;
+}
+
+.player-card-text {
+  -fx-font-size: 14px;
+  -fx-font-family: 'Source Sans Pro';
+  -fx-text-fill: #8f8f8f;
+}
+
+.invite-button {
+  -fx-border-color: -fx-accent;
+  -fx-padding: 3 14;
+  -fx-pref-height: 29px;
+}
+
+.invite-button:hover {
+  -fx-background-color: #2b71d930;
+}
+
+.leave-button {
+  -fx-border-color: #cb0e0e;
+  -fx-padding: 3 14;
+  -fx-pref-height: 29px;
+}
+
+.leave-button:hover {
+  -fx-background-color: #cb0e0e30;
+}
+
+.invite-button .text,
+.leave-button .text {
+  -fx-font-family: 'Source Sans Pro';
+  -fx-text-fill: -fx-text-color;
+  -fx-font-size: 14px;
+}
+
+.toggle-button.queue {
+  -fx-border-color: -fx-accent;
+  -fx-min-height: 50px;
+}
+
+.toggle-button.queue:hover {
+  -fx-background-color: #2b71d930;
+}
+
+.toggle-button.queue:selected {
+  -fx-background-color: -fx-accent;
+}
+
+.toggle-button.queue .text {
+  -fx-font-family: 'Source Sans Pro Semibold';
+  -fx-text-fill: -fx-text-color;
+  -fx-font-size: 24px;
+}
+
+.map-pool:hover {
+  -fx-background-color: #42424230;
+}
+
+.kickbutton {
+  -fx-background-color: transparent;
+}
+
+.faction-indicator {
+  -fx-pref-width: 18;
+  -fx-pref-height: 18;
+}
+
+.faction-indicator:disabled {
+  -fx-opacity: 0.2;
+}
+
+.empty-cells-transparent .list-cell:empty {
+    -fx-opacity: 0;
+}
+
+
+/***************** Faction buttons *****************/
+
+.toggle-button.aeon:selected {
+  -fx-border-color: AEON_COLOR;
+}
+
+.toggle-button.cybran:selected {
+  -fx-border-color: CYBRAN_COLOR;
+}
+
+.toggle-button.uef:selected {
+  -fx-border-color: UEF_COLOR;
+}
+
+.toggle-button.seraphim:selected {
+  -fx-border-color: SERAPHIM_COLOR;
+}
+
+.toggle-button.faction-button {
+  -fx-min-width: 50;
+  -fx-max-width: 50;
+  -fx-max-height: 50;
+  -fx-padding: 6;
+}
+
+.toggle-button.faction-button:hover * {
+  -fx-opacity: 1;
+  -fx-background-color: -fx-text-color;
+}
+
+/* 34 * aspect ratio */
+.toggle-button .cybran-icon {
+    -fx-max-height: 32.7;
+}
+
+.toggle-button .aeon-icon {
+    -fx-max-width: 24.3;
+}
+
+.toggle-button .seraphim-icon {
+    -fx-max-width: 28;
 }
 
 .toggle-button.faction-button * {
@@ -747,11 +923,6 @@
 
 .toggle-button.faction-button:selected * {
   -fx-opacity: 1;
-}
-
-.toggle-button.faction-button:selected {
-  -fx-background: derive(-fx-control-inner-background, 10%);
-  -fx-color: -fx-accent;
 }
 
 .toggle-button.pane-toggler {

@@ -27,6 +27,18 @@ public class FactionTypeAdapter extends TypeAdapter<Faction> {
       in.nextNull();
       return null;
     }
-    return Faction.fromString(in.nextString());
+    String s = in.nextString();
+    Faction faction = Faction.fromString(s);
+    if (faction != null) {
+      return faction;
+    } else {
+      // this is necessary as the faction is expressed everywhere as a string but the game launch message
+      // uses id's for legacy purposes which have been ignored by the java client so far
+      try {
+        return Faction.fromFaValue(Integer.parseInt(s));
+      } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+        return null;
+      }
+    }
   }
 }

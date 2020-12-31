@@ -14,16 +14,11 @@ import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
-import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.notification.TransientNotificationsController;
-import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.ui.SettingsController;
-import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
-import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue.QueueName;
-import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
@@ -48,7 +43,6 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
@@ -56,10 +50,7 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
-import java.util.function.Consumer;
 
-import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
@@ -69,7 +60,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -131,17 +121,12 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
     when(environment.getActiveProfiles()).thenReturn(ArrayUtils.EMPTY_STRING_ARRAY);
 
-    instance = new MainController(preferencesService, i18n, notificationService, playerService, gameService,
-        uiService, eventBus, gamePathHandler, platformService, clientProperties, applicationEventPublisher, environment);
+    instance = new MainController(preferencesService, i18n, notificationService, uiService, eventBus,
+        gamePathHandler, platformService, clientProperties, applicationEventPublisher, environment);
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(loginController.getRoot()).thenReturn(new Pane());
     when(preferencesService.getPreferences()).thenReturn(preferences);
-
-    gameRunningProperty = new SimpleBooleanProperty();
-    BooleanProperty searching1v1Property = new SimpleBooleanProperty();
-    when(gameService.gameRunningProperty()).thenReturn(gameRunningProperty);
-    when(gameService.searching1v1Property()).thenReturn(searching1v1Property);
 
     when(uiService.loadFxml("theme/persistent_notifications.fxml")).thenReturn(persistentNotificationsController);
     when(uiService.loadFxml("theme/transient_notifications.fxml")).thenReturn(transientNotificationsController);
@@ -246,82 +231,11 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnMatchMakerMessageDisplaysNotification80Quality() {
-    prepareTestMatchmakerMessageTest(100);
-    verify(notificationService).addNotification(any(TransientNotification.class));
-  }
-
-  @Test
   public void testOnChat() throws Exception {
     instance.chatButton.pseudoClassStateChanged(HIGHLIGHTED, true);
     instance.onChat(new ActionEvent(instance.chatButton, Event.NULL_SOURCE_TARGET));
     assertThat(instance.chatButton.getPseudoClassStates().contains(HIGHLIGHTED), is(false));
 
-  }
-
-  private void prepareTestMatchmakerMessageTest(float deviation) {
-    @SuppressWarnings("unchecked")
-    ArgumentCaptor<Consumer<MatchmakerInfoMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
-    preferences.getNotification().setLadder1v1ToastEnabled(true);
-    when(playerService.getCurrentPlayer()).thenReturn(
-        Optional.ofNullable(PlayerBuilder.create("JUnit").leaderboardRatingMean(1500).leaderboardRatingDeviation(deviation).get())
-    );
-
-    verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
-
-    MatchmakerInfoMessage matchmakerMessage = new MatchmakerInfoMessage();
-    matchmakerMessage.setQueues(singletonList(new MatchmakerInfoMessage.MatchmakerQueue(QueueName.LADDER_1V1, null,
-        singletonList(new RatingRange(1500, 1510)), singletonList(new RatingRange(1500, 1510)))));
-    matchmakerMessageCaptor.getValue().accept(matchmakerMessage);
-  }
-
-  @Test
-  public void testOnMatchMakerMessageDisplaysNotification75Quality() {
-    prepareTestMatchmakerMessageTest(101);
-    verify(notificationService).addNotification(any(TransientNotification.class));
-  }
-
-  @Test
-  public void testOnMatchMakerMessageDoesNotDisplaysNotificationLessThan75Quality() {
-    prepareTestMatchmakerMessageTest(201);
-    verify(notificationService, never()).addNotification(any(TransientNotification.class));
-  }
-
-  @Test
-  public void testOnMatchMakerMessageDoesNotDisplaysNotificationWhenGameIsRunning() {
-    gameRunningProperty.set(true);
-    prepareTestMatchmakerMessageTest(100);
-    verify(notificationService, never()).addNotification(any(TransientNotification.class));
-  }
-
-  @Test
-  public void testOnMatchMakerMessageDisplaysNotificationNullQueues() {
-    @SuppressWarnings("unchecked")
-    ArgumentCaptor<Consumer<MatchmakerInfoMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
-
-    verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
-
-    MatchmakerInfoMessage matchmakerMessage = new MatchmakerInfoMessage();
-    matchmakerMessage.setQueues(null);
-    matchmakerMessageCaptor.getValue().accept(matchmakerMessage);
-
-    verify(notificationService, never()).addNotification(any(TransientNotification.class));
-  }
-
-  @Test
-  public void testOnMatchMakerMessageDisplaysNotificationWithQueuesButDisabled() {
-    @SuppressWarnings("unchecked")
-    ArgumentCaptor<Consumer<MatchmakerInfoMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
-    preferences.getNotification().setLadder1v1ToastEnabled(true);
-
-    verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
-
-    MatchmakerInfoMessage matchmakerMessage = new MatchmakerInfoMessage();
-    matchmakerMessage.setQueues(singletonList(new MatchmakerInfoMessage.MatchmakerQueue(QueueName.LADDER_1V1, null,
-        singletonList(new RatingRange(1500, 1510)), singletonList(new RatingRange(1500, 1510)))));
-    matchmakerMessageCaptor.getValue().accept(matchmakerMessage);
-
-    verify(notificationService, never()).addNotification(any(TransientNotification.class));
   }
 
   @Ignore

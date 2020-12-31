@@ -20,10 +20,10 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.player.Player;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerInfoClientMessage;
-import com.faforever.client.rankedmatch.SearchLadder1v1ClientMessage;
-import com.faforever.client.rankedmatch.StopSearchLadder1v1ClientMessage;
+import com.faforever.client.remote.domain.AcceptPartyInviteMessage;
 import com.faforever.client.remote.domain.AddFoeMessage;
 import com.faforever.client.remote.domain.AddFriendMessage;
 import com.faforever.client.remote.domain.AuthenticationFailedMessage;
@@ -37,23 +37,29 @@ import com.faforever.client.remote.domain.ClosePlayersLobbyMessage;
 import com.faforever.client.remote.domain.FafServerMessageType;
 import com.faforever.client.remote.domain.GameAccess;
 import com.faforever.client.remote.domain.GameLaunchMessage;
+import com.faforever.client.remote.domain.GameMatchmakingMessage;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.remote.domain.HostGameMessage;
 import com.faforever.client.remote.domain.IceServersServerMessage;
 import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
 import com.faforever.client.remote.domain.InitSessionMessage;
+import com.faforever.client.remote.domain.InviteToPartyMessage;
 import com.faforever.client.remote.domain.JoinGameMessage;
+import com.faforever.client.remote.domain.KickPlayerFromPartyMessage;
+import com.faforever.client.remote.domain.LeavePartyMessage;
 import com.faforever.client.remote.domain.ListIceServersMessage;
 import com.faforever.client.remote.domain.ListPersonalAvatarsMessage;
 import com.faforever.client.remote.domain.LoginClientMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.MakeBroadcastMessage;
+import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.remote.domain.MessageTarget;
 import com.faforever.client.remote.domain.NoticeMessage;
 import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.remote.domain.PingMessage;
 import com.faforever.client.remote.domain.RatingRange;
+import com.faforever.client.remote.domain.ReadyPartyMessage;
 import com.faforever.client.remote.domain.RemoveFoeMessage;
 import com.faforever.client.remote.domain.RemoveFriendMessage;
 import com.faforever.client.remote.domain.RestoreGameSessionMessage;
@@ -62,6 +68,8 @@ import com.faforever.client.remote.domain.SerializableMessage;
 import com.faforever.client.remote.domain.ServerCommand;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.remote.domain.SessionMessage;
+import com.faforever.client.remote.domain.SetPartyFactionsMessage;
+import com.faforever.client.remote.domain.UnreadyPartyMessage;
 import com.faforever.client.remote.domain.VictoryCondition;
 import com.faforever.client.remote.gson.ClientMessageTypeTypeAdapter;
 import com.faforever.client.remote.gson.FactionTypeAdapter;
@@ -70,12 +78,14 @@ import com.faforever.client.remote.gson.GameStateTypeAdapter;
 import com.faforever.client.remote.gson.GameTypeTypeAdapter;
 import com.faforever.client.remote.gson.GpgServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.gson.LobbyModeTypeAdapter;
+import com.faforever.client.remote.gson.MatchmakingStateTypeAdapter;
 import com.faforever.client.remote.gson.MessageTargetTypeAdapter;
 import com.faforever.client.remote.gson.RatingRangeTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.update.Version;
 import com.github.nocatch.NoCatch;
 import com.google.common.annotations.VisibleForTesting;
@@ -144,6 +154,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
       .registerTypeAdapter(RatingRange.class, RatingRangeTypeAdapter.INSTANCE)
       .registerTypeAdapter(Faction.class, FactionTypeAdapter.INSTANCE)
       .registerTypeAdapter(LobbyMode.class, LobbyModeTypeAdapter.INSTANCE)
+      .registerTypeAdapter(MatchmakingState.class, MatchmakingStateTypeAdapter.INSTANCE)
       .create();
   private final HashMap<Class<? extends ServerMessage>, Collection<Consumer<ServerMessage>>> messageListeners = new HashMap<>();
 
@@ -364,16 +375,21 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction) {
+  public CompletableFuture<GameLaunchMessage> startSearchMatchmaker() {
     gameLaunchFuture = new CompletableFuture<>();
-    writeToServer(new SearchLadder1v1ClientMessage(faction));
     return gameLaunchFuture;
   }
 
   @Override
-  public void stopSearchingRanked() {
-    writeToServer(new StopSearchLadder1v1ClientMessage());
-    gameLaunchFuture = null;
+  public void stopSearchMatchmaker() {
+    if (gameLaunchFuture != null && !gameLaunchFuture.isDone()) {
+      gameLaunchFuture.cancel(true);
+    } else {
+      // this might happen when entering multiple queues, the game already having started and the server
+      // telling the client about leaving all queues, therefore the client trying to cancel the matchmaking
+      // as it isn't aware of the launching game anymore (which has already launched)
+      log.warn("Game launch was already completed / cancelled when trying to stop searching for a matchmade game. Ignoring...");
+    }
   }
 
   @Override
@@ -569,5 +585,46 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     addOnMessageListener(AuthenticationFailedMessage.class, this::dispatchAuthenticationFailed);
     addOnMessageListener(AvatarMessage.class, this::onAvatarMessage);
     addOnMessageListener(IceServersServerMessage.class, this::onIceServersMessage);
+  }
+
+
+  @Override
+  public void gameMatchmaking(MatchmakingQueue queue, MatchmakingState state) {
+    writeToServer(new GameMatchmakingMessage(queue.getQueueName(), state));
+  }
+
+  @Override
+  public void inviteToParty(Player recipient) {
+    writeToServer(new InviteToPartyMessage(recipient.getId()));
+  }
+
+  @Override
+  public void acceptPartyInvite(Player sender) {
+    writeToServer(new AcceptPartyInviteMessage(sender.getId()));
+  }
+
+  @Override
+  public void kickPlayerFromParty(Player kickedPlayer) {
+    writeToServer(new KickPlayerFromPartyMessage(kickedPlayer.getId()));
+  }
+
+  @Override
+  public void readyParty() {
+    writeToServer(new ReadyPartyMessage());
+  }
+
+  @Override
+  public void unreadyParty() {
+    writeToServer(new UnreadyPartyMessage());
+  }
+
+  @Override
+  public void leaveParty() {
+    writeToServer(new LeavePartyMessage());
+  }
+
+  @Override
+  public void setPartyFactions(List<Faction> factions) {
+    writeToServer(new SetPartyFactionsMessage(factions));
   }
 }

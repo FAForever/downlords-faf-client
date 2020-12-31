@@ -9,6 +9,8 @@ import java.util.concurrent.CompletableFuture;
 
 public interface ChatService {
 
+  String PARTY_CHANNEL_SUFFIX = "'sParty";
+
   void connect();
 
   void disconnect();

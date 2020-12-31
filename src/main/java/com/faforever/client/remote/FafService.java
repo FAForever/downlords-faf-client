@@ -7,10 +7,10 @@ import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
-import com.faforever.client.api.dto.Ladder1v1Map;
 import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
+import com.faforever.client.api.dto.MatchmakerQueueMapPool;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.PlayerAchievement;
@@ -21,7 +21,6 @@ import com.faforever.client.config.CacheNames;
 import com.faforever.client.coop.CoopMission;
 import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.fa.relay.GpgGameMessage;
-import com.faforever.client.game.Faction;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.LeaderboardEntry;
@@ -38,6 +37,7 @@ import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.replay.Replay;
+import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.tournament.TournamentBean;
 import com.faforever.client.tutorial.TutorialCategory;
 import com.faforever.client.util.Tuple;
@@ -48,6 +48,7 @@ import com.faforever.commons.io.ByteCountListener;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
@@ -96,16 +97,16 @@ public class FafService {
     return fafServerAccessor.requestJoinGame(gameId, password);
   }
 
-  public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction) {
-    return fafServerAccessor.startSearchLadder1v1(faction);
+  public CompletableFuture<GameLaunchMessage> startSearchMatchmaker() {
+    return fafServerAccessor.startSearchMatchmaker();
+  }
+
+  public void stopSearchMatchmaker() {
+    fafServerAccessor.stopSearchMatchmaker();
   }
 
   public void requestMatchmakerInfo() {
     fafServerAccessor.requestMatchmakerInfo();
-  }
-
-  public void stopSearchingRanked() {
-    fafServerAccessor.stopSearchingRanked();
   }
 
   public void sendGpgGameMessage(GpgGameMessage message) {
@@ -458,13 +459,32 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getLadder1v1MapsWithPageCount(int count, int page) {
-    Tuple<List<Ladder1v1Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.getLadder1v1MapsWithMeta(count, page);
-    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
-        .parallelStream()
-        .map(ladder1v1Map -> MapBean.fromMapVersionDto(ladder1v1Map.getMapVersion()))
+  public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(int matchmakerQueueId, int count, int page) {
+    List<MapBean> mapVersions = fafApiAccessor.getMatchmakerPools(matchmakerQueueId)
+        .stream()
+        .map(MatchmakerQueueMapPool::getMapPool)
+        .flatMap(mapPool -> mapPool.getMapVersions().stream())
+        .distinct()
+        .map(MapBean::fromMapVersionDto)
+        .collect(toList());
+    return paginateResult(count, page, mapVersions);
+  }
+
+  @NotNull
+  private <T> CompletableFuture<Tuple<List<T>, Integer>> paginateResult(int count, int page, List<T> results) {
+    int totalPages = (results.size() - 1) / count + 1;
+    return CompletableFuture.completedFuture(new Tuple<>(results
+        .stream()
+        .skip((long) (page - 1) * count)
+        .limit(count)
         .collect(toList()),
-        ((HashMap<String,Integer>) tuple.getSecond().get("page")).get("totalPages")));
+        totalPages));
+  }
+
+  @Async
+  public CompletableFuture<Optional<MatchmakingQueue>> getMatchmakingQueue(String technicalName) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getMatchmakerQueue(technicalName)
+    .map(MatchmakingQueue::fromDto));
   }
 
   @Async

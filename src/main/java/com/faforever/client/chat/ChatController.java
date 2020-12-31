@@ -5,6 +5,7 @@ import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.main.event.JoinChannelEvent;
 import com.faforever.client.main.event.NavigateEvent;
+import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.theme.UiService;
@@ -29,6 +30,8 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import static com.faforever.client.chat.ChatService.PARTY_CHANNEL_SUFFIX;
 
 @Slf4j
 @Component
@@ -135,10 +138,10 @@ public class ChatController extends AbstractViewController<Node> {
     eventBus.register(this);
 
     chatService.addChannelsListener(change -> {
-      if (change.wasRemoved()) {
+      if (change.wasRemoved() && !isMatchmakerPartyMessage(change.getValueRemoved().getName())) {
         onChannelLeft(change.getValueRemoved());
       }
-      if (change.wasAdded()) {
+      if (change.wasAdded() && !isMatchmakerPartyMessage(change.getValueAdded().getName())) {
         onChannelJoined(change.getValueAdded());
       }
     });
@@ -178,12 +181,22 @@ public class ChatController extends AbstractViewController<Node> {
   public void onChatMessage(ChatMessageEvent event) {
     Platform.runLater(() -> {
       ChatMessage message = event.getMessage();
+      if (isMatchmakerPartyMessage(message))
+        return;
       if (!message.isPrivate()) {
         getOrCreateChannelTab(message.getSource()).onChatMessage(message);
       } else {
         addAndGetPrivateMessageTab(message.getSource()).onChatMessage(message);
       }
     });
+  }
+
+  private boolean isMatchmakerPartyMessage(ChatMessage message) {
+    return message.getSource() != null && isMatchmakerPartyMessage(message.getSource());
+  }
+
+  private boolean isMatchmakerPartyMessage(String channelName) {
+    return channelName.endsWith(PARTY_CHANNEL_SUFFIX);
   }
 
   private AbstractChatTabController addAndGetPrivateMessageTab(String username) {
@@ -212,6 +225,7 @@ public class ChatController extends AbstractViewController<Node> {
     }
     AbstractChatTabController controller = addAndGetPrivateMessageTab(username);
     Tab tab = controller.getRoot();
+    eventBus.post(new NavigateEvent(NavigationItem.CHAT));
     tabPane.getSelectionModel().select(tab);
     nameToChatTabController.get(tab.getId()).onDisplay();
   }

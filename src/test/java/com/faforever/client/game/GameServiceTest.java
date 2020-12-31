@@ -59,9 +59,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static com.faforever.client.fa.RatingMode.GLOBAL;
-import static com.faforever.client.game.Faction.AEON;
 import static com.faforever.client.game.Faction.CYBRAN;
-import static com.faforever.client.game.KnownFeaturedMod.LADDER_1V1;
+import static com.faforever.client.game.KnownFeaturedMod.FAF;
 import static com.faforever.client.remote.domain.GameStatus.CLOSED;
 import static com.faforever.client.remote.domain.GameStatus.OPEN;
 import static com.faforever.client.remote.domain.GameStatus.PLAYING;
@@ -225,7 +224,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
     verify(mapService, never()).download(any());
     verify(replayService).start(eq(game.getId()), any());
-
+    
     verify(forgedAllianceService).startGame(
         gameLaunchMessage.getUid(), null, asList(), GLOBAL,
         GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
@@ -489,7 +488,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     int uid = 123;
     String map = "scmp_037";
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessageBuilder().defaultValues()
-        .uid(uid).mod("ladder1v1").mapname(map)
+        .uid(uid).mod("FAF").mapname(map)
         .expectedPlayers(2)
         .faction(CYBRAN)
         .initMode(LobbyMode.AUTO_LOBBY)
@@ -500,24 +499,24 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
 
     String[] additionalArgs = {"/team", "1", "/players", "2", "/startspot", "4"};
-    mockStartGameProcess(uid, RatingMode.LADDER_1V1, CYBRAN, false, additionalArgs);
-    when(fafService.startSearchLadder1v1(CYBRAN)).thenReturn(completedFuture(gameLaunchMessage));
+    mockStartGameProcess(uid, RatingMode.NONE, CYBRAN, false, additionalArgs);
+    when(fafService.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(completedFuture(null));
     when(mapService.isInstalled(map)).thenReturn(false);
     when(mapService.download(map)).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(LADDER_1V1.getTechnicalName())).thenReturn(completedFuture(featuredMod));
+    when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(completedFuture(featuredMod));
 
-    instance.startSearchLadder1v1(CYBRAN).toCompletableFuture();
+    instance.startSearchMatchmaker().toCompletableFuture();
 
-    verify(fafService).startSearchLadder1v1(CYBRAN);
+    verify(fafService).startSearchMatchmaker();
     verify(mapService).download(map);
     verify(replayService).start(eq(uid), any());
     verify(forgedAllianceService).startGame(
-        uid, CYBRAN, asList(additionalArgs), RatingMode.LADDER_1V1, GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
+        uid, CYBRAN, asList(additionalArgs), RatingMode.NONE, GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
   }
 
   @Test
-  public void testStartSearchLadder1v1GameRunningDoesNothing() throws Exception {
+  public void testStartSearchMatchmakerGameRunningDoesNothing() throws Exception {
     Process process = mock(Process.class);
     when(process.isAlive()).thenReturn(true);
 
@@ -539,25 +538,25 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     instance.hostGame(newGameInfo);
     gameRunningLatch.await(TIMEOUT, TIME_UNIT);
 
-    instance.startSearchLadder1v1(AEON);
+    instance.startSearchMatchmaker();
 
-    assertThat(instance.searching1v1Property().get(), is(false));
+    assertThat(instance.inMatchmakerQueueProperty().get(), is(false));
   }
 
   @Test
-  public void testStopSearchLadder1v1() {
-    instance.searching1v1Property().set(true);
-    instance.stopSearchLadder1v1();
-    assertThat(instance.searching1v1Property().get(), is(false));
-    verify(fafService).stopSearchingRanked();
+  public void testStopSearchMatchmaker() {
+    instance.inMatchmakerQueueProperty().set(true);
+    instance.onMatchmakerSearchStopped();
+    assertThat(instance.inMatchmakerQueueProperty().get(), is(false));
+    verify(fafService).stopSearchMatchmaker();
   }
 
   @Test
-  public void testStopSearchLadder1v1NotSearching() {
-    instance.searching1v1Property().set(false);
-    instance.stopSearchLadder1v1();
-    assertThat(instance.searching1v1Property().get(), is(false));
-    verify(fafService, never()).stopSearchingRanked();
+  public void testStopSearchMatchmakerNotSearching() {
+    instance.inMatchmakerQueueProperty().set(false);
+    instance.onMatchmakerSearchStopped();
+    assertThat(instance.inMatchmakerQueueProperty().get(), is(false));
+    verify(fafService, never()).stopSearchMatchmaker();
   }
 
   @Test
@@ -630,9 +629,9 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void startSearchLadder1v1IfNoGameSet() {
+  public void startSearchMatchmakerIfNoGameSet() {
     when(preferencesService.isGamePathValid()).thenReturn(false);
-    instance.startSearchLadder1v1(null);
+    instance.startSearchMatchmaker();
     verify(eventBus).post(any(GameDirectoryChooseEvent.class));
   }
 

@@ -11,11 +11,12 @@ import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.GameReviewsSummary;
 import com.faforever.client.api.dto.GlobalLeaderboardEntry;
 import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
-import com.faforever.client.api.dto.Ladder1v1Map;
 import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapStatistics;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
+import com.faforever.client.api.dto.MatchmakerQueue;
+import com.faforever.client.api.dto.MatchmakerQueueMapPool;
 import com.faforever.client.api.dto.MeResult;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersion;
@@ -41,7 +42,6 @@ import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import lombok.RequiredArgsConstructor;
@@ -151,14 +151,14 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public List<PlayerAchievement> getPlayerAchievements(int playerId) {
-    return getAll("/data/playerAchievement", ImmutableMap.of(
+    return getAll("/data/playerAchievement", java.util.Map.of(
         FILTER, rsql(qBuilder().intNum("player.id").eq(playerId))
     ));
   }
 
   @Override
   public List<PlayerEvent> getPlayerEvents(int playerId) {
-    return getAll("/data/playerEvent", ImmutableMap.of(
+    return getAll("/data/playerEvent", java.util.Map.of(
         FILTER, rsql(qBuilder().intNum("player.id").eq(playerId))
     ));
   }
@@ -166,7 +166,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   @Cacheable(value = CacheNames.ACHIEVEMENTS, sync = true)
   public List<AchievementDefinition> getAchievementDefinitions() {
-    return getAll(ACHIEVEMENT_ENDPOINT, ImmutableMap.of(
+    return getAll(ACHIEVEMENT_ENDPOINT, java.util.Map.of(
         SORT, "order"
     ));
   }
@@ -180,14 +180,14 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   @Cacheable(value = CacheNames.MODS, sync = true)
   public List<Mod> getMods() {
-    return getAll(MOD_ENDPOINT, ImmutableMap.of(
+    return getAll(MOD_ENDPOINT, java.util.Map.of(
         INCLUDE, MOD_INCLUDES));
   }
 
   @Override
   @Cacheable(value = CacheNames.FEATURED_MODS, sync = true)
   public List<com.faforever.client.api.dto.FeaturedMod> getFeaturedMods() {
-    return getMany("/data/featuredMod", 1000, ImmutableMap.of());
+    return getMany("/data/featuredMod", 1000, java.util.Map.of());
   }
 
   @Override
@@ -197,7 +197,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     // This is not an ordinary JSON-API route and thus doesn't support paging, that's why it's called manually
     authorizedLatch.await();
     return restOperations.getForObject("/leaderboards/global", List.class,
-        ImmutableMap.of(
+        java.util.Map.of(
             SORT, "-rating",
             INCLUDE, "player",
             "fields[globalRating]", "rating,numGames",
@@ -212,7 +212,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     // This is not an ordinary JSON-API route and thus doesn't support paging, that's why it doesn't use getAll()
     authorizedLatch.await();
     return restOperations.getForObject("/leaderboards/ladder1v1", List.class,
-        ImmutableMap.of(
+        java.util.Map.of(
             SORT, "-rating",
             INCLUDE, "player",
             "fields[ladder1v1Rating]", "rating,numGames,winGames",
@@ -228,7 +228,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   @Cacheable(value = CacheNames.RATING_HISTORY, sync = true)
   public List<GamePlayerStats> getGamePlayerStats(int playerId, KnownFeaturedMod knownFeaturedMod) {
-    return getAll("/data/gamePlayerStats", ImmutableMap.of(
+    return getAll("/data/gamePlayerStats", java.util.Map.of(
         FILTER, rsql(qBuilder()
             .intNum("player.id").eq(playerId)
             .and()
@@ -239,7 +239,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   @Cacheable(value = CacheNames.MAPS, sync = true)
   public Tuple<List<Map>, java.util.Map<String, ?>> getMostPlayedMapsWithMeta(int count, int page) {
-    JSONAPIDocument<List<MapStatistics>> jsonApiDoc = getPageWithMeta(MAP_STATISTICS_ENDPOINT, count, page, ImmutableMap.of(
+    JSONAPIDocument<List<MapStatistics>> jsonApiDoc = getPageWithMeta(MAP_STATISTICS_ENDPOINT, count, page, java.util.Map.of(
         INCLUDE, MAP_STATISTICS_INCLUDES,
         SORT, "-plays"));
     return new Tuple<>(jsonApiDoc.get().stream().map(MapStatistics::getMap).collect(Collectors.toList()), jsonApiDoc.getMeta());
@@ -247,7 +247,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public Tuple<List<Map>, java.util.Map<String, ?>> getHighestRatedMapsWithMeta(int count, int page) {
-    JSONAPIDocument<List<MapStatistics>> jsonApiDoc = getPageWithMeta(MAP_STATISTICS_ENDPOINT, count, page, ImmutableMap.of(
+    JSONAPIDocument<List<MapStatistics>> jsonApiDoc = getPageWithMeta(MAP_STATISTICS_ENDPOINT, count, page, java.util.Map.of(
         INCLUDE, MAP_STATISTICS_INCLUDES,
         SORT, "-map.reviewsSummary.lowerBound"));
     return new Tuple<>(jsonApiDoc.get().stream().map(MapStatistics::getMap).collect(Collectors.toList()), jsonApiDoc.getMeta());
@@ -255,7 +255,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public Tuple<List<Map>, java.util.Map<String, ?>> getNewestMapsWithMeta(int count, int page) {
-    JSONAPIDocument<List<Map>> jsonApiDoc = getPageWithMeta(MAP_ENDPOINT, count, page, ImmutableMap.of(
+    JSONAPIDocument<List<Map>> jsonApiDoc = getPageWithMeta(MAP_ENDPOINT, count, page, java.util.Map.of(
         INCLUDE, MAP_INCLUDES,
         SORT, "-updateTime",
         FILTER, HIDDEN
@@ -269,7 +269,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         .map(Object::toString)
         .collect(Collectors.joining(",", "latestVersion.map.id=in=(", ")"));
 
-    JSONAPIDocument<List<Map>> jsonApiDoc = getPageWithMeta(MAP_ENDPOINT, count, page, ImmutableMap.of(
+    JSONAPIDocument<List<Map>> jsonApiDoc = getPageWithMeta(MAP_ENDPOINT, count, page, java.util.Map.of(
         INCLUDE, MAP_INCLUDES,
         SORT, "-updateTime",
         FILTER, filterCriteria
@@ -279,7 +279,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public List<Game> getLastGamesOnMap(int playerId, String mapVersionId, int count) {
-    return getMany(REPLAY_ENDPOINT, count, ImmutableMap.of(
+    return getMany(REPLAY_ENDPOINT, count, java.util.Map.of(
         FILTER, rsql(qBuilder()
             .string("mapVersion.id").eq(mapVersionId)
             .and()
@@ -298,13 +298,13 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   public void uploadMap(Path file, boolean isRanked, ByteCountListener listener) {
     MultiValueMap<String, Object> multipartContent = createFileMultipart(file, listener);
-    multipartContent.add("metadata", ImmutableMap.of("isRanked", isRanked));
+    multipartContent.add("metadata", java.util.Map.of("isRanked", isRanked));
     post("/maps/upload", multipartContent, false);
   }
 
   @Override
   public void changePassword(String username, String currentPasswordHash, String newPasswordHash) {
-    java.util.Map<String, String> body = ImmutableMap.of(
+    java.util.Map<String, String> body = java.util.Map.of(
         "currentPassword", currentPasswordHash,
         "newPassword", newPasswordHash
     );
@@ -315,7 +315,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   public ModVersion getModVersion(String uid) {
     return (ModVersion) getMany(MOD_VERSION_ENDPOINT, 1,
-        ImmutableMap.of(FILTER, rsql(qBuilder().string("uid").eq(uid)), INCLUDE, "mod,mod.latestVersion,mod.versions,mod.uploader")
+        java.util.Map.of(FILTER, rsql(qBuilder().string("uid").eq(uid)), INCLUDE, "mod,mod.latestVersion,mod.versions,mod.uploader")
     ).get(0);
   }
 
@@ -324,12 +324,12 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   public List<FeaturedModFile> getFeaturedModFiles(FeaturedMod featuredMod, Integer version) {
     String endpoint = String.format("/featuredMods/%s/files/%s", featuredMod.getId(),
         Optional.ofNullable(version).map(String::valueOf).orElse("latest"));
-    return getMany(endpoint, 10_000, ImmutableMap.of());
+    return getMany(endpoint, 10_000, java.util.Map.of());
   }
 
   @Override
   public Tuple<List<Game>, java.util.Map<String, ?>> getNewestReplaysWithMeta(int count, int page) {
-    JSONAPIDocument<List<Game>> jsonApiDoc = getPageWithMeta(REPLAY_ENDPOINT, count, page, ImmutableMap.of(
+    JSONAPIDocument<List<Game>> jsonApiDoc = getPageWithMeta(REPLAY_ENDPOINT, count, page, java.util.Map.of(
         SORT, "-endTime",
         INCLUDE, REPLAY_INCLUDES,
         FILTER, "endTime=isnull=false"
@@ -339,7 +339,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public Tuple<List<Game>, java.util.Map<String, ?>> getHighestRatedReplaysWithMeta(int count, int page) {
-    JSONAPIDocument<List<GameReviewsSummary>> pageWithPageCount = getPageWithMeta("/data/gameReviewsSummary", count, page, ImmutableMap.of(
+    JSONAPIDocument<List<GameReviewsSummary>> pageWithPageCount = getPageWithMeta("/data/gameReviewsSummary", count, page, java.util.Map.of(
         SORT, "-lowerBound",
         // TODO this was done in a rush, check what is actually needed
         INCLUDE, "game,game.featuredMod,game.playerStats,game.playerStats.player,game.reviews,game.reviews.player," +
@@ -354,7 +354,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public Tuple<List<Game>, java.util.Map<String, ?>> findReplaysByQueryWithMeta(String query, int maxResults, int page, SortConfig sortConfig) {
-    JSONAPIDocument<List<Game>> jsonApiDoc = getPageWithMeta(REPLAY_ENDPOINT, maxResults, page, ImmutableMap.of(
+    JSONAPIDocument<List<Game>> jsonApiDoc = getPageWithMeta(REPLAY_ENDPOINT, maxResults, page, java.util.Map.of(
         FILTER, "(" + query + ");endTime=isnull=false",
         INCLUDE, REPLAY_INCLUDES,
         SORT, sortConfig.toQuery()
@@ -364,7 +364,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public Optional<MapVersion> findMapByFolderName(String folderName) {
-    List<MapVersion> maps = getMany(MAP_VERSION_ENDPOINT, 1, ImmutableMap.of(
+    List<MapVersion> maps = getMany(MAP_VERSION_ENDPOINT, 1, java.util.Map.of(
         FILTER, String.format("filename==\"*%s*\"", folderName),
         INCLUDE, MAP_VERSION_INCLUDES));
     if (maps.isEmpty()) {
@@ -377,7 +377,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   public List<Player> getPlayersByIds(Collection<Integer> playerIds) {
     List<String> ids = playerIds.stream().map(String::valueOf).collect(Collectors.toList());
 
-    return getMany("/data/player", playerIds.size(), ImmutableMap.of(
+    return getMany("/data/player", playerIds.size(), java.util.Map.of(
         INCLUDE, PLAYER_INCLUDES,
         FILTER, rsql(qBuilder().string("id").in(ids))
     ));
@@ -447,28 +447,43 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public Optional<Game> findReplayById(int id) {
-    return Optional.ofNullable(getOne(REPLAY_ENDPOINT + id, Game.class, ImmutableMap.of(INCLUDE, REPLAY_INCLUDES)));
+    return Optional.ofNullable(getOne(REPLAY_ENDPOINT + id, Game.class, java.util.Map.of(INCLUDE, REPLAY_INCLUDES)));
   }
 
   @Override
-  public Tuple<List<Ladder1v1Map>, java.util.Map<String, ?>> getLadder1v1MapsWithMeta(int count, int page) {
-    JSONAPIDocument<List<Ladder1v1Map>> jsonApiDoc = getPageWithMeta("/data/ladder1v1Map", count, page, ImmutableMap.of(
-        INCLUDE, "mapVersion,mapVersion.map,mapVersion.map.latestVersion,mapVersion.map.author," +
-            "mapVersion.map.statistics,mapVersion.map.reviewsSummary,mapVersion.map.versions.reviews," +
-            "mapVersion.map.versions.reviews.player"));
-    return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
+  @Cacheable(value = CacheNames.MATCHMAKER_POOLS, sync = true)
+  public List<MatchmakerQueueMapPool> getMatchmakerPools(int matchmakerQueueId) {
+    return getAll("/data/matchmakerQueueMapPool", java.util.Map.of(
+        INCLUDE, "matchmakerQueue,mapPool,mapPool.mapVersions," +
+            "mapPool.mapVersions.map,mapPool.mapVersions.map.latestVersion," +
+            "mapPool.mapVersions.map.author,mapPool.mapVersions.map.statistics," +
+            "mapPool.mapVersions.map.reviewsSummary,mapPool.mapVersions.map.versions.reviews," +
+            "mapPool.mapVersions.map.versions.reviews.player",
+        FILTER, rsql(qBuilder().string("matchmakerQueue.id").eq(String.valueOf(matchmakerQueueId)))));
+  }
+
+  @Override
+  @Cacheable(value = CacheNames.MATCHMAKER_QUEUES, sync = true)
+  public Optional<MatchmakerQueue> getMatchmakerQueue(String technicalName) {
+    List<MatchmakerQueue> queue = getAll("/data/matchmakerQueue", java.util.Map.of(
+        INCLUDE, "leaderboard",
+        FILTER, rsql(qBuilder().string("technicalName").eq(technicalName))));
+    if (queue.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(queue.get(0));
   }
 
   @Override
   public List<TutorialCategory> getTutorialCategories() {
     return getAll("/data/tutorialCategory",
-        ImmutableMap.of(INCLUDE, "tutorials,tutorials.mapVersion.map,tutorials.mapVersion.map.latestVersion," +
+        java.util.Map.of(INCLUDE, "tutorials,tutorials.mapVersion.map,tutorials.mapVersion.map.latestVersion," +
             "tutorials.mapVersion.map.author,tutorials.mapVersion.map.statistics"));
   }
 
   @Override
   public Tuple<List<MapVersion>, java.util.Map<String, ?>> getOwnedMapsWithMeta(int playerId, int loadMoreCount, int page) {
-    JSONAPIDocument<List<MapVersion>> jsonApiDoc = getPageWithMeta(MAP_VERSION_ENDPOINT, loadMoreCount, page, ImmutableMap.of(
+    JSONAPIDocument<List<MapVersion>> jsonApiDoc = getPageWithMeta(MAP_VERSION_ENDPOINT, loadMoreCount, page, java.util.Map.of(
         INCLUDE, MAP_VERSION_INCLUDES,
         FILTER, rsql(qBuilder().string("map.author.id").eq(String.valueOf(playerId)))
     ));
@@ -483,7 +498,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   @Cacheable(value = CacheNames.CLAN, sync = true)
   public Optional<Clan> getClanByTag(String tag) {
-    List<Clan> clans = getMany("/data/clan", 1, ImmutableMap.of(
+    List<Clan> clans = getMany("/data/clan", 1, java.util.Map.of(
         INCLUDE, "leader,founder,memberships,memberships.player",
         FILTER, rsql(qBuilder().string("tag").eq(tag))
     ));
@@ -527,7 +542,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
       filterCondition = filterCondition.and().intNum("playerCount").eq(numberOfPlayers);
     }
 
-    return getMany("/data/coopResult", 1000, ImmutableMap.of(
+    return getMany("/data/coopResult", 1000, java.util.Map.of(
         FILTER, rsql(filterCondition),
         INCLUDE, COOP_RESULT_INCLUDES,
         SORT, "duration"

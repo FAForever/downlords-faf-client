@@ -495,8 +495,8 @@ public class MapService implements InitializingBean, DisposableBean {
     return fafService.findMapById(id);
   }
 
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getLadderMapsWithPageCount(int loadMoreCount, int page) {
-    return fafService.getLadder1v1MapsWithPageCount(loadMoreCount, page);
+  public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(int matchmakerQueueId, int loadMoreCount, int page) {
+    return fafService.getMatchmakerMapsWithPageCount(matchmakerQueueId, loadMoreCount, page);
   }
 
   private CompletableFuture<Void> downloadAndInstallMap(String folderName, URL downloadUrl, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {

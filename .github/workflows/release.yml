@@ -54,7 +54,7 @@ jobs:
             mkdir -p "$HOME/install4j"
             curl https://download-gcdn.ej-technologies.com/install4j/install4j_unix_8_0_8.tar.gz -o "$HOME/install4j/install4j8.tar.gz"
             tar xzf "$HOME/install4j/install4j8.tar.gz" -C "$HOME/install4j"
-            
+
       - name: Download Bundled JRE
         #        if: steps.cache-jre.outputs.cache-hit != 'true'
         run: |
@@ -90,7 +90,7 @@ jobs:
           release_name: v${{ github.event.inputs.version }}
           draft: true
           prerelease: true
-          
+
       - name: Get Artifact Paths
         id: artifact_paths
         run: |
@@ -106,7 +106,7 @@ jobs:
           echo ::set-output name=WINDOWS_EXE_NAME::${WINDOWS_EXE_NAME}
           echo ::set-output name=WINDOWS_ZIP::${WINDOWS_ZIP}
           echo ::set-output name=WINDOWS_ZIP_NAME::${WINDOWS_ZIP_NAME}
-          
+
       - name: Upload Linux Files
         id: upload-linux
         uses: actions/upload-release-asset@v1

@@ -48,7 +48,7 @@
                                     styleClass="main-navigation-button" text="%main.chat"
                                     toggleGroup="$mainNavigation"/>
                       <ToggleButton fx:id="playButton" minWidth="-Infinity" mnemonicParsing="false"
-                                    onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                                    onAction="#onPlay" styleClass="main-navigation-button"
                                     text="%main.play" toggleGroup="$mainNavigation"/>
                       <ToggleButton fx:id="replayButton" minWidth="-Infinity" mnemonicParsing="false"
                                     onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"

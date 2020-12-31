@@ -22,6 +22,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.replay.ReplayService;
+import com.faforever.client.teammatchmaking.TeamMatchmakingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.google.common.collect.Sets;
@@ -86,6 +87,8 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
   private PlatformService platformService;
   @Mock
   private ModeratorService moderatorService;
+  @Mock
+  private TeamMatchmakingService teamMatchmakingService;
 
   private ChatUserContextMenuController instance;
   private Player player;
@@ -95,7 +98,7 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
   public void setUp() throws Exception {
     instance = new ChatUserContextMenuController(preferencesService, clientProperties,playerService,
         replayService, notificationService, i18n, eventBus, joinGameHelper,
-        avatarService, uiService, platformService, moderatorService);
+        avatarService, uiService, platformService, moderatorService, teamMatchmakingService);
 
     Preferences preferences = mock(Preferences.class);
     ChatPrefs chatPrefs = mock(ChatPrefs.class);
@@ -212,6 +215,60 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
   }
 
   @Test
+  public void testInviteContextMenuShownForIdleUser() {
+    instance.setChatUser(chatUser);
+    player.setGame(null);
+    player.setSocialStatus(OTHER);
+
+    assertTrue(instance.inviteItem.isVisible());
+  }
+
+  @Test
+  public void testInviteContextMenuNotShownForHostingUser() {
+    Game game = new Game();
+    game.setFeaturedMod(KnownFeaturedMod.FAF.getTechnicalName());
+    game.setStatus(GameStatus.OPEN);
+    game.setHost(player.getUsername());
+
+    player.setSocialStatus(OTHER);
+    player.setGame(game);
+    instance.setChatUser(chatUser);
+
+    assertEquals(player.getStatus(), PlayerStatus.HOSTING);
+    assertFalse(instance.inviteItem.isVisible());
+  }
+
+  @Test
+  public void testInviteContextMenuNotShownForLobbyingUser() {
+    Game game = new Game();
+    game.setFeaturedMod(KnownFeaturedMod.FAF.getTechnicalName());
+    game.setStatus(GameStatus.OPEN);
+    game.setHost("otherPlayer");
+
+    player.setSocialStatus(OTHER);
+    player.setGame(game);
+    instance.setChatUser(chatUser);
+
+    assertEquals(player.getStatus(), PlayerStatus.LOBBYING);
+    assertFalse(instance.inviteItem.isVisible());
+  }
+
+  @Test
+  public void testInviteContextMenuNotShownForPlayingUser() {
+    Game game = new Game();
+    game.setFeaturedMod(KnownFeaturedMod.FAF.getTechnicalName());
+    game.setStatus(GameStatus.PLAYING);
+    game.setHost(player.getUsername());
+
+    player.setSocialStatus(OTHER);
+    player.setGame(game);
+    instance.setChatUser(chatUser);
+
+    assertEquals(player.getStatus(), PlayerStatus.PLAYING);
+    assertFalse(instance.inviteItem.isVisible());
+  }
+
+  @Test
   public void testOnSendPrivateMessage() {
     instance.setChatUser(chatUser);
 
@@ -313,6 +370,15 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
     instance.onJoinGameSelected();
 
     verify(joinGameHelper).join(any());
+  }
+
+  @Test
+  public void testOnInvite() {
+    instance.setChatUser(chatUser);
+
+    instance.onInviteToGameSelected();
+
+    verify(teamMatchmakingService).invitePlayer(TEST_USER_NAME);
   }
 
   @Test
