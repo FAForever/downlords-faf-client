@@ -130,7 +130,7 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
     searchController.addTextFilter("author", i18n.get("mod.author"));
     searchController.addDateRangeFilter("latestVersion.updateTime", i18n.get("mod.uploadedDateTime"), 0);
 
-    searchController.addBinaryFilter("latestVersion.width", i18n.get("map.width"),
+    searchController.addBinaryFilter("latestVersion.type", i18n.get("mod.type"),
         ModType.UI.toString(), ModType.SIM.toString(), i18n.get("modType.ui"), i18n.get("modType.sim"));
     searchController.addToggleFilter("latestVersion.ranked", i18n.get("mod.onlyRanked"), "true");
   }
