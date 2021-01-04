@@ -247,7 +247,6 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
 
   protected void displaySearchResult(List<T> results) {
     JavaFxUtil.assertBackgroundThread();
-    enterSearchingState();
     populate(results, searchResultPane);
     Platform.runLater(this::enterResultState);
   }

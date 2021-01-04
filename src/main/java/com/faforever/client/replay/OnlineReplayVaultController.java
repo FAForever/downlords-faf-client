@@ -22,6 +22,8 @@ import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -162,6 +164,26 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
 
   private void onShowReplayEvent(ShowReplayEvent event) {
     int replayId = event.getReplayId();
+    if (state.get() == State.UNINITIALIZED) {
+      //We have to wait for the Show Room to load otherwise it will not be loaded and it looks strange
+      loadShowRoom();
+      ChangeListener<State> stateChangeListener = new ChangeListener<>() {
+        @Override
+        public void changed(ObservableValue<? extends State> observable, State oldValue, State newValue) {
+          if (newValue != State.SHOWROOM) {
+            return;
+          }
+          showReplayWithID(replayId);
+          state.removeListener(this);
+        }
+      };
+      state.addListener(stateChangeListener);
+    } else {
+      showReplayWithID(replayId);
+    }
+  }
+
+  private void showReplayWithID(int replayId) {
     replayService.findById(replayId).thenAccept(replay -> {
       if (replay.isPresent()) {
         Platform.runLater(() -> onDisplayDetails(replay.get()));
