@@ -447,7 +447,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public Optional<Game> findReplayById(int id) {
-    return Optional.ofNullable(getOne(REPLAY_ENDPOINT + id, Game.class, java.util.Map.of(INCLUDE, REPLAY_INCLUDES)));
+    return Optional.ofNullable(getOne(REPLAY_ENDPOINT + "/"+ id, Game.class, java.util.Map.of(INCLUDE, REPLAY_INCLUDES)));
   }
 
   @Override
