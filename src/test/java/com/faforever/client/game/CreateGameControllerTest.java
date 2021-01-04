@@ -42,13 +42,15 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.in;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -134,6 +136,15 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
     assertThat(instance.filteredMapBeans.get(0).getFolderName(), is("test2"));
     assertThat(instance.filteredMapBeans.get(1).getDisplayName(), is("Test1"));
+  }
+
+  @Test
+  public void showOnlyToFriendsRemembered() {
+    instance.onlyForFriendsCheckBox.setSelected(true);
+    assertThat(preferences.getLastGame().isLastGameOnlyFriends(), is(true));
+    instance.onlyForFriendsCheckBox.setSelected(false);
+    assertThat(preferences.getLastGame().isLastGameOnlyFriends(), is(false));
+    verify(preferencesService, times(2)).storeInBackground();
   }
 
   @Test
