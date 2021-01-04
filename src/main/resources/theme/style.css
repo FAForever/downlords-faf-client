@@ -560,7 +560,8 @@
   -fx-background-color: HIGHLIGHT_COLOR;
   -fx-max-width: 0.833333em;
   -fx-max-height: 0.833333em;
-  -fx-translate-y: -0.25em;
+  -fx-translate-y: .75em;
+  -fx-translate-x: .75em;
   -fx-border-color: -fx-base;
   -fx-border-width: 1;
 }
