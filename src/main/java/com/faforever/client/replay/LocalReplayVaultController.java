@@ -102,7 +102,7 @@ public class LocalReplayVaultController extends VaultEntityController<Replay> {
   protected void initSearchController() {
     searchController.setRootType(Game.class);
     searchController.setSearchableProperties(SearchablePropertyMappings.GAME_PROPERTY_MAPPING);
-    searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().onlineReplaySortConfigProperty());
+    searchController.setSortConfig(preferencesService.getPreferences().getVault().onlineReplaySortConfigProperty());
     searchController.setOnlyShowLastYearCheckBoxVisible(true);
   }
 

@@ -12,6 +12,7 @@ import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.SocialMessage;
@@ -161,7 +162,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   private CountDownLatch botShutdownLatch;
   private CompletableFuture<Object> botStartedFuture;
-  private final Preferences preferences = new Preferences();
+  private Preferences preferences;
 
   @Before
   public void setUp() throws Exception {
@@ -177,7 +178,11 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     botShutdownLatch = new CountDownLatch(1);
 
-    preferences.getChat().setChatColorMode(DEFAULT);
+    preferences = PreferencesBuilder.create().defaultValues()
+        .chatPrefs()
+        .chatColorMode(DEFAULT)
+        .then()
+        .get();
 
     when(userService.getUsername()).thenReturn(CHAT_USER_NAME);
     when(userService.getPassword()).thenReturn(CHAT_PASSWORD);

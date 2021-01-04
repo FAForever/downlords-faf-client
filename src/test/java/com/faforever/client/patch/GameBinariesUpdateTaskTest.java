@@ -4,6 +4,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -47,8 +48,11 @@ public class GameBinariesUpdateTaskTest {
     Path faPath = faDirectory.getRoot().toPath();
     java.nio.file.Files.createDirectories(faPath.resolve("bin"));
 
-    Preferences preferences = new Preferences();
-    preferences.getForgedAlliance().setInstallationPath(faPath);
+    Preferences preferences = PreferencesBuilder.create().defaultValues()
+        .forgedAlliancePrefs()
+        .installationPath(faPath)
+        .then()
+        .get();
 
     when(preferencesService.getFafBinDirectory()).thenReturn(fafBinDirectory.getRoot().toPath());
     when(preferencesService.getPreferences()).thenReturn(preferences);

@@ -5,6 +5,7 @@ import com.faforever.client.map.generator.GenerationType;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import org.junit.Before;
@@ -46,24 +47,32 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
   private GenerateMapController instance;
 
   public void unbindProperties() {
-    preferences.getGeneratorPrefs().spawnCountPropertyProperty().unbind();
-    preferences.getGeneratorPrefs().mapSizePropertyProperty().unbind();
-    preferences.getGeneratorPrefs().waterRandomPropertyProperty().unbind();
-    preferences.getGeneratorPrefs().plateauRandomPropertyProperty().unbind();
-    preferences.getGeneratorPrefs().mountainRandomPropertyProperty().unbind();
-    preferences.getGeneratorPrefs().rampRandomPropertyProperty().unbind();
-    preferences.getGeneratorPrefs().waterDensityPropertyProperty().unbind();
-    preferences.getGeneratorPrefs().plateauDensityPropertyProperty().unbind();
-    preferences.getGeneratorPrefs().mountainDensityPropertyProperty().unbind();
-    preferences.getGeneratorPrefs().rampDensityPropertyProperty().unbind();
+    preferences.getGenerator().spawnCountProperty().unbind();
+    preferences.getGenerator().mapSizeProperty().unbind();
+    preferences.getGenerator().waterRandomProperty().unbind();
+    preferences.getGenerator().plateauRandomProperty().unbind();
+    preferences.getGenerator().mountainRandomProperty().unbind();
+    preferences.getGenerator().rampRandomProperty().unbind();
+    preferences.getGenerator().waterDensityProperty().unbind();
+    preferences.getGenerator().plateauDensityProperty().unbind();
+    preferences.getGenerator().mountainDensityProperty().unbind();
+    preferences.getGenerator().rampDensityProperty().unbind();
   }
 
   @Before
   public void setUp() throws Exception {
     instance = new GenerateMapController(preferencesService, notificationService, mapGeneratorService, i18n);
 
-    preferences = new Preferences();
-    preferences.getForgedAlliance().setInstallationPath(Paths.get("."));
+    preferences = PreferencesBuilder.create().defaultValues()
+        .forgedAlliancePrefs()
+        .installationPath(Paths.get(""))
+        .then()
+        .generatorPrefs()
+        .spawnCount(10)
+        .mapSize("10km")
+        .then()
+        .get();
+
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
     loadFxml("theme/play/generate_map.fxml", clazz -> instance);
@@ -84,9 +93,6 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetLastSpawnCount() {
-    preferences.getGeneratorPrefs().setSpawnCountProperty(10);
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
-
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -95,21 +101,17 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetLastMapSize() {
-    preferences.getGeneratorPrefs().setMapSizeProperty("10km");
-    preferences.getGeneratorPrefs().setSpawnCountProperty(8);
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(instance.mapSizeSpinner.getValue(), "10km");
-    assertEquals((int) instance.spawnCountSpinner.getValue(), 8);
+    assertEquals((int) instance.spawnCountSpinner.getValue(), 10);
   }
 
   @Test
   public void testSetLastWaterRandom() {
-    preferences.getGeneratorPrefs().setWaterRandomProperty(false);
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getGenerator().setWaterRandom(false);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -119,8 +121,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetLastPlateauRandom() {
-    preferences.getGeneratorPrefs().setPlateauRandomProperty(false);
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getGenerator().setPlateauRandom(false);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -130,8 +131,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetLastMountainRandom() {
-    preferences.getGeneratorPrefs().setMountainRandomProperty(false);
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getGenerator().setMountainRandom(false);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -141,8 +141,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetLastRampRandom() {
-    preferences.getGeneratorPrefs().setRampRandomProperty(false);
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getGenerator().setRampRandom(false);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -152,8 +151,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetLastWaterSlider() {
-    preferences.getGeneratorPrefs().setWaterDensityProperty(71);
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getGenerator().setWaterDensity(71);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -163,8 +161,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetLastMountainSlider() {
-    preferences.getGeneratorPrefs().setMountainDensityProperty(71);
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getGenerator().setMountainDensity(71);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -174,8 +171,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetLastPlateauSlider() {
-    preferences.getGeneratorPrefs().setPlateauDensityProperty(71);
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getGenerator().setPlateauDensity(71);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -185,8 +181,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetLastRampSlider() {
-    preferences.getGeneratorPrefs().setRampDensityProperty(71);
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getGenerator().setRampDensity(71);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -196,8 +191,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testWaterSliderVisibilityWhenRandom() {
-    preferences.getGeneratorPrefs().setWaterRandomProperty(true);
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getGenerator().setWaterRandom(true);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -207,8 +201,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPlateauSliderVisibilityWhenRandom() {
-    preferences.getGeneratorPrefs().setPlateauRandomProperty(true);
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getGenerator().setPlateauRandom(true);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -218,8 +211,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testMountainSliderVisibilityWhenRandom() {
-    preferences.getGeneratorPrefs().setMountainRandomProperty(true);
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getGenerator().setMountainRandom(true);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -229,8 +221,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testRampSliderVisibilityWhenRandom() {
-    preferences.getGeneratorPrefs().setRampRandomProperty(true);
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getGenerator().setRampRandom(true);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -240,8 +231,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testWaterSliderVisibilityWhenNotRandom() {
-    preferences.getGeneratorPrefs().setWaterRandomProperty(false);
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getGenerator().setWaterRandom(false);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -251,8 +241,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPlateauSliderVisibilityWhenNotRandom() {
-    preferences.getGeneratorPrefs().setPlateauRandomProperty(false);
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getGenerator().setPlateauRandom(false);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -262,9 +251,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testMountainSliderVisibilityWhenNotRandom() {
-
-    preferences.getGeneratorPrefs().setMountainRandomProperty(false);
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getGenerator().setMountainRandom(false);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -274,8 +261,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testRampSliderVisibilityWhenNotRandom() {
-    preferences.getGeneratorPrefs().setRampRandomProperty(false);
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getGenerator().setRampRandom(false);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -285,8 +271,6 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOptionsNotDisabledWithoutMapName() {
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
-
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
     instance.previousMapName.setText("neroxis_map_generator");
@@ -305,8 +289,6 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOptionsDisabledWithMapName() {
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
-
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
     instance.previousMapName.setText("neroxis_map_generator");
@@ -324,8 +306,6 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOptionsNotDisabledWithCasual() {
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
-
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
     instance.generationTypeComboBox.setValue(GenerationType.TOURNAMENT);
@@ -343,8 +323,6 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOptionsDisabledWithTournament() {
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
-
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
     instance.generationTypeComboBox.setValue(GenerationType.TOURNAMENT);
@@ -362,8 +340,6 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOptionsDisabledWithBlind() {
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
-
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
     instance.generationTypeComboBox.setValue(GenerationType.BLIND);
@@ -381,15 +357,14 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testGetOptionMap() {
-    preferences.getGeneratorPrefs().setWaterRandomProperty(false);
-    preferences.getGeneratorPrefs().setMountainRandomProperty(false);
-    preferences.getGeneratorPrefs().setPlateauRandomProperty(false);
-    preferences.getGeneratorPrefs().setRampRandomProperty(false);
-    preferences.getGeneratorPrefs().setWaterDensityProperty(1);
-    preferences.getGeneratorPrefs().setPlateauDensityProperty(2);
-    preferences.getGeneratorPrefs().setMountainDensityProperty(3);
-    preferences.getGeneratorPrefs().setRampDensityProperty(4);
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getGenerator().setWaterRandom(false);
+    preferences.getGenerator().setMountainRandom(false);
+    preferences.getGenerator().setPlateauRandom(false);
+    preferences.getGenerator().setRampRandom(false);
+    preferences.getGenerator().setWaterDensity(1);
+    preferences.getGenerator().setPlateauDensity(2);
+    preferences.getGenerator().setMountainDensity(3);
+    preferences.getGenerator().setRampDensity(4);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -404,12 +379,10 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testGetOptionMapRandom() {
-    preferences.getGeneratorPrefs().setWaterRandomProperty(true);
-    preferences.getGeneratorPrefs().setMountainRandomProperty(true);
-    preferences.getGeneratorPrefs().setPlateauRandomProperty(true);
-    preferences.getGeneratorPrefs().setRampRandomProperty(true);
-
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getGenerator().setWaterRandom(true);
+    preferences.getGenerator().setMountainRandom(true);
+    preferences.getGenerator().setPlateauRandom(true);
+    preferences.getGenerator().setRampRandom(true);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -424,16 +397,12 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnGenerateMapNoName() {
-    preferences.getGeneratorPrefs().setWaterRandomProperty(true);
-    preferences.getGeneratorPrefs().setMountainRandomProperty(true);
-    preferences.getGeneratorPrefs().setPlateauRandomProperty(true);
-    preferences.getGeneratorPrefs().setRampRandomProperty(true);
-    preferences.getGeneratorPrefs().setSpawnCountProperty(10);
-    preferences.getGeneratorPrefs().setMapSizeProperty("10km");
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getGenerator().setWaterRandom(true);
+    preferences.getGenerator().setMountainRandom(true);
+    preferences.getGenerator().setPlateauRandom(true);
+    preferences.getGenerator().setRampRandom(true);
 
     when(mapGeneratorService.generateMap(anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture("testname"));
-
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();

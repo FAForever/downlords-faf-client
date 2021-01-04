@@ -5,6 +5,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.update.ClientUpdateServiceImpl.InstallerExecutionException;
@@ -29,6 +30,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ClientUpdateServiceImplTest {
@@ -53,7 +55,7 @@ public class ClientUpdateServiceImplTest {
   private CheckForUpdateTask checkForUpdateTask;
   @Mock
   private CheckForBetaUpdateTask checkForBetaUpdateTask;
-  private Preferences preferences = new Preferences();
+  private Preferences preferences;
 
   @Before
   public void setUp() throws Exception {
@@ -62,6 +64,8 @@ public class ClientUpdateServiceImplTest {
     ClientConfiguration clientConfiguration = new ClientConfiguration();
     clientConfiguration.setLatestRelease(new ClientConfiguration.ReleaseInfo());
     clientConfiguration.getLatestRelease().setVersion("v0.4.9.1-alpha");
+    preferences = PreferencesBuilder.create().defaultValues().get();
+
 
     doReturn(checkForUpdateTask).when(applicationContext).getBean(CheckForUpdateTask.class);
     doReturn(checkForBetaUpdateTask).when(applicationContext).getBean(CheckForBetaUpdateTask.class);
@@ -69,7 +73,7 @@ public class ClientUpdateServiceImplTest {
     doReturn(checkForBetaUpdateTask).when(taskService).submitTask(any(CheckForBetaUpdateTask.class));
     doReturn(CompletableFuture.completedFuture(normalUpdateInfo)).when(checkForUpdateTask).getFuture();
     doReturn(CompletableFuture.completedFuture(betaUpdateInfo)).when(checkForBetaUpdateTask).getFuture();
-    doReturn(preferences).when(preferencesService).getPreferences();
+    when(preferencesService.getPreferences()).thenReturn(preferences);
 
     instance = new ClientUpdateServiceImpl(taskService, notificationService, i18n, platformService, applicationContext, preferencesService);
   }
@@ -81,7 +85,7 @@ public class ClientUpdateServiceImplTest {
   public void testCheckForUpdateInBackgroundUpdateAvailable() throws Exception {
     instance.currentVersion = "v0.4.8.0-alpha";
 
-    preferences.setPrereleaseCheckEnabled(false);
+    preferences.setPreReleaseCheckEnabled(false);
     instance.checkForUpdateInBackground();
 
     verify(taskService).submitTask(checkForUpdateTask);
@@ -102,7 +106,7 @@ public class ClientUpdateServiceImplTest {
   public void testCheckForBetaUpdateInBackgroundUpdateAvailable() throws Exception {
     instance.currentVersion = "v0.4.8.0-alpha";
 
-    preferences.setPrereleaseCheckEnabled(true);
+    preferences.setPreReleaseCheckEnabled(true);
     instance.checkForUpdateInBackground();
 
     verify(taskService).submitTask(checkForUpdateTask);

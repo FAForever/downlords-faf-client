@@ -18,9 +18,8 @@ import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.ReconnectTimerService;
@@ -134,11 +133,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private DiscordRichPresenceService discordRichPresenceService;
   @Mock
-  private Preferences preferences;
-  @Mock
   private Process process;
-  @Mock
-  private ForgedAlliancePrefs forgedAlliancePrefs;
 
   @Captor
   private ArgumentCaptor<Consumer<GameInfoMessage>> gameInfoMessageListenerCaptor;
@@ -146,10 +141,12 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   private ArgumentCaptor<Set<String>> simModsCaptor;
 
   private Player junitPlayer;
+  private Preferences preferences;
 
   @Before
   public void setUp() throws Exception {
     junitPlayer = PlayerBuilder.create("JUnit").defaultValues().get();
+    preferences = PreferencesBuilder.create().defaultValues().get();
 
     ClientProperties clientProperties = new ClientProperties();
 
@@ -159,8 +156,6 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     when(replayService.start(anyInt(), any())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
     when(iceAdapter.start()).thenReturn(completedFuture(GPG_PORT));
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(junitPlayer));
-    when(preferences.getNotification()).thenReturn(new NotificationsPrefs());
-    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
 
     doAnswer(invocation -> {
       try {
@@ -232,7 +227,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testStartReplayWhileInGameAllowed() throws Exception {
-    when(forgedAlliancePrefs.isAllowReplaysWhileInGame()).thenReturn(true);
+    preferences.getForgedAlliance().setAllowReplaysWhileInGame(true);
     Game game = GameBuilder.create().defaultValues().get();
 
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
@@ -261,7 +256,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testStartReplayWhileInGameNotAllowed() throws Exception {
-    when(forgedAlliancePrefs.isAllowReplaysWhileInGame()).thenReturn(false);
+    preferences.getForgedAlliance().setAllowReplaysWhileInGame(false);
     Game game = GameBuilder.create().defaultValues().get();
 
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();

@@ -3,6 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -63,9 +64,10 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
 
     games = FXCollections.observableArrayList();
 
-    preferences = new Preferences();
-    preferences.setGamesViewMode("tableButton");
-    preferences.setShowGameDetailsSidePane(true);
+    preferences = PreferencesBuilder.create().defaultValues()
+        .gamesViewMode("tableButton")
+        .showGameDetailsSidePane(true)
+        .get();
 
     when(gameService.getGames()).thenReturn(games);
     when(gameService.gameRunningProperty()).thenReturn(new SimpleBooleanProperty());

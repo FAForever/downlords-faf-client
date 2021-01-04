@@ -329,7 +329,7 @@ public class SettingsController implements Controller<Node> {
 
     advancedIceLogToggle.selectedProperty().bindBidirectional(preferences.advancedIceLogEnabledProperty());
 
-    prereleaseToggle.selectedProperty().bindBidirectional(preferences.prereleaseCheckEnabledProperty());
+    prereleaseToggle.selectedProperty().bindBidirectional(preferences.preReleaseCheckEnabledProperty());
     prereleaseToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue != null && newValue && (oldValue == null || !oldValue)) {
         clientUpdateService.checkForUpdateInBackground();

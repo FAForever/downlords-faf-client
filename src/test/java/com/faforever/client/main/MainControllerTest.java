@@ -17,6 +17,7 @@ import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -101,7 +102,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private Environment environment;
   private MainController instance;
   private BooleanProperty gameRunningProperty;
-  private final Preferences preferences = new Preferences();
+  private Preferences preferences;
   @Mock
   private FxStage fxStage;
 
@@ -118,6 +119,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
         .setBeta(240)
         .setInitialMean(1500)
         .setInitialStandardDeviation(500);
+
+    preferences = PreferencesBuilder.create().defaultValues().get();
 
     when(environment.getActiveProfiles()).thenReturn(ArrayUtils.EMPTY_STRING_ARRAY);
 

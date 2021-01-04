@@ -9,6 +9,7 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.LanguageChannel;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.TimeInfo;
 import com.faforever.client.settings.LanguageItemController;
@@ -78,7 +79,7 @@ public class SettingsControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    preferences = new Preferences();
+    preferences = PreferencesBuilder.create().defaultValues().get();
     when(preferenceService.getPreferences()).thenReturn(preferences);
     when(uiService.currentThemeProperty()).thenReturn(new SimpleObjectProperty<>());
     when(uiService.getCurrentTheme())

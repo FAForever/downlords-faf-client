@@ -12,6 +12,7 @@ import com.faforever.client.mod.ModVersion;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
@@ -95,8 +96,11 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
     mapList = FXCollections.observableArrayList();
 
-    preferences = new Preferences();
-    preferences.getForgedAlliance().setInstallationPath(Paths.get("."));
+    preferences = PreferencesBuilder.create().defaultValues()
+        .forgedAlliancePrefs()
+        .installationPath(Paths.get(""))
+        .then()
+        .get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(mapService.getInstalledMaps()).thenReturn(mapList);
     when(modService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(emptyList()));
@@ -180,8 +184,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetLastGameTitle() {
-    preferences.getLastGamePrefs().setLastGameTitle("testGame");
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getLastGame().setLastGameTitle("testGame");
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -192,9 +195,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testButtonBindingIfFeaturedModNotSet() {
-    preferences.getLastGamePrefs().setLastGameTitle("123");
+    preferences.getLastGame().setLastGameTitle("123");
     when(i18n.get("game.create.featuredModMissing")).thenReturn("Mod missing");
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -206,7 +208,6 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   public void testButtonBindingIfTitleNotSet() {
 
     when(i18n.get("game.create.titleMissing")).thenReturn("title missing");
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -218,7 +219,6 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   public void testButtonBindingIfNotConnected() {
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.DISCONNECTED));
     when(i18n.get("game.create.disconnected")).thenReturn("disconnected");
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -230,7 +230,6 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   public void testButtonBindingIfNotConnecting() {
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTING));
     when(i18n.get("game.create.connecting")).thenReturn("connecting");
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -241,7 +240,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testSelectLastMap() {
     MapBean lastMapBean = MapBuilder.create().defaultValues().folderName("foo").get();
-    preferences.getLastGamePrefs().setLastMap("foo");
+    preferences.getLastGame().setLastMap("foo");
 
     mapList.add(MapBuilder.create().defaultValues().folderName("Test1").get());
     mapList.add(lastMapBean);
@@ -310,7 +309,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().technicalName("something").get();
     FeaturedMod featuredMod2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName()).get();
 
-    preferences.getLastGamePrefs().setLastGameType(null);
+    preferences.getLastGame().setLastGameType(null);
     when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredMod, featuredMod2)));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
@@ -324,7 +323,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().technicalName("last").get();
     FeaturedMod featuredMod2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName()).get();
 
-    preferences.getLastGamePrefs().setLastGameType("last");
+    preferences.getLastGame().setLastGameType("last");
     when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredMod, featuredMod2)));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
@@ -336,15 +335,15 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnlyFriendsBinding() {
     instance.onlyForFriendsCheckBox.setSelected(true);
-    assertThat(preferences.getLastGamePrefs().isLastGameOnlyFriends(), is(true));
+    assertThat(preferences.getLastGame().isLastGameOnlyFriends(), is(true));
     instance.onlyForFriendsCheckBox.setSelected(false);
-    assertThat(preferences.getLastGamePrefs().isLastGameOnlyFriends(), is(false));
+    assertThat(preferences.getLastGame().isLastGameOnlyFriends(), is(false));
   }
 
   @Test
   public void testPasswordIsSaved() {
     instance.passwordTextField.setText("1234");
-    assertEquals(preferences.getLastGamePrefs().getLastGamePassword(), "1234");
+    assertEquals(preferences.getLastGame().getLastGamePassword(), "1234");
     verify(preferencesService).storeInBackground();
   }
 

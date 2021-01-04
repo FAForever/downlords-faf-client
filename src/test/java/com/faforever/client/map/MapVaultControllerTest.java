@@ -82,7 +82,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     }).when(uiService).loadFxml("theme/vault/map/map_detail.fxml");
 
     instance = new MapVaultController(mapService, i18n, eventBus, preferencesService, uiService, notificationService, reportingService);
-    sortOrder = preferencesService.getPreferences().getVaultPrefs().getMapSortConfig();
+    sortOrder = preferencesService.getPreferences().getVault().getMapSortConfig();
     standardSearchConfig = new SearchConfig(sortOrder, "query");
 
 

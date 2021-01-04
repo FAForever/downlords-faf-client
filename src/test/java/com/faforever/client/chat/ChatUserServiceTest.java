@@ -13,8 +13,8 @@ import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.SocialStatus;
-import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -64,16 +64,18 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   private MapService mapService;
   @Mock
   private AvatarBean avatar;
-  @Mock
-  private Preferences preferences;
-  @Mock
-  private ChatPrefs chatPrefs;
-  private URL avatarURL;
 
+  private Preferences preferences;
+  private URL avatarURL;
   private Clan testClan;
 
   @Before
   public void setUp() throws Exception {
+    preferences = PreferencesBuilder.create().defaultValues()
+        .chatPrefs()
+        .chatColorMode(ChatColorMode.DEFAULT)
+        .then()
+        .get();
     avatarURL = new URL("http://avatar.png");
     testClan = new Clan();
     testClan.setTag("testClan");
@@ -86,10 +88,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     when(avatar.getDescription()).thenReturn("fancy");
     when(i18n.getCountryNameLocalized("US")).thenReturn("United States");
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.getChat()).thenReturn(chatPrefs);
-    when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.DEFAULT);
-    when(chatPrefs.getUserToColor()).thenReturn(FXCollections.observableHashMap());
-    when(chatPrefs.getGroupToColor()).thenReturn(FXCollections.observableHashMap());
 
     instance = new ChatUserService(
         uiService,
@@ -297,7 +295,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testUserColorSetNoPlayer() {
-    when(chatPrefs.getUserToColor()).thenReturn(FXCollections.observableMap(Map.of("junit", Color.AQUA)));
+    preferences.getChat().setUserToColor(FXCollections.observableMap(Map.of("junit", Color.AQUA)));
     ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
         .defaultValues()
         .get();
@@ -310,7 +308,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testGroupColorSet() {
-    when(chatPrefs.getGroupToColor()).thenReturn(FXCollections.observableMap(Map.of(ChatUserCategory.FRIEND, Color.AQUA)));
+    preferences.getChat().setGroupToColor(FXCollections.observableMap(Map.of(ChatUserCategory.FRIEND, Color.AQUA)));
     ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
         .defaultValues()
         .get();
@@ -327,7 +325,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testModeratorColorOverGroup() {
-    when(chatPrefs.getGroupToColor()).thenReturn(FXCollections.observableMap(Map.of(ChatUserCategory.MODERATOR, Color.RED, ChatUserCategory.FRIEND, Color.AQUA)));
+    preferences.getChat().setGroupToColor(FXCollections.observableMap(Map.of(ChatUserCategory.MODERATOR, Color.RED, ChatUserCategory.FRIEND, Color.AQUA)));
     ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
         .defaultValues()
         .moderator(true)

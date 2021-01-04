@@ -1,7 +1,7 @@
 package com.faforever.client.user;
 
-import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
@@ -16,7 +16,6 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -25,13 +24,9 @@ import static org.mockito.Mockito.when;
 public class UserServiceTest {
 
   @Mock
-  private Preferences preferences;
-  @Mock
   private FafService fafService;
   @Mock
   private PreferencesService preferencesService;
-  @Mock
-  private LoginPrefs login;
   @Mock
   private EventBus eventBus;
   @Mock
@@ -46,12 +41,9 @@ public class UserServiceTest {
     MockitoAnnotations.initMocks(this);
 
     instance = new UserService(fafService, preferencesService, eventBus, applicationContext, taskService);
+    Preferences preferences = PreferencesBuilder.create().defaultValues().get();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.getLogin()).thenReturn(login);
-    when(login.setPassword(any())).thenReturn(login);
-    when(login.setUsername(any())).thenReturn(login);
-    when(login.setAutoLogin(anyBoolean())).thenReturn(login);
     when(applicationContext.getBean(ChangePasswordTask.class)).thenReturn(mock(ChangePasswordTask.class));
   }
 //

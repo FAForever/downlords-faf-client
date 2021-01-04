@@ -71,10 +71,10 @@ public class MapVaultController extends VaultEntityController<MapBean> {
   protected void initSearchController() {
     searchController.setRootType(com.faforever.client.api.dto.Map.class);
     searchController.setSearchableProperties(SearchablePropertyMappings.MAP_PROPERTY_MAPPING);
-    searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().mapSortConfigProperty());
+    searchController.setSortConfig(preferencesService.getPreferences().getVault().mapSortConfigProperty());
     searchController.setOnlyShowLastYearCheckBoxVisible(false);
     searchController.setVaultRoot(vaultRoot);
-    searchController.setSavedQueries(preferencesService.getPreferences().getVaultPrefs().getSavedMapQueries());
+    searchController.setSavedQueries(preferencesService.getPreferences().getVault().getSavedMapQueries());
 
     searchController.addTextFilter("displayName", i18n.get("map.name"));
     searchController.addTextFilter("author.login", i18n.get("map.author"));

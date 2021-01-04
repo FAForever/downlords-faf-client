@@ -91,7 +91,7 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
 
   @Override
   public void checkForUpdateInBackground() {
-    if (preferencesService.getPreferences().isPrereleaseCheckEnabled()) {
+    if (preferencesService.getPreferences().getPreReleaseCheckEnabled()) {
       checkForBetaUpdateInBackground();
     } else {
       checkForRegularUpdateInBackground();

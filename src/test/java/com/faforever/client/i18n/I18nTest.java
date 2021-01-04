@@ -1,6 +1,7 @@
 package com.faforever.client.i18n;
 
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -37,8 +38,11 @@ public class I18nTest {
 
   @Before
   public void setUp() throws Exception {
-    Preferences preferences = new Preferences();
-    preferences.getLocalization().setLanguage(Locale.GERMAN);
+    Preferences preferences = PreferencesBuilder.create().defaultValues()
+        .localizationPrefs()
+        .language(Locale.GERMAN)
+        .then()
+        .get();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.getLanguagesDirectory()).thenReturn(temporaryFolder.newFolder("languages").toPath());

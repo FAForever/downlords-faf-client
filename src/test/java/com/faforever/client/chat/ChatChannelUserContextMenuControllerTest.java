@@ -16,8 +16,8 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.GameType;
@@ -27,9 +27,6 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.EventBus;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.ObservableMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -55,7 +52,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -100,14 +96,9 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
         replayService, notificationService, i18n, eventBus, joinGameHelper,
         avatarService, uiService, platformService, moderatorService, teamMatchmakingService);
 
-    Preferences preferences = mock(Preferences.class);
-    ChatPrefs chatPrefs = mock(ChatPrefs.class);
-    ObjectProperty<ChatColorMode> chatColorModeObjectProperty = new SimpleObjectProperty<>();
+    Preferences preferences = PreferencesBuilder.create().defaultValues().get();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.getChat()).thenReturn(chatPrefs);
-    when(chatPrefs.getUserToColor()).thenReturn(mock(ObservableMap.class));
-    when(chatPrefs.chatColorModeProperty()).thenReturn(chatColorModeObjectProperty);
     when(avatarService.getAvailableAvatars()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
         new AvatarBean(new URL("http://www.example.com/avatar1.png"), "Avatar Number #1"),
         new AvatarBean(new URL("http://www.example.com/avatar2.png"), "Avatar Number #2"),

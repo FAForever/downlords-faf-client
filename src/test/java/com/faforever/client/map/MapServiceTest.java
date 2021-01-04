@@ -5,8 +5,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
@@ -18,8 +18,6 @@ import com.faforever.client.update.ClientConfiguration;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -74,12 +72,6 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private Preferences preferences;
-  @Mock
-  private ForgedAlliancePrefs forgedAlliancePrefs;
-  @Mock
-  private ObjectProperty<Path> customMapsDirectoryProperty;
-  @Mock
   private TaskService taskService;
   @Mock
   private I18n i18n;
@@ -103,13 +95,15 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     ClientProperties clientProperties = new ClientProperties();
     clientProperties.getVault().setMapPreviewUrlFormat("http://127.0.0.1:65534/preview/%s/%s");
 
+    Preferences preferences = PreferencesBuilder.create().defaultValues()
+        .forgedAlliancePrefs()
+        .customMapsDirectory(customMapsDirectory.getRoot().toPath())
+        .installationPath(gameDirectory.getRoot().toPath())
+        .then()
+        .get();
+
     mapsDirectory = gameDirectory.newFolder("maps").toPath();
-    when(forgedAlliancePrefs.getCustomMapsDirectory()).thenReturn(customMapsDirectory.getRoot().toPath());
-    when(forgedAlliancePrefs.customMapsDirectoryProperty()).thenReturn(customMapsDirectoryProperty);
-    when(forgedAlliancePrefs.getInstallationPath()).thenReturn(gameDirectory.getRoot().toPath());
-    when(forgedAlliancePrefs.installationPathProperty()).thenReturn(new SimpleObjectProperty<>());
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     instance = new MapService(preferencesService, taskService, applicationContext,
         fafService, assetService, i18n, uiService, mapGeneratorService, clientProperties, eventBus, playerService);
     instance.afterPropertiesSet();

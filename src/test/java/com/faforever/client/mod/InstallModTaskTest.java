@@ -1,8 +1,8 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import org.junit.Before;
@@ -32,19 +32,19 @@ public class InstallModTaskTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
   @Mock
   private PreferencesService preferencesService;
-  @Mock
-  private Preferences preferences;
-  @Mock
-  private ForgedAlliancePrefs forgedAlliancePrefs;
 
   @Before
   public void setUp() throws Exception {
+    Preferences preferences = PreferencesBuilder.create().defaultValues()
+        .forgedAlliancePrefs()
+        .modsDirectory(modsDirectory.getRoot().toPath())
+        .then()
+        .get();
+
     instance = new InstallModTask(preferencesService, i18n);
 
     when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory.getRoot().toPath());
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
-    when(forgedAlliancePrefs.getModsDirectory()).thenReturn(modsDirectory.getRoot().toPath());
   }
 
   @Test
