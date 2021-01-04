@@ -10,10 +10,7 @@
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.Tooltip?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.*?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="generateMapRoot" hgap="10.0" styleClass="create-game-root"
           vgap="10.0" xmlns="http://javafx.com/javafx/11.0.1"
           fx:controller="com.faforever.client.game.GenerateMapController">
@@ -122,16 +119,42 @@
                 HBox.hgrow="ALWAYS"/>
         <Label text="%game.generateMap.more"/>
     </HBox>
+    <Label text="%game.generateMap.mexSlider" GridPane.columnIndex="0" GridPane.rowIndex="11"/>
+    <HBox fx:id="mexRandomBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1"
+          GridPane.rowIndex="11">
+        <Label text="%game.generateMap.random"/>
+        <CheckBox fx:id="mexRandom"/>
+    </HBox>
+    <HBox fx:id="mexSliderBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="2"
+          GridPane.rowIndex="11">
+        <Label text="%game.generateMap.less"/>
+        <Slider fx:id="mexSlider" max="127" majorTickUnit="1" snapToTicks="true" maxHeight="Infinity"
+                HBox.hgrow="ALWAYS"/>
+        <Label text="%game.generateMap.more"/>
+    </HBox>
+    <Label text="%game.generateMap.reclaimSlider" GridPane.columnIndex="0" GridPane.rowIndex="12"/>
+    <HBox fx:id="reclaimRandomBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1"
+          GridPane.rowIndex="12">
+        <Label text="%game.generateMap.random"/>
+        <CheckBox fx:id="reclaimRandom"/>
+    </HBox>
+    <HBox fx:id="reclaimSliderBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="2"
+          GridPane.rowIndex="12">
+        <Label text="%game.generateMap.less"/>
+        <Slider fx:id="reclaimSlider" max="127" majorTickUnit="1" snapToTicks="true" maxHeight="Infinity"
+                HBox.hgrow="ALWAYS"/>
+        <Label text="%game.generateMap.more"/>
+    </HBox>
 
 
     <Button fx:id="generateMapButton" contentDisplay="RIGHT" defaultButton="true"
             mnemonicParsing="false" onAction="#onGenerateMapButtonClicked" styleClass="game-generate-map"
-            text="%game.generateMap" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="11">
+            text="%game.generateMap" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="13">
     </Button>
 
     <!-- Cancel, Ok -->
     <Button mnemonicParsing="false" onAction="#onCloseButtonClicked"
             styleClass="more-button-padding" text="%cancel" GridPane.columnIndex="0" GridPane.halignment="LEFT"
-            GridPane.rowIndex="11">
+            GridPane.rowIndex="13">
     </Button>
 </GridPane>

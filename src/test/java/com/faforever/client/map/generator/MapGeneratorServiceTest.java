@@ -49,7 +49,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
   private final Integer spawnCount = 6;
   private final Integer mapSize = 512;
   private final Map<String, Float> optionMap = Map.of("landDensity", .5f, "plateauDensity", .25f,
-      "mountainDensity", .125f, "rampDensity", .75f);
+      "mountainDensity", .125f, "rampDensity", .75f, "mexDensity", .325f, "reclaimDensity", .825f);
   private final long numericalSeed = -123456789;
   private final int minVersion = 1;
   private final int maxVersion = 2;
@@ -187,6 +187,8 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
     verify(generateMapTask).setMountainDensity(eq(optionMap.get("mountainDensity")));
     verify(generateMapTask).setPlateauDensity(eq(optionMap.get("plateauDensity")));
     verify(generateMapTask).setRampDensity(eq(optionMap.get("rampDensity")));
+    verify(generateMapTask).setMexDensity(eq(optionMap.get("mexDensity")));
+    verify(generateMapTask).setReclaimDensity(eq(optionMap.get("reclaimDensity")));
     verify(generateMapTask).setGenerationType(eq(GenerationType.CASUAL));
   }
 }

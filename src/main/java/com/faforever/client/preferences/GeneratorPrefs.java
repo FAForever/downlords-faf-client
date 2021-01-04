@@ -22,6 +22,10 @@ public class GeneratorPrefs {
   private final BooleanProperty mountainRandom;
   private final IntegerProperty rampDensity;
   private final BooleanProperty rampRandom;
+  private final IntegerProperty mexDensity;
+  private final BooleanProperty mexRandom;
+  private final IntegerProperty reclaimDensity;
+  private final BooleanProperty reclaimRandom;
 
   public GeneratorPrefs() {
     spawnCount = new SimpleIntegerProperty(6);
@@ -35,6 +39,10 @@ public class GeneratorPrefs {
     mountainRandom = new SimpleBooleanProperty(true);
     rampDensity = new SimpleIntegerProperty(0);
     rampRandom = new SimpleBooleanProperty(true);
+    mexDensity = new SimpleIntegerProperty(0);
+    mexRandom = new SimpleBooleanProperty(true);
+    reclaimDensity = new SimpleIntegerProperty(0);
+    reclaimRandom = new SimpleBooleanProperty(true);
   }
 
   public int getSpawnCount() {
@@ -121,6 +129,30 @@ public class GeneratorPrefs {
     return rampDensity;
   }
 
+  public int getMexDensity() {
+    return mexDensity.get();
+  }
+
+  public void setMexDensity(int mexDensity) {
+    this.mexDensity.set(mexDensity);
+  }
+
+  public IntegerProperty mexDensityProperty() {
+    return mexDensity;
+  }
+
+  public int getReclaimDensity() {
+    return reclaimDensity.get();
+  }
+
+  public void setReclaimDensity(int reclaimDensity) {
+    this.reclaimDensity.set(reclaimDensity);
+  }
+
+  public IntegerProperty reclaimDensityProperty() {
+    return reclaimDensity;
+  }
+
   public boolean getWaterRandom() {
     return waterRandom.get();
   }
@@ -167,5 +199,29 @@ public class GeneratorPrefs {
 
   public BooleanProperty rampRandomProperty() {
     return rampRandom;
+  }
+
+  public boolean getMexRandom() {
+    return mexRandom.get();
+  }
+
+  public void setMexRandom(boolean mexRandom) {
+    this.mexRandom.set(mexRandom);
+  }
+
+  public BooleanProperty mexRandomProperty() {
+    return mexRandom;
+  }
+
+  public boolean getReclaimRandom() {
+    return reclaimRandom.get();
+  }
+
+  public void setReclaimRandom(boolean reclaimRandom) {
+    this.reclaimRandom.set(reclaimRandom);
+  }
+
+  public BooleanProperty reclaimRandomProperty() {
+    return reclaimRandom;
   }
 }
