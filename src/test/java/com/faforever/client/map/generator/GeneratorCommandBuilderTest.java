@@ -91,7 +91,7 @@ public class GeneratorCommandBuilderTest {
 
   @Test
   public void testReclaimDensitySet() {
-    List<String> command = defaultBuilder().rampDensity(.1f).build();
+    List<String> command = defaultBuilder().reclaimDensity(.1f).build();
     assertTrue(command.containsAll(List.of("--reclaim-density", "0.1")));
   }
 
@@ -109,7 +109,7 @@ public class GeneratorCommandBuilderTest {
 
   @Test
   public void testUnexploredType() {
-    List<String> command = defaultBuilder().generationType(GenerationType.TOURNAMENT).build();
+    List<String> command = defaultBuilder().generationType(GenerationType.UNEXPLORED).build();
     assertTrue(command.contains("--unexplored"));
   }
 
