@@ -134,12 +134,10 @@ public class ModVersion {
     modVersionVersion.setRanked(dto.isRanked());
     modVersionVersion.setHidden(dto.isHidden());
     if (parent != null) {
-      modVersionVersion.setReviewsSummary(ReviewsSummary.fromDto(parent.getReviewsSummary()));
+      modVersionVersion.setReviewsSummary(parent.getReviewsSummary());
       parent.getVersions().forEach(v -> {
         if (v.getReviews() != null) {
-          v.getReviews().forEach(modVersionReview -> {
-            modVersionVersion.getReviews().add(modVersionReview);
-          });
+          v.getReviews().forEach(modVersionReview -> modVersionVersion.getReviews().add(modVersionReview));
         }
       });
     }
@@ -152,7 +150,7 @@ public class ModVersion {
     Mod mod = Optional.ofNullable(parent)
         .orElseGet(() -> Mod.fromDto(dto.getMod()));
     modVersionVersion.setMod(mod);
-    Optional.ofNullable(mod.getUploader()).ifPresent(uploader -> modVersionVersion.setUploader(uploader.getLogin()));
+    Optional.ofNullable(mod.getUploader()).ifPresent(modVersionVersion::setUploader);
     return modVersionVersion;
   }
 
@@ -160,7 +158,7 @@ public class ModVersion {
     com.faforever.client.api.dto.ModVersion modVersionVersion = dto.getLatestVersion();
 
     ModVersion modVersion = new ModVersion();
-    Optional.ofNullable(dto.getUploader()).ifPresent(uploader -> modVersion.setUploader(uploader.getLogin()));
+    Optional.ofNullable(dto.getUploader()).ifPresent(uploaderDTO -> modVersion.setUploader(uploaderDTO.getLogin()));
     modVersion.setDescription(modVersionVersion.getDescription());
     modVersion.setDisplayName(dto.getDisplayName());
     modVersion.setId(modVersionVersion.getId());

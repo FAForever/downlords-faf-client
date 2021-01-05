@@ -19,12 +19,10 @@ import org.testfx.util.WaitForAsyncUtils;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -61,13 +59,7 @@ public class ModCardControllerTest extends AbstractPlainJavaFxTest {
     when(modService.getInstalledModVersions()).thenReturn(installedModVersions);
     when(i18n.get(ModType.UI.getI18nKey())).thenReturn(ModType.UI.name());
 
-    modVersion = ModInfoBeanBuilder.create()
-        .defaultValues()
-        .name("ModVersion name")
-        .modType(ModType.UI)
-        .author("ModVersion author")
-        .thumbnailUrl(getClass().getResource("/theme/images/default_achievement.png").toExternalForm())
-        .get();
+    modVersion = ModVersionBuilder.create().defaultValues().mod(ModBuilder.create().defaultValues().get()).get();
 
     when(modService.uninstallMod(any())).thenReturn(CompletableFuture.runAsync(() -> {
     }));
@@ -90,9 +82,9 @@ public class ModCardControllerTest extends AbstractPlainJavaFxTest {
     when(modService.loadThumbnail(modVersion)).thenReturn(new Image("/theme/images/default_achievement.png"));
     instance.setModVersion(modVersion);
 
-    assertThat(instance.nameLabel.getText(), is("ModVersion name"));
-    assertThat(instance.authorLabel.getText(), is("ModVersion author"));
-    assertThat(instance.thumbnailImageView.getImage(), is(notNullValue()));
+    assertEquals(modVersion.getDisplayName(), instance.nameLabel.getText());
+    assertEquals(modVersion.getMod().getAuthor(), instance.authorLabel.getText());
+    assertNotNull(instance.thumbnailImageView.getImage());
     verify(modService).loadThumbnail(modVersion);
   }
 
@@ -103,13 +95,13 @@ public class ModCardControllerTest extends AbstractPlainJavaFxTest {
 
     instance.setModVersion(modVersion);
 
-    assertThat(instance.thumbnailImageView.getImage(), notNullValue());
+    assertNotNull(instance.thumbnailImageView.getImage());
   }
 
   @Test
   public void testGetRoot() throws Exception {
-    assertThat(instance.getRoot().getParent(), is(nullValue()));
-    assertThat((instance.getRoot()), is(instance.modTileRoot));
+    assertNull(instance.getRoot().getParent());
+    assertEquals(instance.modTileRoot, instance.getRoot());
   }
 
   @Test
@@ -123,9 +115,8 @@ public class ModCardControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testUiModLabel() {
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().modType(ModType.UI).get();
     instance.setModVersion(modVersion);
-    assertThat(instance.typeLabel.getText(), equalTo(ModType.UI.name()));
+    assertEquals(ModType.UI.name(), instance.typeLabel.getText());
   }
 
   @Test
@@ -145,7 +136,7 @@ public class ModCardControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void onMapInstalled() {
+  public void onModInstalled() {
     instance.setModVersion(modVersion);
     installedModVersions.add(modVersion);
     WaitForAsyncUtils.waitForFxEvents();
@@ -154,7 +145,7 @@ public class ModCardControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void onMapUninstalled() {
+  public void onModUninstalled() {
     instance.setModVersion(modVersion);
     installedModVersions.add(modVersion);
     installedModVersions.remove(modVersion);

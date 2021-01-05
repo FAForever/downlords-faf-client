@@ -86,7 +86,7 @@ public class LocalReplayVaultControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testShowLocalReplayDetail() {
-    Replay replay = ReplayInfoBeanBuilder.create().get();
+    Replay replay = ReplayBuilder.create().get();
     Platform.runLater(() -> instance.onDisplayDetails(replay));
     WaitForAsyncUtils.waitForFxEvents();
 

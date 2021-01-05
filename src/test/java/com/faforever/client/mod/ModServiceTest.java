@@ -33,6 +33,7 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -211,7 +212,7 @@ public class ModServiceTest extends AbstractPlainJavaFxTest {
     StringProperty stringProperty = new SimpleStringProperty();
     DoubleProperty doubleProperty = new SimpleDoubleProperty();
 
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().downloadUrl(modUrl).get();
+    ModVersion modVersion = ModVersionBuilder.create().defaultValues().downloadUrl(modUrl).get();
     instance.downloadAndInstallMod(modVersion, doubleProperty, stringProperty).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(stringProperty.isBound(), is(true));
@@ -377,7 +378,7 @@ public class ModServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGetPathForModUnknownModReturnsNull() {
     assertThat(instance.getInstalledModVersions(), hasSize(1));
-    assertThat(instance.getPathForMod(ModInfoBeanBuilder.create().uid("1").get()), Matchers.nullValue());
+    assertThat(instance.getPathForMod(ModVersionBuilder.create().uid("1").get()), Matchers.nullValue());
   }
 
   @Test
@@ -396,9 +397,9 @@ public class ModServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testLoadThumbnail() {
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues()
-        .thumbnailUrl("http://127.0.0.1:65534/thumbnail.png")
+  public void testLoadThumbnail() throws MalformedURLException {
+    ModVersion modVersion = ModVersionBuilder.create().defaultValues()
+        .thumbnailUrl(new URL("http://127.0.0.1:65534/thumbnail.png"))
         .get();
     instance.loadThumbnail(modVersion);
     verify(assetService).loadAndCacheImage(eq(modVersion.getThumbnailUrl()), eq(Paths.get("mods")), any());

@@ -2,12 +2,12 @@ package com.faforever.client.replay;
 
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
-import com.faforever.client.api.dto.GameReviewsSummary;
 import com.faforever.client.api.dto.Validity;
 import com.faforever.client.game.Faction;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.vault.review.Review;
+import com.faforever.client.vault.review.ReviewsSummary;
 import javafx.beans.Observable;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
@@ -22,6 +22,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -54,7 +55,7 @@ public class Replay {
   private final ListProperty<GameOption> gameOptions;
   private final ListProperty<Review> reviews;
   private final ObjectProperty<Validity> validity;
-  private final ObjectProperty<GameReviewsSummary> reviewsSummary;
+  private final ObjectProperty<ReviewsSummary> reviewsSummary;
 
   public Replay(String title) {
     this();
@@ -71,7 +72,7 @@ public class Replay {
     featuredMod = new SimpleObjectProperty<>();
     map = new SimpleObjectProperty<>();
     replayFile = new SimpleObjectProperty<>();
-    replayTicks = new SimpleObjectProperty<Integer>();
+    replayTicks = new SimpleObjectProperty<>();
     views = new SimpleIntegerProperty();
     chatMessages = new SimpleListProperty<>(FXCollections.observableArrayList());
     gameOptions = new SimpleListProperty<>(FXCollections.observableArrayList());
@@ -109,7 +110,7 @@ public class Replay {
     replay.setTeamPlayerStats(teamPlayerStats(dto));
     replay.getReviews().setAll(reviews(dto));
     replay.setValidity(dto.getValidity());
-    replay.setReviewsSummary(dto.getGameReviewsSummary());
+    replay.setReviewsSummary(ReviewsSummary.fromDto(dto.getGameReviewsSummary()));
     return replay;
   }
 
@@ -322,15 +323,15 @@ public class Replay {
     return reviews.get();
   }
 
-  public GameReviewsSummary getReviewsSummary() {
+  public ReviewsSummary getReviewsSummary() {
     return reviewsSummary.get();
   }
 
-  public void setReviewsSummary(GameReviewsSummary reviewsSummary) {
+  public void setReviewsSummary(ReviewsSummary reviewsSummary) {
     this.reviewsSummary.set(reviewsSummary);
   }
 
-  public ObjectProperty<GameReviewsSummary> reviewsSummaryProperty() {
+  public ObjectProperty<ReviewsSummary> reviewsSummaryProperty() {
     return reviewsSummary;
   }
 
@@ -417,6 +418,7 @@ public class Replay {
   }
 
   @Data
+  @Builder
   public static class PlayerStats {
     private final int playerId;
     private final double beforeMean;
@@ -428,7 +430,7 @@ public class Replay {
 
     public static PlayerStats fromDto(GamePlayerStats gamePlayerStats) {
       return new PlayerStats(
-          Integer.valueOf(gamePlayerStats.getPlayer().getId()),
+          Integer.parseInt(gamePlayerStats.getPlayer().getId()),
           gamePlayerStats.getBeforeMean(),
           gamePlayerStats.getBeforeDeviation(),
           gamePlayerStats.getAfterMean() == null ? null : Double.valueOf(gamePlayerStats.getAfterMean()),

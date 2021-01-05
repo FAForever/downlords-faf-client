@@ -12,6 +12,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
+import com.faforever.client.mod.FeaturedMod;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.rating.RatingService;
@@ -27,6 +29,7 @@ import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.commons.io.Bytes;
+import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Platform;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
@@ -40,6 +43,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import lombok.RequiredArgsConstructor;
@@ -74,6 +78,7 @@ public class ReplayDetailController implements Controller<Node> {
   private final MapService mapService;
   private final PlayerService playerService;
   private final ClientProperties clientProperties;
+  private final NotificationService notificationService;
   private final ReviewService reviewService;
   private final ArrayList<TeamCardController> teamCardControllers = new ArrayList<>();
   public Pane replayDetailRoot;
@@ -132,7 +137,13 @@ public class ReplayDetailController implements Controller<Node> {
     optionValueColumn.setCellFactory(param -> new StringCell<>(String::toString));
 
     JavaFxUtil.bindManagedToVisible(downloadMoreInfoButton, moreInformationPane, teamsInfoBox,
-        reviewsContainer, ratingSeparator, reviewSeparator);
+        reviewsContainer, ratingSeparator, reviewSeparator, getRoot());
+
+    replayDetailRoot.setOnKeyPressed(keyEvent -> {
+      if (keyEvent.getCode() == KeyCode.ESCAPE) {
+        onCloseButtonClicked();
+      }
+    });
 
     moreInformationPane.setVisible(false);
 
@@ -154,6 +165,8 @@ public class ReplayDetailController implements Controller<Node> {
 
   public void setReplay(Replay replay) {
     this.replay = replay;
+    watchButton.setDisable(false);
+    downloadMoreInfoButton.setDisable(false);
 
     replayIdField.setText(i18n.get("game.idFormat", replay.getId()));
     titleLabel.setText(replay.getTitle());
@@ -186,7 +199,7 @@ public class ReplayDetailController implements Controller<Node> {
 
     modLabel.setText(
         Optional.ofNullable(replay.getFeaturedMod())
-            .map(mod -> mod.getDisplayName())
+            .map(FeaturedMod::getDisplayName)
             .orElseGet(() -> i18n.get("unknown"))
     );
     playerCountLabel.setText(i18n.number(replay.getTeams().values().stream().mapToInt(List::size).sum()));
@@ -254,20 +267,22 @@ public class ReplayDetailController implements Controller<Node> {
     }
   }
 
-  private void onDeleteReview(Review review) {
+  @VisibleForTesting
+  void onDeleteReview(Review review) {
     reviewService.deleteGameReview(review)
         .thenRun(() -> Platform.runLater(() -> {
           replay.getReviews().remove(review);
           reviewsController.setOwnReview(Optional.empty());
         }))
-        // TODO display error to user
         .exceptionally(throwable -> {
           log.warn("Review could not be saved", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "review.delete.error");
           return null;
         });
   }
 
-  private void onSendReview(Review review) {
+  @VisibleForTesting
+  void onSendReview(Review review) {
     boolean isNew = review.getId() == null;
     Player player = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("No current player is available"));
@@ -279,9 +294,9 @@ public class ReplayDetailController implements Controller<Node> {
           }
           reviewsController.setOwnReview(Optional.of(review));
         })
-        // TODO display error to user
         .exceptionally(throwable -> {
           log.warn("Review could not be saved", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "review.save.error");
           return null;
         });
   }
@@ -298,6 +313,7 @@ public class ReplayDetailController implements Controller<Node> {
         })
         .exceptionally(throwable -> {
           log.error("Replay could not be enriched", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "replay.enrich.error");
           return null;
         });
   }
@@ -319,12 +335,9 @@ public class ReplayDetailController implements Controller<Node> {
       TeamCardController controller = uiService.loadFxml("theme/team_card.fxml");
       teamCardControllers.add(controller);
 
-      Function<Player, Rating> playerRatingFunction = player -> {
-        PlayerStats playerStats = statsByPlayerId.get(player.getId());
-        return new Rating(playerStats.getBeforeMean(), playerStats.getBeforeDeviation());
-      };
+      Function<Player, Rating> playerRatingFunction = player -> getPlayerRating(player, statsByPlayerId);
 
-      Function<Player, Faction> playerFactionFunction = player -> statsByPlayerId.get(player.getId()).getFaction();
+      Function<Player, Faction> playerFactionFunction = player -> getPlayerFaction(player, statsByPlayerId);
 
       playerService.getPlayersByIds(playerIds)
           .thenAccept(players ->
@@ -335,10 +348,22 @@ public class ReplayDetailController implements Controller<Node> {
     }));
   }
 
+  @VisibleForTesting
+  Faction getPlayerFaction(Player player, Map<Integer, PlayerStats> statsByPlayerId) {
+    return statsByPlayerId.get(player.getId()).getFaction();
+  }
+
+  @VisibleForTesting
+  Rating getPlayerRating(Player player, Map<Integer, PlayerStats> statsByPlayerId) {
+    PlayerStats playerStats = statsByPlayerId.get(player.getId());
+    return new Rating(playerStats.getBeforeMean(), playerStats.getBeforeDeviation());
+  }
+
   private void configureRatingControls() {
     if (!replay.getValidity().equals(Validity.VALID)) {
       showRatingChangeButton.setVisible(false);
       notRatedReasonLabel.setVisible(true);
+      //TODO use option to get default message in i18n
       String reasonText;
       try {
         reasonText = i18n.get("game.reasonNotValid", i18n.get(replay.getValidity().getI18nKey()));

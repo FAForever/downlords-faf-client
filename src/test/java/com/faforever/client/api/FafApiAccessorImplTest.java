@@ -14,8 +14,8 @@ import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.leaderboard.LeaderboardEntry;
-import com.faforever.client.mod.ModInfoBeanBuilder;
 import com.faforever.client.mod.ModVersion;
+import com.faforever.client.mod.ModVersionBuilder;
 import com.google.common.eventbus.EventBus;
 import org.junit.Before;
 import org.junit.Rule;
@@ -31,6 +31,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -159,10 +160,10 @@ public class FafApiAccessorImplTest {
   }
 
   @Test
-  public void testGetMods() {
+  public void testGetMods() throws MalformedURLException {
     List<ModVersion> modVersions = Arrays.asList(
-        ModInfoBeanBuilder.create().defaultValues().uid("1").get(),
-        ModInfoBeanBuilder.create().defaultValues().uid("2").get()
+        ModVersionBuilder.create().defaultValues().uid("1").get(),
+        ModVersionBuilder.create().defaultValues().uid("2").get()
     );
 
     when(restOperations.getForObject(startsWith("/data/mod"), eq(List.class)))
