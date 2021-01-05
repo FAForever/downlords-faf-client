@@ -71,6 +71,14 @@ public class GenerateMapController implements Controller<Pane> {
   public CheckBox rampRandom;
   public HBox rampSliderBox;
   public HBox rampRandomBox;
+  public Slider mexSlider;
+  public CheckBox mexRandom;
+  public HBox mexSliderBox;
+  public HBox mexRandomBox;
+  public Slider reclaimSlider;
+  public CheckBox reclaimRandom;
+  public HBox reclaimSliderBox;
+  public HBox reclaimRandomBox;
   private Runnable onCloseButtonClickedListener;
   private final ObservableList<String> validMapSizes = FXCollections.observableArrayList("5km", "10km", "20km");
   private final int[] mapValues = new int[]{256, 512, 1024};
@@ -88,6 +96,10 @@ public class GenerateMapController implements Controller<Pane> {
         mountainSlider, mountainSliderBox, mountainRandom, mountainRandomBox);
     initOptionSlider(genPrefs.rampDensityProperty(), genPrefs.rampRandomProperty(),
         rampSlider, rampSliderBox, rampRandom, rampRandomBox);
+    initOptionSlider(genPrefs.mexDensityProperty(), genPrefs.mexRandomProperty(),
+        mexSlider, mexSliderBox, mexRandom, mexRandomBox);
+    initOptionSlider(genPrefs.reclaimDensityProperty(), genPrefs.reclaimRandomProperty(),
+        reclaimSlider, reclaimSliderBox, reclaimRandom, reclaimRandomBox);
   }
 
   private StringConverter<GenerationType> getGenerationTypeConverter() {
@@ -156,6 +168,8 @@ public class GenerateMapController implements Controller<Pane> {
       getSliderValue(plateauSlider, plateauRandom).ifPresent(value -> optionMap.put("plateauDensity", value));
       getSliderValue(mountainSlider, mountainRandom).ifPresent(value -> optionMap.put("mountainDensity", value));
       getSliderValue(rampSlider, rampRandom).ifPresent(value -> optionMap.put("rampDensity", value));
+      getSliderValue(mexSlider, mexRandom).ifPresent(value -> optionMap.put("mexDensity", value));
+      getSliderValue(reclaimSlider, reclaimRandom).ifPresent(value -> optionMap.put("reclaimDensity", value));
     }
     return optionMap;
   }

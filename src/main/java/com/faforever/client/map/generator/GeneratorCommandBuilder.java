@@ -19,6 +19,8 @@ public class GeneratorCommandBuilder {
   private Float plateauDensity;
   private Float mountainDensity;
   private Float rampDensity;
+  private Float mexDensity;
+  private Float reclaimDensity;
   private GenerationType generationType;
 
   public static GeneratorCommandBuilder create() {
@@ -75,6 +77,16 @@ public class GeneratorCommandBuilder {
     return this;
   }
 
+  public GeneratorCommandBuilder mexDensity(Float mexDensity) {
+    this.mexDensity = mexDensity;
+    return this;
+  }
+
+  public GeneratorCommandBuilder reclaimDensity(Float reclaimDensity) {
+    this.reclaimDensity = reclaimDensity;
+    return this;
+  }
+
   public GeneratorCommandBuilder generationType(GenerationType generationType) {
     this.generationType = generationType;
     return this;
@@ -98,6 +110,7 @@ public class GeneratorCommandBuilder {
         switch (generationType) {
           case BLIND -> command.add("--blind");
           case TOURNAMENT -> command.add("--tournament-style");
+          case UNEXPLORED -> command.add("--unexplored");
           default -> {
           }
         }
@@ -113,6 +126,12 @@ public class GeneratorCommandBuilder {
         }
         if (rampDensity != null) {
           command.addAll(Arrays.asList("--ramp-density", rampDensity.toString()));
+        }
+        if (mexDensity != null) {
+          command.addAll(Arrays.asList("--mex-density", mexDensity.toString()));
+        }
+        if (reclaimDensity != null) {
+          command.addAll(Arrays.asList("--reclaim-density", reclaimDensity.toString()));
         }
       } else {
         command = new ArrayList<>(List.of("java", "-jar", generatorExecutableFile.toAbsolutePath().toString(),

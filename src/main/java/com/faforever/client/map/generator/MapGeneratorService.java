@@ -193,6 +193,12 @@ public class MapGeneratorService implements InitializingBean {
     if (optionMap.containsKey("rampDensity")) {
       generateMapTask.setRampDensity(optionMap.get("rampDensity"));
     }
+    if (optionMap.containsKey("mexDensity")) {
+      generateMapTask.setMexDensity(optionMap.get("mexDensity"));
+    }
+    if (optionMap.containsKey("reclaimDensity")) {
+      generateMapTask.setReclaimDensity(optionMap.get("reclaimDensity"));
+    }
 
     return downloadGeneratorFuture.thenApplyAsync((aVoid) -> {
       CompletableFuture<String> generateMapFuture = taskService.submitTask(generateMapTask).getFuture();

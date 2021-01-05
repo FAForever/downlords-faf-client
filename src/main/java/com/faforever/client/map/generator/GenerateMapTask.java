@@ -56,6 +56,10 @@ public class GenerateMapTask extends CompletableTask<String> {
   @Setter
   private Float rampDensity;
   @Setter
+  private Float mexDensity;
+  @Setter
+  private Float reclaimDensity;
+  @Setter
   private GenerationType generationType;
 
   @Inject
@@ -85,6 +89,8 @@ public class GenerateMapTask extends CompletableTask<String> {
         .plateauDensity(plateauDensity)
         .mountainDensity(mountainDensity)
         .rampDensity(rampDensity)
+        .mexDensity(mexDensity)
+        .reclaimDensity(reclaimDensity)
         .mapFilename(mapFilename);
 
     Path workingDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
