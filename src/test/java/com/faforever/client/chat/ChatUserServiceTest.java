@@ -20,6 +20,7 @@ import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -35,6 +36,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -141,6 +143,55 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     assertNotNull(chatUser.getCountryInvalidationListener());
     assertNotNull(chatUser.getGameStatusInvalidationListener());
     assertNotNull(chatUser.getPopulatedInvalidationListener());
+  }
+
+  @Test
+  public void testListenersRemovedOnSecondAssociation() {
+    Player player1 = PlayerBuilder.create("junit1").defaultValues().clan(testClan.getTag()).get();
+    instance.associatePlayerToChatUser(chatUser, player1);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    InvalidationListener gameStatusListener = chatUser.getGameStatusInvalidationListener();
+    InvalidationListener socialStatusListener = chatUser.getSocialStatusInvalidationListener();
+    InvalidationListener clanTagListener = chatUser.getClanTagInvalidationListener();
+    InvalidationListener avatarListener = chatUser.getAvatarInvalidationListener();
+    InvalidationListener countryListener = chatUser.getCountryInvalidationListener();
+    InvalidationListener populatedListener = chatUser.getPopulatedInvalidationListener();
+
+    Player player2 = PlayerBuilder.create("junit2").defaultValues().clan(testClan.getTag()).get();
+    instance.associatePlayerToChatUser(chatUser, player2);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertNotEquals(gameStatusListener, chatUser.getGameStatusInvalidationListener());
+    assertNotEquals(socialStatusListener, chatUser.getSocialStatusInvalidationListener());
+    assertNotEquals(clanTagListener, chatUser.getClanTagInvalidationListener());
+    assertNotEquals(avatarListener, chatUser.getAvatarInvalidationListener());
+    assertNotEquals(countryListener, chatUser.getCountryInvalidationListener());
+    assertNotEquals(populatedListener, chatUser.getPopulatedInvalidationListener());
+  }
+
+  @Test
+  public void testListenersRemovedOnNullAssociation() {
+    Player player1 = PlayerBuilder.create("junit1").defaultValues().clan(testClan.getTag()).get();
+    instance.associatePlayerToChatUser(chatUser, player1);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertNotNull(chatUser.getGameStatusInvalidationListener());
+    assertNotNull(chatUser.getSocialStatusInvalidationListener());
+    assertNotNull(chatUser.getClanTagInvalidationListener());
+    assertNotNull(chatUser.getAvatarInvalidationListener());
+    assertNotNull(chatUser.getCountryInvalidationListener());
+    assertNotNull(chatUser.getPopulatedInvalidationListener());
+
+    instance.associatePlayerToChatUser(chatUser, null);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertNull(chatUser.getGameStatusInvalidationListener());
+    assertNull(chatUser.getSocialStatusInvalidationListener());
+    assertNull(chatUser.getClanTagInvalidationListener());
+    assertNull(chatUser.getAvatarInvalidationListener());
+    assertNull(chatUser.getCountryInvalidationListener());
+    assertNull(chatUser.getPopulatedInvalidationListener());
   }
 
   @Test
