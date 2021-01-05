@@ -99,6 +99,8 @@ public class ReviewController implements Controller<Pane> {
       } else {
         versionLabel.setText(i18n.get("review.version", definiteReview.getVersion().toString()));
       }
+    } else {
+      versionLabel.setVisible(false);
     }
     displayReviewPane.setVisible(true);
     editReviewPane.setVisible(false);
