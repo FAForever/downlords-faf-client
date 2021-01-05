@@ -14,8 +14,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
-import javafx.beans.WeakInvalidationListener;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import lombok.RequiredArgsConstructor;
@@ -49,13 +47,13 @@ public class ChatUserService implements InitializingBean {
 
   public void populateClan(ChatChannelUser chatChannelUser) {
     if (chatChannelUser.isDisplayed()) {
-      if (!chatChannelUser.getClan().isEmpty()) {
+      if (chatChannelUser.getClan().isPresent()) {
         return;
       }
       chatChannelUser.getPlayer().ifPresent(player -> {
         if (player.getClan() != null) {
           clanService.getClanByTag(player.getClan())
-              .thenAccept(optionalClan -> Platform.runLater(() -> {
+              .thenAccept(optionalClan -> JavaFxUtil.runLater(() -> {
                     Clan clan = optionalClan.orElse(null);
                     chatChannelUser.setClan(clan);
                   })
@@ -71,7 +69,7 @@ public class ChatUserService implements InitializingBean {
 
   public void populateAvatar(ChatChannelUser chatChannelUser) {
     if (chatChannelUser.isDisplayed()) {
-      if (!chatChannelUser.getAvatar().isEmpty()) {
+      if (chatChannelUser.getAvatar().isPresent()) {
         return;
       }
       chatChannelUser.getPlayer()
@@ -82,9 +80,7 @@ public class ChatUserService implements InitializingBean {
             } else {
               avatar = null;
             }
-            Platform.runLater(() -> {
-              chatChannelUser.setAvatar(avatar);
-            });
+            JavaFxUtil.runLater(() -> chatChannelUser.setAvatar(avatar));
           });
     } else {
       chatChannelUser.setAvatar(null);
@@ -93,13 +89,13 @@ public class ChatUserService implements InitializingBean {
 
   public void populateCountry(ChatChannelUser chatChannelUser) {
     if (chatChannelUser.isDisplayed()) {
-      if (!chatChannelUser.getCountryFlag().isEmpty()) {
+      if (chatChannelUser.getCountryFlag().isPresent()) {
         return;
       }
       chatChannelUser.getPlayer()
           .ifPresent(player -> {
             Optional<Image> countryFlag = countryFlagService.loadCountryFlag(player.getCountry());
-            Platform.runLater(() -> {
+            JavaFxUtil.runLater(() -> {
               chatChannelUser.setCountryFlag(countryFlag.orElse(null));
               chatChannelUser.setCountryName(i18n.getCountryNameLocalized(player.getCountry()));
             });
@@ -113,9 +109,7 @@ public class ChatUserService implements InitializingBean {
   public void populateGameImages(ChatChannelUser chatChannelUser) {
     if (chatChannelUser.isDisplayed()) {
       chatChannelUser.getPlayer()
-          .ifPresent(player -> {
-            setGamesImages(chatChannelUser, player);
-          });
+          .ifPresent(player -> setGameImages(chatChannelUser, player));
     } else {
       chatChannelUser.setStatusTooltipText(null);
       chatChannelUser.setGameStatusImage(null);
@@ -147,11 +141,10 @@ public class ChatUserService implements InitializingBean {
     } else if (chatPrefs.getChatColorMode() == RANDOM) {
       color = ColorGeneratorUtil.generateRandomColor(lowercaseUsername.hashCode());
     }
-
     chatChannelUser.setColor(color);
   }
 
-  private void setGamesImages(ChatChannelUser chatChannelUser, Player player) {
+  private void setGameImages(ChatChannelUser chatChannelUser, Player player) {
     PlayerStatus status = player.getStatus();
     Image playerStatusImage = switch (status) {
       case HOSTING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING);
@@ -165,7 +158,7 @@ public class ChatUserService implements InitializingBean {
     } else {
       mapImage = null;
     }
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       chatChannelUser.setStatusTooltipText(i18n.get(status.getI18nKey()));
       chatChannelUser.setGameStatusImage(playerStatusImage);
       chatChannelUser.setMapImage(mapImage);
@@ -181,24 +174,30 @@ public class ChatUserService implements InitializingBean {
       populateCountry(chatChannelUser);
       populateAvatar(chatChannelUser);
       populateColor(chatChannelUser);
-      JavaFxUtil.addListener(chatChannelUser.populatedProperty(),
-          (observable) -> {
-            populateGameImages(chatChannelUser);
-            populateClan(chatChannelUser);
-            populateCountry(chatChannelUser);
-            populateAvatar(chatChannelUser);
-            populateColor(chatChannelUser);
-          });
-      JavaFxUtil.addListener(chatChannelUser.gameStatusProperty(),
-          new WeakInvalidationListener((observable) -> populateGameImages(chatChannelUser)));
-      JavaFxUtil.addListener(chatChannelUser.clanTagProperty(),
-          new WeakInvalidationListener((observable) -> populateClan(chatChannelUser)));
-      JavaFxUtil.addListener(chatChannelUser.socialStatusProperty(),
-          new WeakInvalidationListener((observable) -> populateColor(chatChannelUser)));
-      JavaFxUtil.addListener(player.avatarUrlProperty(),
-          new WeakInvalidationListener((observable) -> populateAvatar(chatChannelUser)));
-      JavaFxUtil.addListener(player.countryProperty(),
-          new WeakInvalidationListener((observable) -> populateCountry(chatChannelUser)));
+      chatChannelUser.setAvatarInvalidationListener((observable) -> populateAvatar(chatChannelUser));
+      chatChannelUser.setClanTagInvalidationListener((observable) -> populateClan(chatChannelUser));
+      chatChannelUser.setCountryInvalidationListener((observable) -> populateCountry(chatChannelUser));
+      chatChannelUser.setSocialStatusInvalidationListener((observable) -> populateColor(chatChannelUser));
+      chatChannelUser.setGameStatusInvalidationListener((observable) -> populateGameImages(chatChannelUser));
+      chatChannelUser.setPopulatedInvalidationListener((observable -> {
+        populateGameImages(chatChannelUser);
+        populateClan(chatChannelUser);
+        populateCountry(chatChannelUser);
+        populateAvatar(chatChannelUser);
+        populateColor(chatChannelUser);
+      }));
+    } else {
+      chatChannelUser.removeListeners();
+      chatChannelUser.setPlayer(null);
+      JavaFxUtil.runLater(() -> {
+        chatChannelUser.setStatusTooltipText(null);
+        chatChannelUser.setGameStatusImage(null);
+        chatChannelUser.setMapImage(null);
+        chatChannelUser.setCountryFlag(null);
+        chatChannelUser.setCountryName(null);
+        chatChannelUser.setClan(null);
+        chatChannelUser.setAvatar(null);
+      });
     }
   }
 }
