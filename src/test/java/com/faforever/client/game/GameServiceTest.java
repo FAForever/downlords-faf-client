@@ -649,7 +649,15 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     instance.inMatchmakerQueueProperty().setValue(true);
     instance.runWithReplay(null, null, null, null, null, null, null);
     WaitForAsyncUtils.waitForFxEvents();
-    verify(notificationService).addImmediateErrorNotification(any(UnsupportedOperationException.class), eq("replay.gameRunning"));
+    verify(notificationService).addImmediateErrorNotification(any(UnsupportedOperationException.class), eq("replay.inQueue"));
+  }
+
+  @Test
+  public void runWithLiveReplayInMatchmakerQueue() {
+    instance.inMatchmakerQueueProperty().setValue(true);
+    instance.runWithLiveReplay(null, null, null, null);
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(notificationService).addImmediateErrorNotification(any(UnsupportedOperationException.class), eq("replay.inQueue"));
   }
 
   @Test

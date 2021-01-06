@@ -394,7 +394,7 @@ public class GameService implements InitializingBean {
       return completedFuture(null);
     } else if (inMatchmakerQueue.get()) {
       log.warn("In matchmaker queue, not starting replay");
-      notificationService.addImmediateErrorNotification(new UnsupportedOperationException("In Matchmaker Queue"), "replay.gameRunning");
+      notificationService.addImmediateErrorNotification(new UnsupportedOperationException("In Matchmaker Queue"), "replay.inQueue");
       return completedFuture(null);
     }
 
@@ -475,7 +475,7 @@ public class GameService implements InitializingBean {
       return completedFuture(null);
     } else if (inMatchmakerQueue.get()) {
       log.warn("In matchmaker queue, not starting replay");
-      notificationService.addImmediateErrorNotification(new UnsupportedOperationException("In Matchmaker Queue"), "replay.gameRunning");
+      notificationService.addImmediateErrorNotification(new UnsupportedOperationException("In Matchmaker Queue"), "replay.inQueue");
       return completedFuture(null);
     }
 
