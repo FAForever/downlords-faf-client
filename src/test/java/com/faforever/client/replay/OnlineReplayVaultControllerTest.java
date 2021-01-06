@@ -16,11 +16,16 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.VaultEntityController.SearchType;
+import com.faforever.client.vault.VaultEntityShowRoomController;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import javafx.application.Platform;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -66,6 +71,8 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   private ReportingService reportingService;
   @Mock
   private CategoryFilterController categoryFilterController;
+  @Mock
+  private VaultEntityShowRoomController vaultEntityShowRoomController;
 
   @Captor
   private ArgumentCaptor<Consumer<SearchConfig>> searchListenerCaptor;
@@ -86,6 +93,11 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     when(replayService.getOwnReplaysWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
     when(uiService.loadFxml("theme/vault/search/categoryFilter.fxml")).thenReturn(categoryFilterController);
+    when(uiService.loadFxml("theme/vault/vault_entity_show_room.fxml")).thenReturn(vaultEntityShowRoomController);
+    when(vaultEntityShowRoomController.getRoot()).thenReturn(new VBox(), new VBox(), new VBox());
+    when(vaultEntityShowRoomController.getLabel()).thenReturn(new Label());
+    when(vaultEntityShowRoomController.getPane()).thenReturn(new FlowPane());
+    when(vaultEntityShowRoomController.getMoreButton()).thenReturn(new Button());
     when(i18n.get(anyString())).thenReturn("test");
 
     sortOrder = preferencesService.getPreferences().getVault().getOnlineReplaySortConfig();

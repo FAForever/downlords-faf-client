@@ -165,17 +165,18 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
     List<VBox> childrenToAdd = showRoomCategories.parallelStream()
         .map(showRoomCategory -> {
           VaultEntityShowRoomController vaultEntityShowRoomController = loadShowRoom(showRoomCategory);
+          VBox showRoomRoot = vaultEntityShowRoomController.getRoot();
           synchronized (monitorForAddingFutures) {
             loadingEntitiesFutureReference.set(loadingEntitiesFutureReference.get().thenCompose(ignored -> showRoomCategory.getEntitySupplier().get())
                 .thenAccept(result -> {
-                  vaultEntityShowRoomController.getRoot().managedProperty().bind(vaultEntityShowRoomController.getRoot().visibleProperty());
+                  showRoomRoot.managedProperty().bind(showRoomRoot.visibleProperty());
                   if (result.getFirst().isEmpty()) {
-                    vaultEntityShowRoomController.getRoot().setVisible(false);
+                    showRoomRoot.setVisible(false);
                   }
                   populate(result.getFirst(), vaultEntityShowRoomController.getPane());
                 }));
           }
-          return vaultEntityShowRoomController.getRoot();
+          return showRoomRoot;
         })
         .collect(Collectors.toList());
 
