@@ -645,6 +645,14 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void runWithReplayInMatchmakerQueue() {
+    instance.inMatchmakerQueueProperty().setValue(true);
+    instance.runWithReplay(null, null, null, null, null, null, null);
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(notificationService).addImmediateErrorNotification(any(UnsupportedOperationException.class), eq("replay.gameRunning"));
+  }
+
+  @Test
   public void launchTutorialIfNoGameSet() {
     when(preferencesService.isGamePathValid()).thenReturn(false);
     instance.launchTutorial(null, null);

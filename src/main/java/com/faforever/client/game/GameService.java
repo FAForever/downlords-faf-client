@@ -392,6 +392,10 @@ public class GameService implements InitializingBean {
       log.warn("Forged Alliance is already running, not starting replay");
       notificationService.addImmediateErrorNotification(new UnsupportedOperationException("Forged Alliances is already running"), "replay.gameRunning");
       return completedFuture(null);
+    } else if (inMatchmakerQueue.get()) {
+      log.warn("In matchmaker queue, not starting replay");
+      notificationService.addImmediateErrorNotification(new UnsupportedOperationException("In Matchmaker Queue"), "replay.gameRunning");
+      return completedFuture(null);
     }
 
     if (!preferencesService.isGamePathValid()) {
@@ -468,6 +472,10 @@ public class GameService implements InitializingBean {
     if (isRunning() && !forgedAlliancePrefs.isAllowReplaysWhileInGame()) {
       log.warn("Forged Alliance is already running and experimental concurrent game feature not turned on, not starting live replay");
       notificationService.addImmediateErrorNotification(new UnsupportedOperationException("Forged Alliances is already running"), "replay.gameRunning");
+      return completedFuture(null);
+    } else if (inMatchmakerQueue.get()) {
+      log.warn("In matchmaker queue, not starting replay");
+      notificationService.addImmediateErrorNotification(new UnsupportedOperationException("In Matchmaker Queue"), "replay.gameRunning");
       return completedFuture(null);
     }
 
