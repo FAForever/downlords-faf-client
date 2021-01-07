@@ -113,6 +113,8 @@ public class TeamMatchmakingService {
 
     party = new Party();
 
+    this.gameService.getInOthersPartyProperty().bind(party.ownerProperty().isNotEqualTo(playerService.currentPlayerProperty()));
+
     playerService.currentPlayerProperty().addListener((obs, old, player) -> {
       if (party.getOwner() == null && party.getMembers().isEmpty() && player != null) {
         Platform.runLater(() -> initParty(player));
@@ -313,7 +315,7 @@ public class TeamMatchmakingService {
       return;
     }
 
-    fafServerAccessor.acceptPartyInvite(player); // TODO: SHOULD ALL OF THE fafServerAccessor calls be move to fafService????
+    fafServerAccessor.acceptPartyInvite(player); // TODO: fafServerAccessor callsshould move to fafService
     eventBus.post(new OpenTeamMatchmakingEvent());
   }
 

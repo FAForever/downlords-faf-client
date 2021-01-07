@@ -535,22 +535,22 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     instance.startSearchMatchmaker();
 
-    assertThat(instance.inMatchmakerQueueProperty().get(), is(false));
+    assertThat(instance.getInMatchmakerQueueProperty().get(), is(false));
   }
 
   @Test
   public void testStopSearchMatchmaker() {
-    instance.inMatchmakerQueueProperty().set(true);
+    instance.getInMatchmakerQueueProperty().set(true);
     instance.onMatchmakerSearchStopped();
-    assertThat(instance.inMatchmakerQueueProperty().get(), is(false));
+    assertThat(instance.getInMatchmakerQueueProperty().get(), is(false));
     verify(fafService).stopSearchMatchmaker();
   }
 
   @Test
   public void testStopSearchMatchmakerNotSearching() {
-    instance.inMatchmakerQueueProperty().set(false);
+    instance.getInMatchmakerQueueProperty().set(false);
     instance.onMatchmakerSearchStopped();
-    assertThat(instance.inMatchmakerQueueProperty().get(), is(false));
+    assertThat(instance.getInMatchmakerQueueProperty().get(), is(false));
     verify(fafService, never()).stopSearchMatchmaker();
   }
 
@@ -642,6 +642,38 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     when(preferencesService.isGamePathValid()).thenReturn(false);
     instance.runWithReplay(null, null, null, null, null, null, null);
     verify(eventBus).post(any(GameDirectoryChooseEvent.class));
+  }
+
+  @Test
+  public void runWithReplayInMatchmakerQueue() {
+    instance.getInMatchmakerQueueProperty().setValue(true);
+    instance.runWithReplay(null, null, null, null, null, null, null);
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(notificationService).addImmediateErrorNotification(any(UnsupportedOperationException.class), eq("replay.inQueue"));
+  }
+
+  @Test
+  public void runWithLiveReplayInMatchmakerQueue() {
+    instance.getInMatchmakerQueueProperty().setValue(true);
+    instance.runWithLiveReplay(null, null, null, null);
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(notificationService).addImmediateErrorNotification(any(UnsupportedOperationException.class), eq("replay.inQueue"));
+  }
+
+  @Test
+  public void runWithReplayInParty() {
+    instance.getInOthersPartyProperty().setValue(true);
+    instance.runWithReplay(null, null, null, null, null, null, null);
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(notificationService).addImmediateErrorNotification(any(UnsupportedOperationException.class), eq("replay.inParty"));
+  }
+
+  @Test
+  public void runWithLiveReplayInParty() {
+    instance.getInOthersPartyProperty().setValue(true);
+    instance.runWithLiveReplay(null, null, null, null);
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(notificationService).addImmediateErrorNotification(any(UnsupportedOperationException.class), eq("replay.inParty"));
   }
 
   @Test

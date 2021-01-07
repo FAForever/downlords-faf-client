@@ -31,6 +31,7 @@ import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -56,9 +57,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -101,6 +102,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
     when(fafService.connectionStateProperty()).thenReturn(state);
     ReadOnlyObjectProperty<Player> playerProperty = new SimpleObjectProperty<>();
     when(playerService.currentPlayerProperty()).thenReturn(playerProperty);
+    when(gameService.getInOthersPartyProperty()).thenReturn(new SimpleBooleanProperty());
     instance = new TeamMatchmakingService(fafServerAccessor, playerService, notificationService, preferencesService,
         fafService, eventBus, i18n, taskScheduler, gameService);
 
@@ -220,7 +222,8 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
 
     instance.onSearchInfoMessage(message);
 
-    verifyNoInteractions(gameService);
+    verify(gameService, never()).startSearchMatchmaker();
+    verify(gameService, never()).onMatchmakerSearchStopped();
 
 
     MatchmakingQueue testQueue = new MatchmakingQueue();
