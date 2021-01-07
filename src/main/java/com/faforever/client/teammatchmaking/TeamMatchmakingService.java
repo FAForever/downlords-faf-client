@@ -113,7 +113,7 @@ public class TeamMatchmakingService {
 
     party = new Party();
 
-    gameService.getInOthersPartyProperty().bind(party.ownerProperty().isNotEqualTo(playerService.currentPlayerProperty()));
+    this.gameService.getInOthersPartyProperty().bind(party.ownerProperty().isNotEqualTo(playerService.currentPlayerProperty()));
 
     playerService.currentPlayerProperty().addListener((obs, old, player) -> {
       if (party.getOwner() == null && party.getMembers().isEmpty() && player != null) {
