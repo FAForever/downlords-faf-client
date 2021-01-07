@@ -20,6 +20,7 @@ import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -35,6 +36,9 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -67,10 +71,12 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   private Preferences preferences;
   private URL avatarURL;
+  private ChatChannelUser chatUser;
   private Clan testClan;
 
   @Before
   public void setUp() throws Exception {
+    chatUser = ChatChannelUserBuilder.create("junit").defaultValues().get();
     preferences = PreferencesBuilder.create().defaultValues()
         .chatPrefs()
         .chatColorMode(ChatColorMode.DEFAULT)
@@ -103,9 +109,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPlayerIsNull() {
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
-        .defaultValues()
-        .get();
     instance.associatePlayerToChatUser(chatUser, null);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -114,14 +117,17 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     verify(avatarService, never()).loadAvatar(anyString());
     verify(mapService, never()).loadPreview(anyString(), any(PreviewSize.class));
     verify(uiService, never()).getThemeImage(anyString());
+    assertNull(chatUser.getAvatarInvalidationListener());
+    assertNull(chatUser.getSocialStatusInvalidationListener());
+    assertNull(chatUser.getClanTagInvalidationListener());
+    assertNull(chatUser.getCountryInvalidationListener());
+    assertNull(chatUser.getGameStatusInvalidationListener());
+    assertNull(chatUser.getPopulatedInvalidationListener());
   }
 
   @Test
   public void testChatUserNotDisplayed() {
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
-        .defaultValues()
-        .displayed(false)
-        .get();
+    chatUser.setDisplayed(false);
     Player player = PlayerBuilder.create("test").defaultValues().get();
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
@@ -131,14 +137,66 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     verify(avatarService, never()).loadAvatar(anyString());
     verify(mapService, never()).loadPreview(anyString(), any(PreviewSize.class));
     verify(uiService, never()).getThemeImage(anyString());
+    assertNotNull(chatUser.getAvatarInvalidationListener());
+    assertNotNull(chatUser.getSocialStatus());
+    assertNotNull(chatUser.getClanTagInvalidationListener());
+    assertNotNull(chatUser.getCountryInvalidationListener());
+    assertNotNull(chatUser.getGameStatusInvalidationListener());
+    assertNotNull(chatUser.getPopulatedInvalidationListener());
+  }
+
+  @Test
+  public void testListenersRemovedOnSecondAssociation() {
+    Player player1 = PlayerBuilder.create("junit1").defaultValues().clan(testClan.getTag()).get();
+    instance.associatePlayerToChatUser(chatUser, player1);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    InvalidationListener gameStatusListener = chatUser.getGameStatusInvalidationListener();
+    InvalidationListener socialStatusListener = chatUser.getSocialStatusInvalidationListener();
+    InvalidationListener clanTagListener = chatUser.getClanTagInvalidationListener();
+    InvalidationListener avatarListener = chatUser.getAvatarInvalidationListener();
+    InvalidationListener countryListener = chatUser.getCountryInvalidationListener();
+    InvalidationListener populatedListener = chatUser.getPopulatedInvalidationListener();
+
+    Player player2 = PlayerBuilder.create("junit2").defaultValues().clan(testClan.getTag()).get();
+    instance.associatePlayerToChatUser(chatUser, player2);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertNotEquals(gameStatusListener, chatUser.getGameStatusInvalidationListener());
+    assertNotEquals(socialStatusListener, chatUser.getSocialStatusInvalidationListener());
+    assertNotEquals(clanTagListener, chatUser.getClanTagInvalidationListener());
+    assertNotEquals(avatarListener, chatUser.getAvatarInvalidationListener());
+    assertNotEquals(countryListener, chatUser.getCountryInvalidationListener());
+    assertNotEquals(populatedListener, chatUser.getPopulatedInvalidationListener());
+  }
+
+  @Test
+  public void testListenersRemovedOnNullAssociation() {
+    Player player1 = PlayerBuilder.create("junit1").defaultValues().clan(testClan.getTag()).get();
+    instance.associatePlayerToChatUser(chatUser, player1);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertNotNull(chatUser.getGameStatusInvalidationListener());
+    assertNotNull(chatUser.getSocialStatusInvalidationListener());
+    assertNotNull(chatUser.getClanTagInvalidationListener());
+    assertNotNull(chatUser.getAvatarInvalidationListener());
+    assertNotNull(chatUser.getCountryInvalidationListener());
+    assertNotNull(chatUser.getPopulatedInvalidationListener());
+
+    instance.associatePlayerToChatUser(chatUser, null);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertNull(chatUser.getGameStatusInvalidationListener());
+    assertNull(chatUser.getSocialStatusInvalidationListener());
+    assertNull(chatUser.getClanTagInvalidationListener());
+    assertNull(chatUser.getAvatarInvalidationListener());
+    assertNull(chatUser.getCountryInvalidationListener());
+    assertNull(chatUser.getPopulatedInvalidationListener());
   }
 
   @Test
   public void testClanNotNull() {
     Player player = PlayerBuilder.create("junit").defaultValues().clan(testClan.getTag()).get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
-        .defaultValues()
-        .get();
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -150,9 +208,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testClanNull() {
     Player player = PlayerBuilder.create("junit").defaultValues().clan(null).get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
-        .defaultValues()
-        .get();
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -164,9 +219,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testAvatarNotNull() {
     Player player = PlayerBuilder.create("junit").defaultValues().avatar(avatar).get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
-        .defaultValues()
-        .get();
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -177,9 +229,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testAvatarNull() {
     Player player = PlayerBuilder.create("junit").defaultValues().get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
-        .defaultValues()
-        .get();
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -190,9 +239,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testCountryNotNull() {
     Player player = PlayerBuilder.create("junit").defaultValues().country("US").get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
-        .defaultValues()
-        .get();
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -204,9 +250,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testCountryNull() {
     Player player = PlayerBuilder.create("junit").defaultValues().country(null).get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
-        .defaultValues()
-        .get();
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -218,9 +261,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testStatusToIdle() {
     Player player = PlayerBuilder.create("junit").defaultValues().game(null).get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
-        .defaultValues()
-        .get();
     when(i18n.get("game.gameStatus.none")).thenReturn("None");
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
@@ -235,9 +275,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   public void testStatusToPlaying() {
     Game game = GameBuilder.create().defaultValues().state(GameStatus.PLAYING).get();
     Player player = PlayerBuilder.create("junit").defaultValues().game(game).get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
-        .defaultValues()
-        .get();
     when(i18n.get("game.gameStatus.playing")).thenReturn("Playing");
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
@@ -252,9 +289,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   public void testStatusToHosting() {
     Game game = GameBuilder.create().defaultValues().state(GameStatus.OPEN).host("junit").get();
     Player player = PlayerBuilder.create("junit").defaultValues().game(game).get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
-        .defaultValues()
-        .get();
     when(i18n.get("game.gameStatus.hosting")).thenReturn("Hosting");
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
@@ -269,9 +303,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   public void testStatusToLobbying() {
     Game game = GameBuilder.create().defaultValues().state(GameStatus.OPEN).get();
     Player player = PlayerBuilder.create("junit").defaultValues().game(game).get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
-        .defaultValues()
-        .get();
     when(i18n.get("game.gameStatus.lobby")).thenReturn("Waiting for game to start");
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
@@ -284,9 +315,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testUserColorNotSet() {
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
-        .defaultValues()
-        .get();
     instance.populateColor(chatUser);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -296,9 +324,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testUserColorSetNoPlayer() {
     preferences.getChat().setUserToColor(FXCollections.observableMap(Map.of("junit", Color.AQUA)));
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
-        .defaultValues()
-        .get();
     instance.populateColor(chatUser);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -309,9 +334,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGroupColorSet() {
     preferences.getChat().setGroupToColor(FXCollections.observableMap(Map.of(ChatUserCategory.FRIEND, Color.AQUA)));
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
-        .defaultValues()
-        .get();
     Player player = PlayerBuilder.create("junit")
         .defaultValues()
         .socialStatus(SocialStatus.FRIEND)
@@ -326,10 +348,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testModeratorColorOverGroup() {
     preferences.getChat().setGroupToColor(FXCollections.observableMap(Map.of(ChatUserCategory.MODERATOR, Color.RED, ChatUserCategory.FRIEND, Color.AQUA)));
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
-        .defaultValues()
-        .moderator(true)
-        .get();
+    chatUser.setModerator(true);
     Player player = PlayerBuilder.create("junit")
         .defaultValues()
         .socialStatus(SocialStatus.FRIEND)

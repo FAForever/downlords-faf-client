@@ -244,6 +244,7 @@ public class ChatUserItemController implements Controller<Node> {
 
     if (this.chatUser != null) {
       this.chatUser.setDisplayed(false);
+      this.chatUser.setPopulated(false);
     }
 
     this.chatUser = chatUser;
@@ -251,6 +252,10 @@ public class ChatUserItemController implements Controller<Node> {
     if (this.chatUser != null) {
       this.chatUser.setDisplayed(true);
       this.chatUser.setPopulated(true);
+      InvalidationListener populatedListener = this.chatUser.getPopulatedInvalidationListener();
+      if (populatedListener != null) {
+        populatedListener.invalidated(null);
+      }
       oldChatUser = this.chatUser;
       JavaFxUtil.bind(usernameLabel.textProperty(), this.chatUser.usernameProperty());
       JavaFxUtil.bind(usernameLabel.styleProperty(), Bindings.createStringBinding(() ->

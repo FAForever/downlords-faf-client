@@ -361,7 +361,8 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
       }
     }
     synchronized (chatChannelUsersByChannelAndName) {
-      chatChannelUsersByChannelAndName.remove(mapKey(username, channelName));
+      ChatChannelUser chatChannelUser = chatChannelUsersByChannelAndName.remove(mapKey(username, channelName));
+      chatChannelUser.removeListeners();
     }
     // The server doesn't yet tell us when a user goes offline, so we have to rely on the user leaving IRC.
     if (defaultChannelName.equals(channelName)) {
