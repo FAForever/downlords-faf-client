@@ -237,10 +237,12 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   private void bindGameVisibility() {
-    preferencesService.getPreferences()
-        .getLastGame()
-        .lastGameOnlyFriendsProperty()
-        .bindBidirectional(onlyForFriendsCheckBox.selectedProperty());
+    onlyForFriendsCheckBox.selectedProperty().bindBidirectional(
+        preferencesService.getPreferences()
+            .getLastGame()
+            .lastGameOnlyFriendsProperty()
+    );
+
     onlyForFriendsCheckBox.selectedProperty().addListener(observable -> preferencesService.storeInBackground());
   }
 
