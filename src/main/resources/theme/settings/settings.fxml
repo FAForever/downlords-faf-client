@@ -5,7 +5,9 @@
 <?import javafx.scene.Group?>
 <?import javafx.scene.layout.*?>
 <?import java.lang.String?>
-<VBox fx:id="settingsRoot" maxHeight="1.7976931348623157E308" prefHeight="600.0" prefWidth="800.0" styleClass="decorated-window, settings" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.preferences.ui.SettingsController">
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="settingsRoot" maxHeight="1.7976931348623157E308" prefHeight="600.0"
+      prefWidth="800.0" styleClass="decorated-window, settings"
+      xmlns="http://javafx.com/javafx/11.0.1" fx:controller="com.faforever.client.preferences.ui.SettingsController">
     <children>
         <HBox fx:id="settingsHeader" styleClass="header">
             <children>
@@ -156,6 +158,25 @@
                                                        GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
                                                        GridPane.rowIndex="1"/>
                                                 <CheckBox fx:id="advancedIceLogToggle" GridPane.columnIndex="1"/>
+                                            </children>
+                                        </GridPane>
+                                        <GridPane styleClass="setting-container">
+                                            <columnConstraints>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+                                                <ColumnConstraints minWidth="10.0"/>
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                            </rowConstraints>
+                                            <children>
+                                                <Label styleClass="setting-title" text="%settings.general.debugLog"
+                                                       wrapText="true"/>
+                                                <Label styleClass="setting-description"
+                                                       text="%settings.general.debugLog.description"
+                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
+                                                       GridPane.rowIndex="1"/>
+                                                <CheckBox fx:id="debugLogToggle" GridPane.columnIndex="1"/>
                                             </children>
                                         </GridPane>
                                     </children>
@@ -638,121 +659,149 @@
                         <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308"
                                     maxWidth="1.7976931348623157E308">
                             <content>
-                        <VBox styleClass="view-content">
-                           <children>
-                              <GridPane styleClass="setting-container">
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
-                                    <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
-                                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                                 <children>
-                                    <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" styleClass="setting-title" text="%settings.fa.forceRelay" />
-                                    <Label styleClass="setting-description" text="%settings.fa.forceRelay.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
-                                              <CheckBox fx:id="forceRelayToggle" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" GridPane.columnIndex="1" />
-                                 </children>
-                              </GridPane>
-                              <GridPane hgap="10.0" styleClass="setting-container">
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
-                                    <ColumnConstraints halignment="RIGHT" minWidth="10.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
-                                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                                 <children>
-                                    <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" styleClass="setting-title" text="%settings.fa.gameLocation" />
-                                              <TextField fx:id="gameLocationTextField" promptText="%settings.fa.useDefault" GridPane.rowIndex="1" />
-                                              <Button mnemonicParsing="false" onAction="#onSelectGameLocation" text="%settings.fa.chooseDirectory" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                                 </children>
-                              </GridPane>
-                              <GridPane styleClass="setting-container">
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
-                                    <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
-                                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                                 <children>
-                                    <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" styleClass="setting-title" text="%settings.fa.autoDownloadMaps" />
-                                    <Label styleClass="setting-description" text="%settings.fa.autoDownloadMaps.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
-                                              <CheckBox fx:id="autoDownloadMapsToggle" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" GridPane.columnIndex="1" />
-                                 </children>
-                              </GridPane>
-                              <GridPane styleClass="setting-container">
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
-                                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-                                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                                 <children>
-                                    <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" styleClass="setting-title" text="%settings.fa.executableDecorator" />
-                                    <Label styleClass="setting-description" text="%settings.fa.executableDecorator.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
-                                              <TextField fx:id="executableDecoratorField" promptText="&quot;%s&quot;" GridPane.rowIndex="2" />
-                                 </children>
-                              </GridPane>
-                              <GridPane hgap="10.0" styleClass="setting-container">
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
-                                    <ColumnConstraints minWidth="10.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
-                                     <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                     <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                 </rowConstraints>
-                                  <children>
-                                      <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
-                                             styleClass="setting-title" text="%settings.fa.executionDirectory"/>
-                                      <TextField fx:id="executionDirectoryField" promptText="%settings.fa.useDefault"
-                                                 GridPane.rowIndex="2"/>
-                                      <Button disable="true" minWidth="-Infinity" mnemonicParsing="false"
-                                              onAction="#onSelectExecutionDirectory" text="%settings.fa.chooseDirectory"
-                                              GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-                                      <Label styleClass="setting-description"
-                                             text="%settings.fa.executionDirectory.description"
-                                             GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
-                                  </children>
-                              </GridPane>
-                               <GridPane hgap="10.0" styleClass="setting-container">
-                                   <columnConstraints>
-                                       <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                       <ColumnConstraints minWidth="10.0"/>
-                                   </columnConstraints>
-                                   <rowConstraints>
-                                       <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                       <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                       <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                   </rowConstraints>
-                                   <children>
-                                       <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
-                                              styleClass="setting-title" text="%settings.fa.allowReplayWhileInGame">
-                                           <graphic>
-                                               <Label styleClass="button-mini-label"
-                                                      text="%settings.fa.allowReplayWhileInGame.experimental"
-                                                      GridPane.columnIndex="1"/>
-                                           </graphic>
-                                       </Label>
-                                       <Button fx:id="allowReplayWhileInGameButton" minWidth="-Infinity"
-                                               mnemonicParsing="false" onAction="#onPatchGamePrefsForMultipleInstances"
-                                               text="%settings.fa.patchGamePrefs" GridPane.rowIndex="2"/>
-                                       <CheckBox fx:id="allowReplayWhileInGameCheckBox" GridPane.columnIndex="1"/>
-                                       <Label styleClass="setting-description"
-                                              text="%settings.fa.allowReplayWhileInGame.description"
-                                              GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
-                                   </children>
-                               </GridPane>
-                           </children>
-                        </VBox>
+                                <VBox styleClass="view-content">
+                                    <children>
+                                        <GridPane styleClass="setting-container">
+                                            <columnConstraints>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+                                                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES"
+                                                                   minWidth="10.0"/>
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                            </rowConstraints>
+                                            <children>
+                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
+                                                       styleClass="setting-title" text="%settings.fa.forceRelay"/>
+                                                <Label styleClass="setting-description"
+                                                       text="%settings.fa.forceRelay.description"
+                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
+                                                       GridPane.rowIndex="1"/>
+                                                <CheckBox fx:id="forceRelayToggle" contentDisplay="GRAPHIC_ONLY"
+                                                          mnemonicParsing="false" GridPane.columnIndex="1"/>
+                                            </children>
+                                        </GridPane>
+                                        <GridPane hgap="10.0" styleClass="setting-container">
+                                            <columnConstraints>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+                                                <ColumnConstraints halignment="RIGHT" minWidth="10.0"/>
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                            </rowConstraints>
+                                            <children>
+                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
+                                                       styleClass="setting-title" text="%settings.fa.gameLocation"/>
+                                                <TextField fx:id="gameLocationTextField"
+                                                           promptText="%settings.fa.useDefault" GridPane.rowIndex="1"/>
+                                                <Button mnemonicParsing="false" onAction="#onSelectGameLocation"
+                                                        text="%settings.fa.chooseDirectory" GridPane.columnIndex="1"
+                                                        GridPane.rowIndex="1"/>
+                                            </children>
+                                        </GridPane>
+                                        <GridPane styleClass="setting-container">
+                                            <columnConstraints>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+                                                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES"
+                                                                   minWidth="10.0"/>
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                            </rowConstraints>
+                                            <children>
+                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
+                                                       styleClass="setting-title" text="%settings.fa.autoDownloadMaps"/>
+                                                <Label styleClass="setting-description"
+                                                       text="%settings.fa.autoDownloadMaps.description"
+                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
+                                                       GridPane.rowIndex="1"/>
+                                                <CheckBox fx:id="autoDownloadMapsToggle" contentDisplay="GRAPHIC_ONLY"
+                                                          mnemonicParsing="false" GridPane.columnIndex="1"/>
+                                            </children>
+                                        </GridPane>
+                                        <GridPane styleClass="setting-container">
+                                            <columnConstraints>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                            </rowConstraints>
+                                            <children>
+                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
+                                                       styleClass="setting-title"
+                                                       text="%settings.fa.executableDecorator"/>
+                                                <Label styleClass="setting-description"
+                                                       text="%settings.fa.executableDecorator.description"
+                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
+                                                       GridPane.rowIndex="1"/>
+                                                <TextField fx:id="executableDecoratorField" promptText="&quot;%s&quot;"
+                                                           GridPane.rowIndex="2"/>
+                                            </children>
+                                        </GridPane>
+                                        <GridPane hgap="10.0" styleClass="setting-container">
+                                            <columnConstraints>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+                                                <ColumnConstraints minWidth="10.0"/>
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                            </rowConstraints>
+                                            <children>
+                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
+                                                       styleClass="setting-title"
+                                                       text="%settings.fa.executionDirectory"/>
+                                                <TextField fx:id="executionDirectoryField"
+                                                           promptText="%settings.fa.useDefault"
+                                                           GridPane.rowIndex="2"/>
+                                                <Button disable="true" minWidth="-Infinity" mnemonicParsing="false"
+                                                        onAction="#onSelectExecutionDirectory"
+                                                        text="%settings.fa.chooseDirectory"
+                                                        GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                                                <Label styleClass="setting-description"
+                                                       text="%settings.fa.executionDirectory.description"
+                                                       GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
+                                            </children>
+                                        </GridPane>
+                                        <GridPane hgap="10.0" styleClass="setting-container">
+                                            <columnConstraints>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+                                                <ColumnConstraints minWidth="10.0"/>
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                            </rowConstraints>
+                                            <children>
+                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
+                                                       styleClass="setting-title"
+                                                       text="%settings.fa.allowReplayWhileInGame">
+                                                    <graphic>
+                                                        <Label styleClass="button-mini-label"
+                                                               text="%settings.fa.allowReplayWhileInGame.experimental"
+                                                               GridPane.columnIndex="1"/>
+                                                    </graphic>
+                                                </Label>
+                                                <Button fx:id="allowReplayWhileInGameButton" minWidth="-Infinity"
+                                                        mnemonicParsing="false"
+                                                        onAction="#onPatchGamePrefsForMultipleInstances"
+                                                        text="%settings.fa.patchGamePrefs" GridPane.rowIndex="2"/>
+                                                <CheckBox fx:id="allowReplayWhileInGameCheckBox"
+                                                          GridPane.columnIndex="1"/>
+                                                <Label styleClass="setting-description"
+                                                       text="%settings.fa.allowReplayWhileInGame.description"
+                                                       GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
+                                            </children>
+                                        </GridPane>
+                                    </children>
+                                </VBox>
                             </content>
                         </ScrollPane>
                     </content>

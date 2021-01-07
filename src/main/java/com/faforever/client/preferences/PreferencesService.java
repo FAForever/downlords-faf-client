@@ -1,6 +1,9 @@
 package com.faforever.client.preferences;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Faction;
 import com.faforever.client.preferences.gson.ColorTypeAdapter;
 import com.faforever.client.preferences.gson.ExcludeFieldsWithExcludeAnnotationStrategy;
@@ -170,6 +173,9 @@ public class PreferencesService implements InitializingBean {
     } else {
       preferences = new Preferences();
     }
+
+    setLoggingLevel();
+    JavaFxUtil.addListener(preferences.debugLogEnabledProperty(), (observable, oldValue, newValue) -> setLoggingLevel());
 
     Path gamePrefs = preferences.getForgedAlliance().getPreferencesFile();
     if (Files.notExists(gamePrefs)) {
@@ -464,5 +470,20 @@ public class PreferencesService implements InitializingBean {
         throw new CompletionException(e);
       }
     });
+  }
+
+  public void setLoggingLevel() {
+    storeInBackground();
+    Level targetLogLevel = preferences.isDebugLogEnabled() ? Level.DEBUG : Level.INFO;
+    final LoggerContext loggerContext = ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(MethodHandles.lookup().lookupClass())).getLoggerContext();
+    loggerContext.getLoggerList()
+        .stream()
+        .filter(logger -> logger.getName().startsWith("com.faforever"))
+        .forEach(logger -> ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(logger.getName())).setLevel(targetLogLevel));
+
+    logger.info("Switching FA Forever logging configuration to {}", targetLogLevel.levelStr);
+    if (targetLogLevel == Level.DEBUG) {
+      logger.debug("Confirming debug logging");
+    }
   }
 }
