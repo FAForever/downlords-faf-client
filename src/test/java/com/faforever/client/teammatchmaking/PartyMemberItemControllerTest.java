@@ -5,11 +5,11 @@ import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.game.Game;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
+import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.util.RatingUtil;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.css.PseudoClass;
 import org.junit.Before;
@@ -44,9 +44,8 @@ public class PartyMemberItemControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception{
-    player = new Player("tester");
+    player = PlayerBuilder.create("tester").defaultValues().get();
     when(partyMember.getPlayer()).thenReturn(player);
-    when(i18n.get("leaderboard.divisionName", RatingUtil.getLeaderboardRating(player))).thenReturn("In Placement");
     when(i18n.get("teammatchmaking.gameCount", player.getNumberOfGames())).thenReturn("Games played: 0");
     when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<Player>());
     Party party = new Party();

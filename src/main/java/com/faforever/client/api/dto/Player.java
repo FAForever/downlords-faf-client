@@ -19,9 +19,11 @@ public class Player {
   private String login;
   private String userAgent;
 
+  @Deprecated
   @Relationship("globalRating")
   private GlobalRating globalRating;
 
+  @Deprecated
   @Relationship("ladder1v1Rating")
   private Ladder1v1Rating ladder1v1Rating;
 

@@ -26,6 +26,7 @@ public class GameLaunchMessage extends FafServerMessage {
   private Integer mapPosition;
   private Faction faction;
   private LobbyMode initMode;
+  private String ratingType;
 
   public GameLaunchMessage() {
     super(FafServerMessageType.GAME_LAUNCH);

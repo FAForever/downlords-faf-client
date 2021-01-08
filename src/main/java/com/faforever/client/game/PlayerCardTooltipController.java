@@ -38,13 +38,18 @@ public class PlayerCardTooltipController implements Controller<Node> {
   public Region factionIcon;
   public ImageView factionImage;
 
-  public void setPlayer(Player player, int rating, Faction faction) {
+  public void setPlayer(Player player, Integer rating, Faction faction) {
     if (player == null) {
       return;
     }
     countryFlagService.loadCountryFlag(player.getCountry()).ifPresent(image -> countryImageView.setImage(image));
 
-    String playerInfoLocalized = i18n.get("userInfo.tooltipFormat", player.getUsername(), rating);
+    String playerInfoLocalized;
+    if (rating != null) {
+      playerInfoLocalized = i18n.get("userInfo.tooltipFormat.withRating", player.getUsername(), rating);
+    } else {
+      playerInfoLocalized = i18n.get("userInfo.tooltipFormat.noRating", player.getUsername());
+    }
     setFactionIcon(faction);
     playerInfo.setText(playerInfoLocalized);
     foeIconText.visibleProperty().bind(Bindings.createBooleanBinding(() -> player.getSocialStatus() == SocialStatus.FOE, player.socialStatusProperty()));

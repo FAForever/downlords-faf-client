@@ -17,8 +17,8 @@ public class PlayerStatsMapBuilder {
 
   public PlayerStatsMapBuilder defaultValues() {
     PlayerStats playerStats1 = PlayerStats.builder()
-        .beforeDeviation(100)
-        .beforeMean(1000)
+        .beforeDeviation(100.0)
+        .beforeMean(1000.0)
         .afterDeviation(15.0)
         .afterMean(1100.0)
         .faction(Faction.UEF)
@@ -26,8 +26,8 @@ public class PlayerStatsMapBuilder {
         .score(1)
         .build();
     PlayerStats playerStats2 = PlayerStats.builder()
-        .beforeDeviation(100)
-        .beforeMean(1000)
+        .beforeDeviation(100.0)
+        .beforeMean(1000.0)
         .afterDeviation(15.0)
         .afterMean(900.0)
         .faction(Faction.CYBRAN)

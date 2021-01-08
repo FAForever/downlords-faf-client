@@ -7,7 +7,6 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.replay.Replay.PlayerStats;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.util.Rating;
 import com.faforever.client.util.RatingUtil;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
@@ -46,9 +45,10 @@ public class TeamCardController implements Controller<Node> {
    * Creates a new {@link TeamCardController} and adds its root to the specified {@code teamsPane}.
    *
    * @param teamsList a mapping of team name (e.g. "2") to a list of player names that are in that team
+   * @param ratingType the type of rating used for the game sent from the server
    * @param playerService the service to use to look up players by name
    */
-  static void createAndAdd(ObservableMap<? extends String, ? extends List<String>> teamsList, PlayerService playerService, UiService uiService, Pane teamsPane) {
+  static void createAndAdd(ObservableMap<? extends String, ? extends List<String>> teamsList, String ratingType, PlayerService playerService, UiService uiService, Pane teamsPane) {
     for (Map.Entry<? extends String, ? extends List<String>> entry : teamsList.entrySet()) {
       List<Player> players = entry.getValue().stream()
           .map(playerService::getPlayerForUsername)
@@ -58,12 +58,12 @@ public class TeamCardController implements Controller<Node> {
 
       TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
       teamCardController.setPlayersInTeam(entry.getKey(), players,
-          player -> new Rating(player.getGlobalRatingMean(), player.getGlobalRatingDeviation()), null, RatingType.ROUNDED);
+          player -> RatingUtil.getLeaderboardRating(player, ratingType), null, RatingPrecision.ROUNDED);
       teamsPane.getChildren().add(teamCardController.getRoot());
     }
   }
 
-  public void setPlayersInTeam(String team, List<Player> playerList, Function<Player, Rating> ratingProvider, Function<Player, Faction> playerFactionProvider, RatingType ratingType) {
+  public void setPlayersInTeam(String team, List<Player> playerList, Function<Player, Integer> ratingProvider, Function<Player, Faction> playerFactionProvider, RatingPrecision ratingPrecision) {
     int totalRating = 0;
     for (Player player : playerList) {
       // If the server wasn't bugged, this would never be the case.
@@ -71,14 +71,16 @@ public class TeamCardController implements Controller<Node> {
         continue;
       }
       PlayerCardTooltipController playerCardTooltipController = uiService.loadFxml("theme/player_card_tooltip.fxml");
-      int playerRating = RatingUtil.getRating(ratingProvider.apply(player));
-      totalRating += playerRating;
+      Integer playerRating = ratingProvider.apply(player);
+      if (playerRating != null) {
+        totalRating += playerRating;
 
-      if (ratingType == RatingType.ROUNDED) {
-        playerRating = RatingUtil.getRoundedGlobalRating(player);
+        if (ratingPrecision == RatingPrecision.ROUNDED) {
+          playerRating = RatingUtil.getRoundedRating(playerRating);
+        }
       }
       Faction faction = null;
-      if(playerFactionProvider != null) {
+      if (playerFactionProvider != null) {
         faction = playerFactionProvider.apply(player);
       }
       playerCardTooltipController.setPlayer(player, playerRating, faction);

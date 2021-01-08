@@ -32,7 +32,7 @@ public class PlayerCardTooltipControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetFoe() {
-    when(i18n.get("userInfo.tooltipFormat", "foe", 1000)).thenReturn("foe(1000)");
+    when(i18n.get("userInfo.tooltipFormat.withRating", "foe", 1000)).thenReturn("foe(1000)");
 
     PlayerBuilder playerBuilder = PlayerBuilder.create("foe")
         .defaultValues()
@@ -50,7 +50,7 @@ public class PlayerCardTooltipControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetFriend() {
-    when(i18n.get("userInfo.tooltipFormat", "user", 1000)).thenReturn("user(1000)");
+    when(i18n.get("userInfo.tooltipFormat.withRating", "user", 1000)).thenReturn("user(1000)");
 
     PlayerBuilder playerBuilder = PlayerBuilder.create("user")
         .defaultValues()
@@ -68,7 +68,7 @@ public class PlayerCardTooltipControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetOther() {
-    when(i18n.get("userInfo.tooltipFormat", "user", 1000)).thenReturn("user(1000)");
+    when(i18n.get("userInfo.tooltipFormat.withRating", "user", 1000)).thenReturn("user(1000)");
 
     PlayerBuilder playerBuilder = PlayerBuilder.create("user")
         .defaultValues()

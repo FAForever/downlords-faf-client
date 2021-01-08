@@ -4,7 +4,6 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.discord.DiscordRichPresenceService;
 import com.faforever.client.fa.CloseGameEvent;
 import com.faforever.client.fa.ForgedAllianceService;
-import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.JavaFxUtil;
@@ -89,7 +88,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
-import static com.faforever.client.fa.RatingMode.NONE;
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
 import static com.faforever.client.game.KnownFeaturedMod.TUTORIALS;
 import static com.github.nocatch.NoCatch.noCatch;
@@ -109,6 +107,8 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
 @RequiredArgsConstructor
 public class GameService implements InitializingBean {
 
+  @VisibleForTesting
+  static final String DEFAULT_RATING_TYPE = "global";
   private static final Pattern GAME_PREFS_ALLOW_MULTI_LAUNCH_PATTERN = Pattern.compile("debug\\s*=(\\s)*[{][^}]*enable_debug_facilities\\s*=\\s*true");
   private static final String GAME_PREFS_ALLOW_MULTI_LAUNCH_STRING = "\ndebug = {\n" +
       "    enable_debug_facilities = true\n" +
@@ -143,15 +143,13 @@ public class GameService implements InitializingBean {
   private final DiscordRichPresenceService discordRichPresenceService;
   private final ReplayServer replayServer;
   private final ReconnectTimerService reconnectTimerService;
-
-  @VisibleForTesting
-  RatingMode ratingMode;
-
   private final ObservableList<Game> games;
   private final String faWindowTitle;
   private final BooleanProperty inMatchmakerQueue;
   private final BooleanProperty inOthersParty;
 
+  @VisibleForTesting
+  String matchedQueueRatingType;
   private Process process;
   private boolean rehostRequested;
   private int localReplayPort;
@@ -316,10 +314,19 @@ public class GameService implements InitializingBean {
       return completedFuture(null);
     }
 
-    return updateGameIfNecessary(newGameInfo.getFeaturedMod(), null, emptyMap(), newGameInfo.getSimMods())
+    return updateGameIfNecessary(newGameInfo.getFeaturedMod(), null, Map.of(), newGameInfo.getSimMods())
         .thenCompose(aVoid -> downloadMapIfNecessary(newGameInfo.getMap()))
         .thenCompose(aVoid -> fafService.requestHostGame(newGameInfo))
-        .thenAccept(gameLaunchMessage -> startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), RatingMode.GLOBAL));
+        .thenAccept(gameLaunchMessage -> {
+
+          String ratingType = gameLaunchMessage.getRatingType();
+          if (ratingType == null) {
+            log.warn("Rating type not in gameLaunchMessage using default");
+            ratingType = DEFAULT_RATING_TYPE;
+          }
+
+          startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), ratingType);
+        });
   }
 
   private void addAlreadyInQueueNotification() {
@@ -370,7 +377,19 @@ public class GameService implements InitializingBean {
             game.setPassword(password);
             currentGame.set(game);
           }
-          startGame(gameLaunchMessage, null, RatingMode.GLOBAL);
+
+          String ratingType = gameLaunchMessage.getRatingType();
+          if (ratingType == null) {
+            log.warn("Rating type not in gameLaunchMessage using game rating type");
+            ratingType = game.getRatingType();
+          }
+
+          if (ratingType == null) {
+            log.warn("Rating type not in game using default");
+            ratingType = DEFAULT_RATING_TYPE;
+          }
+
+          startGame(gameLaunchMessage, null, ratingType);
         })
         .exceptionally(throwable -> {
           log.warn("Game could not be joined", throwable);
@@ -423,7 +442,6 @@ public class GameService implements InitializingBean {
             }
             this.process = processForReplay;
             setGameRunning(true);
-            this.ratingMode = NONE;
             spawnTerminationListener(this.process);
           } catch (IOException e) {
             notifyCantPlayReplay(replayId, e);
@@ -511,7 +529,6 @@ public class GameService implements InitializingBean {
           }
           this.process = processCreated;
           setGameRunning(true);
-          this.ratingMode = NONE;
           spawnTerminationListener(this.process);
         }))
         .exceptionally(throwable -> {
@@ -561,7 +578,19 @@ public class GameService implements InitializingBean {
               gameLaunchMessage.getArgs().add("/players " + gameLaunchMessage.getExpectedPlayers());
               gameLaunchMessage.getArgs().add("/startspot " + gameLaunchMessage.getMapPosition());
 
-              startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), NONE); // TODO: use leaderboard information from queue to display right rating
+              String ratingType = gameLaunchMessage.getRatingType();
+
+              if (ratingType == null) {
+                log.warn("Rating type not in game launch message using MatchedQueueRatingType");
+                ratingType = matchedQueueRatingType;
+              }
+
+              if (ratingType == null) {
+                log.warn("matchedQueueRatingType null using default");
+                ratingType = DEFAULT_RATING_TYPE;
+              }
+
+              startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), ratingType);
             }))
         .exceptionally(throwable -> {
           if (throwable.getCause() instanceof CancellationException) {
@@ -625,7 +654,7 @@ public class GameService implements InitializingBean {
    * Actually starts the game, including relay and replay server. Call this method when everything else is prepared
    * (mod/map download, connectivity check etc.)
    */
-  private void startGame(GameLaunchMessage gameLaunchMessage, Faction faction, RatingMode ratingMode) {
+  private void startGame(GameLaunchMessage gameLaunchMessage, Faction faction, String ratingType) {
     if (isRunning()) {
       log.warn("Forged Alliance is already running, not starting game");
       return;
@@ -639,11 +668,10 @@ public class GameService implements InitializingBean {
         })
         .thenAccept(adapterPort -> {
           List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
-          process = noCatch(() -> forgedAllianceService.startGame(gameLaunchMessage.getUid(), faction, args, ratingMode,
+          process = noCatch(() -> forgedAllianceService.startGame(gameLaunchMessage.getUid(), faction, args, ratingType,
               adapterPort, localReplayPort, rehostRequested, getCurrentPlayer()));
           setGameRunning(true);
 
-          this.ratingMode = ratingMode;
           spawnTerminationListener(process);
         })
         .exceptionally(throwable -> {
@@ -822,31 +850,13 @@ public class GameService implements InitializingBean {
     return game;
   }
 
-  public int parseRating(String string) {
-    try {
-      return Integer.parseInt(string);
-    } catch (NumberFormatException e) {
-      int rating;
-      String[] split = string.replace("k", "").split("\\.");
-      try {
-        rating = Integer.parseInt(split[0]) * 1000;
-        if (split.length == 2) {
-          rating += Integer.parseInt(split[1]) * 100;
-        }
-        return rating;
-      } catch (NumberFormatException e1) {
-        return Integer.MAX_VALUE;
-      }
-    }
-  }
-
   private double calcAverageRating(GameInfoMessage gameInfoMessage) {
     return gameInfoMessage.getTeams().values().stream()
         .flatMap(Collection::stream)
         .map(playerService::getPlayerForUsername)
         .filter(Optional::isPresent)
         .map(Optional::get)
-        .mapToInt(RatingUtil::getGlobalRating)
+        .mapToInt(player -> RatingUtil.getLeaderboardRating(player, gameInfoMessage.getRatingType()))
         .average()
         .orElse(0.0);
   }
@@ -865,6 +875,7 @@ public class GameService implements InitializingBean {
     game.setStatus(gameInfoMessage.getState());
     game.setPasswordProtected(gameInfoMessage.getPasswordProtected());
     game.setGameType(gameInfoMessage.getGameType());
+    game.setRatingType(gameInfoMessage.getRatingType());
 
     game.setAverageRating(calcAverageRating(gameInfoMessage));
 
@@ -901,6 +912,10 @@ public class GameService implements InitializingBean {
       log.info("ForgedAlliance still running, destroying process");
       process.destroy();
     }
+  }
+
+  public void setMatchedQueueRatingType(String matchedQueueRatingType) {
+    this.matchedQueueRatingType = matchedQueueRatingType;
   }
 
   @Subscribe

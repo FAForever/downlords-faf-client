@@ -176,7 +176,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     leavePartyButton.setText(i18n.get("teammatchmaking.leaveParty").toUpperCase());
 
     leagueLabel.textProperty().bind(createStringBinding(() -> i18n.get("leaderboard.divisionName").toUpperCase(),
-        player.globalRatingMeanProperty())); // This should actually be a divisionProperty once that is available
+        player.leaderboardRatingMapProperty())); // This should actually be a divisionProperty once that is available
     gameCountLabel.textProperty().bind(createStringBinding(() ->
         i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase(), player.numberOfGamesProperty()));
     queueHeadingLabel.textProperty().bind(createStringBinding(() -> {

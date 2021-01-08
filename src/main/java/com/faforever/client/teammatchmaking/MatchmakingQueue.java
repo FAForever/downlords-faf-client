@@ -1,6 +1,7 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.api.dto.MatchmakerQueue;
+import com.faforever.client.leaderboard.Leaderboard;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -15,14 +16,15 @@ import java.time.Duration;
 import java.time.Instant;
 
 public class MatchmakingQueue {
-  private IntegerProperty queueId;
-  private StringProperty queueName;
-  private ObjectProperty<Instant> queuePopTime;
-  private IntegerProperty teamSize;
-  private IntegerProperty partiesInQueue;
-  private IntegerProperty playersInQueue;
-  private BooleanProperty joined;
-  private ObjectProperty<MatchingStatus> matchingStatus;
+  private final IntegerProperty queueId;
+  private final StringProperty queueName;
+  private final ObjectProperty<Instant> queuePopTime;
+  private final IntegerProperty teamSize;
+  private final IntegerProperty partiesInQueue;
+  private final IntegerProperty playersInQueue;
+  private final BooleanProperty joined;
+  private final ObjectProperty<MatchingStatus> matchingStatus;
+  private final ObjectProperty<Leaderboard> leaderboard;
 
   public MatchmakingQueue() {
     this.queueId = new SimpleIntegerProperty();
@@ -33,12 +35,14 @@ public class MatchmakingQueue {
     this.playersInQueue = new SimpleIntegerProperty(0);
     this.joined = new SimpleBooleanProperty(false);
     this.matchingStatus = new SimpleObjectProperty<>(null);
+    this.leaderboard = new SimpleObjectProperty<>(null);
   }
 
   public static MatchmakingQueue fromDto(MatchmakerQueue dto) {
     MatchmakingQueue queue = new MatchmakingQueue();
     queue.setQueueId(Integer.parseInt(dto.getId()));
     queue.setQueueName(dto.getTechnicalName());
+    queue.setLeaderboard(Leaderboard.fromDto(dto.getLeaderboard()));
     return queue;
   }
 
@@ -101,6 +105,18 @@ public class MatchmakingQueue {
 
   public ObjectProperty<Instant> queuePopTimeProperty() {
     return queuePopTime;
+  }
+
+  public Leaderboard getLeaderboard() {
+    return leaderboard.get();
+  }
+
+  public void setLeaderboard(Leaderboard leaderboard) {
+    this.leaderboard.set(leaderboard);
+  }
+
+  public ObjectProperty<Leaderboard> leaderboardProperty() {
+    return leaderboard;
   }
 
   public int getPartiesInQueue() {

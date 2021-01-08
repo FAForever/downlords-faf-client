@@ -1,48 +1,39 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.api.dto.GlobalLeaderboardEntry;
-import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.FloatProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class LeaderboardEntry {
 
-  private StringProperty username;
-  private IntegerProperty rank;
-  private DoubleProperty rating;
-  private IntegerProperty gamesPlayed;
-  private FloatProperty winLossRatio;
+  private final StringProperty username;
+  private final DoubleProperty rating;
+  private final IntegerProperty gamesPlayed;
+  private final FloatProperty winLossRatio;
+  private final ObjectProperty<Leaderboard> leaderboard;
 
   public LeaderboardEntry() {
     username = new SimpleStringProperty();
-    rank = new SimpleIntegerProperty();
     rating = new SimpleDoubleProperty();
     gamesPlayed = new SimpleIntegerProperty();
     winLossRatio = new SimpleFloatProperty();
+    leaderboard = new SimpleObjectProperty<>();
   }
 
-  public static LeaderboardEntry fromLadder1v1(Ladder1v1LeaderboardEntry entry) {
+  public static LeaderboardEntry fromDto(com.faforever.client.api.dto.LeaderboardEntry entry) {
     LeaderboardEntry leaderboardEntry = new LeaderboardEntry();
-    leaderboardEntry.setUsername(entry.getName());
-    leaderboardEntry.setGamesPlayed(entry.getNumGames());
-    leaderboardEntry.setRank(entry.getRank());
+    leaderboardEntry.setLeaderboard(Leaderboard.fromDto(entry.getLeaderboard()));
+    leaderboardEntry.setUsername(entry.getPlayer().getLogin());
     leaderboardEntry.setRating(entry.getRating());
-    leaderboardEntry.setWinLossRatio(entry.getWonGames() / (float) entry.getNumGames());
-    return leaderboardEntry;
-  }
-
-  public static LeaderboardEntry fromGlobalRating(GlobalLeaderboardEntry globalLeaderboardEntry) {
-    LeaderboardEntry leaderboardEntry = new LeaderboardEntry();
-    leaderboardEntry.setUsername(globalLeaderboardEntry.getName());
-    leaderboardEntry.setGamesPlayed(globalLeaderboardEntry.getNumGames());
-    leaderboardEntry.setRank(globalLeaderboardEntry.getRank());
-    leaderboardEntry.setRating(globalLeaderboardEntry.getRating());
+    leaderboardEntry.setWinLossRatio(entry.getWonGames() / (float) entry.getTotalGames());
+    leaderboardEntry.setGamesPlayed(entry.getTotalGames());
     return leaderboardEntry;
   }
 
@@ -58,16 +49,16 @@ public class LeaderboardEntry {
     return username;
   }
 
-  public int getRank() {
-    return rank.get();
+  public Leaderboard getLeaderboard() {
+    return leaderboard.get();
   }
 
-  public void setRank(int rank) {
-    this.rank.set(rank);
+  public void setLeaderboard(Leaderboard leaderboard) {
+    this.leaderboard.set(leaderboard);
   }
 
-  public IntegerProperty rankProperty() {
-    return rank;
+  public ObjectProperty<Leaderboard> leaderboardProperty() {
+    return leaderboard;
   }
 
   public double getRating() {
@@ -128,8 +119,9 @@ public class LeaderboardEntry {
 
   @Override
   public String toString() {
-    return "Ranked1v1EntryBean{" +
+    return "LeaderboardEntry{" +
         "username=" + username.get() +
+        ",leaderboard=" + leaderboard.get().getTechnicalName() +
         '}';
   }
 }

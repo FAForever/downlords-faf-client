@@ -188,7 +188,7 @@ public class GameDetailController implements Controller<Pane> {
     teamListPane.getChildren().clear();
     ObservableMap<String, List<String>> teams = this.game.get().getTeams();
     synchronized (teams) {
-      TeamCardController.createAndAdd(teams, playerService, uiService, teamListPane);
+      TeamCardController.createAndAdd(teams, game.get().getRatingType(), playerService, uiService, teamListPane);
     }
   }
 

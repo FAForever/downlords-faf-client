@@ -3,6 +3,7 @@ package com.faforever.client.replay;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenOnlineReplayVaultEvent;
 import com.faforever.client.main.event.ShowReplayEvent;
@@ -31,7 +32,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -42,13 +45,15 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
   private static final int TOP_ELEMENT_COUNT = 6;
 
   private final ModService modService;
+  private final LeaderboardService leaderboardService;
   private final ReplayService replayService;
 
   private int playerId;
   private ReplayDetailController replayDetailController;
 
-  public OnlineReplayVaultController(ModService modService, ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, PreferencesService preferencesService, ReportingService reportingService) {
+  public OnlineReplayVaultController(ModService modService, LeaderboardService leaderboardService, ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, PreferencesService preferencesService, ReportingService reportingService) {
     super(uiService, notificationService, i18n, preferencesService, reportingService);
+    this.leaderboardService = leaderboardService;
     this.replayService = replayService;
     this.modService = modService;
   }
@@ -69,21 +74,11 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
 
   protected void setSupplier(SearchConfig searchConfig) {
     switch (searchType) {
-      case SEARCH:
-        currentSupplier = replayService.findByQueryWithPageCount(searchConfig.getSearchQuery(), pageSize, pagination.getCurrentPageIndex() + 1, searchConfig.getSortConfig());
-        break;
-      case OWN:
-        currentSupplier = replayService.getOwnReplaysWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-        break;
-      case NEWEST:
-        currentSupplier = replayService.getNewestReplaysWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-        break;
-      case HIGHEST_RATED:
-        currentSupplier = replayService.getHighestRatedReplaysWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-        break;
-      case PLAYER:
-        currentSupplier = replayService.getReplaysForPlayerWithPageCount(playerId, pageSize, pagination.getCurrentPageIndex() + 1, new SortConfig("startTime", SortOrder.DESC));
-        break;
+      case SEARCH -> currentSupplier = replayService.findByQueryWithPageCount(searchConfig.getSearchQuery(), pageSize, pagination.getCurrentPageIndex() + 1, searchConfig.getSortConfig());
+      case OWN -> currentSupplier = replayService.getOwnReplaysWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
+      case NEWEST -> currentSupplier = replayService.getNewestReplaysWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
+      case HIGHEST_RATED -> currentSupplier = replayService.getHighestRatedReplaysWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
+      case PLAYER -> currentSupplier = replayService.getReplaysForPlayerWithPageCount(playerId, pageSize, pagination.getCurrentPageIndex() + 1, new SortConfig("startTime", SortOrder.DESC));
     }
   }
 
@@ -137,10 +132,24 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
             featuredModFilterController.setItems(featuredMods.stream().map(FeaturedMod::getDisplayName)
                 .collect(Collectors.toList()))));
 
-    searchController.addRangeFilter("playerStats.player.ladder1v1Rating.rating", i18n.get("game.ladderRating"),
-        0, 3000, 100);
-    searchController.addRangeFilter("playerStats.player.globalRating.rating", i18n.get("game.globalRating"),
-        0, 3000, 100);
+    CategoryFilterController leaderboardFilterController = uiService.loadFxml("theme/vault/search/categoryFilter.fxml");
+    leaderboardFilterController.setTitle(i18n.get("leaderboard.displayName"));
+    leaderboardFilterController.setPropertyName("playerStats.ratingChanges.leaderboard.id");
+    searchController.addFilterNode(leaderboardFilterController);
+
+    leaderboardService.getLeaderboards().thenAccept(leaderboards -> {
+      Map<String, String> leaderboardItems = new LinkedHashMap<>();
+      leaderboards.forEach(leaderboard -> leaderboardItems.put(i18n.getWithDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey()), String.valueOf(leaderboard.getId())));
+      Platform.runLater(() ->
+          leaderboardFilterController.setItems(leaderboardItems));
+    });
+
+    //FIXME: Cannot search by rating without using depreciated rating relationships
+//    searchController.addRangeFilter("playerStats.player.ladder1v1Rating.rating", i18n.get("game.ladderRating"),
+//        0, 3000, 100);
+//    searchController.addRangeFilter("playerStats.player.globalRating.rating", i18n.get("game.globalRating"),
+//        0, 3000, 100);
+
     searchController.addDateRangeFilter("endTime", i18n.get("game.date"), 1);
     searchController.addToggleFilter("validity", i18n.get("game.onlyRanked"), "VALID");
 

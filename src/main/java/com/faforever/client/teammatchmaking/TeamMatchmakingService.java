@@ -205,7 +205,14 @@ public class TeamMatchmakingService {
     ));
     matchmakingQueues.stream()
         .filter(q -> Objects.equals(q.getQueueName(), message.getQueueName()))
-        .forEach(q -> q.setTimedOutMatchingStatus(MatchingStatus.MATCH_FOUND, Duration.ofSeconds(15), taskScheduler));
+        .forEach(q -> {
+          if (q.getLeaderboard() != null) {
+            gameService.setMatchedQueueRatingType(q.getLeaderboard().getTechnicalName());
+          } else {
+            gameService.setMatchedQueueRatingType(null);
+          }
+          q.setTimedOutMatchingStatus(MatchingStatus.MATCH_FOUND, Duration.ofSeconds(15), taskScheduler);
+        });
 
     matchmakingQueues.forEach(q -> q.setJoined(false));
   }
@@ -216,6 +223,7 @@ public class TeamMatchmakingService {
         .filter(q -> q.getMatchingStatus() != null)
         .forEach(q -> q.setTimedOutMatchingStatus(MatchingStatus.MATCH_CANCELLED, Duration.ofSeconds(15), taskScheduler));
 
+    gameService.setMatchedQueueRatingType(null);
     matchFoundAndWaitingForGameLaunch = false;
     gameService.onMatchmakerSearchStopped(); // joining custom games is still blocked till match is cancelled or launched
   }

@@ -5,8 +5,6 @@ import com.faforever.client.remote.domain.GameLaunchMessage;
 
 import java.util.Arrays;
 
-import static java.util.Collections.emptyList;
-
 public class GameLaunchMessageBuilder {
 
   private final GameLaunchMessage gameLaunchMessage;
@@ -20,9 +18,10 @@ public class GameLaunchMessageBuilder {
   }
 
   public GameLaunchMessageBuilder defaultValues() {
-    gameLaunchMessage.setUid(1);
-    gameLaunchMessage.setMod(KnownFeaturedMod.DEFAULT.getTechnicalName());
-    gameLaunchMessage.setArgs(emptyList());
+    uid(1);
+    mod(KnownFeaturedMod.DEFAULT.getTechnicalName());
+    args();
+    ratingType("global");
     return this;
   }
 
@@ -52,6 +51,11 @@ public class GameLaunchMessageBuilder {
 
   public GameLaunchMessageBuilder faction(Faction faction) {
     gameLaunchMessage.setFaction(faction);
+    return this;
+  }
+
+  public GameLaunchMessageBuilder ratingType(String ratingType) {
+    gameLaunchMessage.setRatingType(ratingType);
     return this;
   }
 

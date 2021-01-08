@@ -1,6 +1,7 @@
 package com.faforever.client.fa;
 
 import com.faforever.client.game.Faction;
+import com.faforever.client.leaderboard.LeaderboardRating;
 import com.faforever.client.player.Player;
 import com.faforever.client.preferences.PreferencesService;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANCE_EXE;
 
@@ -47,21 +49,13 @@ public class ForgedAllianceService {
   }
 
   public Process startGame(int uid, @Nullable Faction faction, @Nullable List<String> additionalArgs,
-                           RatingMode ratingMode, int gpgPort, int localReplayPort, boolean rehost, Player currentPlayer) throws IOException {
+                           String ratingType, int gpgPort, int localReplayPort, boolean rehost, Player currentPlayer) throws IOException {
     Path executable = getExecutable();
 
-    float deviation;
-    float mean;
+    Optional<LeaderboardRating> leaderboardRating = Optional.ofNullable(currentPlayer.getLeaderboardRatings().get(ratingType));
 
-    switch (ratingMode) {
-      case LADDER_1V1:
-        deviation = currentPlayer.getLeaderboardRatingDeviation();
-        mean = currentPlayer.getLeaderboardRatingMean();
-        break;
-      default:
-        deviation = currentPlayer.getGlobalRatingDeviation();
-        mean = currentPlayer.getGlobalRatingMean();
-    }
+    float mean = leaderboardRating.map(LeaderboardRating::getMean).orElse(0f);
+    float deviation = leaderboardRating.map(LeaderboardRating::getDeviation).orElse(0f);
 
     List<String> launchCommand = defaultLaunchCommand()
         .executable(executable)

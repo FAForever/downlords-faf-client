@@ -33,8 +33,6 @@
                            preserveRatio="true"/>
             </graphic>
         </Label>
-        <Label fx:id="globalRatingLabelLabel" minWidth="0.0" text="%chat.privateMessage.globalRating" wrapText="true"
-               GridPane.rowIndex="2"/>
         <Label fx:id="countryLabel" graphicTextGap="10.0" maxWidth="1.7976931348623157E308" minWidth="0.0"
                styleClass="private-chat-user-info-data" text="&lt;country&gt;" wrapText="true"
                GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
@@ -43,18 +41,17 @@
                            preserveRatio="true"/>
             </graphic>
         </Label>
-        <Label fx:id="globalRatingLabel" minWidth="0.0" styleClass="private-chat-user-info-data"
-               text="&lt;global rating&gt;" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-        <Label fx:id="leaderboardRatingLabelLabel" minWidth="0.0" text="%chat.privateMessage.ladder1v1Rating"
-               wrapText="true" GridPane.rowIndex="3"/>
-        <Label fx:id="leaderboardRatingLabel" minWidth="0.0" styleClass="private-chat-user-info-data"
-               text="&lt;ladder1v1 rating&gt;" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+        <Label fx:id="ratingsLabels" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS" wrapText="true"
+               text="&lt;rating names&gt;"/>
+        <Label fx:id="ratingsValues" GridPane.rowIndex="2" GridPane.columnIndex="1" GridPane.vgrow="ALWAYS"
+               wrapText="true"
+               styleClass="private-chat-user-info-data" text="&lt;rating values&gt;"/>
         <Label fx:id="gamesPlayedLabelLabel" minWidth="0.0" text="%chat.privateMessage.gamesPlayed" wrapText="true"
-               GridPane.rowIndex="4"/>
+               GridPane.rowIndex="3"/>
         <Label fx:id="gamesPlayedLabel" minWidth="0.0" styleClass="private-chat-user-info-data"
-               text="&lt;games played&gt;" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+               text="&lt;games played&gt;" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
         <VBox fx:id="gameDetailWrapper" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-              GridPane.columnSpan="2147483647" GridPane.rowIndex="7">
+              GridPane.columnSpan="2147483647" GridPane.rowIndex="4">
             <children>
                 <Label text="%chat.privateMessage.currentlyPlaying"/>
                 <fx:include fx:id="gameDetail" source="../play/game_detail.fxml"/>

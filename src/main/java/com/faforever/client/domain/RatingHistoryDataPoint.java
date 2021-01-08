@@ -7,6 +7,6 @@ import java.time.OffsetDateTime;
 @Data
 public class RatingHistoryDataPoint {
   private final OffsetDateTime instant;
-  private final float mean;
-  private final float deviation;
+  private final double mean;
+  private final double deviation;
 }

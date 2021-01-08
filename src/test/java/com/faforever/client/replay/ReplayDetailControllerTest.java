@@ -2,6 +2,7 @@ package com.faforever.client.replay;
 
 import com.faforever.client.api.dto.Validity;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.game.TeamCardController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapBeanBuilder;
@@ -17,7 +18,7 @@ import com.faforever.client.replay.Replay.PlayerStats;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.util.Rating;
+import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.ReviewBuilder;
@@ -94,6 +95,8 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private StarController starController;
   @Mock
+  private TeamCardController teamCardController;
+  @Mock
   private ClientProperties clientProperties;
 
   private Player currentPlayer;
@@ -137,6 +140,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     when(i18n.number(anyInt())).thenReturn("1234");
     when(i18n.get("game.idFormat", onlineReplay.getId())).thenReturn(String.valueOf(onlineReplay.getId()));
     when(i18n.get("game.onMapFormat", mapBean.getDisplayName())).thenReturn(mapBean.getDisplayName());
+    when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
 
     loadFxml("theme/vault/replay/replay_detail.fxml", param -> {
       if (param == ReviewsController.class) {
@@ -259,11 +263,12 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   public void testReasonShownNotRated() {
     Replay replay = ReplayBuilder.create().defaultValues()
         .validity(Validity.HAS_AI)
+        .teamPlayerStats(FXCollections.observableMap(PlayerStatsMapBuilder.create().defaultValues().get()))
         .get();
 
     when(replayService.getSize(replay.getId())).thenReturn(CompletableFuture.completedFuture(1024));
     when(ratingService.calculateQuality(replay)).thenReturn(0.427);
-    when(i18n.get("game.reasonNotValid", i18n.get(replay.getValidity().getI18nKey()))).thenReturn("Reason: HAS_AI");
+    when(i18n.getWithDefault(replay.getValidity().toString(), "game.reasonNotValid", i18n.get(replay.getValidity().getI18nKey()))).thenReturn("Reason: HAS_AI");
 
     instance.setReplay(replay);
     WaitForAsyncUtils.waitForFxEvents();
@@ -342,7 +347,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     int id = statsByPlayerId.keySet().stream().findFirst().orElseThrow();
     PlayerStats playerStats = statsByPlayerId.get(id);
     Player player = PlayerBuilder.create("junit").defaultValues().id(id).get();
-    assertEquals(new Rating(playerStats.getBeforeMean(), playerStats.getBeforeDeviation()), instance.getPlayerRating(player, statsByPlayerId));
+    assertEquals(Integer.valueOf(RatingUtil.getRating(playerStats.getBeforeMean(), playerStats.getBeforeDeviation())), instance.getPlayerRating(player, statsByPlayerId));
   }
 
   @Test

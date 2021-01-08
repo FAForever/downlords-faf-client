@@ -88,7 +88,7 @@ public class ReplayCardController implements Controller<Node> {
     }
 
     replay.getTeamPlayerStats().values().stream()
-        .flatMapToInt(playerStats -> playerStats.stream()
+        .flatMapToInt(playerStats -> playerStats.stream().filter(stats -> stats.getBeforeMean() != null && stats.getBeforeDeviation() != null)
             .mapToInt(stats -> RatingUtil.getRating(stats.getBeforeMean(), stats.getBeforeDeviation())))
         .average()
         .ifPresentOrElse(averageRating -> ratingLabel.setText(i18n.number((int) averageRating)),

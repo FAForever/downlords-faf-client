@@ -1,7 +1,7 @@
 package com.faforever.client.stats;
 
 import com.faforever.client.domain.RatingHistoryDataPoint;
-import com.faforever.client.game.KnownFeaturedMod;
+import com.faforever.client.leaderboard.Leaderboard;
 import com.faforever.client.remote.FafService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
@@ -18,7 +18,7 @@ public class StatisticsService {
 
   private final FafService fafService;
 
-  public CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(KnownFeaturedMod featuredMod, int playerId) {
-    return fafService.getRatingHistory(playerId, featuredMod);
+  public CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(int playerId, Leaderboard leaderboard) {
+    return fafService.getRatingHistory(playerId, leaderboard.getTechnicalName());
   }
 }

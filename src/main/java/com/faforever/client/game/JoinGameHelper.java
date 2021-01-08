@@ -61,7 +61,7 @@ public class JoinGameHelper {
 
   public void join(Game game, String password, boolean ignoreRating) {
     Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
-    int playerRating = RatingUtil.getRoundedGlobalRating(currentPlayer);
+    int playerRating = RatingUtil.getRoundedLeaderboardRating(currentPlayer, game.getRatingType());
 
     if (!preferencesService.isGamePathValid()) {
       CompletableFuture<Path> gameDirectoryFuture = new CompletableFuture<>();
