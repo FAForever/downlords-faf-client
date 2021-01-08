@@ -182,7 +182,7 @@ public class FafApiAccessorImplTest {
 
     assertThat(result, is(gamePlayerStats));
     verify(restOperations).getForObject("/data/leaderboardRatingJournal?filter=gamePlayerStats.player.id==\"123\";" +
-        "leaderboard.technical_name==\"ladder_1v1\"&sort=createTime&page[size]=10000&page[number]=1", List.class);
+        "leaderboard.technicalName==\"ladder_1v1\"&sort=createTime&page[size]=10000&page[number]=1", List.class);
   }
 
   @Test
