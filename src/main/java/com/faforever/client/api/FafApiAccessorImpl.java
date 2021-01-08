@@ -213,7 +213,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Cacheable(value = CacheNames.LEADERBOARD, sync = true)
   public List<LeaderboardEntry> getAllLeaderboardEntries(String leaderboardTechnicalName) {
     return getAll(LEADERBOARD_ENTRY_ENDPOINT, java.util.Map.of(
-        FILTER, rsql(qBuilder().string("leaderboard.technical_name").eq(leaderboardTechnicalName)
+        FILTER, rsql(qBuilder().string("leaderboard.technicalName").eq(leaderboardTechnicalName)
             .and().instant("updateTime").after(LocalDateTime.now().minusMonths(1).toInstant(ZoneOffset.UTC), false)),
         INCLUDE, LEADERBOARD_ENTRY_INCLUDES,
         SORT, "-rating"));
@@ -235,7 +235,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         FILTER, rsql(qBuilder()
             .intNum("gamePlayerStats.player.id").eq(playerId)
             .and()
-            .string("leaderboard.technical_name").eq(leaderboardTechnicalName)),
+            .string("leaderboard.technicalName").eq(leaderboardTechnicalName)),
         SORT, "createTime"));
   }
 
