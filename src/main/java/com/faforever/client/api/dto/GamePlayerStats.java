@@ -24,9 +24,13 @@ public class GamePlayerStats {
   private byte color;
   private byte team;
   private byte startSpot;
+  @Deprecated
   private Float beforeMean;
+  @Deprecated
   private Float beforeDeviation;
+  @Deprecated
   private Float afterMean;
+  @Deprecated
   private Float afterDeviation;
   private byte score;
   @Nullable
