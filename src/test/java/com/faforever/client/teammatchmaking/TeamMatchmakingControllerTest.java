@@ -9,6 +9,9 @@ import com.faforever.client.game.Faction;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.MatchmakerPrefs;
+import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -18,7 +21,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.scene.control.Tab;
 import javafx.scene.layout.VBox;
 import org.junit.Before;
@@ -26,12 +28,11 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -46,6 +47,8 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private AvatarService avatarService;
   @Mock
+  private PreferencesService preferencesService;
+  @Mock
   private PlayerService playerService;
   @Mock
   private I18n i18n;
@@ -57,18 +60,28 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
   private FafService fafService;
   @Mock
   private EventBus eventBus;
+  @Mock
+  private Preferences preferences;
+  @Mock
+  private MatchmakerPrefs matchmakerPrefs;
 
   private TeamMatchmakingController instance;
+  private ObservableList<Faction> factionList;
 
   @Before
   public void setUp() throws Exception {
     Player player = new Player("tester");
     player.setId(1);
     prepareParty(player);
+    factionList = FXCollections.observableArrayList();
+
     when(i18n.get(anyString(), any(Object.class))).thenReturn("");
     when(teamMatchmakingService.currentlyInQueueProperty()).thenReturn(new SimpleBooleanProperty(false));
     when(teamMatchmakingService.queuesReadyForUpdateProperty()).thenReturn(new SimpleBooleanProperty(false));
     when(teamMatchmakingService.getPlayersInGame()).thenReturn(FXCollections.observableSet());
+    when(preferencesService.getPreferences()).thenReturn(preferences);
+    when(preferences.getMatchmaker()).thenReturn(matchmakerPrefs);
+    when(matchmakerPrefs.getFactions()).thenReturn(factionList);
     when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<Player>());
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
     when(i18n.get(anyString())).thenReturn("");
@@ -77,10 +90,9 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
       when(controller.getRoot()).thenReturn(new Tab());
       return controller;
     });
-    instance = new TeamMatchmakingController(countryFlagService, avatarService, playerService, i18n, uiService,
+    instance = new TeamMatchmakingController(countryFlagService, avatarService, preferencesService, playerService, i18n, uiService,
         teamMatchmakingService, fafService, eventBus);
     loadFxml("theme/play/team_matchmaking.fxml", clazz -> instance);
-    instance.initialize();
   }
 
   private void prepareParty(Player player) {
@@ -94,13 +106,25 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void testPostConstructSelectsPreviousFactions() {
+    factionList.setAll(Faction.SERAPHIM, Faction.AEON);
+
+    instance.initialize();
+
+    assertThat(instance.aeonButton.isSelected(), is(true));
+    assertThat(instance.seraphimButton.isSelected(), is(true));
+    assertThat(instance.uefButton.isSelected(), is(false));
+    assertThat(instance.cybranButton.isSelected(), is(false));
+  }
+
+  @Test
   public void testOnInvitePlayerButtonClicked() {
     when(uiService.loadFxml("theme/play/teammatchmaking/matchmaking_invite_player.fxml")).thenAnswer(invocation -> {
       InvitePlayerController controller = mock(InvitePlayerController.class);
       return controller;
     });
 
-    instance.onInvitePlayerButtonClicked(new ActionEvent());
+    instance.onInvitePlayerButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(uiService).showInDialog(instance.teamMatchmakingRoot, null, "");
@@ -108,7 +132,7 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnLeavePartyButtonClicked() {
-    instance.onLeavePartyButtonClicked(new ActionEvent());
+    instance.onLeavePartyButtonClicked();
 
     verify(teamMatchmakingService).leaveParty();
   }
@@ -120,10 +144,11 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
     instance.cybranButton.setSelected(false);
     instance.seraphimButton.setSelected(false);
 
-    instance.onFactionButtonClicked(new ActionEvent());
+    instance.onFactionButtonClicked();
 
-    List<Faction> factions = Arrays.asList(Faction.UEF, Faction.AEON);
-    verify(teamMatchmakingService).sendFactionSelection(factions);
+    assertThat(factionList, containsInAnyOrder(Faction.UEF, Faction.AEON));
+    verify(teamMatchmakingService).sendFactionSelection(any());
+    verify(preferencesService).storeInBackground();
   }
 
   @Test
@@ -133,8 +158,9 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
     instance.cybranButton.setSelected(false);
     instance.seraphimButton.setSelected(false);
 
-    instance.onFactionButtonClicked(new ActionEvent());
+    instance.onFactionButtonClicked();
 
+    verify(preferencesService, never()).storeInBackground();
     assertThat(instance.uefButton.isSelected(), is(true));
     assertThat(instance.aeonButton.isSelected(), is(true));
     assertThat(instance.cybranButton.isSelected(), is(true));

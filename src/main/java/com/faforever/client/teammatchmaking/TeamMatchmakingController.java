@@ -12,6 +12,7 @@ import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.theme.UiService;
@@ -21,8 +22,8 @@ import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
-import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -47,7 +48,10 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.ChatService.PARTY_CHANNEL_SUFFIX;
 import static javafx.beans.binding.Bindings.createBooleanBinding;
@@ -65,6 +69,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
+  private final PreferencesService preferencesService;
   private final PlayerService playerService;
   private final I18n i18n;
   private final UiService uiService;
@@ -101,6 +106,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public ColumnConstraints column2;
   public RowConstraints row2;
   private Player player;
+  private HashMap<Faction, ToggleButton> factionsToButtons;
   @VisibleForTesting
   protected MatchmakingChatController matchmakingChatController;
 
@@ -112,6 +118,15 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     player = playerService.getCurrentPlayer().get();
     initializeUppercaseText();
     initializeBindings();
+
+    factionsToButtons = new HashMap<>();
+    factionsToButtons.put(Faction.AEON, aeonButton);
+    factionsToButtons.put(Faction.UEF, uefButton);
+    factionsToButtons.put(Faction.CYBRAN, cybranButton);
+    factionsToButtons.put(Faction.SERAPHIM, seraphimButton);
+
+    ObservableList<Faction> factions = preferencesService.getPreferences().getMatchmaker().getFactions();
+    selectFactions(factions);
 
     teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> renderPartyMembers());
     if (teamMatchmakingService.isQueuesReadyForUpdate()) {
@@ -241,51 +256,44 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     return teamMatchmakingRoot;
   }
 
-  public void onInvitePlayerButtonClicked(ActionEvent actionEvent) {
+  public void onInvitePlayerButtonClicked() {
     InvitePlayerController invitePlayerController = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_invite_player.fxml");
     Pane root = invitePlayerController.getRoot();
     uiService.showInDialog(teamMatchmakingRoot, root, i18n.get("teammatchmaking.invitePlayer"));
   }
 
-  public void onLeavePartyButtonClicked(ActionEvent actionEvent) {
+  public void onLeavePartyButtonClicked() {
     teamMatchmakingService.leaveParty();
   }
 
-  public void onFactionButtonClicked(ActionEvent actionEvent) {
-    if (!uefButton.isSelected() && !aeonButton.isSelected() && !cybranButton.isSelected() && !seraphimButton.isSelected()) {
+  public void onFactionButtonClicked() {
+    List<Faction> factions = factionsToButtons.entrySet().stream()
+        .filter(entry -> entry.getValue().isSelected())
+        .map(Map.Entry::getKey)
+        .collect(Collectors.toList());
+    if (factions.isEmpty()) {
       selectFactionsBasedOnParty();
       return;
     }
-
-    List<Faction> factions = new ArrayList<>();
-    if (uefButton.isSelected()) {
-      factions.add(Faction.UEF);
-    }
-    if (aeonButton.isSelected()) {
-      factions.add(Faction.AEON);
-    }
-    if (cybranButton.isSelected()) {
-      factions.add(Faction.CYBRAN);
-    }
-    if (seraphimButton.isSelected()) {
-      factions.add(Faction.SERAPHIM);
-    }
+    preferencesService.getPreferences().getMatchmaker().getFactions().setAll(factions);
+    preferencesService.storeInBackground();
 
     teamMatchmakingService.sendFactionSelection(factions);
-
     refreshingLabel.setVisible(true);
   }
 
   private void selectFactionsBasedOnParty() {
-    uefButton.setSelected(isFactionSelectedInParty(Faction.UEF));
-    aeonButton.setSelected(isFactionSelectedInParty(Faction.AEON));
-    cybranButton.setSelected(isFactionSelectedInParty(Faction.CYBRAN));
-    seraphimButton.setSelected(isFactionSelectedInParty(Faction.SERAPHIM));
+    List<Faction> factions = teamMatchmakingService.getParty().getMembers().stream()
+        .filter(m -> m.getPlayer().getId() == player.getId())
+        .findFirst()
+        .map(PartyMember::getFactions)
+        .orElse(List.of());
+    selectFactions(factions);
   }
 
-  private boolean isFactionSelectedInParty(Faction faction) {
-    return teamMatchmakingService.getParty().getMembers().stream()
-        .anyMatch(m -> m.getPlayer().getId() == player.getId() && m.getFactions().contains(faction));
+  private void selectFactions(List<Faction> factions) {
+    factionsToButtons.forEach((faction, toggleButton) ->
+        toggleButton.setSelected(factions.contains(faction)));
   }
 
   private void createChannelTab(String channelName) {

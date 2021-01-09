@@ -38,7 +38,7 @@ public class Preferences {
   private final NotificationsPrefs notification;
   private final LocalizationPrefs localization;
   private final LastGamePrefs lastGame;
-  private final Ladder1v1Prefs ladder1v1;
+  private final MatchmakerPrefs matchmaker;
   private final NewsPrefs news;
   private final DeveloperPrefs developer;
   private final VaultPrefs vault;
@@ -72,7 +72,7 @@ public class Preferences {
     themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
     ignoredNotifications = new SimpleListProperty<>(observableArrayList());
     notification = new NotificationsPrefs();
-    ladder1v1 = new Ladder1v1Prefs();
+    matchmaker = new MatchmakerPrefs();
     gamesViewMode = new SimpleStringProperty();
     news = new NewsPrefs();
     developer = new DeveloperPrefs();
@@ -175,8 +175,8 @@ public class Preferences {
     return ignoredNotifications;
   }
 
-  public Ladder1v1Prefs getLadder1v1() {
-    return ladder1v1;
+  public MatchmakerPrefs getMatchmaker() {
+    return matchmaker;
   }
 
   public NewsPrefs getNews() {
