@@ -2,7 +2,6 @@ package com.faforever.client.chat;
 
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.api.dto.AchievementState;
-import com.faforever.client.chat.event.ChatUserPopulateEvent;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Game;
@@ -95,7 +94,6 @@ public class PrivateUserInfoController implements Controller<Node> {
     JavaFxUtil.bind(usernameLabel.textProperty(), this.chatUser.usernameProperty());
     JavaFxUtil.bind(countryImageView.imageProperty(), this.chatUser.countryFlagProperty());
     JavaFxUtil.bind(countryLabel.textProperty(), this.chatUser.countryNameProperty());
-    eventBus.post(new ChatUserPopulateEvent(this.chatUser));
   }
 
   private void displayChatUserInfo() {
