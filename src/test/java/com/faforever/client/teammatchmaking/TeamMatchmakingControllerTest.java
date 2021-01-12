@@ -9,8 +9,8 @@ import com.faforever.client.game.Faction;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
@@ -60,28 +60,29 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
   private FafService fafService;
   @Mock
   private EventBus eventBus;
-  @Mock
-  private Preferences preferences;
-  @Mock
-  private MatchmakerPrefs matchmakerPrefs;
 
+  private Preferences preferences;
   private TeamMatchmakingController instance;
-  private ObservableList<Faction> factionList;
 
   @Before
   public void setUp() throws Exception {
     Player player = new Player("tester");
     player.setId(1);
     prepareParty(player);
-    factionList = FXCollections.observableArrayList();
+    ObservableList<Faction> factionList = FXCollections.observableArrayList(Faction.SERAPHIM, Faction.AEON);
+
+    preferences = PreferencesBuilder.create().defaultValues()
+        .matchmakerPrefs()
+        .factions(factionList)
+        .then()
+        .get();
+    when(preferencesService.getPreferences()).thenReturn(preferences);
 
     when(i18n.get(anyString(), any(Object.class))).thenReturn("");
     when(teamMatchmakingService.currentlyInQueueProperty()).thenReturn(new SimpleBooleanProperty(false));
     when(teamMatchmakingService.queuesReadyForUpdateProperty()).thenReturn(new SimpleBooleanProperty(false));
     when(teamMatchmakingService.getPlayersInGame()).thenReturn(FXCollections.observableSet());
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.getMatchmaker()).thenReturn(matchmakerPrefs);
-    when(matchmakerPrefs.getFactions()).thenReturn(factionList);
     when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<Player>());
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
     when(i18n.get(anyString())).thenReturn("");
@@ -107,7 +108,6 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPostConstructSelectsPreviousFactions() {
-    factionList.setAll(Faction.SERAPHIM, Faction.AEON);
 
     instance.initialize();
 
@@ -146,7 +146,7 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
 
     instance.onFactionButtonClicked();
 
-    assertThat(factionList, containsInAnyOrder(Faction.UEF, Faction.AEON));
+    assertThat(preferences.getMatchmaker().getFactions(), containsInAnyOrder(Faction.UEF, Faction.AEON));
     verify(teamMatchmakingService).sendFactionSelection(any());
     verify(preferencesService).storeInBackground();
   }
