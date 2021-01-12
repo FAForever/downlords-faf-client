@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -108,13 +109,11 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPostConstructSelectsPreviousFactions() {
-
-    instance.initialize();
-
     assertThat(instance.aeonButton.isSelected(), is(true));
     assertThat(instance.seraphimButton.isSelected(), is(true));
     assertThat(instance.uefButton.isSelected(), is(false));
     assertThat(instance.cybranButton.isSelected(), is(false));
+    verify(teamMatchmakingService).sendFactionSelection(List.of(Faction.SERAPHIM, Faction.AEON));
   }
 
   @Test
@@ -147,7 +146,7 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
     instance.onFactionButtonClicked();
 
     assertThat(preferences.getMatchmaker().getFactions(), containsInAnyOrder(Faction.UEF, Faction.AEON));
-    verify(teamMatchmakingService).sendFactionSelection(any());
+    verify(teamMatchmakingService).sendFactionSelection(List.of(Faction.AEON, Faction.UEF));
     verify(preferencesService).storeInBackground();
   }
 

@@ -127,6 +127,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
     ObservableList<Faction> factions = preferencesService.getPreferences().getMatchmaker().getFactions();
     selectFactions(factions);
+    teamMatchmakingService.sendFactionSelection(factions);
 
     teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> renderPartyMembers());
     if (teamMatchmakingService.isQueuesReadyForUpdate()) {
