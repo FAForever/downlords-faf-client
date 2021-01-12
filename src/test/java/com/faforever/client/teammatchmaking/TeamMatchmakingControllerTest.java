@@ -80,12 +80,10 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
         .then()
         .get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
-
     when(i18n.get(anyString(), any(Object.class))).thenReturn("");
     when(teamMatchmakingService.currentlyInQueueProperty()).thenReturn(new SimpleBooleanProperty(false));
     when(teamMatchmakingService.queuesReadyForUpdateProperty()).thenReturn(new SimpleBooleanProperty(false));
     when(teamMatchmakingService.getPlayersInGame()).thenReturn(FXCollections.observableSet());
-    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<Player>());
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
     when(i18n.get(anyString())).thenReturn("");
