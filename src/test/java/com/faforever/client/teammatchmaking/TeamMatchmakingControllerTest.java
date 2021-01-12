@@ -25,6 +25,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.layout.VBox;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -38,6 +39,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -109,11 +111,15 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPostConstructSelectsPreviousFactions() {
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<List<Faction>> captor = ArgumentCaptor.forClass(List.class);
+
     assertThat(instance.aeonButton.isSelected(), is(true));
     assertThat(instance.seraphimButton.isSelected(), is(true));
     assertThat(instance.uefButton.isSelected(), is(false));
     assertThat(instance.cybranButton.isSelected(), is(false));
-    verify(teamMatchmakingService).sendFactionSelection(List.of(Faction.SERAPHIM, Faction.AEON));
+    verify(teamMatchmakingService).sendFactionSelection(captor.capture());
+    assertThat(captor.getValue(), containsInAnyOrder(Faction.SERAPHIM, Faction.AEON));
   }
 
   @Test
@@ -142,11 +148,15 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
     instance.aeonButton.setSelected(true);
     instance.cybranButton.setSelected(false);
     instance.seraphimButton.setSelected(false);
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<List<Faction>> captor = ArgumentCaptor.forClass(List.class);
 
     instance.onFactionButtonClicked();
 
     assertThat(preferences.getMatchmaker().getFactions(), containsInAnyOrder(Faction.UEF, Faction.AEON));
-    verify(teamMatchmakingService).sendFactionSelection(List.of(Faction.AEON, Faction.UEF));
+    // First invocation happens in initialize()
+    verify(teamMatchmakingService, times(2)).sendFactionSelection(captor.capture());
+    assertThat(captor.getValue(), containsInAnyOrder(Faction.UEF, Faction.AEON));
     verify(preferencesService).storeInBackground();
   }
 
