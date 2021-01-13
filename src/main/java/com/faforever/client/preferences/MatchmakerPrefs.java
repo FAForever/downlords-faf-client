@@ -7,11 +7,11 @@ import javafx.collections.ObservableList;
 
 import static javafx.collections.FXCollections.observableArrayList;
 
-public class Ladder1v1Prefs {
+public class MatchmakerPrefs {
 
   private final ListProperty<Faction> factions;
 
-  public Ladder1v1Prefs() {
+  public MatchmakerPrefs() {
     this.factions = new SimpleListProperty<>(observableArrayList(Faction.AEON, Faction.CYBRAN, Faction.UEF, Faction.SERAPHIM));
   }
 

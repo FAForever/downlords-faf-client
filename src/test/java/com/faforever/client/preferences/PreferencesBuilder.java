@@ -147,8 +147,8 @@ public class PreferencesBuilder {
     return new LastGamePrefsBuilder();
   }
 
-  public Ladder1v1PrefsBuilder ladder1v1Prefs() {
-    return new Ladder1v1PrefsBuilder();
+  public MatchmakerPrefsBuilder matchmakerPrefs() {
+    return new MatchmakerPrefsBuilder();
   }
 
   public NewsPrefsBuilder newsPrefs() {
@@ -386,11 +386,11 @@ public class PreferencesBuilder {
     }
   }
 
-  public class Ladder1v1PrefsBuilder extends SubPreferencesBuilder {
-    private final Ladder1v1Prefs ladder1v1Prefs = preferences.getLadder1v1();
+  public class MatchmakerPrefsBuilder extends SubPreferencesBuilder {
+    private final MatchmakerPrefs matchmakerPrefs = preferences.getMatchmaker();
 
-    public Ladder1v1PrefsBuilder factions(ObservableList<Faction> factions) {
-      ladder1v1Prefs.getFactions().setAll(factions);
+    public MatchmakerPrefsBuilder factions(ObservableList<Faction> factions) {
+      matchmakerPrefs.getFactions().setAll(factions);
       return this;
     }
   }
