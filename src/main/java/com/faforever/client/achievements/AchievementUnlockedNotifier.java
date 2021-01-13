@@ -4,11 +4,11 @@ import com.faforever.client.achievements.AchievementService.AchievementState;
 import com.faforever.client.api.dto.AchievementDefinition;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.notification.events.TransientNotificationEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.UpdatedAchievement;
 import com.faforever.client.remote.UpdatedAchievementsMessage;
+import com.google.common.eventbus.EventBus;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +25,7 @@ public class AchievementUnlockedNotifier implements InitializingBean {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private final NotificationService notificationService;
+  private final EventBus eventBus;
   private final I18n i18n;
   private final AchievementService achievementService;
   private final FafService fafService;
@@ -55,10 +55,10 @@ public class AchievementUnlockedNotifier implements InitializingBean {
       audioService.playAchievementUnlockedSound();
       lastSoundPlayed = System.currentTimeMillis();
     }
-    notificationService.addNotification(new TransientNotification(
+    eventBus.post(new TransientNotificationEvent(
             i18n.get("achievement.unlockedTitle"),
             achievementDefinition.getName(),
-        achievementService.getImage(achievementDefinition, AchievementState.UNLOCKED)
+            achievementService.getImage(achievementDefinition, AchievementState.UNLOCKED)
         )
     );
   }

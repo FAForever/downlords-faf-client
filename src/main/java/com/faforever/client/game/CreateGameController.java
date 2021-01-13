@@ -16,7 +16,7 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModManagerController;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.mod.ModVersion;
-import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
 import com.faforever.client.preferences.LastGamePrefs;
 import com.faforever.client.preferences.PreferenceUpdateListener;
 import com.faforever.client.preferences.PreferencesService;
@@ -26,6 +26,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -76,11 +77,11 @@ public class CreateGameController implements Controller<Pane> {
   private final GameService gameService;
   private final PreferencesService preferencesService;
   private final I18n i18n;
-  private final NotificationService notificationService;
   private final ReportingService reportingService;
   private final FafService fafService;
   private final MapGeneratorService mapGeneratorService;
   private final UiService uiService;
+  private final EventBus eventBus;
   public Label mapSizeLabel;
   public Label mapPlayersLabel;
   public Label mapDescriptionLabel;
@@ -387,7 +388,7 @@ public class CreateGameController implements Controller<Pane> {
       root.requestFocus();
     } catch (Exception e) {
       log.error("Map generation failed", e);
-      notificationService.addImmediateErrorNotification(e, "mapGenerator.generationFailed");
+      eventBus.post(new ImmediateErrorNotificationEvent(e, "mapGenerator.generationFailed"));
     }
   }
 
@@ -423,7 +424,7 @@ public class CreateGameController implements Controller<Pane> {
 
     gameService.hostGame(newGameInfo).exceptionally(throwable -> {
       log.warn("Game could not be hosted", throwable);
-      notificationService.addImmediateErrorNotification(throwable, "game.create.failed");
+      eventBus.post(new ImmediateErrorNotificationEvent(throwable, "game.create.failed"));
       return null;
     });
 

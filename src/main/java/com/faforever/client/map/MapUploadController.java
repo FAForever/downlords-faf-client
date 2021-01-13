@@ -8,9 +8,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.event.MapUploadedEvent;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.DismissAction;
-import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
+import com.faforever.client.notification.events.ImmediateNotificationEvent;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.commons.map.PreviewGenerator;
@@ -25,6 +24,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,12 +43,12 @@ import static java.util.Arrays.asList;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class MapUploadController implements Controller<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final MapService mapService;
   private final ExecutorService executorService;
-  private final NotificationService notificationService;
   private final ReportingService reportingService;
   private final PlatformService platformService;
   private final I18n i18n;
@@ -76,17 +76,6 @@ public class MapUploadController implements Controller<Node> {
   private MapBean mapInfo;
   private CompletableTask<Void> uploadMapTask;
   private Runnable cancelButtonClickedListener;
-
-  public MapUploadController(MapService mapService, ExecutorService executorService, NotificationService notificationService, ReportingService reportingService, PlatformService platformService, I18n i18n, EventBus eventBus, ClientProperties clientProperties) {
-    this.mapService = mapService;
-    this.executorService = executorService;
-    this.notificationService = notificationService;
-    this.reportingService = reportingService;
-    this.platformService = platformService;
-    this.i18n = i18n;
-    this.eventBus = eventBus;
-    this.clientProperties = clientProperties;
-  }
 
   public void initialize() {
     mapInfoPane.managedProperty().bind(mapInfoPane.visibleProperty());
@@ -160,7 +149,7 @@ public class MapUploadController implements Controller<Node> {
   private void onUploadFailed(Throwable throwable) {
     enterMapInfoState();
     if (throwable instanceof ApiException) {
-      notificationService.addNotification(new ImmediateNotification(
+      eventBus.post(new ImmediateNotificationEvent(
           i18n.get("errorTitle"), i18n.get("mapVault.upload.failed", throwable.getLocalizedMessage()), ERROR,
           asList(
               new Action(i18n.get("mapVault.upload.retry"), event -> onUploadClicked()),
@@ -168,7 +157,7 @@ public class MapUploadController implements Controller<Node> {
           )
       ));
     } else {
-      notificationService.addNotification(new ImmediateNotification(
+      eventBus.post(new ImmediateNotificationEvent(
           i18n.get("errorTitle"), i18n.get("mapVault.upload.failed", throwable.getLocalizedMessage()), ERROR, throwable,
           asList(
               new Action(i18n.get("mapVault.upload.retry"), event -> onUploadClicked()),

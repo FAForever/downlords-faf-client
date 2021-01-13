@@ -4,8 +4,7 @@ import com.faforever.client.audio.AudioService;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.notification.events.TransientNotificationEvent;
 import com.faforever.client.player.event.FriendJoinedGameEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.IdenticonUtil;
@@ -22,7 +21,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class FriendJoinedGameNotifier implements InitializingBean {
 
-  private final NotificationService notificationService;
   private final I18n i18n;
   private final EventBus eventBus;
   private final JoinGameHelper joinGameHelper;
@@ -43,7 +41,7 @@ public class FriendJoinedGameNotifier implements InitializingBean {
     }
 
     if (preferencesService.getPreferences().getNotification().isFriendJoinsGameToastEnabled()) {
-      notificationService.addNotification(new TransientNotification(
+      eventBus.post(new TransientNotificationEvent(
           i18n.get("friend.joinedGameNotification.title", player.getUsername(), game.getTitle()),
           i18n.get("friend.joinedGameNotification.action"),
           IdenticonUtil.createIdenticon(player.getId()),

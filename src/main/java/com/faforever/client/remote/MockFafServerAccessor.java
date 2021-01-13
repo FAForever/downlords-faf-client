@@ -9,8 +9,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.events.PersistentNotificationEvent;
 import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.GameAccess;
 import com.faforever.client.remote.domain.GameInfoMessage;
@@ -145,8 +145,8 @@ public class MockFafServerAccessor implements FafServerAccessor {
             messageListeners.getOrDefault(gameInfoMessage.getClass(), Collections.emptyList())
                 .forEach(consumer -> consumer.accept(gameInfoMessage)));
 
-        notificationService.addNotification(
-            new PersistentNotification(
+        eventBus.post(
+            new PersistentNotificationEvent(
                 "How about a long-running (7s) mock task?",
                 Severity.INFO,
                 Arrays.asList(

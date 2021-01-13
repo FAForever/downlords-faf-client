@@ -2,14 +2,20 @@ package com.faforever.client.notification;
 
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
+import com.faforever.client.notification.events.ImmediateNotificationEvent;
+import com.faforever.client.notification.events.PersistentNotificationEvent;
+import com.faforever.client.notification.events.TransientNotificationEvent;
 import com.faforever.client.reporting.ReportingService;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -18,7 +24,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import static com.faforever.client.notification.Severity.ERROR;
-import static java.util.Collections.singletonList;
 import static javafx.collections.FXCollections.observableSet;
 import static javafx.collections.FXCollections.synchronizedObservableSet;
 
@@ -27,45 +32,24 @@ import static javafx.collections.FXCollections.synchronizedObservableSet;
 @Service
 @RequiredArgsConstructor
 // TODO instead of being required an called explicitly, this service should listen for application events only
-public class NotificationService {
+public class NotificationService implements InitializingBean {
 
   private final ObservableSet<PersistentNotification> persistentNotifications = synchronizedObservableSet(observableSet(new TreeSet<>()));
   private final List<OnTransientNotificationListener> onTransientNotificationListeners = new ArrayList<>();
   private final List<OnImmediateNotificationListener> onImmediateNotificationListeners = new ArrayList<>();
   private final ReportingService reportingService;
+  private final I18n i18n;
+  private final EventBus eventBus;
 
-  // TODO fix circular reference
-  @Inject
-  private I18n i18n;
-
-  /**
-   * Adds a {@link PersistentNotification} to be displayed.
-   */
-  
-  public void addNotification(PersistentNotification notification) {
-    persistentNotifications.add(notification);
-  }
-
-  /**
-   * Adds a {@link TransientNotification} to be displayed.
-   */
-  
-  public void addNotification(TransientNotification notification) {
-    onTransientNotificationListeners.forEach(listener -> listener.onTransientNotification(notification));
-  }
-
-  /**
-   * Adds a {@link ImmediateNotification} to be displayed.
-   */
-  
-  public void addNotification(ImmediateNotification notification) {
-    onImmediateNotificationListeners.forEach(listener -> listener.onImmediateNotification(notification));
+  @Override
+  public void afterPropertiesSet() {
+    eventBus.register(this);
   }
 
   /**
    * Adds a listener to be notified about added/removed {@link PersistentNotification}s
    */
-  
+
   public void addPersistentNotificationListener(SetChangeListener<PersistentNotification> listener) {
     JavaFxUtil.addListener(persistentNotifications, listener);
   }
@@ -83,23 +67,38 @@ public class NotificationService {
     return Collections.unmodifiableSet(persistentNotifications);
   }
 
-  
+
   public void removeNotification(PersistentNotification notification) {
     persistentNotifications.remove(notification);
   }
 
-  
+
   public void addImmediateNotificationListener(OnImmediateNotificationListener listener) {
     onImmediateNotificationListeners.add(listener);
   }
 
-  
-  public void addPersistentErrorNotification(Throwable throwable, String messageKey, Object... args) {
-    addNotification(new PersistentNotification(i18n.get(messageKey, args), ERROR, singletonList(new ReportAction(i18n, reportingService, throwable))));
+  @Subscribe
+  public void onPersistentNotification(PersistentNotificationEvent event) {
+    persistentNotifications.add(new PersistentNotification(event.getText(), event.getSeverity(), event.getActions()));
   }
-  
-  public void addImmediateErrorNotification(Throwable throwable, String messageKey, Object... args) {
-    addNotification(new ImmediateNotification(i18n.get("errorTitle"), i18n.get(messageKey, args), ERROR, throwable,
-        Arrays.asList(new DismissAction(i18n), new ReportAction(i18n, reportingService, throwable))));
+
+  @Subscribe
+  public void onTransientNotification(TransientNotificationEvent event) {
+    TransientNotification notification = new TransientNotification(event.getTitle(), event.getText(), event.getImage(), event.getActionCallback());
+    onTransientNotificationListeners.forEach(listener -> listener.onTransientNotification(notification));
+  }
+
+  @Subscribe
+  public void onImmediateNotification(ImmediateNotificationEvent event) {
+    ImmediateNotification notification = new ImmediateNotification(event.getTitle(), event.getText(), event.getSeverity(),
+        event.getThrowable(), event.getActions(), event.getCustomUI());
+    onImmediateNotificationListeners.forEach(listener -> listener.onImmediateNotification(notification));
+  }
+
+  @Subscribe
+  public void onImmediateErrorNotification(ImmediateErrorNotificationEvent event) {
+    ImmediateNotification notification = new ImmediateNotification(i18n.get("errorTitle"), i18n.get(event.getMessageKey(), event.getArgs()),
+        ERROR, event.getThrowable(), Arrays.asList(new DismissAction(i18n), new ReportAction(i18n, reportingService, event.getThrowable())));
+    onImmediateNotificationListeners.forEach(listener -> listener.onImmediateNotification(notification));
   }
 }

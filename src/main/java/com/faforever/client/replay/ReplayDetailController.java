@@ -14,6 +14,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.rating.RatingService;
@@ -29,6 +30,7 @@ import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.commons.io.Bytes;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
@@ -48,7 +50,6 @@ import javafx.scene.layout.Pane;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -79,6 +80,7 @@ public class ReplayDetailController implements Controller<Node> {
   private final ClientProperties clientProperties;
   private final NotificationService notificationService;
   private final ReviewService reviewService;
+  private final EventBus eventBus;
   private final ArrayList<TeamCardController> teamCardControllers = new ArrayList<>();
   public Pane replayDetailRoot;
   public Label titleLabel;
@@ -275,7 +277,7 @@ public class ReplayDetailController implements Controller<Node> {
         }))
         .exceptionally(throwable -> {
           log.warn("Review could not be saved", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "review.delete.error");
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "review.delete.error"));
           return null;
         });
   }
@@ -295,7 +297,7 @@ public class ReplayDetailController implements Controller<Node> {
         })
         .exceptionally(throwable -> {
           log.warn("Review could not be saved", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "review.save.error");
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "review.save.error"));
           return null;
         });
   }
@@ -312,7 +314,7 @@ public class ReplayDetailController implements Controller<Node> {
         })
         .exceptionally(throwable -> {
           log.error("Replay could not be enriched", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "replay.enrich.error");
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "replay.enrich.error"));
           return null;
         });
   }

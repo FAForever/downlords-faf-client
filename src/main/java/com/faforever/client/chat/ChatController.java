@@ -7,7 +7,7 @@ import com.faforever.client.main.event.JoinChannelEvent;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LoggedOutEvent;
@@ -42,7 +42,6 @@ public class ChatController extends AbstractViewController<Node> {
   private final ChatService chatService;
   private final UiService uiService;
   private final UserService userService;
-  private final NotificationService notificationService;
   private final EventBus eventBus;
   public Node chatRoot;
   public TabPane tabPane;
@@ -50,11 +49,10 @@ public class ChatController extends AbstractViewController<Node> {
   public VBox noOpenTabsContainer;
   public TextField channelNameTextField;
 
-  public ChatController(ChatService chatService, UiService uiService, UserService userService, NotificationService notificationService, EventBus eventBus) {
+  public ChatController(ChatService chatService, UiService uiService, UserService userService, EventBus eventBus) {
     this.chatService = chatService;
     this.uiService = uiService;
     this.userService = userService;
-    this.notificationService = notificationService;
     this.eventBus = eventBus;
 
     nameToChatTabController = new HashMap<>();
@@ -235,7 +233,7 @@ public class ChatController extends AbstractViewController<Node> {
     channelNameTextField.clear();
     if (!channelName.startsWith("#")) {
       log.info("Channel name {} does not start with #", channelName);
-      notificationService.addImmediateErrorNotification(new IllegalArgumentException(), "chat.error.noHashTag", channelName);
+      eventBus.post(new ImmediateErrorNotificationEvent(new IllegalArgumentException(), "chat.error.noHashTag", channelName));
       return;
     }
 

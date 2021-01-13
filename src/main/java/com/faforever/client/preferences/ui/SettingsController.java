@@ -11,10 +11,10 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
+import com.faforever.client.notification.events.PersistentNotificationEvent;
+import com.faforever.client.notification.events.TransientNotificationEvent;
 import com.faforever.client.preferences.DateInfo;
 import com.faforever.client.preferences.LocalizationPrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
@@ -82,7 +82,6 @@ import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
 @Slf4j
 public class SettingsController implements Controller<Node> {
 
-  private final NotificationService notificationService;
   private final UserService userService;
   private final PreferencesService preferencesService;
   private final UiService uiService;
@@ -161,7 +160,7 @@ public class SettingsController implements Controller<Node> {
   private ChangeListener<Theme> currentThemeChangeListener;
 
   public SettingsController(UserService userService, PreferencesService preferencesService, UiService uiService,
-                            I18n i18n, EventBus eventBus, NotificationService notificationService,
+                            I18n i18n, EventBus eventBus,
                             PlatformService platformService, ClientProperties clientProperties,
                             ClientUpdateService clientUpdateService, GameService gameService) {
     this.userService = userService;
@@ -169,7 +168,6 @@ public class SettingsController implements Controller<Node> {
     this.uiService = uiService;
     this.i18n = i18n;
     this.eventBus = eventBus;
-    this.notificationService = notificationService;
     this.platformService = platformService;
     this.clientProperties = clientProperties;
     this.clientUpdateService = clientUpdateService;
@@ -259,7 +257,7 @@ public class SettingsController implements Controller<Node> {
     selectedThemeChangeListener = (observable, oldValue, newValue) -> {
       uiService.setTheme(newValue);
       if (oldValue != null && uiService.doesThemeNeedRestart(newValue)) {
-        notificationService.addNotification(new PersistentNotification(i18n.get("theme.needsRestart.message", newValue.getDisplayName()), Severity.WARN,
+        eventBus.post(new PersistentNotificationEvent(i18n.get("theme.needsRestart.message", newValue.getDisplayName()), Severity.WARN,
             Collections.singletonList(new Action(i18n.get("theme.needsRestart.quit"), event -> Platform.exit()))));
         // FIXME reload application (stage & application context) https://github.com/FAForever/downlords-faf-client/issues/1794
       }
@@ -496,7 +494,7 @@ public class SettingsController implements Controller<Node> {
 
     availableLanguagesListener.invalidated(i18n.getAvailableLanguages());
 
-    notificationService.addNotification(new PersistentNotification(
+    eventBus.post(new PersistentNotificationEvent(
         i18n.get(locale, "settings.languages.restart.message"),
         Severity.WARN,
         Collections.singletonList(new Action(i18n.get(locale, "settings.languages.restart"),
@@ -562,9 +560,10 @@ public class SettingsController implements Controller<Node> {
   }
 
   public void onPreviewToastButtonClicked() {
-    notificationService.addNotification(new TransientNotification(
+    eventBus.post(new TransientNotificationEvent(
         i18n.get("settings.notifications.toastPreview.title"),
-        i18n.get("settings.notifications.toastPreview.text")
+        i18n.get("settings.notifications.toastPreview.text"),
+        null
     ));
   }
 
@@ -617,12 +616,12 @@ public class SettingsController implements Controller<Node> {
           .thenRun(() -> Platform.runLater(() -> allowReplayWhileInGameButton.setDisable(true)))
           .exceptionally(throwable -> {
             log.error("Game.prefs patch failed", throwable);
-            notificationService.addImmediateErrorNotification(throwable, "settings.fa.patchGamePrefsFailed");
+            eventBus.post(new ImmediateErrorNotificationEvent(throwable, "settings.fa.patchGamePrefsFailed"));
             return null;
           });
     } catch (Exception e) {
       log.error("Game.prefs patch failed", e);
-      notificationService.addImmediateErrorNotification(e, "settings.fa.patchGamePrefsFailed");
+      eventBus.post(new ImmediateErrorNotificationEvent(e, "settings.fa.patchGamePrefsFailed"));
     }
   }
 }

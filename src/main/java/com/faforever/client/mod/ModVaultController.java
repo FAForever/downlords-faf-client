@@ -6,7 +6,6 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenModVaultEvent;
 import com.faforever.client.mod.ModVersion.ModType;
 import com.faforever.client.mod.event.ModUploadedEvent;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
@@ -35,14 +34,12 @@ import java.util.List;
 public class ModVaultController extends VaultEntityController<ModVersion> {
 
   private final ModService modService;
-  private final EventBus eventBus;
 
   private ModDetailController modDetailController;
 
   public ModVaultController(ModService modService, I18n i18n, EventBus eventBus, PreferencesService preferencesService,
-                               UiService uiService, NotificationService notificationService, ReportingService reportingService) {
-    super(uiService, notificationService, i18n, preferencesService, reportingService);
-    this.eventBus = eventBus;
+                            UiService uiService, ReportingService reportingService) {
+    super(uiService, i18n, preferencesService, reportingService, eventBus);
     this.modService = modService;
   }
 

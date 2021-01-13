@@ -16,7 +16,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.Leaderboard;
 import com.faforever.client.leaderboard.LeaderboardRating;
 import com.faforever.client.leaderboard.LeaderboardService;
-import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
 import com.faforever.client.player.NameRecord;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
@@ -25,6 +25,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
@@ -98,8 +99,8 @@ public class UserInfoWindowController implements Controller<Node> {
   private final UiService uiService;
   private final TimeService timeService;
   private final PlayerService playerService;
-  private final NotificationService notificationService;
   private final LeaderboardService leaderboardService;
+  private final EventBus eventBus;
   private final Map<String, AchievementItemController> achievementItemById = new HashMap<>();
   private final Map<String, AchievementDefinition> achievementDefinitionById = new HashMap<>();
   public Label lockedAchievementsHeaderLabel;
@@ -226,7 +227,7 @@ public class UserInfoWindowController implements Controller<Node> {
         })
         .exceptionally(throwable -> {
           log.warn("Could not load player events", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "userInfo.statistics.errorLoading");
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "userInfo.statistics.errorLoading"));
           return null;
         });
   }
@@ -255,7 +256,7 @@ public class UserInfoWindowController implements Controller<Node> {
         .thenAccept(players -> nameHistoryTable.setItems(players.get(0).getNames()))
         .exceptionally(throwable -> {
           log.warn("Could not load player name history", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "userInfo.nameHistory.errorLoading");
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "userInfo.nameHistory.errorLoading"));
           return null;
         });
   }
@@ -265,7 +266,7 @@ public class UserInfoWindowController implements Controller<Node> {
     achievementService.getAchievementDefinitions()
         .exceptionally(throwable -> {
           log.warn("Player achievements could not be loaded", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "userInfo.achievements.errorLoading");
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "userInfo.achievements.errorLoading"));
           return Collections.emptyList();
         })
         .thenAccept(this::setAvailableAchievements)
@@ -276,7 +277,7 @@ public class UserInfoWindowController implements Controller<Node> {
         })
         .exceptionally(throwable -> {
           log.warn("Could not display achievement definitions", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "userInfo.achievements.errorLDisplaying");
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "userInfo.achievements.errorLDisplaying"));
           return null;
         });
   }

@@ -3,7 +3,7 @@ package com.faforever.client.mod;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
@@ -14,6 +14,7 @@ import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.commons.io.Bytes;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.WeakListChangeListener;
@@ -41,13 +42,13 @@ import java.util.Optional;
 public class ModDetailController implements Controller<Node> {
 
   private final ModService modService;
-  private final NotificationService notificationService;
   private final I18n i18n;
   private final ReportingService reportingService;
   private final TimeService timeService;
   private final ReviewService reviewService;
   private final PlayerService playerService;
   private final UiService uiService;
+  private final EventBus eventBus;
 
   public Label updatedLabel;
   public Label sizeLabel;
@@ -177,7 +178,7 @@ public class ModDetailController implements Controller<Node> {
         }))
         .exceptionally(throwable -> {
           log.warn("Review could not be deleted", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "review.delete.error");
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "review.delete.error"));
           return null;
         });
   }
@@ -197,7 +198,7 @@ public class ModDetailController implements Controller<Node> {
         })
         .exceptionally(throwable -> {
           log.warn("Review could not be saved", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "review.save.error");
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "review.save.error"));
           return null;
         });
   }
@@ -211,8 +212,8 @@ public class ModDetailController implements Controller<Node> {
         .thenRun(() -> setInstalled(true))
         .exceptionally(throwable -> {
           log.error("Could not install mod", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "modVault.installationFailed",
-              modVersion.getDisplayName(), throwable.getLocalizedMessage());
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "modVault.installationFailed",
+              modVersion.getDisplayName(), throwable.getLocalizedMessage()));
           setInstalled(false);
           return null;
         });
@@ -225,8 +226,8 @@ public class ModDetailController implements Controller<Node> {
     modService.uninstallMod(modVersion).thenRun(() -> setInstalled(false))
         .exceptionally(throwable -> {
           log.error("Could not delete mod", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "modVault.couldNotDeleteMod",
-              modVersion.getDisplayName(), throwable.getLocalizedMessage());
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "modVault.couldNotDeleteMod",
+              modVersion.getDisplayName(), throwable.getLocalizedMessage()));
           setInstalled(true);
           return null;
         });

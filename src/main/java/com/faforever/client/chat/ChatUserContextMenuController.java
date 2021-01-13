@@ -14,9 +14,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
 import com.faforever.client.moderator.BanDialogController;
 import com.faforever.client.moderator.ModeratorService;
-import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.events.ImmediateNotificationEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
@@ -45,6 +44,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.ImageView;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -64,13 +64,13 @@ import static java.util.Locale.US;
 @Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
+@RequiredArgsConstructor
 public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
   private final PreferencesService preferencesService;
   private final ClientProperties clientProperties;
   private final PlayerService playerService;
   private final ReplayService replayService;
-  private final NotificationService notificationService;
   private final I18n i18n;
   private final EventBus eventBus;
   private final JoinGameHelper joinGameHelper;
@@ -106,26 +106,6 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
   @SuppressWarnings("FieldCanBeLocal")
   private ChangeListener<Player> playerChangeListener;
-
-  public ChatUserContextMenuController(PreferencesService preferencesService, ClientProperties clientProperties,
-                                       PlayerService playerService, ReplayService replayService,
-                                       NotificationService notificationService, I18n i18n, EventBus eventBus,
-                                       JoinGameHelper joinGameHelper, AvatarService avatarService, UiService uiService,
-                                       PlatformService platformService, ModeratorService moderatorService, TeamMatchmakingService teamMatchmakingService) {
-    this.preferencesService = preferencesService;
-    this.clientProperties = clientProperties;
-    this.playerService = playerService;
-    this.replayService = replayService;
-    this.notificationService = notificationService;
-    this.i18n = i18n;
-    this.eventBus = eventBus;
-    this.joinGameHelper = joinGameHelper;
-    this.avatarService = avatarService;
-    this.uiService = uiService;
-    this.platformService = platformService;
-    this.moderatorService = moderatorService;
-    this.teamMatchmakingService = teamMatchmakingService;
-  }
 
   public void initialize() {
     avatarComboBox.setCellFactory(param -> avatarCell());
@@ -320,7 +300,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
       log.error("Cannot display live replay", e.getCause());
       String title = i18n.get("replays.live.loadFailure.title");
       String message = i18n.get("replays.live.loadFailure.message");
-      notificationService.addNotification(new ImmediateNotification(title, message, Severity.ERROR));
+      eventBus.post(new ImmediateNotificationEvent(title, message, Severity.ERROR));
     }
   }
 

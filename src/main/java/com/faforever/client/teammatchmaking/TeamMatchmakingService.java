@@ -9,11 +9,10 @@ import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.Action.ActionCallback;
-import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.notification.events.ImmediateNotificationEvent;
+import com.faforever.client.notification.events.PersistentNotificationEvent;
+import com.faforever.client.notification.events.TransientNotificationEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -65,7 +64,6 @@ public class TeamMatchmakingService {
 
   private final FafServerAccessor fafServerAccessor;
   private final PlayerService playerService;
-  private final NotificationService notificationService;
   private final PreferencesService preferencesService;
   private final FafService fafService;
   private final EventBus eventBus;
@@ -85,10 +83,9 @@ public class TeamMatchmakingService {
   private final BooleanProperty queuesReadyForUpdate = new SimpleBooleanProperty(false);
   private final BooleanProperty currentlyInQueue = new SimpleBooleanProperty();
 
-  public TeamMatchmakingService(FafServerAccessor fafServerAccessor, PlayerService playerService, NotificationService notificationService, PreferencesService preferencesService, FafService fafService, EventBus eventBus, I18n i18n, TaskScheduler taskScheduler, GameService gameService) {
+  public TeamMatchmakingService(FafServerAccessor fafServerAccessor, PlayerService playerService, PreferencesService preferencesService, FafService fafService, EventBus eventBus, I18n i18n, TaskScheduler taskScheduler, GameService gameService) {
     this.fafServerAccessor = fafServerAccessor;
     this.playerService = playerService;
-    this.notificationService = notificationService;
     this.preferencesService = preferencesService;
     this.fafService = fafService;
     this.eventBus = eventBus;
@@ -199,9 +196,9 @@ public class TeamMatchmakingService {
   protected void onMatchFoundMessage(MatchFoundMessage message) {
     matchFoundAndWaitingForGameLaunch = true; // messages from server: match found -> STOP all queues that you are in that haven't found a match -> game launch
 
-    notificationService.addNotification(new TransientNotification(
+    eventBus.post(new TransientNotificationEvent(
         i18n.get("teammatchmaking.notification.matchFound.title"),
-        i18n.get("teammatchmaking.notification.matchFound.message")
+        i18n.get("teammatchmaking.notification.matchFound.message"), null
     ));
     matchmakingQueues.stream()
         .filter(q -> Objects.equals(q.getQueueName(), message.getQueueName()))
@@ -249,7 +246,7 @@ public class TeamMatchmakingService {
 
     if (gameService.isGameRunning()) {
       log.debug("Game is running, ignoring tmm queue join request");
-      notificationService.addNotification(new ImmediateNotification(
+      eventBus.post(new ImmediateNotificationEvent(
           i18n.get("teammatchmaking.notification.gameAlreadyRunning.title"),
           i18n.get("teammatchmaking.notification.gameAlreadyRunning.message"),
           Severity.WARN,
@@ -289,14 +286,14 @@ public class TeamMatchmakingService {
           Player player = players.get(0);
           ActionCallback callback = event -> this.acceptPartyInvite(player);
 
-          notificationService.addNotification(new TransientNotification(
+          eventBus.post(new TransientNotificationEvent(
               i18n.get("teammatchmaking.notification.invite.title"),
               i18n.get("teammatchmaking.notification.invite.message", player.getUsername()),
               IdenticonUtil.createIdenticon(player.getId()),
               callback
           ));
 
-          notificationService.addNotification(new PersistentNotification(
+          eventBus.post(new PersistentNotificationEvent(
               i18n.get("teammatchmaking.notification.invite.message", player.getUsername()),
               Severity.INFO,
               Collections.singletonList(new Action(
@@ -310,7 +307,7 @@ public class TeamMatchmakingService {
   @VisibleForTesting
   protected void acceptPartyInvite(Player player) {
     if (isCurrentlyInQueue()) {
-      notificationService.addNotification(new ImmediateNotification(
+      eventBus.post(new ImmediateNotificationEvent(
           i18n.get("teammatchmaking.notification.joinAlreadyInQueue.title"),
           i18n.get("teammatchmaking.notification.joinAlreadyInQueue.message"),
           Severity.WARN,
@@ -333,7 +330,7 @@ public class TeamMatchmakingService {
 
   public void invitePlayer(String player) {
     if (isCurrentlyInQueue()) {
-      notificationService.addNotification(new ImmediateNotification(
+      eventBus.post(new ImmediateNotificationEvent(
           i18n.get("teammatchmaking.notification.inviteAlreadyInQueue.title"),
           i18n.get("teammatchmaking.notification.inviteAlreadyInQueue.message"),
           Severity.WARN,

@@ -16,10 +16,11 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
+import com.faforever.client.notification.events.ImmediateNotificationEvent;
+import com.faforever.client.notification.events.PersistentNotificationEvent;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
@@ -300,7 +301,7 @@ public class GameService implements InitializingBean {
   public CompletableFuture<Void> hostGame(NewGameInfo newGameInfo) {
     if (isRunning()) {
       log.debug("Game is running, ignoring host request");
-      notificationService.addImmediateErrorNotification(new UnsupportedOperationException("Forged Alliances is already running"), "game.gameRunning");
+      eventBus.post(new ImmediateErrorNotificationEvent(new UnsupportedOperationException("Forged Alliances is already running"), "game.gameRunning"));
       return completedFuture(null);
     }
 
@@ -330,7 +331,7 @@ public class GameService implements InitializingBean {
   }
 
   private void addAlreadyInQueueNotification() {
-    notificationService.addNotification(new ImmediateNotification(
+    eventBus.post(new ImmediateNotificationEvent(
         i18n.get("teammatchmaking.notification.customAlreadyInQueue.title"),
         i18n.get("teammatchmaking.notification.customAlreadyInQueue.message"),
         Severity.WARN,
@@ -341,7 +342,7 @@ public class GameService implements InitializingBean {
   public CompletableFuture<Void> joinGame(Game game, String password) {
     if (isRunning()) {
       log.debug("Game is running, ignoring join request");
-      notificationService.addImmediateErrorNotification(new UnsupportedOperationException("Forged Alliances is already running"), "game.gameRunning");
+      eventBus.post(new ImmediateErrorNotificationEvent(new UnsupportedOperationException("Forged Alliances is already running"), "game.gameRunning"));
       return completedFuture(null);
     }
 
@@ -393,7 +394,7 @@ public class GameService implements InitializingBean {
         })
         .exceptionally(throwable -> {
           log.warn("Game could not be joined", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "games.couldNotJoin"));
           return null;
         });
   }
@@ -411,15 +412,15 @@ public class GameService implements InitializingBean {
   public CompletableFuture<Void> runWithReplay(Path path, @Nullable Integer replayId, String featuredMod, Integer version, Map<String, Integer> modVersions, Set<String> simMods, String mapName) {
     if (isRunning() && !forgedAlliancePrefs.isAllowReplaysWhileInGame()) {
       log.warn("Forged Alliance is already running, not starting replay");
-      notificationService.addImmediateErrorNotification(new UnsupportedOperationException("Forged Alliances is already running"), "replay.gameRunning");
+      eventBus.post(new ImmediateErrorNotificationEvent(new UnsupportedOperationException("Forged Alliances is already running"), "replay.gameRunning"));
       return completedFuture(null);
     } else if (inMatchmakerQueue.get()) {
       log.warn("In matchmaker queue, not starting replay");
-      notificationService.addImmediateErrorNotification(new UnsupportedOperationException("In Matchmaker Queue"), "replay.inQueue");
+      eventBus.post(new ImmediateErrorNotificationEvent(new UnsupportedOperationException("In Matchmaker Queue"), "replay.inQueue"));
       return completedFuture(null);
     } else if (inOthersParty.get()) {
       log.info("In party, not starting replay");
-      notificationService.addImmediateErrorNotification(new UnsupportedOperationException("In Party"), "replay.inParty");
+      eventBus.post(new ImmediateErrorNotificationEvent(new UnsupportedOperationException("In Party"), "replay.inParty"));
       return completedFuture(null);
     }
 
@@ -475,7 +476,7 @@ public class GameService implements InitializingBean {
           userAnswered.countDown();
         }),
         new Action(i18n.get("replay.abortAfterMapNotFound"), event -> userAnswered.countDown()));
-    notificationService.addNotification(new ImmediateNotification(i18n.get("replay.mapDownloadFailed"), i18n.get("replay.mapDownloadFailed.wannaContinue"), Severity.WARN, actions));
+    eventBus.post(new ImmediateNotificationEvent(i18n.get("replay.mapDownloadFailed"), i18n.get("replay.mapDownloadFailed.wannaContinue"), Severity.WARN, actions));
     userAnswered.await();
     if (!proceed.get()) {
       throw throwable;
@@ -485,25 +486,25 @@ public class GameService implements InitializingBean {
 
   private void notifyCantPlayReplay(@Nullable Integer replayId, Throwable throwable) {
     if (throwable.getCause() instanceof UnsupportedOperationException) {
-      notificationService.addImmediateErrorNotification(throwable, "gameUpdate.error.gameNotWritableAllowMultiOn");
+      eventBus.post(new ImmediateErrorNotificationEvent(throwable, "gameUpdate.error.gameNotWritableAllowMultiOn"));
     } else {
       log.error("Could not play replay '" + replayId + "'", throwable);
-      notificationService.addImmediateErrorNotification(throwable, "replayCouldNotBeStarted");
+      eventBus.post(new ImmediateErrorNotificationEvent(throwable, "replayCouldNotBeStarted"));
     }
   }
 
   public CompletableFuture<Void> runWithLiveReplay(URI replayUrl, Integer gameId, String gameType, String mapName) {
     if (isRunning() && !forgedAlliancePrefs.isAllowReplaysWhileInGame()) {
       log.warn("Forged Alliance is already running and experimental concurrent game feature not turned on, not starting live replay");
-      notificationService.addImmediateErrorNotification(new UnsupportedOperationException("Forged Alliances is already running"), "replay.gameRunning");
+      eventBus.post(new ImmediateErrorNotificationEvent(new UnsupportedOperationException("Forged Alliances is already running"), "replay.gameRunning"));
       return completedFuture(null);
     } else if (inMatchmakerQueue.get()) {
       log.warn("In matchmaker queue, not starting replay");
-      notificationService.addImmediateErrorNotification(new UnsupportedOperationException("In Matchmaker Queue"), "replay.inQueue");
+      eventBus.post(new ImmediateErrorNotificationEvent(new UnsupportedOperationException("In Matchmaker Queue"), "replay.inQueue"));
       return completedFuture(null);
     } else if (inOthersParty.get()) {
       log.info("In party, not starting replay");
-      notificationService.addImmediateErrorNotification(new UnsupportedOperationException("In Party"), "replay.inParty");
+      eventBus.post(new ImmediateErrorNotificationEvent(new UnsupportedOperationException("In Party"), "replay.inParty"));
       return completedFuture(null);
     }
 
@@ -556,7 +557,7 @@ public class GameService implements InitializingBean {
   public CompletableFuture<Void> startSearchMatchmaker() {
     if (isRunning()) {
       log.debug("Game is running, ignoring matchmaking search request");
-      notificationService.addImmediateErrorNotification(new UnsupportedOperationException("Forged Alliances is already running"), "game.gameRunning");
+      eventBus.post(new ImmediateErrorNotificationEvent(new UnsupportedOperationException("Forged Alliances is already running"), "game.gameRunning"));
       return completedFuture(null);
     }
 
@@ -676,7 +677,7 @@ public class GameService implements InitializingBean {
         })
         .exceptionally(throwable -> {
           log.warn("Game could not be started", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "game.start.couldNotStart");
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "game.start.couldNotStart"));
           iceAdapter.stop();
           setGameRunning(false);
           return null;
@@ -689,7 +690,7 @@ public class GameService implements InitializingBean {
       return;
     }
 
-    notificationService.addNotification(new PersistentNotification(i18n.get("game.ended", game.getTitle()),
+    eventBus.post(new PersistentNotificationEvent(i18n.get("game.ended", game.getTitle()),
         Severity.INFO,
         singletonList(new Action(i18n.get("game.rate"), actionEvent -> eventBus.post(new ShowReplayEvent(game.getId()))))));
   }
@@ -942,7 +943,7 @@ public class GameService implements InitializingBean {
         })
         .exceptionally(throwable -> {
           log.error("Launching tutorials failed", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "tutorial.launchFailed");
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "tutorial.launchFailed"));
           return null;
         });
 

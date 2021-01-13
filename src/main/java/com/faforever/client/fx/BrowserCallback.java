@@ -5,12 +5,8 @@ import com.faforever.client.chat.UrlPreviewResolver;
 import com.faforever.client.clan.ClanService;
 import com.faforever.client.clan.ClanTooltipController;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.JoinChannelEvent;
 import com.faforever.client.main.event.ShowReplayEvent;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.PlayerService;
-import com.faforever.client.replay.ReplayService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.google.common.annotations.VisibleForTesting;
@@ -33,34 +29,24 @@ import java.util.regex.Pattern;
 public class BrowserCallback {
   private final PlatformService platformService;
   private final UrlPreviewResolver urlPreviewResolver;
-  private final ReplayService replayService;
   private final EventBus eventBus;
   private final Pattern replayUrlPattern;
   private final ClanService clanService;
   private final UiService uiService;
-  private final PlayerService playerService;
-  private final I18n i18n;
-  private final NotificationService notificationService;
   @VisibleForTesting
   Popup clanInfoPopup;
   private Tooltip linkPreviewTooltip;
-  private Popup playerInfoPopup;
   private double lastMouseX;
   private double lastMouseY;
 
   BrowserCallback(PlatformService platformService, ClientProperties clientProperties,
-                  UrlPreviewResolver urlPreviewResolver, ReplayService replayService, EventBus eventBus,
-                  ClanService clanService, UiService uiService, PlayerService playerService, I18n i18n,
-                  NotificationService notificationService) {
+                  UrlPreviewResolver urlPreviewResolver, EventBus eventBus,
+                  ClanService clanService, UiService uiService) {
     this.platformService = platformService;
     this.urlPreviewResolver = urlPreviewResolver;
-    this.replayService = replayService;
     this.eventBus = eventBus;
     this.clanService = clanService;
     this.uiService = uiService;
-    this.playerService = playerService;
-    this.i18n = i18n;
-    this.notificationService = notificationService;
 
     String urlFormat = clientProperties.getVault().getReplayDownloadUrlFormat();
     String[] splitFormat = urlFormat.split("%s");

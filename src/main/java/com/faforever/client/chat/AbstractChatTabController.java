@@ -7,8 +7,8 @@ import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
+import com.faforever.client.notification.events.TransientNotificationEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -116,7 +116,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   protected final AudioService audioService;
   protected final TimeService timeService;
   protected final I18n i18n;
-  protected final NotificationService notificationService;
   protected final ReportingService reportingService;
   protected final UiService uiService;
   protected final EventBus eventBus;
@@ -152,7 +151,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
                                    PlayerService playerService, AudioService audioService,
                                    TimeService timeService, I18n i18n,
                                    ImageUploadService imageUploadService,
-                                   NotificationService notificationService, ReportingService reportingService, UiService uiService,
+                                   ReportingService reportingService, UiService uiService,
                                    EventBus eventBus, CountryFlagService countryFlagService, ChatUserService chatUserService) {
 
     this.webViewConfigurer = webViewConfigurer;
@@ -165,7 +164,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     this.timeService = timeService;
     this.i18n = i18n;
     this.imageUploadService = imageUploadService;
-    this.notificationService = notificationService;
     this.reportingService = reportingService;
     this.eventBus = eventBus;
     this.countryFlagService = countryFlagService;
@@ -425,7 +423,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     }).exceptionally(throwable -> {
       throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
       logger.warn("Message could not be sent: {}", text, throwable);
-      notificationService.addImmediateErrorNotification(throwable, "chat.sendFailed");
+      eventBus.post(new ImmediateErrorNotificationEvent(throwable, "chat.sendFailed"));
 
       messageTextField.setDisable(false);
       messageTextField.requestFocus();
@@ -616,7 +614,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     String identIconSource = playerOptional.map(player -> String.valueOf(player.getId())).orElseGet(chatMessage::getUsername);
 
     if (preferencesService.getPreferences().getNotification().isPrivateMessageToastEnabled()) {
-      notificationService.addNotification(new TransientNotification(
+      eventBus.post(new TransientNotificationEvent(
           chatMessage.getUsername(),
           chatMessage.getMessage(),
           IdenticonUtil.createIdenticon(identIconSource),

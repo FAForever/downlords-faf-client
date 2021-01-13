@@ -6,7 +6,6 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenMapVaultEvent;
 import com.faforever.client.main.event.ShowMapPoolEvent;
 import com.faforever.client.map.event.MapUploadedEvent;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
@@ -40,17 +39,15 @@ import java.util.Random;
 public class MapVaultController extends VaultEntityController<MapBean> {
 
   private final MapService mapService;
-  private final EventBus eventBus;
 
   private MapDetailController mapDetailController;
   private Integer recommendedShowRoomPageCount;
   private Integer matchmakerQueueId;
 
   public MapVaultController(MapService mapService, I18n i18n, EventBus eventBus, PreferencesService preferencesService,
-                            UiService uiService, NotificationService notificationService, ReportingService reportingService) {
-    super(uiService, notificationService, i18n, preferencesService, reportingService);
+                            UiService uiService, ReportingService reportingService) {
+    super(uiService, i18n, preferencesService, reportingService, eventBus);
     this.mapService = mapService;
-    this.eventBus = eventBus;
   }
 
   @Override

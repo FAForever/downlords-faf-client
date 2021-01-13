@@ -6,9 +6,10 @@ import com.faforever.client.map.generator.GenerationType;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.map.generator.OutdatedVersionException;
 import com.faforever.client.map.generator.UnsupportedVersionException;
-import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
 import com.faforever.client.preferences.GeneratorPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -45,9 +46,9 @@ import java.util.concurrent.CompletableFuture;
 public class GenerateMapController implements Controller<Pane> {
 
   private final PreferencesService preferencesService;
-  private final NotificationService notificationService;
   private final MapGeneratorService mapGeneratorService;
   private final I18n i18n;
+  private final EventBus eventBus;
   public CreateGameController createGameController;
   public Pane generateMapRoot;
   public Button generateMapButton;
@@ -188,7 +189,7 @@ public class GenerateMapController implements Controller<Pane> {
     if (!previousMapName.getText().isEmpty()) {
       if (!mapGeneratorService.isGeneratedMap(previousMapName.getText())) {
         log.warn("Invalid Generated Map Name", new IllegalArgumentException());
-        notificationService.addImmediateErrorNotification(new IllegalArgumentException(), "mapGenerator.invalidName");
+        eventBus.post(new ImmediateErrorNotificationEvent(new IllegalArgumentException(), "mapGenerator.invalidName"));
         return;
       }
       generateFuture = mapGeneratorService.generateMap(previousMapName.getText());
@@ -219,16 +220,16 @@ public class GenerateMapController implements Controller<Pane> {
     Throwable cause = e.getCause();
     if (cause instanceof InvalidParameterException) {
       log.warn("Map generation failed due to invalid parameter", e);
-      notificationService.addImmediateErrorNotification(e, "mapGenerator.invalidName");
+      eventBus.post(new ImmediateErrorNotificationEvent(e, "mapGenerator.invalidName"));
     } else if (cause instanceof UnsupportedVersionException) {
       log.warn("Map generation failed due to unsupported version", e);
-      notificationService.addImmediateErrorNotification(cause, "mapGenerator.tooNewVersion");
+      eventBus.post(new ImmediateErrorNotificationEvent(cause, "mapGenerator.tooNewVersion"));
     } else if (cause instanceof OutdatedVersionException) {
       log.warn("Map generation failed due to outdated version", e);
-      notificationService.addImmediateErrorNotification(cause, "mapGenerator.tooOldVersion");
+      eventBus.post(new ImmediateErrorNotificationEvent(cause, "mapGenerator.tooOldVersion"));
     } else {
       log.warn("Map generation failed", e);
-      notificationService.addImmediateErrorNotification(e, "mapGenerator.generationFailed");
+      eventBus.post(new ImmediateErrorNotificationEvent(e, "mapGenerator.generationFailed"));
     }
   }
 

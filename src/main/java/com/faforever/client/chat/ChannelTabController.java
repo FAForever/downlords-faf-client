@@ -5,7 +5,6 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerOnlineEvent;
 import com.faforever.client.player.PlayerService;
@@ -160,15 +159,14 @@ public class ChannelTabController extends AbstractChatTabController {
   public ChannelTabController(UserService userService, ChatService chatService,
                               PreferencesService preferencesService,
                               PlayerService playerService, AudioService audioService, TimeService timeService,
-                              I18n i18n, ImageUploadService imageUploadService,
-                              NotificationService notificationService, ReportingService reportingService,
+                              I18n i18n, ImageUploadService imageUploadService, ReportingService reportingService,
                               UiService uiService, EventBus eventBus,
                               WebViewConfigurer webViewConfigurer,
                               CountryFlagService countryFlagService, PlatformService platformService,
                               ChatUserService chatUserService) {
 
     super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService,
-        timeService, i18n, imageUploadService, notificationService, reportingService, uiService,
+        timeService, i18n, imageUploadService, reportingService, uiService,
         eventBus, countryFlagService, chatUserService);
     this.platformService = platformService;
 

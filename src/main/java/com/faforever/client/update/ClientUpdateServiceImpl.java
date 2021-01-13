@@ -4,12 +4,12 @@ import com.faforever.client.FafClientApplication;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.events.PersistentNotificationEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.event.LoggedInEvent;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.eventbus.EventBus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
@@ -39,11 +39,11 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
   private static final String DEVELOPMENT_VERSION_STRING = "dev";
 
   private final TaskService taskService;
-  private final NotificationService notificationService;
   private final I18n i18n;
   private final PlatformService platformService;
   private final ApplicationContext applicationContext;
   private final PreferencesService preferencesService;
+  private final EventBus eventBus;
 
   private final CompletableFuture<UpdateInfo> updateInfoFuture;
   private final CompletableFuture<UpdateInfo> updateInfoBetaFuture;
@@ -59,17 +59,17 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
 
   public ClientUpdateServiceImpl(
       TaskService taskService,
-      NotificationService notificationService,
       I18n i18n,
       PlatformService platformService,
       ApplicationContext applicationContext,
-      PreferencesService preferencesService) {
+      PreferencesService preferencesService,
+      EventBus eventBus) {
     this.taskService = taskService;
-    this.notificationService = notificationService;
     this.i18n = i18n;
     this.platformService = platformService;
     this.applicationContext = applicationContext;
     this.preferencesService = preferencesService;
+    this.eventBus = eventBus;
 
     currentVersion = defaultString(Version.getCurrentVersion(), DEVELOPMENT_VERSION_STRING);
     log.info("Current version: {}", currentVersion);
@@ -127,7 +127,7 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
         return;
       }
 
-      notificationService.addNotification(new PersistentNotification(
+      eventBus.post(new PersistentNotificationEvent(
           i18n.get(updateInfo.isPrerelease() ? "clientUpdateAvailable.prereleaseNotification" : "clientUpdateAvailable.notification", updateInfo.getName(), formatSize(updateInfo.getSize(), i18n.getUserSpecificLocale())),
           INFO, asList(
           new Action(i18n.get("clientUpdateAvailable.downloadAndInstall"), event -> downloadAndInstallInBackground(updateInfo)),
@@ -173,8 +173,8 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
             log.warn(throwable.getMessage(), throwable.getCause());
           }
           log.warn("Error while downloading client update", throwable);
-          notificationService.addNotification(
-              new PersistentNotification(i18n.get("clientUpdateDownloadFailed.notification"), WARN, singletonList(
+          eventBus.post(
+              new PersistentNotificationEvent(i18n.get("clientUpdateDownloadFailed.notification"), WARN, singletonList(
                   new Action(i18n.get("clientUpdateDownloadFailed.retry"), event -> downloadAndInstallInBackground(updateInfo))
               ))
           );

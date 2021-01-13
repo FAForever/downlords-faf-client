@@ -5,13 +5,13 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenLocalReplayVaultEvent;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.VaultEntityController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
+import com.google.common.eventbus.EventBus;
 import javafx.scene.Node;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -30,8 +30,8 @@ public class LocalReplayVaultController extends VaultEntityController<Replay> {
 
   private ReplayDetailController replayDetailController;
 
-  public LocalReplayVaultController(ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, PreferencesService preferencesService, ReportingService reportingService) {
-    super(uiService, notificationService, i18n, preferencesService, reportingService);
+  public LocalReplayVaultController(ReplayService replayService, UiService uiService, I18n i18n, PreferencesService preferencesService, ReportingService reportingService, EventBus eventBus) {
+    super(uiService, i18n, preferencesService, reportingService, eventBus);
     this.replayService = replayService;
   }
 

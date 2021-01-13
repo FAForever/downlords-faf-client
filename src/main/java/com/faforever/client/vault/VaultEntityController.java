@@ -4,13 +4,14 @@ import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
-import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -48,10 +49,10 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
 
   protected static final int TOP_ELEMENT_COUNT = 7;
   protected final UiService uiService;
-  protected final NotificationService notificationService;
   protected final I18n i18n;
   protected final PreferencesService preferencesService;
   protected final ReportingService reportingService;
+  protected final EventBus eventBus;
   public Pane root;
   public StackPane vaultRoot;
   public HBox searchBox;
@@ -76,12 +77,12 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   protected ObjectProperty<State> state;
   protected CompletableFuture<Tuple<List<T>, Integer>> currentSupplier;
 
-  public VaultEntityController(UiService uiService, NotificationService notificationService, I18n i18n, PreferencesService preferencesService, ReportingService reportingService) {
+  public VaultEntityController(UiService uiService, I18n i18n, PreferencesService preferencesService, ReportingService reportingService, EventBus eventBus) {
     this.uiService = uiService;
-    this.notificationService = notificationService;
     this.i18n = i18n;
     this.preferencesService = preferencesService;
     this.reportingService = reportingService;
+    this.eventBus = eventBus;
 
     state = new SimpleObjectProperty<>(State.UNINITIALIZED);
   }
@@ -263,7 +264,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
         })
         .exceptionally(throwable -> {
           log.error("Vault search error", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "vault.searchError");
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "vault.searchError"));
           enterResultState();
           return null;
         });

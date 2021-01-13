@@ -13,11 +13,12 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.DismissAction;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
+import com.faforever.client.notification.events.ImmediateNotificationEvent;
+import com.faforever.client.notification.events.PersistentNotificationEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -41,8 +42,6 @@ import com.google.common.primitives.Bytes;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
@@ -52,7 +51,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -93,8 +91,6 @@ import static java.util.Collections.singletonList;
 @Slf4j
 @RequiredArgsConstructor
 public class ReplayService {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
    * Byte offset at which a SupCom replay's version number starts.
@@ -222,12 +218,12 @@ public class ReplayService {
       return CompletableFuture.allOf(featuredModFuture, mapBeanFuture).thenApply(ignoredVoid -> {
         Optional<MapBean> mapBean = mapBeanFuture.join();
         if (mapBean.isEmpty()) {
-          logger.warn("Could not find map for replay file '{}'", replayFile);
+          log.warn("Could not find map for replay file '{}'", replayFile);
         }
         return new Replay(replayInfo, replayFile, featuredModFuture.join(), mapBean.orElse(null));
       });
     } catch (Exception e) {
-      logger.warn("Could not read replay file '{}'", replayFile, e);
+      log.warn("Could not read replay file '{}'", replayFile, e);
       moveCorruptedReplayFile(replayFile);
       return CompletableFuture.completedFuture(null);
     }
@@ -239,16 +235,16 @@ public class ReplayService {
 
     Path target = corruptedReplaysDirectory.resolve(replayFile.getFileName());
 
-    logger.debug("Moving corrupted replay file from {} to {}", replayFile, target);
+    log.debug("Moving corrupted replay file from {} to {}", replayFile, target);
 
     try {
       move(replayFile, target);
     } catch (IOException e) {
-      logger.warn("Failed to move corrupt replay to " + target, e);
+      log.warn("Failed to move corrupt replay to " + target, e);
       return;
     }
 
-    notificationService.addNotification(new PersistentNotification(
+    eventBus.post(new PersistentNotificationEvent(
         i18n.get("corruptedReplayFiles.notification"), WARN,
         singletonList(
             new Action(i18n.get("corruptedReplayFiles.show"), event -> platformService.reveal(replayFile))
@@ -287,7 +283,7 @@ public class ReplayService {
 
 
   public void runLiveReplay(URI uri) {
-    logger.debug("Running replay from URL: {}", uri);
+    log.debug("Running replay from URL: {}", uri);
     if (!uri.getScheme().equals(FAF_LIFE_PROTOCOL)) {
       throw new IllegalArgumentException("Invalid protocol: " + uri.getScheme());
     }
@@ -302,7 +298,7 @@ public class ReplayService {
       URI replayUri = new URI(GPGNET_SCHEME, null, uri.getHost(), uri.getPort(), uri.getPath(), null, null);
       gameService.runWithLiveReplay(replayUri, gameId, gameType, mapName)
           .exceptionally(throwable -> {
-            notificationService.addNotification(new ImmediateNotification(
+            eventBus.post(new ImmediateNotificationEvent(
                 i18n.get("errorTitle"),
                 i18n.get("liveReplayCouldNotBeStarted"),
                 Severity.ERROR, throwable,
@@ -396,7 +392,7 @@ public class ReplayService {
         .thenAccept(this::runReplayFile)
         .exceptionally(throwable -> {
           log.error("Replay could not be started", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "replayCouldNotBeStarted", replayId);
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "replayCouldNotBeStarted", replayId));
           return null;
         });
   }

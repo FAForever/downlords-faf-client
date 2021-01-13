@@ -3,13 +3,13 @@ package com.faforever.client.config;
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.game.FaInitGenerator;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.patch.FeaturedModUpdater;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.patch.GameUpdaterImpl;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
+import com.google.common.eventbus.EventBus;
 import lombok.AllArgsConstructor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -28,11 +28,11 @@ public class MockFeaturedModUpdaterConfig {
   private final FaInitGenerator faInitGenerator;
   private final FeaturedModUpdater featuredModUpdater;
   private final PreferencesService preferencesService;
-  private final NotificationService notificationService;
+  private final EventBus eventBus;
 
   @Bean
   GameUpdater gameUpdater() {
-    return new GameUpdaterImpl(modService, applicationContext, taskService, fafService, faInitGenerator, preferencesService, notificationService)
+    return new GameUpdaterImpl(modService, applicationContext, taskService, fafService, faInitGenerator, preferencesService, eventBus)
         .addFeaturedModUpdater(featuredModUpdater);
   }
 }

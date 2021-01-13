@@ -1,8 +1,8 @@
 package com.faforever.client.discord;
 
 
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
+import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import net.arikia.dev.drpc.DiscordEventHandlers;
@@ -16,11 +16,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class DiscordEventHandler extends DiscordEventHandlers {
   private final ApplicationEventPublisher applicationEventPublisher;
-  private final NotificationService notificationService;
+  private final EventBus eventBus;
 
-  public DiscordEventHandler(ApplicationEventPublisher applicationEventPublisher, NotificationService notificationService) {
+  public DiscordEventHandler(ApplicationEventPublisher applicationEventPublisher, EventBus eventBus) {
     this.applicationEventPublisher = applicationEventPublisher;
-    this.notificationService = notificationService;
+    this.eventBus = eventBus;
     ready = this::onDiscordReady;
     disconnected = this::onDisconnected;
     errored = this::onError;
@@ -39,7 +39,7 @@ public class DiscordEventHandler extends DiscordEventHandlers {
       applicationEventPublisher.publishEvent(new DiscordJoinEvent(discordJoinSecret.getGameId()));
     } catch (Exception e) {
       log.error("Could not join game from discord rich presence", e);
-      notificationService.addImmediateErrorNotification(e, "game.couldNotJoin", discordJoinSecret.getGameId());
+      eventBus.post(new ImmediateErrorNotificationEvent(e, "game.couldNotJoin", discordJoinSecret.getGameId()));
     }
   }
 
@@ -49,7 +49,7 @@ public class DiscordEventHandler extends DiscordEventHandlers {
       applicationEventPublisher.publishEvent(new DiscordSpectateEvent(discordSpectateSecret.getGameId()));
     } catch (Exception e) {
       log.error("Could not join game from discord rich presence", e);
-      notificationService.addImmediateErrorNotification(e, "replay.couldNotOpen", discordSpectateSecret.getGameId());
+      eventBus.post(new ImmediateErrorNotificationEvent(e, "replay.couldNotOpen", discordSpectateSecret.getGameId()));
     }
   }
 

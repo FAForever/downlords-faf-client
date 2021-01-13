@@ -4,11 +4,12 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService.PreviewSize;
-import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.StarsController;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -36,9 +37,9 @@ import java.util.function.Consumer;
 public class MapCardController implements Controller<Node> {
 
   private final MapService mapService;
-  private final NotificationService notificationService;
   private final I18n i18n;
   private final ReportingService reportingService;
+  private final EventBus eventBus;
 
   public ImageView thumbnailImageView;
   public Label nameLabel;
@@ -121,8 +122,10 @@ public class MapCardController implements Controller<Node> {
         .thenRun(() -> setInstalled(true))
         .exceptionally(throwable -> {
           log.error("Map installation failed", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "mapVault.installationFailed",
-              map.getDisplayName(), throwable.getLocalizedMessage());
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "mapVault.installationFailed",
+              map.getDisplayName(), throwable.getLocalizedMessage()));
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "mapVault.installationFailed",
+              map.getDisplayName(), throwable.getLocalizedMessage()));
           setInstalled(false);
           return null;
         });
@@ -133,8 +136,8 @@ public class MapCardController implements Controller<Node> {
         .thenRun(() -> setInstalled(false))
         .exceptionally(throwable -> {
           log.error("Could not delete map", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "mapVault.couldNotDeleteMap",
-              map.getDisplayName(), throwable.getLocalizedMessage());
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "mapVault.couldNotDeleteMap",
+              map.getDisplayName(), throwable.getLocalizedMessage()));
           setInstalled(true);
           return null;
         });

@@ -8,15 +8,15 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.MainController;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.events.ImmediateNotificationEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.taskbar.WindowsTaskbarProgressUpdater;
 import com.faforever.client.util.WindowsUtil;
 import com.github.nocatch.NoCatch.NoCatchRunnable;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
@@ -143,8 +143,8 @@ public class FafClientApplication extends Application {
   private void closeMainWindow(WindowEvent event) {
     if (applicationContext.getBean(GameService.class).isGameRunning()) {
       I18n i18n = applicationContext.getBean(I18n.class);
-      NotificationService notificationService = applicationContext.getBean(NotificationService.class);
-      notificationService.addNotification(new ImmediateNotification(i18n.get("exitWarning.title"),
+      EventBus eventBus = applicationContext.getBean(EventBus.class);
+      eventBus.post(new ImmediateNotificationEvent(i18n.get("exitWarning.title"),
           i18n.get("exitWarning.message"),
           Severity.WARN,
           asList(

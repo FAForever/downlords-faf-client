@@ -3,9 +3,9 @@ package com.faforever.client.game;
 import com.faforever.client.discord.DiscordJoinEvent;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
+import com.faforever.client.notification.events.ImmediateNotificationEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -16,6 +16,7 @@ import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ import static java.util.Arrays.asList;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class JoinGameHelper {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -39,21 +41,9 @@ public class JoinGameHelper {
   private final PlayerService playerService;
   private final GameService gameService;
   private final PreferencesService preferencesService;
-  private final NotificationService notificationService;
   private final ReportingService reportingService;
   private final UiService uiService;
   private final EventBus eventBus;
-
-  public JoinGameHelper(I18n i18n, PlayerService playerService, GameService gameService, PreferencesService preferencesService, NotificationService notificationService, ReportingService reportingService, UiService uiService, EventBus eventBus) {
-    this.i18n = i18n;
-    this.playerService = playerService;
-    this.gameService = gameService;
-    this.preferencesService = preferencesService;
-    this.notificationService = notificationService;
-    this.reportingService = reportingService;
-    this.uiService = uiService;
-    this.eventBus = eventBus;
-  }
 
   public void join(Game game) {
     this.join(game, null, false);
@@ -88,14 +78,14 @@ public class JoinGameHelper {
       gameService.joinGame(game, password)
           .exceptionally(throwable -> {
             logger.warn("Game could not be joined", throwable);
-            notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
+            eventBus.post(new ImmediateErrorNotificationEvent(throwable, "games.couldNotJoin"));
             return null;
           });
     }
   }
 
   private void showRatingOutOfBoundsConfirmation(int playerRating, Game game, String password) {
-    notificationService.addNotification(new ImmediateNotification(
+    eventBus.post(new ImmediateNotificationEvent(
         i18n.get("game.joinGameRatingConfirmation.title"),
         i18n.get("game.joinGameRatingConfirmation.text", game.getMinRating(), game.getMaxRating(), playerRating),
         Severity.INFO,

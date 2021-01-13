@@ -24,6 +24,8 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotificationsController;
+import com.faforever.client.notification.events.ImmediateNotificationEvent;
+import com.faforever.client.notification.events.PersistentNotificationEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.preferences.ui.SettingsController;
@@ -458,7 +460,7 @@ public class MainController implements Controller<Node> {
     List<Action> actions = Collections.singletonList(new Action(i18n.get("startTab.configure"), event -> {
       makePopUpAskingForPreferenceInStartTab(mainWindow);
     }));
-    notificationService.addNotification(new PersistentNotification(i18n.get("startTab.wantToConfigure"), Severity.INFO, actions));
+    eventBus.post(new PersistentNotificationEvent(i18n.get("startTab.wantToConfigure"), Severity.INFO, actions));
   }
 
   private void makePopUpAskingForPreferenceInStartTab(WindowPrefs mainWindow) {
@@ -469,10 +471,8 @@ public class MainController implements Controller<Node> {
       preferencesService.storeInBackground();
       eventBus.post(new NavigateEvent(newSelection));
     });
-    ImmediateNotification notification =
-        new ImmediateNotification(i18n.get("startTab.title"), i18n.get("startTab.message"),
-            Severity.INFO, null, Collections.singletonList(saveAction), startTabChooseController.getRoot());
-    notificationService.addNotification(notification);
+    eventBus.post(new ImmediateNotificationEvent(i18n.get("startTab.title"), i18n.get("startTab.message"),
+        Severity.INFO, null, Collections.singletonList(saveAction), startTabChooseController.getRoot()));
   }
 
   public void onNotificationsButtonClicked() {

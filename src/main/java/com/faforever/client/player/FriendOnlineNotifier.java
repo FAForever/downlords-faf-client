@@ -5,8 +5,7 @@ import com.faforever.client.chat.InitiatePrivateChatEvent;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.notification.events.TransientNotificationEvent;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.IdenticonUtil;
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class FriendOnlineNotifier implements InitializingBean {
 
-  private final NotificationService notificationService;
   private final I18n i18n;
   private final EventBus eventBus;
   private final AudioService audioService;
@@ -49,16 +47,15 @@ public class FriendOnlineNotifier implements InitializingBean {
     }
 
     if (notification.isFriendOnlineToastEnabled()) {
-      notificationService.addNotification(
-          new TransientNotification(
-              i18n.get("friend.nowOnlineNotification.title", player.getUsername()),
-              i18n.get("friend.nowOnlineNotification.action"),
-              IdenticonUtil.createIdenticon(player.getId()),
-              actionEvent -> {
-                eventBus.post(new NavigateEvent(NavigationItem.CHAT));
-                eventBus.post(new InitiatePrivateChatEvent(player.getUsername()));
-              }
-          ));
+      eventBus.post(new TransientNotificationEvent(
+          i18n.get("friend.nowOnlineNotification.title", player.getUsername()),
+          i18n.get("friend.nowOnlineNotification.action"),
+          IdenticonUtil.createIdenticon(player.getId()),
+          actionEvent -> {
+            eventBus.post(new NavigateEvent(NavigationItem.CHAT));
+            eventBus.post(new InitiatePrivateChatEvent(player.getUsername()));
+          }
+      ));
     }
   }
 }

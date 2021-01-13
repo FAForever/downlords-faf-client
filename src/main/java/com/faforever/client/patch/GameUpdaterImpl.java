@@ -4,13 +4,14 @@ import com.faforever.client.game.FaInitGenerator;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.ProgrammingError;
 import com.faforever.commons.mod.MountInfo;
+import com.google.common.eventbus.EventBus;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -53,7 +54,7 @@ public class GameUpdaterImpl implements GameUpdater {
   private final FafService fafService;
   private final FaInitGenerator faInitGenerator;
   private final PreferencesService preferencesService;
-  private final NotificationService notificationService;
+  private final EventBus eventBus;
 
   @Override
   public GameUpdater addFeaturedModUpdater(FeaturedModUpdater featuredModUpdater) {
@@ -105,7 +106,7 @@ public class GameUpdaterImpl implements GameUpdater {
                 "due to conflicting version running", throwable);
           } else if (!allowReplaysWhileInGame) {
             log.warn("Game files not accessible", throwable);
-            notificationService.addImmediateErrorNotification(throwable, "error.game.filesNotAccessible");
+            eventBus.post(new ImmediateErrorNotificationEvent(throwable, "error.game.filesNotAccessible"));
           } else {
             log.info("Game files not accessible most likely due to concurrent game instances", throwable);
           }

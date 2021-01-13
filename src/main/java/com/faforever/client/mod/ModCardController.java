@@ -3,11 +3,12 @@ package com.faforever.client.mod;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.StarsController;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -33,10 +34,10 @@ import java.util.function.Consumer;
 public class ModCardController implements Controller<Node> {
 
   private final ModService modService;
-  private final NotificationService notificationService;
   private final TimeService timeService;
   private final I18n i18n;
   private final ReportingService reportingService;
+  private final EventBus eventBus;
   public ImageView thumbnailImageView;
   public Label nameLabel;
   public Label authorLabel;
@@ -86,8 +87,8 @@ public class ModCardController implements Controller<Node> {
         .thenRun(() -> setInstalled(true))
         .exceptionally(throwable -> {
           log.error("Could not install mod", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "modVault.installationFailed",
-              modVersion.getDisplayName(), throwable.getLocalizedMessage());
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "modVault.installationFailed",
+              modVersion.getDisplayName(), throwable.getLocalizedMessage()));
           setInstalled(false);
           return null;
         });
@@ -97,8 +98,8 @@ public class ModCardController implements Controller<Node> {
     modService.uninstallMod(modVersion).thenRun(() -> setInstalled(false))
         .exceptionally(throwable -> {
           log.error("Could not delete mod", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "modVault.couldNotDeleteMod",
-              modVersion.getDisplayName(), throwable.getLocalizedMessage());
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "modVault.couldNotDeleteMod",
+              modVersion.getDisplayName(), throwable.getLocalizedMessage()));
           setInstalled(true);
           return null;
         });

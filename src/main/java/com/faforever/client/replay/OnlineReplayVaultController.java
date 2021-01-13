@@ -10,9 +10,8 @@ import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.events.ImmediateNotificationEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.CategoryFilterController;
 import com.faforever.client.query.SearchablePropertyMappings;
@@ -22,6 +21,7 @@ import com.faforever.client.vault.VaultEntityController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -51,8 +51,8 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
   private int playerId;
   private ReplayDetailController replayDetailController;
 
-  public OnlineReplayVaultController(ModService modService, LeaderboardService leaderboardService, ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, PreferencesService preferencesService, ReportingService reportingService) {
-    super(uiService, notificationService, i18n, preferencesService, reportingService);
+  public OnlineReplayVaultController(ModService modService, LeaderboardService leaderboardService, ReplayService replayService, UiService uiService, I18n i18n, PreferencesService preferencesService, ReportingService reportingService, EventBus eventBus) {
+    super(uiService, i18n, preferencesService, reportingService, eventBus);
     this.leaderboardService = leaderboardService;
     this.replayService = replayService;
     this.modService = modService;
@@ -197,7 +197,7 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
       if (replay.isPresent()) {
         Platform.runLater(() -> onDisplayDetails(replay.get()));
       } else {
-        notificationService.addNotification(new ImmediateNotification(i18n.get("replay.notFoundTitle"), i18n.get("replay.replayNotFoundText", replayId), Severity.WARN));
+        eventBus.post(new ImmediateNotificationEvent(i18n.get("replay.notFoundTitle"), i18n.get("replay.replayNotFoundText", replayId), Severity.WARN));
       }
     });
   }

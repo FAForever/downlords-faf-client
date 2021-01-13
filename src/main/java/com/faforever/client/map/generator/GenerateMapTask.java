@@ -1,9 +1,8 @@
 package com.faforever.client.map.generator;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.events.ImmediateNotificationEvent;
 import com.faforever.client.os.OsUtils;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
@@ -31,7 +30,6 @@ public class GenerateMapTask extends CompletableTask<String> {
   private static final Logger generatorLogger = LoggerFactory.getLogger("faf-map-generator");
 
   private final PreferencesService preferencesService;
-  private final NotificationService notificationService;
   private final I18n i18n;
   private final EventBus eventBus;
 
@@ -63,11 +61,10 @@ public class GenerateMapTask extends CompletableTask<String> {
   private GenerationType generationType;
 
   @Inject
-  public GenerateMapTask(PreferencesService preferencesService, NotificationService notificationService, I18n i18n, EventBus eventBus) {
+  public GenerateMapTask(PreferencesService preferencesService, I18n i18n, EventBus eventBus) {
     super(Priority.HIGH);
 
     this.preferencesService = preferencesService;
-    this.notificationService = notificationService;
     this.i18n = i18n;
     this.eventBus = eventBus;
   }
@@ -121,7 +118,7 @@ public class GenerateMapTask extends CompletableTask<String> {
       if (process.isAlive()) {
         log.warn("Map generation timed out, killing process...");
         process.destroyForcibly();
-        notificationService.addNotification(new ImmediateNotification(i18n.get("game.mapGeneration.failed.title"),
+        eventBus.post(new ImmediateNotificationEvent(i18n.get("game.mapGeneration.failed.title"),
             i18n.get("game.mapGeneration.failed.message"), Severity.ERROR));
       } else {
         eventBus.post(new MapGeneratedEvent(mapFilename));

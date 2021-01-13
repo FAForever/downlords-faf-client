@@ -4,7 +4,6 @@ import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.event.UnreadPartyMessageEvent;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
@@ -43,7 +42,6 @@ public class MatchmakingChatController extends AbstractChatTabController {
                                    TimeService timeService,
                                    I18n i18n,
                                    ImageUploadService imageUploadService,
-                                   NotificationService notificationService,
                                    ReportingService reportingService,
                                    UiService uiService,
                                    EventBus eventBus,
@@ -53,7 +51,7 @@ public class MatchmakingChatController extends AbstractChatTabController {
                                    CountryFlagService countryFlagService,
                                    ChatUserService chatUserService) {
     super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService,
-        timeService, i18n, imageUploadService, notificationService, reportingService, uiService,
+        timeService, i18n, imageUploadService, reportingService, uiService,
         eventBus, countryFlagService, chatUserService);
   }
 

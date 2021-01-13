@@ -3,9 +3,10 @@ package com.faforever.client.leaderboard;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.Validator;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -33,9 +34,9 @@ import static javafx.collections.FXCollections.observableList;
 public class LeaderboardsController extends AbstractViewController<Node> {
 
   private final LeaderboardService leaderboardService;
-  private final NotificationService notificationService;
   private final I18n i18n;
   private final ReportingService reportingService;
+  private final EventBus eventBus;
   public Pane leaderboardRoot;
   public TableColumn<LeaderboardEntry, Number> rankColumn;
   public TableColumn<LeaderboardEntry, String> nameColumn;
@@ -133,7 +134,7 @@ public class LeaderboardsController extends AbstractViewController<Node> {
     }).exceptionally(throwable -> {
       contentPane.setVisible(false);
       log.warn("Error while loading leaderboard entries", throwable);
-      notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoad");
+      eventBus.post(new ImmediateErrorNotificationEvent(throwable, "leaderboard.failedToLoad"));
       return null;
     });
   }

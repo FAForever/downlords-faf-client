@@ -1,14 +1,15 @@
 package com.faforever.client.game;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
+import com.faforever.client.notification.events.ImmediateNotificationEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.ui.preferences.event.GameDirectoryChosenEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class GamePathHandler implements InitializingBean {
   private static final Collection<Path> USUAL_GAME_PATHS = Arrays.asList(
       Paths.get(System.getenv("ProgramFiles") + "\\THQ\\Gas Powered Games\\Supreme Commander - Forged Alliance"),
@@ -36,18 +38,9 @@ public class GamePathHandler implements InitializingBean {
       Paths.get(System.getenv("ProgramFiles") + "\\Supreme Commander - Forged Alliance")
   );
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private final NotificationService notificationService;
   private final I18n i18n;
   private final EventBus eventBus;
   private final PreferencesService preferencesService;
-
-  public GamePathHandler(NotificationService notificationService, I18n i18n, EventBus eventBus, PreferencesService preferencesService) {
-    this.notificationService = notificationService;
-    this.i18n = i18n;
-    this.eventBus = eventBus;
-    this.preferencesService = preferencesService;
-
-  }
 
   @Override
   public void afterPropertiesSet() {
@@ -64,7 +57,7 @@ public class GamePathHandler implements InitializingBean {
     Optional<CompletableFuture<Path>> future = event.getFuture();
 
     if (path == null) {
-      notificationService.addNotification(new ImmediateNotification(i18n.get("gameSelect.select.invalidPath"), i18n.get("gamePath.select.noneChosen"), Severity.WARN));
+      eventBus.post(new ImmediateNotificationEvent(i18n.get("gameSelect.select.invalidPath"), i18n.get("gamePath.select.noneChosen"), Severity.WARN));
       future.ifPresent(pathCompletableFuture -> pathCompletableFuture.completeExceptionally(new CancellationException("User cancelled")));
       return;
     }
@@ -81,12 +74,12 @@ public class GamePathHandler implements InitializingBean {
       gamePathValidWithError = preferencesService.isGamePathValidWithError(gamePath);
     } catch (Exception e) {
       log.error("Game path selection error", e);
-      notificationService.addImmediateErrorNotification(e, "gamePath.select.error");
+      eventBus.post(new ImmediateErrorNotificationEvent(e, "gamePath.select.error"));
       future.ifPresent(pathCompletableFuture -> pathCompletableFuture.completeExceptionally(e));
       return;
     }
     if (gamePathValidWithError != null) {
-      notificationService.addNotification(new ImmediateNotification(i18n.get("gameSelect.select.invalidPath"), i18n.get(gamePathValidWithError), Severity.WARN));
+      eventBus.post(new ImmediateNotificationEvent(i18n.get("gameSelect.select.invalidPath"), i18n.get(gamePathValidWithError), Severity.WARN));
       future.ifPresent(pathCompletableFuture -> pathCompletableFuture.completeExceptionally(new IllegalArgumentException("Invalid path")));
       return;
     }

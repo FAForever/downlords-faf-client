@@ -6,8 +6,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.ModVersion.ModType;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.events.PersistentNotificationEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.remote.AssetService;
@@ -22,6 +21,7 @@ import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.mod.ModLoadException;
 import com.faforever.commons.mod.ModReader;
+import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
@@ -90,10 +90,10 @@ public class ModService implements InitializingBean, DisposableBean {
   private final PreferencesService preferencesService;
   private final TaskService taskService;
   private final ApplicationContext applicationContext;
-  private final NotificationService notificationService;
   private final I18n i18n;
   private final PlatformService platformService;
   private final AssetService assetService;
+  private final EventBus eventBus;
   private final ModReader modReader = new ModReader();
 
   private Path modsDirectory;
@@ -427,13 +427,13 @@ public class ModService implements InitializingBean, DisposableBean {
     } catch (ModLoadException e) {
       logger.debug("Corrupt mod: " + path, e);
 
-      notificationService.addNotification(new PersistentNotification(i18n.get("corruptedMods.notification", path.getFileName()), WARN, singletonList(
+      eventBus.post(new PersistentNotificationEvent(i18n.get("corruptedMods.notification", path.getFileName()), WARN, singletonList(
           new Action(i18n.get("corruptedMods.show"), event -> platformService.reveal(path))
       )));
     } catch (Exception e) {
       logger.warn("Skipping mod because of exception during adding of mod: " + path, e);
 
-      notificationService.addNotification(new PersistentNotification(i18n.get("corruptedModsError.notification", path.getFileName()), WARN, singletonList(
+      eventBus.post(new PersistentNotificationEvent(i18n.get("corruptedModsError.notification", path.getFileName()), WARN, singletonList(
           new Action(i18n.get("corruptedMods.show"), event -> platformService.reveal(path))
       )));
 

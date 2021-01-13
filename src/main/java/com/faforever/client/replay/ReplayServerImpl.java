@@ -4,12 +4,12 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.game.Game;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.events.PersistentNotificationEvent;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
+import com.google.common.eventbus.EventBus;
 import com.google.common.primitives.Bytes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,7 +53,7 @@ public class ReplayServerImpl implements ReplayServer {
   private static final byte[] LIVE_REPLAY_PREFIX = new byte[]{'P', '/'};
 
   private final ClientProperties clientProperties;
-  private final NotificationService notificationService;
+  private final EventBus eventBus;
   private final I18n i18n;
   private final UserService userService;
   private final ReplayFileWriter replayFileWriter;
@@ -99,7 +99,7 @@ public class ReplayServerImpl implements ReplayServer {
           recordAndRelay(gameId, localSocket, fafReplayOutputStream, gameSupplier);
         } catch (ConnectException e) {
           log.warn("Could not connect to remote replay server", e);
-          notificationService.addNotification(new PersistentNotification(i18n.get("replayServer.unreachable"), Severity.WARN));
+          eventBus.post(new PersistentNotificationEvent(i18n.get("replayServer.unreachable"), Severity.WARN, null));
           recordAndRelay(gameId, localSocket, null, gameSupplier);
         }
       } catch (IOException e) {
@@ -108,7 +108,7 @@ public class ReplayServerImpl implements ReplayServer {
         }
         future.completeExceptionally(e);
         log.warn("Error in replay server", e);
-        notificationService.addNotification(new PersistentNotification(
+        eventBus.post(new PersistentNotificationEvent(
             i18n.get("replayServer.listeningFailed"),
             Severity.WARN, Collections.singletonList(new Action(i18n.get("replayServer.retry"), event -> start(gameId, gameSupplier)))
         ));

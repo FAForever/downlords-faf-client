@@ -17,7 +17,9 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.ReportAction;
+import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
+import com.faforever.client.notification.events.PersistentNotificationEvent;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.replay.ReplayService;
@@ -25,6 +27,7 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.google.common.base.Strings;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -61,7 +64,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.game.KnownFeaturedMod.COOP;
+import static com.faforever.client.notification.Severity.ERROR;
 import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
 import static javafx.collections.FXCollections.observableList;
 
 @Component
@@ -76,7 +81,6 @@ public class CoopController extends AbstractViewController<Node> {
   private final ReplayService replayService;
   private final GameService gameService;
   private final CoopService coopService;
-  private final NotificationService notificationService;
   private final I18n i18n;
   private final ReportingService reportingService;
   private final MapService mapService;
@@ -84,6 +88,7 @@ public class CoopController extends AbstractViewController<Node> {
   private final TimeService timeService;
   private final WebViewConfigurer webViewConfigurer;
   private final ModService modService;
+  private final EventBus eventBus;
 
   public Node coopRoot;
   public ComboBox<CoopMission> missionComboBox;
@@ -165,7 +170,7 @@ public class CoopController extends AbstractViewController<Node> {
         Platform.runLater(selectionModel::selectFirst);
       }
     }).exceptionally(throwable -> {
-      notificationService.addPersistentErrorNotification(throwable, "coop.couldNotLoad", throwable.getLocalizedMessage());
+      eventBus.post(new PersistentNotificationEvent(i18n.get("coop.couldNotLoad", throwable.getLocalizedMessage()), ERROR, singletonList(new ReportAction(i18n, reportingService, throwable))));
       return null;
     });
   }
@@ -238,7 +243,7 @@ public class CoopController extends AbstractViewController<Node> {
         })
         .exceptionally(throwable -> {
           log.warn("Could not load coop leaderboard", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "coop.leaderboard.couldNotLoad");
+          eventBus.post(new ImmediateErrorNotificationEvent(throwable, "coop.leaderboard.couldNotLoad"));
           return null;
         });
   }
