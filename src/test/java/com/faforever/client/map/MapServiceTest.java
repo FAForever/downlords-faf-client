@@ -265,9 +265,6 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     assertThat(instance.getUpdatedMapIfExist(outdatedMap).join(), is(Optional.of(newMap)));
 
     MapBean oldestMap = MapBeanBuilder.create().displayName("unit map").folderName("unitMap v1").version(null).get();
-    MapBean sameOldestMap = MapBeanBuilder.create().displayName("unit map").folderName("unitMap v1").version(null).get();
-    when(fafService.getLatestVersionMap(oldestMap.getFolderName()))
-        .thenReturn(CompletableFuture.completedFuture(Optional.of(sameOldestMap)));
     assertThat(instance.getUpdatedMapIfExist(oldestMap).join(), is(Optional.empty()));
   }
 
