@@ -278,7 +278,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testCreateGame() {
+  public void testCreateGameWithSelectedMapIfNoNewVersionMap() {
     ArgumentCaptor<NewGameInfo> newGameInfoArgumentCaptor = ArgumentCaptor.forClass(NewGameInfo.class);
     ModVersion modVersion = new ModVersion();
     String uidMod = "junit-mod";
@@ -290,7 +290,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
     String mapFolderName = "junit-map-folder";
     MapBean map = MapBuilder.create().defaultValues().displayName("Test1").folderName(mapFolderName).get();
-    when(mapService.updateMapToLatestVersionIfExist(map)).thenReturn(completedFuture(Optional.of(map)));
+    when(mapService.updateMapToLatestVersionIfExist(map)).thenReturn(completedFuture(Optional.empty()));
     when(gameService.hostGame(newGameInfoArgumentCaptor.capture())).thenReturn(CompletableFuture.completedFuture(null));
 
     mapList.add(map);
@@ -303,6 +303,34 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
     assertThat(newGameInfoArgumentCaptor.getValue().getSimMods(), contains(uidMod));
     assertThat(newGameInfoArgumentCaptor.getValue().getMap(), is(mapFolderName));
+  }
+
+  @Test
+  public void testCreateGameWithNewMapIfNewVersionMapExist() {
+    ArgumentCaptor<NewGameInfo> newGameInfoArgumentCaptor = ArgumentCaptor.forClass(NewGameInfo.class);
+    ModVersion modVersion = new ModVersion();
+    String uidMod = "junit-mod";
+    modVersion.setUid(uidMod);
+    when(modManagerController.apply()).thenReturn(Collections.singletonList(modVersion));
+
+    Runnable closeRunnable = mock(Runnable.class);
+    instance.setOnCloseButtonClickedListener(closeRunnable);
+
+    MapBean outdatedMap = MapBuilder.create().defaultValues().displayName("Test1").folderName("test.v0001").get();
+    MapBean newMap = MapBuilder.create().defaultValues().displayName("Test1").folderName("test.v0002").get();
+    when(mapService.updateMapToLatestVersionIfExist(outdatedMap)).thenReturn(completedFuture(Optional.of(newMap)));
+    when(gameService.hostGame(newGameInfoArgumentCaptor.capture())).thenReturn(CompletableFuture.completedFuture(null));
+
+    mapList.add(outdatedMap);
+    instance.mapListView.getSelectionModel().select(0);
+
+    instance.onCreateButtonClicked();
+
+    verify(modManagerController).apply();
+    verify(closeRunnable).run();
+
+    assertThat(newGameInfoArgumentCaptor.getValue().getSimMods(), contains(uidMod));
+    assertThat(newGameInfoArgumentCaptor.getValue().getMap(), is("test.v0002"));
   }
 
   @Test

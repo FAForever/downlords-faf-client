@@ -506,12 +506,12 @@ public class MapService implements InitializingBean, DisposableBean {
 
   private boolean isNewVersionMap(MapBean checkedMap, MapBean comparedMap) throws CompareMapVersionException {
     if (!checkedMap.getDisplayName().equalsIgnoreCase(comparedMap.getDisplayName())) {
-      throw new CompareMapVersionException("cannot compare version with different maps");
+      throw new CompareMapVersionException("cannot compare versions with different maps");
     }
     ComparableVersion v1 = checkedMap.getVersion();
     ComparableVersion v2 = comparedMap.getVersion();
     if (v1 == null || v2 == null) {
-      throw new CompareMapVersionException(String.format("cannot compare map versions, map '%s' has null version",
+      throw new CompareMapVersionException(format("cannot compare map versions, map '%s' has null version",
           v1 == null ? checkedMap.getFolderName() : comparedMap.getFolderName()));
     }
     return v1.compareTo(v2) > 0;

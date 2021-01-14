@@ -271,5 +271,6 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   @Test
   @Ignore
   public void testUpdateMapToLatestVersionIfExist() {
+
   }
 }
