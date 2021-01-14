@@ -346,6 +346,10 @@ public class MapService implements InitializingBean, DisposableBean {
     return officialMaps.stream().anyMatch(name -> name.equalsIgnoreCase(mapName));
   }
 
+  public boolean isOfficialMap(MapBean map) {
+    return isOfficialMap(map.getFolderName());
+  }
+
 
   /**
    * Returns {@code true} if the given map is available locally, {@code false} otherwise.

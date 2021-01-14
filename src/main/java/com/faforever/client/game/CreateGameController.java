@@ -394,7 +394,11 @@ public class CreateGameController implements Controller<Pane> {
   public void onCreateButtonClicked() {
     MapBean map = mapListView.getSelectionModel().getSelectedItem();
     onCloseButtonClicked();
-    mapService.updateMapToLatestVersionIfExist(map).thenAccept(optFreshMap -> hostGame(optFreshMap.orElse(map)));
+    if (mapService.isOfficialMap(map)) {
+      hostGame(map);
+    } else {
+      mapService.updateMapToLatestVersionIfExist(map).thenAccept(optFreshMap -> hostGame(optFreshMap.orElse(map)));
+    }
   }
 
   private void hostGame(MapBean map) {
