@@ -94,6 +94,11 @@ public class MapBeanBuilder {
     return this;
   }
 
+  public MapBeanBuilder version(int version) {
+    mapBean.setVersion(new ComparableVersion(String.valueOf(version)));
+    return this;
+  }
+
   public MapBeanBuilder players(int players) {
     mapBean.setPlayers(players);
     return this;

@@ -498,7 +498,7 @@ public class MapService implements InitializingBean, DisposableBean {
           if (latestMap.compareByVersion(map) > 0) {
             return Optional.of(latestMap);
           }
-        } catch (UnsupportedOperationException ignored) {  }
+        } catch (CompareMapVersionException ignored) {  }
       }
       return Optional.empty();
     });

@@ -36,9 +36,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
@@ -46,8 +48,6 @@ import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -184,7 +184,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
 
     instance.afterPropertiesSet();
 
-    assertTrue(instance.isInstalled("ScMp_001"));
+    assertThat(instance.isInstalled("ScMp_001"), is(true));
   }
 
   @Test
@@ -229,5 +229,49 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     when(fafService.getMostPlayedMapsWithPageCount(10, 0)).thenReturn(CompletableFuture.completedFuture(null));
     instance.getMostPlayedMapsWithPageCount(10, 0);
     verify(fafService).getMostPlayedMapsWithPageCount(10, 0);
+  }
+
+  @Test
+  public void testGetLatestVersionMap() {
+    MapBean oldestMap = MapBeanBuilder.create().folderName("unitMap v1").version(null).get();
+    assertThat(instance.getLatestVersionMap(oldestMap).join(), is(Optional.of(oldestMap)));
+
+    MapBean map = MapBeanBuilder.create().folderName("junit_map1.v0003").version(3).get();
+    MapBean sameMap = MapBeanBuilder.create().folderName("junit_map1.v0003").version(3).get();
+    when(fafService.getLatestVersionMap(map.getFolderName()))
+        .thenReturn(CompletableFuture.completedFuture(Optional.of(sameMap)));
+    assertThat(instance.getLatestVersionMap(map).join(), is(Optional.of(sameMap)));
+
+    MapBean outdatedMap = MapBeanBuilder.create().folderName("junit_map2.v0001").version(1).get();
+    MapBean newMap = MapBeanBuilder.create().folderName("junit_map2.v0002").version(2).get();
+    when(fafService.getLatestVersionMap(outdatedMap.getFolderName()))
+        .thenReturn(CompletableFuture.completedFuture(Optional.of(newMap)));
+    assertThat(instance.getLatestVersionMap(outdatedMap).join(), is(Optional.of(newMap)));
+  }
+
+  @Test
+  public void testGetUpdatedMapIfExist() {
+    MapBean map = MapBeanBuilder.create().folderName("junit_map1.v0003").version(3).get();
+    MapBean sameMap = MapBeanBuilder.create().folderName("junit_map1.v0003").version(3).get();
+    when(fafService.getLatestVersionMap(map.getFolderName()))
+        .thenReturn(CompletableFuture.completedFuture(Optional.of(sameMap)));
+    assertThat(instance.getUpdatedMapIfExist(map).join(), is(Optional.empty()));
+
+    MapBean outdatedMap = MapBeanBuilder.create().folderName("junit_map2.v0001").version(1).get();
+    MapBean newMap = MapBeanBuilder.create().folderName("junit_map2.v0002").version(2).get();
+    when(fafService.getLatestVersionMap(outdatedMap.getFolderName()))
+        .thenReturn(CompletableFuture.completedFuture(Optional.of(newMap)));
+    assertThat(instance.getUpdatedMapIfExist(outdatedMap).join(), is(Optional.of(newMap)));
+
+    MapBean oldestMap = MapBeanBuilder.create().folderName("unitMap v1").version(null).get();
+    MapBean sameOldestMap = MapBeanBuilder.create().folderName("unitMap v1").version(null).get();
+    when(fafService.getLatestVersionMap(oldestMap.getFolderName()))
+        .thenReturn(CompletableFuture.completedFuture(Optional.of(sameOldestMap)));
+    assertThat(instance.getUpdatedMapIfExist(oldestMap).join(), is(Optional.empty()));
+  }
+
+  @Test
+  public void testUpdateMapToLatestVersionIfExist() {
+    // TODO: Add the test
   }
 }
