@@ -33,6 +33,7 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.Arrays.asList;
@@ -287,10 +288,12 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     Runnable closeRunnable = mock(Runnable.class);
     instance.setOnCloseButtonClickedListener(closeRunnable);
 
+    String mapFolderName = "junit-map-folder";
+    MapBean map = MapBuilder.create().defaultValues().displayName("Test1").folderName(mapFolderName).get();
+    when(mapService.updateMapToLatestVersionIfExist(map)).thenReturn(CompletableFuture.completedFuture(Optional.of(map)));
     when(gameService.hostGame(newGameInfoArgumentCaptor.capture())).thenReturn(CompletableFuture.completedFuture(null));
 
-    String mapFolderName = "junit-map-folder";
-    mapList.add(MapBuilder.create().defaultValues().displayName("Test1").folderName(mapFolderName).get());
+    mapList.add(map);
     instance.mapListView.getSelectionModel().select(0);
 
     instance.onCreateButtonClicked();

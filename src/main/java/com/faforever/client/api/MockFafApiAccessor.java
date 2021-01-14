@@ -211,6 +211,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
+  public Optional<MapVersion> getLatestVersionMap(String mapFolderName) {
+    return Optional.empty();
+  }
+
+  @Override
   public List<com.faforever.client.api.dto.Player> getPlayersByIds(Collection<Integer> playerIds) {
     return List.of();
   }

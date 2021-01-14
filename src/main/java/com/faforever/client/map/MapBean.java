@@ -243,6 +243,16 @@ public class MapBean implements Comparable<MapBean> {
     return getDisplayName().compareTo(o.getDisplayName());
   }
 
+  public int compareByVersion(@NotNull MapBean o) throws UnsupportedOperationException {
+    ComparableVersion v1 = this.getVersion();
+    ComparableVersion v2 = o.getVersion();
+    if (v1 == null || v2 == null) {
+      throw new UnsupportedOperationException(String.format("cannot compare map versions, map '%s' has null version",
+          v1 == null ? getFolderName() : o.getFolderName()));
+    }
+    return v1.compareTo(v2);
+  }
+
   public String getDisplayName() {
     return displayName.get();
   }

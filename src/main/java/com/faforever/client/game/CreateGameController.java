@@ -392,6 +392,12 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   public void onCreateButtonClicked() {
+    MapBean map = mapListView.getSelectionModel().getSelectedItem();
+    onCloseButtonClicked();
+    mapService.updateMapToLatestVersionIfExist(map).thenAccept(optFreshMap -> hostGame(optFreshMap.orElse(map)));
+  }
+
+  private void hostGame(MapBean map) {
     Set<String> mods = modManagerController.apply().stream()
         .map(ModVersion::getUid)
         .collect(Collectors.toSet());
@@ -414,7 +420,7 @@ public class CreateGameController implements Controller<Pane> {
         titleTextField.getText(),
         Strings.emptyToNull(passwordTextField.getText()),
         featuredModListView.getSelectionModel().getSelectedItem(),
-        mapListView.getSelectionModel().getSelectedItem().getFolderName(),
+        map.getFolderName(),
         mods,
         onlyForFriendsCheckBox.isSelected() ? GameVisibility.PRIVATE : GameVisibility.PUBLIC,
         minRating,
@@ -426,8 +432,6 @@ public class CreateGameController implements Controller<Pane> {
       notificationService.addImmediateErrorNotification(throwable, "game.create.failed");
       return null;
     });
-
-    onCloseButtonClicked();
   }
 
   public Pane getRoot() {

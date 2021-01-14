@@ -66,6 +66,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static com.faforever.client.util.LuaUtil.loadFile;
@@ -75,6 +76,7 @@ import static java.lang.String.format;
 import static java.nio.file.Files.list;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.stream.Collectors.toCollection;
 
 
@@ -83,6 +85,7 @@ import static java.util.stream.Collectors.toCollection;
 public class MapService implements InitializingBean, DisposableBean {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final String MAP_VERSION_REGEX = ".*[.v](?<version>\\d{4})$"; // Matches to an string like 'adaptive_twin_rivers.v0031'
   public static final String DEBUG = "debug";
 
   private final PreferencesService preferencesService;
@@ -475,6 +478,51 @@ public class MapService implements InitializingBean, DisposableBean {
     return fafService.findMapByFolderName(folderName);
   }
 
+  public CompletableFuture<Optional<MapBean>> getLatestVersionMap(MapBean map) {
+    String folderName = map.getFolderName();
+    if (containVersionControl(folderName)) {
+      return fafService.getLatestVersionMap(folderName);
+    }
+    return CompletableFuture.completedFuture(Optional.of(map));
+  }
+
+  private boolean containVersionControl(String mapFolderName) {
+    return Pattern.matches(MAP_VERSION_REGEX, mapFolderName);
+  }
+
+  public CompletableFuture<Optional<MapBean>> getUpdatedMapIfExist(MapBean map) {
+    return getLatestVersionMap(map).thenApply(optional -> {
+      if (optional.isPresent()) {
+        MapBean latestMap = optional.get();
+        try {
+          if (latestMap.compareByVersion(map) > 0) {
+            return Optional.of(latestMap);
+          }
+        } catch (UnsupportedOperationException ignored) {  }
+      }
+      return Optional.empty();
+    });
+  }
+
+  public CompletableFuture<Optional<MapBean>> updateMapToLatestVersionIfExist(MapBean map) {
+    return CompletableFuture.supplyAsync(() -> {
+      Optional<MapBean> optional = taskService.submitTask(new CompletableTask<Optional<MapBean>>(Priority.LOW) {
+        @Override
+        protected Optional<MapBean> call() {
+          updateTitle(i18n.get("map.updater.search"));
+          return getUpdatedMapIfExist(map).join();
+        }
+      }).getFuture().join();
+      if (optional.isPresent()) {
+        MapBean updatedMap = optional.get();
+        download(updatedMap.getFolderName()).join();
+        uninstallMap(map).join();
+        return Optional.of(updatedMap);
+      }
+      return Optional.empty();
+    });
+  }
+
   public CompletableFuture<Boolean> hasPlayedMap(int playerId, String mapVersionId) {
     return fafService.getLastGameOnMap(playerId, mapVersionId)
         .thenApply(Optional::isPresent);
@@ -503,6 +551,11 @@ public class MapService implements InitializingBean, DisposableBean {
     if (mapGeneratorService.isGeneratedMap(folderName)) {
       return mapGeneratorService.generateMap(folderName).thenRun(() -> {
       });
+    }
+
+    if (isInstalled(folderName)) {
+      logger.debug("Map '{}' exists locally already. Download is not required", folderName);
+      return completedFuture(null);
     }
 
     DownloadMapTask task = applicationContext.getBean(DownloadMapTask.class);
