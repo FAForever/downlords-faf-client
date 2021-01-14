@@ -8,7 +8,6 @@ import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.events.PersistentNotificationEvent;
 import com.faforever.client.remote.domain.Avatar;
@@ -70,7 +69,6 @@ public class MockFafServerAccessor implements FafServerAccessor {
   private final HashMap<Class<? extends ServerMessage>, Collection<Consumer<ServerMessage>>> messageListeners = new HashMap<>();
 
   private final TaskService taskService;
-  private final NotificationService notificationService;
   private final I18n i18n;
   private final EventBus eventBus;
 

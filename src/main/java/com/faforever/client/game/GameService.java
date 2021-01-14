@@ -16,7 +16,6 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.events.ImmediateErrorNotificationEvent;
 import com.faforever.client.notification.events.ImmediateNotificationEvent;
@@ -132,7 +131,6 @@ public class GameService implements InitializingBean {
   private final MapService mapService;
   private final PreferencesService preferencesService;
   private final GameUpdater gameUpdater;
-  private final NotificationService notificationService;
   private final I18n i18n;
   private final ExecutorService executorService;
   private final PlayerService playerService;
@@ -163,7 +161,6 @@ public class GameService implements InitializingBean {
                      MapService mapService,
                      PreferencesService preferencesService,
                      GameUpdater gameUpdater,
-                     NotificationService notificationService,
                      I18n i18n,
                      ExecutorService executorService,
                      PlayerService playerService,
@@ -180,7 +177,6 @@ public class GameService implements InitializingBean {
     this.mapService = mapService;
     this.preferencesService = preferencesService;
     this.gameUpdater = gameUpdater;
-    this.notificationService = notificationService;
     this.i18n = i18n;
     this.executorService = executorService;
     this.playerService = playerService;
