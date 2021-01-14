@@ -233,6 +233,18 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void testIsOfficialMap() {
+    instance.officialMaps = ImmutableSet.of("SCMP_001");
+
+    MapBean officialMap = MapBeanBuilder.create().displayName("official map").folderName("SCMP_001").get();
+    MapBean customMap = MapBeanBuilder.create().displayName("custom map").folderName("customMap.v0001").get();
+    assertThat(instance.isOfficialMap(officialMap), is(true));
+    assertThat(instance.isOfficialMap(officialMap.getFolderName()), is(true));
+    assertThat(instance.isOfficialMap(customMap), is(false));
+    assertThat(instance.isOfficialMap(customMap.getFolderName()), is(false));
+  }
+
+  @Test
   public void testGetLatestVersionMap() {
     MapBean oldestMap = MapBeanBuilder.create().folderName("unitMap v1").version(null).get();
     assertThat(instance.getLatestVersionMap(oldestMap).join(), is(Optional.of(oldestMap)));
