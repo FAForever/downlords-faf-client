@@ -251,20 +251,20 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testGetUpdatedMapIfExist() {
-    MapBean map = MapBeanBuilder.create().folderName("junit_map1.v0003").version(3).get();
-    MapBean sameMap = MapBeanBuilder.create().folderName("junit_map1.v0003").version(3).get();
+    MapBean map = MapBeanBuilder.create().displayName("junit map").folderName("junit_map1.v0003").version(3).get();
+    MapBean sameMap = MapBeanBuilder.create().displayName("junit map").folderName("junit_map1.v0003").version(3).get();
     when(fafService.getLatestVersionMap(map.getFolderName()))
         .thenReturn(CompletableFuture.completedFuture(Optional.of(sameMap)));
     assertThat(instance.getUpdatedMapIfExist(map).join(), is(Optional.empty()));
 
-    MapBean outdatedMap = MapBeanBuilder.create().folderName("junit_map2.v0001").version(1).get();
-    MapBean newMap = MapBeanBuilder.create().folderName("junit_map2.v0002").version(2).get();
+    MapBean outdatedMap = MapBeanBuilder.create().displayName("junit map").folderName("junit_map2.v0001").version(1).get();
+    MapBean newMap = MapBeanBuilder.create().displayName("junit map").folderName("junit_map2.v0002").version(2).get();
     when(fafService.getLatestVersionMap(outdatedMap.getFolderName()))
         .thenReturn(CompletableFuture.completedFuture(Optional.of(newMap)));
     assertThat(instance.getUpdatedMapIfExist(outdatedMap).join(), is(Optional.of(newMap)));
 
-    MapBean oldestMap = MapBeanBuilder.create().folderName("unitMap v1").version(null).get();
-    MapBean sameOldestMap = MapBeanBuilder.create().folderName("unitMap v1").version(null).get();
+    MapBean oldestMap = MapBeanBuilder.create().displayName("unit map").folderName("unitMap v1").version(null).get();
+    MapBean sameOldestMap = MapBeanBuilder.create().displayName("unit map").folderName("unitMap v1").version(null).get();
     when(fafService.getLatestVersionMap(oldestMap.getFolderName()))
         .thenReturn(CompletableFuture.completedFuture(Optional.of(sameOldestMap)));
     assertThat(instance.getUpdatedMapIfExist(oldestMap).join(), is(Optional.empty()));
