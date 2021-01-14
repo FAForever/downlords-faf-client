@@ -22,6 +22,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -271,7 +272,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  @Ignore
   public void testUpdateMapToLatestVersionIfExist() {
-    // TODO: Add the test
   }
 }
