@@ -290,7 +290,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
     String mapFolderName = "junit-map-folder";
     MapBean map = MapBuilder.create().defaultValues().displayName("Test1").folderName(mapFolderName).get();
-    when(mapService.updateMapToLatestVersionIfExist(map)).thenReturn(CompletableFuture.completedFuture(Optional.of(map)));
+    when(mapService.updateMapToLatestVersionIfExist(map)).thenReturn(completedFuture(Optional.of(map)));
     when(gameService.hostGame(newGameInfoArgumentCaptor.capture())).thenReturn(CompletableFuture.completedFuture(null));
 
     mapList.add(map);

@@ -483,7 +483,7 @@ public class MapService implements InitializingBean, DisposableBean {
     if (containVersionControl(folderName)) {
       return fafService.getLatestVersionMap(folderName);
     }
-    return CompletableFuture.completedFuture(Optional.of(map));
+    return completedFuture(Optional.of(map));
   }
 
   private boolean containVersionControl(String mapFolderName) {
