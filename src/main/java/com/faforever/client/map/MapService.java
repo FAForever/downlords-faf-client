@@ -424,7 +424,7 @@ public class MapService implements InitializingBean, DisposableBean {
     if (isOfficialMap(map.getFolderName())) {
       throw new IllegalArgumentException("Attempt to uninstall an official map");
     }
-    UninstallMapTask task = applicationContext.getBean(com.faforever.client.map.UninstallMapTask.class);
+    UninstallMapTask task = applicationContext.getBean(UninstallMapTask.class);
     task.setMap(map);
     return taskService.submitTask(task).getFuture();
   }
@@ -523,13 +523,9 @@ public class MapService implements InitializingBean, DisposableBean {
 
   public CompletableFuture<Optional<MapBean>> updateMapToLatestVersionIfExist(MapBean map) {
     return CompletableFuture.supplyAsync(() -> {
-      Optional<MapBean> optional = taskService.submitTask(new CompletableTask<Optional<MapBean>>(Priority.LOW) {
-        @Override
-        protected Optional<MapBean> call() {
-          updateTitle(i18n.get("map.updater.search"));
-          return getUpdatedMapIfExist(map).join();
-        }
-      }).getFuture().join();
+      CheckForUpdateMapTask task = applicationContext.getBean(CheckForUpdateMapTask.class);
+      task.setMap(map);
+      Optional<MapBean> optional = taskService.submitTask(task).getFuture().join();
       if (optional.isPresent()) {
         MapBean updatedMap = optional.get();
         download(updatedMap.getFolderName()).join();

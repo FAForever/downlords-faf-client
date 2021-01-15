@@ -22,20 +22,22 @@ import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.luaj.vm2.LuaError;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.springframework.context.ApplicationContext;
+import org.springframework.util.FileSystemUtils;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -53,6 +55,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -95,6 +99,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     ClientProperties clientProperties = new ClientProperties();
     clientProperties.getVault().setMapPreviewUrlFormat("http://127.0.0.1:65534/preview/%s/%s");
+    clientProperties.getVault().setMapDownloadUrlFormat("http://127.0.0.1:65534/fakeDownload/%s");
 
     Preferences preferences = PreferencesBuilder.create().defaultValues()
         .forgedAlliancePrefs()
@@ -105,13 +110,12 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
 
     mapsDirectory = gameDirectory.newFolder("maps").toPath();
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    instance = new MapService(preferencesService, taskService, applicationContext,
-        fafService, assetService, i18n, uiService, mapGeneratorService, clientProperties, eventBus, playerService);
+    instance = spy(new MapService(preferencesService, taskService, applicationContext,
+        fafService, assetService, i18n, uiService, mapGeneratorService, clientProperties, eventBus, playerService));
     instance.afterPropertiesSet();
 
     doAnswer(invocation -> {
-      @SuppressWarnings("unchecked")
-      CompletableTask<Void> task = invocation.getArgument(0);
+      CompletableTask<?> task = invocation.getArgument(0);
       WaitForAsyncUtils.asyncFx(task);
       task.getFuture().get();
       return task;
@@ -281,8 +285,68 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  @Ignore
-  public void testUpdateMapToLatestVersionIfExist() {
+  public void testUpdateMapToLatestVersionIfNewVersionExist() throws Exception {
+    MapBean outdatedMap = MapBeanBuilder.create().displayName("test map").folderName("palaneum.v0001").version(1).get();
+    MapBean updatedMap = MapBeanBuilder.create().displayName("test map").folderName("palaneum.v0002").version(2).get();
 
+    copyMapsToCustomDirectory(outdatedMap);
+    assertThat(checkCustomMapFolderExist(outdatedMap), is(true));
+    assertThat(checkCustomMapFolderExist(updatedMap), is(false));
+    prepareCheckForUpdateMapTask(outdatedMap, updatedMap);
+    prepareDownloadMapTask(updatedMap);
+    prepareUninstallMapTask(outdatedMap);
+    assertThat(instance.updateMapToLatestVersionIfExist(outdatedMap).join(), is(Optional.of(updatedMap)));
+    verify(instance).download(any());
+    verify(instance).uninstallMap(any());
+    assertThat(checkCustomMapFolderExist(outdatedMap), is(false));
+    assertThat(checkCustomMapFolderExist(updatedMap), is(true));
+  }
+
+  @Test
+  public void testUpdateMapToLatestVersionIfNoNewVersionMap() throws Exception {
+    MapBean map = MapBeanBuilder.create().displayName("test map").folderName("palaneum.v0001").version(1).get();
+
+    copyMapsToCustomDirectory(map);
+    assertThat(checkCustomMapFolderExist(map), is(true));
+    prepareCheckForUpdateMapTask(map, null);
+    assertThat(instance.updateMapToLatestVersionIfExist(map).join(), is(Optional.empty()));
+    assertThat(checkCustomMapFolderExist(map), is(true));
+    verify(instance, never()).download(any());
+    verify(instance, never()).uninstallMap(any());
+  }
+
+  private void prepareCheckForUpdateMapTask(MapBean checkedMap, MapBean returnedMap) {
+    StubCheckForUpdateMapTask task = new StubCheckForUpdateMapTask(instance, i18n);
+    task.setMap(checkedMap);
+    task.setMapFromServer(returnedMap);
+    when(applicationContext.getBean(CheckForUpdateMapTask.class)).thenReturn(task);
+  }
+
+  private void prepareDownloadMapTask(MapBean mapToDownload) {
+    StubDownloadMapTask task = new StubDownloadMapTask(preferencesService, i18n, customMapsDirectory);
+    task.setMapToDownload(mapToDownload);
+    when(applicationContext.getBean(DownloadMapTask.class)).thenReturn(task);
+  }
+
+  private void prepareUninstallMapTask(MapBean mapToDelete) {
+    UninstallMapTask task = new UninstallMapTask(instance);
+    task.setMap(mapToDelete);
+    when(applicationContext.getBean(UninstallMapTask.class)).thenReturn(task);
+  }
+
+  private void copyMapsToCustomDirectory(MapBean... maps) throws Exception {
+    for (MapBean map :
+        maps) {
+      String folder = map.getFolderName();
+      FileSystemUtils.copyRecursively(
+          Paths.get(getClass().getResource("/maps/" + folder).toURI()),
+          customMapsDirectory.newFolder(folder).toPath()
+      );
+    }
+  }
+
+  private boolean checkCustomMapFolderExist(MapBean map) {
+    return Arrays.stream(customMapsDirectory.getRoot().listFiles())
+        .anyMatch(file -> file.getName().equals(map.getFolderName()) && file.isDirectory());
   }
 }
