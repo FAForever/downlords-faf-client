@@ -54,7 +54,6 @@ import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -371,8 +370,7 @@ public class PreferencesService implements InitializingBean {
     try (Stream<Path> listOfLogFiles = Files.list(getFafLogDirectory())) {
       listOfLogFiles
           .filter(p -> GAME_LOG_PATTERN.matcher(p.getFileName().toString()).matches())
-          .sorted(Comparator.comparingLong(p -> p.toFile().lastModified()))
-          .sorted(Collections.reverseOrder())
+          .sorted(Comparator.comparingLong(p -> ((Path) p).toFile().lastModified()).reversed())
           .skip(NUMBER_GAME_LOGS_STORED - 1)
           .forEach(p -> noCatch(() -> Files.delete(p)));
     } catch (IOException e) {
