@@ -28,7 +28,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.luaj.vm2.LuaError;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.FileSystemUtils;
 import org.testfx.util.WaitForAsyncUtils;
@@ -289,7 +288,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     MapBean outdatedMap = MapBeanBuilder.create().displayName("test map").folderName("palaneum.v0001").version(1).get();
     MapBean updatedMap = MapBeanBuilder.create().displayName("test map").folderName("palaneum.v0002").version(2).get();
 
-    copyMapsToCustomDirectory(outdatedMap);
+    copyMapsToCustomMapsDirectory(outdatedMap);
     assertThat(checkCustomMapFolderExist(outdatedMap), is(true));
     assertThat(checkCustomMapFolderExist(updatedMap), is(false));
     prepareCheckForUpdateMapTask(outdatedMap, updatedMap);
@@ -306,7 +305,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   public void testUpdateMapToLatestVersionIfNoNewVersionMap() throws Exception {
     MapBean map = MapBeanBuilder.create().displayName("test map").folderName("palaneum.v0001").version(1).get();
 
-    copyMapsToCustomDirectory(map);
+    copyMapsToCustomMapsDirectory(map);
     assertThat(checkCustomMapFolderExist(map), is(true));
     prepareCheckForUpdateMapTask(map, null);
     assertThat(instance.updateMapToLatestVersionIfExist(map).join(), is(Optional.empty()));
@@ -334,7 +333,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     when(applicationContext.getBean(UninstallMapTask.class)).thenReturn(task);
   }
 
-  private void copyMapsToCustomDirectory(MapBean... maps) throws Exception {
+  private void copyMapsToCustomMapsDirectory(MapBean... maps) throws Exception {
     for (MapBean map :
         maps) {
       String folder = map.getFolderName();
