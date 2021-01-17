@@ -97,6 +97,8 @@ public interface FafApiAccessor {
 
   Optional<MapVersion> findMapByFolderName(String folderName);
 
+  Optional<MapVersion> getLatestVersionMap(String mapFolderName);
+
   List<com.faforever.client.api.dto.Player> getPlayersByIds(Collection<Integer> playerIds);
 
   GameReview createGameReview(GameReview review);

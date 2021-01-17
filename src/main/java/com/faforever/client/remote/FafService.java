@@ -353,6 +353,12 @@ public class FafService {
         .map(MapBean::fromMapVersionDto));
   }
 
+  @Async
+  public CompletableFuture<Optional<MapBean>> getLatestVersionMap(String mapFolderName) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getLatestVersionMap(mapFolderName)
+        .map(MapBean::fromMapVersionDto));
+  }
+
   public CompletableFuture<List<Player>> getPlayersByIds(Collection<Integer> playerIds) {
     return CompletableFuture.completedFuture(fafApiAccessor.getPlayersByIds(playerIds).stream()
         .map(Player::fromDto)

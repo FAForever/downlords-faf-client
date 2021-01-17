@@ -36,6 +36,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import static java.util.Collections.emptyList;
@@ -290,5 +291,34 @@ public class FafApiAccessorImplTest {
     instance.getLastGamesOnMap(4, "42", 3);
 
     verify(restOperations).getForObject(contains("filter=mapVersion.id==\"42\";playerStats.player.id==\"4\""), eq(List.class));
+  }
+
+  @Test
+  public void testGetLatestVersionMap() {
+    MapVersion localMap = new MapVersion().setFolderName("palaneum.v0001");
+
+    com.faforever.client.api.dto.Map map = new com.faforever.client.api.dto.Map()
+        .setLatestVersion(new MapVersion().setFolderName("palaneum.v0002"));
+    MapVersion mapFromServer = new MapVersion().setFolderName("palaneum.v0001")
+        .setMap(map);
+
+    when(restOperations.getForObject(startsWith("/data/mapVersion"), eq(List.class)))
+        .thenReturn(Collections.singletonList(mapFromServer));
+
+    assertThat(instance.getLatestVersionMap(localMap.getFolderName()), is(Optional.of(mapFromServer)));
+    String parameters = String.format("filter=filename==\"maps/%s.zip\";map.latestVersion.hidden==\"false\"", localMap.getFolderName());
+    verify(restOperations).getForObject(contains(parameters), eq(List.class));
+  }
+
+  @Test
+  public void testGetLatestVersionMapIfNoMapFromServer() {
+    MapVersion localMap = new MapVersion().setFolderName("palaneum.v0001__1"); // the map does not exist on server
+
+    when(restOperations.getForObject(startsWith("/data/mapVersion"), eq(List.class)))
+        .thenReturn(emptyList());
+
+    assertThat(instance.getLatestVersionMap(localMap.getFolderName()), is(Optional.empty()));
+    String parameters = String.format("filter=filename==\"maps/%s.zip\";map.latestVersion.hidden==\"false\"", localMap.getFolderName());
+    verify(restOperations).getForObject(contains(parameters), eq(List.class));
   }
 }

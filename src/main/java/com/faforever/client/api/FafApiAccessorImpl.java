@@ -79,6 +79,8 @@ import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
+
 @Slf4j
 @Component
 @Profile("!offline")
@@ -112,7 +114,8 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   private static final String FILTER = "filter";
   private static final String SORT = "sort";
   private static final String INCLUDE = "include";
-  private static final String HIDDEN = "latestVersion.hidden==\"false\"";
+  private static final String NOT_HIDDEN = "latestVersion.hidden==\"false\"";
+  private static final String FILENAME_TEMPLATE = "maps/%s.zip";
 
 
   private final EventBus eventBus;
@@ -261,7 +264,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     JSONAPIDocument<List<Map>> jsonApiDoc = getPageWithMeta(MAP_ENDPOINT, count, page, java.util.Map.of(
         INCLUDE, MAP_INCLUDES,
         SORT, "-updateTime",
-        FILTER, HIDDEN
+        FILTER, NOT_HIDDEN
     ));
     return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
   }
@@ -325,7 +328,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   @Cacheable(value = CacheNames.FEATURED_MOD_FILES, sync = true)
   public List<FeaturedModFile> getFeaturedModFiles(FeaturedMod featuredMod, Integer version) {
-    String endpoint = String.format("/featuredMods/%s/files/%s", featuredMod.getId(),
+    String endpoint = format("/featuredMods/%s/files/%s", featuredMod.getId(),
         Optional.ofNullable(version).map(String::valueOf).orElse("latest"));
     return getMany(endpoint, 10_000, java.util.Map.of());
   }
@@ -368,12 +371,25 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   public Optional<MapVersion> findMapByFolderName(String folderName) {
     List<MapVersion> maps = getMany(MAP_VERSION_ENDPOINT, 1, java.util.Map.of(
-        FILTER, String.format("filename==\"*%s*\"", folderName),
+        FILTER, rsql(qBuilder().string("filename").eq(format(FILENAME_TEMPLATE, folderName))),
         INCLUDE, MAP_VERSION_INCLUDES));
     if (maps.isEmpty()) {
       return Optional.empty();
     }
     return Optional.ofNullable(maps.get(0));
+  }
+
+  @Override
+  public Optional<MapVersion> getLatestVersionMap(String mapFolderName) {
+    String queryFilter = rsql(qBuilder()
+        .string("filename").eq(format(FILENAME_TEMPLATE, mapFolderName))
+        .and()
+        .string("map.latestVersion.hidden").eq("false"));
+    List<MapVersion> currentVersionMap = getMany(MAP_VERSION_ENDPOINT, 1, java.util.Map.of(
+        FILTER, queryFilter,
+        INCLUDE, MAP_VERSION_INCLUDES
+    ));
+    return Optional.ofNullable(currentVersionMap.isEmpty() ? null : currentVersionMap.get(0).getMap().getLatestVersion());
   }
 
   @Override
@@ -435,7 +451,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   public Tuple<List<Mod>, java.util.Map<String, ?>> findModsByQueryWithMeta(SearchConfig searchConfig, int count, int page) {
     MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
     if (searchConfig.hasQuery()) {
-      parameterMap.add(FILTER, searchConfig.getSearchQuery() + ";" + HIDDEN);
+      parameterMap.add(FILTER, searchConfig.getSearchQuery() + ";" + NOT_HIDDEN);
     }
     parameterMap.add(INCLUDE, MOD_INCLUDES);
     parameterMap.add(SORT, searchConfig.getSortConfig().toQuery());
@@ -495,7 +511,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public void updateMapVersion(String id, MapVersion mapVersion) {
-    patch(String.format("/data/mapVersion/%s", id), mapVersion, Void.class);
+    patch(format("/data/mapVersion/%s", id), mapVersion, Void.class);
   }
 
   @Override
@@ -515,7 +531,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   public Tuple<List<Map>, java.util.Map<String, ?>> findMapsByQueryWithMeta(SearchConfig searchConfig, int count, int page) {
     MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
     if (searchConfig.hasQuery()) {
-      parameterMap.add(FILTER, searchConfig.getSearchQuery() + ";" + HIDDEN);
+      parameterMap.add(FILTER, searchConfig.getSearchQuery() + ";" + NOT_HIDDEN);
     }
     parameterMap.add(INCLUDE, MAP_INCLUDES);
     parameterMap.add(SORT, searchConfig.getSortConfig().toQuery());
