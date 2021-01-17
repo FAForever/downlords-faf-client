@@ -76,7 +76,6 @@ import static java.lang.String.format;
 import static java.nio.file.Files.list;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.stream.Collectors.toCollection;
 
 
@@ -486,7 +485,7 @@ public class MapService implements InitializingBean, DisposableBean {
     if (containVersionControl(folderName)) {
       return fafService.getLatestVersionMap(folderName);
     }
-    return completedFuture(Optional.of(map));
+    return CompletableFuture.completedFuture(Optional.of(map));
   }
 
   private boolean containVersionControl(String mapFolderName) {
@@ -568,7 +567,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
     if (isInstalled(folderName)) {
       logger.debug("Map '{}' exists locally already. Download is not required", folderName);
-      return completedFuture(null);
+      return CompletableFuture.completedFuture(null);
     }
 
     DownloadMapTask task = applicationContext.getBean(DownloadMapTask.class);

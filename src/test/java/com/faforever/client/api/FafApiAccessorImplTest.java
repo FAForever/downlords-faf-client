@@ -315,7 +315,7 @@ public class FafApiAccessorImplTest {
     MapVersion localMap = new MapVersion().setFolderName("palaneum.v0001__1"); // the map does not exist on server
 
     when(restOperations.getForObject(startsWith("/data/mapVersion"), eq(List.class)))
-        .thenReturn(Collections.emptyList());
+        .thenReturn(emptyList());
 
     assertThat(instance.getLatestVersionMap(localMap.getFolderName()), is(Optional.empty()));
     String parameters = String.format("filter=filename==\"maps/%s.zip\";map.latestVersion.hidden==\"false\"", localMap.getFolderName());
