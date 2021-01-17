@@ -350,7 +350,6 @@ public class MapService implements InitializingBean, DisposableBean {
     return isOfficialMap(map.getFolderName());
   }
 
-
   /**
    * Returns {@code true} if the given map is available locally, {@code false} otherwise.
    */
@@ -502,7 +501,9 @@ public class MapService implements InitializingBean, DisposableBean {
           if (isNewVersionMap(latestMap, map)) {
             return Optional.of(latestMap);
           }
-        } catch (CompareMapVersionException ignored) {  }
+        } catch (CompareMapVersionException ex) {
+          logger.error("could not compare map versions", ex);
+        }
       }
       return Optional.empty();
     });
@@ -521,18 +522,17 @@ public class MapService implements InitializingBean, DisposableBean {
     return v1.compareTo(v2) > 0;
   }
 
-  public CompletableFuture<Optional<MapBean>> updateMapToLatestVersionIfExist(MapBean map) {
+  public CompletableFuture<MapBean> updateMapToLatestVersionIfNecessary(MapBean map) {
     return CompletableFuture.supplyAsync(() -> {
-      CheckForUpdateMapTask task = applicationContext.getBean(CheckForUpdateMapTask.class);
-      task.setMap(map);
+      CheckForUpdateMapTask task = applicationContext.getBean(CheckForUpdateMapTask.class).setMap(map);
       Optional<MapBean> optional = taskService.submitTask(task).getFuture().join();
       if (optional.isPresent()) {
         MapBean updatedMap = optional.get();
         download(updatedMap.getFolderName()).join();
         uninstallMap(map).join();
-        return Optional.of(updatedMap);
+        return updatedMap;
       }
-      return Optional.empty();
+      return map;
     });
   }
 

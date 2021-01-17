@@ -281,6 +281,12 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
 
     MapBean oldestMap = MapBeanBuilder.create().displayName("unit map").folderName("unitMap v1").version(null).get();
     assertThat(instance.getUpdatedMapIfExist(oldestMap).join(), is(Optional.empty()));
+
+    MapBean mapWithName = MapBeanBuilder.create().displayName("test map").folderName("junit_map2.v0001").version(1).get();
+    MapBean mapWithAnotherName = MapBeanBuilder.create().displayName("test map v2").folderName("junit_map2.v0002").version(2).get();
+    when(fafService.getLatestVersionMap(mapWithName.getFolderName()))
+        .thenReturn(CompletableFuture.completedFuture(Optional.of(mapWithAnotherName)));
+    assertThat(instance.getUpdatedMapIfExist(mapWithName).join(), is(Optional.empty()));
   }
 
   @Test
@@ -294,7 +300,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     prepareCheckForUpdateMapTask(outdatedMap, updatedMap);
     prepareDownloadMapTask(updatedMap);
     prepareUninstallMapTask(outdatedMap);
-    assertThat(instance.updateMapToLatestVersionIfExist(outdatedMap).join(), is(Optional.of(updatedMap)));
+    assertThat(instance.updateMapToLatestVersionIfNecessary(outdatedMap).join(), is(updatedMap));
     verify(instance).download(any());
     verify(instance).uninstallMap(any());
     assertThat(checkCustomMapFolderExist(outdatedMap), is(false));
@@ -308,7 +314,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     copyMapsToCustomMapsDirectory(map);
     assertThat(checkCustomMapFolderExist(map), is(true));
     prepareCheckForUpdateMapTask(map, null);
-    assertThat(instance.updateMapToLatestVersionIfExist(map).join(), is(Optional.empty()));
+    assertThat(instance.updateMapToLatestVersionIfNecessary(map).join(), is(map));
     assertThat(checkCustomMapFolderExist(map), is(true));
     verify(instance, never()).download(any());
     verify(instance, never()).uninstallMap(any());

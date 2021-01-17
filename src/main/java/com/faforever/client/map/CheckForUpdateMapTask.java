@@ -23,8 +23,9 @@ public class CheckForUpdateMapTask extends CompletableTask<Optional<MapBean>> {
     this.i18n = i18n;
   }
 
-  public void setMap(MapBean map) {
+  public CheckForUpdateMapTask setMap(MapBean map) {
     this.map = map;
+    return this;
   }
 
   @Override
