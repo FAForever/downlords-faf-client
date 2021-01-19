@@ -68,9 +68,9 @@ import static javafx.scene.layout.BackgroundRepeat.NO_REPEAT;
 @Slf4j
 public class CreateGameController implements Controller<Pane> {
 
-  private static final int MAX_RATING_LENGTH = 4;
   public static final String STYLE_CLASS_DUAL_LIST_CELL = "create-game-dual-list-cell";
   public static final PseudoClass PSEUDO_CLASS_INVALID = PseudoClass.getPseudoClass("invalid");
+  private static final int MAX_RATING_LENGTH = 4;
   private final MapService mapService;
   private final ModService modService;
   private final GameService gameService;
@@ -309,7 +309,7 @@ public class CreateGameController implements Controller<Pane> {
 
     minRankingTextField.textProperty().addListener((observable, oldValue, newValue) -> {
       Integer minRating = null;
-      if(!newValue.isEmpty()) {
+      if (!newValue.isEmpty()) {
         minRating = Integer.parseInt(newValue);
       }
 
@@ -397,15 +397,13 @@ public class CreateGameController implements Controller<Pane> {
     if (mapService.isOfficialMap(selectedMap)) {
       hostGame(selectedMap);
     } else {
-      mapService.updateMapToLatestVersionIfNecessary(selectedMap)
-          .whenComplete((map, throwable) -> {
-            if (throwable != null) {
-              log.error("error when updating the map", throwable);
-              hostGame(selectedMap);
-            } else {
-              hostGame(map);
-            }
-          });
+      mapService.updateLatestVersionIfNecessary(selectedMap)
+          .exceptionally(throwable -> {
+            log.error("error when updating the map", throwable);
+            hostGame(selectedMap);
+            return null;
+          })
+          .thenAccept(this::hostGame);
     }
   }
 
@@ -422,7 +420,7 @@ public class CreateGameController implements Controller<Pane> {
       minRating = Integer.parseInt(minRankingTextField.getText());
     }
 
-    if(!maxRankingTextField.getText().isEmpty()) {
+    if (!maxRankingTextField.getText().isEmpty()) {
       maxRating = Integer.parseInt(maxRankingTextField.getText());
     }
 

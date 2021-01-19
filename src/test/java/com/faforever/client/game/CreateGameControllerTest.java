@@ -282,7 +282,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     instance.setOnCloseButtonClickedListener(closeAction);
 
     MapBean map = MapBuilder.create().defaultValues().get();
-    when(mapService.updateMapToLatestVersionIfNecessary(map)).thenReturn(completedFuture(map));
+    when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(completedFuture(map));
     when(gameService.hostGame(any())).thenReturn(completedFuture(null));
 
     mapList.add(map);
@@ -303,7 +303,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
     MapBean map = MapBuilder.create().defaultValues().get();
     when(mapService.isOfficialMap(map)).thenReturn(false);
-    when(mapService.updateMapToLatestVersionIfNecessary(map)).thenReturn(completedFuture(map));
+    when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(completedFuture(map));
     when(gameService.hostGame(newGameInfoArgumentCaptor.capture())).thenReturn(completedFuture(null));
 
     mapList.add(map);
@@ -321,7 +321,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
     MapBean map = MapBuilder.create().defaultValues().get();
 
-    when(mapService.updateMapToLatestVersionIfNecessary(map)).thenReturn(completedFuture(map));
+    when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(completedFuture(map));
     when(gameService.hostGame(captor.capture())).thenReturn(completedFuture(null));
 
     mapList.add(map);
@@ -338,7 +338,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
     MapBean outdatedMap = MapBuilder.create().defaultValues().folderName("test.v0001").get();
     MapBean updatedMap = MapBuilder.create().defaultValues().folderName("test.v0002").get();
-    when(mapService.updateMapToLatestVersionIfNecessary(outdatedMap)).thenReturn(completedFuture(updatedMap));
+    when(mapService.updateLatestVersionIfNecessary(outdatedMap)).thenReturn(completedFuture(updatedMap));
     when(gameService.hostGame(captor.capture())).thenReturn(completedFuture(null));
 
     mapList.add(outdatedMap);
@@ -370,7 +370,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
 
     MapBean map = MapBuilder.create().defaultValues().get();
-    when(mapService.updateMapToLatestVersionIfNecessary(map))
+    when(mapService.updateLatestVersionIfNecessary(map))
         .thenReturn(CompletableFuture.failedFuture(new RuntimeException("error when checking for update or updating map")));
     when(gameService.hostGame(captor.capture())).thenReturn(completedFuture(null));
 

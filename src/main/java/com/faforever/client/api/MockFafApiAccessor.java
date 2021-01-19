@@ -211,7 +211,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public Optional<MapVersion> getLatestVersionMap(String mapFolderName) {
+  public Optional<MapVersion> getMapLatestVersion(String mapFolderName) {
     return Optional.empty();
   }
 

@@ -305,7 +305,7 @@ public class FafApiAccessorImplTest {
     when(restOperations.getForObject(startsWith("/data/mapVersion"), eq(List.class)))
         .thenReturn(Collections.singletonList(mapFromServer));
 
-    assertThat(instance.getLatestVersionMap(localMap.getFolderName()), is(Optional.of(mapFromServer)));
+    assertThat(instance.getMapLatestVersion(localMap.getFolderName()), is(Optional.of(mapFromServer)));
     String parameters = String.format("filter=filename==\"maps/%s.zip\";map.latestVersion.hidden==\"false\"", localMap.getFolderName());
     verify(restOperations).getForObject(contains(parameters), eq(List.class));
   }
@@ -317,7 +317,7 @@ public class FafApiAccessorImplTest {
     when(restOperations.getForObject(startsWith("/data/mapVersion"), eq(List.class)))
         .thenReturn(emptyList());
 
-    assertThat(instance.getLatestVersionMap(localMap.getFolderName()), is(Optional.empty()));
+    assertThat(instance.getMapLatestVersion(localMap.getFolderName()), is(Optional.empty()));
     String parameters = String.format("filter=filename==\"maps/%s.zip\";map.latestVersion.hidden==\"false\"", localMap.getFolderName());
     verify(restOperations).getForObject(contains(parameters), eq(List.class));
   }

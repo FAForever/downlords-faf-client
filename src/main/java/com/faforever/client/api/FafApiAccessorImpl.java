@@ -380,7 +380,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  public Optional<MapVersion> getLatestVersionMap(String mapFolderName) {
+  public Optional<MapVersion> getMapLatestVersion(String mapFolderName) {
     String queryFilter = rsql(qBuilder()
         .string("filename").eq(format(FILENAME_TEMPLATE, mapFolderName))
         .and()

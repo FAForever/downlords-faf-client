@@ -54,8 +54,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -109,8 +107,8 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
 
     mapsDirectory = gameDirectory.newFolder("maps").toPath();
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    instance = spy(new MapService(preferencesService, taskService, applicationContext,
-        fafService, assetService, i18n, uiService, mapGeneratorService, clientProperties, eventBus, playerService));
+    instance = new MapService(preferencesService, taskService, applicationContext,
+        fafService, assetService, i18n, uiService, mapGeneratorService, clientProperties, eventBus, playerService);
     instance.afterPropertiesSet();
 
     doAnswer(invocation -> {
@@ -250,43 +248,19 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGetLatestVersionMap() {
     MapBean oldestMap = MapBeanBuilder.create().folderName("unitMap v1").version(null).get();
-    assertThat(instance.getLatestVersionMap(oldestMap).join(), is(Optional.of(oldestMap)));
+    assertThat(instance.getMapLatestVersion(oldestMap).join(), is(oldestMap));
 
     MapBean map = MapBeanBuilder.create().folderName("junit_map1.v0003").version(3).get();
     MapBean sameMap = MapBeanBuilder.create().folderName("junit_map1.v0003").version(3).get();
-    when(fafService.getLatestVersionMap(map.getFolderName()))
+    when(fafService.getMapLatestVersion(map.getFolderName()))
         .thenReturn(CompletableFuture.completedFuture(Optional.of(sameMap)));
-    assertThat(instance.getLatestVersionMap(map).join(), is(Optional.of(sameMap)));
+    assertThat(instance.getMapLatestVersion(map).join(), is(sameMap));
 
     MapBean outdatedMap = MapBeanBuilder.create().folderName("junit_map2.v0001").version(1).get();
     MapBean newMap = MapBeanBuilder.create().folderName("junit_map2.v0002").version(2).get();
-    when(fafService.getLatestVersionMap(outdatedMap.getFolderName()))
+    when(fafService.getMapLatestVersion(outdatedMap.getFolderName()))
         .thenReturn(CompletableFuture.completedFuture(Optional.of(newMap)));
-    assertThat(instance.getLatestVersionMap(outdatedMap).join(), is(Optional.of(newMap)));
-  }
-
-  @Test
-  public void testGetUpdatedMapIfExist() {
-    MapBean map = MapBeanBuilder.create().displayName("junit map").folderName("junit_map1.v0003").version(3).get();
-    MapBean sameMap = MapBeanBuilder.create().displayName("junit map").folderName("junit_map1.v0003").version(3).get();
-    when(fafService.getLatestVersionMap(map.getFolderName()))
-        .thenReturn(CompletableFuture.completedFuture(Optional.of(sameMap)));
-    assertThat(instance.getUpdatedMapIfExist(map).join(), is(Optional.empty()));
-
-    MapBean outdatedMap = MapBeanBuilder.create().displayName("junit map").folderName("junit_map2.v0001").version(1).get();
-    MapBean newMap = MapBeanBuilder.create().displayName("junit map").folderName("junit_map2.v0002").version(2).get();
-    when(fafService.getLatestVersionMap(outdatedMap.getFolderName()))
-        .thenReturn(CompletableFuture.completedFuture(Optional.of(newMap)));
-    assertThat(instance.getUpdatedMapIfExist(outdatedMap).join(), is(Optional.of(newMap)));
-
-    MapBean oldestMap = MapBeanBuilder.create().displayName("unit map").folderName("unitMap v1").version(null).get();
-    assertThat(instance.getUpdatedMapIfExist(oldestMap).join(), is(Optional.empty()));
-
-    MapBean mapWithName = MapBeanBuilder.create().displayName("test map").folderName("junit_map2.v0001").version(1).get();
-    MapBean mapWithAnotherName = MapBeanBuilder.create().displayName("test map v2").folderName("junit_map2.v0002").version(2).get();
-    when(fafService.getLatestVersionMap(mapWithName.getFolderName()))
-        .thenReturn(CompletableFuture.completedFuture(Optional.of(mapWithAnotherName)));
-    assertThat(instance.getUpdatedMapIfExist(mapWithName).join(), is(Optional.empty()));
+    assertThat(instance.getMapLatestVersion(outdatedMap).join(), is(newMap));
   }
 
   @Test
@@ -294,37 +268,28 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     MapBean outdatedMap = MapBeanBuilder.create().displayName("test map").folderName("palaneum.v0001").version(1).get();
     MapBean updatedMap = MapBeanBuilder.create().displayName("test map").folderName("palaneum.v0002").version(2).get();
 
+    when(fafService.getMapLatestVersion(outdatedMap.getFolderName())).thenReturn(CompletableFuture.completedFuture(Optional.of(updatedMap)));
+
     copyMapsToCustomMapsDirectory(outdatedMap);
     assertThat(checkCustomMapFolderExist(outdatedMap), is(true));
     assertThat(checkCustomMapFolderExist(updatedMap), is(false));
-    prepareCheckForUpdateMapTask(outdatedMap, updatedMap);
     prepareDownloadMapTask(updatedMap);
     prepareUninstallMapTask(outdatedMap);
-    assertThat(instance.updateMapToLatestVersionIfNecessary(outdatedMap).join(), is(updatedMap));
-    verify(instance).download(any());
-    verify(instance).uninstallMap(any());
+    assertThat(instance.updateLatestVersionIfNecessary(outdatedMap).join(), is(updatedMap));
     assertThat(checkCustomMapFolderExist(outdatedMap), is(false));
     assertThat(checkCustomMapFolderExist(updatedMap), is(true));
   }
 
   @Test
-  public void testUpdateMapToLatestVersionIfNoNewVersionMap() throws Exception {
+  public void testUpdateMapToLatestVersionIfNoNewVersion() throws Exception {
     MapBean map = MapBeanBuilder.create().displayName("test map").folderName("palaneum.v0001").version(1).get();
+
+    when(fafService.getMapLatestVersion(map.getFolderName())).thenReturn(CompletableFuture.completedFuture(Optional.empty()));
 
     copyMapsToCustomMapsDirectory(map);
     assertThat(checkCustomMapFolderExist(map), is(true));
-    prepareCheckForUpdateMapTask(map, null);
-    assertThat(instance.updateMapToLatestVersionIfNecessary(map).join(), is(map));
+    assertThat(instance.updateLatestVersionIfNecessary(map).join(), is(map));
     assertThat(checkCustomMapFolderExist(map), is(true));
-    verify(instance, never()).download(any());
-    verify(instance, never()).uninstallMap(any());
-  }
-
-  private void prepareCheckForUpdateMapTask(MapBean checkedMap, MapBean returnedMap) {
-    StubCheckForUpdateMapTask task = new StubCheckForUpdateMapTask(instance, i18n);
-    task.setMap(checkedMap);
-    task.setMapFromServer(returnedMap);
-    when(applicationContext.getBean(CheckForUpdateMapTask.class)).thenReturn(task);
   }
 
   private void prepareDownloadMapTask(MapBean mapToDownload) {
@@ -340,13 +305,14 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   }
 
   private void copyMapsToCustomMapsDirectory(MapBean... maps) throws Exception {
-    for (MapBean map :
-        maps) {
+    for (MapBean map : maps) {
       String folder = map.getFolderName();
+      Path mapPath = customMapsDirectory.newFolder(folder).toPath();
       FileSystemUtils.copyRecursively(
           Paths.get(getClass().getResource("/maps/" + folder).toURI()),
-          customMapsDirectory.newFolder(folder).toPath()
+          mapPath
       );
+      instance.addInstalledMap(mapPath);
     }
   }
 
