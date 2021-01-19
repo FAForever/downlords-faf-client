@@ -3,7 +3,6 @@ package com.faforever.client.replay;
 import com.faforever.client.game.Game;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.VictoryCondition;
-
 import lombok.Data;
 
 import java.util.List;
@@ -14,7 +13,7 @@ import java.util.Map;
  */
 @Data
 public class LocalReplayInfo {
-
+  private CompressionType compression;
   private String host;
   private Integer uid;
   private String title;

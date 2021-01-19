@@ -228,6 +228,7 @@ dependencies {
   compile("com.rometools:rome:1.11.1")
   compile("org.jsoup:jsoup:1.11.3")
   compile("com.nativelibs4java:bridj:0.7.0")
+  compile("com.github.luben:zstd-jni:1.4.8-1")
   compile("com.github.nocatch:nocatch:1.1")
   compile("org.luaj:luaj-jse:3.0.1")
   compile("commons-validator:commons-validator:1.6")
