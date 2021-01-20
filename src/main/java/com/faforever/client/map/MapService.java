@@ -83,10 +83,9 @@ import static java.util.stream.Collectors.toCollection;
 @Service
 public class MapService implements InitializingBean, DisposableBean {
 
+  public static final String DEBUG = "debug";
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String MAP_VERSION_REGEX = ".*[.v](?<version>\\d{4})$"; // Matches to an string like 'adaptive_twin_rivers.v0031'
-  public static final String DEBUG = "debug";
-
   private final PreferencesService preferencesService;
   private final TaskService taskService;
   private final ApplicationContext applicationContext;
@@ -105,6 +104,14 @@ public class MapService implements InitializingBean, DisposableBean {
   private final Map<Path, MapBean> pathToMap = new HashMap<>();
   private final ObservableList<MapBean> installedMaps = FXCollections.observableArrayList();
   private final Map<String, MapBean> mapsByFolderName = new HashMap<>();
+  @VisibleForTesting
+  Set<String> officialMaps = ImmutableSet.of(
+      "SCMP_001", "SCMP_002", "SCMP_003", "SCMP_004", "SCMP_005", "SCMP_006", "SCMP_007", "SCMP_008", "SCMP_009", "SCMP_010", "SCMP_011",
+      "SCMP_012", "SCMP_013", "SCMP_014", "SCMP_015", "SCMP_016", "SCMP_017", "SCMP_018", "SCMP_019", "SCMP_020", "SCMP_021", "SCMP_022",
+      "SCMP_023", "SCMP_024", "SCMP_025", "SCMP_026", "SCMP_027", "SCMP_028", "SCMP_029", "SCMP_030", "SCMP_031", "SCMP_032", "SCMP_033",
+      "SCMP_034", "SCMP_035", "SCMP_036", "SCMP_037", "SCMP_038", "SCMP_039", "SCMP_040", "X1MP_001", "X1MP_002", "X1MP_003", "X1MP_004",
+      "X1MP_005", "X1MP_006", "X1MP_007", "X1MP_008", "X1MP_009", "X1MP_010", "X1MP_011", "X1MP_012", "X1MP_014", "X1MP_017"
+  );
   private Thread directoryWatcherThread;
 
   @Inject
@@ -145,15 +152,6 @@ public class MapService implements InitializingBean, DisposableBean {
       }
     });
   }
-
-  @VisibleForTesting
-  Set<String> officialMaps = ImmutableSet.of(
-      "SCMP_001", "SCMP_002", "SCMP_003", "SCMP_004", "SCMP_005", "SCMP_006", "SCMP_007", "SCMP_008", "SCMP_009", "SCMP_010", "SCMP_011",
-      "SCMP_012", "SCMP_013", "SCMP_014", "SCMP_015", "SCMP_016", "SCMP_017", "SCMP_018", "SCMP_019", "SCMP_020", "SCMP_021", "SCMP_022",
-      "SCMP_023", "SCMP_024", "SCMP_025", "SCMP_026", "SCMP_027", "SCMP_028", "SCMP_029", "SCMP_030", "SCMP_031", "SCMP_032", "SCMP_033",
-      "SCMP_034", "SCMP_035", "SCMP_036", "SCMP_037", "SCMP_038", "SCMP_039", "SCMP_040", "X1MP_001", "X1MP_002", "X1MP_003", "X1MP_004",
-      "X1MP_005", "X1MP_006", "X1MP_007", "X1MP_008", "X1MP_009", "X1MP_010", "X1MP_011", "X1MP_012", "X1MP_014", "X1MP_017"
-  );
 
   private static URL getDownloadUrl(String mapName, String baseUrl) {
     return noCatch(() -> new URL(format(baseUrl, urlFragmentEscaper().escape(mapName).toLowerCase(Locale.US))));
@@ -262,7 +260,8 @@ public class MapService implements InitializingBean, DisposableBean {
     installedMaps.remove(pathToMap.remove(path));
   }
 
-  private void addInstalledMap(Path path) throws MapLoadException {
+  @VisibleForTesting
+  void addInstalledMap(Path path) throws MapLoadException {
     try {
       MapBean mapBean = readMap(path);
       pathToMap.put(path, mapBean);
@@ -480,58 +479,35 @@ public class MapService implements InitializingBean, DisposableBean {
     return fafService.findMapByFolderName(folderName);
   }
 
-  public CompletableFuture<Optional<MapBean>> getLatestVersionMap(MapBean map) {
+  public CompletableFuture<MapBean> getMapLatestVersion(MapBean map) {
     String folderName = map.getFolderName();
-    if (containVersionControl(folderName)) {
-      return fafService.getLatestVersionMap(folderName);
+    if (containsVersionControl(folderName)) {
+      return fafService.getMapLatestVersion(folderName).thenApply(latestMap -> latestMap.orElse(map));
     }
-    return CompletableFuture.completedFuture(Optional.of(map));
+    return CompletableFuture.completedFuture(map);
   }
 
-  private boolean containVersionControl(String mapFolderName) {
+  private boolean containsVersionControl(String mapFolderName) {
     return Pattern.matches(MAP_VERSION_REGEX, mapFolderName);
   }
 
-  public CompletableFuture<Optional<MapBean>> getUpdatedMapIfExist(MapBean map) {
-    return getLatestVersionMap(map).thenApply(optional -> {
-      if (optional.isPresent()) {
-        MapBean latestMap = optional.get();
-        try {
-          if (isNewVersionMap(latestMap, map)) {
-            return Optional.of(latestMap);
-          }
-        } catch (CompareMapVersionException ex) {
-          logger.error("could not compare map versions", ex);
-        }
+  public CompletableFuture<MapBean> updateLatestVersionIfNecessary(MapBean map) {
+    return getMapLatestVersion(map).thenCompose(latestMap -> {
+      CompletableFuture<Void> downloadFuture;
+      if (!isInstalled(latestMap.getFolderName())) {
+        downloadFuture = download(latestMap.getFolderName());
+      } else {
+        downloadFuture = CompletableFuture.completedFuture(null);
       }
-      return Optional.empty();
-    });
-  }
-
-  private boolean isNewVersionMap(MapBean checkedMap, MapBean comparedMap) throws CompareMapVersionException {
-    if (!checkedMap.getDisplayName().equalsIgnoreCase(comparedMap.getDisplayName())) {
-      throw new CompareMapVersionException("cannot compare versions with different maps");
-    }
-    ComparableVersion v1 = checkedMap.getVersion();
-    ComparableVersion v2 = comparedMap.getVersion();
-    if (v1 == null || v2 == null) {
-      throw new CompareMapVersionException(format("cannot compare map versions, map '%s' has null version",
-          v1 == null ? checkedMap.getFolderName() : comparedMap.getFolderName()));
-    }
-    return v1.compareTo(v2) > 0;
-  }
-
-  public CompletableFuture<MapBean> updateMapToLatestVersionIfNecessary(MapBean map) {
-    return CompletableFuture.supplyAsync(() -> {
-      CheckForUpdateMapTask task = applicationContext.getBean(CheckForUpdateMapTask.class).setMap(map);
-      Optional<MapBean> optional = taskService.submitTask(task).getFuture().join();
-      if (optional.isPresent()) {
-        MapBean updatedMap = optional.get();
-        download(updatedMap.getFolderName()).join();
-        uninstallMap(map).join();
-        return updatedMap;
+      return downloadFuture.thenApply(aVoid -> latestMap);
+    }).thenCompose(latestMap -> {
+      CompletableFuture<Void> uninstallFuture;
+      if (!latestMap.getFolderName().equals(map.getFolderName())) {
+        uninstallFuture = uninstallMap(map);
+      } else {
+        uninstallFuture = CompletableFuture.completedFuture(null);
       }
-      return map;
+      return uninstallFuture.thenApply(aVoid -> latestMap);
     });
   }
 

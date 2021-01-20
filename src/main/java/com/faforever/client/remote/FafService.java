@@ -354,8 +354,8 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<Optional<MapBean>> getLatestVersionMap(String mapFolderName) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getLatestVersionMap(mapFolderName)
+  public CompletableFuture<Optional<MapBean>> getMapLatestVersion(String mapFolderName) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getMapLatestVersion(mapFolderName)
         .map(MapBean::fromMapVersionDto));
   }
 
