@@ -24,7 +24,7 @@ public class ChatUserListCell implements Cell<CategoryOrChatUserListItem, Node> 
 
   @Override
   public void dispose() {
-    if (chatUserItemController != null) {
+    if (chatUserItemController != null && chatUserItemController.getChatUser() != null) {
       chatUserItemController.getChatUser().setDisplayed(false);
     }
     if (chatUserCategoryController != null) {
