@@ -1,47 +1,39 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.theme.UiService;
-import javafx.scene.control.ListCell;
+import javafx.scene.Node;
+import org.fxmisc.flowless.Cell;
 
-import java.util.Objects;
+public class ChatUserListCell implements Cell<CategoryOrChatUserListItem, Node> {
 
-public class ChatUserListCell extends ListCell<CategoryOrChatUserListItem> {
+  private final Node node;
+  private ChatUserItemController chatUserItemController;
+  private ChatCategoryItemController chatUserCategoryController;
 
-  private final ChatUserItemController chatUserItemController;
-  private final ChatCategoryItemController chatUserCategoryController;
-  private Object oldItem;
-
-  public ChatUserListCell(UiService uiService) {
-    chatUserItemController = uiService.loadFxml("theme/chat/chat_user_item.fxml");
-    chatUserCategoryController = uiService.loadFxml("theme/chat/chat_user_category.fxml");
-
-    setText(null);
+  public ChatUserListCell(CategoryOrChatUserListItem chatUserListItem, UiService uiService) {
+    if (chatUserListItem.getUser() != null) {
+      chatUserItemController = uiService.loadFxml("theme/chat/chat_user_item.fxml");
+      chatUserItemController.setChatUser(chatUserListItem.getUser());
+      node = chatUserItemController.getRoot();
+    } else {
+      chatUserCategoryController = uiService.loadFxml("theme/chat/chat_user_category.fxml");
+      chatUserCategoryController.setChatUserCategory(chatUserListItem.getCategory());
+      node = chatUserCategoryController.getRoot();
+    }
   }
 
   @Override
-  protected void updateItem(CategoryOrChatUserListItem item, boolean empty) {
-    if (Objects.equals(item, oldItem)) {
-      return;
+  public void dispose() {
+    if (chatUserItemController != null) {
+      chatUserItemController.getChatUser().setDisplayed(false);
     }
-    oldItem = item;
-
-    super.updateItem(item, empty);
-
-    if (item == null || empty) {
-      chatUserItemController.setChatUser(null);
+    if (chatUserCategoryController != null) {
       chatUserCategoryController.setChatUserCategory(null);
-      setGraphic(null);
-      return;
     }
+  }
 
-    if (item.getUser() != null) {
-      chatUserCategoryController.setChatUserCategory(null);
-      chatUserItemController.setChatUser(item.getUser());
-      setGraphic(chatUserItemController.getRoot());
-    } else {
-      chatUserItemController.setChatUser(null);
-      chatUserCategoryController.setChatUserCategory(item.getCategory());
-      setGraphic(chatUserCategoryController.getRoot());
-    }
+  @Override
+  public Node getNode() {
+    return node;
   }
 }

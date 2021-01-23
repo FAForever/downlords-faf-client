@@ -98,9 +98,4 @@ public final class ChatChannelUserBuilder {
     chatChannelUser.setDisplayed(displayed);
     return this;
   }
-
-  public ChatChannelUserBuilder populated(boolean populated) {
-    chatChannelUser.setPopulated(populated);
-    return this;
-  }
 }

@@ -20,7 +20,7 @@ import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
-import javafx.beans.InvalidationListener;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -117,12 +117,12 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     verify(avatarService, never()).loadAvatar(anyString());
     verify(mapService, never()).loadPreview(anyString(), any(PreviewSize.class));
     verify(uiService, never()).getThemeImage(anyString());
-    assertNull(chatUser.getAvatarInvalidationListener());
-    assertNull(chatUser.getSocialStatusInvalidationListener());
-    assertNull(chatUser.getClanTagInvalidationListener());
+    assertNull(chatUser.getAvatarChangeListener());
+    assertNull(chatUser.getSocialStatusChangeListener());
+    assertNull(chatUser.getClanTagChangeListener());
     assertNull(chatUser.getCountryInvalidationListener());
-    assertNull(chatUser.getGameStatusInvalidationListener());
-    assertNull(chatUser.getPopulatedInvalidationListener());
+    assertNull(chatUser.getGameStatusChangeListener());
+    assertNull(chatUser.getDisplayedChangeListener());
   }
 
   @Test
@@ -137,12 +137,12 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     verify(avatarService, never()).loadAvatar(anyString());
     verify(mapService, never()).loadPreview(anyString(), any(PreviewSize.class));
     verify(uiService, never()).getThemeImage(anyString());
-    assertNotNull(chatUser.getAvatarInvalidationListener());
+    assertNotNull(chatUser.getAvatarChangeListener());
     assertNotNull(chatUser.getSocialStatus());
-    assertNotNull(chatUser.getClanTagInvalidationListener());
+    assertNotNull(chatUser.getClanTagChangeListener());
     assertNotNull(chatUser.getCountryInvalidationListener());
-    assertNotNull(chatUser.getGameStatusInvalidationListener());
-    assertNotNull(chatUser.getPopulatedInvalidationListener());
+    assertNotNull(chatUser.getGameStatusChangeListener());
+    assertNotNull(chatUser.getDisplayedChangeListener());
   }
 
   @Test
@@ -151,23 +151,23 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     instance.associatePlayerToChatUser(chatUser, player1);
     WaitForAsyncUtils.waitForFxEvents();
 
-    InvalidationListener gameStatusListener = chatUser.getGameStatusInvalidationListener();
-    InvalidationListener socialStatusListener = chatUser.getSocialStatusInvalidationListener();
-    InvalidationListener clanTagListener = chatUser.getClanTagInvalidationListener();
-    InvalidationListener avatarListener = chatUser.getAvatarInvalidationListener();
-    InvalidationListener countryListener = chatUser.getCountryInvalidationListener();
-    InvalidationListener populatedListener = chatUser.getPopulatedInvalidationListener();
+    ChangeListener<PlayerStatus> gameStatusListener = chatUser.getGameStatusChangeListener();
+    ChangeListener<SocialStatus> socialStatusListener = chatUser.getSocialStatusChangeListener();
+    ChangeListener<String> clanTagListener = chatUser.getClanTagChangeListener();
+    ChangeListener<String> avatarListener = chatUser.getAvatarChangeListener();
+    ChangeListener<String> countryListener = chatUser.getCountryInvalidationListener();
+    ChangeListener<Boolean> displayedListener = chatUser.getDisplayedChangeListener();
 
     Player player2 = PlayerBuilder.create("junit2").defaultValues().clan(testClan.getTag()).get();
     instance.associatePlayerToChatUser(chatUser, player2);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertNotEquals(gameStatusListener, chatUser.getGameStatusInvalidationListener());
-    assertNotEquals(socialStatusListener, chatUser.getSocialStatusInvalidationListener());
-    assertNotEquals(clanTagListener, chatUser.getClanTagInvalidationListener());
-    assertNotEquals(avatarListener, chatUser.getAvatarInvalidationListener());
+    assertNotEquals(gameStatusListener, chatUser.getGameStatusChangeListener());
+    assertNotEquals(socialStatusListener, chatUser.getSocialStatusChangeListener());
+    assertNotEquals(clanTagListener, chatUser.getClanTagChangeListener());
+    assertNotEquals(avatarListener, chatUser.getAvatarChangeListener());
     assertNotEquals(countryListener, chatUser.getCountryInvalidationListener());
-    assertNotEquals(populatedListener, chatUser.getPopulatedInvalidationListener());
+    assertNotEquals(displayedListener, chatUser.getDisplayedChangeListener());
   }
 
   @Test
@@ -176,22 +176,22 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     instance.associatePlayerToChatUser(chatUser, player1);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertNotNull(chatUser.getGameStatusInvalidationListener());
-    assertNotNull(chatUser.getSocialStatusInvalidationListener());
-    assertNotNull(chatUser.getClanTagInvalidationListener());
-    assertNotNull(chatUser.getAvatarInvalidationListener());
+    assertNotNull(chatUser.getGameStatusChangeListener());
+    assertNotNull(chatUser.getSocialStatusChangeListener());
+    assertNotNull(chatUser.getClanTagChangeListener());
+    assertNotNull(chatUser.getAvatarChangeListener());
     assertNotNull(chatUser.getCountryInvalidationListener());
-    assertNotNull(chatUser.getPopulatedInvalidationListener());
+    assertNotNull(chatUser.getDisplayedChangeListener());
 
     instance.associatePlayerToChatUser(chatUser, null);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertNull(chatUser.getGameStatusInvalidationListener());
-    assertNull(chatUser.getSocialStatusInvalidationListener());
-    assertNull(chatUser.getClanTagInvalidationListener());
-    assertNull(chatUser.getAvatarInvalidationListener());
+    assertNull(chatUser.getGameStatusChangeListener());
+    assertNull(chatUser.getSocialStatusChangeListener());
+    assertNull(chatUser.getClanTagChangeListener());
+    assertNull(chatUser.getAvatarChangeListener());
     assertNull(chatUser.getCountryInvalidationListener());
-    assertNull(chatUser.getPopulatedInvalidationListener());
+    assertNull(chatUser.getDisplayedChangeListener());
   }
 
   @Test
