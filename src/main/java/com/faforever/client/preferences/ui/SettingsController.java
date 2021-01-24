@@ -48,7 +48,6 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.control.PasswordField;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
@@ -125,14 +124,9 @@ public class SettingsController implements Controller<Node> {
   public Toggle topRightToastButton;
   public Toggle topLeftToastButton;
   public ToggleButton bottomRightToastButton;
-  public PasswordField currentPasswordField;
-  public PasswordField newPasswordField;
-  public PasswordField confirmPasswordField;
   public ComboBox<TimeInfo> timeComboBox;
   public ComboBox<DateInfo> dateComboBox;
   public ComboBox<ChatFormat> chatComboBox;
-  public Label passwordChangeErrorLabel;
-  public Label passwordChangeSuccessLabel;
   public ComboBox<UnitDataBaseType> unitDatabaseComboBox;
   public CheckBox notifyOnAtMentionOnlyToggle;
   public Pane languagesContainer;
@@ -311,8 +305,6 @@ public class SettingsController implements Controller<Node> {
     executionDirectoryField.textProperty().bindBidirectional(preferences.getForgedAlliance().executionDirectoryProperty(), PATH_STRING_CONVERTER);
 
     backgroundImageLocation.textProperty().bindBidirectional(preferences.getMainWindow().backgroundImagePathProperty(), PATH_STRING_CONVERTER);
-
-    passwordChangeErrorLabel.setVisible(false);
 
     autoChannelListView.setSelectionModel(new NoSelectionModel<>());
     autoChannelListView.setFocusTraversable(false);
@@ -523,42 +515,6 @@ public class SettingsController implements Controller<Node> {
 
   public void onSelectExecutionDirectory() {
     // TODO implement
-  }
-
-  public void onChangePasswordClicked() {
-    passwordChangeSuccessLabel.setVisible(false);
-    passwordChangeErrorLabel.setVisible(false);
-
-    if (currentPasswordField.getText().isEmpty()) {
-      passwordChangeErrorLabel.setVisible(true);
-      passwordChangeErrorLabel.setText(i18n.get("settings.account.currentPassword.empty"));
-      return;
-    }
-
-    if (newPasswordField.getText().isEmpty()) {
-      passwordChangeErrorLabel.setVisible(true);
-      passwordChangeErrorLabel.setText(i18n.get("settings.account.newPassword.empty"));
-      return;
-    }
-
-    if (!newPasswordField.getText().equals(confirmPasswordField.getText())) {
-      passwordChangeErrorLabel.setVisible(true);
-      passwordChangeErrorLabel.setText(i18n.get("settings.account.confirmPassword.mismatch"));
-      return;
-    }
-
-    userService.changePassword(currentPasswordField.getText(), newPasswordField.getText()).getFuture()
-        .thenAccept(aVoid -> {
-          passwordChangeSuccessLabel.setVisible(true);
-          currentPasswordField.setText("");
-          newPasswordField.setText("");
-          confirmPasswordField.setText("");
-        }).exceptionally(throwable -> {
-          passwordChangeErrorLabel.setVisible(true);
-          passwordChangeErrorLabel.setText(i18n.get("settings.account.changePassword.error", throwable.getCause().getLocalizedMessage()));
-          return null;
-        }
-    );
   }
 
   public void onPreviewToastButtonClicked() {
