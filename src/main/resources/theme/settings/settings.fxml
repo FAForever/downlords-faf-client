@@ -4,7 +4,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.Group?>
 <?import javafx.scene.layout.*?>
-<?import java.lang.String?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="settingsRoot" maxHeight="1.7976931348623157E308" prefHeight="600.0"
       prefWidth="800.0" styleClass="decorated-window, settings"
       xmlns="http://javafx.com/javafx/11.0.1" fx:controller="com.faforever.client.preferences.ui.SettingsController">
@@ -838,70 +837,6 @@
                                                 <Button maxWidth="1.7976931348623157E308" minWidth="0.0"
                                                         onAction="#openWebsite" text="%settings.account.goWebsiteButton"
                                                         GridPane.rowIndex="1"/>
-                                            </children>
-                                        </GridPane>
-                                        <GridPane hgap="10.0" styleClass="setting-container" vgap="10.0">
-                                            <columnConstraints>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="160.0"/>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
-                                            </columnConstraints>
-                                            <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                            </rowConstraints>
-                                            <children>
-                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
-                                                       styleClass="setting-title"
-                                                       text="%settings.account.changePassword"
-                                                       GridPane.columnSpan="2147483647"/>
-                                                <Label text="%settings.account.currentPassword" GridPane.rowIndex="1"/>
-                                                <Label text="%settings.account.newPassword" GridPane.rowIndex="2"/>
-                                                <Label text="%settings.account.confirmPassword" GridPane.rowIndex="3"/>
-                                                <PasswordField fx:id="currentPasswordField" GridPane.columnIndex="1"
-                                                               GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
-                                                <PasswordField fx:id="newPasswordField" GridPane.columnIndex="1"
-                                                               GridPane.columnSpan="2147483647" GridPane.rowIndex="2"/>
-                                                <PasswordField fx:id="confirmPasswordField" GridPane.columnIndex="1"
-                                                               GridPane.columnSpan="2147483647" GridPane.rowIndex="3"/>
-                                                <Label fx:id="passwordChangeErrorLabel" graphicTextGap="10.0"
-                                                       maxHeight="1.7976931348623157E308"
-                                                       maxWidth="1.7976931348623157E308" text="runtime error message"
-                                                       visible="false" wrapText="true" GridPane.columnSpan="2"
-                                                       GridPane.rowIndex="4">
-                                                    <graphic>
-                                                        <Label text="">
-                                                            <styleClass>
-                                                                <String fx:value="icon"/>
-                                                                <String fx:value="notification-icon"/>
-                                                                <String fx:value="error"/>
-                                                            </styleClass>
-                                                        </Label>
-                                                    </graphic>
-                                                </Label>
-                                                <Label fx:id="passwordChangeSuccessLabel" graphicTextGap="10.0"
-                                                       maxHeight="1.7976931348623157E308"
-                                                       maxWidth="1.7976931348623157E308"
-                                                       text="%settings.account.changePassword.success" visible="false"
-                                                       wrapText="true" GridPane.columnSpan="2" GridPane.rowIndex="4">
-                                                    <graphic>
-                                                        <Label text="">
-                                                            <styleClass>
-                                                                <String fx:value="icon"/>
-                                                                <String fx:value="notification-icon"/>
-                                                                <String fx:value="success"/>
-                                                            </styleClass>
-                                                        </Label>
-                                                    </graphic>
-                                                </Label>
-                                                <Button defaultButton="true" minWidth="-Infinity"
-                                                        mnemonicParsing="false" onAction="#onChangePasswordClicked"
-                                                        text="%settings.account.changePassword" textAlignment="JUSTIFY"
-                                                        GridPane.columnIndex="2" GridPane.halignment="RIGHT"
-                                                        GridPane.rowIndex="4"/>
                                             </children>
                                         </GridPane>
                                     </children>
