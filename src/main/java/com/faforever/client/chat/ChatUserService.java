@@ -49,9 +49,6 @@ public class ChatUserService implements InitializingBean {
 
   public void populateClan(ChatChannelUser chatChannelUser) {
     if (chatChannelUser.isDisplayed()) {
-      if (chatChannelUser.getClan().isPresent()) {
-        return;
-      }
       chatChannelUser.getPlayer().ifPresent(player -> {
         if (player.getClan() != null) {
           clanService.getClanByTag(player.getClan())
@@ -71,9 +68,6 @@ public class ChatUserService implements InitializingBean {
 
   public void populateAvatar(ChatChannelUser chatChannelUser) {
     if (chatChannelUser.isDisplayed()) {
-      if (chatChannelUser.getAvatar().isPresent()) {
-        return;
-      }
       chatChannelUser.getPlayer()
           .ifPresent(player -> {
             Image avatar;
@@ -91,9 +85,6 @@ public class ChatUserService implements InitializingBean {
 
   public void populateCountry(ChatChannelUser chatChannelUser) {
     if (chatChannelUser.isDisplayed()) {
-      if (chatChannelUser.getCountryFlag().isPresent()) {
-        return;
-      }
       chatChannelUser.getPlayer()
           .ifPresent(player -> {
             Optional<Image> countryFlag = countryFlagService.loadCountryFlag(player.getCountry());
