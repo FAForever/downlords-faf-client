@@ -1,6 +1,7 @@
 package com.faforever.client.chat.avatar;
 
-import java.net.MalformedURLException;
+import lombok.SneakyThrows;
+
 import java.net.URL;
 
 public class AvatarBeanBuilder {
@@ -10,7 +11,8 @@ public class AvatarBeanBuilder {
     return new AvatarBeanBuilder();
   }
 
-  public AvatarBeanBuilder defaultValues() throws MalformedURLException {
+  @SneakyThrows
+  public AvatarBeanBuilder defaultValues() {
     avatarBean.setUrl(new URL("http://avatar.png"));
     avatarBean.setDescription("fancy");
     return this;

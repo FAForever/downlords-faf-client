@@ -72,7 +72,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private MapService mapService;
 
-
+  private Player player;
   private AvatarBean avatar;
   private Preferences preferences;
   private ChatChannelUser chatUser;
@@ -80,6 +80,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
+    player = PlayerBuilder.create("junit").defaultValues().get();
     avatar = AvatarBeanBuilder.create().defaultValues().get();
     chatUser = ChatChannelUserBuilder.create("junit").defaultValues().get();
     preferences = PreferencesBuilder.create().defaultValues()
@@ -129,7 +130,6 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testChatUserNotDisplayed() {
     chatUser.setDisplayed(false);
-    Player player = PlayerBuilder.create("test").defaultValues().get();
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -147,8 +147,46 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void testChatUserNotDisplayedToDisplayed() {
+    chatUser.setDisplayed(false);
+    instance.associatePlayerToChatUser(chatUser, player);
+    chatUser.setDisplayed(true);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(clanService).getClanByTag(anyString());
+    verify(countryFlagService).loadCountryFlag(anyString());
+    verify(avatarService).loadAvatar(anyString());
+    assertNotNull(chatUser.getAvatarChangeListener());
+    assertNotNull(chatUser.getSocialStatus());
+    assertNotNull(chatUser.getClanTagChangeListener());
+    assertNotNull(chatUser.getCountryInvalidationListener());
+    assertNotNull(chatUser.getGameStatusChangeListener());
+    assertNotNull(chatUser.getDisplayedChangeListener());
+  }
+
+  @Test
+  public void testChatUserDisplayedToNotDisplayed() {
+    chatUser.setDisplayed(true);
+    instance.associatePlayerToChatUser(chatUser, player);
+    WaitForAsyncUtils.waitForFxEvents();
+    chatUser.setDisplayed(false);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(clanService).getClanByTag(anyString());
+    verify(countryFlagService).loadCountryFlag(anyString());
+    verify(avatarService).loadAvatar(anyString());
+    assertTrue(chatUser.getStatusTooltipText().isEmpty());
+    assertTrue(chatUser.getGameStatusImage().isEmpty());
+    assertTrue(chatUser.getMapImage().isEmpty());
+    assertTrue(chatUser.getCountryFlag().isEmpty());
+    assertTrue(chatUser.getCountryName().isEmpty());
+    assertTrue(chatUser.getClan().isEmpty());
+    assertTrue(chatUser.getAvatar().isEmpty());
+  }
+
+  @Test
   public void testListenersRemovedOnSecondAssociation() {
-    Player player1 = PlayerBuilder.create("junit1").defaultValues().clan(testClan.getTag()).get();
+    Player player1 = PlayerBuilder.create("junit1").defaultValues().get();
     instance.associatePlayerToChatUser(chatUser, player1);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -159,7 +197,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     ChangeListener<String> countryListener = chatUser.getCountryInvalidationListener();
     ChangeListener<Boolean> displayedListener = chatUser.getDisplayedChangeListener();
 
-    Player player2 = PlayerBuilder.create("junit2").defaultValues().clan(testClan.getTag()).get();
+    Player player2 = PlayerBuilder.create("junit2").defaultValues().get();
     instance.associatePlayerToChatUser(chatUser, player2);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -173,8 +211,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testListenersRemovedOnNullAssociation() {
-    Player player1 = PlayerBuilder.create("junit1").defaultValues().clan(testClan.getTag()).get();
-    instance.associatePlayerToChatUser(chatUser, player1);
+    instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
 
     assertNotNull(chatUser.getGameStatusChangeListener());
@@ -197,7 +234,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testClanNotNull() {
-    Player player = PlayerBuilder.create("junit").defaultValues().clan(testClan.getTag()).get();
+    player.setClan(testClan.getTag());
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -211,7 +248,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     Clan newClan = new Clan();
     newClan.setTag("NC");
     when(clanService.getClanByTag(newClan.getTag())).thenReturn(CompletableFuture.completedFuture(Optional.of(newClan)));
-    Player player = PlayerBuilder.create("junit").defaultValues().clan(testClan.getTag()).get();
+    player.setClan(testClan.getTag());
     instance.associatePlayerToChatUser(chatUser, player);
     player.setClan(newClan.getTag());
     WaitForAsyncUtils.waitForFxEvents();
@@ -224,7 +261,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testClanSameChange() {
-    Player player = PlayerBuilder.create("junit").defaultValues().clan(testClan.getTag()).get();
+    player.setClan(testClan.getTag());
     instance.associatePlayerToChatUser(chatUser, player);
     player.setClan(testClan.getTag());
     WaitForAsyncUtils.waitForFxEvents();
@@ -236,7 +273,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testClanNull() {
-    Player player = PlayerBuilder.create("junit").defaultValues().clan(null).get();
+    player.setClan(null);
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -247,7 +284,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testAvatarNotNull() {
-    Player player = PlayerBuilder.create("junit").defaultValues().avatar(avatar).get();
+    player.setAvatar(avatar);
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -257,7 +294,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testAvatarChange() throws MalformedURLException {
-    Player player = PlayerBuilder.create("junit").defaultValues().avatar(avatar).get();
+    player.setAvatar(avatar);
     instance.associatePlayerToChatUser(chatUser, player);
     String newUrl = new URL("http://awesome.png").toExternalForm();
     player.setAvatarUrl(newUrl);
@@ -270,7 +307,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testAvatarSameChange() {
-    Player player = PlayerBuilder.create("junit").defaultValues().avatar(avatar).get();
+    player.setAvatar(avatar);
     instance.associatePlayerToChatUser(chatUser, player);
     player.setAvatarUrl(Objects.requireNonNull(avatar.getUrl()).toExternalForm());
     WaitForAsyncUtils.waitForFxEvents();
@@ -281,7 +318,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testAvatarNull() {
-    Player player = PlayerBuilder.create("junit").defaultValues().get();
+    player.setAvatar(null);
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -291,7 +328,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCountryNotNull() {
-    Player player = PlayerBuilder.create("junit").defaultValues().country("US").get();
+    player.setCountry("US");
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -304,7 +341,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   public void testCountryChange() {
     when(i18n.getCountryNameLocalized("DE")).thenReturn("Germany");
 
-    Player player = PlayerBuilder.create("junit").defaultValues().country("US").get();
+    player.setCountry("US");
     instance.associatePlayerToChatUser(chatUser, player);
     player.setCountry("DE");
     WaitForAsyncUtils.waitForFxEvents();
@@ -317,7 +354,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCountrySameChange() {
-    Player player = PlayerBuilder.create("junit").defaultValues().country("US").get();
+    player.setCountry("US");
     instance.associatePlayerToChatUser(chatUser, player);
     player.setCountry("US");
     WaitForAsyncUtils.waitForFxEvents();
@@ -329,7 +366,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCountryNull() {
-    Player player = PlayerBuilder.create("junit").defaultValues().country(null).get();
+    player.setCountry(null);
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -340,7 +377,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testStatusToIdle() {
-    Player player = PlayerBuilder.create("junit").defaultValues().game(null).get();
+    player.setGame(null);
     when(i18n.get("game.gameStatus.none")).thenReturn("None");
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
@@ -354,7 +391,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testStatusToPlaying() {
     Game game = GameBuilder.create().defaultValues().status(GameStatus.PLAYING).get();
-    Player player = PlayerBuilder.create("junit").defaultValues().game(game).get();
+    player.setGame(game);
     when(i18n.get("game.gameStatus.playing")).thenReturn("Playing");
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
@@ -368,7 +405,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testStatusToHosting() {
     Game game = GameBuilder.create().defaultValues().status(GameStatus.OPEN).host("junit").get();
-    Player player = PlayerBuilder.create("junit").defaultValues().game(game).get();
+    player.setGame(game);
     when(i18n.get("game.gameStatus.hosting")).thenReturn("Hosting");
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
@@ -382,7 +419,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testStatusToLobbying() {
     Game game = GameBuilder.create().defaultValues().status(GameStatus.OPEN).get();
-    Player player = PlayerBuilder.create("junit").defaultValues().game(game).get();
+    player.setGame(game);
     when(i18n.get("game.gameStatus.lobby")).thenReturn("Waiting for game to start");
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
@@ -396,7 +433,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testStatusChange() {
     Game game = GameBuilder.create().defaultValues().status(GameStatus.OPEN).get();
-    Player player = PlayerBuilder.create("junit").defaultValues().game(game).get();
+    player.setGame(game);
     when(i18n.get("game.gameStatus.lobby")).thenReturn("Waiting for game to start");
     when(i18n.get("game.gameStatus.playing")).thenReturn("Playing");
     instance.associatePlayerToChatUser(chatUser, player);
@@ -413,7 +450,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testStatusSameChange() {
     Game game = GameBuilder.create().defaultValues().status(GameStatus.OPEN).get();
-    Player player = PlayerBuilder.create("junit").defaultValues().game(game).get();
+    player.setGame(game);
     when(i18n.get("game.gameStatus.lobby")).thenReturn("Waiting for game to start");
     instance.associatePlayerToChatUser(chatUser, player);
     game.setStatus(GameStatus.OPEN);
@@ -446,10 +483,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGroupColorSet() {
     preferences.getChat().setGroupToColor(FXCollections.observableMap(Map.of(ChatUserCategory.FRIEND, Color.AQUA)));
-    Player player = PlayerBuilder.create("junit")
-        .defaultValues()
-        .socialStatus(SocialStatus.FRIEND)
-        .get();
+    player.setSocialStatus(SocialStatus.FRIEND);
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -460,10 +494,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGroupChange() {
     preferences.getChat().setGroupToColor(FXCollections.observableMap(Map.of(ChatUserCategory.FRIEND, Color.AQUA)));
-    Player player = PlayerBuilder.create("junit")
-        .defaultValues()
-        .socialStatus(SocialStatus.FRIEND)
-        .get();
+    player.setSocialStatus(SocialStatus.FRIEND);
     instance.associatePlayerToChatUser(chatUser, player);
     player.setSocialStatus(SocialStatus.OTHER);
     WaitForAsyncUtils.waitForFxEvents();
@@ -474,10 +505,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGroupSameChange() {
     preferences.getChat().setGroupToColor(FXCollections.observableMap(Map.of(ChatUserCategory.FRIEND, Color.AQUA)));
-    Player player = PlayerBuilder.create("junit")
-        .defaultValues()
-        .socialStatus(SocialStatus.FRIEND)
-        .get();
+    player.setSocialStatus(SocialStatus.FRIEND);
     instance.associatePlayerToChatUser(chatUser, player);
     player.setSocialStatus(SocialStatus.FRIEND);
     WaitForAsyncUtils.waitForFxEvents();
@@ -490,10 +518,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   public void testModeratorColorOverGroup() {
     preferences.getChat().setGroupToColor(FXCollections.observableMap(Map.of(ChatUserCategory.MODERATOR, Color.RED, ChatUserCategory.FRIEND, Color.AQUA)));
     chatUser.setModerator(true);
-    Player player = PlayerBuilder.create("junit")
-        .defaultValues()
-        .socialStatus(SocialStatus.FRIEND)
-        .get();
+    player.setSocialStatus(SocialStatus.FRIEND);
     instance.associatePlayerToChatUser(chatUser, player);
     WaitForAsyncUtils.waitForFxEvents();
 

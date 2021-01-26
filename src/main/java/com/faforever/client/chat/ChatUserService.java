@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.faforever.client.chat.ChatColorMode.DEFAULT;
@@ -168,27 +169,27 @@ public class ChatUserService implements InitializingBean {
       populateAvatar(chatChannelUser);
       populateColor(chatChannelUser);
       chatChannelUser.setAvatarChangeListener((observable, oldValue, newValue) -> {
-        if (!oldValue.equals(newValue)) {
+        if (!Objects.equals(oldValue, newValue)) {
           populateAvatar(chatChannelUser);
         }
       });
       chatChannelUser.setClanTagChangeListener((observable, oldValue, newValue) -> {
-        if (!oldValue.equals(newValue)) {
+        if (!Objects.equals(oldValue, newValue)) {
           populateClan(chatChannelUser);
         }
       });
       chatChannelUser.setCountryChangeListener((observable, oldValue, newValue) -> {
-        if (!oldValue.equals(newValue)) {
+        if (!Objects.equals(oldValue, newValue)) {
           populateCountry(chatChannelUser);
         }
       });
       chatChannelUser.setSocialStatusChangeListener((observable, oldValue, newValue) -> {
-        if (!oldValue.equals(newValue)) {
+        if (!Objects.equals(oldValue, newValue)) {
           populateColor(chatChannelUser);
         }
       });
       chatChannelUser.setGameStatusChangeListener((observable, oldValue, newValue) -> {
-        if (!oldValue.equals(newValue)) {
+        if (!Objects.equals(oldValue, newValue)) {
           populateGameImages(chatChannelUser);
         }
       });
