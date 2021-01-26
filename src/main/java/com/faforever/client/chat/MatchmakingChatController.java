@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.event.UnreadPartyMessageEvent;
+import com.faforever.client.discord.JoinDiscordEvent;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -16,22 +17,31 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.collections.MapChangeListener;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebView;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.Arrays;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class MatchmakingChatController extends AbstractChatTabController {
 
+  private final ApplicationEventPublisher applicationEventPublisher;
+
   public Tab matchmakingChatTabRoot;
   public WebView messagesWebView;
   public TextInputControl messageTextField;
+  public TextFlow topicText;
+  public Hyperlink discordLink;
 
   private Channel channel;
   private MapChangeListener<String, ChatChannelUser> usersChangeListener;
@@ -51,10 +61,11 @@ public class MatchmakingChatController extends AbstractChatTabController {
                                    ChatService chatService,
                                    WebViewConfigurer webViewConfigurer,
                                    CountryFlagService countryFlagService,
-                                   ChatUserService chatUserService) {
+                                   ChatUserService chatUserService, ApplicationEventPublisher applicationEventPublisher) {
     super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService,
         timeService, i18n, imageUploadService, notificationService, reportingService, uiService,
         eventBus, countryFlagService, chatUserService);
+    this.applicationEventPublisher = applicationEventPublisher;
   }
 
   @Override
@@ -68,6 +79,15 @@ public class MatchmakingChatController extends AbstractChatTabController {
     setReceiver(partyName);
     matchmakingChatTabRoot.setId(partyName);
     matchmakingChatTabRoot.setText(partyName);
+    String topic = i18n.get("teammatchmaking.chat.topic");
+    topicText.getChildren().clear();
+    Arrays.stream(topic.split("\\s"))
+        .forEach(word -> {
+          Label label = new Label(word + " ");
+          label.setStyle("-fx-font-weight: bold; -fx-font-size: 1.1em;");
+            topicText.getChildren().add(label);
+        });
+    topicText.getChildren().add(discordLink);
 
     usersChangeListener = change -> {
       if (change.wasAdded()) {
@@ -101,6 +121,10 @@ public class MatchmakingChatController extends AbstractChatTabController {
     if (!hasFocus()) {
       eventBus.post(new UnreadPartyMessageEvent(chatMessage));
     }
+  }
+
+  public void onDiscordButtonClicked() {
+    applicationEventPublisher.publishEvent(new JoinDiscordEvent());
   }
 
   @VisibleForTesting
