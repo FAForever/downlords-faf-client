@@ -13,6 +13,8 @@ import static org.junit.Assert.assertTrue;
 
 public class GeneratorCommandBuilderTest {
 
+  private static String javaPath = Paths.get(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString();
+
   private static GeneratorCommandBuilder defaultBuilder() {
     return GeneratorCommandBuilder.create()
         .generatorExecutableFilePath(Path.of("mapGenerator_1.0.0.jar"))
@@ -25,7 +27,7 @@ public class GeneratorCommandBuilderTest {
   @Test
   public void testDefaultSet() {
     assertNotNull(defaultBuilder().build());
-    assertEquals(defaultBuilder().build(), List.of("java", "-jar", Path.of("mapGenerator_1.0.0.jar").toAbsolutePath().toString(),
+    assertEquals(defaultBuilder().build(), List.of(javaPath, "-jar", Path.of("mapGenerator_1.0.0.jar").toAbsolutePath().toString(),
         "--map-size", "512", "--spawn-count", "6"));
   }
 
@@ -55,7 +57,7 @@ public class GeneratorCommandBuilderTest {
         .generatorExecutableFilePath(Paths.get("mapGenerator_1.0.0.jar"))
         .version(new ComparableVersion("1.0.0"))
         .build();
-    assertTrue(command.containsAll(List.of("java", "-jar", Path.of("mapGenerator_1.0.0.jar").toAbsolutePath().toString(),
+    assertTrue(command.containsAll(List.of(javaPath, "-jar", Path.of("mapGenerator_1.0.0.jar").toAbsolutePath().toString(),
         "--map-name", "neroxis_map_generator_1.0.0_0")));
   }
 

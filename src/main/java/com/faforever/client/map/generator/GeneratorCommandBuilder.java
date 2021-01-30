@@ -3,6 +3,7 @@ package com.faforever.client.map.generator;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -93,6 +94,7 @@ public class GeneratorCommandBuilder {
   }
 
   public List<String> build() {
+    String javaPath = Paths.get(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString();
     if (generatorExecutableFile == null) {
       throw new IllegalStateException("Map generator path not set");
     }
@@ -104,7 +106,7 @@ public class GeneratorCommandBuilder {
       List<String> command;
 
       if (mapFilename == null) {
-        command = new ArrayList<>(List.of("java", "-jar", generatorExecutableFile.toAbsolutePath().toString(),
+        command = new ArrayList<>(List.of(javaPath, "-jar", generatorExecutableFile.toAbsolutePath().toString(),
             "--map-size", mapSize.toString(), "--spawn-count", spawnCount.toString()));
 
         switch (generationType) {
@@ -134,13 +136,13 @@ public class GeneratorCommandBuilder {
           command.addAll(Arrays.asList("--reclaim-density", reclaimDensity.toString()));
         }
       } else {
-        command = new ArrayList<>(List.of("java", "-jar", generatorExecutableFile.toAbsolutePath().toString(),
+        command = new ArrayList<>(List.of(javaPath, "-jar", generatorExecutableFile.toAbsolutePath().toString(),
             "--map-name", mapFilename));
       }
 
       return command;
     } else {
-      return Arrays.asList("java", "-jar", generatorExecutableFile.toAbsolutePath().toString(), ".",
+      return Arrays.asList(javaPath, "-jar", generatorExecutableFile.toAbsolutePath().toString(), ".",
           String.valueOf(seed), version.toString(), mapFilename);
     }
   }
