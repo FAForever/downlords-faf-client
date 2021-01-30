@@ -5,7 +5,6 @@ import com.faforever.client.FafClientApplication;
 import com.faforever.client.chat.event.UnreadPartyMessageEvent;
 import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.discord.JoinDiscordEvent;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
@@ -596,10 +595,6 @@ public class MainController implements Controller<Node> {
 
   public void setFxStage(FxStage fxWindow) {
     this.fxStage = fxWindow;
-  }
-
-  public void onDiscordButtonClicked() {
-    applicationEventPublisher.publishEvent(new JoinDiscordEvent());
   }
 
   public class ToastDisplayer implements InvalidationListener {

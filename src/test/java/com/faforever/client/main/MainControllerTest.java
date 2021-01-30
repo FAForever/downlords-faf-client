@@ -3,7 +3,6 @@ package com.faforever.client.main;
 import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.discord.JoinDiscordEvent;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GamePathHandler;
 import com.faforever.client.game.GameService;
@@ -289,11 +288,5 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getFafLogDirectory()).thenReturn(expectedPath);
     instance.onRevealLogFolder();
     verify(platformService).reveal(expectedPath);
-  }
-
-  @Test
-  public void testOnJoinDiscordButtonClicked() {
-    instance.onDiscordButtonClicked();
-    verify(applicationEventPublisher).publishEvent(any(JoinDiscordEvent.class));
   }
 }

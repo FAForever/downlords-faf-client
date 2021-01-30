@@ -7,7 +7,6 @@
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToggleGroup?>
-<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
@@ -77,18 +76,6 @@
                     <Pane maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
                <HBox fx:id="rightMenuPane" alignment="TOP_RIGHT" maxHeight="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="right-menu">
                    <children>
-                       <Button fx:id="discordButton" maxHeight="-Infinity" mnemonicParsing="false"
-                               styleClass="discord-button" onAction="#onDiscordButtonClicked">
-                           <graphic>
-                               <Region styleClass="icon,discord-icon"/>
-                           </graphic>
-                           <tooltip>
-                               <Tooltip text="%discord.join"/>
-                           </tooltip>
-                           <HBox.margin>
-                               <Insets right="10.0"/>
-                           </HBox.margin>
-                       </Button>
                        <StackPane alignment="TOP_RIGHT" maxHeight="-Infinity">
                            <children>
                                <Button fx:id="notificationButton" contentDisplay="CENTER"
