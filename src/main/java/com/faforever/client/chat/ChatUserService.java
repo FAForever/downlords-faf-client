@@ -17,9 +17,11 @@ import com.google.common.eventbus.EventBus;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.faforever.client.chat.ChatColorMode.DEFAULT;
@@ -27,6 +29,7 @@ import static com.faforever.client.chat.ChatColorMode.RANDOM;
 import static com.faforever.client.chat.ChatUserCategory.MODERATOR;
 import static java.util.Locale.US;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatUserService implements InitializingBean {
@@ -47,9 +50,6 @@ public class ChatUserService implements InitializingBean {
 
   public void populateClan(ChatChannelUser chatChannelUser) {
     if (chatChannelUser.isDisplayed()) {
-      if (chatChannelUser.getClan().isPresent()) {
-        return;
-      }
       chatChannelUser.getPlayer().ifPresent(player -> {
         if (player.getClan() != null) {
           clanService.getClanByTag(player.getClan())
@@ -69,9 +69,6 @@ public class ChatUserService implements InitializingBean {
 
   public void populateAvatar(ChatChannelUser chatChannelUser) {
     if (chatChannelUser.isDisplayed()) {
-      if (chatChannelUser.getAvatar().isPresent()) {
-        return;
-      }
       chatChannelUser.getPlayer()
           .ifPresent(player -> {
             Image avatar;
@@ -89,9 +86,6 @@ public class ChatUserService implements InitializingBean {
 
   public void populateCountry(ChatChannelUser chatChannelUser) {
     if (chatChannelUser.isDisplayed()) {
-      if (chatChannelUser.getCountryFlag().isPresent()) {
-        return;
-      }
       chatChannelUser.getPlayer()
           .ifPresent(player -> {
             Optional<Image> countryFlag = countryFlagService.loadCountryFlag(player.getCountry());
@@ -174,30 +168,60 @@ public class ChatUserService implements InitializingBean {
       populateCountry(chatChannelUser);
       populateAvatar(chatChannelUser);
       populateColor(chatChannelUser);
-      chatChannelUser.setAvatarInvalidationListener((observable) -> populateAvatar(chatChannelUser));
-      chatChannelUser.setClanTagInvalidationListener((observable) -> populateClan(chatChannelUser));
-      chatChannelUser.setCountryInvalidationListener((observable) -> populateCountry(chatChannelUser));
-      chatChannelUser.setSocialStatusInvalidationListener((observable) -> populateColor(chatChannelUser));
-      chatChannelUser.setGameStatusInvalidationListener((observable) -> populateGameImages(chatChannelUser));
-      chatChannelUser.setPopulatedInvalidationListener((observable -> {
-        populateGameImages(chatChannelUser);
-        populateClan(chatChannelUser);
-        populateCountry(chatChannelUser);
-        populateAvatar(chatChannelUser);
-        populateColor(chatChannelUser);
-      }));
+      chatChannelUser.setAvatarChangeListener((observable, oldValue, newValue) -> {
+        if (!Objects.equals(oldValue, newValue)) {
+          populateAvatar(chatChannelUser);
+        }
+      });
+      chatChannelUser.setClanTagChangeListener((observable, oldValue, newValue) -> {
+        if (!Objects.equals(oldValue, newValue)) {
+          populateClan(chatChannelUser);
+        }
+      });
+      chatChannelUser.setCountryChangeListener((observable, oldValue, newValue) -> {
+        if (!Objects.equals(oldValue, newValue)) {
+          populateCountry(chatChannelUser);
+        }
+      });
+      chatChannelUser.setSocialStatusChangeListener((observable, oldValue, newValue) -> {
+        if (!Objects.equals(oldValue, newValue)) {
+          populateColor(chatChannelUser);
+        }
+      });
+      chatChannelUser.setGameStatusChangeListener((observable, oldValue, newValue) -> {
+        if (!Objects.equals(oldValue, newValue)) {
+          populateGameImages(chatChannelUser);
+        }
+      });
+      chatChannelUser.setDisplayedChangeListener((observable, oldValue, newValue) -> {
+        if (oldValue != newValue) {
+          if (newValue) {
+            populateGameImages(chatChannelUser);
+            populateClan(chatChannelUser);
+            populateCountry(chatChannelUser);
+            populateAvatar(chatChannelUser);
+            populateColor(chatChannelUser);
+          } else {
+            chatChannelUser.setStatusTooltipText(null);
+            chatChannelUser.setGameStatusImage(null);
+            chatChannelUser.setMapImage(null);
+            chatChannelUser.setCountryFlag(null);
+            chatChannelUser.setCountryName(null);
+            chatChannelUser.setClan(null);
+            chatChannelUser.setAvatar(null);
+          }
+        }
+      });
     } else {
       chatChannelUser.removeListeners();
       chatChannelUser.setPlayer(null);
-      JavaFxUtil.runLater(() -> {
-        chatChannelUser.setStatusTooltipText(null);
-        chatChannelUser.setGameStatusImage(null);
-        chatChannelUser.setMapImage(null);
-        chatChannelUser.setCountryFlag(null);
-        chatChannelUser.setCountryName(null);
-        chatChannelUser.setClan(null);
-        chatChannelUser.setAvatar(null);
-      });
+      chatChannelUser.setStatusTooltipText(null);
+      chatChannelUser.setGameStatusImage(null);
+      chatChannelUser.setMapImage(null);
+      chatChannelUser.setCountryFlag(null);
+      chatChannelUser.setCountryName(null);
+      chatChannelUser.setClan(null);
+      chatChannelUser.setAvatar(null);
     }
   }
 }

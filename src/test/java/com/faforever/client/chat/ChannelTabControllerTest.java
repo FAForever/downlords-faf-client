@@ -25,7 +25,6 @@ import javafx.collections.ObservableMap;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import org.junit.Before;
 import org.junit.Test;
@@ -86,8 +85,6 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private UiService uiService;
   @Mock
-  private ChatUserItemController chatUserItemController;
-  @Mock
   private ChatCategoryItemController chatCategoryItemController;
   @Mock
   private WebViewConfigurer webViewConfigurer;
@@ -122,9 +119,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(userService.getUsername()).thenReturn(USER_NAME);
     when(uiService.loadFxml("theme/chat/user_filter.fxml")).thenReturn(userFilterController);
-    when(uiService.loadFxml("theme/chat/chat_user_item.fxml")).thenReturn(chatUserItemController);
     when(uiService.loadFxml("theme/chat/chat_user_category.fxml")).thenReturn(chatCategoryItemController);
-    when(chatUserItemController.getRoot()).thenReturn(new Pane());
     when(uiService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
 
     loadFxml("theme/chat/user_filter.fxml", clazz -> userFilterController);

@@ -1,6 +1,8 @@
 package com.faforever.client.player;
 
 import com.faforever.client.chat.avatar.AvatarBean;
+import com.faforever.client.chat.avatar.AvatarBeanBuilder;
+import com.faforever.client.clan.ClanBuilder;
 import com.faforever.client.game.Game;
 import com.faforever.client.leaderboard.LeaderboardRating;
 import com.faforever.client.leaderboard.LeaderboardRatingMapBuilder;
@@ -23,8 +25,9 @@ public class PlayerBuilder {
     id(1);
     leaderboardRatings(LeaderboardRatingMapBuilder.create().defaultValues().get());
     socialStatus(SocialStatus.OTHER);
-    clan("e");
+    clan(ClanBuilder.TEST_CLAN_TAG);
     country("US");
+    avatar(AvatarBeanBuilder.create().defaultValues().get());
     return this;
   }
 

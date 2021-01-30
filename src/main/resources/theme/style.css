@@ -276,6 +276,10 @@
   -fx-padding: 0;
 }
 
+.chat-user-item-username {
+  -fx-text-fill: -fx-text-color;
+}
+
 .chat-user-list-view .list-cell {
   -fx-background-color: transparent;
   -fx-padding: 1px 8px 1px 8px;
@@ -284,6 +288,7 @@
 .chat-user-list-category {
   -fx-padding: 20px 0px 10px 0px;
   -fx-font-weight: bold;
+  -fx-text-fill: -fx-text-color;
 }
 
 /***************** Chat User Control *****************/

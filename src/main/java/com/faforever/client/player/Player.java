@@ -1,6 +1,7 @@
 package com.faforever.client.player;
 
 import com.faforever.client.chat.ChatChannelUser;
+import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.leaderboard.LeaderboardRating;
@@ -18,6 +19,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
+import lombok.SneakyThrows;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -179,6 +181,21 @@ public class Player {
 
   public StringProperty countryProperty() {
     return country;
+  }
+
+  @SneakyThrows
+  public void setAvatar(AvatarBean avatar) {
+    if (avatar != null) {
+      if (avatar.getUrl() != null) {
+        setAvatarUrl(avatar.getUrl().toExternalForm());
+      } else {
+        setAvatarUrl(null);
+      }
+      setAvatarTooltip(avatar.getDescription());
+    } else {
+      setAvatarUrl(null);
+      setAvatarTooltip(null);
+    }
   }
 
   public String getAvatarUrl() {

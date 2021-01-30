@@ -21,7 +21,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.google.gson.Gson;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -39,7 +38,6 @@ import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
@@ -48,6 +46,7 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextFlow;
@@ -55,6 +54,8 @@ import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import lombok.extern.slf4j.Slf4j;
+import org.fxmisc.flowless.VirtualFlow;
+import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -143,7 +144,7 @@ public class ChannelTabController extends AbstractChatTabController {
   public WebView messagesWebView;
   public TextField userSearchTextField;
   public TextField messageTextField;
-  public ListView<CategoryOrChatUserListItem> chatUserListView;
+  public VBox chatUserListViewBox;
   public VBox topicPane;
   public TextFlow topicText;
   public ToggleButton toggleSidePaneButton;
@@ -288,8 +289,11 @@ public class ChannelTabController extends AbstractChatTabController {
     channelTabScrollPaneVBox.setPrefWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
     addUserFilterPopup();
 
-    chatUserListView.setCellFactory(param -> new ChatUserListCell(uiService));
-    chatUserListView.setItems(filteredChatUserList);
+
+    VirtualFlow<CategoryOrChatUserListItem, ChatUserListCell> chatUserFlow = VirtualFlow.createVertical(filteredChatUserList, chatUserListItem -> new ChatUserListCell(chatUserListItem, uiService));
+    VirtualizedScrollPane<VirtualFlow<CategoryOrChatUserListItem, ChatUserListCell>> chatUserScrollPane = new VirtualizedScrollPane<>(chatUserFlow);
+    VBox.setVgrow(chatUserScrollPane, Priority.ALWAYS);
+    chatUserListViewBox.getChildren().add(chatUserScrollPane);
 
     autoCompletionHelper.bindTo(messageTextField());
 
@@ -317,17 +321,6 @@ public class ChannelTabController extends AbstractChatTabController {
     return Arrays.stream(ChatUserCategory.values())
         .map(CategoryOrChatUserListItem::new)
         .collect(Collectors.toList());
-  }
-
-  private void setAllMessageColors() {
-    Map<String, String> userToColor = new HashMap<>();
-    channel.getUsers().stream().filter(chatUser -> chatUser.getColor().isPresent()).forEach(chatUser
-        -> userToColor.put(chatUser.getUsername(), JavaFxUtil.toRgbCode(chatUser.getColor().get())));
-    getJsObject().call("setAllMessageColors", new Gson().toJson(userToColor));
-  }
-
-  private void removeAllMessageColors() {
-    getJsObject().call("removeAllMessageColors");
   }
 
   @VisibleForTesting
@@ -668,12 +661,12 @@ public class ChannelTabController extends AbstractChatTabController {
     if (categoryItem == null) {
       return Collections.emptyList();
     }
-    int categoryIndex = chatUserListView.getItems().indexOf(categoryItem);
+    int categoryIndex = filteredChatUserList.indexOf(categoryItem);
     if (categoryIndex == -1) {
       return Collections.emptyList();
     }
     List<CategoryOrChatUserListItem> users = new ArrayList<>();
-    Iterator<CategoryOrChatUserListItem> iterator = chatUserListView.getItems().listIterator(++categoryIndex); // to start with first user of this category
+    Iterator<CategoryOrChatUserListItem> iterator = filteredChatUserList.listIterator(++categoryIndex); // to start with first user of this category
     while (iterator.hasNext()) {
       CategoryOrChatUserListItem item = iterator.next();
       if (item.getCategory() != null) {

@@ -12,7 +12,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
@@ -54,7 +53,6 @@ public class ChatUserItemController implements Controller<Node> {
   private final EventBus eventBus;
   private final PlayerService playerService;
   private final PlatformService platformService;
-  private final TimeService timeService;
   private final ChatPrefs chatPrefs;
 
   private final InvalidationListener formatChangeListener;
@@ -75,20 +73,17 @@ public class ChatUserItemController implements Controller<Node> {
   protected Tooltip avatarTooltip;
   private GameTooltipController gameInfoController;
   private ChatChannelUser chatUser;
-  private ChatChannelUser oldChatUser;
   private WeakReference<ChatUserContextMenuController> contextMenuController = null;
 
-  // TODO reduce dependencies, rely on eventBus instead
   public ChatUserItemController(PreferencesService preferencesService,
                                 I18n i18n, UiService uiService, EventBus eventBus, PlayerService playerService,
-                                PlatformService platformService, TimeService timeService) {
+                                PlatformService platformService) {
     this.platformService = platformService;
     this.preferencesService = preferencesService;
     this.playerService = playerService;
     this.i18n = i18n;
     this.uiService = uiService;
     this.eventBus = eventBus;
-    this.timeService = timeService;
     this.chatPrefs = preferencesService.getPreferences().getChat();
 
     formatChangeListener = observable -> updateFormat();
@@ -229,26 +224,14 @@ public class ChatUserItemController implements Controller<Node> {
     JavaFxUtil.unbind(countryTooltip.textProperty());
     JavaFxUtil.unbind(statusGameTooltip.textProperty());
 
-    if (oldChatUser != null && !oldChatUser.equals(chatUser)
-        && !oldChatUser.isDisplayed() && chatUser != null) {
-      oldChatUser.setPopulated(false);
-    }
-
     if (this.chatUser != null) {
       this.chatUser.setDisplayed(false);
-      this.chatUser.setPopulated(false);
     }
 
     this.chatUser = chatUser;
 
     if (this.chatUser != null) {
       this.chatUser.setDisplayed(true);
-      this.chatUser.setPopulated(true);
-      InvalidationListener populatedListener = this.chatUser.getPopulatedInvalidationListener();
-      if (populatedListener != null) {
-        populatedListener.invalidated(null);
-      }
-      oldChatUser = this.chatUser;
       JavaFxUtil.bind(usernameLabel.textProperty(), this.chatUser.usernameProperty());
       JavaFxUtil.bind(usernameLabel.styleProperty(), Bindings.createStringBinding(() ->
               chatUser.getColor().map(color -> String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color))).orElse(""),

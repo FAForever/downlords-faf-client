@@ -85,8 +85,7 @@ public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
         uiService,
         eventBus,
         playerService,
-        platformService,
-        timeService
+        platformService
     );
     loadFxml("theme/chat/chat_user_item.fxml", param -> instance);
   }

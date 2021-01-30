@@ -5,7 +5,6 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.SocialStatus;
-import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -13,6 +12,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import lombok.ToString;
@@ -45,13 +45,12 @@ public class ChatChannelUser {
   private final ObjectProperty<Image> gameStatusImage;
   private final StringProperty statusTooltipText;
   private final BooleanProperty displayed;
-  private final BooleanProperty populated;
-  private InvalidationListener socialStatusInvalidationListener;
-  private InvalidationListener gameStatusInvalidationListener;
-  private InvalidationListener clanTagInvalidationListener;
-  private InvalidationListener avatarInvalidationListener;
-  private InvalidationListener countryInvalidationListener;
-  private InvalidationListener populatedInvalidationListener;
+  private ChangeListener<SocialStatus> socialStatusChangeListener;
+  private ChangeListener<PlayerStatus> gameStatusChangeListener;
+  private ChangeListener<String> clanTagChangeListener;
+  private ChangeListener<String> avatarChangeListener;
+  private ChangeListener<String> countryInvalidationListener;
+  private ChangeListener<Boolean> displayedChangeListener;
 
   ChatChannelUser(String username, boolean moderator) {
     this(username, moderator, null);
@@ -74,7 +73,6 @@ public class ChatChannelUser {
     this.gameStatusImage = new SimpleObjectProperty<>();
     this.statusTooltipText = new SimpleStringProperty();
     this.displayed = new SimpleBooleanProperty(false);
-    this.populated = new SimpleBooleanProperty(false);
     if (player != null) {
       player.getChatChannelUsers().add(this);
       socialStatus.setValue(player.getSocialStatus());
@@ -287,85 +285,69 @@ public class ChatChannelUser {
     this.displayed.set(displayed);
   }
 
-  public BooleanProperty displayedProperty() {
-    return displayed;
+  public ChangeListener<Boolean> getDisplayedChangeListener() {
+    return displayedChangeListener;
   }
 
-  public boolean isPopulated() {
-    return populated.get();
-  }
-
-  public void setPopulated(boolean populated) {
-    this.populated.set(populated);
-  }
-
-  public BooleanProperty populatedProperty() {
-    return populated;
-  }
-
-  public InvalidationListener getPopulatedInvalidationListener() {
-    return populatedInvalidationListener;
-  }
-
-  public void setPopulatedInvalidationListener(InvalidationListener listener) {
+  public void setDisplayedChangeListener(ChangeListener<Boolean> listener) {
     if (player.get() != null) {
-      if (populatedInvalidationListener != null) {
-        JavaFxUtil.removeListener(populatedProperty(), populatedInvalidationListener);
+      if (displayedChangeListener != null) {
+        JavaFxUtil.removeListener(displayed, displayedChangeListener);
       }
-      populatedInvalidationListener = listener;
-      if (populatedInvalidationListener != null) {
-        JavaFxUtil.addListener(populatedProperty(), populatedInvalidationListener);
+      displayedChangeListener = listener;
+      if (displayedChangeListener != null) {
+        JavaFxUtil.addListener(displayed, displayedChangeListener);
       }
     }
   }
 
-  public InvalidationListener getSocialStatusInvalidationListener() {
-    return socialStatusInvalidationListener;
+  public ChangeListener<SocialStatus> getSocialStatusChangeListener() {
+    return socialStatusChangeListener;
   }
 
-  public void setSocialStatusInvalidationListener(InvalidationListener listener) {
-    if (socialStatusInvalidationListener != null) {
-      JavaFxUtil.removeListener(socialStatus, socialStatusInvalidationListener);
+  public void setSocialStatusChangeListener(ChangeListener<SocialStatus> listener) {
+    if (socialStatusChangeListener != null) {
+      JavaFxUtil.removeListener(socialStatus, socialStatusChangeListener);
     }
-    socialStatusInvalidationListener = listener;
-    if (socialStatusInvalidationListener != null) {
-      JavaFxUtil.addListener(socialStatus, socialStatusInvalidationListener);
-    }
-  }
-
-  public InvalidationListener getGameStatusInvalidationListener() {
-    return gameStatusInvalidationListener;
-  }
-
-  public void setGameStatusInvalidationListener(InvalidationListener listener) {
-    if (gameStatusInvalidationListener != null) {
-      JavaFxUtil.removeListener(gameStatus, gameStatusInvalidationListener);
-    }
-    gameStatusInvalidationListener = listener;
-    if (gameStatusInvalidationListener != null) {
-      JavaFxUtil.addListener(gameStatus, gameStatusInvalidationListener);
+    socialStatusChangeListener = listener;
+    if (socialStatusChangeListener != null) {
+      JavaFxUtil.addListener(socialStatus, socialStatusChangeListener);
     }
   }
 
-  public InvalidationListener getClanTagInvalidationListener() {
-    return clanTagInvalidationListener;
+  public ChangeListener<PlayerStatus> getGameStatusChangeListener() {
+    return gameStatusChangeListener;
   }
 
-  public void setClanTagInvalidationListener(InvalidationListener listener) {
-    if (clanTagInvalidationListener != null) {
-      JavaFxUtil.removeListener(clanTag, clanTagInvalidationListener);
+  public void setGameStatusChangeListener(ChangeListener<PlayerStatus> listener) {
+    if (gameStatusChangeListener != null) {
+      JavaFxUtil.removeListener(gameStatus, gameStatusChangeListener);
     }
-    clanTagInvalidationListener = listener;
-    if (clanTagInvalidationListener != null) {
-      JavaFxUtil.addListener(clanTag, clanTagInvalidationListener);
+    gameStatusChangeListener = listener;
+    if (gameStatusChangeListener != null) {
+      JavaFxUtil.addListener(gameStatus, gameStatusChangeListener);
     }
   }
 
-  public InvalidationListener getCountryInvalidationListener() {
+  public ChangeListener<String> getClanTagChangeListener() {
+    return clanTagChangeListener;
+  }
+
+  public void setClanTagChangeListener(ChangeListener<String> listener) {
+    if (clanTagChangeListener != null) {
+      JavaFxUtil.removeListener(clanTag, clanTagChangeListener);
+    }
+    clanTagChangeListener = listener;
+    if (clanTagChangeListener != null) {
+      JavaFxUtil.addListener(clanTag, clanTagChangeListener);
+    }
+  }
+
+  public ChangeListener<String> getCountryInvalidationListener() {
     return countryInvalidationListener;
   }
 
-  public void setCountryInvalidationListener(InvalidationListener listener) {
+  public void setCountryChangeListener(ChangeListener<String> listener) {
     if (player.get() != null) {
       if (countryInvalidationListener != null) {
         JavaFxUtil.removeListener(player.get().countryProperty(), countryInvalidationListener);
@@ -377,46 +359,46 @@ public class ChatChannelUser {
     }
   }
 
-  public InvalidationListener getAvatarInvalidationListener() {
-    return avatarInvalidationListener;
+  public ChangeListener<String> getAvatarChangeListener() {
+    return avatarChangeListener;
   }
 
-  public void setAvatarInvalidationListener(InvalidationListener listener) {
+  public void setAvatarChangeListener(ChangeListener<String> listener) {
     if (player.get() != null) {
-      if (avatarInvalidationListener != null) {
-        JavaFxUtil.removeListener(player.get().avatarUrlProperty(), avatarInvalidationListener);
+      if (avatarChangeListener != null) {
+        JavaFxUtil.removeListener(player.get().avatarUrlProperty(), avatarChangeListener);
       }
-      avatarInvalidationListener = listener;
-      if (avatarInvalidationListener != null) {
-        JavaFxUtil.addListener(player.get().avatarUrlProperty(), avatarInvalidationListener);
+      avatarChangeListener = listener;
+      if (avatarChangeListener != null) {
+        JavaFxUtil.addListener(player.get().avatarUrlProperty(), avatarChangeListener);
       }
     }
   }
 
   public void removeListeners() {
-    if (avatarInvalidationListener != null) {
-      JavaFxUtil.removeListener(player.get().avatarUrlProperty(), avatarInvalidationListener);
-      avatarInvalidationListener = null;
+    if (avatarChangeListener != null) {
+      JavaFxUtil.removeListener(player.get().avatarUrlProperty(), avatarChangeListener);
+      avatarChangeListener = null;
     }
     if (countryInvalidationListener != null) {
       JavaFxUtil.removeListener(player.get().countryProperty(), countryInvalidationListener);
       countryInvalidationListener = null;
     }
-    if (clanTagInvalidationListener != null) {
-      JavaFxUtil.removeListener(clanTag, clanTagInvalidationListener);
-      clanTagInvalidationListener = null;
+    if (clanTagChangeListener != null) {
+      JavaFxUtil.removeListener(clanTag, clanTagChangeListener);
+      clanTagChangeListener = null;
     }
-    if (gameStatusInvalidationListener != null) {
-      JavaFxUtil.removeListener(gameStatus, gameStatusInvalidationListener);
-      gameStatusInvalidationListener = null;
+    if (gameStatusChangeListener != null) {
+      JavaFxUtil.removeListener(gameStatus, gameStatusChangeListener);
+      gameStatusChangeListener = null;
     }
-    if (socialStatusInvalidationListener != null) {
-      JavaFxUtil.removeListener(socialStatus, socialStatusInvalidationListener);
-      socialStatusInvalidationListener = null;
+    if (socialStatusChangeListener != null) {
+      JavaFxUtil.removeListener(socialStatus, socialStatusChangeListener);
+      socialStatusChangeListener = null;
     }
-    if (populatedInvalidationListener != null) {
-      JavaFxUtil.addListener(populatedProperty(), populatedInvalidationListener);
-      populatedInvalidationListener = null;
+    if (displayedChangeListener != null) {
+      JavaFxUtil.addListener(displayed, displayedChangeListener);
+      displayedChangeListener = null;
     }
   }
 
