@@ -13,7 +13,7 @@ import static org.junit.Assert.assertTrue;
 
 public class GeneratorCommandBuilderTest {
 
-  private static String javaPath = Paths.get(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString();
+  private static final String javaPath = Paths.get(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString();
 
   private static GeneratorCommandBuilder defaultBuilder() {
     return GeneratorCommandBuilder.create()
@@ -122,7 +122,7 @@ public class GeneratorCommandBuilderTest {
         .seed("0")
         .mapFilename("neroxis_map_generator_0.1.5_0")
         .build();
-    assertEquals(command, List.of("java", "-jar", Path.of("mapGenerator_0.1.5.jar").toAbsolutePath().toString(),
+    assertEquals(command, List.of(javaPath, "-jar", Path.of("mapGenerator_0.1.5.jar").toAbsolutePath().toString(),
         ".", "0", "0.1.5", "neroxis_map_generator_0.1.5_0"));
   }
 
