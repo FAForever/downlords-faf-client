@@ -43,7 +43,7 @@ public class MatchmakingChatController extends AbstractChatTabController {
   public TextFlow topicText;
   public Hyperlink discordLink;
 
-  private Channel channel;
+  private ChatChannel channel;
   private MapChangeListener<String, ChatChannelUser> usersChangeListener;
 
   // TODO cut dependencies

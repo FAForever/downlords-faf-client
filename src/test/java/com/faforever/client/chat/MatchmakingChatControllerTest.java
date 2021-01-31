@@ -77,7 +77,7 @@ public class MatchmakingChatControllerTest extends AbstractPlainJavaFxTest {
     Preferences preferences = PreferencesBuilder.create().defaultValues().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(i18n.get(anyString())).thenReturn("");
-    when(chatService.getOrCreateChannel("partyName")).thenReturn(new Channel("partyName"));
+    when(chatService.getOrCreateChannel("partyName")).thenReturn(new ChatChannel("partyName"));
     when(userService.getUsername()).thenReturn("junit");
     when(uiService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
     when(uiService.getThemeFileUrl(CHAT_SECTION_COMPACT)).thenReturn(getClass().getResource("/theme/chat/compact/chat_section.html"));

@@ -242,14 +242,12 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnChatUserList() throws Exception {
-    Channel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
-    assertThat(channel.getUsers(), empty());
-
-    when(user2.compareTo(user1)).thenReturn(1);
+    ChatChannel chatChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
+    assertThat(chatChannel.getUsers(), empty());
 
     connect();
     CountDownLatch usersJoinedLatch = new CountDownLatch(2);
-    instance.addUsersListener(channel.getName(), change -> {
+    instance.addUsersListener(chatChannel.getName(), change -> {
       if (change.wasAdded()) {
         usersJoinedLatch.countDown();
       }
@@ -258,9 +256,9 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     firePircBotXEvent(new UserListEvent(pircBotX, defaultChannel, ImmutableSortedSet.of(user1, user2), true));
 
     assertTrue(usersJoinedLatch.await(TIMEOUT, TIMEOUT_UNIT));
-    assertThat(channel.getUsers(), hasSize(2));
-    assertThat(channel.getUser(chatUser1.getUsername()), sameInstance(chatUser1));
-    assertThat(channel.getUser(chatUser2.getUsername()), sameInstance(chatUser2));
+    assertThat(chatChannel.getUsers(), hasSize(2));
+    assertThat(chatChannel.getUser(chatUser1.getUsername()), sameInstance(chatUser1));
+    assertThat(chatChannel.getUser(chatUser2.getUsername()), sameInstance(chatUser2));
   }
 
   private void connect() throws Exception {
@@ -301,17 +299,17 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnUserJoinedChannel() throws Exception {
-    Channel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
-    assertThat(channel.getUsers(), empty());
+    ChatChannel chatChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
+    assertThat(chatChannel.getUsers(), empty());
 
     connect();
 
     joinChannel(defaultChannel, user1);
     joinChannel(defaultChannel, user2);
 
-    assertThat(channel.getUsers(), hasSize(2));
-    assertThat(channel.getUser(chatUser1.getUsername()), sameInstance(chatUser1));
-    assertThat(channel.getUser(chatUser2.getUsername()), sameInstance(chatUser2));
+    assertThat(chatChannel.getUsers(), hasSize(2));
+    assertThat(chatChannel.getUser(chatUser1.getUsername()), sameInstance(chatUser1));
+    assertThat(chatChannel.getUser(chatUser2.getUsername()), sameInstance(chatUser2));
   }
 
   private void joinChannel(org.pircbotx.Channel channel, User user) throws Exception {
@@ -337,8 +335,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnChatUserLeftChannel() throws Exception {
-    Channel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
-    assertThat(channel.getUsers(), empty());
+    ChatChannel chatChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
+    assertThat(chatChannel.getUsers(), empty());
 
     connect();
 
@@ -348,12 +346,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     firePircBotXEvent(createJoinEvent(defaultChannel, user2));
     user2JoinedFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
-    CompletableFuture<ChatChannelUser> user1PartFuture = listenForUserParted(defaultChannel);
-    firePircBotXEvent(createPartEvent(defaultChannel, user1));
-    user1PartFuture.get(TIMEOUT, TIMEOUT_UNIT);
-
-    assertThat(channel.getUsers(), hasSize(1));
-    assertThat(channel.getUser(chatUser2.getUsername()), sameInstance(chatUser2));
+    assertThat(chatChannel.getUsers(), hasSize(1));
+    assertThat(chatChannel.getUser(chatUser2.getUsername()), sameInstance(chatUser2));
   }
 
   private CompletableFuture<ChatChannelUser> listenForUserParted(org.pircbotx.Channel channel) {
@@ -373,8 +367,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnChatUserQuit() throws Exception {
-    Channel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
-    assertThat(channel.getUsers(), empty());
+    ChatChannel chatChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
+    assertThat(chatChannel.getUsers(), empty());
 
     connect();
 
@@ -382,8 +376,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     joinChannel(defaultChannel, user2);
     quit(user1);
 
-    assertThat(channel.getUsers(), hasSize(1));
-    assertThat(channel.getUser(chatUser2.getUsername()), sameInstance(chatUser2));
+    assertThat(chatChannel.getUsers(), hasSize(1));
+    assertThat(chatChannel.getUser(chatUser2.getUsername()), sameInstance(chatUser2));
   }
 
   private void quit(User user) throws Exception {
@@ -533,8 +527,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testAddOnModeratorSetListener() throws Exception {
-    Channel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
-    assertThat(channel.getUsers(), empty());
+    ChatChannel chatChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
+    assertThat(chatChannel.getUsers(), empty());
 
     connect();
 
@@ -622,8 +616,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testGetChatUsersForChannelEmpty() {
-    Channel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
-    assertThat(channel.getUsers(), empty());
+    ChatChannel chatChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
+    assertThat(chatChannel.getUsers(), empty());
   }
 
   @Test
@@ -649,9 +643,9 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     joinChannel(defaultChannel, user1);
     joinChannel(defaultChannel, user2);
 
-    Channel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
+    ChatChannel chatChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
 
-    List<ChatChannelUser> users = channel.getUsers();
+    List<ChatChannelUser> users = chatChannel.getUsers();
     assertThat(users, hasSize(2));
     assertThat(users, containsInAnyOrder(chatUser1, chatUser2));
   }

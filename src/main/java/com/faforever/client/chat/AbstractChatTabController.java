@@ -265,6 +265,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     JavaFxUtil.addListener(getRoot().selectedProperty(), new WeakChangeListener<>(resetUnreadMessagesListener));
 
     getRoot().setOnClosed(this::onClosed);
+    eventBus.register(this);
   }
 
   protected void onClosed(Event event) {

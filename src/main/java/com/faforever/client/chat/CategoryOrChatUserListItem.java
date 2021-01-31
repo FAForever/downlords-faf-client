@@ -22,8 +22,8 @@ class CategoryOrChatUserListItem {
     this.user = null;
   }
 
-  CategoryOrChatUserListItem(ChatChannelUser user) {
+  CategoryOrChatUserListItem(ChatChannelUser user, ChatUserCategory category) {
     this.user = user;
-    this.category = null;
+    this.category = category;
   }
 }

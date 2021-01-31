@@ -464,7 +464,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testUserColorNotSet() {
-    instance.populateColor(chatUser);
+    instance.associatePlayerToChatUser(chatUser, null);
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(chatUser.getColor().isEmpty());
@@ -473,7 +473,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testUserColorSetNoPlayer() {
     preferences.getChat().setUserToColor(FXCollections.observableMap(Map.of("junit", Color.AQUA)));
-    instance.populateColor(chatUser);
+    instance.associatePlayerToChatUser(chatUser, null);
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(chatUser.getColor().isPresent());

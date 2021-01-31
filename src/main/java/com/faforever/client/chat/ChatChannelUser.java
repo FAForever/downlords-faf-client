@@ -19,6 +19,7 @@ import lombok.ToString;
 
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -53,14 +54,10 @@ public class ChatChannelUser {
   private ChangeListener<Boolean> displayedChangeListener;
 
   ChatChannelUser(String username, boolean moderator) {
-    this(username, moderator, null);
-  }
-
-  ChatChannelUser(String username, boolean moderator, Player player) {
     this.username = new SimpleStringProperty(username);
     this.moderator = new SimpleBooleanProperty(moderator);
     this.color = new SimpleObjectProperty<>();
-    this.player = new SimpleObjectProperty<>(player);
+    this.player = new SimpleObjectProperty<>();
     this.lastActive = new SimpleObjectProperty<>();
     this.gameStatus = new SimpleObjectProperty<>();
     this.socialStatus = new SimpleObjectProperty<>();
@@ -73,10 +70,6 @@ public class ChatChannelUser {
     this.gameStatusImage = new SimpleObjectProperty<>();
     this.statusTooltipText = new SimpleStringProperty();
     this.displayed = new SimpleBooleanProperty(false);
-    if (player != null) {
-      player.getChatChannelUsers().add(this);
-      socialStatus.setValue(player.getSocialStatus());
-    }
   }
 
   public Optional<Player> getPlayer() {
@@ -84,24 +77,26 @@ public class ChatChannelUser {
   }
 
   public void setPlayer(Player player) {
-    if (this.player.get() != null) {
-      this.player.get().getChatChannelUsers().remove(this);
-      socialStatus.unbind();
-      gameStatus.unbind();
-      clanTag.unbind();
+    if (!Objects.equals(player, this.player.get())) {
+      if (this.player.get() != null) {
+        this.player.get().getChatChannelUsers().remove(this);
+        socialStatus.unbind();
+        gameStatus.unbind();
+        clanTag.unbind();
+      }
+      if (player != null) {
+        player.getChatChannelUsers().add(this);
+        socialStatus.bind(player.socialStatusProperty());
+        gameStatus.bind(player.statusProperty());
+        clanTag.bind(Bindings.createStringBinding(() -> {
+          if (player.getClan() != null && !player.getClan().isBlank()) {
+            return String.format("[%s]", player.getClan());
+          }
+          return null;
+        }, player.clanProperty()));
+      }
+      this.player.set(player);
     }
-    if (player != null) {
-      player.getChatChannelUsers().add(this);
-      socialStatus.bind(player.socialStatusProperty());
-      gameStatus.bind(player.statusProperty());
-      clanTag.bind(Bindings.createStringBinding(() -> {
-        if (player.getClan() != null && !player.getClan().isBlank()) {
-          return String.format("[%s]", player.getClan());
-        }
-        return null;
-      }, player.clanProperty()));
-    }
-    this.player.set(player);
   }
 
   public ObjectProperty<Player> playerProperty() {

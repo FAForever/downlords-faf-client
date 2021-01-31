@@ -78,7 +78,7 @@ public class UserFilterController implements Controller<Node> {
   }
 
   private boolean filterUser(CategoryOrChatUserListItem userListItem) {
-    if (userListItem.getCategory() != null) {
+    if (userListItem.getUser() == null) {
       // The categories should display in the list independently of a filter
       return true;
     }

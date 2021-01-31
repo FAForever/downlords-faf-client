@@ -52,7 +52,7 @@ public class MockChatService implements ChatService, InitializingBean {
 
   private final Timer timer = new Timer(true);
   private final Collection<Consumer<ChatMessage>> onChatMessageListeners = new ArrayList<>();
-  private final Map<String, Channel> channelUserListListeners = new HashMap<>();
+  private final Map<String, ChatChannel> channelUserListListeners = new HashMap<>();
   private final ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
   private final IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
 
@@ -100,8 +100,8 @@ public class MockChatService implements ChatService, InitializingBean {
   }
 
   @Override
-  public Channel getOrCreateChannel(String channelName) {
-    channelUserListListeners.putIfAbsent(channelName, new Channel(channelName));
+  public ChatChannel getOrCreateChannel(String channelName) {
+    channelUserListListeners.putIfAbsent(channelName, new ChatChannel(channelName));
     return channelUserListListeners.get(channelName);
   }
 
@@ -121,7 +121,7 @@ public class MockChatService implements ChatService, InitializingBean {
   }
 
   @Override
-  public void addChannelsListener(MapChangeListener<String, Channel> listener) {
+  public void addChannelsListener(MapChangeListener<String, ChatChannel> listener) {
 
   }
 
@@ -149,11 +149,11 @@ public class MockChatService implements ChatService, InitializingBean {
         ChatChannelUser mockUser = new ChatChannelUser("MockUser", false);
         ChatChannelUser moderatorUser = new ChatChannelUser("MockModerator", true);
 
-        Channel channel = getOrCreateChannel(channelName);
-        channel.addUser(chatUser);
-        channel.addUser(mockUser);
-        channel.addUser(moderatorUser);
-        channel.setTopic("le wild channel topic appears");
+        ChatChannel chatChannel = getOrCreateChannel(channelName);
+        chatChannel.addUser(chatUser);
+        chatChannel.addUser(mockUser);
+        chatChannel.addUser(moderatorUser);
+        chatChannel.setTopic("le wild channel topic appears");
 
         return null;
       }
