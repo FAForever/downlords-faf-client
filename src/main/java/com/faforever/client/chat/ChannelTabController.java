@@ -64,7 +64,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -598,29 +597,16 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   @VisibleForTesting
-  protected List<CategoryOrChatUserListItem> getChatUserItemsByCategory(ChatUserCategory category) {
+  List<CategoryOrChatUserListItem> getChatUserItemsByCategory(ChatUserCategory category) {
     CategoryOrChatUserListItem categoryItem = categoriesToCategoryListItems.get(category);
     if (categoryItem == null) {
       return Collections.emptyList();
     }
-    int categoryIndex = filteredChatUserList.indexOf(categoryItem);
-    if (categoryIndex == -1) {
-      return Collections.emptyList();
-    }
-    List<CategoryOrChatUserListItem> users = new ArrayList<>();
-    Iterator<CategoryOrChatUserListItem> iterator = filteredChatUserList.listIterator(++categoryIndex); // to start with first user of this category
-    while (iterator.hasNext()) {
-      CategoryOrChatUserListItem item = iterator.next();
-      if (item.getCategory() != category) {
-        break;
-      }
-      users.add(item);
-    }
-    return users;
+    return filteredChatUserList.stream().filter(item -> item.getUser() != null && item.getCategory() == category).collect(Collectors.toList());
   }
 
   @VisibleForTesting
-  protected boolean checkUsersAreInList(ChatUserCategory category, String... usernames) {
+  boolean checkUsersAreInList(ChatUserCategory category, String... usernames) {
     List<String> names = Arrays.asList(usernames);
     long foundItems = getChatUserItemsByCategory(category).stream()
         .map(userItem -> userItem.getUser().getUsername()).filter(names::contains).count();
