@@ -2,8 +2,10 @@ package com.faforever.client.remote.domain;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class SearchInfoMessage extends FafServerMessage {
 
   @SerializedName("queue_name")
