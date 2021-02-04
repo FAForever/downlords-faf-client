@@ -239,6 +239,8 @@ public class ChannelTabController extends AbstractChatTabController {
             .forEach(chatUser -> updateUserMessageDisplay(chatUser, ""));
       }
     }));
+
+    JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), ((observable, oldValue, newValue) -> chatChannel.getUsers().forEach(this::updateUserMessageColor)));
   }
 
   private void updateChannelTopic() {

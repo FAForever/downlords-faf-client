@@ -312,6 +312,28 @@ public class ChatChannelTabControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void getInlineStyleChangeToRandom() {
+    String somePlayer = "somePlayer";
+
+    ChatChannelUser chatUser = new ChatChannelUser(somePlayer, false);
+
+    when(chatService.getChatUser(somePlayer, CHANNEL_NAME)).thenReturn(chatUser);
+    runOnFxThreadAndWait(() -> {
+      instance.setChatChannel(defaultChatChannel);
+      preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
+      preferences.getChat().setHideFoeMessages(false);
+    });
+
+    Color color = ColorGeneratorUtil.generateRandomColor();
+    chatUser.setColor(color);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    String expected = instance.createInlineStyleFromColor(color);
+    String result = instance.getInlineStyle(somePlayer);
+    assertEquals(expected, result);
+  }
+
+  @Test
   public void getInlineStyleRandom() {
     String somePlayer = "somePlayer";
     Color color = ColorGeneratorUtil.generateRandomColor();
