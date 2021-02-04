@@ -468,17 +468,18 @@ public class ChannelTabController extends AbstractChatTabController {
   private void addToTreeItemSorted(CategoryOrChatUserListItem child) {
     ChatUserCategory category = child.getCategory();
     CategoryOrChatUserListItem parent = categoriesToCategoryListItems.get(category);
-    JavaFxUtil.runLater(() -> {
+    synchronized (chatUserListItems) {
       for (int index = chatUserListItems.indexOf(parent) + 1; index < chatUserListItems.size(); index++) {
         CategoryOrChatUserListItem otherItem = chatUserListItems.get(index);
 
         if (otherItem.getCategory() != category || CHAT_USER_ITEM_COMPARATOR.compare(child, otherItem) > 0) {
-          chatUserListItems.add(index, child);
+          int finalIndex = index;
+          JavaFxUtil.runLater(() -> chatUserListItems.add(finalIndex, child));
           return;
         }
       }
-      chatUserListItems.add(child);
-    });
+      JavaFxUtil.runLater(() -> chatUserListItems.add(child));
+    }
   }
 
   private void updateCssClass(ChatChannelUser chatUser) {
