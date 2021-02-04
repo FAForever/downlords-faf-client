@@ -2,11 +2,13 @@ package com.faforever.client.remote.domain;
 
 import com.faforever.client.game.Faction;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class PartyInfoMessage extends FafServerMessage {
 
   private Integer owner;

@@ -3,8 +3,10 @@ package com.faforever.client.api.dto;
 import com.github.jasminb.jsonapi.annotations.Relationship;
 import com.github.jasminb.jsonapi.annotations.Type;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Type("tutorial")
 public class Tutorial extends AbstractEntity {
   private String descriptionKey;
